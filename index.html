@@ -44,9 +44,11 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 32px;
-    height: 58px;
-    background: var(--panel);
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 32px;
+    min-height: 58px;
+    background: linear-gradient(180deg, #16171d 0%, #111318 100%);
     border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
@@ -59,13 +61,15 @@
     font-size: 15px;
     font-weight: 700;
     letter-spacing: .4px;
+    white-space: nowrap;
   }
-  .header-brand svg { color: var(--orange); }
+  .header-brand svg { color: var(--orange); flex-shrink: 0; }
   .header-brand span { color: var(--orange); }
   .header-right {
     display: flex;
     align-items: center;
     gap: 12px;
+    flex-wrap: wrap;
   }
   .badge-env {
     font-size: 10px;
@@ -75,6 +79,7 @@
     border-radius: 4px;
     border: 1px solid var(--orange);
     color: var(--orange);
+    white-space: nowrap;
   }
   #btn-config {
     background: transparent;
@@ -85,6 +90,7 @@
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
+    white-space: nowrap;
     transition: color .15s, border-color .15s;
   }
   #btn-config:hover { color: var(--text); border-color: var(--border2); }
@@ -93,7 +99,7 @@
   .container {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 32px 24px 80px;
+    padding: 32px 24px 100px;
   }
 
   /* ── PAGE TITLE ── */
@@ -316,6 +322,7 @@
     z-index: 200;
     display: flex; align-items: center; justify-content: center;
     padding: 24px;
+    overflow-y: auto;
   }
   .overlay.hidden { display: none; }
 
@@ -328,6 +335,8 @@
     padding: 28px;
     width: 100%;
     max-width: 560px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
     position: relative;
     box-shadow: 0 24px 64px -16px rgba(0,0,0,.8);
   }
@@ -439,11 +448,12 @@
   .config-row {
     display: flex;
     align-items: center;
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 6px 12px;
     margin-bottom: 10px;
   }
   .config-row label { min-width: 120px; margin-bottom: 0; font-size: 12px; }
-  .config-row input { flex: 1; }
+  .config-row input { flex: 1; min-width: 160px; }
   .status-dot {
     width: 8px; height: 8px;
     border-radius: 50%;
@@ -541,12 +551,19 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 10px 12px;
     z-index: 50;
     font-size: 12px;
     color: var(--dim);
   }
-  .save-bar .save-info { display: flex; align-items: center; gap: 8px; }
+  .save-bar .save-info { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .save-bar .save-info span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .save-bar .save-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   #btn-save-gh {
     background: var(--orange);
     border: none;
@@ -562,10 +579,53 @@
   #btn-save-gh:hover { background: var(--orange2); }
   #btn-save-gh:disabled { opacity: .4; cursor: not-allowed; }
 
-  @media (max-width: 600px) {
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--orange); }
+
+  /* ── RESPONSIVO ── */
+  @media (max-width: 900px) {
+    header { padding: 10px 20px; }
+    .container { padding: 24px 16px 110px; }
+  }
+
+  @media (max-width: 640px) {
+    header { justify-content: center; text-align: center; }
+    .header-right { width: 100%; justify-content: center; }
+    .page-title { flex-direction: column; align-items: stretch; }
+    .page-title .btn-primary { justify-content: center; }
+    .toolbar { flex-direction: column; align-items: stretch; }
+    .search-wrap { max-width: none; }
+    .filter-select { width: 100%; }
     .form-grid { grid-template-columns: 1fr; }
-    .ann-card  { grid-template-columns: 1fr; }
+    .ann-card { grid-template-columns: 1fr !important; }
     .ann-actions { flex-direction: row; align-items: flex-start; }
+    .save-bar { flex-direction: column; align-items: stretch; text-align: center; padding: 12px 16px; }
+    .save-bar .save-info { justify-content: center; }
+    .save-bar .save-actions { justify-content: center; }
+    .modal { padding: 20px; border-radius: 12px; }
+    .overlay { padding: 12px; }
+    .config-row label { min-width: 100%; }
+
+    /* O card de cada imagem da Hero é montado via JS com
+       grid-template-columns inline (auto 1fr auto) — precisa de
+       !important pra ganhar da inline style em telas estreitas. */
+    #hero-list > div {
+      grid-template-columns: 1fr !important;
+      justify-items: stretch;
+    }
+    #hero-list > div > div:first-child {
+      width: 100% !important;
+      height: 90px !important;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .header-brand { font-size: 13px; }
+    .stat-value { font-size: 22px; }
   }
 </style>
 </head>
@@ -681,7 +741,7 @@
     <span class="status-dot" id="gh-status-dot"></span>
     <span id="gh-status-text">Configure o GitHub para salvar automaticamente</span>
   </div>
-  <div style="display:flex;align-items:center;gap:8px">
+  <div class="save-actions" style="display:flex;align-items:center;gap:8px">
     <button id="btn-reload-gh" style="background:transparent;border:1px solid var(--border2);color:var(--dim);padding:9px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
         <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
