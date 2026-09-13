@@ -699,6 +699,24 @@
   </div>
 </div>
 
+  <!-- SERVIDORES -->
+<div class="json-section" style="margin-bottom:28px;">
+  <div class="json-header">
+    <span>🖥️ SERVIDORES — ABA "SERVIDORES" DO LAUNCHER</span>
+    <button class="btn-copy" id="btn-add-server">+ Adicionar servidor</button>
+  </div>
+
+  <p style="font-size:11px;color:var(--dim);padding:12px 16px 0;">
+    O launcher consulta cada servidor ao vivo (mapa, jogadores, status)
+    direto por UDP — aqui você só cadastra QUAIS servidores mostrar
+    (nome, endereço e uma legenda opcional), não os dados de jogo em si.
+    Usa os mesmos botões "Recarregar do GitHub" / "Salvar no GitHub" lá
+    embaixo (salva anúncios + servidores juntos).
+  </p>
+
+  <div id="servers-list" style="padding:16px;"></div>
+</div>
+
   <!-- TOOLBAR -->
   <div class="toolbar">
     <div class="search-wrap">
@@ -847,8 +865,12 @@
         <input type="text" id="gh-repo" placeholder="NeuraCSlauncher"/>
       </div>
       <div class="config-row">
-        <label>Caminho do arquivo</label>
+        <label>Caminho do arquivo (anúncios)</label>
         <input type="text" id="gh-path" placeholder="src/announcements.json"/>
+      </div>
+      <div class="config-row">
+        <label>Caminho do arquivo (servidores)</label>
+        <input type="text" id="gh-servers-path" placeholder="src/server-list.json"/>
       </div>
       <div class="config-row">
         <label>Branch</label>
@@ -898,6 +920,7 @@ const ghCfg = () => ({
   owner:  localStorage.getItem('gh_owner')  || 'guilhermeteixeira01',
   repo:   localStorage.getItem('gh_repo')   || 'NeuraCSlauncher',
   path:   localStorage.getItem('gh_path')   || 'src/announcements.json',
+  serversPath: localStorage.getItem('gh_servers_path') || 'src/server-list.json',
   branch: localStorage.getItem('gh_branch') || 'main',
   token:  localStorage.getItem('gh_token')  || '',
 });
@@ -1006,6 +1029,180 @@ function saveHero() {
   renderHero();
 }
 document.getElementById('btn-save-hero').addEventListener('click', saveHero);
+
+// ============================================================
+// SERVIDORES
+// ============================================================
+// Mesma ideia da Hero acima (lista simples, edição direto nos campos,
+// salva tudo de uma vez) -- só que cada "servidor" tem mais de um
+// campo (nome, host, porta, legenda). O launcher consulta cada
+// servidor ao vivo por conta própria (protocolo do próprio jogo); o
+// que fica salvo aqui é só a LISTA de quais servidores mostrar.
+let servers = JSON.parse(localStorage.getItem('ncs_servers') || '[]');
+let serversGhSha = null;
+
+function emptyServer() {
+  return { name: '', host: '', port: 27015, label: '' };
+}
+
+function renderServers() {
+  const container = document.getElementById('servers-list');
+
+  if (!servers.length) {
+    container.innerHTML = `
+      <div class="empty-state" style="padding:30px;">
+        <p>Nenhum servidor cadastrado ainda.</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = servers.map((srv, index) => `
+    <div style="
+      display:grid;
+      grid-template-columns:2fr 1.4fr 90px 1fr auto;
+      gap:10px;
+      align-items:center;
+      margin-bottom:10px;
+      background:var(--panel2);
+      border:1px solid var(--border);
+      padding:10px;
+      border-radius:8px;
+    ">
+      <div>
+        <div style="font-size:10px;color:var(--dim);margin-bottom:5px;font-weight:700;">NOME</div>
+        <input type="text" value="${esc(srv.name)}" placeholder="Servidor Principal" data-server-index="${index}" data-server-field="name"/>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--dim);margin-bottom:5px;font-weight:700;">HOST / IP</div>
+        <input type="text" value="${esc(srv.host)}" placeholder="185.219.189.44" data-server-index="${index}" data-server-field="host"/>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--dim);margin-bottom:5px;font-weight:700;">PORTA</div>
+        <input type="text" value="${esc(srv.port)}" placeholder="27015" data-server-index="${index}" data-server-field="port"/>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--dim);margin-bottom:5px;font-weight:700;">LEGENDA</div>
+        <input type="text" value="${esc(srv.label)}" placeholder="Brasil" data-server-index="${index}" data-server-field="label"/>
+      </div>
+      <button class="btn-icon del" onclick="removeServer(${index})" title="Remover" style="margin-top:16px;">✕</button>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('[data-server-index]').forEach(input => {
+    input.addEventListener('input', e => {
+      const index = Number(e.target.dataset.serverIndex);
+      const field = e.target.dataset.serverField;
+      servers[index][field] = field === 'port' ? (Number(e.target.value) || 0) : e.target.value;
+    });
+  });
+}
+
+function removeServer(index) {
+  servers.splice(index, 1);
+  renderServers();
+}
+
+document.getElementById('btn-add-server').addEventListener('click', () => {
+  servers.push(emptyServer());
+  renderServers();
+});
+
+// ── GITHUB LOAD (servidores) ────────────────────────────────────────
+async function loadServersFromGitHub({ silent = false } = {}) {
+  const c = ghCfg();
+  if (!c.owner || !c.repo) {
+    if (!silent) toast('Configure o GitHub primeiro.', 'error');
+    return;
+  }
+
+  // Antes tinha um botão próprio ("Recarregar servidores do GitHub")
+  // -- agora essa função é chamada junto com loadFromGitHub() pelo
+  // botão "Recarregar do GitHub" lá embaixo.
+
+  const url = `https://api.github.com/repos/${c.owner}/${c.repo}/contents/${c.serversPath}?ref=${c.branch}`;
+  const headers = { 'Accept': 'application/vnd.github.v3+json' };
+  if (c.token) headers['Authorization'] = `token ${c.token}`;
+
+  try {
+    const res = await fetch(url, { headers });
+    if (res.status === 404) {
+      serversGhSha = null;
+      if (!silent) toast('Nenhum server-list.json encontrado ainda no repositório.', 'info');
+      return;
+    }
+    if (!res.ok) throw new Error(`GitHub API: ${res.status} ${res.statusText}`);
+
+    const data = await res.json();
+    serversGhSha = data.sha || null;
+
+    const parsed = JSON.parse(decodeGhContent(data.content || ''));
+    servers = Array.isArray(parsed.servers) ? parsed.servers : [];
+
+    localStorage.setItem('ncs_servers', JSON.stringify(servers));
+    renderServers();
+    if (!silent) toast(`✓ ${servers.length} servidor(es) carregado(s) do GitHub.`, 'success');
+  } catch (err) {
+    console.error(err);
+    if (!silent) toast(`Erro ao carregar servidores: ${err.message}`, 'error');
+  }
+}
+
+// ── GITHUB SAVE (servidores) ────────────────────────────────────────
+async function saveServersToGitHub() {
+  const c = ghCfg();
+  if (!c.owner || !c.repo || !c.token) {
+    openConfig();
+    toast('Configure o GitHub primeiro.', 'error');
+    return;
+  }
+
+  // Antes tinha um botão próprio ("Salvar servidores no GitHub") --
+  // agora essa função é chamada junto com saveToGitHub() pelo botão
+  // "Salvar no GitHub" lá embaixo (ver o addEventListener dele mais
+  // abaixo), então não depende mais de nenhum elemento específico
+  // aqui pra mostrar "carregando".
+
+  // Tira servidores sem host preenchido (linha em branco esquecida) antes
+  // de salvar, pra não mandar lixo pro launcher tentar consultar.
+  const cleanServers = servers.filter(s => s.host && s.host.trim());
+
+  const content = JSON.stringify({ servers: cleanServers }, null, 2);
+  const encoded = btoa(unescape(encodeURIComponent(content)));
+
+  const url = `https://api.github.com/repos/${c.owner}/${c.repo}/contents/${c.serversPath}`;
+  const headers = {
+    'Authorization': `token ${c.token}`,
+    'Content-Type': 'application/json',
+    'Accept': 'application/vnd.github.v3+json',
+  };
+
+  try {
+    let sha = serversGhSha;
+    if (!sha) {
+      const res = await fetch(url + `?ref=${c.branch}`, { headers });
+      if (res.ok) { const d = await res.json(); sha = d.sha; }
+    }
+
+    const body = {
+      message: `chore: update server-list [dashboard] — ${new Date().toISOString().slice(0, 19).replace('T', ' ')}`,
+      content: encoded,
+      branch: c.branch,
+    };
+    if (sha) body.sha = sha;
+
+    const res = await fetch(url, { method: 'PUT', headers, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error(`GitHub API: ${res.status} ${res.statusText}`);
+    const data = await res.json();
+    serversGhSha = data.content?.sha || null;
+    toast('Servidores salvos no GitHub com sucesso!', 'success');
+  } catch (err) {
+    console.error(err);
+    toast(`Erro ao salvar servidores: ${err.message}`, 'error');
+  }
+}
+
+
 
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -1258,6 +1455,7 @@ function openConfig() {
   document.getElementById('gh-owner').value  = c.owner;
   document.getElementById('gh-repo').value   = c.repo;
   document.getElementById('gh-path').value   = c.path;
+  document.getElementById('gh-servers-path').value = c.serversPath;
   document.getElementById('gh-branch').value = c.branch;
   document.getElementById('gh-token').value  = c.token;
   document.getElementById('config-overlay').classList.remove('hidden');
@@ -1267,6 +1465,7 @@ function saveConfig() {
   localStorage.setItem('gh_owner',  document.getElementById('gh-owner').value.trim());
   localStorage.setItem('gh_repo',   document.getElementById('gh-repo').value.trim());
   localStorage.setItem('gh_path',   document.getElementById('gh-path').value.trim());
+  localStorage.setItem('gh_servers_path', document.getElementById('gh-servers-path').value.trim());
   localStorage.setItem('gh_branch', document.getElementById('gh-branch').value.trim());
   localStorage.setItem('gh_token',  document.getElementById('gh-token').value.trim());
   toast('Configuração salva!', 'success');
@@ -1280,7 +1479,7 @@ function updateGhStatus() {
   const text = document.getElementById('gh-status-text');
   if (c.owner && c.repo && c.token) {
     dot.className  = 'status-dot ok';
-    text.textContent = `${c.owner}/${c.repo} — ${c.path}`;
+    text.textContent = `${c.owner}/${c.repo} — ${c.path} + ${c.serversPath}`;
   } else {
     dot.className  = 'status-dot err';
     text.textContent = 'Configure o GitHub para salvar automaticamente';
@@ -1439,8 +1638,18 @@ document.getElementById('config-cancel').addEventListener('click', closeConfig);
 document.getElementById('config-save').addEventListener('click', saveConfig);
 document.getElementById('config-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeConfig(); });
 
-document.getElementById('btn-save-gh').addEventListener('click', saveToGitHub);
-document.getElementById('btn-reload-gh').addEventListener('click', () => loadFromGitHub());
+async function saveAllToGitHub() {
+  await saveToGitHub();
+  await saveServersToGitHub();
+}
+
+async function loadAllFromGitHub(opts) {
+  await loadFromGitHub(opts);
+  await loadServersFromGitHub(opts);
+}
+
+document.getElementById('btn-save-gh').addEventListener('click', saveAllToGitHub);
+document.getElementById('btn-reload-gh').addEventListener('click', () => loadAllFromGitHub());
 document.getElementById('btn-copy-json').addEventListener('click', copyJson);
 
 document.getElementById('search').addEventListener('input', render);
@@ -1461,7 +1670,9 @@ document.addEventListener('keydown', e => {
 // ── INIT ───────────────────────────────────────────────────────────────
 render();
 renderHero();
+renderServers();
 loadFromGitHub({ silent: true });
+loadServersFromGitHub({ silent: true });
 </script>
 </body>
 </html>
