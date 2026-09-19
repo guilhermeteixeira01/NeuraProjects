@@ -11,6 +11,9 @@
 <link rel="icon" type="image/png" sizes="512x512" href="assets/logos/android-chrome-512x512.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Neura Project — Painel Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg:      #0b0c0f;
@@ -22,12 +25,18 @@
     --dim:     #7a7b85;
     --orange:  #ff7a1a;
     --orange2: #ff9a3c;
+    --blue:    #1a73e8;
+    --blue2:   #3498db;
     --green:   #3ddc84;
     --red:     #e05252;
     --yellow:  #e8b923;
+    --font-display: "Chakra Petch", "Segoe UI", sans-serif;
+    --font-mono: "JetBrains Mono", "Consolas", monospace;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { overflow-x: hidden; }
 
   body {
     background:
@@ -37,6 +46,7 @@
     color: var(--text);
     font-family: 'Segoe UI', system-ui, sans-serif;
     min-height: 100vh;
+    overflow-x: hidden;
   }
 
   /* ── HEADER ── */
@@ -53,18 +63,34 @@
     position: sticky;
     top: 0;
     z-index: 100;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    left: -40px;
+    width: 220px;
+    height: 220px;
+    background: var(--blue);
+    opacity: .12;
+    border-radius: 50%;
+    filter: blur(60px);
+    pointer-events: none;
+    z-index: -1;
   }
   .header-brand {
     display: flex;
     align-items: center;
     gap: 12px;
+    font-family: var(--font-display);
     font-size: 15px;
     font-weight: 700;
     letter-spacing: .4px;
     white-space: nowrap;
   }
-  .header-brand svg { color: var(--orange); flex-shrink: 0; }
-  .header-brand span { color: var(--orange); }
+  .header-brand svg { color: var(--blue2); flex-shrink: 0; filter: drop-shadow(0 0 7px rgba(26,115,232,.55)); }
+  .header-brand span { color: var(--blue2); }
   .header-right {
     display: flex;
     align-items: center;
@@ -72,13 +98,14 @@
     flex-wrap: wrap;
   }
   .badge-env {
+    font-family: var(--font-mono);
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 1px;
     padding: 3px 8px;
     border-radius: 4px;
-    border: 1px solid var(--orange);
-    color: var(--orange);
+    border: 1px solid var(--blue);
+    color: var(--blue2);
     white-space: nowrap;
   }
   #btn-config {
@@ -112,11 +139,12 @@
     flex-wrap: wrap;
   }
   .page-title h1 {
+    font-family: var(--font-display);
     font-size: 22px;
     font-weight: 800;
     letter-spacing: .5px;
   }
-  .page-title h1 span { color: var(--orange); }
+  .page-title h1 span { color: var(--blue2); }
   .page-title p { font-size: 12px; color: var(--dim); margin-top: 4px; }
 
   /* ── STATS ROW ── */
@@ -133,26 +161,45 @@
     padding: 16px 18px;
     position: relative;
     overflow: hidden;
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    opacity: 0;
+    transform: translateY(14px);
+    animation: statCardIn .5s cubic-bezier(.16,.84,.44,1) forwards;
+  }
+  .stat-card:nth-child(1) { animation-delay: .02s; }
+  .stat-card:nth-child(2) { animation-delay: .08s; }
+  .stat-card:nth-child(3) { animation-delay: .14s; }
+  .stat-card:nth-child(4) { animation-delay: .2s; }
+  @keyframes statCardIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .stat-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--blue);
+    box-shadow: 0 10px 24px rgba(0,0,0,.35), 0 0 0 1px rgba(26,115,232,.15);
   }
   .stat-card::before {
     content: '';
     position: absolute;
     top: 0; left: 0;
     width: 28px; height: 2px;
-    background: linear-gradient(90deg, var(--orange), transparent);
+    background: linear-gradient(90deg, var(--blue), transparent);
   }
   .stat-card::after {
     content: '';
     position: absolute;
     top: 0; left: 0;
     width: 2px; height: 28px;
-    background: linear-gradient(180deg, var(--orange), transparent);
+    background: linear-gradient(180deg, var(--blue), transparent);
   }
-  .stat-label { font-size: 10px; letter-spacing: 1px; color: var(--dim); font-weight: 700; }
+  .stat-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px; color: var(--dim); font-weight: 700; }
   .stat-value { font-size: 28px; font-weight: 900; margin-top: 4px; }
   .stat-value.orange { color: var(--orange); }
   .stat-value.green  { color: var(--green); }
   .stat-value.yellow { color: var(--yellow); }
+  @media (prefers-reduced-motion: reduce) {
+    .stat-card { animation: none; opacity: 1; transform: none; }
+  }
 
   /* ── TOOLBAR ── */
   .toolbar {
@@ -163,7 +210,7 @@
     flex-wrap: wrap;
   }
   .btn-primary {
-    background: var(--orange);
+    background: var(--blue);
     border: none;
     color: #fff;
     font-weight: 700;
@@ -173,9 +220,9 @@
     border-radius: 7px;
     cursor: pointer;
     display: flex; align-items: center; gap: 7px;
-    transition: background .15s, transform .1s;
+    transition: background .15s, transform .1s, box-shadow .15s;
   }
-  .btn-primary:hover { background: var(--orange2); }
+  .btn-primary:hover { background: var(--blue2); box-shadow: 0 0 0 4px rgba(26,115,232,.18); }
   .btn-primary:active { transform: scale(.97); }
   .search-wrap {
     flex: 1;
@@ -201,7 +248,7 @@
     outline: none;
     transition: border-color .15s;
   }
-  #search:focus { border-color: var(--orange); }
+  #search:focus { border-color: var(--blue); }
   #search::placeholder { color: var(--dim); }
   .filter-select {
     background: var(--panel);
@@ -345,7 +392,7 @@
     position: absolute;
     top: 0; left: 0;
     width: 48px; height: 2px;
-    background: linear-gradient(90deg, var(--orange), transparent);
+    background: linear-gradient(90deg, var(--blue), transparent);
     border-radius: 2px;
   }
   .modal::after {
@@ -353,7 +400,7 @@
     position: absolute;
     top: 0; left: 0;
     width: 2px; height: 48px;
-    background: linear-gradient(180deg, var(--orange), transparent);
+    background: linear-gradient(180deg, var(--blue), transparent);
     border-radius: 2px;
   }
   .modal-header {
@@ -362,8 +409,8 @@
     justify-content: space-between;
     margin-bottom: 24px;
   }
-  .modal-header h2 { font-size: 16px; font-weight: 800; letter-spacing: .4px; }
-  .modal-header h2 span { color: var(--orange); }
+  .modal-header h2 { font-family: var(--font-display); font-size: 16px; font-weight: 800; letter-spacing: .4px; }
+  .modal-header h2 span { color: var(--blue2); }
   .btn-close {
     background: transparent;
     border: 1px solid var(--border);
@@ -406,7 +453,7 @@
   input[type="text"]:focus,
   input[type="date"]:focus,
   textarea:focus,
-  select:focus { border-color: var(--orange); }
+  select:focus { border-color: var(--blue); }
   textarea { resize: vertical; min-height: 80px; }
   select option { background: #1a1b21; }
 
@@ -507,8 +554,11 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
     padding: 12px 16px;
     border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
     font-size: 11px;
     font-weight: 700;
     letter-spacing: .6px;
@@ -562,10 +612,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
+    flex: 1 1 auto;
   }
   .save-bar .save-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   #btn-save-gh {
-    background: var(--orange);
+    background: var(--blue);
     border: none;
     color: #fff;
     font-weight: 700;
@@ -576,14 +628,14 @@
     display: flex; align-items: center; gap: 6px;
     transition: background .15s;
   }
-  #btn-save-gh:hover { background: var(--orange2); }
+  #btn-save-gh:hover { background: var(--blue2); }
   #btn-save-gh:disabled { opacity: .4; cursor: not-allowed; }
 
   /* ── SCROLLBAR ── */
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--orange); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--blue); }
 
   /* ── RESPONSIVO ── */
   @media (max-width: 900px) {
@@ -602,9 +654,13 @@
     .form-grid { grid-template-columns: 1fr; }
     .ann-card { grid-template-columns: 1fr !important; }
     .ann-actions { flex-direction: row; align-items: flex-start; }
-    .save-bar { flex-direction: column; align-items: stretch; text-align: center; padding: 12px 16px; }
+    .save-bar { flex-direction: column; align-items: stretch; text-align: center; padding: 12px 16px; overflow-x: hidden; }
     .save-bar .save-info { justify-content: center; }
-    .save-bar .save-actions { justify-content: center; }
+    .save-bar .save-actions { flex-direction: column; align-items: stretch; justify-content: center; }
+    #btn-reload-gh, #btn-save-gh {
+      width: 100% !important;
+      justify-content: center !important;
+    }
     .modal { padding: 20px; border-radius: 12px; }
     .overlay { padding: 12px; }
     .config-row label { min-width: 100%; }
@@ -619,6 +675,25 @@
     #hero-list > div > div:first-child {
       width: 100% !important;
       height: 90px !important;
+    }
+
+    /* Mesma ideia pra lista de Servidores -- a linha de cada servidor
+       é montada via JS com grid-template-columns inline
+       (2fr 1.4fr 90px 1fr auto: nome/host/porta/legenda/remover), que
+       não cabe de jeito nenhum numa tela de celular. */
+    #servers-list > div > div:first-child {
+      grid-template-columns: 1fr !important;
+      gap: 8px !important;
+    }
+    #servers-list > div > div:first-child > button {
+      margin-top: 0 !important;
+      justify-self: flex-start;
+    }
+    #servers-list > div > div:last-child {
+      flex-wrap: wrap;
+    }
+    #servers-list label {
+      white-space: normal !important;
     }
   }
 
@@ -1512,10 +1587,15 @@ function updateGhStatus() {
   const text = document.getElementById('gh-status-text');
   if (c.owner && c.repo && c.token) {
     dot.className  = 'status-dot ok';
-    text.textContent = `${c.owner}/${c.repo} — ${c.path} + ${c.serversPath}`;
+    // Só dono/repositório na tela (curto, não quebra o layout em
+    // telas estreitas) -- o caminho completo dos arquivos fica
+    // disponível passando o mouse (title), pra quem quiser conferir.
+    text.textContent = `${c.owner}/${c.repo}`;
+    text.title = `${c.owner}/${c.repo} — ${c.path} + ${c.serversPath}`;
   } else {
     dot.className  = 'status-dot err';
     text.textContent = 'Configure o GitHub para salvar automaticamente';
+    text.removeAttribute('title');
   }
 }
 

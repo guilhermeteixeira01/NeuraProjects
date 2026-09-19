@@ -191,10 +191,43 @@
 
   /* ── HERO ── */
   .hero {
+    position: relative;
+    overflow: hidden;
     padding: 76px 0 56px;
     border-bottom: 1px solid var(--border);
   }
+  .hero-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(110px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hero-glow-1 {
+    width: 460px; height: 460px;
+    top: -140px; left: -120px;
+    background: var(--blue);
+    opacity: 0.22;
+    animation: heroGlowDrift1 14s ease-in-out infinite;
+  }
+  .hero-glow-2 {
+    width: 420px; height: 420px;
+    bottom: -160px; right: -110px;
+    background: var(--green);
+    opacity: 0.14;
+    animation: heroGlowDrift2 16s ease-in-out infinite;
+  }
+  @keyframes heroGlowDrift1 {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(50px, 30px); }
+  }
+  @keyframes heroGlowDrift2 {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-40px, -35px); }
+  }
   .hero-inner {
+    position: relative;
+    z-index: 1;
     display: grid;
     grid-template-columns: minmax(0, 460px) 1fr;
     gap: 56px;
@@ -325,9 +358,20 @@
     align-items: center;
     padding: 22px 4px;
     border-bottom: 1px solid var(--border);
-    transition: background .15s;
+    border-left: 2px solid transparent;
+    transition: background .2s ease, border-color .2s ease, padding-left .2s ease;
   }
-  .spec-row:hover { background: rgba(255,255,255,.015); }
+  .spec-row:hover {
+    background: rgba(26, 115, 232, .05);
+    border-left-color: var(--blue);
+    padding-left: 14px;
+  }
+  .spec-row:hover .spec-icon {
+    color: var(--blue-2);
+    border-color: var(--blue);
+    box-shadow: 0 0 0 4px rgba(26, 115, 232, .1);
+    transform: scale(1.06);
+  }
   .spec-icon {
     width: 44px; height: 44px;
     border-radius: 9px;
@@ -336,6 +380,31 @@
     display: flex; align-items: center; justify-content: center;
     color: var(--blue);
     flex-shrink: 0;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, color .2s ease;
+  }
+  .spec-row:hover .spec-tag { color: var(--blue-2); border-color: var(--blue); }
+  .spec-tag { transition: color .2s ease, border-color .2s ease; }
+  .spec-tag.is-new { color: var(--green); border-color: var(--green-2); }
+
+  /* ── Efeito "aparece ao rolar" -- usado no section-head e em cada
+     spec-row; a classe .is-visible é adicionada via IntersectionObserver
+     no script no fim da página. ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity .65s cubic-bezier(.16,.84,.44,1), transform .65s cubic-bezier(.16,.84,.44,1);
+  }
+  .reveal.is-visible { opacity: 1; transform: translateY(0); }
+  .spec-list .reveal:nth-child(1) { transition-delay: 0s; }
+  .spec-list .reveal:nth-child(2) { transition-delay: .05s; }
+  .spec-list .reveal:nth-child(3) { transition-delay: .1s; }
+  .spec-list .reveal:nth-child(4) { transition-delay: .15s; }
+  .spec-list .reveal:nth-child(5) { transition-delay: .2s; }
+  .spec-list .reveal:nth-child(6) { transition-delay: .25s; }
+  .spec-list .reveal:nth-child(7) { transition-delay: .3s; }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .hero-glow-1, .hero-glow-2 { animation: none; }
   }
   .spec-body h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
   .spec-body p { font-size: 13px; color: var(--dim); max-width: 56ch; }
@@ -427,7 +496,6 @@
     .logosocial1 {width: 35px;}
     .logosocial2 {width: 40px;}
     .logosocial3 {width: 36px;}
-    .btn-primary {display: none;}
   }
 
   @media (max-width: 720px) {
@@ -449,6 +517,116 @@
     .hero h1 { font-size: 27px; }
     .hero-actions .btn { flex: 1 1 auto; }
     .hero-tag-float { right: 12px; }
+  }
+
+  /* ── Popup "só desktop" (aparece quando clica em Baixar pelo celular) ── */
+  .mobile-warn-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(6, 7, 9, 0.72);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .mobile-warn-overlay.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .mobile-warn-card {
+    position: relative;
+    width: 100%;
+    max-width: 380px;
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--border-2);
+    border-radius: 16px;
+    padding: 28px 24px 24px;
+    text-align: center;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
+    transform: translateY(10px) scale(0.98);
+    transition: transform 0.2s ease;
+  }
+
+  .mobile-warn-overlay.is-open .mobile-warn-card {
+    transform: translateY(0) scale(1);
+  }
+
+  .mobile-warn-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--dim);
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .mobile-warn-close:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--text);
+  }
+
+  .mobile-warn-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(26, 115, 232, 0.12);
+    border: 1px solid rgba(26, 115, 232, 0.35);
+    color: var(--blue-2);
+  }
+
+  .mobile-warn-card h3 {
+    font-family: var(--font-display);
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .mobile-warn-card p {
+    color: var(--dim);
+    font-size: 13.5px;
+    line-height: 1.55;
+    margin-bottom: 20px;
+  }
+
+  .mobile-warn-card p strong {
+    color: var(--text);
+  }
+
+  .mobile-warn-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .mobile-warn-link {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--dim-2);
+    word-break: break-all;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
   }
 </style>
 </head>
@@ -483,6 +661,8 @@
 
 <!-- HERO -->
 <section class="hero">
+  <div class="hero-glow hero-glow-1"></div>
+  <div class="hero-glow hero-glow-2"></div>
   <div class="wrap hero-inner">
     <div class="hero-copy">
       <div class="hero-status"><span class="dot-live"></span>EM DESENVOLVIMENTO ATIVO</div>
@@ -535,13 +715,13 @@
 <!-- FEATURES -->
 <section id="recursos" class="features">
   <div class="wrap">
-    <div class="section-head">
+    <div class="section-head reveal">
       <h2>O que vem equipado</h2>
       <p>Cada sistema do launcher resolve uma fricção real de quem joga CS 1.6 hoje: encontrar o jogo, manter tudo atualizado e ficar por dentro do que acontece na comunidade.</p>
     </div>
 
     <div class="spec-list">
-      <div class="spec-row">
+      <div class="spec-row reveal">
         <div class="spec-icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
         </div>
@@ -552,7 +732,7 @@
         <div class="spec-tag">SISTEMA</div>
       </div>
 
-      <div class="spec-row">
+      <div class="spec-row reveal">
         <div class="spec-icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
         </div>
@@ -563,7 +743,7 @@
         <div class="spec-tag">MANUTENÇÃO</div>
       </div>
 
-      <div class="spec-row">
+      <div class="spec-row reveal">
         <div class="spec-icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
@@ -574,7 +754,29 @@
         <div class="spec-tag">SOCIAL</div>
       </div>
 
-      <div class="spec-row">
+      <div class="spec-row reveal">
+        <div class="spec-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        </div>
+        <div class="spec-body">
+          <h3>Chat global</h3>
+          <p>Converse com toda a comunidade em tempo real, direto no launcher — com foto, moldura e nível de cada um aparecendo na conversa.</p>
+        </div>
+        <div class="spec-tag is-new">NOVO</div>
+      </div>
+
+      <div class="spec-row reveal">
+        <div class="spec-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+        </div>
+        <div class="spec-body">
+          <h3>Servidores ao vivo</h3>
+          <p>Mapa, jogadores e status de cada servidor em tempo real, com entrada num clique — inclusive salas privadas protegidas por senha.</p>
+        </div>
+        <div class="spec-tag is-new">NOVO</div>
+      </div>
+
+      <div class="spec-row reveal">
         <div class="spec-icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
         </div>
@@ -585,7 +787,7 @@
         <div class="spec-tag">CUSTOMIZAÇÃO</div>
       </div>
 
-      <div class="spec-row">
+      <div class="spec-row reveal">
         <div class="spec-icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         </div>
@@ -601,7 +803,7 @@
 
 <!-- DOWNLOAD CTA -->
 <section id="download" class="cta-download">
-  <div class="wrap cta-inner">
+  <div class="wrap cta-inner reveal">
     <h2>Pronto para entrar em campo?</h2>
     <p class="lead">Baixe o launcher, faça login e o resto o Neura Project resolve — do jogo às atualizações.</p>
     <a class="btn btn-primary btn-lg" href="https://webhook.neuraproject.com.br/download/latest" target="_blank">
@@ -637,6 +839,86 @@
     </div>
   </div>
 </footer>
+
+<!-- Popup "só desktop" -->
+<div class="mobile-warn-overlay" id="mobile-warn-overlay">
+  <div class="mobile-warn-card">
+    <button type="button" class="mobile-warn-close" id="mobile-warn-close" aria-label="Fechar">✕</button>
+    <div class="mobile-warn-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2"/>
+        <line x1="8" y1="21" x2="16" y2="21"/>
+        <line x1="12" y1="17" x2="12" y2="21"/>
+      </svg>
+    </div>
+    <h3>Isso é um app de computador</h3>
+    <p>O <strong>Neura Project Launcher</strong> é feito pra Windows e não funciona no celular. Abre esse link no seu PC pra baixar:</p>
+    <div class="mobile-warn-actions">
+      <div class="mobile-warn-link" id="mobile-warn-link">webhook.neuraproject.com.br/download/latest</div>
+      <a class="btn btn-ghost" href="#" id="mobile-warn-dismiss">Entendi</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Anima cada seção/card pra "entrar" suavemente conforme a pessoa rola
+  // a página, em vez de tudo aparecer de uma vez -- efeito comum em
+  // sites de produto mais trabalhados.
+  var revealEls = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    var revealObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+    revealEls.forEach(function (el) { revealObserver.observe(el); });
+  } else {
+    revealEls.forEach(function (el) { el.classList.add('is-visible'); });
+  }
+
+  // Detecta celular/tablet de verdade (user agent), não só tela estreita --
+  // senão uma janela de desktop redimensionada pequena também cairia aqui.
+  var isMobileDevice = /Android|iPhone|iPad|iPod|Windows Phone|Mobile/i.test(navigator.userAgent);
+
+  var mobileWarnOverlay = document.getElementById('mobile-warn-overlay');
+  var mobileWarnClose = document.getElementById('mobile-warn-close');
+  var mobileWarnDismiss = document.getElementById('mobile-warn-dismiss');
+
+  function openMobileWarn() {
+    mobileWarnOverlay.classList.add('is-open');
+  }
+
+  function closeMobileWarn() {
+    mobileWarnOverlay.classList.remove('is-open');
+  }
+
+  if (isMobileDevice) {
+    // Intercepta os 3 botões de "Baixar launcher" (nav, hero, CTA final) --
+    // todos apontam pro mesmo link de download, então um seletor só resolve.
+    var downloadLinks = document.querySelectorAll('a[href*="/download/latest"]');
+    downloadLinks.forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        e.preventDefault();
+        openMobileWarn();
+      });
+    });
+  }
+
+  mobileWarnClose.addEventListener('click', closeMobileWarn);
+  mobileWarnDismiss.addEventListener('click', function (e) {
+    e.preventDefault();
+    closeMobileWarn();
+  });
+  mobileWarnOverlay.addEventListener('click', function (e) {
+    if (e.target === mobileWarnOverlay) closeMobileWarn();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeMobileWarn();
+  });
+</script>
 
 </body>
 </html>
