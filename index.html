@@ -678,7 +678,7 @@
         <a class="btn btn-ghost" href="#recursos">Ver recursos</a>
       </div>
       <div class="hero-meta">
-        <span>Windows 10/11</span><span class="sep">·</span><span>~45 MB</span><span class="sep">·</span><span>Gratuito</span>
+        <span data-release="version">v1.4.0</span><span class="sep">·</span><span>Windows 10/11</span><span class="sep">·</span><span data-release="size">~140 MB</span><span class="sep">·</span><span>Gratuito</span>
       </div>
     </div>
     <div class="hero-visual">
@@ -812,7 +812,7 @@
       </svg>
       Baixar para Windows
     </a>
-    <div class="cta-version">NEURA PROJECT LAUNCHER · WINDOWS 10/11 · ~45 MB</div>
+    <div class="cta-version">NEURA PROJECT LAUNCHER · <span data-release="version">V1.4.0</span> · WINDOWS 10/11 · <span data-release="size">~140 MB</span></div>
   </div>
 </section>
 
@@ -918,6 +918,26 @@
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') closeMobileWarn();
   });
+
+  // Versão e tamanho do último release vêm da API -- se ela falhar, fica
+  // o texto escrito no HTML mesmo.
+  fetch('https://webhook.neuraproject.com.br/download/latest/info')
+    .then(function (res) { return res.ok ? res.json() : null; })
+    .then(function (info) {
+      if (!info || !info.version) return;
+      document.querySelectorAll('[data-release="version"]').forEach(function (el) {
+        // O CTA final é todo em maiúsculas, então mantém o estilo de cada lugar.
+        var isUpper = el.textContent === el.textContent.toUpperCase();
+        el.textContent = (isUpper ? 'V' : 'v') + info.version;
+      });
+      if (info.size) {
+        var mb = Math.round(info.size / (1024 * 1024));
+        document.querySelectorAll('[data-release="size"]').forEach(function (el) {
+          el.textContent = '~' + mb + ' MB';
+        });
+      }
+    })
+    .catch(function () {});
 </script>
 
 </body>
