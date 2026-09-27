@@ -178,6 +178,9 @@ export default function Veto({ match, onNewMatch }) {
               <button className="btn btn-ghost btn-sm" onClick={restart} disabled={history.length === 0}>
                 <IconRestart /> Reiniciar
               </button>
+              <button className="btn btn-ghost btn-sm" onClick={onNewMatch}>
+                Nova partida
+              </button>
             </div>
           </div>
 

@@ -208,40 +208,6 @@ b.decider {
   color: var(--dim-2);
   margin-top: 1px;
 }
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--dim);
-}
-.nav-links a:hover,
-.nav-links a.active {
-  color: var(--text);
-}
-.nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.icon-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 7px;
-  border: 1px solid var(--border-2);
-  color: var(--dim);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
-  flex-shrink: 0;
-}
-.icon-btn:hover {
-  color: var(--text);
-  border-color: var(--blue);
-  background: rgba(26, 115, 232, 0.1);
-}
 
 /* ── BUTTONS ── */
 .btn {
@@ -1455,9 +1421,6 @@ b.decider {
   .nav-inner {
     height: 58px;
   }
-  .nav-links {
-    display: none;
-  }
   .hero {
     padding: 40px 0 44px;
   }
@@ -1699,9 +1662,6 @@ b.decider {
     padding: 0 16px;
   }
   .nav-brand .sub {
-    display: none;
-  }
-  .nav-download-match {
     display: none;
   }
   .hero h1 {

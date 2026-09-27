@@ -19,6 +19,8 @@ export default function Summary({ teams, format, picks, decider }) {
   // Comando para colar no console do servidor (plugin BaseComp): configura a série inteira.
   // Picks já têm lado definido (sem faca); o decider é decidido no round faca.
   // ";" e aspas saem do nome do time porque quebrariam o comando no console.
+  // Acentos viram \uXXXX: o console do CS2 descarta caracteres fora do ASCII ("café" chegava "caf"),
+  // e o plugin decodifica de volta ao ler o JSON.
   const copy = async () => {
     const clean = (name) => name.replace(/[;"\\]/g, '').trim()
     const config = {
@@ -34,8 +36,12 @@ export default function Summary({ teams, format, picks, decider }) {
         { mapa: serverMap(decider), faca: true },
       ],
     }
+    const json = JSON.stringify(config).replace(
+      /[^\x00-\x7f]/g,
+      (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`,
+    )
     try {
-      await navigator.clipboard.writeText(`css_serie ${JSON.stringify(config)}`)
+      await navigator.clipboard.writeText(`css_serie ${json}`)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {

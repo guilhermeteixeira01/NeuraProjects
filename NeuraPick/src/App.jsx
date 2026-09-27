@@ -9,7 +9,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <Header inMatch={!!match} onHome={() => setMatch(null)} />
+      <Header />
       <main className="main">
         {match ? (
           <Veto key={match.id} match={match} onNewMatch={() => setMatch(null)} />
