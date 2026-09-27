@@ -16,6 +16,19 @@ const FEATURES = [
   { icon: <IconClock />, text: 'Timer opcional por ação' },
 ]
 
+// Sem letras/números que se confundem (O/0, I/1)
+const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+
+const gerarCodigo = () =>
+  Array.from(crypto.getRandomValues(new Uint32Array(5)), (n) => CODE_CHARS[n % CODE_CHARS.length]).join('')
+
+const gerarCodigos = () => {
+  const A = gerarCodigo()
+  let B = gerarCodigo()
+  while (B === A) B = gerarCodigo()
+  return { A, B }
+}
+
 export default function Setup({ onStart }) {
   const [teamA, setTeamA] = useState('')
   const [teamB, setTeamB] = useState('')
@@ -63,6 +76,8 @@ export default function Setup({ onStart }) {
       timer,
       // IP:porta do servidor, só com o que o comando connect aceita
       server: server.trim().replace(/[^\w.:-]/g, ''),
+      // Código de cada equipe para entrar no time certo no servidor (!time <código>)
+      codes: gerarCodigos(),
       // mantém a ordem original dos mapas
       pool: ALL_MAPS.map((m) => m.id).filter((id) => pool.includes(id)),
     })

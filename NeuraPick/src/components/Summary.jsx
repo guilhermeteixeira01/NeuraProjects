@@ -3,7 +3,7 @@ import { getMap, mapIcon, mapImage, serverMap } from '../data/maps.js'
 import { FORMATS, SIDE_LABEL, other } from '../data/veto.js'
 import { IconCopy } from './Icons.jsx'
 
-export default function Summary({ teams, format, picks, decider, server }) {
+export default function Summary({ teams, format, picks, decider, server, codes }) {
   // Qual botão de copiar mostra "Copiado!" agora
   const [copied, setCopied] = useState(null)
 
@@ -38,6 +38,8 @@ export default function Summary({ teams, format, picks, decider, server }) {
       formato: FORMATS[format].label,
       timeA: clean(teams.A),
       timeB: clean(teams.B),
+      codigoA: codes.A,
+      codigoB: codes.B,
       mapas: [
         ...picks.map((p) => ({
           mapa: serverMap(p.map),
@@ -107,7 +109,7 @@ export default function Summary({ teams, format, picks, decider, server }) {
           ))}
         </div>
 
-        {/* Como cada time entra no servidor e cai no lado certo (plugin BaseComp: !time A / !time B) */}
+        {/* Como cada time entra no servidor e cai no lado certo (plugin BaseComp: !time <código da equipe>) */}
         <div className="join">
           <span className="mono-label">// COMO ENTRAR NO SERVIDOR</span>
           <div className="join-grid">
@@ -135,22 +137,20 @@ export default function Summary({ teams, format, picks, decider, server }) {
                     )}
                   </li>
                   <li>
-                    No menu de times, escolha <b>Espectador</b>
-                  </li>
-                  <li>
-                    No chat, digite{' '}
-                    <button className="join-code" onClick={() => copyText(`time-${t}`, `!time ${t}`)} title="Copiar">
-                      !time {t}
+                    Você entra como <b>espectador</b>. No chat, digite o código da equipe:{' '}
+                    <button className="join-code" onClick={() => copyText(`time-${t}`, `!time ${codes[t]}`)} title="Copiar">
+                      !time {codes[t]}
                     </button>
                     {copied === `time-${t}` && <span className="join-copied">copiado</span>}
-                    <span className="join-note">o servidor te coloca no lado certo</span>
+                    <span className="join-note">o servidor te coloca no lado certo — nos próximos mapas é automático</span>
                   </li>
                 </ol>
               </div>
             ))}
           </div>
           <p className="hint">
-            O admin precisa carregar a série no servidor antes (botão <b>Copiar resultado</b> → colar no console).
+            Passe cada código só para os jogadores da própria equipe: sem ele não dá para entrar em um time durante a
+            série. O admin precisa carregar a série no servidor antes (botão <b>Copiar resultado</b> → colar no console).
             {!server && ' Preencha o IP do servidor na configuração para gerar o botão de conectar.'}
           </p>
         </div>
