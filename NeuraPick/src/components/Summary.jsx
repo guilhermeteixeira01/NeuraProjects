@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { getMap, mapIcon, mapImage } from '../data/maps.js'
-import { FORMATS, SIDE_LABEL } from '../data/veto.js'
+import { getMap, mapIcon, mapImage, serverMap } from '../data/maps.js'
+import { FORMATS, SIDE_LABEL, other } from '../data/veto.js'
 import { IconCopy } from './Icons.jsx'
 
 export default function Summary({ teams, format, picks, decider }) {
@@ -16,16 +16,26 @@ export default function Summary({ teams, format, picks, decider }) {
     { map: getMap(decider), pickedBy: null, sideText: 'Lado no knife round' },
   ]
 
+  // Comando para colar no console do servidor (plugin BaseComp): configura a série inteira.
+  // Picks já têm lado definido (sem faca); o decider é decidido no round faca.
+  // ";" e aspas saem do nome do time porque quebrariam o comando no console.
   const copy = async () => {
-    const lines = [
-      `${teams.A} vs ${teams.B} — ${FORMATS[format].label}`,
-      ...games.map(
-        (g, i) =>
-          `Mapa ${i + 1}: ${g.map.name} (${g.pickedBy ? `pick de ${teams[g.pickedBy]}` : 'decider'}) — ${g.sideText}`,
-      ),
-    ]
+    const clean = (name) => name.replace(/[;"\\]/g, '').trim()
+    const config = {
+      formato: FORMATS[format].label,
+      timeA: clean(teams.A),
+      timeB: clean(teams.B),
+      mapas: [
+        ...picks.map((p) => ({
+          mapa: serverMap(p.map),
+          faca: false,
+          ct: p.side === 'ct' ? p.sideBy : other(p.sideBy),
+        })),
+        { mapa: serverMap(decider), faca: true },
+      ],
+    }
     try {
-      await navigator.clipboard.writeText(lines.join('\n'))
+      await navigator.clipboard.writeText(`css_serie ${JSON.stringify(config)}`)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
@@ -43,7 +53,11 @@ export default function Summary({ teams, format, picks, decider }) {
             </span>
             <h2>{games.length === 1 ? 'Mapa da partida' : 'Mapas da série'}</h2>
           </div>
-          <button className="btn btn-primary" onClick={copy}>
+          <button
+            className="btn btn-primary"
+            onClick={copy}
+            title="Copia o comando css_serie para colar no console do servidor"
+          >
             <IconCopy /> {copied ? 'Copiado!' : 'Copiar resultado'}
           </button>
         </div>
