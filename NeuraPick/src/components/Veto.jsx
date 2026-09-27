@@ -112,7 +112,7 @@ export default function Veto({ match, onNewMatch }) {
           </li>
         </ol>
 
-        {done && <Summary teams={teams} format={format} picks={picks} decider={decider} server={match.server} />}
+        {done && <Summary teams={teams} format={format} picks={picks} decider={decider} server={match.server} codes={match.codes} />}
 
         {!done && (
           <div className={`turn turn-${step.team}`}>
