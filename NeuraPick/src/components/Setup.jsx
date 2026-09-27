@@ -16,19 +16,6 @@ const FEATURES = [
   { icon: <IconClock />, text: 'Timer opcional por ação' },
 ]
 
-// Sem letras/números que se confundem (O/0, I/1)
-const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-
-const gerarCodigo = () =>
-  Array.from(crypto.getRandomValues(new Uint32Array(5)), (n) => CODE_CHARS[n % CODE_CHARS.length]).join('')
-
-const gerarCodigos = () => {
-  const A = gerarCodigo()
-  let B = gerarCodigo()
-  while (B === A) B = gerarCodigo()
-  return { A, B }
-}
-
 export default function Setup({ onStart }) {
   const [teamA, setTeamA] = useState('')
   const [teamB, setTeamB] = useState('')
@@ -36,22 +23,6 @@ export default function Setup({ onStart }) {
   const [first, setFirst] = useState('coin')
   const [timer, setTimer] = useState(0)
   const [pool, setPool] = useState(DEFAULT_POOL)
-  const [server, setServer] = useState(() => {
-    try {
-      return localStorage.getItem('neurapick.server') ?? ''
-    } catch {
-      return ''
-    }
-  })
-
-  const changeServer = (value) => {
-    setServer(value)
-    try {
-      localStorage.setItem('neurapick.server', value)
-    } catch {
-      // sem armazenamento (aba anônima etc.): só não lembra na próxima vez
-    }
-  }
 
   const nameA = teamA.trim() || 'Time A'
   const nameB = teamB.trim() || 'Time B'
@@ -74,10 +45,6 @@ export default function Setup({ onStart }) {
       firstTeam: coinWinner ?? first,
       coinFlip: coinWinner !== null,
       timer,
-      // IP:porta do servidor, só com o que o comando connect aceita
-      server: server.trim().replace(/[^\w.:-]/g, ''),
-      // Código de cada equipe para entrar no time certo no servidor (!time <código>)
-      codes: gerarCodigos(),
       // mantém a ordem original dos mapas
       pool: ALL_MAPS.map((m) => m.id).filter((id) => pool.includes(id)),
     })
@@ -175,19 +142,6 @@ export default function Setup({ onStart }) {
                   </div>
                   <p className="hint">Se o tempo acabar, a ação é feita aleatoriamente.</p>
                 </div>
-
-                <label className="field config-row">
-                  <span className="mono-label">IP DO SERVIDOR (OPCIONAL)</span>
-                  <input
-                    value={server}
-                    onChange={(e) => changeServer(e.target.value)}
-                    placeholder="123.45.67.89:27015"
-                    maxLength={64}
-                    inputMode="url"
-                    spellCheck={false}
-                  />
-                  <p className="hint">Gera o botão de conectar de cada time no fim do veto.</p>
-                </label>
               </div>
             </div>
             <div className="hero-tag-float">
