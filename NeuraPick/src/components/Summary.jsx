@@ -3,7 +3,7 @@ import { getMap, mapIcon, mapImage, serverMap } from '../data/maps.js'
 import { FORMATS, SIDE_LABEL, other } from '../data/veto.js'
 import { IconCopy } from './Icons.jsx'
 
-export default function Summary({ teams, format, picks, decider, server, codes }) {
+export default function Summary({ teams, format, picks, decider }) {
   // Qual botão de copiar mostra "Copiado!" agora
   const [copied, setCopied] = useState(null)
 
@@ -38,8 +38,6 @@ export default function Summary({ teams, format, picks, decider, server, codes }
       formato: FORMATS[format].label,
       timeA: clean(teams.A),
       timeB: clean(teams.B),
-      codigoA: codes.A,
-      codigoB: codes.B,
       mapas: [
         ...picks.map((p) => ({
           mapa: serverMap(p.map),
@@ -109,7 +107,7 @@ export default function Summary({ teams, format, picks, decider, server, codes }
           ))}
         </div>
 
-        {/* Como cada time entra no servidor e cai no lado certo (plugin BaseComp: !time <código da equipe>) */}
+        {/* Como cada time entra no servidor e cai no lado certo (plugin BaseComp: !time A / !time B) */}
         <div className="join">
           <span className="mono-label">// COMO ENTRAR NO SERVIDOR</span>
           <div className="join-grid">
@@ -121,25 +119,12 @@ export default function Summary({ teams, format, picks, decider, server, codes }
                 </div>
                 <ol className="join-steps">
                   <li>
-                    {server ? (
-                      <div className="join-actions">
-                        <a className="btn btn-primary btn-sm" href={`steam://connect/${server}`}>
-                          Conectar
-                        </a>
-                        <button className="btn btn-ghost btn-sm" onClick={() => copyText(`connect-${t}`, `connect ${server}`)}>
-                          <IconCopy /> {copied === `connect-${t}` ? 'Copiado!' : `connect ${server}`}
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        Conecte no servidor: <code>connect IP:porta</code>
-                      </>
-                    )}
+                    Entre no servidor: você fica como <b>espectador</b>
                   </li>
                   <li>
-                    Você entra como <b>espectador</b>. No chat, digite o código da equipe:{' '}
-                    <button className="join-code" onClick={() => copyText(`time-${t}`, `!time ${codes[t]}`)} title="Copiar">
-                      !time {codes[t]}
+                    No chat, digite{' '}
+                    <button className="join-code" onClick={() => copyText(`time-${t}`, `!time ${t}`)} title="Copiar">
+                      !time {t}
                     </button>
                     {copied === `time-${t}` && <span className="join-copied">copiado</span>}
                     <span className="join-note">o servidor te coloca no lado certo — nos próximos mapas é automático</span>
@@ -149,9 +134,7 @@ export default function Summary({ teams, format, picks, decider, server, codes }
             ))}
           </div>
           <p className="hint">
-            Passe cada código só para os jogadores da própria equipe: sem ele não dá para entrar em um time durante a
-            série. O admin precisa carregar a série no servidor antes (botão <b>Copiar resultado</b> → colar no console).
-            {!server && ' Preencha o IP do servidor na configuração para gerar o botão de conectar.'}
+            O admin precisa carregar a série no servidor antes (botão <b>Copiar resultado</b> → colar no console).
           </p>
         </div>
       </div>
