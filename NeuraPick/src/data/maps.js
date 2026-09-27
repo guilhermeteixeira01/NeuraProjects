@@ -24,3 +24,6 @@ export const getMap = (id) => ALL_MAPS.find((m) => m.id === id)
 
 export const mapImage = (id) => `${import.meta.env.BASE_URL}maps/${id}.jpg`
 export const mapIcon = (id) => `${import.meta.env.BASE_URL}maps/icons/${id}.png`
+
+// Nome do mapa no servidor de CS2 (usado no comando css_serie)
+export const serverMap = (id) => `de_${id}`
