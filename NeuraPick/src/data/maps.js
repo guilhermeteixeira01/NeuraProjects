@@ -6,6 +6,7 @@
 export const ALL_MAPS = [
   { id: 'ancient', name: 'Ancient', colors: ['#1f4d3a', '#0b1f18'] },
   { id: 'anubis', name: 'Anubis', colors: ['#8a6a2c', '#2a1d08'] },
+  { id: 'cache', name: 'Cache', colors: ['#5f6f6a', '#1a201e'] },
   { id: 'dust2', name: 'Dust II', colors: ['#a67c3d', '#3a2710'] },
   { id: 'inferno', name: 'Inferno', colors: ['#8c3b25', '#2b0f08'] },
   { id: 'mirage', name: 'Mirage', colors: ['#b0894f', '#3b2a14'] },
