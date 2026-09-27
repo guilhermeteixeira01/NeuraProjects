@@ -3,8 +3,19 @@ import { getMap, mapIcon, mapImage, serverMap } from '../data/maps.js'
 import { FORMATS, SIDE_LABEL, other } from '../data/veto.js'
 import { IconCopy } from './Icons.jsx'
 
-export default function Summary({ teams, format, picks, decider }) {
-  const [copied, setCopied] = useState(false)
+export default function Summary({ teams, format, picks, decider, server }) {
+  // Qual botão de copiar mostra "Copiado!" agora
+  const [copied, setCopied] = useState(null)
+
+  const copyText = async (key, text) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(key)
+      setTimeout(() => setCopied((k) => (k === key ? null : k)), 2000)
+    } catch {
+      // clipboard indisponível (ex.: http sem permissão)
+    }
+  }
 
   const games = [
     ...picks.map((p) => ({
@@ -40,13 +51,15 @@ export default function Summary({ teams, format, picks, decider }) {
       /[^\x00-\x7f]/g,
       (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`,
     )
-    try {
-      await navigator.clipboard.writeText(`css_serie ${json}`)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch {
-      // clipboard indisponível (ex.: http sem permissão)
-    }
+    copyText('serie', `css_serie ${json}`)
+  }
+
+  // Lado de cada time no primeiro mapa (no decider, quem decide é o round faca)
+  const first = picks[0]
+  const firstSide = (team) => {
+    if (!first) return 'Lado decidido no round faca'
+    const ctTeam = first.side === 'ct' ? first.sideBy : other(first.sideBy)
+    return `Começa de ${team === ctTeam ? 'CT' : 'TR'} em ${getMap(first.map).name}`
   }
 
   return (
@@ -64,7 +77,7 @@ export default function Summary({ teams, format, picks, decider }) {
             onClick={copy}
             title="Copia o comando css_serie para colar no console do servidor"
           >
-            <IconCopy /> {copied ? 'Copiado!' : 'Copiar resultado'}
+            <IconCopy /> {copied === 'serie' ? 'Copiado!' : 'Copiar resultado'}
           </button>
         </div>
 
@@ -92,6 +105,54 @@ export default function Summary({ teams, format, picks, decider }) {
               <span className={`summary-side ${g.side ?? 'knife'}`}>{g.sideText}</span>
             </div>
           ))}
+        </div>
+
+        {/* Como cada time entra no servidor e cai no lado certo (plugin BaseComp: !time A / !time B) */}
+        <div className="join">
+          <span className="mono-label">// COMO ENTRAR NO SERVIDOR</span>
+          <div className="join-grid">
+            {['A', 'B'].map((t) => (
+              <div key={t} className={`join-card team-${t}`}>
+                <div className="join-card-head">
+                  <b className={`join-team t-${t}`}>{teams[t]}</b>
+                  <span className="join-side">{firstSide(t)}</span>
+                </div>
+                <ol className="join-steps">
+                  <li>
+                    {server ? (
+                      <div className="join-actions">
+                        <a className="btn btn-primary btn-sm" href={`steam://connect/${server}`}>
+                          Conectar
+                        </a>
+                        <button className="btn btn-ghost btn-sm" onClick={() => copyText(`connect-${t}`, `connect ${server}`)}>
+                          <IconCopy /> {copied === `connect-${t}` ? 'Copiado!' : `connect ${server}`}
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        Conecte no servidor: <code>connect IP:porta</code>
+                      </>
+                    )}
+                  </li>
+                  <li>
+                    No menu de times, escolha <b>Espectador</b>
+                  </li>
+                  <li>
+                    No chat, digite{' '}
+                    <button className="join-code" onClick={() => copyText(`time-${t}`, `!time ${t}`)} title="Copiar">
+                      !time {t}
+                    </button>
+                    {copied === `time-${t}` && <span className="join-copied">copiado</span>}
+                    <span className="join-note">o servidor te coloca no lado certo</span>
+                  </li>
+                </ol>
+              </div>
+            ))}
+          </div>
+          <p className="hint">
+            O admin precisa carregar a série no servidor antes (botão <b>Copiar resultado</b> → colar no console).
+            {!server && ' Preencha o IP do servidor na configuração para gerar o botão de conectar.'}
+          </p>
         </div>
       </div>
     </div>
