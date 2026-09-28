@@ -16,8 +16,10 @@ export const ALL_MAPS = [
   { id: 'vertigo', name: 'Vertigo', colors: ['#5d7185', '#161d25'] },
 ]
 
-// Map pool padrão (Active Duty)
-export const DEFAULT_POOL = ['ancient', 'anubis', 'dust2', 'inferno', 'mirage', 'nuke', 'train']
+// Pool atual do Premier — vem selecionado por padrão no site.
+// Quando a Valve mudar o pool, edite só aqui (7 ids iguais aos de ALL_MAPS) e a data.
+export const DEFAULT_POOL = ['ancient', 'cache', 'anubis', 'inferno', 'mirage', 'nuke', 'dust2']
+export const POOL_UPDATED = '2026-09-28'
 
 export const POOL_SIZE = 7
 
