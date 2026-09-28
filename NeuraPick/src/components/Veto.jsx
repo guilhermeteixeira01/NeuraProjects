@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { getMap } from '../data/maps.js'
 import { FORMATS, SIDE_LABEL, buildSteps, deriveState } from '../data/veto.js'
+import { playSound } from '../data/sounds.js'
 import MapCard from './MapCard.jsx'
 import Summary from './Summary.jsx'
 import { IconRestart, IconUndo } from './Icons.jsx'
@@ -9,6 +10,7 @@ const VERB = { ban: 'BANIR', pick: 'ESCOLHER' }
 const STEP_LABEL = { ban: 'BAN', pick: 'PICK', side: 'LADO' }
 const random = (arr) => arr[Math.floor(Math.random() * arr.length)]
 const pad = (n) => String(n).padStart(2, '0')
+const TIMER_BEEP_SECONDS = 5
 
 function Countdown({ seconds, onExpire }) {
   const [left, setLeft] = useState(seconds)
@@ -20,6 +22,8 @@ function Countdown({ seconds, onExpire }) {
 
   useEffect(() => {
     if (left === 0) onExpire()
+    // Bipe nos últimos segundos (no zero toca o som da ação automática)
+    else if (left <= TIMER_BEEP_SECONDS) playSound('timer')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [left])
 
@@ -44,6 +48,22 @@ export default function Veto({ match, onNewMatch }) {
     if (!list || !current || list.scrollWidth <= list.clientWidth) return
     list.scrollTo({ left: current.offsetLeft - list.offsetLeft - 16, behavior: 'smooth' })
   }, [history.length])
+
+  // Som a cada ação nova (clique ou timer); desfazer/reiniciar não tocam.
+  // Na última ação toca também o "okay, let's go" do veto concluído.
+  const prevLength = useRef(0)
+  useEffect(() => {
+    const added = history.length > prevLength.current
+    prevLength.current = history.length
+    if (!added) return
+
+    const last = history[history.length - 1]
+    playSound(last.type === 'side' ? 'lado' : last.type)
+    if (history.length === steps.length) {
+      const id = setTimeout(() => playSound('concluido'), 1000)
+      return () => clearTimeout(id)
+    }
+  }, [history, steps.length])
 
   const step = steps[history.length]
   const done = !step
