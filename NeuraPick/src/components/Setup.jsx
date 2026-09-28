@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ALL_MAPS, DEFAULT_POOL, POOL_SIZE, mapIcon, mapImage } from '../data/maps.js'
+import { ALL_MAPS, DEFAULT_POOL, POOL_SIZE, POOL_UPDATED, mapIcon, mapImage } from '../data/maps.js'
 import { FORMATS } from '../data/veto.js'
 import { IconClock, IconPlay, IconShield, IconSwap, IconTarget } from './Icons.jsx'
 
@@ -27,6 +27,8 @@ export default function Setup({ onStart }) {
   const nameA = teamA.trim() || 'Time A'
   const nameB = teamB.trim() || 'Time B'
   const poolOk = pool.length === POOL_SIZE
+  const isPremierPool = pool.length === DEFAULT_POOL.length && DEFAULT_POOL.every((id) => pool.includes(id))
+  const premierDate = new Date(`${POOL_UPDATED}T12:00:00`).toLocaleDateString('pt-BR')
 
   const toggleMap = (id) => {
     setPool((p) => {
@@ -166,11 +168,21 @@ export default function Setup({ onStart }) {
           <div className="section-head-row">
             <div className="section-head">
               <h2>Map pool</h2>
-              <p>Selecione exatamente {POOL_SIZE} mapas para o veto. O padrão é o Active Duty atual.</p>
+              <p>
+                Selecione exatamente {POOL_SIZE} mapas para o veto. O padrão é o pool atual do Premier
+                (atualizado em {premierDate}).
+              </p>
             </div>
-            <span className={`counter ${poolOk ? 'ok' : ''}`}>
-              {pool.length}/{POOL_SIZE}
-            </span>
+            <div className="pool-head-actions">
+              {!isPremierPool && (
+                <button className="btn btn-ghost btn-sm" onClick={() => setPool(DEFAULT_POOL)}>
+                  Usar pool do Premier
+                </button>
+              )}
+              <span className={`counter ${poolOk ? 'ok' : ''}`}>
+                {pool.length}/{POOL_SIZE}
+              </span>
+            </div>
           </div>
 
           <div className="pool-grid">
@@ -187,6 +199,7 @@ export default function Setup({ onStart }) {
                 >
                   <span className="pool-top">
                     <span className="pool-idx">{String(i + 1).padStart(2, '0')}</span>
+                    {DEFAULT_POOL.includes(m.id) && <span className="pool-premier">PREMIER</span>}
                     <span className="pool-check">{on ? 'ATIVO' : 'FORA'}</span>
                   </span>
                   <span className="pool-main">
