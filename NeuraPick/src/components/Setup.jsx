@@ -3,6 +3,7 @@ import { ALL_MAPS, DEFAULT_POOL, POOL_SIZE, POOL_UPDATED, mapIcon, mapImage } fr
 import { FORMATS } from '../data/veto.js'
 import { IconClock, IconPlay, IconShield, IconSwap, IconTarget } from './Icons.jsx'
 import TeamLogo, { MAX_LOGO_URL, logoValido } from './TeamLogo.jsx'
+import TeamCombo from './TeamCombo.jsx'
 import { acharTime, useTimes } from '../data/times.js'
 
 const TIMERS = [
@@ -150,13 +151,12 @@ export default function Setup({ onStart }) {
                               </span>
                             )}
                           </span>
-                          <input
-                            className="nome-lista"
+                          <TeamCombo
                             value={nome}
-                            onChange={(e) => trocarNome(t, e.target.value, setNome, logo, setLogo)}
+                            onChange={(valor) => trocarNome(t, valor, setNome, logo, setLogo)}
+                            times={times}
+                            team={t}
                             placeholder={`Time ${t}`}
-                            maxLength={24}
-                            list={times.length ? 'lista-times' : undefined}
                           />
                         </label>
                         <label className="logo-field">
@@ -176,13 +176,6 @@ export default function Setup({ onStart }) {
                     </div>
                   ))}
                 </div>
-                {times.length > 0 && (
-                  <datalist id="lista-times">
-                    {times.map((tm) => (
-                      <option key={tm.nome} value={tm.nome} />
-                    ))}
-                  </datalist>
-                )}
                 <p className="hint lista-hint">
                   {times.length > 0
                     ? `${times.length} times na lista: digite o nome e escolha para o logo entrar sozinho. `
