@@ -36,7 +36,7 @@ jobs:
         run: |
           mkdir _site
           cp index.html admin.html CNAME _site/
-          cp -r launcher _site/
+          cp -r launcher times _site/
           cp -r assets _site/
           cp -r NeuraPick/dist _site/neurapick
           # Estatísticas das partidas enviadas pelo plugin BaseComp do servidor de CS2

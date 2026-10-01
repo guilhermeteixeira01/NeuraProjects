@@ -21,6 +21,11 @@
       { nome: 'Mais jogos', status: 'Em breve' },
     ],
 
+    // Lista de times (nome + logo) usada pelo Pick & Ban; editada na página /times/
+    repositorio: 'guilhermeteixeira01/NeuraProjects',
+    branch: 'main',
+    arquivoTimes: 'assets/data/times.json',
+
     // Redes sociais (deixe '' para esconder)
     discord: 'https://discord.gg/GJSMDJEQsn',
     youtube: '',
@@ -116,6 +121,7 @@
           '<div class="nx-footer-col"><span class="nx-mono">NEURA</span>' +
             '<a href="' + url('/#sobre') + '">Sobre</a>' +
             '<a href="' + url('/#projetos') + '">O que fazemos</a>' +
+            '<a href="' + url('/times/') + '">Lista de times</a>' +
             (CONFIG.discord ? '<a href="' + CONFIG.discord + '" target="_blank" rel="noopener">Comunidade</a>' : '') +
           '</div>' +
         '</div>' +
@@ -154,7 +160,26 @@
     revelar.forEach(function (el) { obs.observe(el); });
   }
 
-  window.NEURA = { config: CONFIG, url: url, montar: montar };
+  // Lista de times: lê direto do GitHub (atualiza em minutos, sem esperar o deploy do site);
+  // se não der, usa a cópia publicada no site. Sempre devolve uma lista (vazia se nada funcionar).
+  var timesCache = null;
+  function carregarTimes() {
+    if (timesCache) return timesCache;
+    var bruto = 'https://raw.githubusercontent.com/' + CONFIG.repositorio + '/' + CONFIG.branch + '/' + CONFIG.arquivoTimes;
+    var ler = function (endereco) {
+      return fetch(endereco + '?t=' + Date.now(), { cache: 'no-store' }).then(function (r) {
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
+      });
+    };
+    timesCache = ler(bruto)
+      .catch(function () { return ler(url('/' + CONFIG.arquivoTimes)); })
+      .then(function (dados) { return Array.isArray(dados && dados.times) ? dados.times : []; })
+      .catch(function () { return []; });
+    return timesCache;
+  }
+
+  window.NEURA = { config: CONFIG, url: url, montar: montar, carregarTimes: carregarTimes };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', montar);
   else montar();

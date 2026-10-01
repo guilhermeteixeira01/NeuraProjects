@@ -1923,3 +1923,38 @@ b.decider {
     gap: 12px;
   }
 }
+
+/* Nome do time com a lista de times do site (/times/) */
+.nome-lista {
+  position: relative;
+  display: block;
+}
+.nome-lista input {
+  padding-right: 84px;
+}
+.da-lista {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--green);
+  border: 1px solid rgba(61, 220, 132, 0.4);
+  background: rgba(61, 220, 132, 0.08);
+  pointer-events: none;
+}
+.lista-hint {
+  margin-top: -6px;
+}
+.lista-hint a {
+  color: var(--blue-2);
+  font-weight: 600;
+}
+.lista-hint a:hover {
+  text-decoration: underline;
+}

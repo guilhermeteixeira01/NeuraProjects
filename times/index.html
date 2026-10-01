@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lista de times — Neura Project</title>
+<meta name="description" content="Lista de times (nome e logo) usada pelo Pick &amp; Ban da Neura.">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/x-icon" href="/assets/logos/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/logos/favicon-32x32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="stylesheet" href="/assets/css/paginas.css">
+<script src="/assets/js/site.js"></script>
+<style>
+  .hero { padding: 56px 0 44px; }
+  .hero-inner { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+  .resumo { display: flex; gap: 10px; }
+  .resumo .caixa {
+    min-width: 120px; padding: 14px 18px; border-radius: 10px;
+    border: 1px solid var(--border-2); background: linear-gradient(160deg,#14161b,#0d0e12);
+  }
+  .resumo b { display: block; font-family: var(--font-display); font-size: 28px; line-height: 1.1; }
+
+  .layout { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 22px; align-items: start; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; }
+  .card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  .card-head h2 { font-family: var(--font-display); font-size: 18px; }
+  .card-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+
+  .campo { display: flex; flex-direction: column; gap: 7px; }
+  .campo input {
+    width: 100%; background: var(--bg-soft); border: 1px solid var(--border-2); border-radius: 8px;
+    padding: 11px 13px; color: var(--text); font: inherit; font-size: 14px; font-weight: 600; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .campo input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,115,232,.14); }
+  .campo input.invalido { border-color: var(--red); }
+  .dica { font-size: 12px; color: var(--dim-2); }
+  .dica.erro { color: var(--red); }
+
+  .previa { display: flex; align-items: center; gap: 14px; padding: 12px; border-radius: 10px; border: 1px dashed var(--border-2); }
+  .logo {
+    width: 52px; height: 52px; flex-shrink: 0; border-radius: 50%; overflow: hidden;
+    display: grid; place-items: center; background: var(--bg-soft); border: 2px solid var(--blue-2);
+    font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--dim);
+  }
+  .logo img { width: 100%; height: 100%; object-fit: cover; max-width: none; }
+  .previa b { font-family: var(--font-display); font-size: 18px; }
+
+  .ferramentas { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .busca { flex: 1; min-width: 180px; }
+  .lista { display: flex; flex-direction: column; }
+  .time {
+    display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 14px; align-items: center;
+    padding: 12px 18px; border-top: 1px solid var(--border); transition: background .15s;
+    animation: entrar .35s cubic-bezier(.16,.84,.44,1) both;
+  }
+  .time:hover { background: rgba(26,115,232,.05); }
+  .time .logo { width: 44px; height: 44px; font-size: 14px; }
+  .time b { display: block; font-family: var(--font-display); font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .time small { display: block; color: var(--dim-2); font-family: var(--font-mono); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .time.novo b::after, .time.editado b::after {
+    content: 'NÃO SALVO'; margin-left: 8px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 1px;
+    padding: 2px 6px; border-radius: 4px; color: var(--yellow); border: 1px solid rgba(245,197,66,.4); vertical-align: middle;
+  }
+  .acoes-time { display: flex; gap: 6px; }
+  .icone-btn {
+    width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border-2); background: none;
+    color: var(--dim); cursor: pointer; display: grid; place-items: center; transition: color .15s, border-color .15s;
+  }
+  .icone-btn:hover { color: var(--blue-2); border-color: var(--blue); }
+  .icone-btn.perigo:hover { color: var(--red); border-color: var(--red); }
+  .vazio { padding: 28px 18px; text-align: center; color: var(--dim); font-size: 14px; border-top: 1px solid var(--border); }
+
+  .barra-salvar {
+    position: sticky; bottom: 16px; z-index: 50; margin-top: 18px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(245,197,66,.45);
+    background: rgba(18,19,23,.95); backdrop-filter: blur(8px); box-shadow: 0 18px 40px -18px rgba(0,0,0,.9);
+  }
+  .barra-salvar[hidden] { display: none; }
+  .msg { font-size: 13px; color: var(--dim); }
+  .msg.ok { color: var(--green); }
+  .msg.erro { color: var(--red); }
+
+  details.token { border-top: 1px solid var(--border); }
+  details.token summary { cursor: pointer; padding: 14px 18px; font-size: 13px; color: var(--dim); list-style: none; display: flex; justify-content: space-between; }
+  details.token summary::-webkit-details-marker { display: none; }
+  details.token .card-body { padding-top: 0; }
+  .estado-token { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px; padding: 2px 7px; border-radius: 4px; }
+  .estado-token.on { color: var(--green); border: 1px solid rgba(61,220,132,.4); }
+  .estado-token.off { color: var(--yellow); border: 1px solid rgba(245,197,66,.4); }
+  .passos { font-size: 12.5px; color: var(--dim); padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+  .passos b { color: var(--text); }
+  .passos a { color: var(--blue-2); }
+
+  @keyframes entrar { from { opacity: 0; transform: translateY(8px); } }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .hero-inner { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 520px) {
+    .time { grid-template-columns: 40px minmax(0, 1fr); }
+    .acoes-time { grid-column: 1 / -1; justify-content: flex-end; }
+  }
+</style>
+</head>
+<body>
+
+<header data-site-nav></header>
+
+<main>
+  <section class="hero">
+    <div class="hero-glow hero-glow-1"></div>
+    <div class="hero-glow hero-glow-2"></div>
+    <div class="wrap hero-inner">
+      <div class="reveal">
+        <span class="chip"><span class="ponto"></span>CONFIGURAÇÃO · PICK &amp; BAN</span>
+        <h1>Lista de <span class="destaque">times</span></h1>
+        <p class="lead">Cadastre o nome e o logo de cada time uma vez. No Pick &amp; Ban, é só digitar o nome que o logo já entra sozinho — e vai junto para o servidor e para a página das partidas.</p>
+      </div>
+      <div class="resumo reveal" style="--d:.1s">
+        <div class="caixa"><span class="mono">TIMES</span><b id="total">—</b></div>
+        <div class="caixa"><span class="mono">COM LOGO</span><b id="com-logo">—</b></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao" style="padding-top:44px">
+    <div class="wrap layout">
+      <!-- Adicionar / editar -->
+      <div class="card hud-frame" style="padding:0">
+        <div class="card-head"><h2 id="form-titulo">Adicionar time</h2><span class="mono" id="form-modo">NOVO</span></div>
+        <form class="card-body" id="form" autocomplete="off">
+          <label class="campo">
+            <span class="mono">NOME DO TIME</span>
+            <input id="nome" maxlength="24" placeholder="Ex.: Pain" required>
+            <span class="dica" id="dica-nome">Até 24 caracteres. É o nome que aparece no veto e no servidor.</span>
+          </label>
+          <label class="campo">
+            <span class="mono">LOGO (URL DA IMAGEM)</span>
+            <input id="logo" type="url" inputmode="url" maxlength="300" placeholder="https://i.imgur.com/xxxx.png">
+            <span class="dica" id="dica-logo">Link que abre direto a imagem (.png, .jpg…). Opcional.</span>
+          </label>
+          <div class="previa">
+            <span class="logo" id="previa-logo">?</span>
+            <div><span class="mono">PRÉVIA</span><b id="previa-nome">Nome do time</b></div>
+          </div>
+          <div class="ferramentas">
+            <button class="btn btn-primary" type="submit" id="btn-ok">Adicionar à lista</button>
+            <button class="btn btn-ghost" type="button" id="btn-cancelar" hidden>Cancelar</button>
+          </div>
+        </form>
+
+        <details class="token" id="token-box">
+          <summary><span>Acesso para salvar no site</span><span class="estado-token off" id="estado-token">SEM TOKEN</span></summary>
+          <div class="card-body">
+            <ol class="passos">
+              <li>Abra <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com → novo token (Fine-grained)</a></li>
+              <li><b>Repository access:</b> só o <b>NeuraProjects</b></li>
+              <li><b>Permissions → Contents:</b> Read and write</li>
+              <li>Cole abaixo. Ele fica salvo <b>só neste navegador</b>.</li>
+            </ol>
+            <label class="campo">
+              <span class="mono">TOKEN DO GITHUB</span>
+              <input id="token" type="password" placeholder="github_pat_...">
+            </label>
+            <div class="ferramentas">
+              <button class="btn btn-ghost" type="button" id="btn-token">Salvar token</button>
+              <button class="btn btn-ghost" type="button" id="btn-sair" hidden>Remover token</button>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- Lista -->
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <h2>Times cadastrados</h2>
+            <input class="busca" id="busca" type="search" placeholder="Buscar time..." style="background:var(--bg-soft);border:1px solid var(--border-2);border-radius:8px;padding:8px 12px;color:var(--text);font:inherit;font-size:13px;max-width:240px">
+          </div>
+          <div class="lista" id="lista"><div class="vazio">Carregando lista...</div></div>
+        </div>
+
+        <div class="barra-salvar" id="barra" hidden>
+          <span class="msg" id="msg">Você tem alterações não salvas.</span>
+          <div class="ferramentas">
+            <button class="btn btn-ghost" type="button" id="btn-desfazer">Desfazer</button>
+            <button class="btn btn-primary" type="button" id="btn-salvar">Salvar no site</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer data-site-footer></footer>
+
+<script>
+(function () {
+  var C = window.NEURA.config;
+  var CHAVE_TOKEN = 'neura_gh_token';
+  var API = 'https://api.github.com/repos/' + C.repositorio + '/contents/' + C.arquivoTimes;
+  var $ = function (id) { return document.getElementById(id); };
+
+  var original = [];   // como está no site
+  var times = [];      // como está na tela
+  var marcados = {};   // nome (minúsculo) -> 'novo' | 'editado'
+  var editando = null; // índice em edição
+  var sha = null;
+
+  var token = function () { try { return localStorage.getItem(CHAVE_TOKEN) || ''; } catch (e) { return ''; } };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  var chave = function (nome) { return nome.trim().toLowerCase(); };
+  var logoValido = function (u) { u = (u || '').trim(); return u === '' || (u.length <= 300 && /^https?:\/\/\S+$/i.test(u) && !/[;"\\<>]/.test(u)); };
+  var iniciais = function (n) { return (n || '').replace(/[^\p{L}\p{N}\s]/gu, '').split(/\s+/).filter(Boolean).slice(0, 2).map(function (p) { return p[0]; }).join('').toUpperCase() || '?'; };
+  var logoHtml = function (t) {
+    return t.logo ? '<img src="' + esc(t.logo) + '" alt="" onerror="this.parentNode.textContent=\'' + esc(iniciais(t.nome)) + '\'">' : esc(iniciais(t.nome));
+  };
+  var ordenar = function (l) { return l.sort(function (a, b) { return a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }); }); };
+
+  // ── Lista ──
+  function desenhar() {
+    var filtro = chave($('busca').value || '');
+    var visiveis = times.map(function (t, i) { return { t: t, i: i }; })
+      .filter(function (x) { return !filtro || chave(x.t.nome).indexOf(filtro) >= 0; });
+
+    $('total').textContent = times.length;
+    $('com-logo').textContent = times.filter(function (t) { return t.logo; }).length;
+
+    $('lista').innerHTML = visiveis.length === 0
+      ? '<div class="vazio">' + (times.length ? 'Nenhum time encontrado.' : 'Nenhum time cadastrado ainda. Adicione o primeiro ao lado.') + '</div>'
+      : visiveis.map(function (x, n) {
+          var estado = marcados[chave(x.t.nome)] || '';
+          return '<div class="time ' + estado + '" style="animation-delay:' + Math.min(n, 12) * 30 + 'ms">' +
+            '<span class="logo">' + logoHtml(x.t) + '</span>' +
+            '<div><b>' + esc(x.t.nome) + '</b><small>' + (x.t.logo ? esc(x.t.logo) : 'sem logo') + '</small></div>' +
+            '<div class="acoes-time">' +
+              '<button class="icone-btn" type="button" data-editar="' + x.i + '" title="Editar" aria-label="Editar ' + esc(x.t.nome) + '">' +
+                '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>' +
+              '<button class="icone-btn perigo" type="button" data-remover="' + x.i + '" title="Remover" aria-label="Remover ' + esc(x.t.nome) + '">' +
+                '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>' +
+            '</div></div>';
+        }).join('');
+
+    var mudou = JSON.stringify(times) !== JSON.stringify(original);
+    $('barra').hidden = !mudou;
+    if (mudou) mensagem(token() ? 'Você tem alterações não salvas.' : 'Alterações não salvas. Coloque o token do GitHub (ao lado) para salvar no site.', '');
+  }
+
+  function mensagem(texto, tipo) {
+    var m = $('msg');
+    m.textContent = texto;
+    m.className = 'msg' + (tipo ? ' ' + tipo : '');
+  }
+
+  // ── Formulário ──
+  function previa() {
+    var nome = $('nome').value.trim(), logo = $('logo').value.trim();
+    $('previa-nome').textContent = nome || 'Nome do time';
+    $('previa-logo').innerHTML = logoValido(logo) && logo ? logoHtml({ nome: nome, logo: logo }) : esc(iniciais(nome || '?'));
+    $('logo').classList.toggle('invalido', !logoValido(logo));
+    $('dica-logo').className = 'dica' + (logoValido(logo) ? '' : ' erro');
+    $('dica-logo').textContent = logoValido(logo) ? 'Link que abre direto a imagem (.png, .jpg…). Opcional.' : 'Precisa ser um link https:// de imagem (até 300 caracteres).';
+  }
+
+  function limparForm() {
+    editando = null;
+    $('form').reset();
+    $('form-titulo').textContent = 'Adicionar time';
+    $('form-modo').textContent = 'NOVO';
+    $('btn-ok').textContent = 'Adicionar à lista';
+    $('btn-cancelar').hidden = true;
+    $('dica-nome').className = 'dica';
+    $('dica-nome').textContent = 'Até 24 caracteres. É o nome que aparece no veto e no servidor.';
+    previa();
+  }
+
+  $('nome').addEventListener('input', previa);
+  $('logo').addEventListener('input', previa);
+  $('btn-cancelar').addEventListener('click', limparForm);
+
+  $('form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var nome = $('nome').value.replace(/[;"\\]/g, '').trim();
+    var logo = $('logo').value.trim();
+    if (!nome) return;
+    if (!logoValido(logo)) { $('logo').focus(); return; }
+    var repetido = times.some(function (t, i) { return i !== editando && chave(t.nome) === chave(nome); });
+    if (repetido) {
+      $('dica-nome').className = 'dica erro';
+      $('dica-nome').textContent = 'Já existe um time com esse nome na lista.';
+      return;
+    }
+    if (editando === null) {
+      times.push({ nome: nome, logo: logo });
+      marcados[chave(nome)] = 'novo';
+    } else {
+      delete marcados[chave(times[editando].nome)];
+      times[editando] = { nome: nome, logo: logo };
+      marcados[chave(nome)] = 'editado';
+    }
+    ordenar(times);
+    limparForm();
+    desenhar();
+  });
+
+  $('lista').addEventListener('click', function (e) {
+    var ed = e.target.closest('[data-editar]');
+    var rm = e.target.closest('[data-remover]');
+    if (ed) {
+      editando = Number(ed.dataset.editar);
+      var t = times[editando];
+      $('nome').value = t.nome;
+      $('logo').value = t.logo || '';
+      $('form-titulo').textContent = 'Editar time';
+      $('form-modo').textContent = 'EDITANDO';
+      $('btn-ok').textContent = 'Salvar alteração';
+      $('btn-cancelar').hidden = false;
+      previa();
+      $('nome').focus();
+      window.scrollTo({ top: $('form').getBoundingClientRect().top + scrollY - 90, behavior: 'smooth' });
+    }
+    if (rm) {
+      var i = Number(rm.dataset.remover);
+      if (!confirm('Remover "' + times[i].nome + '" da lista?')) return;
+      delete marcados[chave(times[i].nome)];
+      times.splice(i, 1);
+      if (editando === i) limparForm();
+      desenhar();
+    }
+  });
+  $('busca').addEventListener('input', desenhar);
+
+  $('btn-desfazer').addEventListener('click', function () {
+    times = JSON.parse(JSON.stringify(original));
+    marcados = {};
+    limparForm();
+    desenhar();
+  });
+
+  // ── Token ──
+  function estadoToken() {
+    var tem = !!token();
+    $('estado-token').textContent = tem ? 'TOKEN SALVO' : 'SEM TOKEN';
+    $('estado-token').className = 'estado-token ' + (tem ? 'on' : 'off');
+    $('btn-sair').hidden = !tem;
+    $('token').value = '';
+    $('token').placeholder = tem ? '•••••••• (salvo neste navegador)' : 'github_pat_...';
+  }
+  $('btn-token').addEventListener('click', function () {
+    var v = $('token').value.trim();
+    if (!v) return;
+    try { localStorage.setItem(CHAVE_TOKEN, v); } catch (e) {}
+    estadoToken();
+    carregar();
+  });
+  $('btn-sair').addEventListener('click', function () {
+    try { localStorage.removeItem(CHAVE_TOKEN); } catch (e) {}
+    estadoToken();
+  });
+
+  // ── GitHub ──
+  var b64 = function (texto) {
+    var bytes = new TextEncoder().encode(texto), bin = '';
+    bytes.forEach(function (b) { bin += String.fromCharCode(b); });
+    return btoa(bin);
+  };
+  var deB64 = function (b) {
+    var bin = atob(b.replace(/\n/g, '')), bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  };
+  var cabecalhos = function () {
+    return { Authorization: 'Bearer ' + token(), Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
+  };
+
+  function carregar() {
+    var pedido = token()
+      // Com token: lê pela API (versão mais nova e o "sha" para salvar depois)
+      ? fetch(API + '?ref=' + C.branch + '&t=' + Date.now(), { headers: cabecalhos(), cache: 'no-store' }).then(function (r) {
+          if (r.status === 404) return { times: [] };
+          if (!r.ok) throw new Error('GitHub ' + r.status);
+          return r.json().then(function (j) { sha = j.sha; return JSON.parse(deB64(j.content)); });
+        })
+      : window.NEURA.carregarTimes().then(function (l) { return { times: l }; });
+
+    pedido.then(function (dados) {
+      original = ordenar((dados.times || []).map(function (t) { return { nome: String(t.nome || ''), logo: String(t.logo || '') }; }).filter(function (t) { return t.nome; }));
+      times = JSON.parse(JSON.stringify(original));
+      marcados = {};
+      desenhar();
+    }).catch(function (e) {
+      $('lista').innerHTML = '<div class="vazio">Não consegui carregar a lista (' + esc(e.message) + '). Confira o token.</div>';
+    });
+  }
+
+  $('btn-salvar').addEventListener('click', function () {
+    if (!token()) {
+      $('token-box').open = true;
+      $('token').focus();
+      mensagem('Coloque o token do GitHub para salvar no site.', 'erro');
+      return;
+    }
+    var botao = $('btn-salvar');
+    botao.disabled = true;
+    mensagem('Salvando no site...', '');
+
+    // Pega o sha mais novo (alguém pode ter salvo antes) e grava
+    fetch(API + '?ref=' + C.branch + '&t=' + Date.now(), { headers: cabecalhos(), cache: 'no-store' })
+      .then(function (r) { return r.status === 404 ? null : r.ok ? r.json() : Promise.reject(new Error('GitHub ' + r.status)); })
+      .then(function (atual) {
+        var corpo = {
+          message: 'times: lista atualizada (' + times.length + ' times)',
+          content: b64(JSON.stringify({ atualizado: new Date().toISOString(), times: times }, null, 2) + '\n'),
+          branch: C.branch
+        };
+        if (atual) corpo.sha = atual.sha;
+        return fetch(API, { method: 'PUT', headers: Object.assign({ 'Content-Type': 'application/json' }, cabecalhos()), body: JSON.stringify(corpo) });
+      })
+      .then(function (r) {
+        if (!r.ok) return r.json().then(function (j) { throw new Error(j.message || ('GitHub ' + r.status)); });
+        return r.json();
+      })
+      .then(function (j) {
+        sha = j.content && j.content.sha;
+        original = JSON.parse(JSON.stringify(times));
+        marcados = {};
+        desenhar();
+        $('barra').hidden = false;
+        mensagem('Salvo! O Pick & Ban já usa a lista nova em alguns minutos.', 'ok');
+        setTimeout(function () { if (JSON.stringify(times) === JSON.stringify(original)) $('barra').hidden = true; }, 5000);
+      })
+      .catch(function (e) {
+        mensagem('Não salvou: ' + e.message + (/401|403|Bad credentials|not accessible/i.test(e.message) ? ' — confira o token e a permissão Contents: Read and write.' : ''), 'erro');
+      })
+      .finally(function () { botao.disabled = false; });
+  });
+
+  // Não perde alteração por engano
+  window.addEventListener('beforeunload', function (e) {
+    if (JSON.stringify(times) !== JSON.stringify(original)) { e.preventDefault(); e.returnValue = ''; }
+  });
+
+  estadoToken();
+  previa();
+  carregar();
+})();
+</script>
+</body>
+</html>
