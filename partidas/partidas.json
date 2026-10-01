@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "nome": "2026-10-01_00-57_de_dust2",
+    "data": "2026-10-01 00:57",
+    "mapa": "de_dust2",
+    "timeA": "Time A",
+    "timeB": "Time B",
+    "placarA": 4,
+    "placarB": 1,
+    "serie": null
+  }
+]
