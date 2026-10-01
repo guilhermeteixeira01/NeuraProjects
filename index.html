@@ -1,964 +1,355 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"/>
-<link rel="icon" type="image/x-icon" href="assets/logos/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="assets/logos/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="assets/logos/favicon-32x32.png">
-<link rel="apple-touch-icon" sizes="180x180" href="assets/logos/apple-touch-icon.png">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<meta name="description" content="Neura Project Launcher — detecção automática do Counter-Strike 1.6, amigos, loja de perfil e atualizações automáticas em um só lugar."/>
-<title>Neura Project Launcher</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neura Project — Estúdio de jogos</title>
+<meta name="description" content="Neura Project é um pequeno estúdio brasileiro focado em jogos: launcher multi-jogos, Pick &amp; Ban de CS2, servidor competitivo e estatísticas de partidas.">
+<link rel="icon" type="image/x-icon" href="/assets/logos/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/logos/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/logos/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/logos/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="stylesheet" href="/assets/css/paginas.css">
+<script src="/assets/js/site.js"></script>
 <style>
-  :root {
-    --bg:      #0b0c0f;
-    --bg-soft: #0e0f13;
-    --panel:   #121317;
-    --panel-2: #16171c;
-    --border:  #232427;
-    --border-2:#2e2f36;
-    --text:    #f1f1f1;
-    --dim:     #9a9ba3;
-    --dim-2:   #6d6e77;
-    --blue:    #1a73e8;
-    --blue-2:  #3498db;
-    --green:   #3ddc84;
-    --green-2: #2fbf6f;
-    --orange:  #ff7a1a;
-
-    --font-display: "Chakra Petch", "Segoe UI", sans-serif;
-    --font-body: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
-    --font-mono: "JetBrains Mono", "Consolas", monospace;
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    background:
-      repeating-linear-gradient(0deg, transparent, transparent 42px, rgba(255,255,255,.012) 42px, rgba(255,255,255,.012) 43px),
-      repeating-linear-gradient(90deg, transparent, transparent 42px, rgba(255,255,255,.012) 42px, rgba(255,255,255,.012) 43px),
-      var(--bg);
-    color: var(--text);
-    font-family: var(--font-body);
-    line-height: 1.5;
-  }
-
-  a { color: inherit; text-decoration: none; }
-  img { max-width: 100%; display: block; }
-
-  .wrap {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 0 32px;
-  }
-
-  :focus-visible {
-    outline: 2px solid var(--blue);
-    outline-offset: 2px;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
-  }
-
-  /* ── HUD corner brackets (usado no frame do preview) ── */
-  .hud-frame {
-    position: relative;
-    padding: 14px;
-  }
-  .hud-frame::before,
-  .hud-frame::after {
-    content: '';
-    position: absolute;
-    width: 26px;
-    height: 26px;
-    border: 2px solid var(--blue);
-    opacity: .85;
-  }
-  .hud-frame::before { top: 0; left: 0; border-right: none; border-bottom: none; }
-  .hud-frame::after  { bottom: 0; right: 0; border-left: none; border-top: none; }
-
-  /* ── NAV ── */
-  .nav {
-    position: sticky;
-    top: 0;
-    z-index: 200;
-    background: rgba(11,12,15,.85);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border);
-  }
-  .nav-inner {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 0 32px;
-    height: 64px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-  }
-  .nav-brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 16px;
-    letter-spacing: .5px;
-    white-space: nowrap;
-  }
-  .nav-brand .mark {
-    width: 30px; height: 30px;
-    border-radius: 7px;
-    background: linear-gradient(145deg, var(--blue), var(--blue-2));
-    display: flex; align-items: center; justify-content: center;
-    color: #fff;
-    font-size: 13px;
-    font-weight: 700;
-    flex-shrink: 0;
-  }
-  .nav-brand .sub {
-    display: block;
-    font-family: var(--font-mono);
-    font-size: 9px;
-    font-weight: 500;
-    letter-spacing: 2px;
-    color: var(--dim-2);
-    margin-top: 1px;
-  }
-  .nav-links {
-    display: flex;
-    align-items: center;
-    gap: 28px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--dim);
-  }
-  .nav-links a:hover { color: var(--text); }
-  .nav-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .icon-btn {
-    width: 34px; height: 34px;
-    border-radius: 7px;
-    border: 1px solid var(--border-2);
-    color: var(--dim);
-    display: flex; align-items: center; justify-content: center;
-    transition: color .15s, border-color .15s, background .15s;
-    flex-shrink: 0;
-  }
-  .icon-btn:hover { color: var(--text); border-color: var(--blue); background: rgba(26,115,232,.1); }
-
-  /* ── BUTTONS ── */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-family: var(--font-body);
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: .2px;
-    padding: 10px 20px;
-    border-radius: 8px;
-    border: 1px solid transparent;
-    cursor: pointer;
-    transition: background .15s, border-color .15s, transform .08s, color .15s;
-    white-space: nowrap;
-  }
-  .btn:active { transform: scale(.97); }
-  .btn-primary {
-    background: linear-gradient(135deg, var(--green), var(--green-2));
-    color: #06170e;
-  }
-  .btn-primary:hover { filter: brightness(1.06); }
-  .btn-ghost {
-    background: transparent;
-    border-color: var(--border-2);
-    color: var(--text);
-  }
-  .btn-ghost:hover { border-color: var(--blue); color: var(--blue); }
-  .btn-sm { padding: 8px 16px; font-size: 12px; }
-  .btn-lg { padding: 15px 32px; font-size: 15px; border-radius: 10px; }
-
-  /* ── HERO ── */
-  .hero {
-    position: relative;
-    overflow: hidden;
-    padding: 76px 0 56px;
-    border-bottom: 1px solid var(--border);
-  }
-  .hero-glow {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(110px);
-    pointer-events: none;
-    z-index: 0;
-  }
-  .hero-glow-1 {
-    width: 460px; height: 460px;
-    top: -140px; left: -120px;
-    background: var(--blue);
-    opacity: 0.22;
-    animation: heroGlowDrift1 14s ease-in-out infinite;
-  }
-  .hero-glow-2 {
-    width: 420px; height: 420px;
-    bottom: -160px; right: -110px;
-    background: var(--green);
-    opacity: 0.14;
-    animation: heroGlowDrift2 16s ease-in-out infinite;
-  }
-  @keyframes heroGlowDrift1 {
-    0%, 100% { transform: translate(0, 0); }
-    50% { transform: translate(50px, 30px); }
-  }
-  @keyframes heroGlowDrift2 {
-    0%, 100% { transform: translate(0, 0); }
-    50% { transform: translate(-40px, -35px); }
-  }
-  .hero-inner {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-template-columns: minmax(0, 460px) 1fr;
-    gap: 56px;
-    align-items: center;
-  }
-  .hero-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 1.5px;
-    color: var(--green);
-    border: 1px solid rgba(61,220,132,.3);
-    background: rgba(61,220,132,.08);
-    padding: 5px 10px;
-    border-radius: 5px;
-    margin-bottom: 22px;
-  }
-  .hero-status .dot-live {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--green);
-    box-shadow: 0 0 0 3px rgba(61,220,132,.2);
-  }
-  .hero h1 {
-    font-family: var(--font-display);
-    font-size: 42px;
-    font-weight: 700;
-    line-height: 1.12;
-    letter-spacing: .2px;
-    margin-bottom: 18px;
-  }
-  .hero p.lead {
-    font-size: 15px;
-    color: var(--dim);
-    max-width: 44ch;
-    margin-bottom: 30px;
-  }
-  .hero-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 26px;
-  }
-  .hero-meta {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 12px;
-    color: var(--dim-2);
-    font-family: var(--font-mono);
-  }
-  .hero-meta .sep { color: var(--border-2); }
-
-  .hero-visual { position: relative; }
-  .hero-visual .hud-frame {
+  /* ── Painel de projetos (lado direito do topo) ── */
+  .painel {
     background: linear-gradient(160deg, #14161b 0%, #0d0e12 100%);
     border: 1px solid var(--border-2);
     border-radius: 14px;
+    overflow: hidden;
   }
-  .hero-visual img {
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    box-shadow: 0 30px 70px -20px rgba(0,0,0,.7);
-  }
-  .hero-tag-float {
-    position: absolute;
-    bottom: -16px;
-    right: 22px;
-    background: var(--panel-2);
-    border: 1px solid var(--border-2);
-    border-radius: 8px;
-    padding: 8px 14px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--dim);
-    box-shadow: 0 10px 24px -8px rgba(0,0,0,.6);
-  }
-  .hero-tag-float strong { color: var(--orange); }
-
-  /* ── STATUS STRIP ── */
-  .status-strip {
-    border-bottom: 1px solid var(--border);
-    background: var(--bg-soft);
-  }
-  .status-strip .wrap {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px 32px;
-    padding: 20px 32px;
-    justify-content: center;
-  }
-  .status-item {
+  .painel-head {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--dim);
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
   }
-  .status-item svg { color: var(--blue); flex-shrink: 0; }
-
-  /* ── SECTION HEAD ── */
-  .section-head {
-    max-width: 560px;
-    margin: 0 0 40px;
-  }
-  .section-head h2 {
-    font-family: var(--font-display);
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 10px;
-  }
-  .section-head p { font-size: 14px; color: var(--dim); }
-
-  .features { padding: 88px 0; }
-
-  /* ── SPEC LIST (loadout style, não card genérico) ── */
-  .spec-list {
-    border-top: 1px solid var(--border);
-  }
-  .spec-row {
+  .painel-head .luzes { display: flex; gap: 6px; }
+  .painel-head .luzes i { width: 8px; height: 8px; border-radius: 50%; background: var(--border-2); }
+  .painel-head .luzes i:first-child { background: var(--red); }
+  .painel-head .luzes i:nth-child(2) { background: var(--yellow); }
+  .painel-head .luzes i:nth-child(3) { background: var(--green); }
+  .painel-linha {
     display: grid;
-    grid-template-columns: 44px 1fr auto;
-    gap: 18px;
+    grid-template-columns: 40px 1fr auto;
+    gap: 14px;
     align-items: center;
-    padding: 22px 4px;
+    padding: 16px 18px;
     border-bottom: 1px solid var(--border);
-    border-left: 2px solid transparent;
-    transition: background .2s ease, border-color .2s ease, padding-left .2s ease;
+    transition: background .2s;
   }
-  .spec-row:hover {
-    background: rgba(26, 115, 232, .05);
-    border-left-color: var(--blue);
-    padding-left: 14px;
+  .painel-linha:last-child { border-bottom: none; }
+  .painel-linha:hover { background: rgba(26,115,232,.06); }
+  .painel-linha .ico {
+    width: 40px; height: 40px; border-radius: 9px;
+    display: grid; place-items: center;
+    border: 1px solid var(--border-2); background: var(--panel); color: var(--blue-2);
   }
-  .spec-row:hover .spec-icon {
-    color: var(--blue-2);
-    border-color: var(--blue);
-    box-shadow: 0 0 0 4px rgba(26, 115, 232, .1);
-    transform: scale(1.06);
+  .painel-linha b { display: block; font-family: var(--font-display); font-size: 16px; }
+  .painel-linha small { color: var(--dim); font-size: 12px; }
+  .estado {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.3px; font-weight: 700;
+    padding: 4px 8px; border-radius: 5px;
+    color: var(--green); border: 1px solid rgba(61,220,132,.4); background: rgba(61,220,132,.07);
   }
-  .spec-icon {
-    width: 44px; height: 44px;
-    border-radius: 9px;
-    border: 1px solid var(--border-2);
-    background: var(--panel);
-    display: flex; align-items: center; justify-content: center;
-    color: var(--blue);
-    flex-shrink: 0;
-    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, color .2s ease;
-  }
-  .spec-row:hover .spec-tag { color: var(--blue-2); border-color: var(--blue); }
-  .spec-tag { transition: color .2s ease, border-color .2s ease; }
-  .spec-tag.is-new { color: var(--green); border-color: var(--green-2); }
-
-  /* ── Efeito "aparece ao rolar" -- usado no section-head e em cada
-     spec-row; a classe .is-visible é adicionada via IntersectionObserver
-     no script no fim da página. ── */
-  .reveal {
-    opacity: 0;
-    transform: translateY(22px);
-    transition: opacity .65s cubic-bezier(.16,.84,.44,1), transform .65s cubic-bezier(.16,.84,.44,1);
-  }
-  .reveal.is-visible { opacity: 1; transform: translateY(0); }
-  .spec-list .reveal:nth-child(1) { transition-delay: 0s; }
-  .spec-list .reveal:nth-child(2) { transition-delay: .05s; }
-  .spec-list .reveal:nth-child(3) { transition-delay: .1s; }
-  .spec-list .reveal:nth-child(4) { transition-delay: .15s; }
-  .spec-list .reveal:nth-child(5) { transition-delay: .2s; }
-  .spec-list .reveal:nth-child(6) { transition-delay: .25s; }
-  .spec-list .reveal:nth-child(7) { transition-delay: .3s; }
-  @media (prefers-reduced-motion: reduce) {
-    .reveal { opacity: 1; transform: none; transition: none; }
-    .hero-glow-1, .hero-glow-2 { animation: none; }
-  }
-  .spec-body h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
-  .spec-body p { font-size: 13px; color: var(--dim); max-width: 56ch; }
-  .spec-tag {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 1.5px;
-    color: var(--dim-2);
-    border: 1px solid var(--border-2);
-    border-radius: 5px;
-    padding: 4px 9px;
-    white-space: nowrap;
+  .estado.breve { color: var(--yellow); border-color: rgba(245,197,66,.45); background: rgba(245,197,66,.07); }
+  .painel-rodape {
+    display: flex; justify-content: space-between; gap: 10px;
+    padding: 12px 18px; background: var(--bg-soft); border-top: 1px solid var(--border);
   }
 
-  /* ── DOWNLOAD CTA ── */
-  .cta-download {
-    padding: 90px 0;
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    background:
-      radial-gradient(600px 260px at 20% 0%, rgba(26,115,232,.10), transparent 70%),
-      radial-gradient(600px 260px at 80% 100%, rgba(61,220,132,.08), transparent 70%),
-      var(--bg-soft);
+  /* ── Cards de projeto ── */
+  .projetos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
   }
-  .cta-inner { text-align: center; max-width: 560px; margin: 0 auto; }
-  .cta-inner h2 {
-    font-family: var(--font-display);
-    font-size: 30px;
-    font-weight: 700;
-    margin-bottom: 12px;
-  }
-  .cta-inner p.lead { color: var(--dim); font-size: 14px; margin: 0 auto 30px; max-width: 42ch; }
-  .cta-version {
-    margin-top: 16px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--dim-2);
-    letter-spacing: .5px;
-  }
-
-  /* ── FOOTER ── */
-  footer { padding: 48px 0 32px; }
-  .footer-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 20px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 20px;
-  }
-  .footer-brand {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 14px;
-    letter-spacing: .5px;
-  }
-  .footer-brand span { color: var(--blue); }
-  .footer-social { display: flex; align-items: center; gap: 16px; }
-  .footer-social a { color: var(--dim); transition: color .15s, transform .15s; }
-  .footer-social a:hover { color: var(--text); transform: translateY(-2px); }
-  .logosocial1 {width: 40px;}
-  .logosocial1:hover{filter: drop-shadow(0 0 16px rgba(88, 101, 242, 0.8));}
-  .logosocial2 {width: 50px;}
-  .logosocial2:hover{filter: drop-shadow(0 0 16px rgba(255, 0, 0, 0.8));}
-  .logosocial3 {width: 46px;}
-  .logosocial3:hover{filter: drop-shadow(0 0 12px rgba(225, 48, 108, 0.75))drop-shadow(0 0 16px rgba(247, 119, 55, 0.5));}
-  .footer-legal {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-    font-size: 11px;
-    color: var(--dim-2);
-  }
-  .footer-legal a { color: var(--dim-2); border-bottom: 1px solid transparent; }
-  .footer-legal a:hover { color: var(--dim); border-bottom-color: var(--dim); }
-
-  /* ── RESPONSIVO ── */
-  @media (max-width: 980px) {
-    .hero-inner { grid-template-columns: 1fr; gap: 44px; }
-    .hero-visual { order: -1; }
-    .hero p.lead { max-width: none; }
-    .wrap { padding: 0 24px; }
-    .nav-inner { padding: 0 24px; }
-
-    .logosocial1 {width: 35px;}
-    .logosocial2 {width: 40px;}
-    .logosocial3 {width: 36px;}
-  }
-
-  @media (max-width: 720px) {
-    .nav-links { display: none; }
-    /* Pick & Ban continua no topo no celular, mais compacto */
-    .nav-actions { gap: 8px; }
-    .nav-pick { padding: 8px 12px; }
-    .hero { padding: 48px 0 40px; }
-    .hero h1 { font-size: 32px; }
-    .status-strip .wrap { justify-content: flex-start; padding: 16px 24px; }
-    .features { padding: 64px 0; }
-    .spec-row { grid-template-columns: 40px 1fr; }
-    .spec-tag { grid-column: 2; justify-self: start; }
-    .cta-download { padding: 64px 0; }
-    .cta-inner h2 { font-size: 24px; }
-    .footer-inner { flex-direction: column; align-items: center; }
-    .footer-legal { flex-direction: column; align-items: center; }
-  }
-
-  @media (max-width: 460px) {
-    .wrap, .nav-inner { padding: 0 18px; }
-    .nav-inner { gap: 10px; }
-    .nav-brand { font-size: 14px; }
-    .nav-brand .sub { display: none; }
-    .nav-pick-cs2 { display: none; }
-    .nav-actions .btn-sm { padding: 7px 10px; font-size: 11.5px; }
-    /* O launcher é só para PC: no celular o botão de baixar fica só no topo da página (hero) */
-    .nav-actions .nav-download { display: none; }
-    .hero h1 { font-size: 27px; }
-    .hero-actions .btn { flex: 1 1 auto; }
-    .hero-tag-float { right: 12px; }
-  }
-
-  /* ── Popup "só desktop" (aparece quando clica em Baixar pelo celular) ── */
-  .mobile-warn-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    background: rgba(6, 7, 9, 0.72);
-    backdrop-filter: blur(3px);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-  }
-
-  .mobile-warn-overlay.is-open {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .mobile-warn-card {
+  .projeto {
     position: relative;
-    width: 100%;
-    max-width: 380px;
-    background: linear-gradient(180deg, var(--panel-2), var(--panel));
-    border: 1px solid var(--border-2);
-    border-radius: 16px;
-    padding: 28px 24px 24px;
-    text-align: center;
-    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
-    transform: translateY(10px) scale(0.98);
-    transition: transform 0.2s ease;
-  }
-
-  .mobile-warn-overlay.is-open .mobile-warn-card {
-    transform: translateY(0) scale(1);
-  }
-
-  .mobile-warn-close {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--dim);
-    cursor: pointer;
-    font-size: 15px;
-    line-height: 1;
-    transition: background 0.15s ease, color 0.15s ease;
-  }
-
-  .mobile-warn-close:hover {
-    background: rgba(255, 255, 255, 0.12);
-    color: var(--text);
-  }
-
-  .mobile-warn-icon {
-    width: 56px;
-    height: 56px;
-    margin: 0 auto 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: rgba(26, 115, 232, 0.12);
-    border: 1px solid rgba(26, 115, 232, 0.35);
-    color: var(--blue-2);
-  }
-
-  .mobile-warn-card h3 {
-    font-family: var(--font-display);
-    font-size: 18px;
-    margin-bottom: 10px;
-  }
-
-  .mobile-warn-card p {
-    color: var(--dim);
-    font-size: 13.5px;
-    line-height: 1.55;
-    margin-bottom: 20px;
-  }
-
-  .mobile-warn-card p strong {
-    color: var(--text);
-  }
-
-  .mobile-warn-actions {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-  }
-
-  .mobile-warn-link {
-    font-family: var(--font-mono);
-    font-size: 11.5px;
-    color: var(--dim-2);
-    word-break: break-all;
-    background: var(--bg-soft);
+    gap: 14px;
+    padding: 26px;
+    border-radius: 12px;
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 12px;
+    background: var(--panel);
+    overflow: hidden;
+    transition: border-color .2s, transform .2s, box-shadow .2s;
+  }
+  .projeto::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(420px 180px at 100% 0%, var(--brilho, rgba(26,115,232,.12)), transparent 70%);
+    pointer-events: none;
+  }
+  .projeto > * { position: relative; }
+  .projeto:hover {
+    border-color: var(--border-2);
+    transform: translateY(-3px);
+    box-shadow: 0 22px 44px -26px rgba(0,0,0,.9);
+  }
+  .projeto-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .projeto .ico {
+    width: 46px; height: 46px; border-radius: 10px;
+    display: grid; place-items: center;
+    border: 1px solid var(--border-2); background: var(--bg-soft); color: var(--cor, var(--blue-2));
+  }
+  .projeto h3 { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+  .projeto p { font-size: 13.5px; color: var(--dim); flex: 1; }
+  .projeto-link {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 700; color: var(--cor, var(--blue-2));
+  }
+  .projeto-link svg { transition: transform .2s; }
+  .projeto:hover .projeto-link svg { transform: translateX(4px); }
+
+  /* ── Sobre ── */
+  .sobre {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 56px;
+    align-items: start;
+  }
+  .sobre-texto p { color: var(--dim); font-size: 15px; margin-bottom: 16px; max-width: 58ch; }
+  .sobre-texto p strong { color: var(--text); }
+  .ficha {
+    border: 1px solid var(--border-2);
+    border-radius: 12px;
+    background: var(--panel);
+    overflow: hidden;
+  }
+  .ficha-linha {
+    display: flex; justify-content: space-between; gap: 16px;
+    padding: 14px 18px; border-bottom: 1px solid var(--border); font-size: 13.5px;
+  }
+  .ficha-linha:last-child { border-bottom: none; }
+  .ficha-linha span:last-child { font-weight: 700; text-align: right; }
+
+  @media (max-width: 980px) {
+    .sobre { grid-template-columns: 1fr; gap: 36px; }
+  }
+  @media (max-width: 720px) {
+    .projetos { grid-template-columns: 1fr; }
+    .projeto { padding: 20px; }
+    .painel-linha { grid-template-columns: 36px 1fr; }
+    .painel-linha .estado { grid-column: 2; justify-self: start; }
   }
 </style>
 </head>
 <body>
 
-<!-- NAV -->
-<header class="nav">
-  <div class="nav-inner">
-    <div class="nav-brand">
-      <img src="assets/logos/logoNP.ico" alt="logo" style="width: 12%;">
-      <!-- <span class="mark">NP</span> -->
-      <span>
-        NEURA <span style="-webkit-text-stroke:1px var(--blue-2); color:transparent;">PROJECT</span>
-        <span class="sub">NEURA PROJECTS</span>
-      </span>
+<header data-site-nav></header>
+
+<main>
+  <!-- TOPO -->
+  <section class="hero">
+    <div class="hero-glow hero-glow-1"></div>
+    <div class="hero-glow hero-glow-2"></div>
+    <div class="wrap hero-inner">
+      <div class="reveal">
+        <span class="chip"><span class="ponto"></span>ESTÚDIO INDEPENDENTE · BRASIL</span>
+        <h1>Jogos e ferramentas feitos por <span class="destaque">quem joga.</span></h1>
+        <p class="lead">A Neura Project é um pequeno estúdio focado em jogos. Criamos ferramentas para a comunidade competitiva — do launcher que organiza seus jogos ao Pick &amp; Ban e às estatísticas das partidas do nosso servidor.</p>
+        <div class="hero-acoes">
+          <a class="btn btn-primary btn-lg" href="#projetos">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Ver projetos
+          </a>
+          <a class="btn btn-ghost btn-lg" data-discord href="#" target="_blank" rel="noopener">Entrar na comunidade</a>
+        </div>
+        <div class="hero-meta">
+          <span>LAUNCHER</span><span class="sep">/</span><span>PICK &amp; BAN</span><span class="sep">/</span><span>SERVIDOR CS2</span><span class="sep">/</span><span>ESTATÍSTICAS</span>
+        </div>
+      </div>
+
+      <div class="hud-frame reveal" style="--d:.12s">
+        <div class="painel">
+          <div class="painel-head">
+            <span class="mono">// PROJETOS NEURA</span>
+            <span class="luzes" aria-hidden="true"><i></i><i></i><i></i></span>
+          </div>
+          <a class="painel-linha" href="/launcher/">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></span>
+            <span><b>Neura Launcher</b><small>Seus jogos num só lugar</small></span>
+            <span class="estado" data-launcher-estado>EM BREVE</span>
+          </a>
+          <a class="painel-linha" href="/neurapick/">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 8 3 16 6 23 3 23 18 16 21 8 18 1 21 1 6"/><line x1="8" y1="3" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="21"/></svg></span>
+            <span><b>NeuraPick</b><small>Pick &amp; Ban de mapas do CS2</small></span>
+            <span class="estado">ONLINE</span>
+          </a>
+          <a class="painel-linha" href="/partidas/">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg></span>
+            <span><b>Partidas</b><small>Estatísticas de cada mapa jogado</small></span>
+            <span class="estado">ONLINE</span>
+          </a>
+          <div class="painel-rodape">
+            <span class="mono">FEITO NO BRASIL</span>
+            <span class="mono">EM DESENVOLVIMENTO ATIVO</span>
+          </div>
+        </div>
+      </div>
     </div>
-    <nav class="nav-links">
-      <a href="#recursos">Recursos</a>
-      <a href="#download">Download</a>
-    </nav>
-    <div class="nav-actions">
-      <a class="icon-btn" href="admin.html" title="Painel de anúncios" aria-label="Painel de anúncios">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-        </svg>
-      </a>
-      <a class="btn btn-ghost btn-sm nav-pick" href="neurapick/">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="1 6 8 3 16 6 23 3 23 18 16 21 8 18 1 21 1 6"/><line x1="8" y1="3" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="21"/></svg>
-        Pick &amp; Ban<span class="nav-pick-cs2">&nbsp;CS2</span>
-      </a>
-      <a class="btn btn-primary btn-sm nav-download" href="https://webhook.neuraproject.com.br/download/latest" target="_blank">Baixar launcher</a>
+  </section>
+
+  <!-- FAIXA -->
+  <div class="faixa">
+    <div class="wrap">
+      <span class="faixa-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Comunidade em primeiro lugar</span>
+      <span class="faixa-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>Foco no competitivo</span>
+      <span class="faixa-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Atualizações constantes</span>
+      <span class="faixa-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Gratuito para a comunidade</span>
     </div>
   </div>
-</header>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-glow hero-glow-1"></div>
-  <div class="hero-glow hero-glow-2"></div>
-  <div class="wrap hero-inner">
-    <div class="hero-copy">
-      <div class="hero-status"><span class="dot-live"></span>EM DESENVOLVIMENTO ATIVO</div>
-      <h1>Tática renovada.<br>Uma nova era de combate.</h1>
-      <p class="lead">O launcher oficial do Neura Project. Detecta sua instalação do Counter-Strike 1.6, cuida das atualizações e organiza amigos, notícias e customização — tudo num só lugar.</p>
-      <div class="hero-actions">
-        <a class="btn btn-primary btn-lg" href="https://webhook.neuraproject.com.br/download/latest" target="_blank">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          Baixar launcher
+  <!-- PROJETOS -->
+  <section class="secao" id="projetos">
+    <div class="wrap">
+      <div class="secao-head reveal">
+        <span class="mono">// O QUE FAZEMOS</span>
+        <h2>Nossos projetos</h2>
+        <p>Cada projeto nasce de um problema real de quem joga: organizar os jogos, montar o veto de um campeonato, jogar uma partida justa e entender o que aconteceu nela.</p>
+      </div>
+
+      <div class="projetos">
+        <a class="projeto reveal" href="/launcher/" style="--cor:var(--blue-2);--brilho:rgba(26,115,232,.14)">
+          <div class="projeto-topo">
+            <span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></span>
+            <span class="tag amarelo" data-launcher-estado>EM BREVE</span>
+          </div>
+          <h3>Neura Launcher</h3>
+          <p>Um launcher para vários jogos: encontra suas instalações, mantém tudo atualizado e reúne amigos, chat, servidores e notícias num só lugar.</p>
+          <span class="projeto-link">Conhecer o launcher <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
         </a>
-        <a class="btn btn-ghost" href="neurapick/">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="1 6 8 3 16 6 23 3 23 18 16 21 8 18 1 21 1 6"/><line x1="8" y1="3" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="21"/>
-          </svg>
-          Pick &amp; Ban CS2
+
+        <a class="projeto reveal" href="/neurapick/" style="--d:.06s;--cor:var(--green);--brilho:rgba(61,220,132,.10)">
+          <div class="projeto-topo">
+            <span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 8 3 16 6 23 3 23 18 16 21 8 18 1 21 1 6"/><line x1="8" y1="3" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="21"/></svg></span>
+            <span class="tag verde">ONLINE</span>
+          </div>
+          <h3>NeuraPick — Pick &amp; Ban</h3>
+          <p>Veto de mapas do CS2 no padrão dos campeonatos: MD1, MD3 e MD5, escolha de lado, decider, timer e logo dos times. No fim, um comando configura a série inteira no servidor.</p>
+          <span class="projeto-link">Fazer um veto <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
         </a>
-        <a class="btn btn-ghost" href="#recursos">Ver recursos</a>
-      </div>
-      <div class="hero-meta">
-        <span data-release="version">v1.4.0</span><span class="sep">·</span><span>Windows 10/11</span><span class="sep">·</span><span data-release="size">~140 MB</span><span class="sep">·</span><span>Gratuito</span>
-      </div>
-    </div>
-    <div class="hero-visual">
-      <div class="hud-frame">
-        <img src="assets/launcher-preview.png" alt="Captura de tela do Neura Project Launcher mostrando a tela inicial com o jogo detectado"/>
-      </div>
-      <div class="hero-tag-float"><strong>●</strong> Steam — CS 1.6 detectado</div>
-    </div>
-  </div>
-</section>
 
-<!-- STATUS STRIP -->
-<div class="status-strip">
-  <div class="wrap">
-    <div class="status-item">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-      Detecção automática via Steam
-    </div>
-    <div class="status-item">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-      Atualizações automáticas
-    </div>
-    <div class="status-item">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      Amigos e squads
-    </div>
-    <div class="status-item">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-      Loja de perfil
-    </div>
-  </div>
-</div>
-
-<!-- FEATURES -->
-<section id="recursos" class="features">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <h2>O que vem equipado</h2>
-      <p>Cada sistema do launcher resolve uma fricção real de quem joga CS 1.6 hoje: encontrar o jogo, manter tudo atualizado e ficar por dentro do que acontece na comunidade.</p>
-    </div>
-
-    <div class="spec-list">
-      <div class="spec-row reveal">
-        <div class="spec-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-        </div>
-        <div class="spec-body">
-          <h3>Detecção automática do jogo</h3>
-          <p>O launcher encontra sua instalação do CS 1.6 pela Steam. Se não achar, faz uma varredura nas pastas comuns do disco antes de pedir pra você apontar manualmente.</p>
-        </div>
-        <div class="spec-tag">SISTEMA</div>
-      </div>
-
-      <div class="spec-row reveal">
-        <div class="spec-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-        </div>
-        <div class="spec-body">
-          <h3>Atualizações automáticas</h3>
-          <p>Novas versões do launcher chegam sozinhas, sem precisar reinstalar nada — você só abre e já está na versão mais recente.</p>
-        </div>
-        <div class="spec-tag">MANUTENÇÃO</div>
-      </div>
-
-      <div class="spec-row reveal">
-        <div class="spec-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        </div>
-        <div class="spec-body">
-          <h3>Amigos e presença no Discord</h3>
-          <p>Veja quem está online, entre direto no servidor de um amigo com um clique e deixe o Discord mostrar o que você está jogando em tempo real.</p>
-        </div>
-        <div class="spec-tag">SOCIAL</div>
-      </div>
-
-      <div class="spec-row reveal">
-        <div class="spec-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-        </div>
-        <div class="spec-body">
-          <h3>Chat global</h3>
-          <p>Converse com toda a comunidade em tempo real, direto no launcher — com foto, moldura e nível de cada um aparecendo na conversa.</p>
-        </div>
-        <div class="spec-tag is-new">NOVO</div>
-      </div>
-
-      <div class="spec-row reveal">
-        <div class="spec-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
-        </div>
-        <div class="spec-body">
-          <h3>Servidores ao vivo</h3>
-          <p>Mapa, jogadores e status de cada servidor em tempo real, com entrada num clique — inclusive salas privadas protegidas por senha.</p>
-        </div>
-        <div class="spec-tag is-new">NOVO</div>
-      </div>
-
-      <div class="spec-row reveal">
-        <div class="spec-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-        </div>
-        <div class="spec-body">
-          <h3>Loja de perfil</h3>
-          <p>Banners, molduras animadas e insígnias pra deixar seu perfil com a sua cara dentro do launcher.</p>
-        </div>
-        <div class="spec-tag">CUSTOMIZAÇÃO</div>
-      </div>
-
-      <div class="spec-row reveal">
-        <div class="spec-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        </div>
-        <div class="spec-body">
-          <h3>Central de notícias</h3>
-          <p>Novidades, promoções e avisos importantes aparecem direto na tela inicial — sem precisar sair do launcher pra saber o que mudou.</p>
-        </div>
-        <div class="spec-tag">COMUNICAÇÃO</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- DOWNLOAD CTA -->
-<section id="download" class="cta-download">
-  <div class="wrap cta-inner reveal">
-    <h2>Pronto para entrar em campo?</h2>
-    <p class="lead">Baixe o launcher, faça login e o resto o Neura Project resolve — do jogo às atualizações.</p>
-    <a class="btn btn-primary btn-lg" href="https://webhook.neuraproject.com.br/download/latest" target="_blank">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-      </svg>
-      Baixar para Windows
-    </a>
-    <div class="cta-version">NEURA PROJECT LAUNCHER · <span data-release="version">V1.4.0</span> · WINDOWS 10/11 · <span data-release="size">~140 MB</span></div>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <div class="wrap">
-    <div class="footer-inner">
-      <div class="footer-brand">NEURA <span>PROJECTS</span></div>
-      <div class="footer-social">
-        <a href="https://discord.gg/GJSMDJEQsn" aria-label="Discord" title="Discord" target="_blank">
-          <img src="assets/redes social/discord.png" alt="logo discord" class="logosocial1">
+        <a class="projeto reveal" href="/partidas/" style="--d:.12s;--cor:var(--orange);--brilho:rgba(255,122,26,.10)">
+          <div class="projeto-topo">
+            <span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg></span>
+            <span class="tag verde">ONLINE</span>
+          </div>
+          <h3>Partidas e estatísticas</h3>
+          <p>Cada mapa jogado no nosso servidor vira uma página: placar, rounds, rating, ADR, KAST, destaques e a demo para baixar — separados por MD1, MD3, MD5 e partidas normais.</p>
+          <span class="projeto-link">Ver partidas <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
         </a>
-        <a href="#" aria-label="YouTube" title="YouTube" target="_blank">
-          <img src="assets/redes social/youtube.png" alt="logo youtube" class="logosocial2">
-        </a>
-        <a href="#" aria-label="Instagram" title="Instagram" target="_blank">
-          <img src="assets/redes social/instagram.png" alt="logo instragram" class="logosocial3">
-        </a>
+
+        <div class="projeto reveal" style="--d:.18s;--cor:var(--yellow);--brilho:rgba(245,197,66,.08)">
+          <div class="projeto-topo">
+            <span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg></span>
+            <span class="tag">CS2</span>
+          </div>
+          <h3>Servidor competitivo</h3>
+          <p>Nosso servidor de CS2 com espera 5x5, round faca, séries do NeuraPick, pausa igual GC, demos gravadas automaticamente e chat com cargos.</p>
+          <a class="projeto-link" data-discord href="#" target="_blank" rel="noopener">Jogar com a gente <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+        </div>
       </div>
     </div>
-    <div class="footer-legal">
-      <span>© 2026 Neura Projects. Todos os direitos reservados.</span>
-      <a href="admin.html">Painel de anúncios</a>
-    </div>
-  </div>
-</footer>
+  </section>
 
-<!-- Popup "só desktop" -->
-<div class="mobile-warn-overlay" id="mobile-warn-overlay">
-  <div class="mobile-warn-card">
-    <button type="button" class="mobile-warn-close" id="mobile-warn-close" aria-label="Fechar">✕</button>
-    <div class="mobile-warn-icon">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="2" y="3" width="20" height="14" rx="2"/>
-        <line x1="8" y1="21" x2="16" y2="21"/>
-        <line x1="12" y1="17" x2="12" y2="21"/>
-      </svg>
+  <!-- SOBRE -->
+  <section class="secao" id="sobre">
+    <div class="wrap sobre">
+      <div class="sobre-texto reveal">
+        <span class="mono">// SOBRE A NEURA</span>
+        <div class="secao-head" style="margin-bottom:22px"><h2>Um estúdio pequeno, feito por jogadores</h2></div>
+        <p>A <strong>Neura Project</strong> nasceu da vontade de ter ferramentas melhores para jogar: veto de mapas sem planilha, servidor com estatística de verdade e os jogos organizados num só lugar. Então começamos a construir as ferramentas que a gente queria usar.</p>
+        <p>Hoje somos um <strong>estúdio independente</strong> focado em jogos — pequeno de propósito. Isso deixa a gente perto de quem usa: ideia que chega no Discord vira recurso, bug reportado vira correção.</p>
+        <p>O objetivo é simples: tornar o competitivo mais organizado, justo e divertido, para campeonatos de amigos e para a comunidade inteira.</p>
+      </div>
+      <div class="hud-frame reveal" style="--d:.1s">
+        <div class="ficha">
+          <div class="ficha-linha"><span class="mono">ESTÚDIO</span><span>Neura Project</span></div>
+          <div class="ficha-linha"><span class="mono">FORMATO</span><span>Independente</span></div>
+          <div class="ficha-linha"><span class="mono">FOCO</span><span>Jogos e competitivo</span></div>
+          <div class="ficha-linha"><span class="mono">BASE</span><span>Brasil</span></div>
+          <div class="ficha-linha"><span class="mono">COMUNIDADE</span><span>Discord</span></div>
+        </div>
+      </div>
     </div>
-    <h3>Isso é um app de computador</h3>
-    <p>O <strong>Neura Project Launcher</strong> é feito pra Windows e não funciona no celular. Abre esse link no seu PC pra baixar:</p>
-    <div class="mobile-warn-actions">
-      <div class="mobile-warn-link" id="mobile-warn-link">webhook.neuraproject.com.br/download/latest</div>
-      <a class="btn btn-ghost" href="#" id="mobile-warn-dismiss">Entendi</a>
+  </section>
+
+  <!-- COMO TRABALHAMOS -->
+  <section class="secao">
+    <div class="wrap">
+      <div class="secao-head reveal">
+        <span class="mono">// COMO TRABALHAMOS</span>
+        <h2>O que guia cada projeto</h2>
+      </div>
+      <div class="spec-list">
+        <div class="spec-row reveal">
+          <div class="spec-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z"/></svg></div>
+          <div class="spec-body"><h3>A comunidade decide junto</h3><p>Sugestões e problemas chegam pelo Discord e viram prioridade. A gente constrói o que os jogadores realmente usam.</p></div>
+          <div class="tag">COMUNIDADE</div>
+        </div>
+        <div class="spec-row reveal" style="--d:.05s">
+          <div class="spec-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/></svg></div>
+          <div class="spec-body"><h3>Ferramenta boa resolve problema real</h3><p>Nada de recurso para enfeitar: cada sistema tira uma fricção de quem joga, do veto ao servidor.</p></div>
+          <div class="tag">PRODUTO</div>
+        </div>
+        <div class="spec-row reveal" style="--d:.1s">
+          <div class="spec-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div class="spec-body"><h3>Partida justa</h3><p>Lados definidos pelo veto, round faca, pausa com regra e demo de todo mapa: o resultado fica registrado para qualquer um conferir.</p></div>
+          <div class="tag">COMPETITIVO</div>
+        </div>
+        <div class="spec-row reveal" style="--d:.15s">
+          <div class="spec-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+          <div class="spec-body"><h3>Sempre evoluindo</h3><p>Os projetos recebem atualizações frequentes — e o que muda aparece primeiro na comunidade.</p></div>
+          <div class="tag verde">CONTÍNUO</div>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
+  </section>
+
+  <!-- COMUNIDADE -->
+  <section class="cta">
+    <div class="wrap cta-inner reveal">
+      <span class="mono">// COMUNIDADE</span>
+      <h2 style="margin-top:8px">Joga com a gente?</h2>
+      <p class="lead">Entre no Discord para jogar no servidor, participar dos campeonatos e acompanhar o que estamos criando.</p>
+      <div class="cta-acoes">
+        <a class="btn btn-discord btn-lg" data-discord href="#" target="_blank" rel="noopener">Entrar no Discord</a>
+        <a class="btn btn-ghost btn-lg" href="/partidas/">Ver últimas partidas</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer data-site-footer></footer>
 
 <script>
-  // Anima cada seção/card pra "entrar" suavemente conforme a pessoa rola
-  // a página, em vez de tudo aparecer de uma vez -- efeito comum em
-  // sites de produto mais trabalhados.
-  var revealEls = document.querySelectorAll('.reveal');
-  if ('IntersectionObserver' in window) {
-    var revealObserver = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible');
-          revealObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
-    revealEls.forEach(function (el) { revealObserver.observe(el); });
-  } else {
-    revealEls.forEach(function (el) { el.classList.add('is-visible'); });
-  }
-
-  // Detecta celular/tablet de verdade (user agent), não só tela estreita --
-  // senão uma janela de desktop redimensionada pequena também cairia aqui.
-  var isMobileDevice = /Android|iPhone|iPad|iPod|Windows Phone|Mobile/i.test(navigator.userAgent);
-
-  var mobileWarnOverlay = document.getElementById('mobile-warn-overlay');
-  var mobileWarnClose = document.getElementById('mobile-warn-close');
-  var mobileWarnDismiss = document.getElementById('mobile-warn-dismiss');
-
-  function openMobileWarn() {
-    mobileWarnOverlay.classList.add('is-open');
-  }
-
-  function closeMobileWarn() {
-    mobileWarnOverlay.classList.remove('is-open');
-  }
-
-  if (isMobileDevice) {
-    // Intercepta os 3 botões de "Baixar launcher" (nav, hero, CTA final) --
-    // todos apontam pro mesmo link de download, então um seletor só resolve.
-    var downloadLinks = document.querySelectorAll('a[href*="/download/latest"]');
-    downloadLinks.forEach(function (link) {
-      link.addEventListener('click', function (e) {
-        e.preventDefault();
-        openMobileWarn();
-      });
+  // Links do Discord e estado do launcher vêm da configuração do site (assets/js/site.js)
+  (function () {
+    var c = window.NEURA ? window.NEURA.config : {};
+    document.querySelectorAll('[data-discord]').forEach(function (a) {
+      if (c.discord) a.href = c.discord;
+      else a.remove();
     });
-  }
-
-  mobileWarnClose.addEventListener('click', closeMobileWarn);
-  mobileWarnDismiss.addEventListener('click', function (e) {
-    e.preventDefault();
-    closeMobileWarn();
-  });
-  mobileWarnOverlay.addEventListener('click', function (e) {
-    if (e.target === mobileWarnOverlay) closeMobileWarn();
-  });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') closeMobileWarn();
-  });
-
-  // Versão e tamanho do último release vêm da API -- se ela falhar, fica
-  // o texto escrito no HTML mesmo.
-  fetch('https://webhook.neuraproject.com.br/download/latest/info')
-    .then(function (res) { return res.ok ? res.json() : null; })
-    .then(function (info) {
-      if (!info || !info.version) return;
-      document.querySelectorAll('[data-release="version"]').forEach(function (el) {
-        // O CTA final é todo em maiúsculas, então mantém o estilo de cada lugar.
-        var isUpper = el.textContent === el.textContent.toUpperCase();
-        el.textContent = (isUpper ? 'V' : 'v') + info.version;
+    if (c.launcherAtivo) {
+      document.querySelectorAll('[data-launcher-estado]').forEach(function (el) {
+        el.textContent = 'DISPONÍVEL';
+        el.classList.remove('breve', 'amarelo');
+        el.classList.add('verde');
       });
-      if (info.size) {
-        var mb = Math.round(info.size / (1024 * 1024));
-        document.querySelectorAll('[data-release="size"]').forEach(function (el) {
-          el.textContent = '~' + mb + ' MB';
-        });
-      }
-    })
-    .catch(function () {});
+    } else {
+      document.querySelectorAll('.estado[data-launcher-estado]').forEach(function (el) { el.classList.add('breve'); });
+    }
+  })();
 </script>
-
 </body>
 </html>

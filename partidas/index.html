@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://neuraproject.com.br/assets/css/site.css">
+<script src="https://neuraproject.com.br/assets/js/site.js"></script>
 <style>:root{--bg:#0b0c0f;--bg-soft:#0e0f13;--panel:#121317;--panel-2:#16171c;--border:#232427;--border-2:#2e2f36;
 --text:#f1f1f1;--dim:#9a9ba3;--dim-2:#6d6e77;--blue:#1a73e8;--blue-2:#3498db;--green:#3ddc84;--green-2:#2fbf6f;
 --orange:#ff7a1a;--red:#ff4655;--yellow:#f5c542;--team-a:var(--blue-2);--team-b:var(--orange);--ct:#5aa9ff;--t:#e8b04a;
@@ -175,10 +177,29 @@ background:conic-gradient(from 200deg,var(--tc,var(--blue)),#8a5cf6,var(--tc,var
 .js .revelar.visivel .mvp-item:nth-child(3){animation-delay:.24s}.js .revelar.visivel .mvp-item:nth-child(4){animation-delay:.31s}
 .js .revelar.visivel .mvp-av{animation:pop .6s cubic-bezier(.34,1.56,.64,1) .15s both}
 @keyframes barra{from{width:0}}
-@media (max-width:980px){.mvp-grid{grid-template-columns:1fr}.mvp-card{grid-template-columns:170px 1fr}.mvp-selo{position:absolute;top:18px;right:18px;font-size:24px}}
-@media (max-width:620px){.mvp-card{grid-template-columns:1fr;gap:18px}.mvp-perfil{padding:16px}.mvp-av{width:88px;height:88px}
-.mvp-stats b{font-size:20px}.team-meta{margin-left:0;width:100%}.team-head{flex-wrap:wrap}}
+@media (max-width:980px){.mvp-grid{grid-template-columns:1fr}.mvp-card{grid-template-columns:180px 1fr}
+.mvp-selo{grid-column:1/-1;grid-row:1;justify-self:end;font-size:24px;margin-bottom:-14px}.mvp-selo span{font-size:22px}}
+@media (max-width:620px){
+.mvp-card{grid-template-columns:minmax(0,1fr);gap:16px;padding:16px 16px 18px}
+.mvp-card::before{top:16px;bottom:auto;height:64px}
+.mvp-selo{grid-row:auto;order:-1;justify-self:start;margin:0;font-size:20px}.mvp-selo span{font-size:18px}
+.mvp-perfil{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;column-gap:14px;row-gap:2px;
+justify-items:start;align-items:center;text-align:left;padding:12px 14px}
+.mvp-av{grid-row:1/3;width:68px;height:68px;padding:3px}
+.mvp-perfil b{align-self:end;font-size:18px}
+.mvp-perfil .mono-label{align-self:start}
+.mvp-rt{flex-wrap:wrap;gap:8px 12px}.rt-g{font-size:20px;padding:6px 10px}
+.mvp-stats{gap:14px 18px;margin-top:8px}.mvp-stats b{font-size:19px}
+.mvp-item{padding:10px 12px}.mvp-item .av{width:36px;height:36px}.mvp-val b{font-size:19px}
+.team-meta{margin-left:0;width:100%}.team-head{flex-wrap:wrap;gap:8px 12px;padding:12px 14px}.team-score{font-size:24px}.team-name{font-size:19px}
+.rounds-card{padding:12px}.r{width:30px;height:40px}
+.bn-topo{font-size:12px}.bn-info{gap:6px 12px}
+}
 .hero-partida{padding:28px 0 34px}
+.bn-demo{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:7px;font-weight:700;font-size:12.5px;color:var(--text);
+background:rgba(11,12,15,.55);border:1px solid var(--border-2);transition:border-color .15s,color .15s}
+.bn-demo:hover{border-color:var(--green);color:var(--green)}
+.gerado{color:var(--dim-2);font-family:var(--font-mono);font-size:11px;text-align:center;padding-bottom:28px}
 .banner{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--border-2);border-bottom:1px solid rgba(255,122,26,.75);padding:18px 24px 30px;
 background:linear-gradient(0deg,rgba(255,122,26,.20),transparent 38%),linear-gradient(180deg,rgba(11,12,15,.55),rgba(11,12,15,.82)),
 var(--img,none) center 35%/cover,linear-gradient(135deg,var(--c1),var(--c2));box-shadow:0 20px 50px -25px rgba(255,122,26,.35)}
@@ -252,7 +273,21 @@ text-shadow:0 2px 12px rgba(0,0,0,.75)}
 .summary-map{font-size:18px}
 .section{padding-top:36px}
 .section-head h2{font-size:22px}
-}.vazio{color:var(--dim);font-size:14px;padding:28px 18px;border:1px dashed var(--border-2);border-radius:10px;text-align:center}
+}.hero-hist{display:grid !important;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:40px;align-items:center}
+.titulo .destaque{background:linear-gradient(90deg,var(--blue-2),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hist-texto{display:flex;flex-direction:column;gap:16px}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{position:relative;display:flex;flex-direction:column;gap:6px;padding:16px 18px;border-radius:10px;border:1px solid var(--border-2);overflow:hidden;
+background:linear-gradient(160deg,#14161b 0%,#0d0e12 100%)}
+.stat b{font-family:var(--font-display);font-size:30px;font-weight:700;line-height:1.05}
+.stat b.carregando{color:transparent;border-radius:6px;width:60%;background:linear-gradient(90deg,var(--panel) 0%,#1d1f26 50%,var(--panel) 100%);
+background-size:250% 100%;animation:brilho 1.3s ease-in-out infinite}
+.stat em{font-style:normal;font-size:12px;color:var(--dim)}
+.stat-mapa{background:linear-gradient(90deg,rgba(13,14,18,.92) 35%,rgba(13,14,18,.55)),var(--img,none) center/cover,linear-gradient(135deg,#14161b,#0d0e12)}
+.stat-mapa b{text-transform:uppercase}
+@media (max-width:860px){.hero-hist{grid-template-columns:1fr}}
+@media (max-width:420px){.stat b{font-size:24px}.stat{padding:14px}}
+.vazio{color:var(--dim);font-size:14px;padding:28px 18px;border:1px dashed var(--border-2);border-radius:10px;text-align:center}
 .titulo{font-family:var(--font-display);font-size:38px;font-weight:700;line-height:1.1}
 .lead{font-size:15px;color:var(--dim);max-width:60ch}
 .filtros{display:flex;flex-wrap:wrap;gap:4px;background:var(--bg-soft);padding:4px;border-radius:8px;border:1px solid var(--border);margin-bottom:18px;width:fit-content}
@@ -291,16 +326,20 @@ animation:brilho 1.3s ease-in-out infinite}
 .filtros{width:100%}.filtros button{flex:1;justify-content:center;padding:8px 6px}.serie-head .mono-label{margin-left:0}}</style>
 </head>
 <body>
-<header class="nav"><div class="nav-inner">
-<a class="nav-brand" href="/"><img class="mark" src="https://neuraproject.com.br/neurapick/logos/logoNP.ico" alt="logo">
-<span>NEURA <span class="outline">PROJECT</span><span class="sub">HISTÓRICO DE PARTIDAS</span></span></a>
-<a class="btn btn-ghost btn-sm" href="/">Voltar ao site</a>
-</div></header>
+<header data-site-nav></header>
 <section class="hero"><div class="hero-glow hero-glow-1"></div><div class="hero-glow hero-glow-2"></div>
-<div class="wrap hero-inner">
+<div class="wrap hero-inner hero-hist">
+<div class="hist-texto">
 <span class="hero-status"><span class="dot-live"></span><span id="qtd">CARREGANDO…</span></span>
-<h1 class="titulo">Partidas do servidor</h1>
-<p class="lead">Estatísticas de cada mapa jogado: placar, rounds, K/D, ADR, KAST e rating de todos os jogadores.</p>
+<h1 class="titulo">Partidas do <span class="destaque">servidor</span></h1>
+<p class="lead">Cada mapa jogado vira uma página: placar, rounds, rating, ADR, KAST, destaques e a demo para baixar. Filtre por MD1, MD3, MD5 ou partidas normais.</p>
+</div>
+<div class="hud-frame"><div class="stats">
+<div class="stat"><span class="mono-label">PARTIDAS</span><b id="st-partidas" class="carregando">—</b></div>
+<div class="stat"><span class="mono-label">SÉRIES</span><b id="st-series" class="carregando">—</b></div>
+<div class="stat stat-mapa" id="st-mapa-box"><span class="mono-label">MAPA MAIS JOGADO</span><b id="st-mapa" class="carregando">—</b><em id="st-mapa-qtd"></em></div>
+<div class="stat"><span class="mono-label">ÚLTIMA PARTIDA</span><b id="st-ultima" class="carregando">—</b></div>
+</div></div>
 </div></section>
 <main class="wrap"><section class="section">
 <div class="filtros" id="filtros" role="tablist" aria-label="Filtrar partidas">
@@ -316,10 +355,7 @@ animation:brilho 1.3s ease-in-out infinite}
 <p class="vazio" id="vazio" hidden></p>
 <noscript><p class="vazio">Ative o JavaScript para ver a lista de partidas.</p></noscript>
 </section></main>
-<footer class="footer"><div class="wrap"><div class="footer-legal">
-<span>NEURA <b class="t-A">PROJECT</b> · BaseComp</span>
-<span>Estatísticas geradas no fim de cada mapa</span>
-</div></div></footer>
+<footer data-site-footer></footer>
 <script>
 const IMG = "https://neuraproject.com.br/neurapick";
 const MAPAS = {"ancient":["Ancient","#1f4d3a","#0b1f18"],"anubis":["Anubis","#8a6a2c","#2a1d08"],"cache":["Cache","#5f6f6a","#1a201e"],"dust2":["Dust II","#a67c3d","#3a2710"],"inferno":["Inferno","#8c3b25","#2b0f08"],"mirage":["Mirage","#b0894f","#3b2a14"],"nuke":["Nuke","#2f5f7a","#0b1c26"],"train":["Train","#4d5a63","#15191c"],"overpass":["Overpass","#4f6b3a","#161f10"],"vertigo":["Vertigo","#5d7185","#161d25"]};
@@ -330,6 +366,22 @@ const dataBr = (d) => { const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2})/.exec(
 const caminho = (p) => (p.caminho || p.nome).split("/").map(encodeURIComponent).join("/");
 const categoria = (p) => p.categoria || "normal";
 const logo = (url) => (url && /^https?:\/\//i.test(url) ? `<img class="mini-logo" src="${esc(url)}" alt="" onerror="this.remove()">` : "");
+
+function resumo(lista) {
+  const pronto = (id, texto) => { const el = document.getElementById(id); el.textContent = texto; el.classList.remove("carregando"); };
+  pronto("st-partidas", lista.length);
+  pronto("st-series", new Set(lista.filter((p) => p.serieId).map((p) => p.serieId)).size);
+  const contagem = {};
+  lista.forEach((p) => { const id = idMapa(p.mapa); contagem[id] = (contagem[id] || 0) + 1; });
+  const top = Object.entries(contagem).sort((a, b) => b[1] - a[1])[0];
+  if (top) {
+    const mapa = MAPAS[top[0]];
+    pronto("st-mapa", mapa ? mapa[0] : top[0]);
+    document.getElementById("st-mapa-qtd").textContent = `${top[1]} ${top[1] === 1 ? "partida" : "partidas"}`;
+    if (mapa) document.getElementById("st-mapa-box").style.cssText = `--img:url('${IMG}/maps/${top[0]}.jpg');--c1:${mapa[1]};--c2:${mapa[2]}`;
+  } else pronto("st-mapa", "—");
+  pronto("st-ultima", lista[0] ? dataBr(lista[0].data).split(" ")[0] : "—");
+}
 
 function card(p, i) {
   const id = idMapa(p.mapa);
@@ -392,7 +444,8 @@ fetch("partidas.json", { cache: "no-store" })
   .catch(() => [])
   .then((lista) => {
     lista = Array.isArray(lista) ? lista : [];
-    document.getElementById("qtd").textContent = `${lista.length} PARTIDA${lista.length === 1 ? "" : "S"}`;
+    document.getElementById("qtd").textContent = `${lista.length} PARTIDA${lista.length === 1 ? "" : "S"} NO HISTÓRICO`;
+    resumo(lista);
 
     const botoes = document.querySelectorAll("#filtros button");
     botoes.forEach((b) => {
