@@ -148,7 +148,8 @@ td{font-family:var(--font-mono);font-size:13px}
 .summary-map{font-size:18px}
 .section{padding-top:36px}
 .section-head h2{font-size:22px}
-}.titulo{font-family:var(--font-display);font-size:38px;font-weight:700;line-height:1.1}
+}.vazio{color:var(--dim);font-size:14px;padding:28px 18px;border:1px dashed var(--border-2);border-radius:10px;text-align:center}
+.titulo{font-family:var(--font-display);font-size:38px;font-weight:700;line-height:1.1}
 .lead{font-size:15px;color:var(--dim);max-width:60ch}
 .partida{grid-template-columns:130px 220px 1fr 150px;transition:border-color .2s,transform .2s}
 .partida:hover{border-color:var(--blue);transform:translateY(-2px)}
@@ -166,13 +167,49 @@ td{font-family:var(--font-mono);font-size:13px}
 </div></header>
 <section class="hero"><div class="hero-glow hero-glow-1"></div><div class="hero-glow hero-glow-2"></div>
 <div class="wrap hero-inner">
-<span class="hero-status"><span class="dot-live"></span>2 PARTIDAS</span>
+<span class="hero-status"><span class="dot-live"></span><span id="qtd">CARREGANDO…</span></span>
 <h1 class="titulo">Partidas do servidor</h1>
 <p class="lead">Estatísticas de cada mapa jogado: placar, rounds, K/D, ADR, KAST e rating de todos os jogadores.</p>
 </div></section>
-<main class="wrap"><section class="section"><div class="summary-list"><a class="summary-item partida" href="2026-10-01_00-42_de_inferno/" style="--img:url('https://neuraproject.com.br/neurapick/maps/inferno.jpg');--c1:#8c3b25;--c2:#2b0f08"><span class="summary-num">2026-10-01 00:42</span><span class="summary-map"><img class="summary-icon" src="https://neuraproject.com.br/neurapick/maps/icons/inferno.png" alt="">Inferno</span><span class="placar-linha"><span class="t-A venc">Time A</span><b>2 : 0</b><span class="t-B">Time B</span></span><span class="summary-side">PARTIDA</span></a><a class="summary-item partida" href="2026-10-01_00-15_de_mirage/" style="--img:url('https://neuraproject.com.br/neurapick/maps/mirage.jpg');--c1:#b0894f;--c2:#3b2a14"><span class="summary-num">2026-10-01 00:15</span><span class="summary-map"><img class="summary-icon" src="https://neuraproject.com.br/neurapick/maps/icons/mirage.png" alt="">Mirage</span><span class="placar-linha"><span class="t-A venc">Time A</span><b>2 : 0</b><span class="t-B">Time B</span></span><span class="summary-side">PARTIDA</span></a></div></section></main>
+<main class="wrap"><section class="section">
+<div class="summary-list" id="lista"></div>
+<p class="vazio" id="vazio" hidden>Nenhuma partida por enquanto. Assim que um mapa terminar no servidor, ele aparece aqui.</p>
+<noscript><p class="vazio">Ative o JavaScript para ver a lista de partidas.</p></noscript>
+</section></main>
 <footer class="footer"><div class="wrap"><div class="footer-legal">
 <span>NEURA <b class="t-A">PROJECT</b> · BaseComp</span>
-<span>Atualizado em 01/10/2026 00:44</span>
+<span>Estatísticas geradas no fim de cada mapa</span>
 </div></div></footer>
+<script>
+const IMG = "https://neuraproject.com.br/neurapick";
+const MAPAS = {"ancient":["Ancient","#1f4d3a","#0b1f18"],"anubis":["Anubis","#8a6a2c","#2a1d08"],"cache":["Cache","#5f6f6a","#1a201e"],"dust2":["Dust II","#a67c3d","#3a2710"],"inferno":["Inferno","#8c3b25","#2b0f08"],"mirage":["Mirage","#b0894f","#3b2a14"],"nuke":["Nuke","#2f5f7a","#0b1c26"],"train":["Train","#4d5a63","#15191c"],"overpass":["Overpass","#4f6b3a","#161f10"],"vertigo":["Vertigo","#5d7185","#161d25"]};
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const idMapa = (m) => (m || "").replace(/^de_/, "");
+const dataBr = (d) => { const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2})/.exec(d || ""); return m ? `${m[3]}/${m[2]}/${m[1]} ${m[4]}` : esc(d); };
+
+function card(p) {
+  const id = idMapa(p.mapa);
+  const mapa = MAPAS[id];
+  const fundo = mapa ? `--img:url('${IMG}/maps/${id}.jpg');--c1:${mapa[1]};--c2:${mapa[2]}` : "--c1:#2a2f3a;--c2:#0e0f13";
+  const icone = mapa ? `<img class="summary-icon" src="${IMG}/maps/icons/${id}.png" alt="">` : "";
+  const venc = p.placarA > p.placarB ? "A" : p.placarB > p.placarA ? "B" : "";
+  return `<a class="summary-item partida" href="${encodeURIComponent(p.nome)}/" style="${fundo}">` +
+    `<span class="summary-num">${dataBr(p.data)}</span>` +
+    `<span class="summary-map">${icone}${esc(mapa ? mapa[0] : id)}</span>` +
+    `<span class="placar-linha"><span class="t-A${venc === "A" ? " venc" : ""}">${esc(p.timeA)}</span>` +
+    `<b>${Number(p.placarA) || 0} : ${Number(p.placarB) || 0}</b>` +
+    `<span class="t-B${venc === "B" ? " venc" : ""}">${esc(p.timeB)}</span></span>` +
+    `<span class="summary-side">${esc(p.serie || "PARTIDA")}</span></a>`;
+}
+
+fetch("partidas.json", { cache: "no-store" })
+  .then((r) => (r.ok ? r.json() : []))
+  .catch(() => [])
+  .then((lista) => {
+    lista = Array.isArray(lista) ? lista : [];
+    document.getElementById("qtd").textContent = `${lista.length} PARTIDA${lista.length === 1 ? "" : "S"}`;
+    document.getElementById("lista").innerHTML = lista.map(card).join("");
+    document.getElementById("vazio").hidden = lista.length > 0;
+  });
+</script>
 </body></html>
