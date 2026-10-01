@@ -208,6 +208,26 @@ b.decider {
   color: var(--dim-2);
   margin-top: 1px;
 }
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nav-actions .label-short {
+  display: none;
+}
+/* Celular: "Partidas" no lugar do texto longo e só a seta no "Voltar ao site" */
+@media (max-width: 560px) {
+  .nav-actions .label-long {
+    display: none;
+  }
+  .nav-actions .label-short {
+    display: inline;
+  }
+  .nav-actions .btn-sm {
+    padding: 8px 10px;
+  }
+}
 
 /* ── BUTTONS ── */
 .btn {
@@ -1764,6 +1784,12 @@ b.decider {
   .wrap,
   .nav-inner {
     padding: 0 16px;
+  }
+  .nav-inner {
+    gap: 10px;
+  }
+  .nav-brand {
+    font-size: 14px;
   }
   .nav-brand .sub {
     display: none;
