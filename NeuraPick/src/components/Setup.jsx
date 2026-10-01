@@ -63,6 +63,9 @@ export default function Setup({ onStart }) {
   const nameA = teamA.trim() || 'Time A'
   const nameB = teamB.trim() || 'Time B'
   const poolOk = pool.length === POOL_SIZE
+  // O mesmo time não pode jogar contra ele mesmo
+  const mesmoTime = teamA.trim() !== '' && teamA.trim().toLowerCase() === teamB.trim().toLowerCase()
+  const podeIniciar = poolOk && !mesmoTime
   const isPremierPool = pool.length === DEFAULT_POOL.length && DEFAULT_POOL.every((id) => pool.includes(id))
   const premierDate = new Date(`${POOL_UPDATED}T12:00:00`).toLocaleDateString('pt-BR')
 
@@ -75,6 +78,7 @@ export default function Setup({ onStart }) {
   }
 
   const start = () => {
+    if (!podeIniciar) return
     const coinWinner = first === 'coin' ? (Math.random() < 0.5 ? 'A' : 'B') : null
     onStart({
       id: Date.now(),
@@ -106,7 +110,7 @@ export default function Setup({ onStart }) {
               Counter-Strike 2 — até sobrar um único mapa.
             </p>
             <div className="hero-actions">
-              <button className="btn btn-primary btn-lg" disabled={!poolOk} onClick={start}>
+              <button className="btn btn-primary btn-lg" disabled={!podeIniciar} onClick={start}>
                 <IconPlay /> Iniciar veto
               </button>
               <a className="btn btn-ghost btn-lg" href="#pool">
@@ -138,7 +142,7 @@ export default function Setup({ onStart }) {
                   ].map(([t, nome, setNome, logo, setLogo], i) => (
                     <div key={t} className="team-field-wrap">
                       {i === 1 && <span className="vs">VS</span>}
-                      <div className={`field team-${t.toLowerCase()}`}>
+                      <div className={`field team-${t.toLowerCase()}${mesmoTime ? ' mesmo-time' : ''}`}>
                         <label className="field-inner">
                           <span className="field-label">
                             <span className="mono-label">TIME {t}</span>
@@ -155,6 +159,7 @@ export default function Setup({ onStart }) {
                             value={nome}
                             onChange={(valor) => trocarNome(t, valor, setNome, logo, setLogo)}
                             times={times}
+                            excluir={t === 'A' ? teamB : teamA}
                             team={t}
                             placeholder={`Time ${t}`}
                           />
@@ -176,6 +181,11 @@ export default function Setup({ onStart }) {
                     </div>
                   ))}
                 </div>
+                {mesmoTime && (
+                  <p className="hint warn-hint" role="alert">
+                    Os dois times não podem ser o mesmo. Escolha outro time para o Time {teamB.trim() ? 'B' : 'A'}.
+                  </p>
+                )}
                 <p className="hint lista-hint">
                   {times.length > 0
                     ? `${times.length} times na lista: digite o nome e escolha para o logo entrar sozinho. `
@@ -292,7 +302,7 @@ export default function Setup({ onStart }) {
           </div>
 
           <div className="pool-cta">
-            <button className="btn btn-primary btn-lg" disabled={!poolOk} onClick={start}>
+            <button className="btn btn-primary btn-lg" disabled={!podeIniciar} onClick={start}>
               <IconPlay /> Iniciar veto
             </button>
           </div>

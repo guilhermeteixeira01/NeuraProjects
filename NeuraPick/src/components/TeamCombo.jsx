@@ -18,14 +18,17 @@ function Destaque({ texto, busca }) {
   )
 }
 
-export default function TeamCombo({ value, onChange, times, team, placeholder }) {
+// excluir = nome do time do outro lado (não aparece nas sugestões: o mesmo time não joga contra ele mesmo)
+export default function TeamCombo({ value, onChange, times, team, placeholder, excluir = '' }) {
   const [aberto, setAberto] = useState(false)
   const [ativo, setAtivo] = useState(0)
   const idLista = useId()
   const fechar = useRef(null)
 
   const busca = value.trim()
+  const outro = excluir.trim().toLowerCase()
   const sugestoes = times
+    .filter((t) => t.nome.trim().toLowerCase() !== outro)
     .filter((t) => !busca || t.nome.toLowerCase().includes(busca.toLowerCase()))
     // Começa com o que foi digitado primeiro
     .sort((a, b) => {

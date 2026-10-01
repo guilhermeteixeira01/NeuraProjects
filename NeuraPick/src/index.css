@@ -2043,3 +2043,13 @@ b.decider {
     transform: translateY(-4px);
   }
 }
+
+/* Mesmo time nos dois lados: os dois nomes ficam em vermelho */
+.field.mesmo-time .nome-lista,
+.field.mesmo-time .nome-lista:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(255, 70, 85, 0.12);
+}
+.field.mesmo-time .da-lista {
+  display: none;
+}
