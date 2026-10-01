@@ -312,6 +312,13 @@ display:inline-flex;align-items:center;gap:8px;transition:background .15s,color 
 .serie-tag{font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1.5px;padding:3px 8px;border-radius:5px;
 color:var(--yellow);border:1px solid rgba(245,197,66,.45);background:rgba(245,197,66,.06)}
 .serie-head .mono-label{margin-left:auto}
+.serie-status{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1.3px;
+padding:3px 9px;border-radius:5px}
+.serie-status.fim{color:var(--green);border:1px solid rgba(61,220,132,.45);background:rgba(61,220,132,.08)}
+.serie-status.andamento{color:var(--orange);border:1px solid rgba(255,122,26,.45);background:rgba(255,122,26,.08)}
+.serie-status.andamento i{width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 0 3px rgba(255,122,26,.2);animation:piscar 1.4s ease-in-out infinite}
+.serie-bloco.acabou{border-color:rgba(61,220,132,.22)}
+@keyframes piscar{50%{opacity:.35}}
 .serie-mapas{display:flex;flex-direction:column;gap:8px}
 .mini-logo{width:26px;height:26px;border-radius:50%;object-fit:cover;max-width:none;flex-shrink:0;border:1px solid var(--border-2);background:var(--panel-2)}
 .placar-linha .mini-logo,.serie-placar .mini-logo{opacity:1}
@@ -360,6 +367,7 @@ animation:brilho 1.3s ease-in-out infinite}
 const IMG = "https://neuraproject.com.br/neurapick";
 const MAPAS = {"ancient":["Ancient","#1f4d3a","#0b1f18"],"anubis":["Anubis","#8a6a2c","#2a1d08"],"cache":["Cache","#5f6f6a","#1a201e"],"dust2":["Dust II","#a67c3d","#3a2710"],"inferno":["Inferno","#8c3b25","#2b0f08"],"mirage":["Mirage","#b0894f","#3b2a14"],"nuke":["Nuke","#2f5f7a","#0b1c26"],"train":["Train","#4d5a63","#15191c"],"overpass":["Overpass","#4f6b3a","#161f10"],"vertigo":["Vertigo","#5d7185","#161d25"]};
 const NOMES_CAT = { md1: "MD1", md3: "MD3", md5: "MD5", normal: "Normais" };
+const IC_CHECK = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const idMapa = (m) => (m || "").replace(/^de_/, "");
 const dataBr = (d) => { const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2})/.exec(d || ""); return m ? `${m[3]}/${m[2]}/${m[1]} ${m[4]}` : esc(d); };
@@ -417,9 +425,18 @@ function render(lista, cat) {
     if (b.unico) { html += card(b.unico, i++); continue; }
     const ult = b.mapas[0];
     const mapas = [...b.mapas].reverse(); // mapa 1 primeiro
-    const vA = ult.serieVitoriasA || 0, vB = ult.serieVitoriasB || 0;
-    html += `<div class="serie-bloco" style="--i:${i++}">` +
-      `<div class="serie-head"><span class="serie-tag">${esc(NOMES_CAT[categoria(ult)] || "SÉRIE")}</span>` +
+    // Placar da série contado pelos mapas (quem fez mais rounds em cada um)
+    const vA = mapas.filter((p) => p.placarA > p.placarB).length;
+    const vB = mapas.filter((p) => p.placarB > p.placarA).length;
+    // MD3 acaba com 2 vitórias (ou com os 3 mapas jogados); MD5 com 3; MD1 com 1
+    const total = parseInt((categoria(ult).match(/^md(\d)$/) || [])[1], 10) || mapas.length;
+    const paraVencer = Math.floor(total / 2) + 1;
+    const acabou = vA >= paraVencer || vB >= paraVencer || mapas.length >= total;
+    const status = acabou
+      ? `<span class="serie-status fim">${IC_CHECK}FINALIZADO</span>`
+      : `<span class="serie-status andamento"><i></i>EM ANDAMENTO · MAPA ${mapas.length + 1}/${total}</span>`;
+    html += `<div class="serie-bloco${acabou ? " acabou" : ""}" style="--i:${i++}">` +
+      `<div class="serie-head"><span class="serie-tag">${esc(NOMES_CAT[categoria(ult)] || "SÉRIE")}</span>${status}` +
       `<span class="serie-placar">${logo(ult.logoA)}<span class="t-A${vA > vB ? " venc" : ""}">${esc(ult.serieTimeA || ult.timeA)}</span>` +
       `<b>${vA} : ${vB}</b><span class="t-B${vB > vA ? " venc" : ""}">${esc(ult.serieTimeB || ult.timeB)}</span>${logo(ult.logoB)}</span>` +
       `<span class="mono-label">${dataBr(mapas[0].data)}</span></div>` +
