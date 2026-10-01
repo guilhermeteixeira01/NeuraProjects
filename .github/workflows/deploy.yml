@@ -38,6 +38,8 @@ jobs:
           cp index.html admin.html CNAME _site/
           cp -r assets _site/
           cp -r NeuraPick/dist _site/neurapick
+          # Estatísticas das partidas enviadas pelo plugin BaseComp do servidor de CS2
+          if [ -d partidas ]; then cp -r partidas _site/; fi
 
       - uses: actions/upload-pages-artifact@v3
         with:
