@@ -58,7 +58,13 @@ export default function Summary({ teams, logos, format, picks, decider }) {
 
   // Logos vão num comando à parte (css_serie_logo): o console do CS2 corta linhas muito grandes.
   // Cabendo, vão na mesma linha separados por ";"; senão, ficam no botão "Copiar logos".
-  const comandosLogo = ['A', 'B'].filter((t) => logos?.[t]).map((t) => `css_serie_logo ${t} ${logos[t]}`)
+  // O link vai em base64 ("b64:..."): no console do CS2 "//" começa um comentário e cortaria a URL
+  const b64 = (texto) =>
+    btoa(String.fromCharCode(...new TextEncoder().encode(texto)))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '')
+  const comandosLogo = ['A', 'B'].filter((t) => logos?.[t]).map((t) => `css_serie_logo ${t} b64:${b64(logos[t])}`)
   const tudo = [serie, ...comandosLogo].join('; ')
   const logosSeparados = comandosLogo.length > 0 && tudo.length > LIMITE_CONSOLE
   const copy = () => copyText('serie', logosSeparados ? serie : tudo)
