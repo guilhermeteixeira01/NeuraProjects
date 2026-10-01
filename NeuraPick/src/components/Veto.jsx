@@ -11,7 +11,7 @@ const VERB = { ban: 'BANIR', pick: 'ESCOLHER' }
 const STEP_LABEL = { ban: 'BAN', pick: 'PICK', side: 'LADO' }
 const random = (arr) => arr[Math.floor(Math.random() * arr.length)]
 const pad = (n) => String(n).padStart(2, '0')
-const TIMER_BEEP_SECONDS = 5
+const TIMER_BEEP_SECONDS = 3
 
 function Countdown({ seconds, onExpire }) {
   const [left, setLeft] = useState(seconds)
@@ -29,7 +29,7 @@ function Countdown({ seconds, onExpire }) {
   }, [left])
 
   return (
-    <div className={`countdown ${left <= 10 ? 'low' : ''}`}>
+    <div className={`countdown ${left <= 5 ? 'low' : ''}`}>
       <div className="countdown-bar" style={{ width: `${(left / seconds) * 100}%` }} />
       <span>00:{pad(left)}</span>
     </div>

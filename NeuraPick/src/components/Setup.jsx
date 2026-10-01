@@ -8,8 +8,8 @@ import { acharTime, useTimes } from '../data/times.js'
 
 const TIMERS = [
   { value: 0, label: 'OFF' },
-  { value: 30, label: '30s' },
-  { value: 60, label: '60s' },
+  { value: 10, label: '10s' },
+  { value: 15, label: '15s' },
 ]
 
 const FEATURES = [
