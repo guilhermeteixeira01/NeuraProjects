@@ -1958,3 +1958,88 @@ b.decider {
 .lista-hint a:hover {
   text-decoration: underline;
 }
+
+/* Sugestões da lista de times (TeamCombo) */
+.combo {
+  position: relative;
+  display: block;
+}
+.sugestoes {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 60;
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  max-height: 300px;
+  overflow-y: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border-2);
+  background: linear-gradient(180deg, #181a20, var(--panel));
+  box-shadow: 0 22px 44px -16px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(0, 0, 0, 0.4);
+  animation: sugAbrir 0.16s ease;
+  scrollbar-width: thin;
+}
+.sugestoes.team-A {
+  border-top: 2px solid var(--team-a);
+}
+.sugestoes.team-B {
+  border-top: 2px solid var(--team-b);
+}
+.sugestoes-head {
+  padding: 6px 10px 8px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 1.5px;
+  color: var(--dim-2);
+}
+.sug {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  transition: background 0.12s;
+}
+.sug.ativo {
+  background: rgba(255, 255, 255, 0.06);
+}
+.team-A .sug.ativo {
+  background: rgba(52, 152, 219, 0.14);
+  box-shadow: inset 2px 0 0 var(--team-a);
+}
+.team-B .sug.ativo {
+  background: rgba(255, 122, 26, 0.12);
+  box-shadow: inset 2px 0 0 var(--team-b);
+}
+.sug-nome {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sug mark {
+  background: none;
+  color: var(--blue-2);
+}
+.team-B .sug mark {
+  color: var(--team-b);
+}
+.sug-sem {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--dim-2);
+}
+@keyframes sugAbrir {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
