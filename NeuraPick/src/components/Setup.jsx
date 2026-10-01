@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ALL_MAPS, DEFAULT_POOL, POOL_SIZE, POOL_UPDATED, mapIcon, mapImage } from '../data/maps.js'
 import { FORMATS } from '../data/veto.js'
 import { IconClock, IconPlay, IconShield, IconSwap, IconTarget } from './Icons.jsx'
+import TeamLogo, { MAX_LOGO_URL, logoValido } from './TeamLogo.jsx'
 
 const TIMERS = [
   { value: 0, label: 'OFF' },
@@ -19,6 +20,9 @@ const FEATURES = [
 export default function Setup({ onStart }) {
   const [teamA, setTeamA] = useState('')
   const [teamB, setTeamB] = useState('')
+  // Logo de cada time por URL (opcional): aparece no veto e na página de estatísticas do servidor
+  const [logoA, setLogoA] = useState('')
+  const [logoB, setLogoB] = useState('')
   const [format, setFormat] = useState('bo3')
   const [first, setFirst] = useState('coin')
   const [timer, setTimer] = useState(0)
@@ -43,6 +47,7 @@ export default function Setup({ onStart }) {
     onStart({
       id: Date.now(),
       teams: { A: nameA, B: nameB },
+      logos: { A: logoValido(logoA) ? logoA.trim() : '', B: logoValido(logoB) ? logoB.trim() : '' },
       format,
       firstTeam: coinWinner ?? first,
       coinFlip: coinWinner !== null,
@@ -95,16 +100,37 @@ export default function Setup({ onStart }) {
                 </div>
 
                 <div className="teams-row">
-                  <label className="field team-a">
-                    <span className="mono-label">TIME A</span>
-                    <input value={teamA} onChange={(e) => setTeamA(e.target.value)} placeholder="Time A" maxLength={24} />
-                  </label>
-                  <span className="vs">VS</span>
-                  <label className="field team-b">
-                    <span className="mono-label">TIME B</span>
-                    <input value={teamB} onChange={(e) => setTeamB(e.target.value)} placeholder="Time B" maxLength={24} />
-                  </label>
+                  {[
+                    ['A', teamA, setTeamA, logoA, setLogoA],
+                    ['B', teamB, setTeamB, logoB, setLogoB],
+                  ].map(([t, nome, setNome, logo, setLogo], i) => (
+                    <div key={t} className="team-field-wrap">
+                      {i === 1 && <span className="vs">VS</span>}
+                      <div className={`field team-${t.toLowerCase()}`}>
+                        <label className="field-inner">
+                          <span className="mono-label">TIME {t}</span>
+                          <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder={`Time ${t}`} maxLength={24} />
+                        </label>
+                        <label className="logo-field">
+                          <TeamLogo url={logo} name={nome || `Time ${t}`} team={t} size={34} />
+                          <input
+                            type="url"
+                            inputMode="url"
+                            value={logo}
+                            onChange={(e) => setLogo(e.target.value)}
+                            placeholder="Logo (URL, opcional)"
+                            maxLength={MAX_LOGO_URL}
+                            className={logo.trim() && !logoValido(logo) ? 'invalid' : ''}
+                            aria-label={`URL do logo do time ${t}`}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  ))}
                 </div>
+                {(logoA.trim() && !logoValido(logoA)) || (logoB.trim() && !logoValido(logoB)) ? (
+                  <p className="hint warn-hint">O logo precisa ser um link https:// de imagem (até {MAX_LOGO_URL} caracteres).</p>
+                ) : null}
 
                 <div className="config-row">
                   <span className="mono-label">FORMATO</span>
