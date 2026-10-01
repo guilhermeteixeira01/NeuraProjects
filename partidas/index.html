@@ -129,9 +129,44 @@ td{font-family:var(--font-mono);font-size:13px}
 .player:hover span{color:var(--blue-2)}
 .pos{color:var(--green)}.neg{color:var(--red)}
 .mvp{color:var(--yellow)}
-.rt{font-weight:700;border-radius:5px;padding:3px 8px;border:1px solid var(--border-2)}
-.rt.alto{color:var(--green);border-color:var(--green-2);background:rgba(61,220,132,.08)}
-.rt.baixo{color:var(--red);border-color:rgba(255,70,85,.45);background:rgba(255,70,85,.06)}
+.anel{position:relative;display:inline-grid;place-items:center;width:42px;height:42px;vertical-align:middle}
+.anel svg{position:absolute;inset:0;width:100%;height:100%}
+.anel circle{fill:none;stroke-width:3.4;stroke-linecap:round}
+.anel .trilho{stroke:rgba(255,255,255,.1)}
+.anel .arco{stroke:var(--cor);filter:drop-shadow(0 0 3px var(--cor))}
+.anel b{position:relative;font-family:var(--font-mono);font-size:10.5px;font-weight:700;color:var(--cor)}
+.anel-g{width:60px;height:60px;margin-left:auto;flex-shrink:0}
+.anel-g b{font-size:13px}
+.niveis{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:4px}
+.niveis .mono-label{margin-right:6px}
+.nv{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-size:10.5px;font-weight:700;
+color:var(--cor);border:2px solid var(--cor);background:rgba(0,0,0,.25)}
+#carregando{display:none}
+.js #carregando{display:grid;position:fixed;inset:0;z-index:999;place-items:center;background:var(--bg);transition:opacity .45s ease,visibility .45s ease}
+.js #carregando.fim{opacity:0;visibility:hidden}
+.ld{display:flex;flex-direction:column;align-items:center;gap:14px}
+.ld img{width:52px;height:52px;animation:pulsar 1.2s ease-in-out infinite}
+.ld .barra{position:relative;width:170px;height:3px;border-radius:3px;background:var(--border-2);overflow:hidden}
+.ld .barra::after{content:'';position:absolute;inset:0;width:40%;border-radius:3px;background:linear-gradient(90deg,var(--blue),var(--blue-2));animation:carregar 1s ease-in-out infinite}
+.js .revelar{opacity:0}
+.js .revelar.visivel{animation:subir .65s cubic-bezier(.16,.84,.44,1) both;animation-delay:var(--d,0s)}
+.js .revelar.visivel .r{animation:pop .4s cubic-bezier(.34,1.56,.64,1) both;animation-delay:calc(var(--i,0) * 22ms + .15s)}
+.js .revelar.visivel tbody tr{animation:subir .5s cubic-bezier(.16,.84,.44,1) both;animation-delay:calc(var(--i,0) * 70ms + .1s)}
+.js .revelar.visivel .anel .arco{animation:arco 1.2s cubic-bezier(.16,.84,.44,1) both;animation-delay:calc(var(--i,0) * 70ms + .35s)}
+.js .revelar.visivel .dest{animation:subir .55s cubic-bezier(.16,.84,.44,1) both}
+.js .revelar.visivel .dest:nth-child(2){animation-delay:.08s}.js .revelar.visivel .dest:nth-child(3){animation-delay:.16s}
+.js .revelar.visivel .dest:nth-child(4){animation-delay:.24s}
+.js .revelar.visivel .summary-item{animation:subir .5s cubic-bezier(.16,.84,.44,1) both}
+.js .revelar.visivel .summary-item:nth-child(2){animation-delay:.07s}.js .revelar.visivel .summary-item:nth-child(3){animation-delay:.14s}
+.js .revelar.visivel .summary-item:nth-child(4){animation-delay:.21s}.js .revelar.visivel .summary-item:nth-child(5){animation-delay:.28s}
+.js .revelar.visivel .nv{animation:pop .35s cubic-bezier(.34,1.56,.64,1) both}
+.sb-score b.win{text-shadow:0 0 22px rgba(61,220,132,.45)}
+@keyframes subir{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:none}}
+@keyframes arco{from{stroke-dasharray:0 100.6}}
+@keyframes carregar{0%{transform:translateX(-110%)}100%{transform:translateX(260%)}}
+@keyframes pulsar{50%{transform:scale(1.08);opacity:.7}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none !important;transition:none !important}.js .revelar{opacity:1}}
 .footer{padding:28px 0;border-top:1px solid var(--border);background:var(--bg-soft)}
 .footer-legal{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--dim-2);font-family:var(--font-mono)}
 @media (max-width:720px){
@@ -151,13 +186,38 @@ td{font-family:var(--font-mono);font-size:13px}
 }.vazio{color:var(--dim);font-size:14px;padding:28px 18px;border:1px dashed var(--border-2);border-radius:10px;text-align:center}
 .titulo{font-family:var(--font-display);font-size:38px;font-weight:700;line-height:1.1}
 .lead{font-size:15px;color:var(--dim);max-width:60ch}
+.filtros{display:flex;flex-wrap:wrap;gap:4px;background:var(--bg-soft);padding:4px;border-radius:8px;border:1px solid var(--border);margin-bottom:18px;width:fit-content}
+.filtros button{font:inherit;font-size:13px;font-weight:600;color:var(--dim);background:none;border:none;cursor:pointer;padding:8px 14px;border-radius:6px;
+display:inline-flex;align-items:center;gap:8px;transition:background .15s,color .15s}
+.filtros button:hover{color:var(--text)}
+.filtros button.active{background:rgba(26,115,232,.16);color:var(--blue-2);box-shadow:inset 0 0 0 1px rgba(26,115,232,.55)}
+.filtros i{font-style:normal;font-family:var(--font-mono);font-size:10.5px;padding:1px 6px;border-radius:4px;background:rgba(255,255,255,.06);color:var(--dim-2)}
+.filtros button.active i{color:var(--blue-2);background:rgba(26,115,232,.15)}
+.lista{display:flex;flex-direction:column;gap:10px}
 .partida{grid-template-columns:130px 220px 1fr 150px;transition:border-color .2s,transform .2s}
 .partida:hover{border-color:var(--blue);transform:translateY(-2px)}
-.placar-linha{display:flex;align-items:center;gap:12px;min-width:0;font-weight:700}
-.placar-linha span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.75}
-.placar-linha span.venc{opacity:1}
-.placar-linha b{font-family:var(--font-display);font-size:22px;white-space:nowrap}
-@media (max-width:720px){.titulo{font-size:28px}.partida{grid-template-columns:1fr}.placar-linha{flex-wrap:wrap}}</style>
+.placar-linha,.serie-placar{display:flex;align-items:center;gap:12px;min-width:0;font-weight:700}
+.placar-linha span,.serie-placar span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.75}
+.placar-linha span.venc,.serie-placar span.venc{opacity:1}
+.placar-linha b,.serie-placar b{font-family:var(--font-display);font-size:22px;white-space:nowrap}
+.summary-side.cat-md1{color:var(--green);border-color:rgba(61,220,132,.4)}
+.summary-side.cat-md3{color:var(--blue-2);border-color:rgba(52,152,219,.45)}
+.summary-side.cat-md5{color:var(--yellow);border-color:rgba(245,197,66,.45)}
+.serie-bloco{border:1px solid var(--border-2);border-radius:12px;background:var(--bg-soft);padding:12px;display:flex;flex-direction:column;gap:10px}
+.serie-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:2px 6px}
+.serie-tag{font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1.5px;padding:3px 8px;border-radius:5px;
+color:var(--yellow);border:1px solid rgba(245,197,66,.45);background:rgba(245,197,66,.06)}
+.serie-head .mono-label{margin-left:auto}
+.serie-mapas{display:flex;flex-direction:column;gap:8px}
+.esqueleto{height:66px;border-radius:8px;border:1px solid var(--border);
+background:linear-gradient(90deg,var(--panel) 0%,var(--panel-2) 40%,#1d1f26 50%,var(--panel-2) 60%,var(--panel) 100%);background-size:250% 100%;
+animation:brilho 1.3s ease-in-out infinite}
+.esqueleto:nth-child(2){animation-delay:.12s;opacity:.85}.esqueleto:nth-child(3){animation-delay:.24s;opacity:.7}.esqueleto:nth-child(4){animation-delay:.36s;opacity:.55}
+.lista.animar>*{animation:subir .5s cubic-bezier(.16,.84,.44,1) both;animation-delay:calc(var(--i,0) * 55ms)}
+.lista.animar .serie-mapas .partida{animation:subir .5s cubic-bezier(.16,.84,.44,1) both;animation-delay:calc(var(--i,0) * 55ms + .1s)}
+@keyframes brilho{0%{background-position:100% 0}100%{background-position:-150% 0}}
+@media (max-width:720px){.titulo{font-size:28px}.partida{grid-template-columns:1fr}.placar-linha{flex-wrap:wrap}
+.filtros{width:100%}.filtros button{flex:1;justify-content:center;padding:8px 6px}.serie-head .mono-label{margin-left:0}}</style>
 </head>
 <body>
 <header class="nav"><div class="nav-inner">
@@ -172,8 +232,17 @@ td{font-family:var(--font-mono);font-size:13px}
 <p class="lead">Estatísticas de cada mapa jogado: placar, rounds, K/D, ADR, KAST e rating de todos os jogadores.</p>
 </div></section>
 <main class="wrap"><section class="section">
-<div class="summary-list" id="lista"></div>
-<p class="vazio" id="vazio" hidden>Nenhuma partida por enquanto. Assim que um mapa terminar no servidor, ele aparece aqui.</p>
+<div class="filtros" id="filtros" role="tablist" aria-label="Filtrar partidas">
+<button type="button" data-cat="todas" class="active">Todas <i></i></button>
+<button type="button" data-cat="md1">MD1 <i></i></button>
+<button type="button" data-cat="md3">MD3 <i></i></button>
+<button type="button" data-cat="md5">MD5 <i></i></button>
+<button type="button" data-cat="normal">Normais <i></i></button>
+</div>
+<div id="lista" class="lista">
+<div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div>
+</div>
+<p class="vazio" id="vazio" hidden></p>
 <noscript><p class="vazio">Ative o JavaScript para ver a lista de partidas.</p></noscript>
 </section></main>
 <footer class="footer"><div class="wrap"><div class="footer-legal">
@@ -183,23 +252,67 @@ td{font-family:var(--font-mono);font-size:13px}
 <script>
 const IMG = "https://neuraproject.com.br/neurapick";
 const MAPAS = {"ancient":["Ancient","#1f4d3a","#0b1f18"],"anubis":["Anubis","#8a6a2c","#2a1d08"],"cache":["Cache","#5f6f6a","#1a201e"],"dust2":["Dust II","#a67c3d","#3a2710"],"inferno":["Inferno","#8c3b25","#2b0f08"],"mirage":["Mirage","#b0894f","#3b2a14"],"nuke":["Nuke","#2f5f7a","#0b1c26"],"train":["Train","#4d5a63","#15191c"],"overpass":["Overpass","#4f6b3a","#161f10"],"vertigo":["Vertigo","#5d7185","#161d25"]};
+const NOMES_CAT = { md1: "MD1", md3: "MD3", md5: "MD5", normal: "Normais" };
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const idMapa = (m) => (m || "").replace(/^de_/, "");
 const dataBr = (d) => { const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2})/.exec(d || ""); return m ? `${m[3]}/${m[2]}/${m[1]} ${m[4]}` : esc(d); };
+const caminho = (p) => (p.caminho || p.nome).split("/").map(encodeURIComponent).join("/");
+const categoria = (p) => p.categoria || "normal";
 
-function card(p) {
+function card(p, i) {
   const id = idMapa(p.mapa);
   const mapa = MAPAS[id];
   const fundo = mapa ? `--img:url('${IMG}/maps/${id}.jpg');--c1:${mapa[1]};--c2:${mapa[2]}` : "--c1:#2a2f3a;--c2:#0e0f13";
   const icone = mapa ? `<img class="summary-icon" src="${IMG}/maps/icons/${id}.png" alt="">` : "";
   const venc = p.placarA > p.placarB ? "A" : p.placarB > p.placarA ? "B" : "";
-  return `<a class="summary-item partida" href="${encodeURIComponent(p.nome)}/" style="${fundo}">` +
+  return `<a class="summary-item partida" href="${caminho(p)}/" style="${fundo};--i:${i}">` +
     `<span class="summary-num">${dataBr(p.data)}</span>` +
     `<span class="summary-map">${icone}${esc(mapa ? mapa[0] : id)}</span>` +
     `<span class="placar-linha"><span class="t-A${venc === "A" ? " venc" : ""}">${esc(p.timeA)}</span>` +
     `<b>${Number(p.placarA) || 0} : ${Number(p.placarB) || 0}</b>` +
     `<span class="t-B${venc === "B" ? " venc" : ""}">${esc(p.timeB)}</span></span>` +
-    `<span class="summary-side">${esc(p.serie || "PARTIDA")}</span></a>`;
+    `<span class="summary-side cat-${categoria(p)}">${esc(p.serie || "PARTIDA")}</span></a>`;
+}
+
+// Mapas da mesma série num bloco só (placar da série = o do mapa mais recente)
+function blocos(lista) {
+  const saida = [];
+  const series = {};
+  for (const p of lista) {
+    if (!p.serieId) { saida.push({ unico: p }); continue; }
+    if (!series[p.serieId]) { series[p.serieId] = { mapas: [] }; saida.push(series[p.serieId]); }
+    series[p.serieId].mapas.push(p);
+  }
+  return saida;
+}
+
+function render(lista, cat) {
+  const filtrada = cat === "todas" ? lista : lista.filter((p) => categoria(p) === cat);
+  let i = 0, html = "";
+  for (const b of blocos(filtrada)) {
+    if (b.unico) { html += card(b.unico, i++); continue; }
+    const ult = b.mapas[0];
+    const mapas = [...b.mapas].reverse(); // mapa 1 primeiro
+    const vA = ult.serieVitoriasA || 0, vB = ult.serieVitoriasB || 0;
+    html += `<div class="serie-bloco" style="--i:${i++}">` +
+      `<div class="serie-head"><span class="serie-tag">${esc(NOMES_CAT[categoria(ult)] || "SÉRIE")}</span>` +
+      `<span class="serie-placar"><span class="t-A${vA > vB ? " venc" : ""}">${esc(ult.serieTimeA || ult.timeA)}</span>` +
+      `<b>${vA} : ${vB}</b><span class="t-B${vB > vA ? " venc" : ""}">${esc(ult.serieTimeB || ult.timeB)}</span></span>` +
+      `<span class="mono-label">${dataBr(mapas[0].data)}</span></div>` +
+      `<div class="serie-mapas">${mapas.map((p) => card(p, i++)).join("")}</div></div>`;
+  }
+
+  const elLista = document.getElementById("lista");
+  elLista.innerHTML = html;
+  elLista.classList.remove("animar");
+  void elLista.offsetWidth; // reinicia a animação ao trocar de filtro
+  elLista.classList.add("animar");
+
+  const vazio = document.getElementById("vazio");
+  vazio.hidden = filtrada.length > 0;
+  vazio.textContent = lista.length === 0
+    ? "Nenhuma partida por enquanto. Assim que um mapa terminar no servidor, ele aparece aqui."
+    : `Nenhuma partida ${cat === "normal" ? "normal" : NOMES_CAT[cat] || ""} por enquanto.`;
 }
 
 fetch("partidas.json", { cache: "no-store" })
@@ -208,8 +321,22 @@ fetch("partidas.json", { cache: "no-store" })
   .then((lista) => {
     lista = Array.isArray(lista) ? lista : [];
     document.getElementById("qtd").textContent = `${lista.length} PARTIDA${lista.length === 1 ? "" : "S"}`;
-    document.getElementById("lista").innerHTML = lista.map(card).join("");
-    document.getElementById("vazio").hidden = lista.length > 0;
+
+    const botoes = document.querySelectorAll("#filtros button");
+    botoes.forEach((b) => {
+      const cat = b.dataset.cat;
+      const n = cat === "todas" ? lista.length : lista.filter((p) => categoria(p) === cat).length;
+      b.querySelector("i").textContent = n;
+      b.addEventListener("click", () => {
+        botoes.forEach((x) => x.classList.toggle("active", x === b));
+        history.replaceState(null, "", cat === "todas" ? location.pathname : `#${cat}`);
+        render(lista, cat);
+      });
+    });
+
+    const inicial = (location.hash || "").slice(1);
+    const botao = [...botoes].find((b) => b.dataset.cat === inicial);
+    if (botao) botao.click(); else render(lista, "todas");
   });
 </script>
 </body></html>

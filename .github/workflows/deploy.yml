@@ -49,7 +49,7 @@ jobs:
             const arquivo = "_site/partidas/partidas.json";
             if (!fs.existsSync(arquivo)) process.exit(0);
             const lista = JSON.parse(fs.readFileSync(arquivo, "utf8"));
-            const existe = lista.filter((p) => fs.existsSync(`_site/partidas/${p.nome}/index.html`));
+            const existe = lista.filter((p) => fs.existsSync(`_site/partidas/${p.caminho || p.nome}/index.html`));
             fs.writeFileSync(arquivo, JSON.stringify(existe, null, 2));
             console.log(`Partidas no histórico: ${existe.length} (removidas: ${lista.length - existe.length})`);
           '
