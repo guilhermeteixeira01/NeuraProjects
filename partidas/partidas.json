@@ -1,5 +1,15 @@
 [
   {
+    "nome": "2026-10-01_00-42_de_inferno",
+    "data": "2026-10-01 00:42",
+    "mapa": "de_inferno",
+    "timeA": "Time A",
+    "timeB": "Time B",
+    "placarA": 2,
+    "placarB": 0,
+    "serie": null
+  },
+  {
     "nome": "2026-10-01_00-15_de_mirage",
     "data": "2026-10-01 00:15",
     "mapa": "de_mirage",
