@@ -1,7 +1,9 @@
 {
-  "atualizado": "2026-10-01T18:00:00.000Z",
+  "atualizado": "2026-10-01T22:43:16.409Z",
   "times": [
-    { "nome": "Homen Aranha", "logo": "https://i.imgur.com/X6Tkhvi.jpg" },
-    { "nome": "Pain", "logo": "https://i.imgur.com/UU72dhf.jpg" }
+    {
+      "nome": "Neura Project",
+      "logo": "https://i.imgur.com/0lhPoBJ.png"
+    }
   ]
 }
