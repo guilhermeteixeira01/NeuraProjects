@@ -175,9 +175,24 @@ background:conic-gradient(from 200deg,var(--tc,var(--blue)),#8a5cf6,var(--tc,var
 .js .revelar.visivel .mvp-item:nth-child(3){animation-delay:.24s}.js .revelar.visivel .mvp-item:nth-child(4){animation-delay:.31s}
 .js .revelar.visivel .mvp-av{animation:pop .6s cubic-bezier(.34,1.56,.64,1) .15s both}
 @keyframes barra{from{width:0}}
-@media (max-width:980px){.mvp-grid{grid-template-columns:1fr}.mvp-card{grid-template-columns:170px 1fr}.mvp-selo{position:absolute;top:18px;right:18px;font-size:24px}}
-@media (max-width:620px){.mvp-card{grid-template-columns:1fr;gap:18px}.mvp-perfil{padding:16px}.mvp-av{width:88px;height:88px}
-.mvp-stats b{font-size:20px}.team-meta{margin-left:0;width:100%}.team-head{flex-wrap:wrap}}
+@media (max-width:980px){.mvp-grid{grid-template-columns:1fr}.mvp-card{grid-template-columns:180px 1fr}
+.mvp-selo{grid-column:1/-1;grid-row:1;justify-self:end;font-size:24px;margin-bottom:-14px}.mvp-selo span{font-size:22px}}
+@media (max-width:620px){
+.mvp-card{grid-template-columns:minmax(0,1fr);gap:16px;padding:16px 16px 18px}
+.mvp-card::before{top:16px;bottom:auto;height:64px}
+.mvp-selo{grid-row:auto;order:-1;justify-self:start;margin:0;font-size:20px}.mvp-selo span{font-size:18px}
+.mvp-perfil{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;column-gap:14px;row-gap:2px;
+justify-items:start;align-items:center;text-align:left;padding:12px 14px}
+.mvp-av{grid-row:1/3;width:68px;height:68px;padding:3px}
+.mvp-perfil b{align-self:end;font-size:18px}
+.mvp-perfil .mono-label{align-self:start}
+.mvp-rt{flex-wrap:wrap;gap:8px 12px}.rt-g{font-size:20px;padding:6px 10px}
+.mvp-stats{gap:14px 18px;margin-top:8px}.mvp-stats b{font-size:19px}
+.mvp-item{padding:10px 12px}.mvp-item .av{width:36px;height:36px}.mvp-val b{font-size:19px}
+.team-meta{margin-left:0;width:100%}.team-head{flex-wrap:wrap;gap:8px 12px;padding:12px 14px}.team-score{font-size:24px}.team-name{font-size:19px}
+.rounds-card{padding:12px}.r{width:30px;height:40px}
+.bn-topo{font-size:12px}.bn-info{gap:6px 12px}
+}
 .hero-partida{padding:28px 0 34px}
 .banner{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--border-2);border-bottom:1px solid rgba(255,122,26,.75);padding:18px 24px 30px;
 background:linear-gradient(0deg,rgba(255,122,26,.20),transparent 38%),linear-gradient(180deg,rgba(11,12,15,.55),rgba(11,12,15,.82)),
@@ -269,9 +284,9 @@ text-shadow:0 2px 12px rgba(0,0,0,.75)}
 <div class="bn-info"><img class="bn-mapa" src="https://neuraproject.com.br/neurapick/maps/icons/dust2.png" alt=""><b>Dust II</b><span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg> 01/10/2026 13:26</span><span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> 2 min</span><span>2 rounds</span></div>
 </div>
 <div class="bn-placar">
-<div class="bn-nome bn-nome-A"><b>Pain</b></div><span class="bn-logo bn-logo-A"><span class="bn-ini">PA</span><img class="bn-img" src="https://avatars.fastly.steamstatic.com/74f8dd2a1c7d0e73250bfd859ad6f333f5331af2_full.jpg" alt="" loading="lazy"></span>
+<div class="bn-nome bn-nome-A"><b>Pain</b></div><span class="bn-logo bn-logo-A"><span class="bn-ini">PA</span><img class="bn-img" src="https://i.imgur.com/UU72dhf.jpg" alt="" onerror="this.remove()"></span>
 <div class="bn-centro"><b class="" data-conta="0">0</b><span>VS</span><b class="win" data-conta="2">2</b></div>
-<span class="bn-logo bn-logo-B"><span class="bn-ini">HO</span></span><div class="bn-nome bn-nome-B"><span class="bn-venc">VENCEDOR</span><b>Homen Aranha</b></div>
+<span class="bn-logo bn-logo-B"><span class="bn-ini">HO</span><img class="bn-img" src="https://i.imgur.com/X6Tkhvi.jpg" alt="" onerror="this.remove()"></span><div class="bn-nome bn-nome-B"><span class="bn-venc">VENCEDOR</span><b>Homen Aranha</b></div>
 </div>
 </div>
 </div></section>
