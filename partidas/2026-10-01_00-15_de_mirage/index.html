@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Time A 2 x 0 Time B — Mirage</title>
+<link rel="icon" href="https://neuraproject.com.br/neurapick/logos/logoNP.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>:root{--bg:#0b0c0f;--bg-soft:#0e0f13;--panel:#121317;--panel-2:#16171c;--border:#232427;--border-2:#2e2f36;
+--text:#f1f1f1;--dim:#9a9ba3;--dim-2:#6d6e77;--blue:#1a73e8;--blue-2:#3498db;--green:#3ddc84;--green-2:#2fbf6f;
+--orange:#ff7a1a;--red:#ff4655;--yellow:#f5c542;--team-a:var(--blue-2);--team-b:var(--orange);--ct:#5aa9ff;--t:#e8b04a;
+--font-display:'Chakra Petch','Segoe UI',sans-serif;--font-body:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+--font-mono:'JetBrains Mono','Consolas',monospace}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow-x:clip}
+body{background:repeating-linear-gradient(0deg,transparent,transparent 42px,rgba(255,255,255,.012) 42px,rgba(255,255,255,.012) 43px),
+repeating-linear-gradient(90deg,transparent,transparent 42px,rgba(255,255,255,.012) 42px,rgba(255,255,255,.012) 43px),var(--bg);
+color:var(--text);font-family:var(--font-body);line-height:1.5;min-height:100vh}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+.wrap{max-width:1180px;margin:0 auto;padding:0 32px}
+.mono-label{font-family:var(--font-mono);font-size:10.5px;font-weight:500;letter-spacing:1.5px;color:var(--dim-2);text-transform:uppercase}
+.t-A{color:var(--team-a)}.t-B{color:var(--team-b)}
+.hud-frame{position:relative;padding:14px}
+.hud-frame::before,.hud-frame::after{content:'';position:absolute;width:26px;height:26px;border:2px solid var(--blue);opacity:.85;pointer-events:none}
+.hud-frame::before{top:0;left:0;border-right:none;border-bottom:none}
+.hud-frame::after{bottom:0;right:0;border-left:none;border-top:none}
+.nav{position:sticky;top:0;z-index:200;background:rgba(11,12,15,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.nav-inner{max-width:1180px;margin:0 auto;padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.nav-brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:16px;letter-spacing:.5px;white-space:nowrap;line-height:1.2}
+.nav-brand .outline{-webkit-text-stroke:1px var(--blue-2);color:transparent}
+.nav-brand .mark{width:30px;height:30px;max-width:none;flex-shrink:0;object-fit:contain}
+.nav-brand .sub{display:block;font-family:var(--font-mono);font-size:9px;font-weight:500;letter-spacing:2px;color:var(--dim-2);margin-top:1px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:13px;padding:10px 20px;border-radius:8px;
+border:1px solid transparent;transition:background .15s,border-color .15s,color .15s;white-space:nowrap}
+.btn-ghost{border-color:var(--border-2);color:var(--text)}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue-2)}
+.btn-sm{padding:8px 14px;font-size:12px}
+.hero{position:relative;overflow:hidden;padding:48px 0;border-bottom:1px solid var(--border)}
+.hero-glow{position:absolute;border-radius:50%;filter:blur(110px);pointer-events:none;z-index:0}
+.hero-glow-1{width:460px;height:460px;top:-140px;left:-120px;background:var(--blue);opacity:.22}
+.hero-glow-2{width:420px;height:420px;bottom:-160px;right:-110px;background:var(--orange);opacity:.1}
+.hero-inner{position:relative;z-index:1;display:flex;flex-direction:column;gap:22px}
+.hero-status{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:11px;letter-spacing:1.5px;color:var(--green);
+border:1px solid rgba(61,220,132,.3);background:rgba(61,220,132,.08);padding:5px 10px;border-radius:5px;width:fit-content}
+.dot-live{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(61,220,132,.2)}
+.hero-meta{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:12px;color:var(--dim);font-family:var(--font-mono)}
+.hero-meta .sep{color:var(--border-2)}
+.map-banner{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--border-2);min-height:170px;display:flex;align-items:flex-end;
+background:linear-gradient(90deg,rgba(11,12,15,.92) 25%,rgba(11,12,15,.35)),var(--img,none) center/cover,linear-gradient(135deg,var(--c1),var(--c2))}
+.map-banner-info{display:flex;flex-direction:column;gap:12px;padding:22px 24px}
+.map-title-big{display:flex;align-items:center;gap:14px;font-family:var(--font-display);font-size:44px;font-weight:700;text-transform:uppercase;line-height:1;
+text-shadow:0 2px 10px rgba(0,0,0,.7)}
+.map-icon{width:56px;height:56px;max-width:none;flex-shrink:0;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.7))}
+.scoreboard{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;background:linear-gradient(160deg,#14161b 0%,#0d0e12 100%);
+border:1px solid var(--border-2);border-radius:10px;overflow:hidden}
+.sb-team{display:flex;flex-direction:column;justify-content:center;gap:6px;padding:22px 26px;min-width:0}
+.sb-team.team-a{border-left:3px solid var(--team-a)}
+.sb-team.team-b{border-right:3px solid var(--team-b);text-align:right;align-items:flex-end}
+.sb-team.team-a.active{background:linear-gradient(90deg,rgba(52,152,219,.14),transparent)}
+.sb-team.team-b.active{background:linear-gradient(270deg,rgba(255,122,26,.14),transparent)}
+.sb-name{font-family:var(--font-display);font-size:30px;font-weight:700;line-height:1.1;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.team-a .sb-name{color:var(--team-a)}.team-b .sb-name{color:var(--team-b)}
+.sb-turn{width:fit-content;font-family:var(--font-mono);font-size:9.5px;letter-spacing:1.5px;padding:2px 7px;border-radius:4px;color:var(--green);
+border:1px solid rgba(61,220,132,.35);background:rgba(61,220,132,.08)}
+.sb-center{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:16px 34px;
+border-left:1px solid var(--border);border-right:1px solid var(--border);text-align:center}
+.sb-score{display:flex;align-items:center;gap:14px;font-family:var(--font-display);font-size:58px;font-weight:700;line-height:1}
+.sb-score b{color:var(--dim)}.sb-score b.win{color:var(--green)}.sb-score i{font-style:normal;color:var(--border-2);font-size:40px}
+.section{padding:48px 0 0}
+main.wrap{padding-bottom:64px}
+.section-head-row{display:flex;justify-content:space-between;align-items:flex-end;gap:20px}
+.section-head{margin-bottom:18px}
+.section-head h2{font-family:var(--font-display);font-size:26px;font-weight:700;margin-top:4px}
+.summary-list{display:flex;flex-direction:column;gap:8px}
+.summary-item{display:grid;grid-template-columns:90px 1fr auto 170px;align-items:center;gap:18px;padding:14px 18px;border-radius:8px;border:1px solid var(--border);
+background:linear-gradient(90deg,rgba(18,19,23,.92) 30%,rgba(18,19,23,.6)),var(--img,none) center/cover,var(--panel)}
+.summary-item.atual{border-color:rgba(245,197,66,.6);box-shadow:0 0 0 4px rgba(245,197,66,.08)}
+.summary-icon{width:34px;height:34px;max-width:none;flex-shrink:0;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.6))}
+.summary-num{font-family:var(--font-mono);font-size:11px;letter-spacing:1px;color:var(--dim-2)}
+.summary-map{display:flex;align-items:center;gap:12px;font-family:var(--font-display);font-size:22px;font-weight:700;text-transform:uppercase}
+.summary-meta{font-size:13px;color:var(--dim);font-weight:600}
+.summary-meta.res-A{color:var(--team-a)}.summary-meta.res-B{color:var(--team-b)}
+.summary-side{font-family:var(--font-mono);font-size:11px;text-align:center;padding:5px 10px;border-radius:5px;border:1px solid var(--border-2);color:var(--dim);
+overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.summary-side.ct{color:var(--ct);border-color:rgba(90,169,255,.4)}
+.summary-side.knife{color:var(--yellow);border-color:rgba(245,197,66,.4)}
+.destaques{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.dest{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:10px;background:var(--panel);border:1px solid var(--border);
+border-left:2px solid var(--blue);min-width:0}
+.dest.mvp{border-left-color:var(--yellow);background:radial-gradient(300px 120px at 0% 0%,rgba(245,197,66,.08),transparent 70%),var(--panel)}
+.dest-txt{display:flex;flex-direction:column;min-width:0}
+.dest-txt b{font-family:var(--font-display);font-size:19px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dest-txt em{font-style:normal;font-size:12px;color:var(--dim)}
+.dest-av{width:52px;height:52px;border-radius:8px;border:1px solid var(--border-2);object-fit:cover;flex-shrink:0;max-width:none}
+.av{width:32px;height:32px;border-radius:6px;border:1px solid var(--border-2);object-fit:cover;flex-shrink:0;max-width:none}
+.av-fb{display:grid;place-items:center;background:var(--panel-2);font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--dim)}
+.dest-av.av-fb{font-size:15px}
+.rounds-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px}
+.rounds{display:flex;flex-wrap:wrap;gap:5px}
+.r{width:34px;height:44px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+background:var(--bg-soft);border:1px solid var(--border);border-top:2px solid;font-family:var(--font-mono);font-size:10px;color:var(--dim)}
+.r-A{border-top-color:var(--team-a)}.r-A svg{color:var(--team-a)}
+.r-B{border-top-color:var(--team-b)}.r-B svg{color:var(--team-b)}
+.r-sep{width:2px;align-self:stretch;background:var(--border-2);margin:0 4px;border-radius:2px}
+.legenda{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);
+font-family:var(--font-mono);font-size:11px;color:var(--dim-2)}
+.legenda span{display:inline-flex;align-items:center;gap:6px}
+.team-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px}
+.team-card.team-A{border-left:3px solid var(--team-a)}.team-card.team-B{border-left:3px solid var(--team-b)}
+.team-head{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--border)}
+.team-name{font-family:var(--font-display);font-size:22px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.team-score{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--dim)}
+.res{margin-left:auto;font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;padding:4px 9px;border-radius:5px;border:1px solid var(--border-2);color:var(--dim-2)}
+.res.win{color:var(--green);border-color:var(--green-2);background:rgba(61,220,132,.08)}
+.res.loss{color:var(--red);border-color:rgba(255,70,85,.45);background:rgba(255,70,85,.06)}
+.tabela{overflow-x:auto;scrollbar-width:thin}
+table{width:100%;border-collapse:collapse;min-width:900px}
+th,td{padding:10px 8px;text-align:center;white-space:nowrap;font-size:13.5px}
+th{font-family:var(--font-mono);font-size:10px;font-weight:500;letter-spacing:1.5px;color:var(--dim-2);background:var(--bg-soft)}
+th:first-child,td:first-child{text-align:left;padding-left:18px}
+tbody tr{border-top:1px solid var(--border);transition:background .2s}
+tbody tr:hover{background:rgba(26,115,232,.05)}
+td{font-family:var(--font-mono);font-size:13px}
+.player{display:flex;align-items:center;gap:10px;font-family:var(--font-body);font-weight:700;font-size:14px}
+.player span{max-width:190px;overflow:hidden;text-overflow:ellipsis}
+.player:hover span{color:var(--blue-2)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.mvp{color:var(--yellow)}
+.rt{font-weight:700;border-radius:5px;padding:3px 8px;border:1px solid var(--border-2)}
+.rt.alto{color:var(--green);border-color:var(--green-2);background:rgba(61,220,132,.08)}
+.rt.baixo{color:var(--red);border-color:rgba(255,70,85,.45);background:rgba(255,70,85,.06)}
+.footer{padding:28px 0;border-top:1px solid var(--border);background:var(--bg-soft)}
+.footer-legal{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--dim-2);font-family:var(--font-mono)}
+@media (max-width:720px){
+.wrap,.nav-inner{padding:0 16px}
+.nav-brand .sub{display:none}
+.hero{padding:24px 0}
+.map-title-big{font-size:30px}.map-icon{width:40px;height:40px}
+.scoreboard{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.sb-center{grid-column:1/-1;grid-row:1;padding:12px;border:none;border-bottom:1px solid var(--border)}
+.sb-score{font-size:42px}
+.sb-team{padding:12px 14px}.sb-name{font-size:19px}
+.summary-item{grid-template-columns:1fr auto;gap:6px 12px;padding:12px 14px}
+.summary-num,.summary-side{grid-column:1/-1;justify-self:start}
+.summary-map{font-size:18px}
+.section{padding-top:36px}
+.section-head h2{font-size:22px}
+}</style>
+</head>
+<body>
+<header class="nav"><div class="nav-inner">
+<a class="nav-brand" href="https://neuraproject.com.br/neurapick/"><img class="mark" src="https://neuraproject.com.br/neurapick/logos/logoNP.ico" alt="logo">
+<span>NEURA <span class="outline">PROJECT</span><span class="sub">ESTATÍSTICAS DA PARTIDA</span></span></a>
+
+</div></header><section class="hero"><div class="hero-glow hero-glow-1"></div><div class="hero-glow hero-glow-2"></div>
+<div class="wrap hero-inner">
+<div class="map-banner" style="--img:url('https://neuraproject.com.br/neurapick/maps/mirage.jpg');--c1:#b0894f;--c2:#3b2a14">
+<div class="map-banner-info">
+<span class="hero-status"><span class="dot-live"></span>PARTIDA ENCERRADA</span>
+<div class="map-title-big"><img class="map-icon" src="https://neuraproject.com.br/neurapick/maps/icons/mirage.png" alt=""><span>Mirage</span></div>
+<div class="hero-meta"><span>01/10/2026 00:15</span><span class="sep">/</span><span>1 MIN</span><span class="sep">/</span><span>2 ROUNDS</span></div>
+</div>
+</div>
+<div class="hud-frame">
+<div class="scoreboard">
+<div class="sb-team team-a active"><span class="mono-label">TIME A</span><span class="sb-name">Time A</span><span class="sb-turn">VENCEDOR</span></div>
+<div class="sb-center"><span class="mono-label">PLACAR FINAL</span><span class="sb-score"><b class="win">2</b><i>:</i><b class="">0</b></span></div>
+<div class="sb-team team-b"><span class="mono-label">TIME B</span><span class="sb-name">Time B</span></div>
+</div>
+</div>
+</div></section>
+<main class="wrap"><section class="section"><div class="section-head"><span class="mono-label">DESTAQUES</span><h2>Melhores da partida</h2></div><div class="destaques"><div class="dest mvp"><img class="dest-av" src="https://avatars.fastly.steamstatic.com/74f8dd2a1c7d0e73250bfd859ad6f333f5331af2_full.jpg" alt="" loading="lazy"><div class="dest-txt"><span class="mono-label">MVP DA PARTIDA</span><b class="t-A">Te1xe1ra</b><em>Rating 4.95</em></div></div><div class="dest "><img class="dest-av" src="https://avatars.fastly.steamstatic.com/74f8dd2a1c7d0e73250bfd859ad6f333f5331af2_full.jpg" alt="" loading="lazy"><div class="dest-txt"><span class="mono-label">MAIS KILLS</span><b class="t-A">Te1xe1ra</b><em>6 kills</em></div></div><div class="dest "><img class="dest-av" src="https://avatars.fastly.steamstatic.com/74f8dd2a1c7d0e73250bfd859ad6f333f5331af2_full.jpg" alt="" loading="lazy"><div class="dest-txt"><span class="mono-label">MAIOR ADR</span><b class="t-A">Te1xe1ra</b><em>204.0 de dano por round</em></div></div><div class="dest "><img class="dest-av" src="https://avatars.fastly.steamstatic.com/74f8dd2a1c7d0e73250bfd859ad6f333f5331af2_full.jpg" alt="" loading="lazy"><div class="dest-txt"><span class="mono-label">MAIS ABERTURAS</span><b class="t-A">Te1xe1ra</b><em>2 primeiras kills</em></div></div></div></section><section class="section"><div class="section-head"><span class="mono-label">LINHA DO TEMPO</span><h2>Rounds</h2></div><div class="rounds-card"><div class="rounds"><div class="r r-A" title="Round 1: Time A (CT) — Eliminação"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M22 12h-4M6 12H2M12 6V2M12 22v-4"/></svg><span>1</span></div><div class="r-sep"></div><div class="r r-A" title="Round 2: Time A (TR) — Eliminação"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M22 12h-4M6 12H2M12 6V2M12 22v-4"/></svg><span>2</span></div></div><div class="legenda"><span class="t-A">■ Time A</span><span class="t-B">■ Time B</span><span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M22 12h-4M6 12H2M12 6V2M12 22v-4"/></svg> eliminação</span><span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l2.4 5.6 6 .6-4.5 4 1.3 6L12 15l-5.2 3.2 1.3-6-4.5-4 6-.6z"/></svg> bomba explodiu</span><span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg> desarme</span><span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> tempo</span></div></div></section><section class="section"><div class="section-head"><span class="mono-label">PLACAR</span><h2>Estatísticas dos jogadores</h2></div><div class="team-card team-A"><div class="team-head"><span class="team-name t-A">Time A</span><span class="team-score">2</span><span class="res win">VITÓRIA</span></div><div class="tabela"><table><thead><tr><th>JOGADOR</th><th>K</th><th>D</th><th>A</th><th>+/-</th><th>K/D</th><th>ADR</th><th>HS%</th><th>KAST</th><th title="Primeiras kills - primeiras mortes">FK-FD</th><th>2K</th><th>3K</th><th>4K</th><th>ACE</th><th>MVP</th><th>RATING</th></tr></thead><tbody><tr><td><a class="player" href="https://steamcommunity.com/profiles/76561199151150360" target="_blank" rel="noopener"><img class="av" src="https://avatars.fastly.steamstatic.com/74f8dd2a1c7d0e73250bfd859ad6f333f5331af2_full.jpg" alt="" loading="lazy"><span>Te1xe1ra</span></a></td><td>6</td><td>1</td><td>2</td><td class="pos">+5</td><td>6.00</td><td>204.0</td><td>100%</td><td>100%</td><td>2-0</td><td>1</td><td>0</td><td>1</td><td>0</td><td class="mvp">★ 2</td><td><span class="rt alto">4.95</span></td></tr></tbody></table></div></div></section></main><footer class="footer"><div class="wrap"><div class="footer-legal">
+<span>NEURA <b class="t-A">PROJECT</b> · BaseComp</span>
+<span>Gerado em 01/10/2026 00:17 · Rating HLTV 1.0</span>
+</div></div></footer>
+</body></html>
