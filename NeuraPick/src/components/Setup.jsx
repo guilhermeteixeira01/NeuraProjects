@@ -139,17 +139,25 @@ export default function Setup({ onStart }) {
                       {i === 1 && <span className="vs">VS</span>}
                       <div className={`field team-${t.toLowerCase()}`}>
                         <label className="field-inner">
-                          <span className="mono-label">TIME {t}</span>
-                          <span className="nome-lista">
-                            <input
-                              value={nome}
-                              onChange={(e) => trocarNome(t, e.target.value, setNome, logo, setLogo)}
-                              placeholder={`Time ${t}`}
-                              maxLength={24}
-                              list={times.length ? 'lista-times' : undefined}
-                            />
-                            {acharTime(times, nome) && <span className="da-lista">DA LISTA</span>}
+                          <span className="field-label">
+                            <span className="mono-label">TIME {t}</span>
+                            {acharTime(times, nome) && (
+                              <span className="da-lista" title="Time cadastrado na lista: o logo veio de lá">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                  <path d="M20 6 9 17l-5-5" />
+                                </svg>
+                                DA LISTA
+                              </span>
+                            )}
                           </span>
+                          <input
+                            className="nome-lista"
+                            value={nome}
+                            onChange={(e) => trocarNome(t, e.target.value, setNome, logo, setLogo)}
+                            placeholder={`Time ${t}`}
+                            maxLength={24}
+                            list={times.length ? 'lista-times' : undefined}
+                          />
                         </label>
                         <label className="logo-field">
                           <TeamLogo url={logo} name={nome || `Time ${t}`} team={t} size={34} />

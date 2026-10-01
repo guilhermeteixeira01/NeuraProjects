@@ -1925,28 +1925,28 @@ b.decider {
 }
 
 /* Nome do time com a lista de times do site (/times/) */
-.nome-lista {
-  position: relative;
-  display: block;
+.field-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 18px;
 }
-.nome-lista input {
-  padding-right: 84px;
+/* Sem a setinha do Chrome nas sugestões (elas continuam aparecendo ao digitar/clicar) */
+.nome-lista::-webkit-calendar-picker-indicator {
+  display: none !important;
+  opacity: 0;
 }
 .da-lista {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 1.2px;
-  padding: 2px 6px;
-  border-radius: 4px;
   color: var(--green);
-  border: 1px solid rgba(61, 220, 132, 0.4);
-  background: rgba(61, 220, 132, 0.08);
-  pointer-events: none;
+  animation: rowIn 0.3s ease;
 }
 .lista-hint {
   margin-top: -6px;
