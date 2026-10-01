@@ -160,22 +160,30 @@
     revelar.forEach(function (el) { obs.observe(el); });
   }
 
-  // Lista de times: lê direto do GitHub (atualiza em minutos, sem esperar o deploy do site);
-  // se não der, usa a cópia publicada no site. Sempre devolve uma lista (vazia se nada funcionar).
+  // Lista de times: lê pela API do GitHub (versão mais nova, na hora em que foi salva na página /times/).
+  // Se a API falhar (limite de 60 leituras por hora por internet), usa o raw do GitHub (até 5 min de atraso)
+  // e depois a cópia publicada no site. Sempre devolve uma lista (vazia se nada funcionar).
+  // Guarda a resposta por 15s para não gastar o limite da API à toa; forcar = ignora essa espera.
   var timesCache = null;
-  function carregarTimes() {
-    if (timesCache) return timesCache;
-    var bruto = 'https://raw.githubusercontent.com/' + CONFIG.repositorio + '/' + CONFIG.branch + '/' + CONFIG.arquivoTimes;
-    var ler = function (endereco) {
-      return fetch(endereco + '?t=' + Date.now(), { cache: 'no-store' }).then(function (r) {
+  var timesQuando = 0;
+  function carregarTimes(forcar) {
+    if (timesCache && !forcar && Date.now() - timesQuando < 15000) return timesCache;
+    if (timesCache && forcar && Date.now() - timesQuando < 5000) return timesCache;
+    var caminho = CONFIG.repositorio + '/' + CONFIG.branch + '/' + CONFIG.arquivoTimes;
+    var ler = function (endereco, opcoes) {
+      return fetch(endereco, Object.assign({ cache: 'no-store' }, opcoes)).then(function (r) {
         if (!r.ok) throw new Error(r.status);
         return r.json();
       });
     };
-    timesCache = ler(bruto)
-      .catch(function () { return ler(url('/' + CONFIG.arquivoTimes)); })
+    var anterior = timesCache;
+    timesQuando = Date.now();
+    timesCache = ler('https://api.github.com/repos/' + CONFIG.repositorio + '/contents/' + CONFIG.arquivoTimes + '?ref=' + CONFIG.branch,
+        { headers: { Accept: 'application/vnd.github.raw+json' } })
+      .catch(function () { return ler('https://raw.githubusercontent.com/' + caminho + '?t=' + Date.now()); })
+      .catch(function () { return ler(url('/' + CONFIG.arquivoTimes) + '?t=' + Date.now()); })
       .then(function (dados) { return Array.isArray(dados && dados.times) ? dados.times : []; })
-      .catch(function () { return []; });
+      .catch(function () { return anterior || []; });
     return timesCache;
   }
 
