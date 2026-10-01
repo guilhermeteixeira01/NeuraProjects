@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ALL_MAPS, DEFAULT_POOL, POOL_SIZE, POOL_UPDATED, mapIcon, mapImage } from '../data/maps.js'
 import { FORMATS } from '../data/veto.js'
 import { IconClock, IconPlay, IconShield, IconSwap, IconTarget } from './Icons.jsx'
 import TeamLogo, { MAX_LOGO_URL, logoValido } from './TeamLogo.jsx'
+import { acharTime, useTimes } from '../data/times.js'
 
 const TIMERS = [
   { value: 0, label: 'OFF' },
@@ -27,6 +28,36 @@ export default function Setup({ onStart }) {
   const [first, setFirst] = useState('coin')
   const [timer, setTimer] = useState(0)
   const [pool, setPool] = useState(DEFAULT_POOL)
+
+  // Lista de times do site (/times/): escolhendo um nome cadastrado, o logo entra sozinho
+  const times = useTimes()
+  const [logoAuto, setLogoAuto] = useState({ A: '', B: '' })
+  // A lista chega depois de digitar o nome: completa o logo que ainda estiver vazio
+  useEffect(() => {
+    if (!times.length) return
+    ;[
+      ['A', teamA, logoA, setLogoA],
+      ['B', teamB, logoB, setLogoB],
+    ].forEach(([t, nome, logo, setLogo]) => {
+      const achado = acharTime(times, nome)
+      if (!logo.trim() && achado?.logo && logoValido(achado.logo)) {
+        setLogo(achado.logo)
+        setLogoAuto((a) => ({ ...a, [t]: achado.logo }))
+      }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [times])
+
+  const trocarNome = (t, valor, setNome, logo, setLogo) => {
+    setNome(valor)
+    const achado = acharTime(times, valor)
+    // Só mexe no logo se ele estiver vazio ou se foi a lista que preencheu (não apaga logo digitado na mão)
+    const podeTrocar = !logo.trim() || logo === logoAuto[t]
+    if (!podeTrocar) return
+    const novo = achado?.logo && logoValido(achado.logo) ? achado.logo : ''
+    setLogo(novo)
+    setLogoAuto((a) => ({ ...a, [t]: novo }))
+  }
 
   const nameA = teamA.trim() || 'Time A'
   const nameB = teamB.trim() || 'Time B'
@@ -109,7 +140,16 @@ export default function Setup({ onStart }) {
                       <div className={`field team-${t.toLowerCase()}`}>
                         <label className="field-inner">
                           <span className="mono-label">TIME {t}</span>
-                          <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder={`Time ${t}`} maxLength={24} />
+                          <span className="nome-lista">
+                            <input
+                              value={nome}
+                              onChange={(e) => trocarNome(t, e.target.value, setNome, logo, setLogo)}
+                              placeholder={`Time ${t}`}
+                              maxLength={24}
+                              list={times.length ? 'lista-times' : undefined}
+                            />
+                            {acharTime(times, nome) && <span className="da-lista">DA LISTA</span>}
+                          </span>
                         </label>
                         <label className="logo-field">
                           <TeamLogo url={logo} name={nome || `Time ${t}`} team={t} size={34} />
@@ -128,6 +168,19 @@ export default function Setup({ onStart }) {
                     </div>
                   ))}
                 </div>
+                {times.length > 0 && (
+                  <datalist id="lista-times">
+                    {times.map((tm) => (
+                      <option key={tm.nome} value={tm.nome} />
+                    ))}
+                  </datalist>
+                )}
+                <p className="hint lista-hint">
+                  {times.length > 0
+                    ? `${times.length} times na lista: digite o nome e escolha para o logo entrar sozinho. `
+                    : 'Cadastre os times uma vez e o logo entra sozinho no veto. '}
+                  <a href="/times/">Gerenciar lista de times</a>
+                </p>
                 {(logoA.trim() && !logoValido(logoA)) || (logoB.trim() && !logoValido(logoB)) ? (
                   <p className="hint warn-hint">O logo precisa ser um link https:// de imagem (até {MAX_LOGO_URL} caracteres).</p>
                 ) : null}
