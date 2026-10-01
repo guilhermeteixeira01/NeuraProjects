@@ -488,6 +488,103 @@ b.decider {
   padding-bottom: 12px;
 }
 
+/* Nome + logo (URL) de cada time */
+.team-field-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.team-field-wrap .vs {
+  padding-bottom: 0;
+}
+.field-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.logo-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.field .logo-field input {
+  padding: 8px 10px;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.field .logo-field input.invalid {
+  border-color: var(--red);
+}
+.warn-hint {
+  color: var(--red);
+  margin-top: -8px;
+}
+
+/* Logo do time (imagem por URL ou iniciais) */
+.team-logo {
+  width: var(--size, 40px);
+  height: var(--size, 40px);
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--bg-soft);
+  border: 2px solid var(--border-2);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: calc(var(--size, 40px) * 0.36);
+  color: var(--dim);
+}
+.team-logo-A {
+  border-color: var(--team-a);
+  box-shadow: 0 0 14px -6px var(--team-a);
+}
+.team-logo-B {
+  border-color: var(--team-b);
+  box-shadow: 0 0 14px -6px var(--team-b);
+}
+.team-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  max-width: none;
+}
+.sb-id {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  max-width: 100%;
+}
+.logos-aviso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: -6px 0 18px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(245, 197, 66, 0.35);
+  background: rgba(245, 197, 66, 0.06);
+  font-size: 12.5px;
+  color: var(--dim);
+}
+.join-card-head-logo {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+.join-card-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
 .segmented {
   display: flex;
   gap: 4px;
@@ -1596,6 +1693,10 @@ b.decider {
   .vs {
     text-align: center;
     padding: 0;
+  }
+  .team-field-wrap {
+    flex-direction: column;
+    align-items: stretch;
   }
   .field input {
     font-size: 16px; /* evita zoom automático no iOS */

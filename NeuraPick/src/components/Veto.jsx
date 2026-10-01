@@ -4,6 +4,7 @@ import { FORMATS, SIDE_LABEL, buildSteps, deriveState } from '../data/veto.js'
 import { playSound } from '../data/sounds.js'
 import MapCard from './MapCard.jsx'
 import Summary from './Summary.jsx'
+import TeamLogo from './TeamLogo.jsx'
 import { IconRestart, IconUndo } from './Icons.jsx'
 
 const VERB = { ban: 'BANIR', pick: 'ESCOLHER' }
@@ -37,6 +38,7 @@ function Countdown({ seconds, onExpire }) {
 
 export default function Veto({ match, onNewMatch }) {
   const { teams, format, firstTeam, pool, timer, coinFlip } = match
+  const logos = match.logos ?? { A: '', B: '' }
   const steps = useMemo(() => buildSteps(format, firstTeam), [format, firstTeam])
   const [history, setHistory] = useState([])
   const stepsRef = useRef(null)
@@ -97,7 +99,10 @@ export default function Veto({ match, onNewMatch }) {
           <div className="scoreboard">
             <div className={`sb-team team-a ${step?.team === 'A' ? 'active' : ''}`}>
               <span className="mono-label">TIME A</span>
-              <span className="sb-name">{teams.A}</span>
+              <span className="sb-id">
+                <TeamLogo url={logos.A} name={teams.A} team="A" size={44} />
+                <span className="sb-name">{teams.A}</span>
+              </span>
               {step?.team === 'A' && <span className="sb-turn">NA VEZ</span>}
             </div>
             <div className="sb-center">
@@ -109,7 +114,10 @@ export default function Veto({ match, onNewMatch }) {
             </div>
             <div className={`sb-team team-b ${step?.team === 'B' ? 'active' : ''}`}>
               <span className="mono-label">TIME B</span>
-              <span className="sb-name">{teams.B}</span>
+              <span className="sb-id">
+                <span className="sb-name">{teams.B}</span>
+                <TeamLogo url={logos.B} name={teams.B} team="B" size={44} />
+              </span>
               {step?.team === 'B' && <span className="sb-turn">NA VEZ</span>}
             </div>
           </div>
@@ -132,7 +140,7 @@ export default function Veto({ match, onNewMatch }) {
           </li>
         </ol>
 
-        {done && <Summary teams={teams} format={format} picks={picks} decider={decider} />}
+        {done && <Summary teams={teams} logos={logos} format={format} picks={picks} decider={decider} />}
 
         {!done && (
           <div className={`turn turn-${step.team}`}>

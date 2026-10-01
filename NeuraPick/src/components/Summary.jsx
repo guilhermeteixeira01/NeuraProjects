@@ -2,8 +2,12 @@ import { useState } from 'react'
 import { getMap, mapIcon, mapImage, serverMap } from '../data/maps.js'
 import { FORMATS, SIDE_LABEL, other } from '../data/veto.js'
 import { IconCopy } from './Icons.jsx'
+import TeamLogo from './TeamLogo.jsx'
 
-export default function Summary({ teams, format, picks, decider }) {
+// Tamanho máximo seguro de uma linha colada no console do CS2
+const LIMITE_CONSOLE = 500
+
+export default function Summary({ teams, logos, format, picks, decider }) {
   // Qual botão de copiar mostra "Copiado!" agora
   const [copied, setCopied] = useState(null)
 
@@ -32,27 +36,33 @@ export default function Summary({ teams, format, picks, decider }) {
   // ";" e aspas saem do nome do time porque quebrariam o comando no console.
   // Acentos viram \uXXXX: o console do CS2 descarta caracteres fora do ASCII ("café" chegava "caf"),
   // e o plugin decodifica de volta ao ler o JSON.
-  const copy = async () => {
-    const clean = (name) => name.replace(/[;"\\]/g, '').trim()
-    const config = {
-      formato: FORMATS[format].label,
-      timeA: clean(teams.A),
-      timeB: clean(teams.B),
-      mapas: [
-        ...picks.map((p) => ({
-          mapa: serverMap(p.map),
-          faca: false,
-          ct: p.side === 'ct' ? p.sideBy : other(p.sideBy),
-        })),
-        { mapa: serverMap(decider), faca: true },
-      ],
-    }
-    const json = JSON.stringify(config).replace(
-      /[^\x00-\x7f]/g,
-      (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`,
-    )
-    copyText('serie', `css_serie ${json}`)
+  const clean = (name) => name.replace(/[;"\\]/g, '').trim()
+  const config = {
+    formato: FORMATS[format].label,
+    timeA: clean(teams.A),
+    timeB: clean(teams.B),
+    mapas: [
+      ...picks.map((p) => ({
+        mapa: serverMap(p.map),
+        faca: false,
+        ct: p.side === 'ct' ? p.sideBy : other(p.sideBy),
+      })),
+      { mapa: serverMap(decider), faca: true },
+    ],
   }
+  const json = JSON.stringify(config).replace(
+    /[^\x00-\x7f]/g,
+    (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`,
+  )
+  const serie = `css_serie ${json}`
+
+  // Logos vão num comando à parte (css_serie_logo): o console do CS2 corta linhas muito grandes.
+  // Cabendo, vão na mesma linha separados por ";"; senão, ficam no botão "Copiar logos".
+  const comandosLogo = ['A', 'B'].filter((t) => logos?.[t]).map((t) => `css_serie_logo ${t} ${logos[t]}`)
+  const tudo = [serie, ...comandosLogo].join('; ')
+  const logosSeparados = comandosLogo.length > 0 && tudo.length > LIMITE_CONSOLE
+  const copy = () => copyText('serie', logosSeparados ? serie : tudo)
+  const copyLogos = () => copyText('logos', comandosLogo.join('; '))
 
   // Lado de cada time no primeiro mapa (no decider, quem decide é o round faca)
   const first = picks[0]
@@ -80,6 +90,14 @@ export default function Summary({ teams, format, picks, decider }) {
             <IconCopy /> {copied === 'serie' ? 'Copiado!' : 'Copiar resultado'}
           </button>
         </div>
+        {logosSeparados && (
+          <div className="logos-aviso">
+            <span>Os links dos logos são grandes: cole o resultado no console e depois os logos.</span>
+            <button className="btn btn-ghost btn-sm" onClick={copyLogos} title="Copia os comandos css_serie_logo">
+              <IconCopy /> {copied === 'logos' ? 'Copiado!' : 'Copiar logos'}
+            </button>
+          </div>
+        )}
 
         <div className="summary-list">
           {games.map((g, i) => (
@@ -113,9 +131,12 @@ export default function Summary({ teams, format, picks, decider }) {
           <div className="join-grid">
             {['A', 'B'].map((t) => (
               <div key={t} className={`join-card team-${t}`}>
-                <div className="join-card-head">
-                  <b className={`join-team t-${t}`}>{teams[t]}</b>
-                  <span className="join-side">{firstSide(t)}</span>
+                <div className="join-card-head join-card-head-logo">
+                  <TeamLogo url={logos?.[t]} name={teams[t]} team={t} size={38} />
+                  <span className="join-card-txt">
+                    <b className={`join-team t-${t}`}>{teams[t]}</b>
+                    <span className="join-side">{firstSide(t)}</span>
+                  </span>
                 </div>
                 <ol className="join-steps">
                   <li>
