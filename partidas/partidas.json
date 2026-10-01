@@ -1,5 +1,24 @@
 [
   {
+    "nome": "2026-10-01_13-30_de_nuke_Pain-x-Homen-Aranha",
+    "data": "2026-10-01 13:30",
+    "mapa": "de_nuke",
+    "timeA": "Pain",
+    "timeB": "Homen Aranha",
+    "placarA": 4,
+    "placarB": 1,
+    "serie": "MD3 · mapa 3/3",
+    "caminho": "dga/md3/2026-10-01_13-30_de_nuke_Pain-x-Homen-Aranha",
+    "categoria": "md3",
+    "serieId": "2026-10-01_13-22_Pain-x-Homen-Aranha",
+    "serieTimeA": "Pain",
+    "serieTimeB": "Homen Aranha",
+    "serieVitoriasA": 2,
+    "serieVitoriasB": 0,
+    "logoA": null,
+    "logoB": null
+  },
+  {
     "nome": "2026-10-01_13-26_de_dust2_Pain-x-Homen-Aranha",
     "data": "2026-10-01 13:26",
     "mapa": "de_dust2",
