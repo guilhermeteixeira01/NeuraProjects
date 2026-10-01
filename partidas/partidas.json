@@ -1,5 +1,22 @@
 [
   {
+    "nome": "2026-10-01_13-01_de_mirage",
+    "data": "2026-10-01 13:01",
+    "mapa": "de_mirage",
+    "timeA": "Time A",
+    "timeB": "Time B",
+    "placarA": 2,
+    "placarB": 0,
+    "serie": null,
+    "caminho": "dga/normal/2026-10-01_13-01_de_mirage",
+    "categoria": "normal",
+    "serieId": null,
+    "serieTimeA": null,
+    "serieTimeB": null,
+    "serieVitoriasA": 0,
+    "serieVitoriasB": 0
+  },
+  {
     "nome": "2026-10-01_00-57_de_dust2",
     "data": "2026-10-01 00:57",
     "mapa": "de_dust2",
@@ -7,6 +24,13 @@
     "timeB": "Time B",
     "placarA": 4,
     "placarB": 1,
-    "serie": null
+    "serie": null,
+    "caminho": "",
+    "categoria": "normal",
+    "serieId": null,
+    "serieTimeA": null,
+    "serieTimeB": null,
+    "serieVitoriasA": 0,
+    "serieVitoriasB": 0
   }
 ]
