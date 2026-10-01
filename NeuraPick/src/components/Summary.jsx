@@ -3,13 +3,15 @@ import { getMap, mapIcon, mapImage, serverMap } from '../data/maps.js'
 import { FORMATS, SIDE_LABEL, other } from '../data/veto.js'
 import { IconCopy } from './Icons.jsx'
 import TeamLogo from './TeamLogo.jsx'
+import { acharTime, useTimes } from '../data/times.js'
 
-// Tamanho máximo seguro de uma linha colada no console do CS2
-const LIMITE_CONSOLE = 500
+// O console do CS2 corta a linha colada em ~254 caracteres
+const LIMITE_CONSOLE = 250
 
 export default function Summary({ teams, logos, format, picks, decider }) {
   // Qual botão de copiar mostra "Copiado!" agora
   const [copied, setCopied] = useState(null)
+  const times = useTimes()
 
   const copyText = async (key, text) => {
     try {
@@ -56,19 +58,27 @@ export default function Summary({ teams, logos, format, picks, decider }) {
   )
   const serie = `css_serie ${json}`
 
-  // Logos vão num comando à parte (css_serie_logo): o console do CS2 corta linhas muito grandes.
-  // Cabendo, vão na mesma linha separados por ";"; senão, ficam no botão "Copiar logos".
-  // O link vai em base64 ("b64:..."): no console do CS2 "//" começa um comentário e cortaria a URL
+  // Logo de time que está na lista de times do site o servidor busca sozinho pelo nome (não passa pelo console).
+  // Só logo colado na mão vai por comando (css_serie_logo, link em base64 porque "//" é comentário no console).
+  // O console corta a linha em ~254 caracteres: o que não couber na linha do resultado vira um botão a mais.
   const b64 = (texto) =>
     btoa(String.fromCharCode(...new TextEncoder().encode(texto)))
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
       .replace(/=+$/, '')
-  const comandosLogo = ['A', 'B'].filter((t) => logos?.[t]).map((t) => `css_serie_logo ${t} b64:${b64(logos[t])}`)
-  const tudo = [serie, ...comandosLogo].join('; ')
-  const logosSeparados = comandosLogo.length > 0 && tudo.length > LIMITE_CONSOLE
-  const copy = () => copyText('serie', logosSeparados ? serie : tudo)
-  const copyLogos = () => copyText('logos', comandosLogo.join('; '))
+  const daLista = (t) => !!logos?.[t] && acharTime(times, teams[t])?.logo === logos[t]
+  const logosDaLista = ['A', 'B'].filter(daLista)
+  const comandosLogo = ['A', 'B']
+    .filter((t) => logos?.[t] && !daLista(t))
+    .map((t) => ({ t, cmd: `css_serie_logo ${t} b64:${b64(logos[t])}` }))
+  const grandes = comandosLogo.filter((c) => c.cmd.length > LIMITE_CONSOLE).map((c) => teams[c.t])
+  const linhas = [serie]
+  for (const { cmd } of comandosLogo.filter((c) => c.cmd.length <= LIMITE_CONSOLE)) {
+    const juntando = `${linhas[linhas.length - 1]}; ${cmd}`
+    if (juntando.length <= LIMITE_CONSOLE) linhas[linhas.length - 1] = juntando
+    else linhas.push(cmd)
+  }
+  const copy = () => copyText('serie', linhas[0])
 
   // Lado de cada time no primeiro mapa (no decider, quem decide é o round faca)
   const first = picks[0]
@@ -96,13 +106,27 @@ export default function Summary({ teams, logos, format, picks, decider }) {
             <IconCopy /> {copied === 'serie' ? 'Copiado!' : 'Copiar resultado'}
           </button>
         </div>
-        {logosSeparados && (
-          <div className="logos-aviso">
-            <span>Os links dos logos são grandes: cole o resultado no console e depois os logos.</span>
-            <button className="btn btn-ghost btn-sm" onClick={copyLogos} title="Copia os comandos css_serie_logo">
-              <IconCopy /> {copied === 'logos' ? 'Copiado!' : 'Copiar logos'}
+        {linhas.slice(1).map((linha, i) => (
+          <div key={i} className="logos-aviso">
+            <span>O console do CS2 corta linhas grandes: depois do resultado, cole também esta linha (logo).</span>
+            <button className="btn btn-ghost btn-sm" onClick={() => copyText(`linha-${i}`, linha)} title="Copia o comando css_serie_logo">
+              <IconCopy /> {copied === `linha-${i}` ? 'Copiado!' : 'Copiar logo'}
             </button>
           </div>
+        ))}
+        {grandes.length > 0 && (
+          <div className="logos-aviso">
+            <span>
+              O link do logo de <b>{grandes.join(' e ')}</b> é grande demais para o console. Cadastre o time na{' '}
+              <a href="/times/">lista de times</a> que o servidor pega o logo sozinho.
+            </span>
+          </div>
+        )}
+        {logosDaLista.length > 0 && (
+          <p className="hint logos-lista">
+            Logo de <b>{logosDaLista.map((t) => teams[t]).join(' e ')}</b> vem da lista de times: o servidor carrega
+            sozinho ao colar o resultado.
+          </p>
         )}
 
         <div className="summary-list">
