@@ -1,5 +1,24 @@
 [
   {
+    "nome": "2026-10-01_20-55_de_ancient_Neura-Project-x-Digital-Gamers",
+    "data": "2026-10-01 20:55",
+    "mapa": "de_ancient",
+    "timeA": "Neura Project",
+    "timeB": "Digital Gamers",
+    "placarA": 0,
+    "placarB": 2,
+    "serie": "MD3 · mapa 1/3",
+    "caminho": "dga/md3/2026-10-01_20-55_de_ancient_Neura-Project-x-Digital-Gamers",
+    "categoria": "md3",
+    "serieId": "2026-10-01_20-54_Neura-Project-x-Digital-Gamers",
+    "serieTimeA": "Neura Project",
+    "serieTimeB": "Digital Gamers",
+    "serieVitoriasA": 0,
+    "serieVitoriasB": 1,
+    "logoA": "https://i.imgur.com/0lhPoBJ.png",
+    "logoB": "https://i.imgur.com/EgmqWQi.jpg"
+  },
+  {
     "nome": "2026-10-01_13-30_de_nuke_Pain-x-Homen-Aranha",
     "data": "2026-10-01 13:30",
     "mapa": "de_nuke",
