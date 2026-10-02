@@ -1733,7 +1733,6 @@ b.decider {
     overflow-x: auto;
     scroll-snap-type: x proximity;
     padding-bottom: 6px;
-    scrollbar-width: thin;
   }
   .step {
     flex: 0 0 82px;
@@ -1980,7 +1979,6 @@ b.decider {
   background: linear-gradient(180deg, #181a20, var(--panel));
   box-shadow: 0 22px 44px -16px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(0, 0, 0, 0.4);
   animation: sugAbrir 0.16s ease;
-  scrollbar-width: thin;
 }
 .sugestoes.team-A {
   border-top: 2px solid var(--team-a);
@@ -2052,4 +2050,59 @@ b.decider {
 }
 .field.mesmo-time .da-lista {
   display: none;
+}
+
+/* ── Barra de rolagem (mesmo visual do site inteiro) ──
+ * Igual ao CSS compartilhado do site, repetido aqui para o NeuraPick ficar certo mesmo
+ * se for aberto sem ele. Não use scrollbar-width/scrollbar-color em nenhum elemento:
+ * no Chrome eles desligam o ::-webkit-scrollbar e a barra volta a ficar cinza. */
+@supports selector(::-webkit-scrollbar) {
+  *,
+  *::before,
+  *::after {
+    scrollbar-width: auto !important;
+    scrollbar-color: auto !important;
+  }
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-soft);
+}
+::-webkit-scrollbar-thumb {
+  border: 2px solid var(--bg-soft);
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--blue), var(--blue-2) 45%, var(--green));
+}
+::-webkit-scrollbar-thumb:horizontal {
+  background: linear-gradient(90deg, var(--blue), var(--blue-2) 45%, var(--green));
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--blue-2), var(--green));
+}
+::-webkit-scrollbar-thumb:horizontal:hover {
+  background: linear-gradient(90deg, var(--blue-2), var(--green));
+}
+::-webkit-scrollbar-corner {
+  background: var(--bg-soft);
+}
+/* Rolagens internas (lista de times, etapas do veto): um pouco mais fina */
+body *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+body *::-webkit-scrollbar-track {
+  background: transparent;
+}
+body *::-webkit-scrollbar-thumb {
+  border-width: 2px;
+  border-color: transparent;
+  background-clip: padding-box;
+}
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-color: var(--blue-2) var(--bg-soft);
+  }
 }
