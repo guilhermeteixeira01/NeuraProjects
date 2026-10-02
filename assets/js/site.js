@@ -42,6 +42,7 @@
     { id: 'launcher', rotulo: 'Launcher', href: '/launcher/', selo: CONFIG.launcherAtivo ? '' : 'EM BREVE' },
     { id: 'pick', rotulo: 'Pick & Ban', href: '/neurapick/' },
     { id: 'partidas', rotulo: 'Partidas', href: '/partidas/' },
+    { id: 'ranking', rotulo: 'Ranking', href: '/ranking/' },
   ];
 
   function paginaAtual() {
@@ -49,6 +50,7 @@
     if (/^\/launcher/.test(p)) return 'launcher';
     if (/^\/neurapick/.test(p)) return 'pick';
     if (/\/partidas(\/|$)/.test(p)) return 'partidas';
+    if (/^\/ranking/.test(p)) return 'ranking';
     if (p === '/' || p === '/index.html') return 'inicio';
     return '';
   }

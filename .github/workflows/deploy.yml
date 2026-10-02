@@ -36,7 +36,7 @@ jobs:
         run: |
           mkdir _site
           cp index.html admin.html CNAME _site/
-          cp -r launcher times _site/
+          cp -r launcher times ranking _site/
           cp -r assets _site/
           cp -r NeuraPick/dist _site/neurapick
           # Estatísticas das partidas enviadas pelo plugin BaseComp do servidor de CS2
@@ -54,6 +54,10 @@ jobs:
             fs.writeFileSync(arquivo, JSON.stringify(existe, null, 2));
             console.log(`Partidas no histórico: ${existe.length} (removidas: ${lista.length - existe.length})`);
           '
+
+      # Top 15: soma as estatísticas de todas as partidas (cada partida enviada pelo plugin dispara este deploy)
+      - name: Gerar ranking dos jogadores
+        run: node .github/scripts/ranking.js _site/partidas _site/ranking/ranking.json
 
       - uses: actions/upload-pages-artifact@v3
         with:
