@@ -55,6 +55,14 @@ jobs:
             console.log(`Partidas no histórico: ${existe.length} (removidas: ${lista.length - existe.length})`);
           '
 
+      # CSS/JS do site com a versão do commit em TODAS as páginas (inclusive as de partida, geradas pelo plugin):
+      # o navegador guarda esses arquivos por horas, e sem isso o menu novo demora a aparecer
+      - name: Versionar CSS e JS do site
+        run: |
+          v="${GITHUB_SHA::8}"
+          find _site -name '*.html' -exec sed -i -E \
+            "s#(/assets/(js|css)/[a-z]+\.(js|css))(\?v=[^\"']*)?([\"'])#\1?v=$v\5#g" {} +
+
       # Top 15: soma as estatísticas de todas as partidas (cada partida enviada pelo plugin dispara este deploy)
       - name: Gerar ranking dos jogadores
         run: node .github/scripts/ranking.js _site/partidas _site/ranking/ranking.json
