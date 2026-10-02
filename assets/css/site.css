@@ -335,3 +335,37 @@
     animation: none;
   }
 }
+
+/* ── Barra de rolagem do site inteiro: trilho escuro e alça em gradiente (azul → verde, as cores da marca) ──
+ * Chrome/Edge/Safari: ::-webkit-scrollbar (aceita gradiente). Não usar scrollbar-color/scrollbar-width
+ * fora do @supports abaixo: no Chrome eles desligam o ::-webkit-scrollbar e o gradiente some.
+ * Firefox não aceita gradiente: fica a cor sólida azul. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-soft);
+}
+::-webkit-scrollbar-thumb {
+  border: 2px solid var(--bg-soft);
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--blue), var(--blue-2) 45%, var(--green));
+}
+::-webkit-scrollbar-thumb:horizontal {
+  background: linear-gradient(90deg, var(--blue), var(--blue-2) 45%, var(--green));
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--blue-2), var(--green));
+}
+::-webkit-scrollbar-thumb:horizontal:hover {
+  background: linear-gradient(90deg, var(--blue-2), var(--green));
+}
+::-webkit-scrollbar-corner {
+  background: var(--bg-soft);
+}
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-color: var(--blue-2) var(--bg-soft);
+  }
+}
