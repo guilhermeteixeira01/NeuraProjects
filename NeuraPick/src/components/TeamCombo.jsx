@@ -1,9 +1,8 @@
-import { useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import TeamLogo from './TeamLogo.jsx'
 
 // Campo do nome do time com as sugestões da lista do site (/times/), no visual do NeuraPick
 // (no lugar do <datalist> do navegador, que não dá para estilizar).
-const MAX_SUGESTOES = 8
 
 // Destaca o trecho digitado dentro do nome
 function Destaque({ texto, busca }) {
@@ -24,11 +23,17 @@ export default function TeamCombo({ value, onChange, times, team, placeholder, e
   const [ativo, setAtivo] = useState(0)
   const idLista = useId()
   const fechar = useRef(null)
+  const lista = useRef(null)
 
-  const busca = value.trim()
+  const digitado = value.trim()
   const outro = excluir.trim().toLowerCase()
-  const sugestoes = times
-    .filter((t) => t.nome.trim().toLowerCase() !== outro)
+  const disponiveis = times.filter((t) => t.nome.trim().toLowerCase() !== outro)
+
+  // Se o campo já tem um time da lista escolhido, abre a lista inteira (não só ele)
+  const escolhido = disponiveis.find((t) => t.nome.trim().toLowerCase() === digitado.toLowerCase())
+  const busca = escolhido ? '' : digitado
+
+  const sugestoes = disponiveis
     .filter((t) => !busca || t.nome.toLowerCase().includes(busca.toLowerCase()))
     // Começa com o que foi digitado primeiro
     .sort((a, b) => {
@@ -36,19 +41,32 @@ export default function TeamCombo({ value, onChange, times, team, placeholder, e
       const pb = b.nome.toLowerCase().startsWith(busca.toLowerCase()) ? 0 : 1
       return pa - pb || a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' })
     })
-    .slice(0, MAX_SUGESTOES)
-  // Não mostra a lista quando o nome já é exatamente o único time encontrado
-  const exato = sugestoes.length === 1 && sugestoes[0].nome.toLowerCase() === busca.toLowerCase()
-  const mostrar = aberto && sugestoes.length > 0 && !exato
+  const mostrar = aberto && sugestoes.length > 0
+
+  // Mantém o item ativo visível na rolagem (teclado ou lista aberta no time escolhido)
+  useEffect(() => {
+    if (!mostrar || !lista.current) return
+    const el = lista.current.querySelector('.sug.ativo')
+    if (el) el.scrollIntoView({ block: 'nearest' })
+  }, [ativo, mostrar])
 
   const escolher = (nome) => {
     onChange(nome)
     setAberto(false)
   }
 
+  const abrir = () => {
+    const i = escolhido ? sugestoes.findIndex((t) => t.nome === escolhido.nome) : 0
+    setAtivo(Math.max(i, 0))
+    setAberto(true)
+  }
+
   const teclado = (e) => {
     if (!mostrar) {
-      if (e.key === 'ArrowDown' && sugestoes.length) setAberto(true)
+      if (e.key === 'ArrowDown' && sugestoes.length) {
+        e.preventDefault()
+        abrir()
+      }
       return
     }
     if (e.key === 'ArrowDown') {
@@ -77,7 +95,10 @@ export default function TeamCombo({ value, onChange, times, team, placeholder, e
         }}
         onFocus={() => {
           clearTimeout(fechar.current)
-          setAberto(true)
+          abrir()
+        }}
+        onClick={() => {
+          if (!aberto) abrir()
         }}
         onBlur={() => {
           fechar.current = setTimeout(() => setAberto(false), 120)
@@ -92,7 +113,7 @@ export default function TeamCombo({ value, onChange, times, team, placeholder, e
         aria-autocomplete="list"
       />
       {mostrar && (
-        <ul className={`sugestoes team-${team}`} id={idLista} role="listbox">
+        <ul ref={lista} className={`sugestoes team-${team}`} id={idLista} role="listbox">
           <li className="sugestoes-head" aria-hidden="true">
             LISTA DE TIMES
           </li>
