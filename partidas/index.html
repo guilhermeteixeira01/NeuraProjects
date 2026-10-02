@@ -467,7 +467,8 @@ fetch("partidas.json", { cache: "no-store" })
     const botoes = document.querySelectorAll("#filtros button");
     botoes.forEach((b) => {
       const cat = b.dataset.cat;
-      const n = cat === "todas" ? lista.length : lista.filter((p) => categoria(p) === cat).length;
+      // Conta blocos (série = 1, mesmo com vários mapas), não mapas
+      const n = blocos(cat === "todas" ? lista : lista.filter((p) => categoria(p) === cat)).length;
       b.querySelector("i").textContent = n;
       b.addEventListener("click", () => {
         botoes.forEach((x) => x.classList.toggle("active", x === b));
