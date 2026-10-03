@@ -24,48 +24,20 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: NeuraPick/package-lock.json
+          cache-dependency-path: site/package-lock.json
 
-      - name: Build NeuraPick
-        working-directory: NeuraPick
+      # Site inteiro em React (site/): páginas + versão para gerar o HTML no servidor
+      - name: Build do site
+        working-directory: site
         run: |
           npm ci
           npm run build
 
+      # Junta o build com os dados do repositório (partidas enviadas pelo plugin BaseComp e lista de times),
+      # gera o ranking, a página de cada partida e o HTML de todas as páginas já com conteúdo.
+      # Cada partida que o plugin envia é um commit, então dispara este deploy.
       - name: Montar site
-        run: |
-          mkdir _site
-          cp index.html admin.html CNAME _site/
-          cp -r launcher times ranking _site/
-          cp -r assets _site/
-          cp -r NeuraPick/dist _site/neurapick
-          # Estatísticas das partidas enviadas pelo plugin BaseComp do servidor de CS2
-          if [ -d partidas ]; then cp -r partidas _site/; fi
-
-      # Partida cuja pasta foi apagada sai do histórico (senão o card leva a uma página que não existe)
-      - name: Limpar histórico de partidas
-        run: |
-          node -e '
-            const fs = require("fs");
-            const arquivo = "_site/partidas/partidas.json";
-            if (!fs.existsSync(arquivo)) process.exit(0);
-            const lista = JSON.parse(fs.readFileSync(arquivo, "utf8"));
-            const existe = lista.filter((p) => fs.existsSync(`_site/partidas/${p.caminho || p.nome}/index.html`));
-            fs.writeFileSync(arquivo, JSON.stringify(existe, null, 2));
-            console.log(`Partidas no histórico: ${existe.length} (removidas: ${lista.length - existe.length})`);
-          '
-
-      # CSS/JS do site com a versão do commit em TODAS as páginas (inclusive as de partida, geradas pelo plugin):
-      # o navegador guarda esses arquivos por horas, e sem isso o menu novo demora a aparecer
-      - name: Versionar CSS e JS do site
-        run: |
-          v="${GITHUB_SHA::8}"
-          find _site -name '*.html' -exec sed -i -E \
-            "s#(/assets/(js|css)/[a-z]+\.(js|css))(\?v=[^\"']*)?([\"'])#\1?v=$v\5#g" {} +
-
-      # Top 15: soma as estatísticas de todas as partidas (cada partida enviada pelo plugin dispara este deploy)
-      - name: Gerar ranking dos jogadores
-        run: node .github/scripts/ranking.js _site/partidas _site/ranking/ranking.json
+        run: node site/scripts/gerar-site.mjs --dados . --saida _site
 
       - uses: actions/upload-pages-artifact@v3
         with:
