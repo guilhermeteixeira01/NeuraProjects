@@ -187,7 +187,7 @@ export default function Partidas({ dados: inicial }) {
   const [lista, setLista] = useState(Array.isArray(inicial) ? inicial : null)
   const [filtro, setFiltro] = useState('todas')
 
-  // Ao vivo: partida nova (ou mapa novo de uma série) entra na lista sem recarregar a página
+  // Ao vivo: partida nova (ou mapa novo de uma série) recarrega a página sozinha
   useAoVivo('/partidas/partidas.json', (l) => setLista(Array.isArray(l) ? l : []))
 
   // Filtro do link (#dga) depois que a lista chega
