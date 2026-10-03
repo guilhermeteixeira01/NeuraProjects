@@ -357,4 +357,5 @@ animation:brilho 1.3s ease-in-out infinite}
 
 /* "A JOGAR" (série em andamento) com animação de carregamento */
 .partida.pendente.aguardando{opacity:.6}
-.partida.pendente .placar-linha .carregando-pontos{margin-right:12px}
+/* Os pontinhos são um <span>: sem isto pegam o corte dos nomes (.placar-linha span) e o pulo some */
+.partida.pendente .placar-linha .carregando-pontos{margin-right:12px;overflow:visible;opacity:1;flex:none;min-width:auto;padding:4px 0}

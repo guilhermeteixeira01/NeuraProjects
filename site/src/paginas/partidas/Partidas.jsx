@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import CarregandoPontos from '../../comum/Carregando.jsx'
 import Layout from '../../comum/Layout.jsx'
-import { lerJson, urlOk } from '../../comum/dados.js'
+import { useAoVivo } from '../../comum/aoVivo.js'
+import { urlOk } from '../../comum/dados.js'
 import { fundoMapa, getMap, idMapa, mapIcon } from '../../comum/mapas.js'
 
 const NOMES_CAT = { md1: 'MD1', md3: 'MD3', md5: 'MD5', normal: 'Normais' }
@@ -186,9 +187,8 @@ export default function Partidas({ dados: inicial }) {
   const [lista, setLista] = useState(Array.isArray(inicial) ? inicial : null)
   const [filtro, setFiltro] = useState('todas')
 
-  useEffect(() => {
-    if (!inicial) lerJson('/partidas/partidas.json').then((l) => setLista(Array.isArray(l) ? l : []))
-  }, [inicial])
+  // Ao vivo: partida nova (ou mapa novo de uma série) entra na lista sem recarregar a página
+  useAoVivo('/partidas/partidas.json', (l) => setLista(Array.isArray(l) ? l : []))
 
   // Filtro do link (#dga) depois que a lista chega
   useEffect(() => {
