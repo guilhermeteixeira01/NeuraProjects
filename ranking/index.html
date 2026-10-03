@@ -82,6 +82,39 @@
   .time-linha { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--dim); font-weight: 600; max-width: 100%; min-width: 0; }
   .time-linha span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .time-linha img { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; max-width: none; flex-shrink: 0; border: 1px solid var(--border-2); }
+  /* ── CS Rating do Premier (cores das faixas do jogo) ── */
+  .premier {
+    --pc: #b0c3d9; position: relative; display: inline-flex; align-self: center; align-items: baseline; overflow: hidden;
+    padding: 3px 12px 3px 20px; transform: skewX(-14deg); border-radius: 3px; color: var(--pc);
+    background: linear-gradient(90deg, color-mix(in srgb, var(--pc) 34%, #0b0c0f), color-mix(in srgb, var(--pc) 10%, #0b0c0f));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pc) 55%, transparent), 0 0 18px -6px var(--pc);
+    font-family: var(--font-display); font-weight: 700; line-height: 1; white-space: nowrap;
+  }
+  /* Faixinhas na esquerda, como no badge do jogo */
+  .premier::before {
+    content: ""; position: absolute; left: 4px; top: 0; bottom: 0; width: 10px;
+    background: repeating-linear-gradient(90deg, var(--pc) 0 2px, transparent 2px 4px); opacity: .85;
+  }
+  /* Brilho passando */
+  .premier::after {
+    content: ""; position: absolute; inset: 0; width: 40%; left: -60%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+    animation: premier-brilho 3.2s ease-in-out infinite; animation-delay: var(--pd, 0s);
+  }
+  .premier b, .premier small { display: inline-block; transform: skewX(14deg); }
+  .premier b { font-size: 17px; }
+  .premier small { font-size: 12px; opacity: .85; }
+  .pod .premier { margin-top: 2px; } .pod .premier b { font-size: 20px; } .pod .premier small { font-size: 14px; }
+  .premier.sem { --pc: #5d6470; box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+  .premier.sem::after { content: none; }
+  .premier.sem small { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.2px; }
+  .premier.t1 { --pc: #b0c3d9; } .premier.t2 { --pc: #8cc6ff; } .premier.t3 { --pc: #6a7dff; }
+  .premier.t4 { --pc: #c166ff; } .premier.t5 { --pc: #f03cff; } .premier.t6 { --pc: #eb4b4b; } .premier.t7 { --pc: #ffd700; }
+  @keyframes premier-brilho { 0%, 55% { left: -60%; } 100% { left: 130%; } }
+  @keyframes premier-pop { from { opacity: 0; transform: skewX(-14deg) scale(.5); } }
+  .anim .premier { animation: premier-pop .5s cubic-bezier(.34,1.56,.64,1) both; animation-delay: calc(var(--i, 0) * 45ms + .35s); }
+  @media (prefers-reduced-motion: reduce) { .premier::after { content: none; } }
+
   .pod-valor { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 4px; }
   .pod-valor b { font-family: var(--font-display); font-size: 44px; font-weight: 700; line-height: 1; color: var(--c); text-shadow: 0 0 26px color-mix(in srgb, var(--c) 45%, transparent); }
   .p1 .pod-valor b { font-size: 54px; }
@@ -116,6 +149,7 @@
   .jog .av { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; max-width: none; flex-shrink: 0; border: 1px solid var(--border-2); background: var(--panel-2); }
   .jog .av.ini { font-size: 14px; display: grid; place-items: center; }
   .jog-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .jog-txt .premier { align-self: flex-start; margin: 3px 0 0 4px; }
   .jog-txt a { font-weight: 700; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .jog-txt a:hover { color: var(--blue-2); }
   .barra-val { display: flex; align-items: center; gap: 10px; }
@@ -243,9 +277,37 @@ function avatar(j, classe) {
     : fb;
 }
 
-const timeLinha = (j) => j.time
-  ? `<span class="time-linha">${urlOk(j.logoTime) ? `<img src="${esc(j.logoTime)}" alt="" onerror="this.remove()">` : ""}<span>${esc(j.time)}</span></span>`
-  : "";
+// CS Rating do Premier (vem da Leetify no deploy; null = jogador sem conta na Leetify)
+const faixaPremier = (v) => (v >= 30000 ? 7 : v >= 25000 ? 6 : v >= 20000 ? 5 : v >= 15000 ? 4 : v >= 10000 ? 3 : v >= 5000 ? 2 : 1);
+// Igual ao jogo: milhares grandes e o resto pequeno (23,524)
+const partesPremier = (v) => (v < 1000 ? [String(v), ""] : [String(Math.floor(v / 1000)), "," + String(v % 1000).padStart(3, "0")]);
+const premier = (j) => {
+  if (!(j.premier > 0)) return `<span class="premier sem" title="Sem CS Rating do Premier (precisa de conta na leetify.gg)"><small>SEM PREMIER</small></span>`;
+  const [mil, resto] = partesPremier(j.premier);
+  return `<span class="premier t${faixaPremier(j.premier)}" data-premier="${j.premier}" style="--pd:${(Math.random() * 2).toFixed(2)}s" ` +
+    `title="CS Rating do Premier: ${j.premier.toLocaleString("pt-BR")}"><b>${mil}</b><small>${resto}</small></span>`;
+};
+
+// Contagem animada de 0 até o rating (mantém a cor da faixa certa enquanto sobe)
+function animarPremier(raiz) {
+  const els = [...raiz.querySelectorAll(".premier[data-premier]")];
+  const escrever = (el, v) => {
+    const [mil, resto] = partesPremier(v);
+    el.firstChild.textContent = mil;
+    el.lastChild.textContent = resto;
+    el.className = `premier t${faixaPremier(v)}`;
+  };
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const inicio = performance.now() + 350, duracao = 1400;
+  els.forEach((el) => escrever(el, 0));
+  const passo = (agora) => {
+    const t = Math.min(1, Math.max(0, (agora - inicio) / duracao));
+    const e = 1 - Math.pow(1 - t, 3); // desacelera no fim
+    els.forEach((el) => escrever(el, Math.round(Number(el.dataset.premier) * e)));
+    if (t < 1) requestAnimationFrame(passo);
+  };
+  requestAnimationFrame(passo);
+}
 
 const forma = (j) => `<span class="forma">${(j.ultimos || []).map((u) =>
   `<a class="${u.venceu ? "v" : "d"}" href="/partidas/${String(u.caminho).split("/").map(encodeURIComponent).join("/")}/" ` +
@@ -256,7 +318,7 @@ function podio(j, pos, m) {
   return `<div class="pod p${pos}" data-pos="${pos}">` +
     (pos === 1 ? `<svg class="coroa" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 12H5L3 7z"/></svg>` : "") +
     `<a class="pod-av" href="${perfil(j)}" target="_blank" rel="noopener">${avatar(j, "")}<span class="pod-pos">#${pos}</span></a>` +
-    `<a class="pod-nome" href="${perfil(j)}" target="_blank" rel="noopener">${esc(j.nome)}</a>${timeLinha(j)}` +
+    `<a class="pod-nome" href="${perfil(j)}" target="_blank" rel="noopener">${esc(j.nome)}</a>${premier(j)}` +
     `<span class="pod-valor"><b>${fmt(j[chave], casas)}${suf}</b><span class="mono">${rotulo}</span></span>` +
     `<div class="pod-mini">` +
       `<div><b>${chave === "rating" ? fmt(j.kd, 2) : fmt(j.rating, 2)}</b><span>${chave === "rating" ? "K/D" : "RATING"}</span></div>` +
@@ -271,7 +333,7 @@ function linha(j, pos, m, max, i) {
   const w = max > 0 ? Math.max(3, (j[chave] / max) * 100) : 0;
   return `<div class="linha" style="--i:${i}">` +
     `<span class="pos-n">${pos}</span>` +
-    `<span class="jog">${avatar(j, "av")}<span class="jog-txt"><a href="${perfil(j)}" target="_blank" rel="noopener">${esc(j.nome)}</a>${timeLinha(j)}</span></span>` +
+    `<span class="jog">${avatar(j, "av")}<span class="jog-txt"><a href="${perfil(j)}" target="_blank" rel="noopener">${esc(j.nome)}</a>${premier(j)}</span></span>` +
     `<span class="barra-val"><b>${fmt(j[chave], casas)}${suf}</b><span class="trilho"><i style="--w:${w.toFixed(1)}%"></i></span></span>` +
     (chave === "rating"
       ? `<span class="num-c c-rt">${j.kills}</span>`
@@ -312,6 +374,7 @@ function render(dados, chave) {
   el.classList.remove("anim");
   void el.offsetWidth; // reinicia a animação ao trocar de métrica
   el.classList.add("anim");
+  animarPremier(el);
 }
 
 function dataBr(iso) {
