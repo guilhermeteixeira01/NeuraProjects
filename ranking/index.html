@@ -84,11 +84,13 @@
   .time-linha img { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; max-width: none; flex-shrink: 0; border: 1px solid var(--border-2); }
   /* ── CS Rating do Premier (cores das faixas do jogo) ── */
   .premier {
-    --pc: #b0c3d9; position: relative; display: inline-flex; align-self: center; align-items: baseline; overflow: hidden;
-    padding: 3px 12px 3px 20px; transform: skewX(-14deg); border-radius: 3px; color: var(--pc);
+    /* Tamanho fixo: com e sem Premier ficam do mesmo tamanho (texto centralizado na linha) */
+    --pc: #b0c3d9; --pw: 92px; --ph: 24px; position: relative; display: inline-block; align-self: center; overflow: hidden;
+    width: var(--pw); height: var(--ph); line-height: var(--ph); padding-left: 12px; text-align: center;
+    transform: skewX(-14deg); border-radius: 3px; color: var(--pc);
     background: linear-gradient(90deg, color-mix(in srgb, var(--pc) 34%, #0b0c0f), color-mix(in srgb, var(--pc) 10%, #0b0c0f));
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pc) 55%, transparent), 0 0 18px -6px var(--pc);
-    font-family: var(--font-display); font-weight: 700; line-height: 1; white-space: nowrap;
+    font-family: var(--font-display); font-weight: 700; white-space: nowrap;
   }
   /* Faixinhas na esquerda, como no badge do jogo */
   .premier::before {
@@ -101,13 +103,13 @@
     background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
     animation: premier-brilho 3.2s ease-in-out infinite; animation-delay: var(--pd, 0s);
   }
-  .premier b, .premier small { display: inline-block; transform: skewX(14deg); }
+  .premier b, .premier small { display: inline-block; line-height: 1; transform: skewX(14deg); }
   .premier b { font-size: 17px; }
   .premier small { font-size: 12px; opacity: .85; }
-  .pod .premier { margin-top: 2px; } .pod .premier b { font-size: 20px; } .pod .premier small { font-size: 14px; }
+  .pod .premier { --pw: 104px; --ph: 28px; margin-top: 2px; } .pod .premier b { font-size: 20px; } .pod .premier small { font-size: 14px; }
   .premier.sem { --pc: #5d6470; box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
   .premier.sem::after { content: none; }
-  .premier.sem small { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.2px; }
+  .premier.sem small { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 1px; opacity: 1; }
   .premier.t1 { --pc: #b0c3d9; } .premier.t2 { --pc: #8cc6ff; } .premier.t3 { --pc: #6a7dff; }
   .premier.t4 { --pc: #c166ff; } .premier.t5 { --pc: #f03cff; } .premier.t6 { --pc: #eb4b4b; } .premier.t7 { --pc: #ffd700; }
   @keyframes premier-brilho { 0%, 55% { left: -60%; } 100% { left: 130%; } }
