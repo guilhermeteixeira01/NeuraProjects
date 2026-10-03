@@ -36,8 +36,20 @@ jobs:
       # Junta o build com os dados do repositório (partidas enviadas pelo plugin BaseComp e lista de times),
       # gera o ranking, a página de cada partida e o HTML de todas as páginas já com conteúdo.
       # Cada partida que o plugin envia é um commit, então dispara este deploy.
+      # Histórico que estava no ar antes deste deploy (para saber quais partidas são novas e avisar por push)
+      - name: Guardar histórico publicado
+        run: curl -fsS "https://neuraproject.com.br/partidas/partidas.json?t=$(date +%s)" -o antes.json || echo "null" > antes.json
+
       - name: Montar site
         run: node site/scripts/gerar-site.mjs --dados . --saida _site
+
+      - name: Preparar avisos de partida
+        run: node site/scripts/notificar.mjs preparar antes.json _site/partidas/partidas.json avisos.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: avisos
+          path: avisos.json
 
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -52,3 +64,21 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # Push das partidas novas pelo OneSignal, depois que o site já está no ar (o link da notificação funciona).
+  # Chave da API em Settings → Secrets and variables → Actions → ONESIGNAL_API_KEY (sem ela, só pula).
+  notificar:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          name: avisos
+      - name: Enviar push
+        env:
+          ONESIGNAL_API_KEY: ${{ secrets.ONESIGNAL_API_KEY }}
+        run: node site/scripts/notificar.mjs enviar avisos.json
