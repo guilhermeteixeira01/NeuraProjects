@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
-import { nomeMapa } from './mapas.js'
+import { descreverPartida } from './novidades.js'
 
-// Avisos de partida: quando um mapa termina no servidor, mostra um card no canto da tela com o resultado e o
-// status da série e, se a pessoa permitiu, uma notificação do navegador (do sistema).
-// O cookie guarda a última partida que a pessoa já viu (1 ano): na primeira visita só grava, sem avisar.
-// A página confere o histórico a cada 30s (também com a aba em segundo plano), então o aviso chega com o site
-// aberto em qualquer aba. Com o navegador fechado não dá: o site não tem servidor para mandar "push".
+// Avisos de partida:
+// - card no canto da tela (com o site aberto): o histórico é conferido a cada 30s; o cookie guarda a última
+//   partida já vista (1 ano), e na primeira visita só grava, sem avisar;
+// - notificação do sistema (push), mesmo com o site fechado: quem permitir fica inscrito no OneSignal, e o
+//   deploy do site manda o push quando entra partida nova (scripts/notificar.mjs + .github/workflows/deploy.yml).
 const COOKIE_PARTIDA = 'np_partida'
 const CHAVE_PERGUNTA = 'np_notif_pergunta' // "nao" = não perguntar mais
 const INTERVALO = 30000
 const DURACAO = 15000
-const ICONE = '/assets/logos/android-chrome-192x192.png'
-const NOMES_CAT = { md1: 'MD1', md3: 'MD3', md5: 'MD5' }
+const ONESIGNAL_APP_ID = 'e2d061b1-3a8e-41fb-9b5c-6e0e8751ab96'
+const SITE = 'neuraproject.com.br' // o app do OneSignal só aceita este endereço
 
 function lerCookie(nome) {
   const m = document.cookie.match(new RegExp('(?:^|; )' + nome + '=([^;]*)'))
@@ -34,65 +34,38 @@ const gravarLocal = (k, v) => {
     /* sem localStorage */
   }
 }
-
 const temNotificacao = () => typeof window !== 'undefined' && 'Notification' in window
-const linkPartida = (p) => `/partidas/${(p.caminho || p.nome).split('/').map(encodeURIComponent).join('/')}/`
 
-// Texto do aviso de uma partida: resultado do mapa + status da série (com o histórico inteiro para contar)
-export function descreverPartida(p, lista) {
-  const org = String(p.caminho || '').split('/')[0].toUpperCase()
-  const resultado = `${p.timeA} ${p.placarA ?? 0} x ${p.placarB ?? 0} ${p.timeB} · ${nomeMapa(p.mapa)}`
-  if (!p.serieId) return { titulo: `${org ? `${org} · ` : ''}Partida encerrada`, texto: resultado, link: linkPartida(p) }
-
-  const daSerie = lista.filter((x) => x.serieId === p.serieId)
-  const vA = daSerie.filter((x) => x.placarA > x.placarB).length
-  const vB = daSerie.filter((x) => x.placarB > x.placarA).length
-  const total = Number((p.categoria || '').match(/^md(\d)$/)?.[1]) || daSerie.length
-  const paraVencer = Math.floor(total / 2) + 1
-  const numero = Number(/mapa (\d+)\//.exec(p.serie || '')?.[1]) || daSerie.length
-  const timeA = p.serieTimeA || p.timeA
-  const timeB = p.serieTimeB || p.timeB
-  let status
-  if (daSerie.some((x) => x.serieCancelada)) status = 'Série CANCELADA'
-  else if (vA >= paraVencer || vB >= paraVencer || daSerie.length >= total)
-    status = `Série FINALIZADA — ${vA > vB ? timeA : vB > vA ? timeB : 'empate'}${vA === vB ? '' : ' venceu'}`
-  else {
-    const proximo = p.serieMapas?.[numero]
-    status = `Série EM ANDAMENTO${proximo ? ` · próximo: ${nomeMapa(proximo)}` : ''}`
-  }
-  return {
-    titulo: `${org ? `${org} · ` : ''}${NOMES_CAT[p.categoria] || 'Série'} · mapa ${numero}/${total} encerrado`,
-    texto: `${resultado}\n${timeA} ${vA} x ${vB} ${timeB} · ${status}`,
-    link: linkPartida(p),
-  }
+// SDK do OneSignal (carregado uma vez por página, depois que ela abre). Service worker: /OneSignalSDKWorker.js
+let oneSignal = null
+function carregarOneSignal() {
+  if (oneSignal) return oneSignal
+  if (location.hostname !== SITE) return (oneSignal = Promise.resolve(null)) // npm run dev / outro endereço: sem push
+  oneSignal = new Promise((pronto) => {
+    window.OneSignalDeferred = window.OneSignalDeferred || []
+    window.OneSignalDeferred.push(async (OneSignal) => {
+      try {
+        await OneSignal.init({ appId: ONESIGNAL_APP_ID })
+        pronto(OneSignal)
+      } catch {
+        pronto(null)
+      }
+    })
+    const script = document.createElement('script')
+    script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js'
+    script.defer = true
+    script.onerror = () => pronto(null)
+    document.head.appendChild(script)
+  })
+  return oneSignal
 }
 
-// Service worker (public/sw.js) só para notificações: o Chrome do Android exige ele para mostrar notificação
-let registro = null
-function registrarSw() {
-  if (registro || typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return registro
-  // ready: espera o service worker ficar ativo (antes disso ele não mostra notificação)
-  registro = navigator.serviceWorker.register('/sw.js').then(() => navigator.serviceWorker.ready).catch(() => null)
-  return registro
-}
-
-// Notificação do sistema (só com permissão); clicar abre a página da partida.
-// "tag" = link: com o site aberto em várias abas, a mesma partida vira uma notificação só.
-async function notificar(aviso) {
-  if (!temNotificacao() || Notification.permission !== 'granted') return
-  const opcoes = { body: aviso.texto, icon: ICONE, badge: ICONE, tag: aviso.link, data: { url: aviso.link } }
-  const reg = await registrarSw()
-  if (reg?.showNotification) return reg.showNotification(aviso.titulo, opcoes).catch(() => {})
-  try {
-    const n = new Notification(aviso.titulo, opcoes)
-    n.onclick = () => {
-      window.focus()
-      location.href = aviso.link
-      n.close()
-    }
-  } catch {
-    /* sem suporte */
-  }
+// Pede a permissão: pelo OneSignal (inscreve no push) ou, sem ele, só pelo navegador
+async function pedirPermissao() {
+  const os = await carregarOneSignal()
+  if (os) await os.Notifications.requestPermission().catch(() => {})
+  else await Notification.requestPermission().catch(() => {})
+  return Notification.permission
 }
 
 function Aviso({ aviso, onFechar }) {
@@ -137,7 +110,7 @@ function Aviso({ aviso, onFechar }) {
             ))}
           </div>
         ) : (
-          <a href={aviso.link}>{aviso.rotulo} →</a>
+          aviso.link && <a href={aviso.link}>{aviso.rotulo} →</a>
         )}
       </div>
       <button type="button" className="nx-aviso-fechar" aria-label="Fechar aviso" onClick={() => setSaindo(true)}>
@@ -151,9 +124,8 @@ export default function Avisos() {
   const [avisos, setAvisos] = useState([])
   const mostrar = (aviso) => setAvisos((a) => [...a.filter((x) => x.id !== aviso.id), aviso])
 
-  // Partida nova: confere o histórico ao abrir e a cada 30s
+  // Partida nova com o site aberto: confere o histórico ao abrir e a cada 30s
   useEffect(() => {
-    if (temNotificacao() && Notification.permission === 'granted') registrarSw()
     let vivo = true
     const conferir = async () => {
       const lista = await fetch(`/partidas/partidas.json?t=${Date.now()}`, { cache: 'no-store' })
@@ -166,15 +138,10 @@ export default function Avisos() {
       gravarCookie(COOKIE_PARTIDA, ultima.nome)
       if (vista === null) return // primeira visita: só guarda
 
-      // Todas as novas desde a última vista (no máximo 3 avisos; se não achar a vista, só a mais nova)
+      // Todas as novas desde a última vista (no máximo 3; se não achar a vista, só a mais nova)
       const idx = lista.findIndex((p) => p.nome === vista)
-      const novas = lista.slice(0, idx > 0 ? Math.min(idx, 3) : 1).reverse()
-      for (const p of novas) {
-        const d = descreverPartida(p, lista)
-        const aviso = { id: p.nome, tipo: 'partida', ...d, rotulo: 'Ver partida' }
-        mostrar(aviso)
-        notificar(aviso)
-      }
+      for (const p of lista.slice(0, idx > 0 ? Math.min(idx, 3) : 1).reverse())
+        mostrar({ id: p.nome, tipo: 'partida', ...descreverPartida(p, lista), rotulo: 'Ver partida' })
     }
     conferir()
     const id = setInterval(conferir, INTERVALO)
@@ -184,41 +151,50 @@ export default function Avisos() {
     }
   }, [])
 
-  // Primeira visita: pede a permissão de notificação na hora. Chrome/Edge mostram o pedido do navegador direto;
-  // Firefox e Safari só aceitam pedir depois de um clique, então se o pedido não sair aparece o card com o botão.
-  // Depois que a pessoa responde (ou fecha o card), não pergunta mais.
+  // Notificações (push): carrega o OneSignal e, na primeira visita, pede a permissão na hora.
+  // Chrome/Edge mostram o pedido do navegador direto; Firefox e Safari só aceitam depois de um clique,
+  // então se o pedido não sair aparece o card com o botão. Depois que a pessoa responde, não pergunta mais.
   useEffect(() => {
-    if (!temNotificacao() || Notification.permission !== 'default' || lerLocal(CHAVE_PERGUNTA) === 'nao') return
-    const resposta = (r) => {
+    if (!temNotificacao()) return
+    carregarOneSignal()
+    if (Notification.permission !== 'default' || lerLocal(CHAVE_PERGUNTA) === 'nao') return
+
+    let vivo = true
+    const respondeu = (r) => {
       if (r === 'default') return false // fechou sem responder ou o navegador não mostrou
       gravarLocal(CHAVE_PERGUNTA, 'nao')
-      setAvisos((lista) => lista.filter((x) => x.id !== 'pergunta')) // respondeu: o card (se apareceu) some
+      setAvisos((lista) => lista.filter((x) => x.id !== 'pergunta')) // o card (se apareceu) some
       if (r === 'granted')
-        notificar({ titulo: 'Notificações ativadas', texto: 'Você vai ser avisado quando uma partida terminar.', link: '/partidas/' })
+        mostrar({
+          id: 'ativadas',
+          tipo: 'pergunta',
+          titulo: 'Notificações ativadas',
+          texto: 'Você vai ser avisado quando uma partida terminar, mesmo com o site fechado.',
+        })
       return true
     }
     const card = () =>
+      vivo &&
+      Notification.permission === 'default' &&
       mostrar({
         id: 'pergunta',
         tipo: 'pergunta',
         fixo: true,
         titulo: 'Avisar quando uma partida terminar?',
-        texto: 'Receba uma notificação do navegador com o resultado de cada mapa e o status da série.',
+        texto: 'Receba uma notificação com o resultado de cada mapa e o status da série, mesmo com o site fechado.',
         acoes: [
-          ['Ativar notificações', () => Notification.requestPermission().then(resposta), true],
+          ['Ativar notificações', () => pedirPermissao().then(respondeu), true],
           ['Agora não', () => gravarLocal(CHAVE_PERGUNTA, 'nao')],
         ],
       })
-    let feito = false
-    Promise.resolve(Notification.requestPermission())
-      .then((r) => {
-        feito = true
-        if (!resposta(r)) card()
-      })
-      .catch(() => card())
+
+    pedirPermissao().then((r) => !respondeu(r) && card())
     // Navegador que segura o pedido sem mostrar nada (sem clique): o card aparece logo
-    const id = setTimeout(() => !feito && Notification.permission === 'default' && card(), 1500)
-    return () => clearTimeout(id)
+    const id = setTimeout(card, 2500)
+    return () => {
+      vivo = false
+      clearTimeout(id)
+    }
   }, [])
 
   if (!avisos.length) return null
