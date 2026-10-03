@@ -43,7 +43,8 @@ for (const p of [...lista].sort((a, b) => String(a.data).localeCompare(String(b.
       if (celulas.length < 18) continue;
       const steamId = (/profiles\/(\d+)/.exec(celulas[0]) || [])[1];
       if (!steamId || steamId === "0") continue; // bots não entram no ranking
-      const nome = texto((/<span>([\s\S]*?)<\/span><\/a>/.exec(celulas[0]) || [])[1] || "");
+      // Nome = 1º <span> sem atributos (depois dele pode vir a estrela de MVP)
+      const nome = texto((/<span>([^<]*)<\/span>/.exec(celulas[0]) || [])[1] || "");
       const avatar = (/<img[^>]*src="([^"]+)"/.exec(celulas[0]) || [])[1] || "";
       const [fk, fd] = texto(celulas[12]).split("-").map(num);
       const rating = num(texto(celulas[1]));
@@ -73,7 +74,8 @@ for (const p of [...lista].sort((a, b) => String(a.data).localeCompare(String(b.
       j.k3 += num(texto(celulas[15]));
       j.k2 += num(texto(celulas[16]));
       j.mvps += num(texto(celulas[17]));
-      j.mvpPartida += /class="estrela"/.test(celulas[1]) ? 1 : 0;
+      // Estrela de MVP: ao lado do nome (páginas novas) ou no rating (páginas antigas)
+      j.mvpPartida += /class="estrela"/.test(celulas[0] + celulas[1]) ? 1 : 0;
       j.ratingSoma += rating * rounds;
       j.melhorRating = Math.max(j.melhorRating, rating);
       j.ultimos.push({ rating, venceu, mapa: String(p.mapa || "").replace(/^de_/, ""), data: p.data, caminho: p.caminho || p.nome });
@@ -85,6 +87,24 @@ for (const p of [...lista].sort((a, b) => String(a.data).localeCompare(String(b.
   if (leu) mapasLidos++;
 }
 
+// CS Rating do Premier de cada jogador pela API pública da Leetify (não existe API oficial da Valve).
+// Só vem para quem tem conta na Leetify; sem conta, sem rede ou com erro fica null.
+async function buscarPremier(steamId) {
+  try {
+    const res = await fetch(`https://api-public.cs-prod.leetify.com/v3/profile?steam64_id=${steamId}`,
+      { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) return null;
+    const premier = (await res.json())?.ranks?.premier;
+    return Number.isFinite(premier) && premier > 0 ? premier : null;
+  } catch {
+    return null;
+  }
+}
+
+async function main() {
+const premier = new Map();
+for (const id of jogadores.keys()) premier.set(id, await buscarPremier(id)); // um por vez, sem estourar a API
+
 const arred = (v, casas = 2) => Math.round(v * 10 ** casas) / 10 ** casas;
 const ranking = [...jogadores.values()].map((j) => ({
   steamId: j.steamId,
@@ -92,6 +112,7 @@ const ranking = [...jogadores.values()].map((j) => ({
   avatar: j.avatar,
   time: j.time,
   logoTime: j.logoTime,
+  premier: premier.get(j.steamId) ?? null,
   mapas: j.mapas,
   vitorias: j.vitorias,
   rounds: j.rounds,
@@ -121,3 +142,6 @@ fs.writeFileSync(saida, JSON.stringify({
   jogadores: ranking,
 }, null, 2));
 console.log(`Ranking: ${ranking.length} jogador(es) em ${mapasLidos} mapa(s) -> ${saida}`);
+}
+
+main();

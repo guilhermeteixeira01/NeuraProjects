@@ -47,7 +47,8 @@ border:1px solid transparent;transition:background .15s,border-color .15s,color 
 .hero-inner{position:relative;z-index:1;display:flex;flex-direction:column;gap:22px}
 .hero-status{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:11px;letter-spacing:1.5px;color:var(--green);
 border:1px solid rgba(61,220,132,.3);background:rgba(61,220,132,.08);padding:5px 10px;border-radius:5px;width:fit-content}
-.dot-live{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(61,220,132,.2)}
+.dot-live{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(61,220,132,.2);animation:dot-piscar 1.6s ease-in-out infinite}
+@keyframes dot-piscar{50%{opacity:.35}}
 .hero-meta{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:12px;color:var(--dim);font-family:var(--font-mono)}
 .hero-meta .sep{color:var(--border-2)}
 .map-banner{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--border-2);min-height:170px;display:flex;align-items:flex-end;
@@ -321,7 +322,11 @@ padding:3px 9px;border-radius:5px}
 @keyframes piscar{50%{opacity:.35}}
 .serie-mapas{display:flex;flex-direction:column;gap:8px}
 .partida.pendente{opacity:.35;filter:grayscale(1);cursor:default;pointer-events:none}
-.partida.pendente .placar-linha{font-family:var(--font-mono);font-size:11px;letter-spacing:1.5px}
+.partida.pendente{position:relative}
+.partida.pendente .summary-num{visibility:hidden}
+.partida.pendente .summary-side{grid-column:4}
+/* "NÃO JOGADO" no meio do card inteiro, não só da coluna do placar */
+.partida.pendente .placar-linha{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--font-display);font-size:22px;letter-spacing:5px;text-transform:uppercase}
 .mini-logo{width:26px;height:26px;border-radius:50%;object-fit:cover;max-width:none;flex-shrink:0;border:1px solid var(--border-2);background:var(--panel-2)}
 .placar-linha .mini-logo,.serie-placar .mini-logo{opacity:1}
 .esqueleto{height:66px;border-radius:8px;border:1px solid var(--border);
@@ -332,7 +337,22 @@ animation:brilho 1.3s ease-in-out infinite}
 .lista.animar .serie-mapas .partida{animation:subir .5s cubic-bezier(.16,.84,.44,1) both;animation-delay:calc(var(--i,0) * 55ms + .1s)}
 @keyframes brilho{0%{background-position:100% 0}100%{background-position:-150% 0}}
 @media (max-width:720px){.titulo{font-size:28px}.partida{grid-template-columns:1fr}.placar-linha{flex-wrap:wrap}
-.filtros{width:100%}.filtros button{flex:1;justify-content:center;padding:8px 6px}.serie-head .mono-label{margin-left:0}}</style>
+.filtros{width:100%}.filtros button{flex:1;justify-content:center;padding:8px 6px}.serie-head .mono-label{margin-left:0}
+/* Celular: card compacto em 2 linhas (mapa + data / placar), sem quebrar o placar */
+.partida{grid-template-columns:1fr auto;grid-template-areas:"mapa data" "placar placar";gap:8px 10px;padding:10px 12px}
+.partida .summary-num{grid-area:data;justify-self:end;font-size:10px}
+.partida .summary-map{grid-area:mapa;font-size:16px;gap:8px}
+.partida .summary-icon{width:24px;height:24px}
+.partida .placar-linha{grid-area:placar;flex-wrap:nowrap;gap:8px;font-size:13px}
+.partida .placar-linha span{flex:1 1 0;min-width:0}
+.partida .placar-linha span.t-A{text-align:right}
+.partida .placar-linha b{font-size:17px}
+.partida .mini-logo{width:20px;height:20px}
+.partida .summary-side{display:none}
+.serie-mapas .partida.pendente .summary-num{display:none}
+.partida.pendente .placar-linha{position:static;transform:none;justify-content:center;font-size:18px;letter-spacing:3px}
+.serie-bloco{padding:8px;gap:8px}.serie-mapas{gap:6px}
+.serie-placar{gap:8px}.serie-placar b{font-size:19px}}</style>
 </head>
 <body>
 <header data-site-nav></header>
@@ -353,10 +373,6 @@ animation:brilho 1.3s ease-in-out infinite}
 <main class="wrap"><section class="section">
 <div class="filtros" id="filtros" role="tablist" aria-label="Filtrar partidas">
 <button type="button" data-cat="todas" class="active">Todas <i></i></button>
-<button type="button" data-cat="md1">MD1 <i></i></button>
-<button type="button" data-cat="md3">MD3 <i></i></button>
-<button type="button" data-cat="md5">MD5 <i></i></button>
-<button type="button" data-cat="normal">Normais <i></i></button>
 </div>
 <div id="lista" class="lista">
 <div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div>
@@ -375,6 +391,10 @@ const idMapa = (m) => (m || "").replace(/^de_/, "");
 const dataBr = (d) => { const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2})/.exec(d || ""); return m ? `${m[3]}/${m[2]}/${m[1]} ${m[4]}` : esc(d); };
 const caminho = (p) => (p.caminho || p.nome).split("/").map(encodeURIComponent).join("/");
 const categoria = (p) => p.categoria || "normal";
+// Filtro = pasta da organização ("dga/md3/<partida>" -> "dga"); partidas antigas sem pasta caem em "geral"
+const pasta = (p) => { const partes = String(p.caminho || "").split("/").filter(Boolean); return partes.length >= 3 ? partes[0].toLowerCase() : "geral"; };
+const nomePasta = (id) => id.toUpperCase();
+const daPasta = (lista, id) => (id === "todas" ? lista : lista.filter((p) => pasta(p) === id));
 const logo = (url) => (url && /^https?:\/\//i.test(url) ? `<img class="mini-logo" src="${esc(url)}" alt="" onerror="this.remove()">` : "");
 
 function resumo(lista) {
@@ -435,7 +455,7 @@ function blocos(lista) {
 }
 
 function render(lista, cat) {
-  const filtrada = cat === "todas" ? lista : lista.filter((p) => categoria(p) === cat);
+  const filtrada = daPasta(lista, cat);
   let i = 0, html = "";
   for (const b of blocos(filtrada)) {
     if (b.unico) { html += card(b.unico, i++); continue; }
@@ -473,7 +493,7 @@ function render(lista, cat) {
   vazio.hidden = filtrada.length > 0;
   vazio.textContent = lista.length === 0
     ? "Nenhuma partida por enquanto. Assim que um mapa terminar no servidor, ele aparece aqui."
-    : `Nenhuma partida ${cat === "normal" ? "normal" : NOMES_CAT[cat] || ""} por enquanto.`;
+    : `Nenhuma partida em ${nomePasta(cat)} por enquanto.`;
 }
 
 fetch("partidas.json", { cache: "no-store" })
@@ -481,14 +501,22 @@ fetch("partidas.json", { cache: "no-store" })
   .catch(() => [])
   .then((lista) => {
     lista = Array.isArray(lista) ? lista : [];
-    document.getElementById("qtd").textContent = `${lista.length} PARTIDA${lista.length === 1 ? "" : "S"} NO HISTÓRICO`;
+    // Conta por bloco: uma série inteira (MD3/MD5) vale 1, partida avulsa vale 1
+    const qtd = blocos(lista).length;
+    document.getElementById("qtd").textContent = `${qtd} PARTIDA${qtd === 1 ? "" : "S"} NO HISTÓRICO`;
     resumo(lista);
 
-    const botoes = document.querySelectorAll("#filtros button");
+    // Um botão por pasta de organização que tem partida (dga, ...), em ordem alfabética
+    const filtros = document.getElementById("filtros");
+    [...new Set(lista.map(pasta))].sort().forEach((id) => {
+      filtros.insertAdjacentHTML("beforeend", `<button type="button" data-cat="${esc(id)}">${esc(nomePasta(id))} <i></i></button>`);
+    });
+
+    const botoes = filtros.querySelectorAll("button");
     botoes.forEach((b) => {
       const cat = b.dataset.cat;
       // Conta blocos (série = 1, mesmo com vários mapas), não mapas
-      const n = blocos(cat === "todas" ? lista : lista.filter((p) => categoria(p) === cat)).length;
+      const n = blocos(daPasta(lista, cat)).length;
       b.querySelector("i").textContent = n;
       b.addEventListener("click", () => {
         botoes.forEach((x) => x.classList.toggle("active", x === b));
