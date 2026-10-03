@@ -1,5 +1,29 @@
 [
   {
+    "nome": "2026-10-03_16-04_de_dust2_test1-x-test",
+    "data": "2026-10-03 16:04",
+    "mapa": "de_dust2",
+    "timeA": "test1",
+    "timeB": "test",
+    "placarA": 0,
+    "placarB": 2,
+    "serie": "MD3 · mapa 2/3",
+    "caminho": "dga/md3/2026-10-03_16-04_de_dust2_test1-x-test",
+    "categoria": "md3",
+    "serieId": "2026-10-03_15-55_test1-x-test",
+    "serieTimeA": "test1",
+    "serieTimeB": "test",
+    "serieVitoriasA": 1,
+    "serieVitoriasB": 1,
+    "serieMapas": [
+      "de_cache",
+      "de_dust2",
+      "de_nuke"
+    ],
+    "logoA": null,
+    "logoB": null
+  },
+  {
     "nome": "2026-10-03_15-56_de_cache_test1-x-test",
     "data": "2026-10-03 15:56",
     "mapa": "de_cache",
