@@ -352,7 +352,14 @@ animation:brilho 1.3s ease-in-out infinite}
 .serie-mapas .partida.pendente .summary-num{display:none}
 .partida.pendente .placar-linha{position:static;transform:none;justify-content:center;font-size:18px;letter-spacing:3px}
 .serie-bloco{padding:8px;gap:8px}.serie-mapas{gap:6px}
-.serie-placar{gap:8px}.serie-placar b{font-size:19px}}</style>
+/* Topo da série no celular: etiquetas + data numa linha, placar inteiro embaixo */
+.serie-head{gap:8px;padding:2px}
+.serie-head .mono-label{order:0;margin-left:auto;font-size:10px}
+.serie-placar{order:1;width:100%;gap:8px;font-size:14px}
+.serie-placar span{flex:1 1 0;min-width:0}
+.serie-placar span.t-A{text-align:right}
+.serie-placar b{font-size:20px}
+.serie-placar .mini-logo{width:22px;height:22px}}</style>
 </head>
 <body>
 <header data-site-nav></header>
