@@ -1,0 +1,85 @@
+{
+  "versao": 1,
+  "nome": "2026-10-03_16-40_de_cache_Time-A-x-Time-B",
+  "caminho": "dga/md3/2026-10-03_16-40_de_cache_Time-A-x-Time-B",
+  "organizacao": "dga",
+  "categoria": "md3",
+  "mapa": "de_cache",
+  "inicio": "2026-10-03 16:40",
+  "duracaoMin": 1,
+  "maxRounds": 2,
+  "roundsProrrogacao": 4,
+  "placarA": 2,
+  "placarB": 0,
+  "timeA": "Time A",
+  "timeB": "Time B",
+  "logoA": null,
+  "logoB": null,
+  "serie": {
+    "id": "2026-10-03_16-39_Time-A-x-Time-B",
+    "formato": "MD3",
+    "atual": 0,
+    "vitoriasA": 1,
+    "vitoriasB": 0,
+    "mapas": [
+      {
+        "mapa": "de_cache",
+        "faca": false,
+        "ct": "B",
+        "vencedor": "A",
+        "placar": "2-0"
+      },
+      {
+        "mapa": "de_dust2",
+        "faca": false,
+        "ct": "A",
+        "vencedor": null,
+        "placar": null
+      },
+      {
+        "mapa": "de_nuke",
+        "faca": true,
+        "ct": null,
+        "vencedor": null,
+        "placar": null
+      }
+    ]
+  },
+  "rounds": [
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 8
+    }
+  ],
+  "jogadores": [
+    {
+      "steamId": "76561199151150360",
+      "nome": "Te1xe1ra",
+      "avatar": "https://avatars.fastly.steamstatic.com/74f8dd2a1c7d0e73250bfd859ad6f333f5331af2_full.jpg",
+      "time": "A",
+      "rounds": 2,
+      "kills": 5,
+      "mortes": 1,
+      "assistencias": 1,
+      "headshots": 3,
+      "dano": 228,
+      "mvps": 1,
+      "primeirasKills": 1,
+      "primeirasMortes": 0,
+      "kast": 2,
+      "k2": 0,
+      "k3": 0,
+      "k4": 1,
+      "k5": 0,
+      "rating": 4.2379
+    }
+  ],
+  "demo": "https://github.com/guilhermeteixeira01/NeuraProjects/releases/download/demo-2026-10-03_16-40_de_cache_Time-A-x-Time-B/2026-10-03_16-40_de_cache_Time-A-x-Time-B.zip",
+  "gerado": "2026-10-03 16:42"
+}
