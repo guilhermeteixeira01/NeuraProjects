@@ -1,0 +1,100 @@
+{
+  "versao": 1,
+  "nome": "2026-10-03_16-08_de_nuke_test1-x-test",
+  "caminho": "dga/md3/2026-10-03_16-08_de_nuke_test1-x-test",
+  "organizacao": "dga",
+  "categoria": "md3",
+  "mapa": "de_nuke",
+  "inicio": "2026-10-03 16:08",
+  "duracaoMin": 6,
+  "maxRounds": 2,
+  "roundsProrrogacao": 4,
+  "placarA": 4,
+  "placarB": 1,
+  "timeA": "test1",
+  "timeB": "test",
+  "logoA": null,
+  "logoB": null,
+  "serie": {
+    "id": "2026-10-03_15-55_test1-x-test",
+    "formato": "MD3",
+    "atual": 2,
+    "vitoriasA": 2,
+    "vitoriasB": 1,
+    "mapas": [
+      {
+        "mapa": "de_cache",
+        "faca": false,
+        "ct": "B",
+        "vencedor": "A",
+        "placar": "2-0"
+      },
+      {
+        "mapa": "de_dust2",
+        "faca": false,
+        "ct": "A",
+        "vencedor": "B",
+        "placar": "2-0"
+      },
+      {
+        "mapa": "de_nuke",
+        "faca": true,
+        "ct": null,
+        "vencedor": "A",
+        "placar": "4-1"
+      }
+    ]
+  },
+  "rounds": [
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 9
+    }
+  ],
+  "jogadores": [
+    {
+      "steamId": "76561199151150360",
+      "nome": "Te1xe1ra",
+      "avatar": "https://avatars.fastly.steamstatic.com/74f8dd2a1c7d0e73250bfd859ad6f333f5331af2_full.jpg",
+      "time": "A",
+      "rounds": 5,
+      "kills": 1,
+      "mortes": 2,
+      "assistencias": 0,
+      "headshots": 1,
+      "dano": 53,
+      "mvps": 0,
+      "primeirasKills": 0,
+      "primeirasMortes": 0,
+      "kast": 4,
+      "k2": 0,
+      "k3": 0,
+      "k4": 0,
+      "k5": 0,
+      "rating": 0.6578
+    }
+  ],
+  "demo": "https://github.com/guilhermeteixeira01/NeuraProjects/releases/download/demo-2026-10-03_16-08_de_nuke_test1-x-test/2026-10-03_16-08_de_nuke_test1-x-test.zip",
+  "gerado": "2026-10-03 16:15"
+}
