@@ -44,7 +44,7 @@ export default function Layout({ pagina, children }) {
       <Nav pagina={pagina} />
       {children}
       <Rodape />
-      <Avisos pagina={pagina} />
+      <Avisos />
     </>
   )
 }
