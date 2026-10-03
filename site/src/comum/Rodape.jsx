@@ -19,7 +19,7 @@ export default function Rodape() {
         <div className="nx-footer-top">
           <div className="nx-footer-marca">
             <div className="nx-brand">
-              <img src="/assets/logos/logoNP.ico" alt="" width="28" height="28" />
+              <img src="/assets/logos/logo-np-64.png" alt="" width="28" height="28" />
               <span>
                 NEURA <span className="nx-outline">PROJECT</span>
               </span>

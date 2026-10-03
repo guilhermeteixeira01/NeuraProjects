@@ -594,7 +594,7 @@ function Conteudo({ d }) {
     <>
       <div id="carregando" className={comecou ? 'fim' : ''} aria-hidden="true">
         <div className="ld">
-          <img src="/assets/logos/logoNP.ico" alt="" />
+          <img src="/assets/logos/logo-np-64.png" alt="" />
           <span className="mono-label">CARREGANDO ESTATÍSTICAS</span>
           <div className="barra" />
         </div>

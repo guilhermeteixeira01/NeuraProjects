@@ -44,7 +44,7 @@ export default function Nav({ pagina }) {
     <header data-site-nav="" className={`nx-nav${aberto ? ' is-open' : ''}`}>
       <div className="nx-nav-inner">
         <a className="nx-brand" href="/">
-          <img src="/assets/logos/logoNP.ico" alt="" width="30" height="30" />
+          <img src="/assets/logos/logo-np-64.png" alt="" width="30" height="30" />
           <span>
             NEURA <span className="nx-outline">PROJECT</span>
             <span className="nx-sub">GAME STUDIO</span>
