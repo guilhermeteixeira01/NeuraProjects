@@ -245,13 +245,18 @@ function Serie({ serie, nomeTime, jogos, caminhoAtual }) {
     vitorias.B = serie.vitoriasB
   }
   const paraVencer = Math.floor(serie.mapas.length / 2) + 1
-  const acabou = vitorias.A >= paraVencer || vitorias.B >= paraVencer || Object.keys(jogados).length >= serie.mapas.length
+  // Série cancelada no meio (css_seriecancelar): o plugin marca os mapas dela
+  const cancelada = (jogos || []).some((p) => p.serieCancelada)
+  const acabou = cancelada || vitorias.A >= paraVencer || vitorias.B >= paraVencer || Object.keys(jogados).length >= serie.mapas.length
 
   return (
     <section className="section revelar">
       <div className="section-head-row">
         <div className="section-head">
-          <span className="mono-label">SÉRIE {serie.formato}</span>
+          <span className="mono-label">
+            SÉRIE {serie.formato}
+            {cancelada && <span className="serie-cancelada"> · CANCELADA</span>}
+          </span>
           <h2>
             <span className="t-A">{nomeTime('A')}</span> {vitorias.A} x {vitorias.B} <span className="t-B">{nomeTime('B')}</span>
           </h2>
@@ -270,7 +275,7 @@ function Serie({ serie, nomeTime, jogos, caminhoAtual }) {
             : m.vencedor // página antiga, sem histórico
               ? [`res-${m.vencedor}`, `${nomeTime(m.vencedor)} venceu · ${m.placar}`]
               : acabou
-                ? ['nao-jogado', 'Não jogado']
+                ? ['nao-jogado', cancelada ? 'Cancelado' : 'Não jogado']
                 : ['aguardando', 'A jogar']
           const conteudo = (
             <>
