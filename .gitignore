@@ -1,3 +1,5 @@
 node_modules/
-NeuraPick/dist/
-ranking/ranking.json
+# Builds do site (gerados no deploy)
+site/dist/
+site/dist-ssr/
+site/dist-final/

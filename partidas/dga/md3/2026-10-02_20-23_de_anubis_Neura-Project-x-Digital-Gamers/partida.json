@@ -1,0 +1,379 @@
+{
+  "versao": 1,
+  "nome": "2026-10-02_20-23_de_anubis_Neura-Project-x-Digital-Gamers",
+  "caminho": "dga/md3/2026-10-02_20-23_de_anubis_Neura-Project-x-Digital-Gamers",
+  "organizacao": "dga",
+  "categoria": "md3",
+  "mapa": "de_anubis",
+  "inicio": "2026-10-02 20:23",
+  "duracaoMin": 34,
+  "maxRounds": 24,
+  "roundsProrrogacao": 4,
+  "placarA": 10,
+  "placarB": 13,
+  "timeA": "Neura Project",
+  "timeB": "Digital Gamers",
+  "logoA": "https://i.imgur.com/0lhPoBJ.png",
+  "logoB": "https://i.imgur.com/EgmqWQi.jpg",
+  "serie": {
+    "id": "2026-10-02_19-38_Neura-Project-x-Digital-Gamers",
+    "formato": "MD3",
+    "atual": 1,
+    "vitoriasA": 0,
+    "vitoriasB": 2,
+    "mapas": [
+      {
+        "mapa": "de_overpass",
+        "faca": false,
+        "ct": "A",
+        "vencedor": "B",
+        "placar": "13-7"
+      },
+      {
+        "mapa": "de_anubis",
+        "faca": false,
+        "ct": "B",
+        "vencedor": "B",
+        "placar": "13-10"
+      },
+      {
+        "mapa": "de_mirage",
+        "faca": true,
+        "ct": null,
+        "vencedor": null,
+        "placar": null
+      }
+    ]
+  },
+  "rounds": [
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 1
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 7
+    },
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 9
+    },
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 9
+    },
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 7
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 7
+    },
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 9
+    },
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 9
+    },
+    {
+      "time": "B",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "B",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 7
+    },
+    {
+      "time": "B",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "B",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "B",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 7
+    },
+    {
+      "time": "B",
+      "lado": "TR",
+      "motivo": 9
+    }
+  ],
+  "jogadores": [
+    {
+      "steamId": "76561198126107307",
+      "nome": "Caféfps",
+      "avatar": "https://avatars.akamai.steamstatic.com/282e845503092261ec1f0f1a23ea8bde5c532d2d_full.jpg",
+      "time": "B",
+      "rounds": 23,
+      "kills": 32,
+      "mortes": 13,
+      "assistencias": 8,
+      "headshots": 12,
+      "dano": 3420,
+      "mvps": 3,
+      "primeirasKills": 4,
+      "primeirasMortes": 0,
+      "kast": 18,
+      "k2": 8,
+      "k3": 3,
+      "k4": 0,
+      "k5": 0,
+      "rating": 1.93
+    },
+    {
+      "steamId": "76561199802548645",
+      "nome": "floz",
+      "avatar": "https://avatars.akamai.steamstatic.com/6194d8e3fb3882d5648a098e690d04fea9443a9a_full.jpg",
+      "time": "B",
+      "rounds": 23,
+      "kills": 21,
+      "mortes": 16,
+      "assistencias": 8,
+      "headshots": 8,
+      "dano": 2102,
+      "mvps": 3,
+      "primeirasKills": 2,
+      "primeirasMortes": 4,
+      "kast": 18,
+      "k2": 5,
+      "k3": 1,
+      "k4": 0,
+      "k5": 0,
+      "rating": 1.21
+    },
+    {
+      "steamId": "76561199869966304",
+      "nome": "Kz",
+      "avatar": "https://avatars.akamai.steamstatic.com/15fe65619b30ecba3e2c2467bc18b2006685f444_full.jpg",
+      "time": "B",
+      "rounds": 23,
+      "kills": 15,
+      "mortes": 16,
+      "assistencias": 7,
+      "headshots": 8,
+      "dano": 1771,
+      "mvps": 4,
+      "primeirasKills": 1,
+      "primeirasMortes": 3,
+      "kast": 18,
+      "k2": 3,
+      "k3": 1,
+      "k4": 0,
+      "k5": 0,
+      "rating": 0.95
+    },
+    {
+      "steamId": "76561199775467873",
+      "nome": "NIGGAlex",
+      "avatar": "https://avatars.akamai.steamstatic.com/0e422e54c9178d6d42a1ebf7645120edb0553576_full.jpg",
+      "time": "B",
+      "rounds": 23,
+      "kills": 11,
+      "mortes": 17,
+      "assistencias": 4,
+      "headshots": 5,
+      "dano": 1240,
+      "mvps": 3,
+      "primeirasKills": 2,
+      "primeirasMortes": 2,
+      "kast": 12,
+      "k2": 3,
+      "k3": 0,
+      "k4": 0,
+      "k5": 0,
+      "rating": 0.69
+    },
+    {
+      "steamId": "76561198643857689",
+      "nome": "Dusty",
+      "avatar": "https://avatars.akamai.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg",
+      "time": "B",
+      "rounds": 23,
+      "kills": 8,
+      "mortes": 17,
+      "assistencias": 3,
+      "headshots": 0,
+      "dano": 690,
+      "mvps": 0,
+      "primeirasKills": 0,
+      "primeirasMortes": 5,
+      "kast": 13,
+      "k2": 2,
+      "k3": 0,
+      "k4": 0,
+      "k5": 0,
+      "rating": 0.55
+    },
+    {
+      "steamId": "76561199151150360",
+      "nome": "Te1xe1ra",
+      "avatar": "https://avatars.akamai.steamstatic.com/74f8dd2a1c7d0e73250bfd859ad6f333f5331af2_full.jpg",
+      "time": "A",
+      "rounds": 23,
+      "kills": 35,
+      "mortes": 17,
+      "assistencias": 5,
+      "headshots": 13,
+      "dano": 3528,
+      "mvps": 3,
+      "primeirasKills": 6,
+      "primeirasMortes": 1,
+      "kast": 21,
+      "k2": 7,
+      "k3": 3,
+      "k4": 1,
+      "k5": 0,
+      "rating": 2.04
+    },
+    {
+      "steamId": "76561199215020893",
+      "nome": "zezincomedor",
+      "avatar": "https://avatars.akamai.steamstatic.com/e8a83cc5398071764eb7c46cb841870e0c8a2a62_full.jpg",
+      "time": "A",
+      "rounds": 23,
+      "kills": 12,
+      "mortes": 16,
+      "assistencias": 7,
+      "headshots": 8,
+      "dano": 1424,
+      "mvps": 3,
+      "primeirasKills": 2,
+      "primeirasMortes": 1,
+      "kast": 15,
+      "k2": 2,
+      "k3": 1,
+      "k4": 0,
+      "k5": 0,
+      "rating": 0.81
+    },
+    {
+      "steamId": "76561199245273109",
+      "nome": "sharkJESUS",
+      "avatar": "https://avatars.akamai.steamstatic.com/3e9bc5c499377c0e17c2488081f3c89f877b5cd3_full.jpg",
+      "time": "A",
+      "rounds": 23,
+      "kills": 11,
+      "mortes": 17,
+      "assistencias": 10,
+      "headshots": 6,
+      "dano": 1677,
+      "mvps": 0,
+      "primeirasKills": 2,
+      "primeirasMortes": 1,
+      "kast": 18,
+      "k2": 2,
+      "k3": 0,
+      "k4": 0,
+      "k5": 0,
+      "rating": 0.65
+    },
+    {
+      "steamId": "76561199185489154",
+      "nome": "emptysoul'z",
+      "avatar": "https://avatars.akamai.steamstatic.com/741edcfeefee5f8878a33823609fc933007048cc_full.jpg",
+      "time": "A",
+      "rounds": 23,
+      "kills": 12,
+      "mortes": 20,
+      "assistencias": 3,
+      "headshots": 6,
+      "dano": 1231,
+      "mvps": 4,
+      "primeirasKills": 3,
+      "primeirasMortes": 5,
+      "kast": 12,
+      "k2": 3,
+      "k3": 0,
+      "k4": 0,
+      "k5": 0,
+      "rating": 0.62
+    },
+    {
+      "steamId": "76561198698137616",
+      "nome": "texungo666",
+      "avatar": null,
+      "time": "A",
+      "rounds": 23,
+      "kills": 8,
+      "mortes": 17,
+      "assistencias": 3,
+      "headshots": 2,
+      "dano": 817,
+      "mvps": 0,
+      "primeirasKills": 1,
+      "primeirasMortes": 1,
+      "kast": 12,
+      "k2": 1,
+      "k3": 0,
+      "k4": 0,
+      "k5": 0,
+      "rating": 0.53
+    }
+  ],
+  "demo": "https://github.com/guilhermeteixeira01/NeuraProjects/releases/download/demo-2026-10-02_20-23_de_anubis_Neura-Project-x-Digital-Gamers/2026-10-02_20-23_de_anubis_Neura-Project-x-Digital-Gamers.zip",
+  "gerado": "2026-10-02 20:58"
+}
