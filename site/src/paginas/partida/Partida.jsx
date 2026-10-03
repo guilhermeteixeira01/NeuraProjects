@@ -557,11 +557,12 @@ function Conteudo({ d }) {
   const [comecou, setComecou] = useState(false)
   // Outros mapas da mesma série: vêm com a página (deploy) e são conferidos de novo no histórico ao abrir
   const [jogos, setJogos] = useState(d.serieJogos ?? null)
-  // Ao vivo: quando o próximo mapa da série termina, ele aparece aqui (resultado + link) sem recarregar
+  // Ao vivo: quando o próximo mapa da série termina, a página recarrega sozinha e mostra o resultado + link
   useAoVivo(
     '/partidas/partidas.json',
     (lista) => Array.isArray(lista) && setJogos(lista.filter((p) => p.serieId === d.serie.id)),
-    { ativo: !!d.serie?.id },
+    // Só os mapas desta série: partida de outra série não recarrega esta página
+    { ativo: !!d.serie?.id, selecionar: (lista) => (Array.isArray(lista) ? lista.filter((p) => p.serieId === d.serie.id) : []) },
   )
 
   // Tela de carregamento: some quando a página termina de carregar (imagem lenta não segura mais que 2,5s)
