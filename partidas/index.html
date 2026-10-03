@@ -137,7 +137,7 @@ td{font-family:var(--font-mono);font-size:13px}
 .col-rt{background:rgba(0,0,0,.28)}
 th.col-rt{color:var(--text)}
 td.col-rt{white-space:nowrap}
-.estrela{color:var(--yellow);font-size:16px;margin-left:8px;vertical-align:middle;text-shadow:0 0 10px rgba(245,197,66,.5)}
+.estrela{margin-left:-4px;line-height:1;color:var(--yellow);font-size:15px}
 .team-A tbody tr{background:rgba(52,152,219,.07)}
 .team-B tbody tr{background:rgba(255,122,26,.06)}
 .team-A tbody tr:hover{background:rgba(52,152,219,.14)}
@@ -320,6 +320,8 @@ padding:3px 9px;border-radius:5px}
 .serie-bloco.acabou{border-color:rgba(61,220,132,.22)}
 @keyframes piscar{50%{opacity:.35}}
 .serie-mapas{display:flex;flex-direction:column;gap:8px}
+.partida.pendente{opacity:.35;filter:grayscale(1);cursor:default;pointer-events:none}
+.partida.pendente .placar-linha{font-family:var(--font-mono);font-size:11px;letter-spacing:1.5px}
 .mini-logo{width:26px;height:26px;border-radius:50%;object-fit:cover;max-width:none;flex-shrink:0;border:1px solid var(--border-2);background:var(--panel-2)}
 .placar-linha .mini-logo,.serie-placar .mini-logo{opacity:1}
 .esqueleto{height:66px;border-radius:8px;border:1px solid var(--border);
@@ -406,6 +408,20 @@ function card(p, i) {
     `<span class="summary-side cat-${categoria(p)}">${esc(p.serie || "PARTIDA")}</span></a>`;
 }
 
+// Mapa da série que não foi jogado (série já decidida) ou que ainda vai ser jogado
+function cardPendente(mapaServidor, n, total, cat, acabou, i) {
+  const id = idMapa(mapaServidor);
+  const mapa = MAPAS[id];
+  const fundo = mapa ? `--img:url('${IMG}/maps/${id}.jpg');--c1:${mapa[1]};--c2:${mapa[2]}` : "--c1:#2a2f3a;--c2:#0e0f13";
+  const icone = mapa ? `<img class="summary-icon" src="${IMG}/maps/icons/${id}.png" alt="">` : "";
+  const nome = mapa ? mapa[0] : id || `Mapa ${n}`;
+  return `<div class="summary-item partida pendente" style="${fundo};--i:${i}">` +
+    `<span class="summary-num">—</span>` +
+    `<span class="summary-map">${icone}${esc(nome)}</span>` +
+    `<span class="placar-linha">${acabou ? "NÃO JOGADO" : "A JOGAR"}</span>` +
+    `<span class="summary-side cat-${cat}">${esc(`${NOMES_CAT[cat] || "SÉRIE"} · mapa ${n}/${total}`)}</span></div>`;
+}
+
 // Mapas da mesma série num bloco só (placar da série = o do mapa mais recente)
 function blocos(lista) {
   const saida = [];
@@ -435,12 +451,16 @@ function render(lista, cat) {
     const status = acabou
       ? `<span class="serie-status fim">${IC_CHECK}FINALIZADO</span>`
       : `<span class="serie-status andamento"><i></i>EM ANDAMENTO · MAPA ${mapas.length + 1}/${total}</span>`;
+    // Mapas que faltam na série, apagados (nomes vêm do plugin; partidas antigas não têm a lista)
+    const ordem = (b.mapas.find((p) => Array.isArray(p.serieMapas)) || {}).serieMapas || [];
+    const pendentes = [];
+    for (let n = mapas.length + 1; n <= total; n++) pendentes.push(cardPendente(ordem[n - 1], n, total, categoria(ult), acabou, i + n));
     html += `<div class="serie-bloco${acabou ? " acabou" : ""}" style="--i:${i++}">` +
       `<div class="serie-head"><span class="serie-tag">${esc(NOMES_CAT[categoria(ult)] || "SÉRIE")}</span>${status}` +
       `<span class="serie-placar">${logo(ult.logoA)}<span class="t-A${vA > vB ? " venc" : ""}">${esc(ult.serieTimeA || ult.timeA)}</span>` +
       `<b>${vA} : ${vB}</b><span class="t-B${vB > vA ? " venc" : ""}">${esc(ult.serieTimeB || ult.timeB)}</span>${logo(ult.logoB)}</span>` +
       `<span class="mono-label">${dataBr(mapas[0].data)}</span></div>` +
-      `<div class="serie-mapas">${mapas.map((p) => card(p, i++)).join("")}</div></div>`;
+      `<div class="serie-mapas">${mapas.map((p) => card(p, i++)).join("")}${pendentes.join("")}</div></div>`;
   }
 
   const elLista = document.getElementById("lista");
