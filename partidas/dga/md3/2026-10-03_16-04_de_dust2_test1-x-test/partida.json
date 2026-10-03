@@ -1,0 +1,85 @@
+{
+  "versao": 1,
+  "nome": "2026-10-03_16-04_de_dust2_test1-x-test",
+  "caminho": "dga/md3/2026-10-03_16-04_de_dust2_test1-x-test",
+  "organizacao": "dga",
+  "categoria": "md3",
+  "mapa": "de_dust2",
+  "inicio": "2026-10-03 16:04",
+  "duracaoMin": 1,
+  "maxRounds": 2,
+  "roundsProrrogacao": 4,
+  "placarA": 0,
+  "placarB": 2,
+  "timeA": "test1",
+  "timeB": "test",
+  "logoA": null,
+  "logoB": null,
+  "serie": {
+    "id": "2026-10-03_15-55_test1-x-test",
+    "formato": "MD3",
+    "atual": 1,
+    "vitoriasA": 1,
+    "vitoriasB": 1,
+    "mapas": [
+      {
+        "mapa": "de_cache",
+        "faca": false,
+        "ct": "B",
+        "vencedor": "A",
+        "placar": "2-0"
+      },
+      {
+        "mapa": "de_dust2",
+        "faca": false,
+        "ct": "A",
+        "vencedor": "B",
+        "placar": "2-0"
+      },
+      {
+        "mapa": "de_nuke",
+        "faca": true,
+        "ct": null,
+        "vencedor": null,
+        "placar": null
+      }
+    ]
+  },
+  "rounds": [
+    {
+      "time": "B",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "B",
+      "lado": "TR",
+      "motivo": 9
+    }
+  ],
+  "jogadores": [
+    {
+      "steamId": "76561199151150360",
+      "nome": "Te1xe1ra",
+      "avatar": "https://avatars.fastly.steamstatic.com/74f8dd2a1c7d0e73250bfd859ad6f333f5331af2_full.jpg",
+      "time": "A",
+      "rounds": 2,
+      "kills": 3,
+      "mortes": 2,
+      "assistencias": 0,
+      "headshots": 3,
+      "dano": 72,
+      "mvps": 0,
+      "primeirasKills": 1,
+      "primeirasMortes": 0,
+      "kast": 1,
+      "k2": 0,
+      "k3": 1,
+      "k4": 0,
+      "k5": 0,
+      "rating": 2.1233
+    }
+  ],
+  "demo": "https://github.com/guilhermeteixeira01/NeuraProjects/releases/download/demo-2026-10-03_16-04_de_dust2_test1-x-test/2026-10-03_16-04_de_dust2_test1-x-test.zip",
+  "gerado": "2026-10-03 16:06"
+}
