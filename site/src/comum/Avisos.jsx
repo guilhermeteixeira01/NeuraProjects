@@ -183,7 +183,27 @@ export default function Avisos() {
         titulo: 'Avisar quando uma partida terminar?',
         texto: 'Receba uma notificação com o resultado de cada mapa e o status da série, mesmo com o site fechado.',
         acoes: [
-          ['Ativar notificações', () => pedirPermissao().then(respondeu), true],
+          [
+            'Ativar notificações',
+            () => {
+              const inicio = Date.now()
+              pedirPermissao().then((r) => {
+                if (respondeu(r)) return
+                // Voltou sem resposta em menos de 1s: o navegador descartou o pedido sem mostrar a janela
+                // (pedidos "silenciosos" ou bloqueio temporário depois de o site pedir várias vezes)
+                if (Date.now() - inicio < 1000)
+                  mostrar({
+                    id: 'bloqueado',
+                    tipo: 'pergunta',
+                    fixo: true,
+                    titulo: 'O navegador não mostrou o pedido',
+                    texto:
+                      'Clique no cadeado ao lado do endereço do site → Notificações → Permitir, e recarregue a página.',
+                  })
+              })
+            },
+            true,
+          ],
           ['Agora não', () => gravarLocal(CHAVE_PERGUNTA, 'nao')],
         ],
       })
