@@ -276,3 +276,4 @@ a.summary-item.link:hover{border-color:var(--blue);transform:translateY(-2px)}
 .summary-item.pendente{opacity:.6}.summary-item.nao-jogado{opacity:.35}
 .summary-meta.aguardando{display:inline-flex;align-items:center;gap:8px;color:var(--text)}
 .summary-meta.nao-jogado{font-family:var(--font-display);letter-spacing:2px;text-transform:uppercase}
+.serie-cancelada{color:var(--red)}

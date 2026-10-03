@@ -48,7 +48,9 @@ Cada página de mapa recebe, no deploy, os outros mapas da mesma série (`serieJ
 
 - mapa jogado: resultado + link para a página dele;
 - mapa que falta com a série rolando: "A jogar" com os pontinhos animados (`comum/Carregando.jsx`);
-- mapa que falta com a série decidida: "Não jogado".
+- mapa que falta com a série decidida: "Não jogado";
+- série cancelada no servidor (`css_seriecancelar`): o plugin marca `serieCancelada` nos mapas já
+  jogados; o site mostra o selo "CANCELADA" e os mapas que faltavam como "Cancelado".
 
 A lista `/partidas/` segue a mesma regra nos cards dos mapas que faltam.
 

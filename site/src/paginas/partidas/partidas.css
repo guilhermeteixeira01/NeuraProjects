@@ -359,3 +359,7 @@ animation:brilho 1.3s ease-in-out infinite}
 .partida.pendente.aguardando{opacity:.6}
 /* Os pontinhos são um <span>: sem isto pegam o corte dos nomes (.placar-linha span) e o pulo some */
 .partida.pendente .placar-linha .carregando-pontos{margin-right:12px;overflow:visible;opacity:1;flex:none;min-width:auto;padding:4px 0}
+
+/* Série cancelada no meio (css_seriecancelar) */
+.serie-status.cancelada{color:var(--red);border:1px solid rgba(255,70,85,.45);background:rgba(255,70,85,.08)}
+.serie-bloco.cancelada{border-color:rgba(255,70,85,.25)}

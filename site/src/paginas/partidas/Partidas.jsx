@@ -71,8 +71,8 @@ function Card({ p, i }) {
   )
 }
 
-// Mapa da série que não foi jogado (série já decidida) ou que ainda vai ser jogado
-function CardPendente({ mapa, n, total, cat, acabou, i }) {
+// Mapa da série que não foi jogado (série decidida ou cancelada) ou que ainda vai ser jogado
+function CardPendente({ mapa, n, total, cat, acabou, cancelada, i }) {
   const nome = getMap(mapa)?.name ?? (idMapa(mapa) || `Mapa ${n}`)
   return (
     <div className={`summary-item partida pendente${acabou ? '' : ' aguardando'}`} style={{ ...fundoMapa(mapa), '--i': i }}>
@@ -83,7 +83,7 @@ function CardPendente({ mapa, n, total, cat, acabou, i }) {
       </span>
       <span className="placar-linha">
         {!acabou && <CarregandoPontos />}
-        {acabou ? 'NÃO JOGADO' : 'A JOGAR'}
+        {cancelada ? 'CANCELADO' : acabou ? 'NÃO JOGADO' : 'A JOGAR'}
       </span>
       <span className={`summary-side cat-${cat}`}>{`${NOMES_CAT[cat] || 'SÉRIE'} · mapa ${n}/${total}`}</span>
     </div>
@@ -100,18 +100,27 @@ function BlocoSerie({ b, i }) {
   // MD3 acaba com 2 vitórias (ou com os 3 mapas jogados); MD5 com 3; MD1 com 1
   const total = parseInt((cat.match(/^md(\d)$/) || [])[1], 10) || mapas.length
   const paraVencer = Math.floor(total / 2) + 1
-  const acabou = vA >= paraVencer || vB >= paraVencer || mapas.length >= total
+  // Série cancelada no meio (css_seriecancelar): o plugin marca os mapas dela
+  const cancelada = b.mapas.some((p) => p.serieCancelada)
+  const acabou = cancelada || vA >= paraVencer || vB >= paraVencer || mapas.length >= total
   // Mapas que faltam na série, apagados (nomes vêm do plugin; partidas antigas não têm a lista)
   const ordem = b.mapas.find((p) => Array.isArray(p.serieMapas))?.serieMapas || []
   const faltam = []
   for (let n = mapas.length + 1; n <= total; n++) faltam.push(n)
 
   return (
-    <div className={`serie-bloco${acabou ? ' acabou' : ''}`} style={{ '--i': i }}>
+    <div className={`serie-bloco${cancelada ? ' cancelada' : acabou ? ' acabou' : ''}`} style={{ '--i': i }}>
       <div className="serie-head">
         <span className="serie-tag org">{nomePasta(pasta(ult))}</span>
         <span className="serie-tag">{NOMES_CAT[cat] || 'SÉRIE'}</span>
-        {acabou ? (
+        {cancelada ? (
+          <span className="serie-status cancelada">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+            CANCELADA
+          </span>
+        ) : acabou ? (
           <span className="serie-status fim">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M20 6 9 17l-5-5" />
@@ -140,7 +149,7 @@ function BlocoSerie({ b, i }) {
           <Card key={p.nome} p={p} i={i + 1 + k} />
         ))}
         {faltam.map((n) => (
-          <CardPendente key={n} mapa={ordem[n - 1]} n={n} total={total} cat={cat} acabou={acabou} i={i + n} />
+          <CardPendente key={n} mapa={ordem[n - 1]} n={n} total={total} cat={cat} acabou={acabou} cancelada={cancelada} i={i + n} />
         ))}
       </div>
     </div>
