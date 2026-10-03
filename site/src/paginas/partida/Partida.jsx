@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import CarregandoPontos from '../../comum/Carregando.jsx'
 import Layout from '../../comum/Layout.jsx'
+import { useAoVivo } from '../../comum/aoVivo.js'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { fundoMapa, getMap, mapIcon, nomeMapa } from '../../comum/mapas.js'
 
@@ -556,12 +557,12 @@ function Conteudo({ d }) {
   const [comecou, setComecou] = useState(false)
   // Outros mapas da mesma série: vêm com a página (deploy) e são conferidos de novo no histórico ao abrir
   const [jogos, setJogos] = useState(d.serieJogos ?? null)
-  useEffect(() => {
-    if (!d.serie?.id) return
-    lerJson('/partidas/partidas.json').then((lista) => {
-      if (Array.isArray(lista)) setJogos(lista.filter((p) => p.serieId === d.serie.id))
-    })
-  }, [d.serie?.id])
+  // Ao vivo: quando o próximo mapa da série termina, ele aparece aqui (resultado + link) sem recarregar
+  useAoVivo(
+    '/partidas/partidas.json',
+    (lista) => Array.isArray(lista) && setJogos(lista.filter((p) => p.serieId === d.serie.id)),
+    { ativo: !!d.serie?.id },
+  )
 
   // Tela de carregamento: some quando a página termina de carregar (imagem lenta não segura mais que 2,5s)
   useEffect(() => {
