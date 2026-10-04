@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import Layout from '../../comum/Layout.jsx'
+import { linkPerfil, useConta } from '../../comum/conta.js'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { Contador } from '../../comum/efeitos.jsx'
 import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
+import Premier from '../../comum/Premier.jsx'
 
 const TOP = 15
 const MIN_MAPAS = 1 // mapas mínimos para entrar no ranking (suba quando tiver mais partidas)
@@ -20,7 +22,7 @@ const METRICAS = [
 
 const fmt = (v, casas) => Number(v || 0).toFixed(casas)
 const classeRating = (r) => (r >= 1.5 ? 'alto' : r >= 1.2 ? 'bom' : r >= 0.9 ? 'medio' : 'baixo')
-const perfil = (j) => `https://steamcommunity.com/profiles/${encodeURIComponent(j.steamId)}`
+const perfil = (j) => linkPerfil(j.steamId) // página de perfil do site (estatísticas e histórico)
 const iniciais = (nome) => String(nome || '?').trim().slice(0, 2).toUpperCase()
 
 // Data/hora sempre no horário de Brasília (a página é gerada num servidor em UTC)
@@ -45,53 +47,6 @@ function Avatar({ j, classe }) {
   return <img className={classe} src={j.avatar} alt="" loading="lazy" onError={() => setErro(true)} />
 }
 
-// ── CS Rating do Premier (vem da Leetify no deploy; null = jogador sem conta na Leetify) ──
-const faixaPremier = (v) => (v >= 30000 ? 7 : v >= 25000 ? 6 : v >= 20000 ? 5 : v >= 15000 ? 4 : v >= 10000 ? 3 : v >= 5000 ? 2 : 1)
-// Igual ao jogo: milhares grandes e o resto pequeno (23,524)
-const partesPremier = (v) => (v < 1000 ? [String(v), ''] : [String(Math.floor(v / 1000)), ',' + String(v % 1000).padStart(3, '0')])
-// Atraso do brilho de cada badge: fixo por jogador (igual no HTML gerado e no navegador)
-const atrasoBrilho = (id) => ((Number(String(id).slice(-4)) || 0) % 200) / 100
-
-// Contagem animada de 0 até o rating (a cor da faixa acompanha enquanto sobe)
-function Premier({ j }) {
-  const alvo = j.premier > 0 ? j.premier : 0
-  const [v, setV] = useState(alvo)
-
-  useEffect(() => {
-    if (!alvo || matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const inicio = performance.now() + 350
-    const duracao = 1400
-    let quadro
-    const passo = (agora) => {
-      const t = Math.min(1, Math.max(0, (agora - inicio) / duracao))
-      setV(Math.round(alvo * (1 - Math.pow(1 - t, 3)))) // desacelera no fim
-      if (t < 1) quadro = requestAnimationFrame(passo)
-    }
-    setV(0)
-    quadro = requestAnimationFrame(passo)
-    return () => cancelAnimationFrame(quadro)
-  }, [alvo])
-
-  if (!alvo) {
-    return (
-      <span className="premier sem" title="Sem CS Rating do Premier (precisa de conta na leetify.gg)">
-        <b>---</b>
-      </span>
-    )
-  }
-  const [mil, resto] = partesPremier(v)
-  return (
-    <span
-      className={`premier t${faixaPremier(v)}`}
-      style={{ '--pd': `${atrasoBrilho(j.steamId).toFixed(2)}s` }}
-      title={`CS Rating do Premier: ${alvo.toLocaleString('pt-BR')}`}
-    >
-      <b>{mil}</b>
-      <small>{resto}</small>
-    </span>
-  )
-}
-
 function Forma({ j }) {
   return (
     <span className="forma">
@@ -109,20 +64,21 @@ function Forma({ j }) {
   )
 }
 
-function Podio({ j, pos, m }) {
+function Podio({ j, pos, m, eu }) {
   const [chave, , rotulo, casas, suf] = m
   return (
-    <div className={`pod spot p${pos}`} data-pos={pos}>
+    <div className={`pod spot p${pos}${eu ? ' eu' : ''}`} data-pos={pos}>
+      {eu && <span className="selo-eu">VOCÊ</span>}
       {pos === 1 && (
         <svg className="coroa" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 12H5L3 7z" />
         </svg>
       )}
-      <a className="pod-av" href={perfil(j)} target="_blank" rel="noopener">
+      <a className="pod-av" href={perfil(j)}>
         <Avatar j={j} classe="" />
         <span className="pod-pos">#{pos}</span>
       </a>
-      <a className="pod-nome" href={perfil(j)} target="_blank" rel="noopener">
+      <a className="pod-nome" href={perfil(j)}>
         {j.nome}
       </a>
       <Premier j={j} />
@@ -156,16 +112,16 @@ function Podio({ j, pos, m }) {
   )
 }
 
-function Linha({ j, pos, m, max, i }) {
+function Linha({ j, pos, m, max, i, eu }) {
   const [chave, , , casas, suf] = m
   const w = max > 0 ? Math.max(3, (j[chave] / max) * 100) : 0
   return (
-    <div className="linha spot" style={{ '--i': i }}>
+    <div className={`linha spot${eu ? ' eu' : ''}`} style={{ '--i': i }}>
       <span className="pos-n">{pos}</span>
       <span className="jog">
         <Avatar j={j} classe="av" />
         <span className="jog-txt">
-          <a href={perfil(j)} target="_blank" rel="noopener">
+          <a href={perfil(j)}>
             {j.nome}
           </a>
           <Premier j={j} />
@@ -200,12 +156,14 @@ function Linha({ j, pos, m, max, i }) {
   )
 }
 
-function Conteudo({ dados, chave }) {
+// eu: SteamID de quem está logado (destaque na lista e, fora do top, a posição dele embaixo)
+function Conteudo({ dados, chave, eu }) {
   const m = METRICAS.find((x) => x[0] === chave) || METRICAS[0]
-  const top = dados.jogadores
+  const todos = dados.jogadores
     .filter((j) => j.mapas >= MIN_MAPAS)
     .sort((a, b) => b[m[0]] - a[m[0]] || b.rating - a.rating || b.kills - a.kills)
-    .slice(0, TOP)
+  const top = todos.slice(0, TOP)
+  const minhaPos = eu ? todos.findIndex((j) => j.steamId === eu) : -1
 
   if (top.length === 0) {
     return <p className="vazio">Ainda não há jogadores no ranking. Assim que uma partida terminar no servidor, ela entra aqui.</p>
@@ -218,7 +176,7 @@ function Conteudo({ dados, chave }) {
     <div key={chave} className="anim">
       <div className="podio">
         {top.slice(0, 3).map((j, i) => (
-          <Podio key={j.steamId} j={j} pos={i + 1} m={m} />
+          <Podio key={j.steamId} j={j} pos={i + 1} m={m} eu={j.steamId === eu} />
         ))}
       </div>
       {resto.length > 0 && (
@@ -235,8 +193,14 @@ function Conteudo({ dados, chave }) {
             <span className="c-forma">FORMA</span>
           </div>
           {resto.map((j, i) => (
-            <Linha key={j.steamId} j={j} pos={i + 4} m={m} max={max} i={i} />
+            <Linha key={j.steamId} j={j} pos={i + 4} m={m} max={max} i={i} eu={j.steamId === eu} />
           ))}
+        </div>
+      )}
+      {minhaPos >= TOP && (
+        <div className="tabela-card minha-pos">
+          <div className="minha-pos-tit mono">SUA POSIÇÃO</div>
+          <Linha j={todos[minhaPos]} pos={minhaPos + 1} m={m} max={max || todos[0][m[0]]} i={0} eu />
         </div>
       )}
     </div>
@@ -266,6 +230,7 @@ const normalizar = (d) => (d && Array.isArray(d.jogadores) ? d : { jogadores: []
 export default function Ranking({ dados: inicial }) {
   const [dados, setDados] = useState(inicial ? normalizar(inicial) : null)
   const [chave, setChave] = useState('rating')
+  const conta = useConta()
 
   useEffect(() => {
     if (!inicial) lerJson('/ranking/ranking.json').then((d) => setDados(normalizar(d)))
@@ -337,7 +302,7 @@ export default function Ranking({ dados: inicial }) {
               </div>
               <span className="nota">{dados && `MÍNIMO DE ${MIN_MAPAS} MAPA${MIN_MAPAS === 1 ? '' : 'S'} · RATING HLTV 1.0`}</span>
             </div>
-            <div id="conteudo">{dados ? <Conteudo dados={dados} chave={chave} /> : <Esqueleto />}</div>
+            <div id="conteudo">{dados ? <Conteudo dados={dados} chave={chave} eu={conta?.id} /> : <Esqueleto />}</div>
           </div>
         </section>
       </main>

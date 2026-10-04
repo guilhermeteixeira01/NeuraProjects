@@ -5,6 +5,7 @@ import { useAoVivo } from '../../comum/aoVivo.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
 import GraficoUtil from './GraficoUtil.jsx'
 import { lerJson, urlOk } from '../../comum/dados.js'
+import { linkPerfil } from '../../comum/conta.js'
 import { fundoMapa, getMap, mapIcon, nomeMapa } from '../../comum/mapas.js'
 
 // Página de estatísticas de um mapa jogado no servidor.
@@ -483,7 +484,7 @@ function TabelaUtil({ doTime, mvp }) {
             return (
               <tr key={e.steamId} style={{ '--i': linha }}>
                 <td>
-                  <a className="player" href={`https://steamcommunity.com/profiles/${e.steamId}`} target="_blank" rel="noopener">
+                  <a className="player" href={linkPerfil(e.steamId)}>
                     <Avatar e={e} classe="av" />
                     <span>{e.nome}</span>
                     {e === mvp && (
@@ -595,7 +596,7 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
               return (
                 <tr key={e.steamId} style={{ '--i': linha }}>
                   <td>
-                    <a className="player" href={`https://steamcommunity.com/profiles/${e.steamId}`} target="_blank" rel="noopener">
+                    <a className="player" href={linkPerfil(e.steamId)}>
                       <Avatar e={e} classe="av" />
                       <span>{e.nome}</span>
                       {e === mvp && (

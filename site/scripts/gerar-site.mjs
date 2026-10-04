@@ -3,7 +3,7 @@
  *   1. copia dist/ (páginas e arquivos do React) para a pasta de saída
  *   2. copia os dados: lista de times (assets/data) e partidas (partidas.json + <caminho>/partida.json)
  *   3. tira do histórico as partidas cuja pasta foi apagada
- *   4. gera o ranking (ranking/ranking.json)
+ *   4. gera o ranking (ranking/ranking.json) e o histórico de cada jogador (perfil/historico/<steamId>.json)
  *   5. cria a página de cada partida (partidas/<caminho>/index.html)
  *   6. gera o HTML de todas as páginas já com o conteúdo (rápido e bom para o Google); o React assume no navegador
  *   7. sitemap.xml com todas as páginas
@@ -75,8 +75,10 @@ const series = fs.existsSync(arquivoSeries) ? lerJson(arquivoSeries) : []
 if (!fs.existsSync(arquivoSeries)) escrever(arquivoSeries, '[]')
 
 // ── 4. Ranking ──
-const ranking = await gerarRanking(saidaPartidas, { premier: arg('premier', 'sim') !== 'nao' })
+const { historicos, ...ranking } = await gerarRanking(saidaPartidas, { premier: arg('premier', 'sim') !== 'nao' })
 escrever(path.join(saida, 'ranking', 'ranking.json'), JSON.stringify(ranking, null, 2))
+// Histórico de cada jogador (página /perfil/?id=<steamId>)
+for (const [id, mapas] of Object.entries(historicos)) escrever(path.join(saida, 'perfil', 'historico', `${id}.json`), JSON.stringify(mapas))
 console.log(`Ranking: ${ranking.jogadores.length} jogador(es) em ${ranking.partidas} mapa(s)`)
 
 // ── 5 e 6. HTML com conteúdo ──
@@ -100,6 +102,7 @@ const PAGINAS = [
   ['admin.html', 'admin'],
   ['partidas/index.html', 'partidas', { lista, series }],
   ['ranking/index.html', 'ranking', ranking],
+  ['perfil/index.html', 'perfil'], // jogador vem do endereço (?id=), a página busca os dados no navegador
 ]
 for (const [arq, pagina, dadosPagina] of PAGINAS) {
   const destino = path.join(saida, arq)

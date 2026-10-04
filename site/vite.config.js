@@ -15,6 +15,7 @@ const PAGINAS = {
   partidas: 'partidas/index.html',
   partida: 'partidas/partida.html',
   ranking: 'ranking/index.html',
+  perfil: 'perfil/index.html',
   times: 'times/index.html',
   admin: 'admin.html',
 }
@@ -24,6 +25,7 @@ const PAGINAS = {
 //   /partidas/<partida>/     -> página da partida (partidas/partida.html)
 //   /assets/data/*           -> <repo>/assets/data/          (lista de times)
 //   /ranking/ranking.json    -> gerado na hora com scripts/ranking.mjs
+//   /perfil/historico/<id>.json -> idem (histórico do jogador)
 function dadosNoDev() {
   const enviar = (res, arquivo) => {
     res.setHeader('Content-Type', arquivo.endsWith('.json') ? 'application/json; charset=utf-8' : 'application/octet-stream')
@@ -34,10 +36,14 @@ function dadosNoDev() {
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         const url = decodeURIComponent((req.url || '').split('?')[0])
-        if (url === '/ranking/ranking.json') {
+        const historico = /^\/perfil\/historico\/(\d+)\.json$/.exec(url)
+        if (url === '/ranking/ranking.json' || historico) {
           const { gerarRanking } = await import('./scripts/ranking.mjs')
+          const { historicos, ...ranking } = await gerarRanking(path.join(raiz, 'partidas'), { premier: false })
+          const resposta = historico ? historicos[historico[1]] : ranking
+          if (!resposta) return next()
           res.setHeader('Content-Type', 'application/json; charset=utf-8')
-          res.end(JSON.stringify(await gerarRanking(path.join(raiz, 'partidas'), { premier: false })))
+          res.end(JSON.stringify(resposta))
           return
         }
         const deFora = url.startsWith('/partidas/') || url.startsWith('/assets/data/') ? path.join(raiz, url) : null

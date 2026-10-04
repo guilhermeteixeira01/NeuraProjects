@@ -10,6 +10,7 @@ O site inteiro (neuraproject.com.br) é um projeto React + Vite com uma página 
 | Partidas | `/partidas/` | `src/paginas/partidas/` |
 | Página de uma partida | `/partidas/<org>/<md>/<partida>/` | `src/paginas/partida/` |
 | Ranking | `/ranking/` | `src/paginas/ranking/` |
+| Perfil do jogador | `/perfil/?id=<SteamID64>` | `src/paginas/perfil/` |
 | Lista de times | `/times/` | `src/paginas/times/` |
 | Painel de anúncios | `/admin.html` | `src/paginas/admin/` |
 
@@ -44,6 +45,27 @@ Todo push na `main` (e toda partida enviada pelo plugin) roda `.github/workflows
 build do site e depois `scripts/gerar-site.mjs`, que copia os dados, gera o ranking
 (`scripts/ranking.mjs`), cria a página de cada partida e escreve o HTML de todas as páginas já com
 o conteúdo (bom para o Google). No navegador o React assume esse HTML.
+
+## Login pela Steam e perfil
+
+A página `/perfil/?id=<SteamID64>` mostra os números do jogador (do `ranking.json`), o gráfico de rating por
+mapa e o histórico completo (`perfil/historico/<SteamID64>.json`, gerado no deploy pelo `scripts/ranking.mjs`).
+Os nomes no ranking e na página da partida levam para ela.
+
+O login é opcional: com ele aparece o botão **Entrar** no menu, "Meu perfil", o destaque "VOCÊ" no ranking e a
+posição do jogador quando ele está fora do top 15. Como o site é estático, quem confirma o login com a Steam é um
+Cloudflare Worker gratuito (`worker/steam-login/`). Para ligar:
+
+1. Crie uma conta grátis em https://dash.cloudflare.com e, dentro de `site/worker/steam-login/`, rode
+   `npx wrangler login` e depois `npx wrangler deploy`. O endereço do worker aparece no fim
+   (ex.: `https://neura-steam-login.<sua-conta>.workers.dev`).
+2. `npx wrangler secret put SEGREDO`: cole um texto aleatório longo (assina os tokens).
+3. Opcional: `npx wrangler secret put STEAM_API_KEY` com a chave de https://steamcommunity.com/dev/apikey
+   (sem ela o login funciona, mas o menu mostra as iniciais em vez do avatar e do nome da Steam).
+4. Em `src/comum/config.js`, coloque o endereço do worker em `loginSteam` e faça o push.
+
+O token fica só no navegador (`localStorage`, 30 dias). O site não confia nele para nada sensível; ele só serve
+para mostrar quem está logado.
 
 ## Séries (MD3/MD5)
 

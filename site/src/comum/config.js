@@ -24,6 +24,10 @@ export const CONFIG = {
   branch: 'main',
   arquivoTimes: 'assets/data/times.json',
 
+  // Login pela Steam: endereço do worker (site/worker/steam-login). '' = sem botão de login
+  // (a página de perfil continua abrindo pelos links do ranking)
+  loginSteam: 'https://neura-steam-login.steam-login.workers.dev',
+
   // Redes sociais (deixe '' para esconder)
   discord: 'https://discord.gg/GJSMDJEQsn',
   youtube: '',

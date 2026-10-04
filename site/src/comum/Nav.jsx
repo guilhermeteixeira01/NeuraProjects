@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CONFIG, MENU } from './config.js'
-import { ICONES_MENU, IconeDiscord } from './Icones.jsx'
+import { entrar, linkPerfil, loginAtivo, sair, useConta } from './conta.js'
+import { ICONES_MENU, IconeDiscord, IconeSteam } from './Icones.jsx'
 
 function LinkMenu({ item, atual }) {
   const ativo = item.id === atual
@@ -16,6 +17,69 @@ function LinkMenu({ item, atual }) {
       {item.rotulo}
       {item.selo && <span className="nx-selo">{item.selo}</span>}
     </a>
+  )
+}
+
+// Login pela Steam: botão "Entrar" ou o avatar com o menu da conta
+function Conta() {
+  const conta = useConta()
+  const [aberto, setAberto] = useState(false)
+  const [erroAvatar, setErroAvatar] = useState(false)
+  const caixa = useRef(null)
+
+  useEffect(() => {
+    if (!aberto) return
+    const fora = (e) => !caixa.current?.contains(e.target) && setAberto(false)
+    const tecla = (e) => e.key === 'Escape' && setAberto(false)
+    document.addEventListener('pointerdown', fora)
+    document.addEventListener('keydown', tecla)
+    return () => {
+      document.removeEventListener('pointerdown', fora)
+      document.removeEventListener('keydown', tecla)
+    }
+  }, [aberto])
+
+  if (!loginAtivo()) return null
+  if (!conta)
+    return (
+      <button type="button" className="nx-btn nx-steam" onClick={entrar}>
+        <IconeSteam />
+        <span>Entrar</span>
+      </button>
+    )
+
+  const nome = conta.nome || 'Minha conta'
+  return (
+    <div className="nx-conta" ref={caixa}>
+      <button type="button" className="nx-conta-btn" aria-haspopup="menu" aria-expanded={aberto} onClick={() => setAberto((a) => !a)}>
+        {conta.avatar && !erroAvatar ? (
+          <img src={conta.avatar} alt="" width="28" height="28" onError={() => setErroAvatar(true)} />
+        ) : (
+          <span className="nx-conta-ini">{nome.slice(0, 2).toUpperCase()}</span>
+        )}
+        <span className="nx-conta-nome">{nome}</span>
+      </button>
+      {aberto && (
+        <div className="nx-conta-menu" role="menu">
+          <a role="menuitem" href={linkPerfil(conta.id)}>
+            Meu perfil
+          </a>
+          <a role="menuitem" href={`https://steamcommunity.com/profiles/${conta.id}`} target="_blank" rel="noopener">
+            Perfil na Steam
+          </a>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setAberto(false)
+              sair()
+            }}
+          >
+            Sair
+          </button>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -69,6 +133,7 @@ export default function Nav({ pagina }) {
               <span>Comunidade</span>
             </a>
           )}
+          <Conta />
           <button
             className="nx-burger"
             type="button"
