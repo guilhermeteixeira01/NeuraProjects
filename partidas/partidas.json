@@ -1,5 +1,30 @@
 [
   {
+    "nome": "2026-10-04_14-41_de_ancient_Time-A-x-Time-B",
+    "data": "2026-10-04 14:41",
+    "mapa": "de_ancient",
+    "timeA": "Time A",
+    "timeB": "Time B",
+    "placarA": 2,
+    "placarB": 0,
+    "serie": "MD3 · mapa 1/3",
+    "caminho": "dga/md3/2026-10-04_14-41_de_ancient_Time-A-x-Time-B",
+    "categoria": "md3",
+    "serieId": "2026-10-04_14-40_Time-A-x-Time-B",
+    "serieTimeA": "Time A",
+    "serieTimeB": "Time B",
+    "serieVitoriasA": 1,
+    "serieVitoriasB": 0,
+    "serieMapas": [
+      "de_ancient",
+      "de_anubis",
+      "de_overpass"
+    ],
+    "serieCancelada": false,
+    "logoA": null,
+    "logoB": null
+  },
+  {
     "nome": "2026-10-04_14-22_de_ancient_Time-A-x-Time-B",
     "data": "2026-10-04 14:22",
     "mapa": "de_ancient",
