@@ -1,0 +1,21 @@
+[
+  {
+    "id": "2026-10-04_19-09_TEST1-x-TEST2",
+    "organizacao": "dga",
+    "categoria": "md3",
+    "formato": "MD3",
+    "timeA": "TEST1",
+    "timeB": "TEST2",
+    "logoA": null,
+    "logoB": null,
+    "mapas": [
+      "de_inferno",
+      "de_ancient",
+      "de_dust2"
+    ],
+    "status": "iniciando",
+    "mapaAtual": 0,
+    "criada": "2026-10-04 19:09",
+    "atualizada": "2026-10-04 19:09"
+  }
+]
