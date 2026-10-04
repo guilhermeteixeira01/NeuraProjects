@@ -20,7 +20,7 @@
       "de_anubis",
       "de_overpass"
     ],
-    "serieCancelada": false,
+    "serieCancelada": true,
     "logoA": null,
     "logoB": null
   },
