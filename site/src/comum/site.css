@@ -896,3 +896,16 @@ img {
   -webkit-user-drag: none;
   user-drag: none;
 }
+
+/* Rolagem horizontal das tabelas (só aparece no celular): mesma barra global, mais fina */
+.tabela::-webkit-scrollbar {
+  height: 5px;
+}
+.tabela::-webkit-scrollbar-thumb {
+  border-width: 1px;
+}
+@supports not selector(::-webkit-scrollbar) {
+  .tabela {
+    scrollbar-width: thin;
+  }
+}
