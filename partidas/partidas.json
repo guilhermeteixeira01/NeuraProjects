@@ -20,7 +20,7 @@
       "de_ancient",
       "de_dust2"
     ],
-    "serieCancelada": false,
+    "serieCancelada": true,
     "logoA": null,
     "logoB": null
   },
@@ -45,7 +45,7 @@
       "de_ancient",
       "de_dust2"
     ],
-    "serieCancelada": false,
+    "serieCancelada": true,
     "logoA": null,
     "logoB": null
   }
