@@ -695,6 +695,11 @@ html.nx-menu-aberto {
 .nx-nav.is-scrolled::after {
   opacity: 0.6;
 }
+/* Menu do celular aberto: barra sempre opaca (senão a regra de cima, do rolar, deixa a página aparecer por trás) */
+.nx-nav.is-open,
+.nx-nav.is-open.is-scrolled {
+  background: var(--bg);
+}
 .nx-links .nx-link::before {
   content: '';
   position: absolute;
