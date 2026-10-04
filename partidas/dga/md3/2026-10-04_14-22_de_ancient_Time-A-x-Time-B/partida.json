@@ -1,0 +1,133 @@
+{
+  "versao": 1,
+  "nome": "2026-10-04_14-22_de_ancient_Time-A-x-Time-B",
+  "caminho": "dga/md3/2026-10-04_14-22_de_ancient_Time-A-x-Time-B",
+  "organizacao": "dga",
+  "categoria": "md3",
+  "mapa": "de_ancient",
+  "inicio": "2026-10-04 14:22",
+  "duracaoMin": 8,
+  "maxRounds": 4,
+  "roundsProrrogacao": 4,
+  "placarA": 5,
+  "placarB": 2,
+  "timeA": "Time A",
+  "timeB": "Time B",
+  "logoA": null,
+  "logoB": null,
+  "serie": {
+    "id": "2026-10-04_14-22_Time-A-x-Time-B",
+    "formato": "MD3",
+    "atual": 0,
+    "vitoriasA": 1,
+    "vitoriasB": 0,
+    "mapas": [
+      {
+        "mapa": "de_ancient",
+        "faca": false,
+        "ct": "A",
+        "vencedor": "A",
+        "placar": "5-2"
+      },
+      {
+        "mapa": "de_anubis",
+        "faca": false,
+        "ct": "B",
+        "vencedor": null,
+        "placar": null
+      },
+      {
+        "mapa": "de_overpass",
+        "faca": true,
+        "ct": null,
+        "vencedor": null,
+        "placar": null
+      }
+    ]
+  },
+  "rounds": [
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 7
+    },
+    {
+      "time": "B",
+      "lado": "TR",
+      "motivo": 1
+    },
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 8
+    }
+  ],
+  "jogadores": [
+    {
+      "steamId": "76561199151150360",
+      "nome": "Te1xe1ra",
+      "avatar": "https://avatars.fastly.steamstatic.com/74f8dd2a1c7d0e73250bfd859ad6f333f5331af2_full.jpg",
+      "time": "A",
+      "rounds": 7,
+      "kills": 19,
+      "mortes": 2,
+      "assistencias": 1,
+      "headshots": 16,
+      "dano": 787,
+      "mvps": 5,
+      "primeirasKills": 3,
+      "primeirasMortes": 2,
+      "kast": 7,
+      "k2": 1,
+      "k3": 1,
+      "k4": 1,
+      "k5": 2,
+      "rating": 5.3379,
+      "util": {
+        "flash": 4,
+        "he": 4,
+        "smoke": 2,
+        "molotov": 5,
+        "decoy": 0,
+        "naoUsadosTipo": {
+          "flash": 0,
+          "he": 0,
+          "smoke": 1,
+          "molotov": 0,
+          "decoy": 0
+        },
+        "naoUsados": 1,
+        "dano": 254,
+        "danoAliados": 18,
+        "danoRecebido": 0,
+        "inimigosCegos": 1,
+        "tempoCegoInimigos": 3.4,
+        "flashAssists": 0,
+        "aliadosCegos": 6,
+        "tempoCegoAliados": 25.2
+      }
+    }
+  ],
+  "demo": "https://github.com/guilhermeteixeira01/NeuraProjects/releases/download/demo-2026-10-04_14-22_de_ancient_Time-A-x-Time-B/2026-10-04_14-22_de_ancient_Time-A-x-Time-B.zip",
+  "gerado": "2026-10-04 14:30"
+}
