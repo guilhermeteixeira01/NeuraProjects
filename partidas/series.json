@@ -1,5 +1,24 @@
 [
   {
+    "id": "2026-10-04_14-22_Time-A-x-Time-B",
+    "organizacao": "dga",
+    "categoria": "md3",
+    "formato": "MD3",
+    "timeA": "Time A",
+    "timeB": "Time B",
+    "logoA": null,
+    "logoB": null,
+    "mapas": [
+      "de_ancient",
+      "de_anubis",
+      "de_overpass"
+    ],
+    "status": "iniciando",
+    "mapaAtual": 0,
+    "criada": "2026-10-04 14:22",
+    "atualizada": "2026-10-04 14:22"
+  },
+  {
     "id": "2026-10-04_13-54_Neura-Project-x-Digital-Gamers",
     "organizacao": "dga",
     "categoria": "md3",
