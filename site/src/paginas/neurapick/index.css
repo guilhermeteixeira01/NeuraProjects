@@ -2111,3 +2111,33 @@ body *::-webkit-scrollbar-thumb {
     scrollbar-color: var(--blue-2) var(--bg-soft);
   }
 }
+
+/* ── Visual futurista ── */
+/* Formulário do topo inclinando de leve com o mouse (--rx/--ry vêm de useInclinar) */
+.hero-visual {
+  perspective: 1200px;
+}
+.config-3d {
+  --rx: 0deg;
+  --ry: 0deg;
+  transform: rotateX(var(--rx)) rotateY(var(--ry));
+  transition: transform 0.25s ease-out;
+}
+/* Mapas do pool: luz seguindo o cursor */
+.pool-item.spot {
+  isolation: isolate;
+}
+.pool-item.spot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgba(52, 152, 219, 0.22), transparent 65%);
+}
+.pool-item.spot:hover::after {
+  opacity: 1;
+}

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import Layout from '../../comum/Layout.jsx'
 import { lerJson, urlOk } from '../../comum/dados.js'
+import { Contador } from '../../comum/efeitos.jsx'
+import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
 
 const TOP = 15
 const MIN_MAPAS = 1 // mapas mínimos para entrar no ranking (suba quando tiver mais partidas)
@@ -110,7 +112,7 @@ function Forma({ j }) {
 function Podio({ j, pos, m }) {
   const [chave, , rotulo, casas, suf] = m
   return (
-    <div className={`pod p${pos}`} data-pos={pos}>
+    <div className={`pod spot p${pos}`} data-pos={pos}>
       {pos === 1 && (
         <svg className="coroa" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 12H5L3 7z" />
@@ -158,7 +160,7 @@ function Linha({ j, pos, m, max, i }) {
   const [chave, , , casas, suf] = m
   const w = max > 0 ? Math.max(3, (j[chave] / max) * 100) : 0
   return (
-    <div className="linha" style={{ '--i': i }}>
+    <div className="linha spot" style={{ '--i': i }}>
       <span className="pos-n">{pos}</span>
       <span className="jog">
         <Avatar j={j} classe="av" />
@@ -281,34 +283,42 @@ export default function Ranking({ dados: inicial }) {
     <Layout pagina="ranking">
       <main>
         <section className="hero">
-          <div className="hero-glow hero-glow-1" />
-          <div className="hero-glow hero-glow-2" />
+          <FundoHero />
           <div className="wrap hero-inner">
-            <div className="reveal">
-              <span className="chip">
+            <div>
+              <span className="chip fx-entra" style={{ '--e': 0 }}>
                 <span className="ponto" />
                 <span>{!dados ? 'CARREGANDO…' : quando ? `ATUALIZADO ${quando}` : 'SEM DADOS AINDA'}</span>
               </span>
               <h1>
-                Top 15 <span className="destaque">jogadores</span>
+                <Palavras texto="Top 15" />
+                <span className="fx-gradiente">
+                  <Palavras texto="jogadores" inicio={2} />
+                </span>
               </h1>
-              <p className="lead">
+              <p className="lead fx-entra" style={{ '--e': 3 }}>
                 Ranking montado com todas as partidas registradas no servidor. Cada mapa novo entra na conta sozinho: rating,
                 ADR, KAST, kills e forma recente.
               </p>
             </div>
-            <div className="resumo reveal" style={{ '--d': '.1s' }}>
+            <div className="resumo fx-entra" style={{ '--e': 4 }}>
               <div className="caixa">
                 <span className="mono">JOGADORES</span>
-                <b>{dados ? dados.jogadores.length : '—'}</b>
+                <b>
+                  <Contador valor={dados ? dados.jogadores.length : null} />
+                </b>
               </div>
               <div className="caixa">
                 <span className="mono">MAPAS</span>
-                <b>{dados ? dados.partidas || 0 : '—'}</b>
+                <b>
+                  <Contador valor={dados ? dados.partidas || 0 : null} />
+                </b>
               </div>
               <div className="caixa">
                 <span className="mono">KILLS</span>
-                <b>{dados ? dados.jogadores.reduce((s, j) => s + (j.kills || 0), 0) : '—'}</b>
+                <b>
+                  <Contador valor={dados ? dados.jogadores.reduce((s, j) => s + (j.kills || 0), 0) : null} />
+                </b>
               </div>
             </div>
           </div>

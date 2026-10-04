@@ -687,3 +687,8 @@ pre .bool  { color: #b090ff; }
   .stat-value { font-size: 22px; }
 }
 
+
+/* Sem seleção de texto ao clicar e arrastar; campos de digitação continuam selecionáveis */
+body, body * { -webkit-user-select: none; user-select: none; }
+input, textarea, select { -webkit-user-select: text !important; user-select: text !important; }
+img { -webkit-user-drag: none; }

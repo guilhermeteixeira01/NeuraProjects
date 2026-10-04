@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import CarregandoPontos from '../../comum/Carregando.jsx'
 import Layout from '../../comum/Layout.jsx'
 import { useAoVivo } from '../../comum/aoVivo.js'
+import { FundoHero } from '../../comum/HeroFundo.jsx'
+import GraficoUtil from './GraficoUtil.jsx'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { fundoMapa, getMap, mapIcon, nomeMapa } from '../../comum/mapas.js'
 
@@ -172,8 +174,7 @@ function Banner({ d, nomeTime, vencedor, porRating, comecou }) {
 
   return (
     <section className="hero hero-partida">
-      <div className="hero-glow hero-glow-1" />
-      <div className="hero-glow hero-glow-2" />
+      <FundoHero quantidade={12} />
       <div className="wrap hero-inner">
         <div className="banner revelar" style={fundoMapa(d.mapa)}>
           <div className="bn-topo">
@@ -232,7 +233,7 @@ const linkPartida = (p) => `/partidas/${(p.caminho || p.nome).split('/').map(enc
 
 // Série mapa a mapa, sempre atualizada: a página é gerada de novo a cada mapa novo e, ao abrir,
 // ainda confere o histórico. Mapa jogado vira link; o que falta fica "A jogar" (ou "Não jogado" se a série acabou).
-function Serie({ serie, nomeTime, jogos, caminhoAtual }) {
+function Serie({ serie, nomeTime, jogos, caminhoAtual, anuncio }) {
   const jogados = jogadosDaSerie(jogos)
   const vitorias = { A: 0, B: 0 }
   Object.values(jogados).forEach((p) => {
@@ -246,14 +247,14 @@ function Serie({ serie, nomeTime, jogos, caminhoAtual }) {
   }
   const paraVencer = Math.floor(serie.mapas.length / 2) + 1
   // Série cancelada no meio (css_seriecancelar): o plugin marca os mapas dela
-  const cancelada = (jogos || []).some((p) => p.serieCancelada)
+  const cancelada = (jogos || []).some((p) => p.serieCancelada) || anuncio?.status === 'cancelada'
   const acabou = cancelada || vitorias.A >= paraVencer || vitorias.B >= paraVencer || Object.keys(jogados).length >= serie.mapas.length
 
   return (
     <section className="section revelar">
       <div className="section-head-row">
         <div className="section-head">
-          <span className="mono-label">
+          <span className="kicker">
             SÉRIE {serie.formato}
             {cancelada && <span className="serie-cancelada"> · CANCELADA</span>}
           </span>
@@ -276,7 +277,9 @@ function Serie({ serie, nomeTime, jogos, caminhoAtual }) {
               ? [`res-${m.vencedor}`, `${nomeTime(m.vencedor)} venceu · ${m.placar}`]
               : acabou
                 ? ['nao-jogado', cancelada ? 'Cancelado' : 'Não jogado']
-                : ['aguardando', 'A jogar']
+                : anuncio?.status === 'andamento' && anuncio.mapaAtual === i
+                  ? ['ao-vivo', 'Ao vivo'] // o plugin avisou que este mapa começou valendo
+                  : ['aguardando', 'A jogar']
           const conteudo = (
             <>
               <span className="summary-num">MAPA {i + 1}</span>
@@ -286,6 +289,7 @@ function Serie({ serie, nomeTime, jogos, caminhoAtual }) {
               </span>
               <span className={`summary-meta ${classe}`}>
                 {classe === 'aguardando' && <CarregandoPontos />}
+                {classe === 'ao-vivo' && <i className="ponto-vivo" />}
                 {texto}
               </span>
               {m.faca ? (
@@ -297,7 +301,7 @@ function Serie({ serie, nomeTime, jogos, caminhoAtual }) {
               )}
             </>
           )
-          const cls = `summary-item${atual ? ' atual' : ''}${!p && !m.vencedor ? (acabou ? ' nao-jogado' : ' pendente') : ''}`
+          const cls = `summary-item${atual ? ' atual' : ''}${classe === 'ao-vivo' ? ' ao-vivo' : !p && !m.vencedor ? (acabou ? ' nao-jogado' : ' pendente') : ''}`
           // Outro mapa já jogado: clica e vai para a página dele
           return p && !atual ? (
             <a key={i} className={`${cls} link`} href={linkPartida(p)} style={fundoMapa(m.mapa)}>
@@ -316,7 +320,7 @@ function Serie({ serie, nomeTime, jogos, caminhoAtual }) {
 
 function ItemDestaque({ e, valor, rotulo, ehMvp }) {
   return (
-    <div className={`mvp-item mvp-${e.time}`}>
+    <div className={`mvp-item spot mvp-${e.time}`}>
       <Avatar e={e} classe="av" />
       <b className={ehMvp ? `t-${e.time}` : ''}>{e.nome}</b>
       <span className="mvp-val">
@@ -342,12 +346,12 @@ function Destaques({ jogadores, porRating, totalRounds, nomeTime }) {
   return (
     <section className="section revelar">
       <div className="section-head">
-        <span className="mono-label">DESTAQUES</span>
+        <span className="kicker">DESTAQUES</span>
         <h2>Melhores da partida</h2>
       </div>
       <div className="mvp-grid">
         {/* Card grande do MVP (igual ao da sala da FACEIT) */}
-        <div className={`mvp-card mvp-${mvp.time}`}>
+        <div className={`mvp-card spot mvp-${mvp.time}`}>
           <div className="mvp-perfil">
             <Avatar e={mvp} classe="mvp-av" />
             <b>{mvp.nome}</b>
@@ -404,7 +408,7 @@ function Rounds({ d, nomeTime }) {
   return (
     <section className="section revelar">
       <div className="section-head">
-        <span className="mono-label">LINHA DO TEMPO</span>
+        <span className="kicker">LINHA DO TEMPO</span>
         <h2>Rounds</h2>
       </div>
       <div className="rounds-card">
@@ -444,7 +448,81 @@ function Rounds({ d, nomeTime }) {
   )
 }
 
-function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime }) {
+// Utilitários de cada jogador (partidas antes desta versão do plugin não têm: a aba nem aparece)
+const seg = (v) => `${f(v || 0, 1)}s`
+const TIPOS_UTIL = [
+  ['flash', 'F', 'Flash'],
+  ['he', 'H', 'HE'],
+  ['smoke', 'S', 'Smoke'],
+  ['molotov', 'M', 'Molotov/incendiária'],
+]
+
+function TabelaUtil({ doTime, mvp }) {
+  return (
+    <div className="tabela">
+      <table className="tabela-util">
+        <thead>
+          <tr>
+            <th>JOGADOR</th>
+            <th title="Granadas lançadas (F flash · H HE · S smoke · M molotov)">LANÇADOS</th>
+            <th title="Compradas e não lançadas">NÃO USADOS</th>
+            <th title="Dano de HE e fogo nos inimigos">DANO UTIL.</th>
+            <th title="Dano de HE e fogo recebido dos inimigos">DANO RECEBIDO</th>
+            <th title="Dano de HE e fogo nos próprios aliados">DANO EM ALIADOS</th>
+            <th title="Inimigos cegos pelas suas flashes (mais de 0,5s)">INIMIGOS CEGOS</th>
+            <th title="Tempo somado dos inimigos cegos">TEMPO CEGO</th>
+            <th title="Kills de colegas em inimigos cegos pela sua flash">FLASH ASSIST</th>
+            <th title="Aliados cegos pelas suas flashes">ALIADOS CEGOS</th>
+            <th title="Tempo somado dos aliados cegos">TEMPO ALIADOS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {doTime.map((e, linha) => {
+            const u = e.util || {}
+            const lancados = TIPOS_UTIL.reduce((s, [k]) => s + (u[k] || 0), 0) + (u.decoy || 0)
+            return (
+              <tr key={e.steamId} style={{ '--i': linha }}>
+                <td>
+                  <a className="player" href={`https://steamcommunity.com/profiles/${e.steamId}`} target="_blank" rel="noopener">
+                    <Avatar e={e} classe="av" />
+                    <span>{e.nome}</span>
+                    {e === mvp && (
+                      <span className="estrela" title="MVP da partida">
+                        ★
+                      </span>
+                    )}
+                  </a>
+                </td>
+                <td>
+                  <span className="util-total">{lancados}</span>
+                  <span className="util-tipos">
+                    {TIPOS_UTIL.map(([k, letra, nome]) => (
+                      <i key={k} className={`util-${k}`} title={`${nome}: ${u[k] || 0}`}>
+                        {letra}
+                        {u[k] || 0}
+                      </i>
+                    ))}
+                  </span>
+                </td>
+                <td>{u.naoUsados ?? 0}</td>
+                <td className={u.dano > 0 ? 'pos' : ''}>{u.dano ?? 0}</td>
+                <td>{u.danoRecebido ?? 0}</td>
+                <td className={u.danoAliados > 0 ? 'neg' : ''}>{u.danoAliados ?? 0}</td>
+                <td className={u.inimigosCegos > 0 ? 'pos' : ''}>{u.inimigosCegos ?? 0}</td>
+                <td>{seg(u.tempoCegoInimigos)}</td>
+                <td className={u.flashAssists > 0 ? 'pos' : ''}>{u.flashAssists ?? 0}</td>
+                <td className={u.aliadosCegos > 0 ? 'neg' : ''}>{u.aliadosCegos ?? 0}</td>
+                <td>{seg(u.tempoCegoAliados)}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba }) {
   const doTime = jogadores.filter((e) => e.time === t).sort((a, b) => b.rating - a.rating)
   if (!doTime.length) return null
 
@@ -459,7 +537,7 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime }) {
   const [classe, texto] = !vencedor ? ['', 'EMPATE'] : vencedor === t ? ['win', 'VITÓRIA'] : ['loss', 'DERROTA']
 
   return (
-    <div className={`team-card team-${t}`}>
+    <div className={`team-card spot team-${t}`}>
       <div className="team-head">
         <span className={`team-score ${classe}`}>{placarTime}</span>
         <span className={`team-name t-${t}`}>{nomeTime(t)}</span>
@@ -482,6 +560,9 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime }) {
           )}
         </div>
       </div>
+      {aba === 'util' ? (
+        <TabelaUtil doTime={doTime} mvp={mvp} />
+      ) : (
       <div className="tabela">
         <table>
           <thead>
@@ -554,6 +635,7 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime }) {
           </tbody>
         </table>
       </div>
+      )}
     </div>
   )
 }
@@ -562,6 +644,12 @@ function Conteudo({ d }) {
   const [comecou, setComecou] = useState(false)
   // Outros mapas da mesma série: vêm com a página (deploy) e são conferidos de novo no histórico ao abrir
   const [jogos, setJogos] = useState(d.serieJogos ?? null)
+  // Anúncio da série (partidas/series.json): mapa ao vivo e cancelamento, antes de o mapa terminar
+  const [anuncio, setAnuncio] = useState(null)
+  useAoVivo('/partidas/series.json', (lista) => Array.isArray(lista) && setAnuncio(lista.find((a) => a.id === d.serie.id) || null), {
+    ativo: !!d.serie?.id,
+    selecionar: (lista) => (Array.isArray(lista) ? lista.find((a) => a.id === d.serie.id) || null : null),
+  })
   // Ao vivo: quando o próximo mapa da série termina, a página recarrega sozinha e mostra o resultado + link
   useAoVivo(
     '/partidas/partidas.json',
@@ -596,6 +684,9 @@ function Conteudo({ d }) {
   // Melhor rating primeiro (no empate, a ordem original)
   const porRating = [...jogadores].sort((a, b) => b.rating - a.rating)
   const mvp = jogadores.length ? maior(jogadores, (e) => e.rating) : null
+  // Aba das tabelas: geral ou utilitários (só aparece se a partida tiver os utilitários)
+  const temUtil = jogadores.some((e) => e.util)
+  const [aba, setAba] = useState('geral')
 
   return (
     <>
@@ -608,18 +699,31 @@ function Conteudo({ d }) {
       </div>
       <Banner d={d} nomeTime={nomeTime} vencedor={vencedor} porRating={porRating} comecou={comecou} />
       <main className="wrap">
-        {d.serie && <Serie serie={d.serie} nomeTime={nomeTime} jogos={jogos} caminhoAtual={d.caminho} />}
+        {d.serie && <Serie serie={d.serie} nomeTime={nomeTime} jogos={jogos} caminhoAtual={d.caminho} anuncio={anuncio} />}
         {mvp && <Destaques jogadores={jogadores} porRating={porRating} totalRounds={totalRounds} nomeTime={nomeTime} />}
         {d.rounds?.length > 0 && <Rounds d={d} nomeTime={nomeTime} />}
         {/* Tabelas: vencedor primeiro */}
         <section className="section revelar">
           <div className="section-head">
-            <span className="mono-label">PLACAR</span>
+            <span className="kicker">PLACAR</span>
             <h2>Estatísticas dos jogadores</h2>
           </div>
+          {temUtil && (
+            <div className="abas-tabela" role="tablist" aria-label="Estatísticas">
+              {[
+                ['geral', 'Resumo'],
+                ['util', 'Utilitários'],
+              ].map(([id, rotulo]) => (
+                <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'active' : ''} onClick={() => setAba(id)}>
+                  {rotulo}
+                </button>
+              ))}
+            </div>
+          )}
           {(vencedor === 'B' ? ['B', 'A'] : ['A', 'B']).map((t) => (
-            <TabelaTime key={t} d={d} t={t} jogadores={jogadores} vencedor={vencedor} mvp={mvp} totalRounds={totalRounds} nomeTime={nomeTime} />
+            <TabelaTime key={t} d={d} t={t} jogadores={jogadores} vencedor={vencedor} mvp={mvp} totalRounds={totalRounds} nomeTime={nomeTime} aba={aba} />
           ))}
+          {aba === 'util' && <GraficoUtil jogadores={jogadores} ordem={vencedor === 'B' ? ['B', 'A'] : ['A', 'B']} nomeTime={nomeTime} mvp={mvp} />}
         </section>
       </main>
       <p className="wrap gerado">Gerado pelo BaseComp em {dataBr(d.gerado)} · Rating HLTV 1.0</p>

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { ALL_MAPS, DEFAULT_POOL, POOL_SIZE, POOL_UPDATED, mapIcon, mapImage } from '../data/maps.js'
 import { FORMATS } from '../data/veto.js'
+import { FundoHero, Palavras } from '../../../comum/HeroFundo.jsx'
+import { useInclinar } from '../../../comum/efeitos.jsx'
 import { IconClock, IconPlay, IconShield, IconSwap, IconTarget } from './Icons.jsx'
 import TeamLogo, { MAX_LOGO_URL, logoValido } from './TeamLogo.jsx'
 import TeamCombo from './TeamCombo.jsx'
@@ -20,6 +22,7 @@ const FEATURES = [
 ]
 
 export default function Setup({ onStart }) {
+  const configRef = useInclinar(3) // formulário inclina de leve com o mouse
   const [teamA, setTeamA] = useState('')
   const [teamB, setTeamB] = useState('')
   // Logo de cada time por URL (opcional): aparece no veto e na página de estatísticas do servidor
@@ -96,20 +99,24 @@ export default function Setup({ onStart }) {
   return (
     <>
       <section className="hero">
-        <div className="hero-glow hero-glow-1" />
-        <div className="hero-glow hero-glow-2" />
+        <FundoHero quantidade={16} />
 
         <div className="wrap hero-inner">
           <div className="hero-copy">
-            <span className="hero-status">
+            <span className="hero-status fx-entra" style={{ '--e': 0 }}>
               <span className="dot-live" /> MAP VETO SYSTEM · CS2
             </span>
-            <h1>Pick &amp; Ban de mapas no padrão competitivo</h1>
-            <p className="lead">
+            <h1>
+              <Palavras texto="Pick & Ban de mapas no" />
+              <span className="fx-gradiente">
+                <Palavras texto="padrão competitivo" inicio={5} />
+              </span>
+            </h1>
+            <p className="lead fx-entra" style={{ '--e': 3 }}>
               Monte o confronto, defina o formato e conduza o veto exatamente como nos campeonatos de
               Counter-Strike 2 — até sobrar um único mapa.
             </p>
-            <div className="hero-actions">
+            <div className="hero-actions fx-entra" style={{ '--e': 4 }}>
               <button className="btn btn-primary btn-lg" disabled={!podeIniciar} onClick={start}>
                 <IconPlay /> Iniciar veto
               </button>
@@ -129,7 +136,7 @@ export default function Setup({ onStart }) {
           </div>
 
           <div className="hero-visual">
-            <div className="hud-frame">
+            <div className="hud-frame config-3d fx-entra" ref={configRef} style={{ '--e': 2 }}>
               <div className="config">
                 <div className="config-head">
                   <span className="mono-label">// CONFIGURAÇÃO DA PARTIDA</span>
@@ -243,12 +250,17 @@ export default function Setup({ onStart }) {
         </div>
       </section>
 
-      <div className="status-strip">
-        <div className="wrap">
-          {FEATURES.map((f) => (
-            <span key={f.text} className="status-item">
-              {f.icon} {f.text}
-            </span>
+      {/* Letreiro (estilo em comum/site.css): a lista vai repetida para a faixa não ter buraco em tela larga */}
+      <div className="letreiro" aria-label="Recursos">
+        <div className="letreiro-trilho">
+          {[0, 1].map((copia) => (
+            <div key={copia} className="letreiro-grupo" aria-hidden={copia === 1}>
+              {[...FEATURES, ...FEATURES].map((f, i) => (
+                <span key={i} className="faixa-item">
+                  {f.icon} {f.text}
+                </span>
+              ))}
+            </div>
           ))}
         </div>
       </div>
@@ -257,6 +269,9 @@ export default function Setup({ onStart }) {
         <div className="wrap">
           <div className="section-head-row">
             <div className="section-head">
+              <span className="kicker">
+                <b>01</b> Configuração do veto
+              </span>
               <h2>Map pool</h2>
               <p>
                 Selecione exatamente {POOL_SIZE} mapas para o veto. O padrão é o pool atual do Premier
@@ -281,7 +296,7 @@ export default function Setup({ onStart }) {
               return (
                 <button
                   key={m.id}
-                  className={`pool-item ${on ? 'on' : ''}`}
+                  className={`pool-item spot ${on ? 'on' : ''}`}
                   style={{ '--c1': m.colors[0], '--c2': m.colors[1], '--img': `url(${mapImage(m.id)})` }}
                   onClick={() => toggleMap(m.id)}
                   disabled={!on && pool.length >= POOL_SIZE}

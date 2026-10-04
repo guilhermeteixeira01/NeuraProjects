@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import Avisos from './Avisos.jsx'
+import { useLuzCursor } from './efeitos.jsx'
 import Nav from './Nav.jsx'
 import Rodape from './Rodape.jsx'
 
@@ -39,6 +40,13 @@ export function useRevelar(seletor = '.reveal', classe = 'is-visible', opcoes = 
 // Estrutura de toda página: menu, conteúdo, rodapé e avisos de novidade
 export default function Layout({ pagina, children }) {
   useRevelar()
+  useLuzCursor() // cards com a classe "spot" ganham a luz que segue o cursor
+  // Imagens não podem ser arrastadas (o CSS -webkit-user-drag não vale no Firefox)
+  useEffect(() => {
+    const bloquear = (e) => e.target instanceof HTMLImageElement && e.preventDefault()
+    document.addEventListener('dragstart', bloquear)
+    return () => document.removeEventListener('dragstart', bloquear)
+  }, [])
   return (
     <>
       <Nav pagina={pagina} />

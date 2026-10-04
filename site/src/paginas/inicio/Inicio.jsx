@@ -1,5 +1,10 @@
+import { useEffect, useState } from 'react'
 import Layout from '../../comum/Layout.jsx'
 import { CONFIG } from '../../comum/config.js'
+import { lerJson } from '../../comum/dados.js'
+import { Contador, useInclinar } from '../../comum/efeitos.jsx'
+import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
+import Letreiro from '../../comum/Letreiro.jsx'
 import { Icone } from '../../comum/Icones.jsx'
 
 const SETA = (
@@ -43,27 +48,31 @@ const IC_RELOGIO = (
   </>
 )
 const IC_ESCUDO = <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+const IC_ALVO = (
+  <>
+    <circle cx="12" cy="12" r="10" />
+    <circle cx="12" cy="12" r="6" />
+    <circle cx="12" cy="12" r="2" />
+  </>
+)
+const IC_PESSOAS = (
+  <>
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </>
+)
 
-const FAIXA = [
-  [
-    <>
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </>,
-    'Comunidade em primeiro lugar',
-  ],
-  [
-    <>
-      <circle cx="12" cy="12" r="10" />
-      <circle cx="12" cy="12" r="6" />
-      <circle cx="12" cy="12" r="2" />
-    </>,
-    'Foco no competitivo',
-  ],
+// Letreiro que passa sem parar embaixo do topo
+const LETREIRO = [
+  [IC_PESSOAS, 'Comunidade em primeiro lugar'],
+  [IC_ALVO, 'Foco no competitivo'],
   [IC_RELOGIO, 'Atualizações constantes'],
   [IC_ESCUDO, 'Gratuito para a comunidade'],
+  [IC_PICK, 'Pick & Ban de CS2'],
+  [IC_PARTIDAS, 'Estatísticas de cada mapa'],
+  [IC_SERVIDOR, 'Servidor competitivo'],
 ]
 
 const PRINCIPIOS = [
@@ -85,13 +94,7 @@ const PRINCIPIOS = [
     'Lados definidos pelo veto, round faca, pausa com regra e demo de todo mapa: o resultado fica registrado para qualquer um conferir.',
     'COMPETITIVO',
   ],
-  [
-    IC_RELOGIO,
-    'Sempre evoluindo',
-    'Os projetos recebem atualizações frequentes — e o que muda aparece primeiro na comunidade.',
-    'CONTÍNUO',
-    'verde',
-  ],
+  [IC_RELOGIO, 'Sempre evoluindo', 'Os projetos recebem atualizações frequentes — e o que muda aparece primeiro na comunidade.', 'CONTÍNUO'],
 ]
 
 const FICHA = [
@@ -112,30 +115,52 @@ function LinkDiscord({ className, children }) {
   )
 }
 
+// Números do servidor (contam ao aparecer): mapas jogados, jogadores no ranking, kills
+function useNumeros() {
+  const [n, setN] = useState({ mapas: null, jogadores: null, kills: null })
+  useEffect(() => {
+    Promise.all([lerJson('/partidas/partidas.json'), lerJson('/ranking/ranking.json')]).then(([lista, ranking]) => {
+      const jogadores = Array.isArray(ranking?.jogadores) ? ranking.jogadores : []
+      setN({
+        mapas: Array.isArray(lista) ? lista.length : 0,
+        jogadores: jogadores.length,
+        kills: jogadores.reduce((s, j) => s + (j.kills || 0), 0),
+      })
+    })
+  }, [])
+  return n
+}
+
 export default function Inicio() {
   const launcher = CONFIG.launcherAtivo
+  const painel = useInclinar(7)
+  const numeros = useNumeros()
+
   return (
     <Layout pagina="inicio">
-      <main>
+      <main className="inicio">
         {/* TOPO */}
-        <section className="hero">
-          <div className="hero-glow hero-glow-1" />
-          <div className="hero-glow hero-glow-2" />
+        <section className="hero hx">
+          <FundoHero quantidade={18} />
+
           <div className="wrap hero-inner">
-            <div className="reveal">
-              <span className="chip">
+            <div className="hx-texto">
+              <span className="chip fx-entra" style={{ '--e': 0 }}>
                 <span className="ponto" />
                 ESTÚDIO INDEPENDENTE · BRASIL
               </span>
-              <h1>
-                Jogos e ferramentas feitos por <span className="destaque">quem joga.</span>
+              <h1 className="hx-titulo">
+                <Palavras texto="Jogos e ferramentas feitos por" />
+                <span className="fx-gradiente">
+                  <Palavras texto="quem joga." inicio={5} />
+                </span>
               </h1>
-              <p className="lead">
+              <p className="lead fx-entra" style={{ '--e': 4 }}>
                 A Neura Project é um pequeno estúdio focado em jogos. Criamos ferramentas para a comunidade competitiva — do
                 launcher que organiza seus jogos ao Pick &amp; Ban e às estatísticas das partidas do nosso servidor.
               </p>
-              <div className="hero-acoes">
-                <a className="btn btn-primary btn-lg" href="#projetos">
+              <div className="hero-acoes fx-entra" style={{ '--e': 5 }}>
+                <a className="btn btn-primary btn-lg btn-brilho" href="#projetos">
                   <Icone tamanho={15} traco={2.4}>
                     <rect x="3" y="3" width="7" height="7" rx="1" />
                     <rect x="14" y="3" width="7" height="7" rx="1" />
@@ -144,85 +169,118 @@ export default function Inicio() {
                   </Icone>
                   Ver projetos
                 </a>
-                <LinkDiscord className="btn btn-ghost btn-lg">Entrar na comunidade</LinkDiscord>
+                <LinkDiscord className="btn btn-ghost btn-lg btn-borda">Entrar na comunidade</LinkDiscord>
               </div>
-              <div className="hero-meta">
-                <span>LAUNCHER</span>
-                <span className="sep">/</span>
-                <span>PICK &amp; BAN</span>
-                <span className="sep">/</span>
-                <span>SERVIDOR CS2</span>
-                <span className="sep">/</span>
-                <span>ESTATÍSTICAS</span>
-              </div>
+              <dl className="hx-numeros fx-entra" style={{ '--e': 6 }}>
+                <div>
+                  <dt>MAPAS JOGADOS</dt>
+                  <dd>
+                    <Contador valor={numeros.mapas} />
+                  </dd>
+                </div>
+                <div>
+                  <dt>JOGADORES</dt>
+                  <dd>
+                    <Contador valor={numeros.jogadores} />
+                  </dd>
+                </div>
+                <div>
+                  <dt>KILLS</dt>
+                  <dd>
+                    <Contador valor={numeros.kills} />
+                  </dd>
+                </div>
+              </dl>
             </div>
 
-            <div className="hud-frame reveal" style={{ '--d': '.12s' }}>
-              <div className="painel">
-                <div className="painel-head">
-                  <span className="mono">// PROJETOS NEURA</span>
-                  <span className="luzes" aria-hidden="true">
-                    <i />
-                    <i />
-                    <i />
-                  </span>
-                </div>
-                <a className="painel-linha" href="/launcher/">
-                  <span className="ico">
-                    <Icone>{IC_LAUNCHER}</Icone>
-                  </span>
-                  <span>
-                    <b>Neura Launcher</b>
-                    <small>Seus jogos num só lugar</small>
-                  </span>
-                  <span className={`estado${launcher ? '' : ' breve'}`}>{launcher ? 'DISPONÍVEL' : 'EM BREVE'}</span>
-                </a>
-                <a className="painel-linha" href="/neurapick/">
-                  <span className="ico">
-                    <Icone>{IC_PICK}</Icone>
-                  </span>
-                  <span>
-                    <b>NeuraPick</b>
-                    <small>Pick &amp; Ban de mapas do CS2</small>
-                  </span>
-                  <span className="estado">ONLINE</span>
-                </a>
-                <a className="painel-linha" href="/partidas/">
-                  <span className="ico">
-                    <Icone>{IC_PARTIDAS}</Icone>
-                  </span>
-                  <span>
-                    <b>Partidas</b>
-                    <small>Estatísticas de cada mapa jogado</small>
-                  </span>
-                  <span className="estado">ONLINE</span>
-                </a>
-                <div className="painel-rodape">
-                  <span className="mono">FEITO NO BRASIL</span>
-                  <span className="mono">EM DESENVOLVIMENTO ATIVO</span>
+            {/* Painel com inclinação 3D e borda luminosa girando */}
+            <div className="hx-cena fx-entra" style={{ '--e': 3 }}>
+              <div className="hx-radar" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+              </div>
+              <div className="hx-painel" ref={painel}>
+                <div className="painel">
+                  <div className="painel-head">
+                    <span className="mono">
+                      <span className="hx-pisca">▮</span> PROJETOS NEURA
+                    </span>
+                    <span className="luzes" aria-hidden="true">
+                      <i />
+                      <i />
+                      <i />
+                    </span>
+                  </div>
+                  <a className="painel-linha spot" href="/launcher/">
+                    <span className="ico">
+                      <Icone>{IC_LAUNCHER}</Icone>
+                    </span>
+                    <span>
+                      <b>Neura Launcher</b>
+                      <small>Seus jogos num só lugar</small>
+                    </span>
+                    <span className={`estado${launcher ? '' : ' breve'}`}>{launcher ? 'DISPONÍVEL' : 'EM BREVE'}</span>
+                  </a>
+                  <a className="painel-linha spot" href="/neurapick/">
+                    <span className="ico">
+                      <Icone>{IC_PICK}</Icone>
+                    </span>
+                    <span>
+                      <b>NeuraPick</b>
+                      <small>Pick &amp; Ban de mapas do CS2</small>
+                    </span>
+                    <span className="estado">ONLINE</span>
+                  </a>
+                  <a className="painel-linha spot" href="/partidas/">
+                    <span className="ico">
+                      <Icone>{IC_PARTIDAS}</Icone>
+                    </span>
+                    <span>
+                      <b>Partidas</b>
+                      <small>Estatísticas de cada mapa jogado</small>
+                    </span>
+                    <span className="estado">ONLINE</span>
+                  </a>
+                  <a className="painel-linha spot" href="/ranking/">
+                    <span className="ico">
+                      <Icone>
+                        <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z" />
+                        <path d="M17 6h3v2a3 3 0 0 1-3 3M7 6H4v2a3 3 0 0 0 3 3" />
+                      </Icone>
+                    </span>
+                    <span>
+                      <b>Ranking</b>
+                      <small>Top 15 jogadores do servidor</small>
+                    </span>
+                    <span className="estado">ONLINE</span>
+                  </a>
+                  <div className="painel-rodape">
+                    <span className="mono">FEITO NO BRASIL</span>
+                    <span className="mono hx-sys">
+                      <i /> SISTEMAS OPERANDO
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+
+          <a className="hx-rolar" href="#projetos" aria-label="Ir para os projetos">
+            <span />
+          </a>
         </section>
 
-        {/* FAIXA */}
-        <div className="faixa">
-          <div className="wrap">
-            {FAIXA.map(([icone, texto]) => (
-              <span key={texto} className="faixa-item">
-                <Icone tamanho={15}>{icone}</Icone>
-                {texto}
-              </span>
-            ))}
-          </div>
-        </div>
+        {/* LETREIRO */}
+        <Letreiro itens={LETREIRO} />
 
         {/* PROJETOS */}
         <section className="secao" id="projetos">
           <div className="wrap">
             <div className="secao-head reveal">
-              <span className="mono">// O QUE FAZEMOS</span>
+              <span className="kicker">
+                <b>01</b> O QUE FAZEMOS
+              </span>
               <h2>Nossos projetos</h2>
               <p>
                 Cada projeto nasce de um problema real de quem joga: organizar os jogos, montar o veto de um campeonato,
@@ -231,65 +289,90 @@ export default function Inicio() {
             </div>
 
             <div className="projetos">
-              <a className="projeto reveal" href="/launcher/" style={{ '--cor': 'var(--blue-2)', '--brilho': 'rgba(26,115,232,.14)' }}>
-                <div className="projeto-topo">
-                  <span className="ico">
-                    <Icone tamanho={20}>{IC_LAUNCHER}</Icone>
-                  </span>
-                  <span className={`tag ${launcher ? 'verde' : 'amarelo'}`}>{launcher ? 'DISPONÍVEL' : 'EM BREVE'}</span>
-                </div>
-                <h3>Neura Launcher</h3>
-                <p>
-                  Um launcher para vários jogos: encontra suas instalações, mantém tudo atualizado e reúne amigos, chat,
-                  servidores e notícias num só lugar.
-                </p>
-                <span className="projeto-link">Conhecer o launcher {SETA}</span>
-              </a>
-
-              <a className="projeto reveal" href="/neurapick/" style={{ '--d': '.06s', '--cor': 'var(--green)', '--brilho': 'rgba(61,220,132,.10)' }}>
-                <div className="projeto-topo">
-                  <span className="ico">
-                    <Icone tamanho={20}>{IC_PICK}</Icone>
-                  </span>
-                  <span className="tag verde">ONLINE</span>
-                </div>
-                <h3>NeuraPick — Pick &amp; Ban</h3>
-                <p>
-                  Veto de mapas do CS2 no padrão dos campeonatos: MD1, MD3 e MD5, escolha de lado, decider, timer e logo dos
-                  times. No fim, um comando configura a série inteira no servidor.
-                </p>
-                <span className="projeto-link">Fazer um veto {SETA}</span>
-              </a>
-
-              <a className="projeto reveal" href="/partidas/" style={{ '--d': '.12s', '--cor': 'var(--orange)', '--brilho': 'rgba(255,122,26,.10)' }}>
-                <div className="projeto-topo">
-                  <span className="ico">
-                    <Icone tamanho={20}>{IC_PARTIDAS}</Icone>
-                  </span>
-                  <span className="tag verde">ONLINE</span>
-                </div>
-                <h3>Partidas e estatísticas</h3>
-                <p>
-                  Cada mapa jogado no nosso servidor vira uma página: placar, rounds, rating, ADR, KAST, destaques e a demo para
-                  baixar — separados por MD1, MD3, MD5 e partidas normais.
-                </p>
-                <span className="projeto-link">Ver partidas {SETA}</span>
-              </a>
-
-              <div className="projeto reveal" style={{ '--d': '.18s', '--cor': 'var(--yellow)', '--brilho': 'rgba(245,197,66,.08)' }}>
-                <div className="projeto-topo">
-                  <span className="ico">
-                    <Icone tamanho={20}>{IC_SERVIDOR}</Icone>
-                  </span>
-                  <span className="tag">CS2</span>
-                </div>
-                <h3>Servidor competitivo</h3>
-                <p>
-                  Nosso servidor de CS2 com espera 5x5, round faca, séries do NeuraPick, pausa igual GC, demos gravadas
-                  automaticamente e chat com cargos.
-                </p>
-                <LinkDiscord className="projeto-link">Jogar com a gente {SETA}</LinkDiscord>
-              </div>
+              {[
+                {
+                  href: '/neurapick/',
+                  cor: 'var(--green)',
+                  brilho: 'rgba(61,220,132,.16)',
+                  icone: IC_PICK,
+                  tag: ['ONLINE', 'verde'],
+                  titulo: 'NeuraPick — Pick & Ban',
+                  texto:
+                    'Veto de mapas do CS2 no padrão dos campeonatos: MD1, MD3 e MD5, escolha de lado, decider, timer e logo dos times. No fim, um comando configura a série inteira no servidor.',
+                  link: 'Fazer um veto',
+                  grande: true,
+                },
+                {
+                  href: '/partidas/',
+                  cor: 'var(--orange)',
+                  brilho: 'rgba(255,122,26,.14)',
+                  icone: IC_PARTIDAS,
+                  tag: ['ONLINE', 'verde'],
+                  titulo: 'Partidas e estatísticas',
+                  texto:
+                    'Cada mapa jogado no servidor vira uma página: placar, rounds, rating, ADR, KAST, destaques e a demo para baixar — com as séries MD3/MD5 ao vivo.',
+                  link: 'Ver partidas',
+                },
+                {
+                  href: '/launcher/',
+                  cor: 'var(--blue-2)',
+                  brilho: 'rgba(26,115,232,.18)',
+                  icone: IC_LAUNCHER,
+                  tag: launcher ? ['DISPONÍVEL', 'verde'] : ['EM BREVE', 'amarelo'],
+                  titulo: 'Neura Launcher',
+                  texto:
+                    'Um launcher para vários jogos: encontra suas instalações, mantém tudo atualizado e reúne amigos, chat, servidores e notícias num só lugar.',
+                  link: 'Conhecer o launcher',
+                },
+                {
+                  discord: true,
+                  cor: 'var(--yellow)',
+                  brilho: 'rgba(245,197,66,.12)',
+                  icone: IC_SERVIDOR,
+                  tag: ['CS2', ''],
+                  titulo: 'Servidor competitivo',
+                  texto:
+                    'Nosso servidor de CS2 com espera 5x5, round faca, séries do NeuraPick, pausa igual GC, demos gravadas automaticamente e chat com cargos.',
+                  link: 'Jogar com a gente',
+                  grande: true,
+                },
+              ].map((p, i) => {
+                const conteudo = (
+                  <>
+                    <span className="projeto-num">0{i + 1}</span>
+                    <div className="projeto-topo">
+                      <span className="ico">
+                        <Icone tamanho={22}>{p.icone}</Icone>
+                      </span>
+                      <span className={`tag ${p.tag[1]}`}>{p.tag[0]}</span>
+                    </div>
+                    <h3>{p.titulo}</h3>
+                    <p>{p.texto}</p>
+                    <span className="projeto-link">
+                      {p.link} {SETA}
+                    </span>
+                  </>
+                )
+                const props = {
+                  className: `projeto spot reveal${p.grande ? ' grande' : ''}`,
+                  style: { '--d': `${i * 0.07}s`, '--cor': p.cor, '--brilho': p.brilho },
+                }
+                if (p.discord)
+                  return CONFIG.discord ? (
+                    <a key={i} {...props} href={CONFIG.discord} target="_blank" rel="noopener">
+                      {conteudo}
+                    </a>
+                  ) : (
+                    <div key={i} {...props}>
+                      {conteudo}
+                    </div>
+                  )
+                return (
+                  <a key={i} {...props} href={p.href}>
+                    {conteudo}
+                  </a>
+                )
+              })}
             </div>
           </div>
         </section>
@@ -298,8 +381,10 @@ export default function Inicio() {
         <section className="secao" id="sobre">
           <div className="wrap sobre">
             <div className="sobre-texto reveal">
-              <span className="mono">// SOBRE A NEURA</span>
               <div className="secao-head" style={{ marginBottom: 22 }}>
+                <span className="kicker">
+                  <b>02</b> SOBRE A NEURA
+                </span>
                 <h2>Um estúdio pequeno, feito por jogadores</h2>
               </div>
               <p>
@@ -318,6 +403,7 @@ export default function Inicio() {
             </div>
             <div className="hud-frame reveal" style={{ '--d': '.1s' }}>
               <div className="ficha">
+                <div className="ficha-scan" aria-hidden="true" />
                 {FICHA.map(([rotulo, valor]) => (
                   <div key={rotulo} className="ficha-linha">
                     <span className="mono">{rotulo}</span>
@@ -333,39 +419,49 @@ export default function Inicio() {
         <section className="secao">
           <div className="wrap">
             <div className="secao-head reveal">
-              <span className="mono">// COMO TRABALHAMOS</span>
+              <span className="kicker">
+                <b>03</b> COMO TRABALHAMOS
+              </span>
               <h2>O que guia cada projeto</h2>
             </div>
-            <div className="spec-list">
-              {PRINCIPIOS.map(([icone, titulo, texto, tag, corTag], i) => (
-                <div key={titulo} className="spec-row reveal" style={i ? { '--d': `${i * 0.05}s` } : undefined}>
-                  <div className="spec-icon">
+            <ol className="trilha">
+              {PRINCIPIOS.map(([icone, titulo, texto, tag], i) => (
+                <li key={titulo} className="trilha-item spot reveal" style={{ '--d': `${i * 0.08}s`, '--n': i }}>
+                  <span className="trilha-no">
                     <Icone>{icone}</Icone>
-                  </div>
-                  <div className="spec-body">
+                  </span>
+                  <div className="trilha-corpo">
+                    <span className="mono">
+                      {String(i + 1).padStart(2, '0')} · {tag}
+                    </span>
                     <h3>{titulo}</h3>
                     <p>{texto}</p>
                   </div>
-                  <div className={`tag${corTag ? ` ${corTag}` : ''}`}>{tag}</div>
-                </div>
+                </li>
               ))}
-            </div>
+            </ol>
           </div>
         </section>
 
         {/* COMUNIDADE */}
-        <section className="cta">
-          <div className="wrap cta-inner reveal">
-            <span className="mono">// COMUNIDADE</span>
-            <h2 style={{ marginTop: 8 }}>Joga com a gente?</h2>
-            <p className="lead">
-              Entre no Discord para jogar no servidor, participar dos campeonatos e acompanhar o que estamos criando.
-            </p>
-            <div className="cta-acoes">
-              <LinkDiscord className="btn btn-discord btn-lg">Entrar no Discord</LinkDiscord>
-              <a className="btn btn-ghost btn-lg" href="/partidas/">
-                Ver últimas partidas
-              </a>
+        <section className="cta cta-painel">
+          <div className="wrap">
+            <div className="cta-x spot reveal">
+              <div className="cta-inner">
+                <span className="kicker">
+                  <b>04</b> COMUNIDADE
+                </span>
+                <h2>Joga com a gente?</h2>
+                <p className="lead">
+                  Entre no Discord para jogar no servidor, participar dos campeonatos e acompanhar o que estamos criando.
+                </p>
+                <div className="cta-acoes">
+                  <LinkDiscord className="btn btn-discord btn-lg btn-brilho">Entrar no Discord</LinkDiscord>
+                  <a className="btn btn-ghost btn-lg btn-borda" href="/partidas/">
+                    Ver últimas partidas
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </section>

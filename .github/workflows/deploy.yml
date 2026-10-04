@@ -38,13 +38,16 @@ jobs:
       # Cada partida que o plugin envia é um commit, então dispara este deploy.
       # Histórico que estava no ar antes deste deploy (para saber quais partidas são novas e avisar por push)
       - name: Guardar histórico publicado
-        run: curl -fsS "https://neuraproject.com.br/partidas/partidas.json?t=$(date +%s)" -o antes.json || echo "null" > antes.json
+        run: |
+          curl -fsS "https://neuraproject.com.br/partidas/partidas.json?t=$(date +%s)" -o antes.json || echo "null" > antes.json
+          # séries anunciadas (primeira vez: ainda não existe no site, conta como lista vazia)
+          curl -fsS "https://neuraproject.com.br/partidas/series.json?t=$(date +%s)" -o antes-series.json || echo "[]" > antes-series.json
 
       - name: Montar site
         run: node site/scripts/gerar-site.mjs --dados . --saida _site
 
       - name: Preparar avisos de partida
-        run: node site/scripts/notificar.mjs preparar antes.json _site/partidas/partidas.json avisos.json
+        run: node site/scripts/notificar.mjs preparar antes.json _site/partidas/partidas.json avisos.json antes-series.json _site/partidas/series.json
 
       - uses: actions/upload-artifact@v4
         with:

@@ -566,3 +566,333 @@ html.nx-menu-aberto {
     animation: none;
   }
 }
+
+/* Menu ao rolar a página: vidro mais forte e linha luminosa embaixo */
+.nx-nav {
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.nx-nav::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--blue-2), var(--green), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.nx-nav.is-scrolled {
+  background: rgba(9, 10, 13, 0.94);
+  box-shadow: 0 12px 30px -18px rgba(0, 0, 0, 0.95);
+}
+.nx-nav.is-scrolled::after {
+  opacity: 0.6;
+}
+.nx-links .nx-link::before {
+  content: '';
+  position: absolute;
+  inset: 4px 6px;
+  border-radius: 7px;
+  background: radial-gradient(80px circle at 50% 120%, rgba(52, 152, 219, 0.18), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.nx-links .nx-link:hover::before {
+  opacity: 1;
+}
+/* Rodapé: linha luminosa no topo */
+.nx-footer {
+  position: relative;
+}
+.nx-footer::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(52, 152, 219, 0.6), rgba(61, 220, 132, 0.5), transparent);
+}
+
+/* ══════════════ Efeitos futuristas compartilhados (todas as páginas) ══════════════
+   Topo: <FundoHero /> (comum/HeroFundo.jsx) põe brilhos, chão de grade em perspectiva e partículas.
+   Títulos: <Palavras /> (entram palavra por palavra) e .fx-gradiente (gradiente azul/verde andando).
+   Cards: .fx-card + .spot (luz que segue o cursor e borda que acende). Tudo para em prefers-reduced-motion. */
+.fx-fundo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.fx-chao {
+  position: absolute;
+  left: -50%;
+  right: -50%;
+  bottom: -10%;
+  height: 62%;
+  transform: perspective(520px) rotateX(62deg);
+  transform-origin: bottom;
+  background-image:
+    linear-gradient(rgba(52, 152, 219, 0.24) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(52, 152, 219, 0.24) 1px, transparent 1px);
+  background-size: 56px 56px;
+  animation: fx-chao 3.2s linear infinite;
+  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent 85%);
+  mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent 85%);
+}
+@keyframes fx-chao {
+  to {
+    background-position: 0 56px;
+  }
+}
+.fx-particulas i {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: var(--blue-2);
+  box-shadow: 0 0 10px var(--blue-2);
+  opacity: 0;
+  animation: fx-particula var(--t) linear infinite;
+  animation-delay: var(--d);
+}
+.fx-particulas i:nth-child(3n) {
+  background: var(--green);
+  box-shadow: 0 0 10px var(--green);
+}
+@keyframes fx-particula {
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  15%,
+  70% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-160px);
+  }
+}
+
+/* Entrada em cascata no carregamento (--e = ordem) */
+.fx-entra {
+  animation: fx-entra 0.9s cubic-bezier(0.16, 0.84, 0.44, 1) both;
+  animation-delay: calc(var(--e, 0) * 0.12s + 0.1s);
+}
+@keyframes fx-entra {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+    filter: blur(6px);
+  }
+}
+/* Título palavra por palavra */
+.fx-palavra {
+  display: inline-block;
+  animation: fx-palavra 0.8s cubic-bezier(0.16, 0.84, 0.44, 1) both;
+  animation-delay: calc(var(--w) * 0.07s + 0.15s);
+}
+@keyframes fx-palavra {
+  from {
+    opacity: 0;
+    transform: translateY(0.6em) rotateX(-40deg);
+    filter: blur(8px);
+  }
+}
+/* Texto com gradiente azul → verde andando */
+.fx-gradiente,
+.fx-gradiente .fx-palavra {
+  background: linear-gradient(90deg, var(--blue-2), var(--green), var(--blue-2), var(--green));
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.fx-gradiente {
+  white-space: nowrap;
+  animation: fx-gradiente 6s linear infinite;
+}
+.fx-gradiente .fx-palavra {
+  background: inherit;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+@keyframes fx-gradiente {
+  to {
+    background-position: 300% 0;
+  }
+}
+
+/* Card com luz seguindo o cursor (precisa da classe .spot) e borda que acende na cor --cor */
+.fx-card {
+  position: relative;
+  isolation: isolate;
+  transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+}
+.fx-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 0%), var(--fx-brilho, rgba(26, 115, 232, 0.1)), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.fx-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), var(--cor, var(--blue-2)), transparent 70%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.fx-card:hover::before,
+.fx-card:hover::after {
+  opacity: 1;
+}
+.fx-card:hover {
+  box-shadow: 0 26px 50px -30px rgba(0, 0, 0, 0.95), 0 0 40px -26px var(--cor, var(--blue-2));
+}
+
+/* Moldura fixa em gradiente (azul → verde) com o brilho de fora pulsando devagar */
+.fx-moldura {
+  position: relative;
+  border-radius: 16px;
+  padding: 1px;
+  background: linear-gradient(160deg, rgba(52, 152, 219, 0.75), rgba(46, 47, 54, 0.6) 45%, rgba(61, 220, 132, 0.6));
+  animation: fx-pulsa 4s ease-in-out infinite;
+  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.9), 0 0 60px -20px rgba(26, 115, 232, 0.45);
+}
+.fx-moldura > * {
+  border-radius: 15px;
+}
+@keyframes fx-pulsa {
+  50% {
+    box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.9), 0 0 70px -14px rgba(26, 115, 232, 0.6);
+  }
+}
+
+/* Cabeçalho de seção: "01 ── TÍTULO" (também em páginas que não usam paginas.css) */
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: var(--dim-2);
+  text-transform: uppercase;
+}
+.kicker b {
+  color: var(--blue-2);
+  font-weight: 700;
+}
+.kicker::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--green);
+  box-shadow: 0 0 10px var(--green);
+  transform: rotate(45deg);
+}
+.kicker::after {
+  content: '';
+  width: 56px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--blue-2), transparent);
+}
+
+/* ══════════════ LETREIRO (faixa de destaques passando: comum/Letreiro.jsx) ══════════════ */
+.letreiro {
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-soft);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+.letreiro-trilho {
+  display: flex;
+  width: max-content;
+  animation: letreiro 38s linear infinite;
+}
+.letreiro:hover .letreiro-trilho {
+  animation-play-state: paused;
+}
+.letreiro-grupo {
+  display: flex;
+  gap: 54px;
+  padding: 20px 27px;
+}
+.letreiro .faixa-item {
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0.3px;
+}
+.letreiro .faixa-item svg {
+  color: var(--green);
+}
+@keyframes letreiro {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.letreiro .faixa-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--dim);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .letreiro-trilho,
+  .fx-chao,
+  .fx-particulas i,
+  .fx-entra,
+  .fx-palavra,
+  .fx-gradiente,
+  .fx-moldura {
+    animation: none !important;
+  }
+}
+
+/* Sem seleção de texto ao clicar e arrastar (nem arrastar imagens) no site inteiro.
+   Campos de digitação continuam selecionáveis, senão não dá para editar o que se digita. */
+html,
+body,
+#root,
+#root * {
+  -webkit-user-select: none;
+  user-select: none;
+}
+input,
+textarea,
+select,
+[contenteditable='true'] {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+}

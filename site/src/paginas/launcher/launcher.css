@@ -79,3 +79,21 @@
   border: 1px solid var(--border-2); background: none; color: var(--dim); cursor: pointer;
 }
 
+
+/* Prévia do app inclinando com o mouse (--rx/--ry vêm de useInclinar) */
+.preview {
+  perspective: 1100px;
+}
+.preview-3d {
+  --rx: 0deg;
+  --ry: 0deg;
+  transform: rotateX(var(--rx)) rotateY(var(--ry));
+  transition: transform 0.25s ease-out;
+  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.9), 0 0 60px -24px rgba(26, 115, 232, 0.5);
+}
+.jogo {
+  min-height: 72px;
+}
+.cta-x .cta-nota a {
+  color: var(--dim-2);
+}
