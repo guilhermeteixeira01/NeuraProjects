@@ -50,7 +50,7 @@ export async function gerarRanking(pasta, { premier = true } = {}) {
       const j = jogadores.get(e.steamId) || {
         steamId: e.steamId, nome: '', avatar: '', time: '', logoTime: '',
         mapas: 0, vitorias: 0, rounds: 0, kills: 0, mortes: 0, assist: 0, hs: 0, dano: 0, kastRounds: 0,
-        fk: 0, fd: 0, k5: 0, k4: 0, k3: 0, k2: 0, mvps: 0, mvpPartida: 0, ratingSoma: 0, melhorRating: 0, ultimos: [],
+        fk: 0, fd: 0, k5: 0, k4: 0, k3: 0, k2: 0, mvps: 0, mvpPartida: 0, ratingSoma: 0, melhorRating: 0, ultimos: [], historico: [],
       }
       const venceu = vencedor === e.time
       j.nome = e.nome || j.nome
@@ -78,6 +78,25 @@ export async function gerarRanking(pasta, { premier = true } = {}) {
       j.melhorRating = Math.max(j.melhorRating, e.rating)
       j.ultimos.push({ rating: e.rating, venceu, mapa: String(d.mapa || '').replace(/^de_/, ''), data: p.data, caminho: p.caminho || p.nome })
       if (j.ultimos.length > ULTIMOS) j.ultimos.shift()
+      // Histórico completo (página de perfil): um arquivo por jogador, fora do ranking.json
+      const meu = e.time === 'A' ? 'A' : 'B'
+      j.historico.push({
+        caminho: p.caminho || p.nome,
+        data: p.data,
+        mapa: d.mapa,
+        serie: p.serie || '',
+        time: meu === 'A' ? d.timeA : d.timeB,
+        adversario: meu === 'A' ? d.timeB : d.timeA,
+        placar: meu === 'A' ? [d.placarA, d.placarB] : [d.placarB, d.placarA],
+        venceu,
+        mvp: e === mvp,
+        rating: e.rating,
+        kills: e.kills,
+        mortes: e.mortes,
+        assist: e.assistencias,
+        adr: Math.round((10 * e.dano) / rounds) / 10,
+        hs: e.kills ? Math.round((100 * e.headshots) / e.kills) : 0,
+      })
       jogadores.set(e.steamId, j)
       leu = true
     }
@@ -120,5 +139,7 @@ export async function gerarRanking(pasta, { premier = true } = {}) {
     }))
     .sort((a, b) => b.rating - a.rating || b.kills - a.kills)
 
-  return { atualizado: new Date().toISOString(), partidas: mapasLidos, jogadores: ranking }
+  // historicos: { steamId: [mapas, mais recente primeiro] } (gerar-site grava em perfil/historico/<id>.json)
+  const historicos = Object.fromEntries([...jogadores.values()].map((j) => [j.steamId, j.historico.reverse()]))
+  return { atualizado: new Date().toISOString(), partidas: mapasLidos, jogadores: ranking, historicos }
 }

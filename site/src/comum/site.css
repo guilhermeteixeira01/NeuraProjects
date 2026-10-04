@@ -170,6 +170,111 @@
   background: rgba(88, 101, 242, 0.08);
 }
 
+/* Login pela Steam */
+.nx-steam {
+  border-color: var(--border-2);
+  color: var(--text);
+  background: linear-gradient(135deg, rgba(26, 115, 232, 0.16), rgba(26, 115, 232, 0.04));
+  cursor: pointer;
+  font-family: inherit;
+}
+.nx-steam:hover {
+  border-color: var(--blue-2);
+  background: rgba(26, 115, 232, 0.2);
+}
+.nx-conta {
+  position: relative;
+}
+.nx-conta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 190px;
+  padding: 4px 12px 4px 4px;
+  border-radius: 999px;
+  border: 1px solid var(--border-2);
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.nx-conta-btn:hover,
+.nx-conta-btn[aria-expanded='true'] {
+  border-color: var(--blue-2);
+}
+.nx-conta-btn img,
+.nx-conta-ini {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex: none;
+  object-fit: cover;
+}
+.nx-conta-ini {
+  display: grid;
+  place-items: center;
+  background: var(--panel-2);
+  font-size: 11px;
+  color: var(--dim);
+}
+.nx-conta-nome {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nx-conta-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 320;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid var(--border-2);
+  background: rgba(14, 15, 19, 0.98);
+  box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.9);
+  animation: nx-descer 0.15s ease;
+}
+.nx-conta-menu a,
+.nx-conta-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 9px 12px;
+  border-radius: 7px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.nx-conta-menu a:hover,
+.nx-conta-menu button:hover {
+  background: rgba(26, 115, 232, 0.14);
+}
+.nx-conta-menu button {
+  color: #f07a85;
+}
+@media (max-width: 900px) {
+  .nx-conta-nome,
+  .nx-steam span {
+    display: none;
+  }
+  .nx-conta-btn {
+    padding: 3px;
+  }
+  .nx-steam {
+    padding: 8px 10px;
+  }
+}
+
 .nx-burger {
   display: none;
   width: 40px;

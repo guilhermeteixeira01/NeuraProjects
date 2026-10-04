@@ -1,0 +1,13 @@
+# Login pela Steam do site (Cloudflare Worker). Publicar: npx wrangler deploy (nesta pasta)
+name = "neura-steam-login"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+SITE = "https://neuraproject.com.br"
+# Para testar no `npm run dev`, descomente:
+# ORIGENS_EXTRAS = "http://localhost:5173"
+
+# Segredos (não ficam neste arquivo):
+#   npx wrangler secret put SEGREDO        -> texto aleatório longo (obrigatório)
+#   npx wrangler secret put STEAM_API_KEY  -> chave de https://steamcommunity.com/dev/apikey (opcional)
