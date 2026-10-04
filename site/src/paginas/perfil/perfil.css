@@ -82,7 +82,8 @@
 .pf-vd .v, .pf-res.v { color: var(--green); }
 .pf-vd .d, .pf-res.d { color: #ff6b6b; }
 
-/* Histórico */
+/* Histórico (rola de lado no celular) */
+.pf-hist-card .tabela { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .pf-hist-card table { width: 100%; border-collapse: collapse; min-width: 760px; }
 .pf-hist-card th, .pf-hist-card td { padding: 10px 8px; text-align: center; white-space: nowrap; font-size: 13.5px; }
 .pf-hist-card th { font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 1.5px; color: var(--dim-2); background: var(--bg-soft); }
