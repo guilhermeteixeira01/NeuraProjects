@@ -63,3 +63,25 @@ export function novidadesEntre(antes, depois, limite = 3) {
   }
   return avisos
 }
+
+// Avisos das séries anunciadas pelo plugin (partidas/series.json): série nova ("iniciando") e
+// série cancelada antes de qualquer mapa terminar (a cancelada com mapa jogado já avisa pelo histórico).
+export function novidadesSeries(antes, depois) {
+  const eraCancelada = new Set(antes.filter((a) => a.status === 'cancelada').map((a) => a.id))
+  const existia = new Set(antes.map((a) => a.id))
+  const avisos = []
+  for (const a of depois) {
+    const org = String(a.organizacao || '').toUpperCase()
+    const cabeca = `${org ? `${org} · ` : ''}${NOMES_CAT[a.categoria] || a.formato || 'Série'}`
+    if (!existia.has(a.id) && a.status !== 'cancelada')
+      avisos.push({
+        id: `serie-${a.id}`,
+        titulo: `${cabeca} iniciando`,
+        texto: `${a.timeA} x ${a.timeB}\nMapas: ${(a.mapas || []).map(nomeMapa).join(', ')}`,
+        link: '/partidas/',
+      })
+    else if (a.status === 'cancelada' && existia.has(a.id) && !eraCancelada.has(a.id))
+      avisos.push({ id: `serie-cancelada-${a.id}`, titulo: `${cabeca} cancelada`, texto: `${a.timeA} x ${a.timeB} · a série foi cancelada no servidor`, link: '/partidas/' })
+  }
+  return avisos
+}

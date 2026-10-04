@@ -23,6 +23,15 @@ function LinkMenu({ item, atual }) {
 // a página por trás some e não rola enquanto ela está aberta.
 export default function Nav({ pagina }) {
   const [aberto, setAberto] = useState(false)
+  const [rolou, setRolou] = useState(false)
+
+  // Rolou a página: o menu fica com o vidro mais forte e a linha luminosa embaixo
+  useEffect(() => {
+    const ver = () => setRolou(window.scrollY > 12)
+    ver()
+    window.addEventListener('scroll', ver, { passive: true })
+    return () => window.removeEventListener('scroll', ver)
+  }, [])
 
   useEffect(() => {
     document.documentElement.classList.toggle('nx-menu-aberto', aberto)
@@ -41,7 +50,7 @@ export default function Nav({ pagina }) {
   const links = MENU.map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
 
   return (
-    <header data-site-nav="" className={`nx-nav${aberto ? ' is-open' : ''}`}>
+    <header data-site-nav="" className={`nx-nav${aberto ? ' is-open' : ''}${rolou ? ' is-scrolled' : ''}`}>
       <div className="nx-nav-inner">
         <a className="nx-brand" href="/">
           <img src="/assets/logos/logo-np-64.png" alt="" width="30" height="30" />

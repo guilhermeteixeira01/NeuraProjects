@@ -94,3 +94,13 @@ details.token .card-body { padding-top: 0; }
   .acoes-time { grid-column: 1 / -1; justify-content: flex-end; }
 }
 
+
+/* ── Visual futurista ── */
+.card.spot{background:radial-gradient(420px circle at var(--mx,50%) var(--my,0%),rgba(26,115,232,.08),transparent 60%),var(--panel)}
+.time{position:relative}
+.time::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(var(--blue-2),var(--green));transform:scaleY(0);transition:transform .25s}
+.time:hover::before{transform:scaleY(1)}
+.resumo .caixa{transition:border-color .25s,box-shadow .25s}
+.resumo .caixa:hover{border-color:var(--blue);box-shadow:0 0 28px -10px rgba(52,152,219,.6)}
+.campo input:focus{box-shadow:0 0 0 3px rgba(26,115,232,.14),0 0 24px -8px rgba(52,152,219,.6)}
+.previa .mono{display:block;margin-bottom:2px}

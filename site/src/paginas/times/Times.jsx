@@ -3,6 +3,8 @@ import Layout from '../../comum/Layout.jsx'
 import { CONFIG } from '../../comum/config.js'
 import { Icone } from '../../comum/Icones.jsx'
 import { carregarTimes } from '../../comum/times.js'
+import { Contador } from '../../comum/efeitos.jsx'
+import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
 
 const CHAVE_TOKEN = 'neura_gh_token'
 const API = `https://api.github.com/repos/${CONFIG.repositorio}/contents/${CONFIG.arquivoTimes}`
@@ -269,30 +271,36 @@ export default function Times() {
     <Layout pagina="times">
       <main>
         <section className="hero">
-          <div className="hero-glow hero-glow-1" />
-          <div className="hero-glow hero-glow-2" />
+          <FundoHero />
           <div className="wrap hero-inner">
-            <div className="reveal">
-              <span className="chip">
+            <div>
+              <span className="chip fx-entra" style={{ '--e': 0 }}>
                 <span className="ponto" />
                 CONFIGURAÇÃO · PICK &amp; BAN
               </span>
               <h1>
-                Lista de <span className="destaque">times</span>
+                <Palavras texto="Lista de" />
+                <span className="fx-gradiente">
+                  <Palavras texto="times" inicio={2} />
+                </span>
               </h1>
-              <p className="lead">
+              <p className="lead fx-entra" style={{ '--e': 3 }}>
                 Cadastre o nome e o logo de cada time uma vez. No Pick &amp; Ban, é só digitar o nome que o logo já entra
                 sozinho — e vai junto para o servidor e para a página das partidas.
               </p>
             </div>
-            <div className="resumo reveal" style={{ '--d': '.1s' }}>
+            <div className="resumo fx-entra" style={{ '--e': 4 }}>
               <div className="caixa">
                 <span className="mono">TIMES</span>
-                <b>{carregou ? times.length : '—'}</b>
+                <b>
+                  <Contador valor={carregou ? times.length : null} />
+                </b>
               </div>
               <div className="caixa">
                 <span className="mono">COM LOGO</span>
-                <b>{carregou ? times.filter((t) => t.logo).length : '—'}</b>
+                <b>
+                  <Contador valor={carregou ? times.filter((t) => t.logo).length : null} />
+                </b>
               </div>
             </div>
           </div>
@@ -301,7 +309,7 @@ export default function Times() {
         <section className="secao" style={{ paddingTop: 44 }}>
           <div className="wrap layout">
             {/* Adicionar / editar */}
-            <div className="card hud-frame" style={{ padding: 0 }}>
+            <div className="card hud-frame spot" style={{ padding: 0 }}>
               <div className="card-head">
                 <h2>{editando === null ? 'Adicionar time' : 'Editar time'}</h2>
                 <span className="mono">{editando === null ? 'NOVO' : 'EDITANDO'}</span>

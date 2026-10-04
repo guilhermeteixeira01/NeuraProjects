@@ -31,6 +31,10 @@ npm run preview  # abre o dist-final/ no navegador
 - `../partidas/` — o plugin BaseComp do servidor de CS2 manda, a cada mapa, o `partida.json`
   (dados do mapa) e atualiza o `partidas.json` (histórico). O formato está em `PartidaDados`
   (RelatorioPagina.cs do plugin).
+- `../partidas/series.json` — séries anunciadas pelo plugin: entram no `css_serie` como "iniciando", viram
+  "andamento" (com `mapaAtual`) quando cada mapa começa valendo e "cancelada" no `css_seriecancelar`. A lista
+  de partidas mostra a série antes do primeiro mapa terminar e o mapa "AO VIVO"; o deploy manda push quando uma
+  série começa.
 - `../assets/data/times.json` — lista de times, editada na página `/times/`. O plugin também lê
   esse arquivo, então ele não muda de lugar.
 
@@ -66,4 +70,5 @@ Definido pelo plugin (classe `PartidaDados` em `RelatorioPagina.cs`, `versao: 1`
 | `serie` | formato, índice do mapa (`atual`), vitórias e lista de mapas (lado/faca), ou `null` |
 | `rounds` | um item por round: time que ganhou, lado (`CT`/`TR`) e motivo (1 bomba, 7 desarme, 12 tempo) |
 | `jogadores` | steamId, nome, foto, time e estatísticas (kills, dano, KAST, multi-kills, rating HLTV 1.0) |
+| `jogadores[].util` | utilitários: granadas lançadas por tipo, não usadas, dano de HE/fogo (nos inimigos, recebido, em aliados), inimigos/aliados cegos e o tempo, flash assists (partidas antigas não têm; a aba "Utilitários" só aparece quando tem) |
 | `demo` | link da demo no GitHub (ou `null`) |

@@ -3,6 +3,7 @@
  *
  * No deploy (.github/workflows/deploy.yml):
  *   1. build:  node scripts/notificar.mjs preparar <partidas.json no ar antes> <partidas.json novo> <saida.json>
+ *              [<series.json no ar antes> <series.json novo>]
  *      compara o histórico que estava publicado com o novo e grava os avisos (mesmo texto do card do site)
  *   2. depois de publicar: node scripts/notificar.mjs enviar <saida.json>
  *      manda cada aviso pela API do OneSignal (chave em ONESIGNAL_API_KEY, nos Secrets do GitHub)
@@ -10,7 +11,7 @@
  * quando dois commits chegam juntos e o deploy do primeiro é cancelado.
  */
 import fs from 'node:fs'
-import { novidadesEntre } from '../src/comum/novidades.js'
+import { novidadesEntre, novidadesSeries } from '../src/comum/novidades.js'
 
 const SITE = 'https://neuraproject.com.br'
 const APP_ID = 'e2d061b1-3a8e-41fb-9b5c-6e0e8751ab96'
@@ -28,11 +29,19 @@ const lerLista = (arq) => {
 const [acao, ...args] = process.argv.slice(2)
 
 if (acao === 'preparar') {
-  const [arqAntes, arqDepois, saida] = args
+  const [arqAntes, arqDepois, saida, arqSeriesAntes, arqSeriesDepois] = args
   const antes = lerLista(arqAntes)
   const depois = lerLista(arqDepois) || []
   // Sem o histórico de antes (primeiro deploy, site fora do ar...): não avisa nada, para não mandar o histórico inteiro
   const avisos = antes ? novidadesEntre(antes, depois) : []
+  // Séries anunciadas no css_serie (antes de qualquer mapa terminar)
+  const seriesAntes = arqSeriesAntes ? lerLista(arqSeriesAntes) : null
+  if (seriesAntes) {
+    // Série cancelada com mapa jogado já avisa pelo histórico: o aviso do anúncio sai para não repetir
+    const jaAvisadas = new Set(avisos.filter((x) => x.id.startsWith('cancelada-')).map((x) => x.id.slice('cancelada-'.length)))
+    const dasSeries = novidadesSeries(seriesAntes, lerLista(arqSeriesDepois) || [])
+    avisos.unshift(...dasSeries.filter((x) => !jaAvisadas.has(x.id.replace('serie-cancelada-', ''))))
+  }
   fs.writeFileSync(saida, JSON.stringify(avisos, null, 2))
   console.log(antes ? `Avisos para mandar: ${avisos.length}` : 'Sem o histórico anterior: nenhum aviso.')
   for (const a of avisos) console.log(`  - ${a.titulo} | ${a.texto.replace('\n', ' | ')}`)

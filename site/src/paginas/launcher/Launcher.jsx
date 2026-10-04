@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import Layout from '../../comum/Layout.jsx'
 import { CONFIG } from '../../comum/config.js'
 import { Icone } from '../../comum/Icones.jsx'
+import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
+import Letreiro from '../../comum/Letreiro.jsx'
+import { useInclinar } from '../../comum/efeitos.jsx'
 
 const IC_ONDA = <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
 const IC_GRADE = (
@@ -32,6 +35,8 @@ const FAIXA = [
   [IC_GRADE, 'Vários jogos'],
   [IC_RELOGIO, 'Atualizações automáticas'],
   [IC_PESSOAS, 'Amigos e squads'],
+  [IC_RELOGIO, 'Notícias na tela inicial'],
+  [IC_ONDA, 'Servidores ao vivo'],
 ]
 
 const RECURSOS = [
@@ -92,7 +97,7 @@ const IC_BAIXAR = (
 function BotaoBaixar({ texto, tamanhoIcone, onCelular }) {
   if (!CONFIG.launcherAtivo) {
     return CONFIG.discord ? (
-      <a className="btn btn-discord btn-lg" href={CONFIG.discord} target="_blank" rel="noopener">
+      <a className="btn btn-discord btn-lg btn-brilho" href={CONFIG.discord} target="_blank" rel="noopener">
         Avise-me no Discord
       </a>
     ) : (
@@ -103,7 +108,7 @@ function BotaoBaixar({ texto, tamanhoIcone, onCelular }) {
   }
   return (
     <a
-      className="btn btn-primary btn-lg"
+      className="btn btn-primary btn-lg btn-brilho"
       href={CONFIG.launcherDownload}
       target="_blank"
       rel="noopener"
@@ -128,6 +133,7 @@ export default function Launcher() {
   const [versao, setVersao] = useState('1.4.0')
   const [tamanho, setTamanho] = useState('~140 MB')
   const [aviso, setAviso] = useState(false)
+  const previa = useInclinar(6)
 
   // Versão e tamanho do último release (se a API falhar, fica o texto padrão)
   useEffect(() => {
@@ -156,28 +162,30 @@ export default function Launcher() {
       <main id="pagina" className={ativo ? '' : 'em-breve'}>
         {/* TOPO */}
         <section className="hero">
-          <div className="hero-glow hero-glow-1" />
-          <div className="hero-glow hero-glow-2" />
+          <FundoHero />
           <div className="wrap hero-inner">
-            <div className="reveal">
-              <span className={`chip${ativo ? '' : ' amarelo'}`}>
+            <div>
+              <span className={`chip fx-entra${ativo ? '' : ' amarelo'}`} style={{ '--e': 0 }}>
                 <span className="ponto" />
                 <span>{ativo ? 'DISPONÍVEL PARA DOWNLOAD' : 'EM BREVE · DOWNLOAD TEMPORARIAMENTE DESATIVADO'}</span>
               </span>
               <h1>
-                Um launcher para <span className="destaque">todos os seus jogos.</span>
+                <Palavras texto="Um launcher para" />
+                <span className="fx-gradiente">
+                  <Palavras texto="todos os seus jogos." inicio={3} />
+                </span>
               </h1>
-              <p className="lead">
+              <p className="lead fx-entra" style={{ '--e': 3 }}>
                 O Neura Launcher encontra suas instalações, cuida das atualizações e junta amigos, chat, servidores, notícias e
                 customização num só lugar — começando pelo Counter-Strike 1.6 e com mais jogos a caminho.
               </p>
-              <div className="hero-acoes">
+              <div className="hero-acoes fx-entra" style={{ '--e': 4 }}>
                 <BotaoBaixar texto="Baixar launcher" tamanhoIcone={15} onCelular={abrirAviso} />
-                <a className="btn btn-ghost btn-lg" href="#recursos">
+                <a className="btn btn-ghost btn-lg btn-borda" href="#recursos">
                   Ver recursos
                 </a>
               </div>
-              <div className="hero-meta">
+              <div className="hero-meta fx-entra" style={{ '--e': 5 }}>
                 {ativo ? (
                   <>
                     <span>v{versao}</span>
@@ -199,8 +207,9 @@ export default function Launcher() {
                 )}
               </div>
             </div>
-            <div className="preview reveal" style={{ '--d': '.12s' }}>
-              <div className="hud-frame">
+            <div className="preview fx-entra" style={{ '--e': 2 }}>
+              {/* Prévia inclina seguindo o mouse */}
+              <div className="hud-frame preview-3d" ref={previa}>
                 <img src="/assets/launcher-preview.png" alt="Tela inicial do Neura Launcher com o jogo detectado" />
                 <div className="faixa-breve">
                   <span>EM BREVE</span>
@@ -213,23 +222,16 @@ export default function Launcher() {
           </div>
         </section>
 
-        {/* FAIXA */}
-        <div className="faixa">
-          <div className="wrap">
-            {FAIXA.map(([icone, texto]) => (
-              <span key={texto} className="faixa-item">
-                <Icone tamanho={15}>{icone}</Icone>
-                {texto}
-              </span>
-            ))}
-          </div>
-        </div>
+        {/* LETREIRO */}
+        <Letreiro itens={FAIXA} />
 
         {/* JOGOS */}
         <section className="secao">
           <div className="wrap">
             <div className="secao-head reveal">
-              <span className="mono">// JOGOS</span>
+              <span className="kicker">
+                <b>01</b> JOGOS
+              </span>
               <h2>Um launcher, vários jogos</h2>
               <p>O launcher foi feito para crescer: cada jogo novo ganha detecção, atualização e integração com amigos e servidores.</p>
             </div>
@@ -237,7 +239,7 @@ export default function Launcher() {
               {CONFIG.launcherJogos.map((j) => {
                 const breve = /breve/i.test(j.status)
                 return (
-                  <div key={j.nome} className={`jogo${breve ? ' breve' : ''}`}>
+                  <div key={j.nome} className={`jogo fx-card spot${breve ? ' breve' : ''}`} style={{ '--cor': breve ? 'var(--yellow)' : 'var(--green)' }}>
                     <b>{j.nome}</b>
                     <span className={`tag ${breve ? 'amarelo' : 'verde'}`}>{j.status.toUpperCase()}</span>
                   </div>
@@ -251,7 +253,9 @@ export default function Launcher() {
         <section className="secao" id="recursos">
           <div className="wrap">
             <div className="secao-head reveal">
-              <span className="mono">// RECURSOS</span>
+              <span className="kicker">
+                <b>02</b> RECURSOS
+              </span>
               <h2>O que vem equipado</h2>
               <p>
                 Cada sistema resolve uma fricção real de quem joga: encontrar o jogo, manter tudo atualizado e ficar por dentro
@@ -276,8 +280,10 @@ export default function Launcher() {
         </section>
 
         {/* DOWNLOAD */}
-        <section className="cta">
-          <div className="wrap cta-inner reveal">
+        <section className="cta cta-painel">
+          <div className="wrap">
+          <div className="cta-x spot reveal">
+          <div className="cta-inner">
             <h2>{ativo ? 'Pronto para entrar em campo?' : 'O launcher está chegando'}</h2>
             <p className="lead">
               {ativo
@@ -293,6 +299,8 @@ export default function Launcher() {
             <div className="cta-nota">
               <a href="/admin.html">Painel de anúncios</a>
             </div>
+          </div>
+          </div>
           </div>
         </section>
       </main>

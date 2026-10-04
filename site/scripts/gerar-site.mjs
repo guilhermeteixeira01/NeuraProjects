@@ -69,6 +69,11 @@ const lista = listaBruta.filter((p) => fs.existsSync(path.join(saidaPartidas, p.
 escrever(arquivoLista, JSON.stringify(lista, null, 2))
 console.log(`Partidas no histórico: ${lista.length} (removidas: ${listaBruta.length - lista.length})`)
 
+// Séries anunciadas pelo plugin no css_serie (status ao vivo); sem o arquivo, lista vazia
+const arquivoSeries = path.join(saidaPartidas, 'series.json')
+const series = fs.existsSync(arquivoSeries) ? lerJson(arquivoSeries) : []
+if (!fs.existsSync(arquivoSeries)) escrever(arquivoSeries, '[]')
+
 // ── 4. Ranking ──
 const ranking = await gerarRanking(saidaPartidas, { premier: arg('premier', 'sim') !== 'nao' })
 escrever(path.join(saida, 'ranking', 'ranking.json'), JSON.stringify(ranking, null, 2))
@@ -93,7 +98,7 @@ const PAGINAS = [
   ['neurapick/index.html', 'neurapick'],
   ['times/index.html', 'times'],
   ['admin.html', 'admin'],
-  ['partidas/index.html', 'partidas', lista],
+  ['partidas/index.html', 'partidas', { lista, series }],
   ['ranking/index.html', 'ranking', ranking],
 ]
 for (const [arq, pagina, dadosPagina] of PAGINAS) {

@@ -363,3 +363,32 @@ animation:brilho 1.3s ease-in-out infinite}
 /* Série cancelada no meio (css_seriecancelar) */
 .serie-status.cancelada{color:var(--red);border:1px solid rgba(255,70,85,.45);background:rgba(255,70,85,.08)}
 .serie-bloco.cancelada{border-color:rgba(255,70,85,.25)}
+
+/* ── Visual futurista ── */
+/* Card do mapa: luz azul seguindo o cursor por cima da imagem do mapa */
+.partida.spot{position:relative;isolation:isolate}
+.partida.spot::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;opacity:0;transition:opacity .25s;
+background:radial-gradient(380px circle at var(--mx,50%) var(--my,50%),rgba(52,152,219,.16),transparent 65%)}
+.partida.spot:hover::after{opacity:1}
+.partida.spot:hover{box-shadow:0 18px 40px -24px rgba(0,0,0,.9),0 0 34px -18px rgba(52,152,219,.8)}
+/* Bloco da série: borda acende ao passar o mouse; em andamento, a borda laranja respira */
+.serie-bloco{transition:border-color .25s,box-shadow .25s}
+.serie-bloco:hover{box-shadow:0 0 40px -26px rgba(52,152,219,.8)}
+.serie-bloco:not(.acabou):not(.cancelada){animation:serie-viva 3s ease-in-out infinite}
+@keyframes serie-viva{50%{border-color:rgba(255,122,26,.45);box-shadow:0 0 40px -24px rgba(255,122,26,.7)}}
+.filtros button{transition:background .2s,color .2s,box-shadow .2s}
+.filtros button.active{box-shadow:inset 0 0 0 1px rgba(26,115,232,.55),0 0 22px -8px rgba(52,152,219,.7)}
+.stat{transition:border-color .25s,box-shadow .25s}
+.stat:hover{border-color:var(--blue);box-shadow:0 0 28px -10px rgba(52,152,219,.6)}
+@media (prefers-reduced-motion:reduce){.serie-bloco{animation:none!important}}
+
+/* ── Série anunciada (css_serie) e mapa ao vivo ── */
+.serie-status.iniciando{color:var(--blue-2);border:1px solid rgba(52,152,219,.5);background:rgba(52,152,219,.1)}
+.serie-status.iniciando i{width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 0 3px rgba(52,152,219,.25);animation:piscar 1s ease-in-out infinite}
+.serie-bloco.iniciando:not(.acabou):not(.cancelada){border-color:rgba(52,152,219,.35);animation:serie-iniciando 2.4s ease-in-out infinite}
+@keyframes serie-iniciando{50%{box-shadow:0 0 44px -22px rgba(52,152,219,.9);border-color:rgba(52,152,219,.6)}}
+/* Mapa ao vivo: não fica apagado, borda vermelha e "AO VIVO" com o ponto piscando */
+.partida.pendente.ao-vivo{opacity:1;filter:none;border-color:rgba(255,70,85,.55);box-shadow:0 0 34px -18px rgba(255,70,85,.9)}
+.partida.pendente.ao-vivo .placar-linha{color:#ff6b77;display:inline-flex;align-items:center;gap:12px}
+.ponto-vivo{width:10px;height:10px;border-radius:50%;background:var(--red);box-shadow:0 0 0 4px rgba(255,70,85,.25);animation:piscar 1s ease-in-out infinite;flex:none}
+@media (prefers-reduced-motion:reduce){.serie-bloco.iniciando,.serie-status.iniciando i,.ponto-vivo{animation:none!important}}
