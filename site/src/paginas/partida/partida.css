@@ -380,3 +380,7 @@ background:rgba(14,15,19,.97);border:1px solid var(--border-2);box-shadow:0 16px
 /* Nível estilo FACEIT na tabela: selo + XP ganho/perdido no mapa */
 .nv-cel{display:inline-flex;align-items:center;gap:7px}
 .nv-cel b{font-family:var(--font-mono);font-size:12.5px;font-weight:700;min-width:62px;text-align:left}
+/* Jogadores levam ao perfil do site */
+a.mvp-item,a.mvp-perfil,a.gu-nome{color:inherit;text-decoration:none;transition:border-color .15s,background .15s}
+a.mvp-item:hover,a.mvp-perfil:hover{border-color:var(--blue-2)}
+a.gu-nome:hover .gu-nick{color:var(--blue-2)}

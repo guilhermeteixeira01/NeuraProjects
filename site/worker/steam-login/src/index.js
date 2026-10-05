@@ -16,7 +16,7 @@
  * O site lê o JSON para mostrar; a assinatura é conferida aqui em tudo que salva.
  *
  * KV MOLDURAS (nome antigo do banco; guarda tudo):
- *   perfis   { "<SteamID64>": { moldura?, time?, xp? (ajuste do admin), bloqueado?, cargos? } }
+ *   perfis   { "<SteamID64>": { moldura?, molduraLivre? (posta por admin), time?, xp? (ajuste do admin), bloqueado?, cargos? } }
  *   config   { molduraPorNivel: bool, nivelMoldura: { "<moldura>": nível }, admins: ["<SteamID64>"],
  *              cargos: [{ id, nome, cor }], molduraCargo: { "<moldura>": "<cargo>" } }  (Premium, VIP... e exclusivas)
  *   usuarios { "<SteamID64>": { nome, avatar, primeiro, visto } }  (quem já entrou no site)
@@ -126,7 +126,7 @@ const soMolduras = (perfis) => Object.fromEntries(Object.entries(perfis).filter(
 const configPublica = (c) => ({
   molduraPorNivel: !!c.molduraPorNivel,
   nivelMoldura: c.nivelMoldura || {},
-  cargos: c.cargos || [], // [{ id, nome, cor }] (ex.: Premium, VIP)
+  cargos: c.cargos || [], // [{ id, nome, cor, top? }] (ex.: Premium, VIP). top = automático para o top N do ranking
   molduraCargo: c.molduraCargo || {}, // { idMoldura: idCargo }: moldura exclusiva de quem tem o cargo
 })
 const ID_CARGO = /^[a-z0-9-]{1,24}$/
@@ -171,14 +171,31 @@ function validarPerfil(corpo, soMoldura) {
 }
 
 // Nível do jogador: XP das partidas (ranking.json do site, com a tabela de níveis) + ajuste do admin
-async function nivelDoJogador(env, site, id, perfis) {
-  let ranking = null
+async function lerRanking(site) {
   try {
     const r = await fetch(`${site}/ranking/ranking.json`, { cf: { cacheTtl: 60 } })
-    ranking = r.ok ? await r.json() : null
+    return r.ok ? await r.json() : null
   } catch {
-    // site fora: considera só o ajuste
+    return null // site fora
   }
+}
+
+// Ordem do top do ranking (a mesma do site, src/comum/ranking.js): quem tem mapa, por rating e depois kills
+const ordemRanking = (ranking) =>
+  (ranking?.jogadores || []).filter((j) => j.mapas >= 1).sort((a, b) => b.rating - a.rating || b.kills - a.kills)
+
+// Cargos do jogador: os que o admin deu + os automáticos ("top N do ranking": entra e sai sozinho com a posição)
+async function cargosDoJogador(site, id, perfis, config, rankingLido) {
+  const manuais = perfis[id]?.cargos || []
+  const automaticos = (config.cargos || []).filter((c) => c.top > 0)
+  if (!automaticos.length) return manuais
+  const ranking = rankingLido ?? (await lerRanking(site))
+  const pos = ordemRanking(ranking).findIndex((j) => j.steamId === id)
+  return [...new Set([...manuais, ...automaticos.filter((c) => pos >= 0 && pos < c.top).map((c) => c.id)])]
+}
+
+async function nivelDoJogador(env, site, id, perfis) {
+  const ranking = await lerRanking(site)
   const niveis = Array.isArray(ranking?.niveis) && ranking.niveis.length ? ranking.niveis : [0]
   const xp = (Number(ranking?.jogadores?.find((j) => j.steamId === id)?.xp) || 0) + (Number(perfis[id]?.xp) || 0)
   let nivel = 1
@@ -206,8 +223,10 @@ async function salvarPerfil(req, env, site, quem, admin, config, cors, rotaAntig
 
   // Moldura exclusiva de um cargo (Premium, VIP...): só quem tem o cargo; admins não têm trava
   const cargo = mudar.moldura ? config.molduraCargo?.[mudar.moldura] : null
-  if (cargo && !admin && !(perfis[quem.id]?.cargos || []).includes(cargo)) return json({ erro: 'cargo', cargo }, 403, cors)
+  if (cargo && !admin && !(await cargosDoJogador(site, quem.id, perfis, config)).includes(cargo)) return json({ erro: 'cargo', cargo }, 403, cors)
 
+  // molduraLivre: moldura posta por um admin aparece sempre (as outras exclusivas somem se o cargo sair)
+  if ('moldura' in mudar) mudar.molduraLivre = admin && mudar.moldura ? true : null
   const novos = await mudarPerfil(env, quem.id, mudar)
   return rotaAntiga ? json({ ok: true, molduras: soMolduras(novos) }, 200, cors) : json({ ok: true, perfis: novos }, 200, cors)
 }
@@ -236,6 +255,7 @@ async function adminPerfil(req, env, config, cors) {
     mudar.xp = xp
   }
   if ('bloqueado' in corpo) mudar.bloqueado = corpo.bloqueado === true
+  if ('moldura' in mudar) mudar.molduraLivre = mudar.moldura ? true : null // dada pelo admin: aparece mesmo sem o cargo
   if ('cargos' in corpo) {
     const existem = new Set((config.cargos || []).map((c) => c.id))
     const cargos = [...new Set(Array.isArray(corpo.cargos) ? corpo.cargos : [])]
@@ -269,7 +289,9 @@ async function adminConfig(req, env, config, cors) {
       const nome = String(c?.nome || '').trim()
       if (!ID_CARGO.test(String(c?.id)) || vistos.has(c.id) || !NOME_TIME.test(nome) || nome.length > 24 || !COR.test(String(c?.cor))) return json({ erro: 'cargos' }, 400, cors)
       vistos.add(c.id)
-      novo.cargos.push({ id: c.id, nome, cor: c.cor })
+      const top = Math.round(Number(c.top) || 0)
+      if (top < 0 || top > 15) return json({ erro: 'cargos' }, 400, cors)
+      novo.cargos.push({ id: c.id, nome, cor: c.cor, ...(top > 0 ? { top } : {}) })
     }
   }
   if ('molduraCargo' in corpo || 'cargos' in corpo) {

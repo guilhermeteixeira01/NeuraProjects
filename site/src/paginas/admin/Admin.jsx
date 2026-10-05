@@ -7,6 +7,7 @@ import { CamadaMoldura, ComMoldura, SeloCargo, chamar, useAdmin, useListaTimes }
 import { COLECOES, MOLDURAS, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { NIVEL_MAX, nivelDe } from '../../comum/niveis.js'
+import { ordenarRanking } from '../../comum/ranking.js'
 
 // Painel de administrador (/admin/). A aba só aparece para admin, mas quem decide é o worker:
 // toda chamada /admin/... confere o login e se a pessoa é admin (o dono, ou quem o dono promoveu).
@@ -42,9 +43,14 @@ function montarUsuarios(painel, ranking) {
     x.avatar ||= u.avatar
   }
   for (const [id, p] of Object.entries(painel.perfis || {})) pegar(id).perfil = p
+  const ordem = ordenarRanking(ranking?.jogadores || []).map((j) => j.steamId)
+  const automaticos = (painel.config.cargos || []).filter((c) => c.top > 0)
   return [...lista.values()].map((x) => {
     const ajuste = Number(x.perfil.xp) || 0
-    return { ...x, ajuste, nivel: nivelDe(x.xpBase + ajuste) }
+    const pos = ordem.indexOf(x.id)
+    // auto: cargos que o jogador tem agora por estar no top N do ranking (saem sozinhos se ele cair)
+    const auto = automaticos.filter((c) => pos >= 0 && pos < c.top).map((c) => c.id)
+    return { ...x, ajuste, nivel: nivelDe(x.xpBase + ajuste), pos, auto }
   })
 }
 
@@ -58,7 +64,7 @@ function Usuarios({ usuarios, painel, dono, editar }) {
     ['logados', 'Entraram no site', (u) => u.usuario],
     ['personalizados', 'Com perfil', (u) => Object.keys(u.perfil).length > 0],
     ['bloqueados', 'Bloqueados', (u) => u.perfil.bloqueado],
-    ['cargos', 'Com cargo', (u) => (u.perfil.cargos || []).length > 0],
+    ['cargos', 'Com cargo', (u) => (u.perfil.cargos || []).length > 0 || u.auto.length > 0],
     ['admins', 'Admins', (u) => admins.has(u.id)],
   ]
   const termo = busca.trim().toLowerCase()
@@ -125,9 +131,9 @@ function Usuarios({ usuarios, painel, dono, editar }) {
                       {u.id !== dono && admins.has(u.id) && <i className="admin">ADMIN</i>}
                       {u.perfil.bloqueado && <i className="bloq">BLOQUEADO</i>}
                       {(painel.config.cargos || [])
-                        .filter((c) => (u.perfil.cargos || []).includes(c.id))
+                        .filter((c) => (u.perfil.cargos || []).includes(c.id) || u.auto.includes(c.id))
                         .map((c) => (
-                          <SeloCargo key={c.id} cargo={c} />
+                          <SeloCargo key={c.id} cargo={u.auto.includes(c.id) && !(u.perfil.cargos || []).includes(c.id) ? { ...c, nome: `${c.nome} · top ${c.top}` } : c} />
                         ))}
                       {u.usuario ? <i>LOGIN</i> : <i className="apagado">SÓ PARTIDAS</i>}
                     </span>
@@ -197,7 +203,7 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
             </span>
             <div>
               <b>{u.nome || 'Sem nome'}</b>
-              <a className="mono" href={`https://steamcommunity.com/profiles/${u.id}`} target="_blank" rel="noopener">
+              <a className="mono" href={linkPerfil(u.id)} title="Abrir o perfil no site">
                 {u.id}
               </a>
               <span className="adm-ed-nivel">
@@ -257,9 +263,20 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
             {cargos.length ? (
               <div className="adm-cargos-check">
                 {cargos.map((c) => (
-                  <label key={c.id} className={meus.includes(c.id) ? 'ligado' : ''} style={{ '--cg': c.cor }}>
-                    <input type="checkbox" checked={meus.includes(c.id)} onChange={(e) => trocarCargo(c.id, e.target.checked)} />
+                  <label
+                    key={c.id}
+                    className={meus.includes(c.id) || u.auto.includes(c.id) ? 'ligado' : ''}
+                    style={{ '--cg': c.cor }}
+                    title={u.auto.includes(c.id) ? `Automático: o jogador está no top ${c.top} do ranking` : undefined}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={meus.includes(c.id) || u.auto.includes(c.id)}
+                      disabled={u.auto.includes(c.id) && !meus.includes(c.id)}
+                      onChange={(e) => trocarCargo(c.id, e.target.checked)}
+                    />
                     <SeloCargo cargo={c} />
+                    {u.auto.includes(c.id) && <small className="adm-auto">auto · top {c.top}</small>}
                   </label>
                 ))}
               </div>
@@ -437,7 +454,7 @@ function Cargos({ config, usuarios, aoSalvar }) {
   const [novaCor, setNovaCor] = useState('#f5c542')
   const [estado, setEstado] = useState('')
   const mudou = JSON.stringify(lista) !== JSON.stringify(config.cargos || [])
-  const membros = (id) => usuarios.filter((u) => (u.perfil.cargos || []).includes(id))
+  const membros = (id) => usuarios.filter((u) => (u.perfil.cargos || []).includes(id) || u.auto.includes(id))
   const exclusivas = (id) => Object.values(config.molduraCargo || {}).filter((c) => c === id).length
 
   const mudar = (i, campo, valor) => setLista((l) => l.map((c, k) => (k === i ? { ...c, [campo]: valor } : c)))
@@ -457,7 +474,7 @@ function Cargos({ config, usuarios, aoSalvar }) {
   const salvar = async () => {
     setEstado('salvando')
     try {
-      const d = await chamar('/admin/config', { cargos: lista.map((c) => ({ ...c, nome: c.nome.trim() })) })
+      const d = await chamar('/admin/config', { cargos: lista.map((c) => ({ id: c.id, nome: c.nome.trim(), cor: c.cor, top: Number(c.top) || 0 })) })
       aoSalvar(d.config)
       setEstado('Salvo!')
     } catch (e) {
@@ -488,8 +505,19 @@ function Cargos({ config, usuarios, aoSalvar }) {
             <input type="color" value={c.cor} onChange={(e) => mudar(i, 'cor', e.target.value)} aria-label={`Cor do cargo ${c.nome}`} />
             <input className="adm-cargo-nome" value={c.nome} maxLength={24} onChange={(e) => mudar(i, 'nome', e.target.value)} aria-label="Nome do cargo" />
             <SeloCargo cargo={{ ...c, nome: c.nome || '…' }} />
+            <label className="adm-top" title="0 = só manual. Ex.: 3 = os 3 primeiros do ranking ganham o cargo e perdem ao sair do top 3">
+              Automático: top
+              <input
+                type="number"
+                min="0"
+                max="15"
+                value={c.top || 0}
+                onChange={(e) => mudar(i, 'top', Math.min(15, Math.max(0, Math.round(Number(e.target.value) || 0))))}
+              />
+            </label>
             <span className="adm-cargo-info">
               {membros(c.id).length} jogador(es) · {exclusivas(c.id)} moldura(s) exclusiva(s)
+              {c.top > 0 ? ` · automático para o top ${c.top} do ranking (sai sozinho de quem cair)` : ' · só manual'}
               <span className="adm-cargo-membros">
                 {membros(c.id)
                   .slice(0, 8)
@@ -546,10 +574,10 @@ function Admins({ config, dono, souDono, usuarios, aoSalvar }) {
         {[dono, ...(config.admins || []).filter((id) => id !== dono)].filter(Boolean).map((id) => (
           <li key={id}>
             <Avatar src={avatarDe(id)} nome={nomeDe(id)} />
-            <span>
+            <a className="adm-admin-nome" href={linkPerfil(id)}>
               <b>{nomeDe(id)}</b>
               <small className="mono">{id}</small>
-            </span>
+            </a>
             {id === dono ? (
               <i className="dono">DONO</i>
             ) : (

@@ -250,3 +250,4 @@
 .pod-cargos { justify-content: center; margin-top: -6px; }
 .linha-cargos { margin: 2px 0 0 4px; }
 .linha-cargos .selo-cargo { font-size: 9px; padding: 1px 6px; }
+.jog-av { display: inline-flex; flex-shrink: 0; }

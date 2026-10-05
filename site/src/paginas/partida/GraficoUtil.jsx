@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ComMoldura } from '../../comum/Moldura.jsx'
+import { linkPerfil } from '../../comum/conta.js'
 
 // Detalhe do uso de utilitários: por time, total + barra de proporção por tipo + barras empilhadas por jogador.
 // Cores no estilo do CS (smoke azul-acinzentada, flash amarela, HE vermelha, molotov laranja, decoy verde),
@@ -125,13 +126,13 @@ function CardTime({ nome, t, jogadores, modo, mvp }) {
       </div>
       <div className="gu-nomes">
         {porJogador.map(({ e, v }) => (
-          <div key={e.steamId} className="gu-nome">
+          <a key={e.steamId} className="gu-nome" href={linkPerfil(e.steamId)} title={`Perfil de ${e.nome}`}>
             <span className="gu-num">{soma(v)}</span>
             <ComMoldura steamId={e.steamId}>
               <Avatar e={e} />
             </ComMoldura>
             <span className={`gu-nick${e === mvp ? ` t-${t}` : ''}`}>{e.nome}</span>
-          </div>
+          </a>
         ))}
       </div>
     </div>

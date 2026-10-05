@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { CONFIG } from './config.js'
 import { sair, tokenConta } from './conta.js'
 import { molduraPorId, urlMoldura } from './molduras.js'
+import { useOrdemRanking } from './ranking.js'
 
 const EVENTO = 'np-perfis'
 const CACHE = 'np_perfis' // última lista lida (aparece já na troca de página, sem esperar a rede)
@@ -146,8 +147,18 @@ export const nivelDaMoldura = (config, id) => (config.molduraPorNivel ? Number(c
 export const cargoDaMoldura = (config, id) => (config.cargos || []).find((c) => c.id === config.molduraCargo?.[id]) || null
 
 // Cargos do jogador (Premium, VIP...: o admin dá no painel), já com nome e cor
+// Ids dos cargos do jogador: os que o admin deu + os automáticos ("top N do ranking", entram e saem com a posição)
+export function useCargosIdsDe(steamId) {
+  const manuais = usePerfis()[steamId]?.cargos || []
+  const { cargos } = useConfigSite()
+  const automaticos = cargos.filter((c) => c.top > 0)
+  const ordem = useOrdemRanking(automaticos.length > 0)
+  const pos = ordem.indexOf(steamId)
+  return [...new Set([...manuais, ...automaticos.filter((c) => pos >= 0 && pos < c.top).map((c) => c.id)])]
+}
+
 export function useCargosDe(steamId) {
-  const ids = usePerfis()[steamId]?.cargos || []
+  const ids = useCargosIdsDe(steamId)
   const { cargos } = useConfigSite()
   return cargos.filter((c) => ids.includes(c.id))
 }
@@ -240,9 +251,15 @@ export function CamadaMoldura({ id, parada = false }) {
 
 // Envolve o avatar e põe a moldura do jogador por cima (sem moldura, devolve o avatar como está).
 // cheio: o avatar ocupa 100% do pai (ex.: avatar do pódio do ranking, que tem tamanho fixo).
+// Moldura exclusiva de um cargo que o jogador perdeu (ex.: saiu do top 3) não aparece; volta se ele recuperar.
+// Moldura posta por um admin (molduraLivre) aparece sempre.
 export function ComMoldura({ steamId, children, cheio = false }) {
-  const id = usePerfis()[steamId]?.moldura
-  if (!molduraPorId(id)) return children
+  const perfil = usePerfis()[steamId] || {}
+  const config = useConfigSite()
+  const cargos = useCargosIdsDe(steamId)
+  const id = perfil.moldura
+  const exige = config.molduraCargo?.[id]
+  if (!molduraPorId(id) || (exige && !perfil.molduraLivre && !cargos.includes(exige))) return children
   return (
     <span className={`moldura-box${cheio ? ' cheio' : ''}`}>
       {children}

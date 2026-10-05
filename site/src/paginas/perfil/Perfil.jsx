@@ -4,6 +4,7 @@ import { entrar, loginAtivo, useConta } from '../../comum/conta.js'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { useAoVivo } from '../../comum/aoVivo.js'
 import { CONFIG } from '../../comum/config.js'
+import { ordenarRanking } from '../../comum/ranking.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
 import { IconeSteam } from '../../comum/Icones.jsx'
 import { nomeMapa } from '../../comum/mapas.js'
@@ -405,7 +406,7 @@ export default function Perfil() {
     }
     conteudo = <Jogador j={vazio} mapas={[]} pos={0} total={0} eu={eu} personalizar={() => setEditando(true)} />
   } else {
-    const ordem = dados.ranking.jogadores.filter((x) => x.mapas >= 1).sort((a, b) => b.rating - a.rating || b.kills - a.kills)
+    const ordem = ordenarRanking(dados.ranking.jogadores)
     conteudo = <Jogador j={j} mapas={dados.mapas} pos={ordem.indexOf(j) + 1} total={ordem.length} eu={conta?.id === id} personalizar={() => setEditando(true)} />
   }
 
