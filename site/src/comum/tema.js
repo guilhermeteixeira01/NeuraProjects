@@ -1,10 +1,6 @@
 // Tema do site (Configurações ⚙ → Tema): padrão (o de sempre), escuro otimizado ou claro otimizado.
 // Vale para todas as páginas. Fica guardado no navegador (localStorage np_tema, aplicado já no <head> de cada
-// página, antes de desenhar, então não pisca) e, com login, no perfil do worker (acompanha a pessoa em outros
-// aparelhos: SincronizarTema aplica o tema salvo no perfil).
-import { useEffect } from 'react'
-import { useConta } from './conta.js'
-import { usePerfis } from './Moldura.jsx'
+// página, antes de desenhar, então não pisca) e, com login, no perfil do worker (preferencias.js).
 
 export const TEMAS = [
   { id: 'padrao', nome: 'Padrão do site', descricao: 'O visual de sempre, com todos os efeitos e animações.' },
@@ -33,14 +29,4 @@ export function aplicarTema(id, { guardar = true } = {}) {
       // sem armazenamento: vale só nesta página
     }
   }
-}
-
-// Com login: o tema salvo no perfil (worker) vence o do navegador (trocou em outro aparelho)
-export function SincronizarTema() {
-  const conta = useConta()
-  const tema = usePerfis()[conta?.id]?.tema
-  useEffect(() => {
-    if (tema && tema !== temaAtual()) aplicarTema(tema)
-  }, [tema])
-  return null
 }

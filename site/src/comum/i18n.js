@@ -23,6 +23,11 @@ let atual = 'pt' // idioma ativo nesta página
 
 const valido = (id) => IDIOMAS.some((i) => i.id === id)
 export const idiomaAtual = () => atual
+// Idioma escolhido (já lendo o guardado no navegador, mesmo antes de a página terminar de montar)
+export function idiomaEscolhido() {
+  if (atual === 'pt') atual = lerGuardado()
+  return atual
+}
 export const localeAtual = () => IDIOMAS.find((i) => i.id === atual)?.local || 'pt-BR'
 
 // Texto no idioma ativo (com {variáveis}); sem tradução, fica o português
