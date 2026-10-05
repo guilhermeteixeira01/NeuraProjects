@@ -1028,6 +1028,9 @@ img {
   display: inline-flex;
   flex: none;
   vertical-align: middle;
+  /* a moldura passa 10% para fora do avatar: nada pode cortar (ex.: ".player span" da tabela corta o nome) */
+  overflow: visible !important;
+  max-width: none !important;
 }
 .moldura-box.cheio {
   width: 100%;
