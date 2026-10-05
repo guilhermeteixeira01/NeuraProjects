@@ -1062,3 +1062,36 @@ img {
   pointer-events: none;
   background: center / contain no-repeat;
 }
+
+/* Time escolhido pelo jogador no "Personalizar" (comum/Moldura.jsx: TimeEscolhido) */
+.time-escolhido {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  font-weight: 700;
+  color: var(--dim);
+}
+.time-escolhido img,
+.time-escolhido i {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+  max-width: none;
+  border: 1px solid var(--border-2);
+}
+.time-escolhido i {
+  display: grid;
+  place-items: center;
+  font-style: normal;
+  font-size: 10px;
+  background: var(--panel-2);
+}
+.time-escolhido span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

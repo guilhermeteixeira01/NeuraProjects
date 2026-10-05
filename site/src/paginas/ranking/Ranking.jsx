@@ -5,7 +5,7 @@ import { lerJson, urlOk } from '../../comum/dados.js'
 import { Contador } from '../../comum/efeitos.jsx'
 import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
 import Premier from '../../comum/Premier.jsx'
-import { ComMoldura } from '../../comum/Moldura.jsx'
+import { ComMoldura, TimeEscolhido } from '../../comum/Moldura.jsx'
 
 const TOP = 15
 const MIN_MAPAS = 1 // mapas mínimos para entrar no ranking (suba quando tiver mais partidas)
@@ -84,6 +84,7 @@ function Podio({ j, pos, m, eu }) {
       <a className="pod-nome" href={perfil(j)}>
         {j.nome}
       </a>
+      <TimeEscolhido steamId={j.steamId} classe="pod-time" />
       <Premier j={j} />
       <span className="pod-valor">
         <b>
@@ -129,6 +130,7 @@ function Linha({ j, pos, m, max, i, eu }) {
           <a href={perfil(j)}>
             {j.nome}
           </a>
+          <TimeEscolhido steamId={j.steamId} classe="linha-time" />
           <Premier j={j} />
         </span>
       </span>

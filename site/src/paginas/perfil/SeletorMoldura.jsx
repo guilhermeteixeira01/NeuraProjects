@@ -1,23 +1,34 @@
 import { useEffect, useState } from 'react'
-import { CamadaMoldura, salvarMoldura, useMolduras } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, salvarPerfil, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
 import { COLECOES, MOLDURAS, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { urlOk } from '../../comum/dados.js'
 
-// Janela "Personalizar perfil": escolhe a moldura do avatar. A prévia mostra a moldura animada no seu avatar;
-// a lista usa miniaturas paradas (leves). Salvar manda para o worker e todas as páginas passam a mostrar.
+function Logo({ url, nome, classe }) {
+  const [erro, setErro] = useState(false)
+  return urlOk(url) && !erro ? (
+    <img className={classe} src={url} alt="" loading="lazy" onError={() => setErro(true)} />
+  ) : (
+    <span className={`${classe} sm-logo-ini`}>{String(nome || '?').slice(0, 1).toUpperCase()}</span>
+  )
+}
+
+// Janela "Personalizar perfil": aba Moldura (moldura do avatar) e aba Time (time que aparece no ranking e no
+// perfil). A prévia mostra as duas escolhas; Salvar manda as duas juntas e todas as páginas passam a mostrar.
 export default function SeletorMoldura({ steamId, avatar, nome, fechar }) {
-  const molduras = useMolduras()
-  const atual = molduras[steamId] || null
-  const [escolha, setEscolha] = useState(atual)
+  const perfil = usePerfis()[steamId] || {}
+  const times = useListaTimes()
+  const salvo = { moldura: perfil.moldura || null, time: perfil.time || null }
+  const [escolha, setEscolha] = useState(salvo)
+  const [mexeu, setMexeu] = useState(false)
+  const [aba, setAba] = useState('moldura') // 'moldura' | 'time'
   const [colecao, setColecao] = useState('todas')
   const [estado, setEstado] = useState('') // '' | 'salvando' | 'erro' | 'login'
   const [erroAvatar, setErroAvatar] = useState(false)
-  const [mexeu, setMexeu] = useState(false)
 
-  // A lista de molduras pode chegar depois de abrir: enquanto não escolheu nada, acompanha a salva
+  // O perfil salvo pode chegar depois de abrir: enquanto não mexeu em nada, acompanha ele
   useEffect(() => {
-    if (!mexeu) setEscolha(atual)
-  }, [atual, mexeu])
+    if (!mexeu) setEscolha({ moldura: perfil.moldura || null, time: perfil.time || null })
+  }, [perfil.moldura, perfil.time, mexeu])
 
   // Esc fecha; a página por trás não rola
   useEffect(() => {
@@ -30,18 +41,20 @@ export default function SeletorMoldura({ steamId, avatar, nome, fechar }) {
     }
   }, [fechar])
 
-  const escolher = (id) => {
-    setEscolha(id)
+  const escolher = (campo, valor) => {
+    setEscolha((e) => ({ ...e, [campo]: valor }))
     setMexeu(true)
   }
 
   const lista = colecao === 'todas' ? MOLDURAS : MOLDURAS.filter((m) => m.colecao === colecao)
-  const escolhida = molduraPorId(escolha)
+  const moldura = molduraPorId(escolha.moldura)
+  const time = times.find((t) => t.nome === escolha.time) || null
+  const mudou = escolha.moldura !== salvo.moldura || escolha.time !== salvo.time
 
   const salvar = async () => {
     setEstado('salvando')
     try {
-      await salvarMoldura(escolha)
+      await salvarPerfil(escolha)
       fechar()
     } catch (e) {
       setEstado(e.message === 'login' ? 'login' : 'erro')
@@ -66,35 +79,71 @@ export default function SeletorMoldura({ steamId, avatar, nome, fechar }) {
               ) : (
                 <span className="sm-ini">{String(nome || '?').slice(0, 2).toUpperCase()}</span>
               )}
-              <CamadaMoldura id={escolha} />
+              <CamadaMoldura id={escolha.moldura} />
             </span>
             <b>{nome}</b>
-            <span className="mono">{escolhida ? escolhida.nome.toUpperCase() : 'SEM MOLDURA'}</span>
-            {escolhida && <small>{escolhida.colecao}</small>}
+            {time ? (
+              <span className="sm-time-previa">
+                <Logo url={time.logo} nome={time.nome} classe="sm-logo" />
+                {time.nome}
+              </span>
+            ) : (
+              <small>Sem time</small>
+            )}
+            <span className="mono">{moldura ? moldura.nome.toUpperCase() : 'SEM MOLDURA'}</span>
           </div>
 
           <div className="sm-lista">
-            <div className="sm-colecoes" role="tablist" aria-label="Coleções">
-              {['todas', ...COLECOES].map((c) => (
-                <button key={c} type="button" role="tab" aria-selected={c === colecao} className={c === colecao ? 'active' : ''} onClick={() => setColecao(c)}>
-                  {c === 'todas' ? 'Todas' : c}
+            <div className="sm-abas" role="tablist" aria-label="O que personalizar">
+              {[
+                ['moldura', 'Moldura'],
+                ['time', 'Time'],
+              ].map(([id, rotulo]) => (
+                <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'active' : ''} onClick={() => setAba(id)}>
+                  {rotulo}
                 </button>
               ))}
             </div>
-            <div className="sm-grade">
-              {colecao === 'todas' && (
-                <button type="button" className={`sm-item sem${escolha === null ? ' sel' : ''}`} onClick={() => escolher(null)} aria-pressed={escolha === null}>
+
+            {aba === 'moldura' ? (
+              <>
+                <div className="sm-colecoes" role="tablist" aria-label="Coleções">
+                  {['todas', ...COLECOES].map((c) => (
+                    <button key={c} type="button" role="tab" aria-selected={c === colecao} className={c === colecao ? 'active' : ''} onClick={() => setColecao(c)}>
+                      {c === 'todas' ? 'Todas' : c}
+                    </button>
+                  ))}
+                </div>
+                <div className="sm-grade">
+                  {colecao === 'todas' && (
+                    <button type="button" className={`sm-item sem${escolha.moldura === null ? ' sel' : ''}`} onClick={() => escolher('moldura', null)} aria-pressed={escolha.moldura === null}>
+                      <span className="sm-sem-icone">∅</span>
+                      <span>Sem moldura</span>
+                    </button>
+                  )}
+                  {lista.map((m) => (
+                    <button key={m.id} type="button" className={`sm-item${escolha.moldura === m.id ? ' sel' : ''}`} onClick={() => escolher('moldura', m.id)} aria-pressed={escolha.moldura === m.id} title={`${m.nome} · ${m.colecao}`}>
+                      <img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" />
+                      <span>{m.nome}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="sm-grade sm-grade-times">
+                <button type="button" className={`sm-item sem${escolha.time === null ? ' sel' : ''}`} onClick={() => escolher('time', null)} aria-pressed={escolha.time === null}>
                   <span className="sm-sem-icone">∅</span>
-                  <span>Sem moldura</span>
+                  <span>Sem time</span>
                 </button>
-              )}
-              {lista.map((m) => (
-                <button key={m.id} type="button" className={`sm-item${escolha === m.id ? ' sel' : ''}`} onClick={() => escolher(m.id)} aria-pressed={escolha === m.id} title={`${m.nome} · ${m.colecao}`}>
-                  <img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" />
-                  <span>{m.nome}</span>
-                </button>
-              ))}
-            </div>
+                {times.map((t) => (
+                  <button key={t.nome} type="button" className={`sm-item${escolha.time === t.nome ? ' sel' : ''}`} onClick={() => escolher('time', t.nome)} aria-pressed={escolha.time === t.nome}>
+                    <Logo url={t.logo} nome={t.nome} classe="sm-time-logo" />
+                    <span>{t.nome}</span>
+                  </button>
+                ))}
+                {times.length === 0 && <p className="sm-vazio">Nenhum time cadastrado ainda (a lista é editada em /times/).</p>}
+              </div>
+            )}
           </div>
         </div>
 
@@ -106,7 +155,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, fechar }) {
           <button type="button" className="btn btn-ghost" onClick={fechar}>
             Cancelar
           </button>
-          <button type="button" className="btn btn-primary" onClick={salvar} disabled={estado === 'salvando' || escolha === atual}>
+          <button type="button" className="btn btn-primary" onClick={salvar} disabled={estado === 'salvando' || !mudou}>
             {estado === 'salvando' ? 'Salvando…' : 'Salvar'}
           </button>
         </div>

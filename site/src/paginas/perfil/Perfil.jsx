@@ -5,7 +5,7 @@ import { lerJson, urlOk } from '../../comum/dados.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
 import { IconeSteam } from '../../comum/Icones.jsx'
 import { nomeMapa } from '../../comum/mapas.js'
-import { ComMoldura } from '../../comum/Moldura.jsx'
+import { ComMoldura, TimeEscolhido, useTimeDe } from '../../comum/Moldura.jsx'
 import Premier from '../../comum/Premier.jsx'
 import SeletorMoldura from './SeletorMoldura.jsx'
 
@@ -199,6 +199,7 @@ function IconePincel() {
 }
 
 function Jogador({ j, mapas, pos, total, eu, personalizar }) {
+  const timeEscolhido = useTimeDe(j.steamId)
   const derrotas = j.mapas - j.vitorias
   return (
     <>
@@ -214,7 +215,9 @@ function Jogador({ j, mapas, pos, total, eu, personalizar }) {
             </span>
             <h1>{j.nome}</h1>
             <div className="pf-meta">
-              {j.time && (
+              {/* Time escolhido no "Personalizar"; sem escolha, o da última partida */}
+              <TimeEscolhido steamId={j.steamId} classe="pf-time" />
+              {!timeEscolhido && j.time && (
                 <span className="pf-time">
                   {urlOk(j.logoTime) && <img src={j.logoTime} alt="" />}
                   {j.time}
