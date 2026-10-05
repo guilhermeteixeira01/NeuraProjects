@@ -232,3 +232,12 @@ html.sm-aberto { overflow: hidden; }
 }
 .pf-sem b { font-family: var(--font-display); font-size: 18px; }
 .pf-sem span { color: var(--dim); font-size: 14px; max-width: 640px; }
+
+/* Molduras separadas por nível (Personalizar) */
+.sm-rolagem { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px; display: flex; flex-direction: column; gap: 18px; }
+.sm-rolagem .sm-grade { flex: none; overflow: visible; padding: 0; }
+.sm-secao { display: flex; flex-direction: column; gap: 10px; }
+.sm-secao-cab { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-size: 15px; font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.sm-secao-cab small { font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: var(--green); }
+.sm-secao-cab.presa small { color: var(--dim-2); }
+.sm-secao-cab .mono { margin-left: auto; font-size: 11px; color: var(--dim-2); }

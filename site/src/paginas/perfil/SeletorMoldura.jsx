@@ -61,6 +61,16 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   }
 
   const lista = colecao === 'todas' ? MOLDURAS : MOLDURAS.filter((m) => m.colecao === colecao)
+  // Molduras agrupadas pelo nível exigido (em ordem); com a regra desligada fica tudo num grupo só
+  const gruposPorNivel = (itens) => {
+    const grupos = new Map()
+    for (const m of itens) {
+      const n = nivelDaMoldura(config, m.id)
+      if (!grupos.has(n)) grupos.set(n, [])
+      grupos.get(n).push(m)
+    }
+    return [...grupos.entries()].sort((x, y) => x[0] - y[0])
+  }
   const moldura = molduraPorId(escolha.moldura)
   const time = times.find((t) => t.nome === escolha.time) || null
   const mudou = escolha.moldura !== salvo.moldura || escolha.time !== salvo.time
@@ -129,37 +139,56 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                     </button>
                   ))}
                 </div>
-                <div className="sm-grade">
+                {/* Com "molduras por nível" ligado: uma seção por nível (Livres, Nível 2...); desligado: uma grade só */}
+                <div className="sm-rolagem">
                   {colecao === 'todas' && (
-                    <button type="button" className={`sm-item sem${escolha.moldura === null ? ' sel' : ''}`} onClick={() => escolher('moldura', null)} aria-pressed={escolha.moldura === null}>
-                      <span className="sm-sem-icone">∅</span>
-                      <span>Sem moldura</span>
-                    </button>
-                  )}
-                  {lista.map((m) => {
-                    const exige = nivelDaMoldura(config, m.id)
-                    const presa = travada(m.id)
-                    return (
-                      <button
-                        key={m.id}
-                        type="button"
-                        className={`sm-item${escolha.moldura === m.id ? ' sel' : ''}${presa ? ' presa' : ''}`}
-                        onClick={() => !presa && escolher('moldura', m.id)}
-                        aria-pressed={escolha.moldura === m.id}
-                        aria-disabled={presa}
-                        title={presa ? `${m.nome}: libera no nível ${exige}` : `${m.nome} · ${m.colecao}`}
-                      >
-                        <img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" />
-                        <span>{m.nome}</span>
-                        {exige > 1 && (
-                          <span className="sm-exige">
-                            {presa && <CadeadoMini />}
-                            <SeloNivel nivel={exige} tamanho={20} />
-                          </span>
-                        )}
+                    <div className="sm-grade">
+                      <button type="button" className={`sm-item sem${escolha.moldura === null ? ' sel' : ''}`} onClick={() => escolher('moldura', null)} aria-pressed={escolha.moldura === null}>
+                        <span className="sm-sem-icone">∅</span>
+                        <span>Sem moldura</span>
                       </button>
-                    )
-                  })}
+                    </div>
+                  )}
+                  {gruposPorNivel(lista).map(([exige, itens]) => (
+                    <section key={exige} className="sm-secao">
+                      {config.molduraPorNivel && (
+                        <h4 className={`sm-secao-cab${!admin && exige > nivel ? ' presa' : ''}`}>
+                          <SeloNivel nivel={exige} tamanho={24} />
+                          {exige === 1 ? 'Livres' : `Nível ${exige}`}
+                          <small>
+                            {exige === 1 || admin || exige <= nivel
+                              ? 'liberado'
+                              : exige - nivel === 1 ? 'falta 1 nível' : `faltam ${exige - nivel} níveis`}
+                          </small>
+                          <span className="mono">{itens.length}</span>
+                        </h4>
+                      )}
+                      <div className="sm-grade">
+                        {itens.map((m) => {
+                          const presa = travada(m.id)
+                          return (
+                            <button
+                              key={m.id}
+                              type="button"
+                              className={`sm-item${escolha.moldura === m.id ? ' sel' : ''}${presa ? ' presa' : ''}`}
+                              onClick={() => !presa && escolher('moldura', m.id)}
+                              aria-pressed={escolha.moldura === m.id}
+                              aria-disabled={presa}
+                              title={presa ? `${m.nome}: libera no nível ${exige}` : `${m.nome} · ${m.colecao}`}
+                            >
+                              <img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" />
+                              <span>{m.nome}</span>
+                              {presa && (
+                                <span className="sm-exige">
+                                  <CadeadoMini />
+                                </span>
+                              )}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </section>
+                  ))}
                 </div>
               </>
             ) : (
