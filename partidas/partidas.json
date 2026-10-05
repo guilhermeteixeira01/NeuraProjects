@@ -1,5 +1,30 @@
 [
   {
+    "nome": "2026-10-05_20-15_de_nuke_Neura-Project-x-Digital-Gamers",
+    "data": "2026-10-05 20:15",
+    "mapa": "de_nuke",
+    "timeA": "Neura Project",
+    "timeB": "Digital Gamers",
+    "placarA": 9,
+    "placarB": 13,
+    "serie": "MD3 · mapa 2/3",
+    "caminho": "dga/md3/2026-10-05_20-15_de_nuke_Neura-Project-x-Digital-Gamers",
+    "categoria": "md3",
+    "serieId": "2026-10-05_19-41_Neura-Project-x-Digital-Gamers",
+    "serieTimeA": "Neura Project",
+    "serieTimeB": "Digital Gamers",
+    "serieVitoriasA": 0,
+    "serieVitoriasB": 2,
+    "serieMapas": [
+      "de_overpass",
+      "de_nuke",
+      "de_inferno"
+    ],
+    "serieCancelada": false,
+    "logoA": "https://i.imgur.com/0lhPoBJ.png",
+    "logoB": "https://i.imgur.com/EgmqWQi.jpg"
+  },
+  {
     "nome": "2026-10-05_19-42_de_overpass_Neura-Project-x-Digital-Gamers",
     "data": "2026-10-05 19:42",
     "mapa": "de_overpass",
