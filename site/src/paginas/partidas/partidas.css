@@ -346,10 +346,14 @@ animation:brilho 1.3s ease-in-out infinite}
 .serie-mapas .partida.pendente .summary-num{display:none}
 .partida.pendente .placar-linha{position:static;transform:none;justify-content:center;font-size:18px;letter-spacing:3px}
 .serie-bloco{padding:8px;gap:8px}.serie-mapas{gap:6px}
-/* Topo da série no celular: etiquetas + data numa linha, placar inteiro embaixo */
-.serie-head{gap:8px;padding:2px}
-.serie-head .mono-label{order:0;margin-left:auto;font-size:10px}
-.serie-placar{order:1;width:100%;gap:8px;font-size:14px}
+/* Topo da série no celular, tudo centralizado: etiquetas numa linha, placar inteiro e a data como
+   rodapé entre duas linhas finas (assim etiqueta grande, como EM ANDAMENTO, não empurra a data para o canto) */
+.serie-head{justify-content:center;gap:8px 6px;padding:4px 2px 2px}
+.serie-placar{order:1;width:100%;gap:8px;font-size:14px;margin-top:4px}
+.serie-head .mono-label{order:2;width:100%;display:flex;align-items:center;gap:10px;margin:0;font-size:10px;letter-spacing:2px;color:var(--dim)}
+.serie-head .mono-label::before,.serie-head .mono-label::after{content:'';flex:1;height:1px}
+.serie-head .mono-label::before{background:linear-gradient(90deg,transparent,var(--border-2))}
+.serie-head .mono-label::after{background:linear-gradient(90deg,var(--border-2),transparent)}
 .serie-placar span{flex:1 1 0;min-width:0}
 .serie-placar span.t-A{text-align:right}
 .serie-placar b{font-size:20px}

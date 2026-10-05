@@ -6,10 +6,10 @@
  *   /login?volta=<página>  -> manda para o login da Steam
  *   /retorno               -> a Steam volta aqui; confirma com ela, busca nome e avatar e devolve para
  *                             a página com #steam=<token> (o site guarda o token no navegador)
- *   /molduras, /moldura    -> molduras de avatar dos jogadores (KV MOLDURAS, mais abaixo)
+ *   /perfis, /perfil       -> personalização dos jogadores: moldura do avatar e time (KV MOLDURAS, mais abaixo)
  *
  * Token: base64url(JSON { id, nome, avatar, exp }) + "." + base64url(HMAC-SHA256 com o SEGREDO).
- * O site lê o JSON para mostrar; a assinatura é conferida aqui quando o jogador salva a moldura (/moldura).
+ * O site lê o JSON para mostrar; a assinatura é conferida aqui quando o jogador salva o perfil (/perfil).
  *
  * Variáveis (wrangler.toml / painel da Cloudflare):
  *   SITE            endereço do site (padrão https://neuraproject.com.br)
@@ -30,36 +30,49 @@ export default {
     const site = (env.SITE || 'https://neuraproject.com.br').replace(/\/$/, '')
     if (url.pathname === '/login') return login(url, env, site)
     if (url.pathname === '/retorno') return retorno(url, env, site)
+    if (url.pathname === '/perfis' && req.method === 'GET') return lerPerfis(env)
+    if (url.pathname === '/perfil') return salvarPerfil(req, env, site, null)
+    // Rotas antigas (só moldura): páginas que ainda estejam abertas com a versão anterior do site
     if (url.pathname === '/molduras' && req.method === 'GET') return lerMolduras(env)
-    if (url.pathname === '/moldura') return salvarMoldura(req, env, site)
+    if (url.pathname === '/moldura') return salvarPerfil(req, env, site, 'moldura')
     return Response.redirect(`${site}/`, 302)
   },
 }
 
-// ── Molduras de avatar (personalização do perfil) ──
-// Guardadas no KV MOLDURAS numa chave só: { "<SteamID64>": "<coleção>/<moldura>" }.
-//   GET  /molduras -> o mapa inteiro (qualquer página do site lê, para mostrar a moldura de cada jogador)
-//   POST /moldura  -> { moldura: "<id>" | null } com "Authorization: Bearer <token do login>"; só muda a do dono do token
-const CHAVE_MOLDURAS = 'molduras'
+// ── Perfil dos jogadores (personalização): moldura do avatar e time ──
+// Guardado no KV MOLDURAS numa chave só: { "<SteamID64>": { "moldura": "<coleção>/<moldura>", "time": "<nome>" } }.
+//   GET  /perfis -> o mapa inteiro (toda página do site lê, para mostrar a moldura e o time de cada jogador)
+//   POST /perfil -> { moldura?: "<id>" | null, time?: "<nome>" | null } com "Authorization: Bearer <token do login>";
+//                   só muda os campos enviados (null tira) e só do dono do token
+const CHAVE_PERFIS = 'perfis'
+const CHAVE_ANTIGA = 'molduras' // formato antigo { "<SteamID64>": "<moldura>" }: lido uma vez e convertido
 const ID_MOLDURA = /^[a-z0-9-]{1,40}\/[a-z0-9-]{1,60}$/
+const NOME_TIME = /^[^\u0000-\u001f<>]{1,40}$/ // nome da lista de times (o site só mostra se ainda existir na lista)
 
 const json = (dados, status = 200, extra = {}) =>
   new Response(JSON.stringify(dados), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...extra } })
+const publico = { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=5' } // troca aparece em segundos
 
-async function mapaMolduras(env) {
+async function mapaPerfis(env) {
   try {
-    return (await env.MOLDURAS.get(CHAVE_MOLDURAS, 'json')) || {}
+    const perfis = await env.MOLDURAS.get(CHAVE_PERFIS, 'json')
+    if (perfis) return perfis
+    const antigo = (await env.MOLDURAS.get(CHAVE_ANTIGA, 'json')) || {}
+    return Object.fromEntries(Object.entries(antigo).map(([id, moldura]) => [id, { moldura }]))
   } catch {
     return {}
   }
 }
 
+const lerPerfis = async (env) => json(await mapaPerfis(env), 200, publico)
+
 async function lerMolduras(env) {
-  // Cache curto: troca de moldura aparece para os outros em poucos segundos
-  return json(await mapaMolduras(env), 200, { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=5' })
+  const perfis = await mapaPerfis(env)
+  return json(Object.fromEntries(Object.entries(perfis).filter(([, p]) => p.moldura).map(([id, p]) => [id, p.moldura])), 200, publico)
 }
 
-async function salvarMoldura(req, env, site) {
+// campo = 'moldura' na rota antiga (/moldura): só aceita a moldura; null = qualquer campo do perfil
+async function salvarPerfil(req, env, site, campo) {
   // Só o próprio site (e as ORIGENS_EXTRAS) pode salvar
   const permitidas = [site, ...String(env.ORIGENS_EXTRAS || '').split(',').map((s) => s.trim().replace(/\/$/, '')).filter(Boolean)]
   const origem = req.headers.get('Origin') || ''
@@ -74,19 +87,36 @@ async function salvarMoldura(req, env, site) {
   const dono = env.SEGREDO ? await conferir(token, env.SEGREDO) : null
   if (!dono) return json({ erro: 'login' }, 401, cors) // login inválido ou vencido: entrar de novo
 
-  let moldura
+  let corpo
   try {
-    moldura = (await req.json())?.moldura ?? null
+    corpo = (await req.json()) || {}
   } catch {
     return json({ erro: 'corpo' }, 400, cors)
   }
-  if (moldura !== null && (typeof moldura !== 'string' || !ID_MOLDURA.test(moldura))) return json({ erro: 'moldura' }, 400, cors)
+  const mudar = {}
+  if ('moldura' in corpo) {
+    const m = corpo.moldura ?? null
+    if (m !== null && (typeof m !== 'string' || !ID_MOLDURA.test(m))) return json({ erro: 'moldura' }, 400, cors)
+    mudar.moldura = m
+  }
+  if (!campo && 'time' in corpo) {
+    const t = typeof corpo.time === 'string' ? corpo.time.trim() : corpo.time ?? null
+    if (t !== null && (typeof t !== 'string' || !NOME_TIME.test(t))) return json({ erro: 'time' }, 400, cors)
+    mudar.time = t
+  }
 
-  const mapa = await mapaMolduras(env)
-  if (moldura) mapa[dono.id] = moldura
-  else delete mapa[dono.id]
-  await env.MOLDURAS.put(CHAVE_MOLDURAS, JSON.stringify(mapa))
-  return json({ ok: true, molduras: mapa }, 200, cors)
+  const perfis = await mapaPerfis(env)
+  const meu = { ...perfis[dono.id] }
+  for (const [k, v] of Object.entries(mudar)) {
+    if (v === null) delete meu[k]
+    else meu[k] = v
+  }
+  if (Object.keys(meu).length) perfis[dono.id] = meu
+  else delete perfis[dono.id]
+  await env.MOLDURAS.put(CHAVE_PERFIS, JSON.stringify(perfis))
+  if (campo === 'moldura')
+    return json({ ok: true, molduras: Object.fromEntries(Object.entries(perfis).filter(([, p]) => p.moldura).map(([id, p]) => [id, p.moldura])) }, 200, cors)
+  return json({ ok: true, perfis }, 200, cors)
 }
 
 // Token do login: assinatura certa e dentro da validade -> { id, ... }; senão null
