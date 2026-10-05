@@ -7,6 +7,7 @@ import GraficoUtil from './GraficoUtil.jsx'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { linkPerfil } from '../../comum/conta.js'
 import { fundoMapa, getMap, mapIcon, nomeMapa } from '../../comum/mapas.js'
+import { ComMoldura } from '../../comum/Moldura.jsx'
 
 // Página de estatísticas de um mapa jogado no servidor.
 // Os dados vêm do partida.json que o plugin BaseComp manda para o GitHub (formato em `partida.json`, versão 1).
@@ -322,7 +323,9 @@ function Serie({ serie, nomeTime, jogos, caminhoAtual, anuncio }) {
 function ItemDestaque({ e, valor, rotulo, ehMvp }) {
   return (
     <div className={`mvp-item spot mvp-${e.time}`}>
-      <Avatar e={e} classe="av" />
+      <ComMoldura steamId={e.steamId}>
+        <Avatar e={e} classe="av" />
+      </ComMoldura>
       <b className={ehMvp ? `t-${e.time}` : ''}>{e.nome}</b>
       <span className="mvp-val">
         <b>{valor}</b>
@@ -354,7 +357,9 @@ function Destaques({ jogadores, porRating, totalRounds, nomeTime }) {
         {/* Card grande do MVP (igual ao da sala da FACEIT) */}
         <div className={`mvp-card spot mvp-${mvp.time}`}>
           <div className="mvp-perfil">
-            <Avatar e={mvp} classe="mvp-av" />
+            <ComMoldura steamId={mvp.steamId}>
+              <Avatar e={mvp} classe="mvp-av" />
+            </ComMoldura>
             <b>{mvp.nome}</b>
             <span className={`mono-label t-${mvp.time}`}>{nomeTime(mvp.time)}</span>
           </div>
@@ -485,7 +490,9 @@ function TabelaUtil({ doTime, mvp }) {
               <tr key={e.steamId} style={{ '--i': linha }}>
                 <td>
                   <a className="player" href={linkPerfil(e.steamId)}>
-                    <Avatar e={e} classe="av" />
+                    <ComMoldura steamId={e.steamId}>
+                      <Avatar e={e} classe="av" />
+                    </ComMoldura>
                     <span>{e.nome}</span>
                     {e === mvp && (
                       <span className="estrela" title="MVP da partida">
@@ -597,7 +604,9 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
                 <tr key={e.steamId} style={{ '--i': linha }}>
                   <td>
                     <a className="player" href={linkPerfil(e.steamId)}>
-                      <Avatar e={e} classe="av" />
+                      <ComMoldura steamId={e.steamId}>
+                        <Avatar e={e} classe="av" />
+                      </ComMoldura>
                       <span>{e.nome}</span>
                       {e === mvp && (
                         <span className="estrela" title="MVP da partida">

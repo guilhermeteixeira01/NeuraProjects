@@ -11,3 +11,9 @@ SITE = "https://neuraproject.com.br"
 # Segredos (não ficam neste arquivo):
 #   npx wrangler secret put SEGREDO        -> texto aleatório longo (obrigatório)
 #   npx wrangler secret put STEAM_API_KEY  -> chave de https://steamcommunity.com/dev/apikey (opcional)
+
+# Molduras de avatar escolhidas pelos jogadores (personalização do perfil): uma chave "molduras" com
+# { "<SteamID64>": "<coleção>/<moldura>" }
+[[kv_namespaces]]
+binding = "MOLDURAS"
+id = "2a74b48573a24744b6b5771ef4ae8ba4"

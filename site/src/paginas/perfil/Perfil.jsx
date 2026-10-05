@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Layout from '../../comum/Layout.jsx'
 import { entrar, loginAtivo, useConta } from '../../comum/conta.js'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
 import { IconeSteam } from '../../comum/Icones.jsx'
 import { nomeMapa } from '../../comum/mapas.js'
+import { ComMoldura } from '../../comum/Moldura.jsx'
 import Premier from '../../comum/Premier.jsx'
+import SeletorMoldura from './SeletorMoldura.jsx'
 
 // Perfil do jogador: /perfil/?id=<SteamID64>. Sem id, mostra o de quem está logado pela Steam.
 // Dados: ranking/ranking.json (totais) e perfil/historico/<id>.json (todos os mapas), gerados no deploy.
@@ -186,14 +188,26 @@ function Estat({ rotulo, valor, sub, classe = '' }) {
   )
 }
 
-function Jogador({ j, mapas, pos, total, eu }) {
+// Ícone do botão "Personalizar"
+function IconePincel() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  )
+}
+
+function Jogador({ j, mapas, pos, total, eu, personalizar }) {
   const derrotas = j.mapas - j.vitorias
   return (
     <>
       <section className="hero pf-hero">
         <FundoHero quantidade={10} />
         <div className="wrap pf-topo">
-          <Avatar src={j.avatar} nome={j.nome} classe="pf-av fx-entra" />
+          <ComMoldura steamId={j.steamId}>
+            <Avatar src={j.avatar} nome={j.nome} classe="pf-av fx-entra" />
+          </ComMoldura>
           <div className="pf-id fx-entra" style={{ '--e': 1 }}>
             <span className="kicker">
               PERFIL DO JOGADOR{eu && <span className="pf-voce">VOCÊ</span>}
@@ -214,6 +228,11 @@ function Jogador({ j, mapas, pos, total, eu }) {
               )}
             </div>
             <div className="pf-acoes">
+              {eu && (
+                <button type="button" className="btn btn-primary" onClick={personalizar}>
+                <IconePincel /> Personalizar
+              </button>
+              )}
               <a className="btn btn-ghost" href={steam(j.steamId)} target="_blank" rel="noopener">
                 <IconeSteam /> Perfil na Steam
               </a>
@@ -266,6 +285,7 @@ export default function Perfil() {
   const conta = useConta()
   const [idUrl, setIdUrl] = useState(null) // null = ainda não leu o endereço (HTML gerado)
   const [dados, setDados] = useState(null)
+  const [editando, setEditando] = useState(false) // janela "Personalizar" aberta
 
   useEffect(() => {
     const id = new URLSearchParams(location.search).get('id') || ''
@@ -291,6 +311,7 @@ export default function Perfil() {
     if (j) document.title = `${j.nome} — Perfil | Neura Project`
   }, [j])
 
+  const fechar = useCallback(() => setEditando(false), [])
   let conteudo
   if (idUrl === null || (id && (!dados || dados.id !== id))) {
     conteudo = <Aviso titulo="Carregando perfil…" />
@@ -315,6 +336,11 @@ export default function Perfil() {
         titulo={eu && conta.nome ? conta.nome : 'Jogador sem partidas'}
         texto={eu ? 'Você ainda não tem partidas registradas no servidor. Assim que jogar um mapa, suas estatísticas aparecem aqui.' : 'Esse jogador ainda não tem partidas registradas no servidor.'}
       >
+        {eu && (
+          <button type="button" className="btn btn-primary" onClick={() => setEditando(true)}>
+            <IconePincel /> Personalizar
+          </button>
+        )}
         <a className="btn btn-ghost" href={steam(id)} target="_blank" rel="noopener">
           <IconeSteam /> Perfil na Steam
         </a>
@@ -325,12 +351,15 @@ export default function Perfil() {
     )
   } else {
     const ordem = dados.ranking.jogadores.filter((x) => x.mapas >= 1).sort((a, b) => b.rating - a.rating || b.kills - a.kills)
-    conteudo = <Jogador j={j} mapas={dados.mapas} pos={ordem.indexOf(j) + 1} total={ordem.length} eu={conta?.id === id} />
+    conteudo = <Jogador j={j} mapas={dados.mapas} pos={ordem.indexOf(j) + 1} total={ordem.length} eu={conta?.id === id} personalizar={() => setEditando(true)} />
   }
 
   return (
     <Layout pagina="perfil">
       <main>{conteudo}</main>
+      {editando && conta && (
+        <SeletorMoldura steamId={conta.id} avatar={conta.avatar || j?.avatar} nome={conta.nome || j?.nome || 'Você'} fechar={fechar} />
+      )}
     </Layout>
   )
 }

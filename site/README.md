@@ -67,6 +67,17 @@ Cloudflare Worker gratuito (`worker/steam-login/`). Para ligar:
 O token fica só no navegador (`localStorage`, 30 dias). O site não confia nele para nada sensível; ele só serve
 para mostrar quem está logado.
 
+### Molduras de avatar (personalizar perfil)
+
+No próprio perfil, quem está logado vê **Personalizar** e escolhe uma moldura animada para o avatar. A escolha
+vai para o worker (`POST /moldura`, que confere o login) e fica no KV `MOLDURAS` da Cloudflare; todas as
+páginas que mostram o avatar (menu, perfil, ranking, partida, gráfico de utilitários) leem `GET /molduras` ao
+abrir. Quem troca vê na hora; os outros ao abrir ou recarregar a página.
+
+As molduras ficam em `public/assets/molduras/<coleção>/<nome>.png` (APNG 288x288, animado) com uma miniatura
+parada `.webp` (144x144) ao lado, e a lista em `src/comum/molduras.js`. Para adicionar uma: coloque os dois
+arquivos e uma linha na lista.
+
 ## Séries (MD3/MD5)
 
 Cada página de mapa recebe, no deploy, os outros mapas da mesma série (`serieJogos`, tirado do
