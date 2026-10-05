@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { CamadaMoldura, SeloCargo, cargoDaMoldura, useCargosIdsDe, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { COLECOES, MOLDURAS, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { urlOk } from '../../comum/dados.js'
+import { TEMAS, aplicarTema, temaAtual } from '../../comum/tema.js'
 
 function CadeadoMini() {
   return (
@@ -37,29 +38,42 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   const travada = (id) => !admin && (nivelDaMoldura(config, id) > nivel || semCargo(id))
   const [falta, setFalta] = useState(0) // nível exigido, quando o worker recusa
   const times = useListaTimes()
-  const salvo = { moldura: perfil.moldura || null, time: perfil.time || null }
+  // Tema que estava valendo ao abrir (a prévia muda a página; cancelar volta para ele)
+  const temaOriginal = useRef(temaAtual())
+  const salvo = { moldura: perfil.moldura || null, time: perfil.time || null, tema: perfil.tema || temaOriginal.current }
   const [escolha, setEscolha] = useState(salvo)
   const [mexeu, setMexeu] = useState(false)
-  const [aba, setAba] = useState('moldura') // 'moldura' | 'time'
+  const [aba, setAba] = useState('moldura') // 'moldura' | 'time' | 'tema'
   const [colecao, setColecao] = useState('todas')
   const [estado, setEstado] = useState('') // '' | 'salvando' | 'erro' | 'login' | 'nivel' | 'bloqueado'
   const [erroAvatar, setErroAvatar] = useState(false)
 
   // O perfil salvo pode chegar depois de abrir: enquanto não mexeu em nada, acompanha ele
   useEffect(() => {
-    if (!mexeu) setEscolha({ moldura: perfil.moldura || null, time: perfil.time || null })
+    if (!mexeu) setEscolha({ moldura: perfil.moldura || null, time: perfil.time || null, tema: perfil.tema || temaOriginal.current })
   }, [perfil.moldura, perfil.time, mexeu])
+
+  // Fechar sem salvar: volta o tema que estava valendo (a aba Tema mostra a prévia na página)
+  const cancelar = useCallback(() => {
+    aplicarTema(temaOriginal.current, { guardar: false })
+    fechar()
+  }, [fechar])
 
   // Esc fecha; a página por trás não rola
   useEffect(() => {
-    const tecla = (e) => e.key === 'Escape' && fechar()
+    const tecla = (e) => e.key === 'Escape' && cancelar()
     document.addEventListener('keydown', tecla)
     document.documentElement.classList.add('sm-aberto')
     return () => {
       document.removeEventListener('keydown', tecla)
       document.documentElement.classList.remove('sm-aberto')
     }
-  }, [fechar])
+  }, [cancelar])
+
+  const escolherTema = (id) => {
+    escolher('tema', id)
+    aplicarTema(id, { guardar: false }) // prévia: a página muda na hora
+  }
 
   const escolher = (campo, valor) => {
     setEscolha((e) => ({ ...e, [campo]: valor }))
@@ -133,12 +147,13 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
     )
   const moldura = molduraPorId(escolha.moldura)
   const time = times.find((t) => t.nome === escolha.time) || null
-  const mudou = escolha.moldura !== salvo.moldura || escolha.time !== salvo.time
+  const mudou = escolha.moldura !== salvo.moldura || escolha.time !== salvo.time || escolha.tema !== salvo.tema
 
   const salvar = async () => {
     setEstado('salvando')
     try {
       await salvarPerfil(escolha)
+      aplicarTema(escolha.tema) // agora fica guardado no navegador também
       fechar()
     } catch (e) {
       setFalta(e.dados?.precisa || 0)
@@ -147,11 +162,11 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   }
 
   return (
-    <div className="sm-fundo" onClick={fechar}>
+    <div className="sm-fundo" onClick={cancelar}>
       <div className="sm-painel" role="dialog" aria-modal="true" aria-labelledby="sm-titulo" onClick={(e) => e.stopPropagation()}>
         <div className="sm-cab">
           <h2 id="sm-titulo">Personalizar perfil</h2>
-          <button type="button" className="sm-fechar" aria-label="Fechar" onClick={fechar}>
+          <button type="button" className="sm-fechar" aria-label="Fechar" onClick={cancelar}>
             ×
           </button>
         </div>
@@ -183,6 +198,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
               {[
                 ['moldura', 'Moldura'],
                 ['time', 'Time'],
+                ['tema', 'Tema'],
               ].map(([id, rotulo]) => (
                 <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'active' : ''} onClick={() => setAba(id)}>
                   {rotulo}
@@ -239,6 +255,29 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                   ))}
                 </div>
               </>
+            ) : aba === 'tema' ? (
+              <div className="sm-temas">
+                {TEMAS.map((tm) => (
+                  <button
+                    key={tm.id}
+                    type="button"
+                    className={`sm-tema tema-${tm.id}${escolha.tema === tm.id ? ' sel' : ''}`}
+                    onClick={() => escolherTema(tm.id)}
+                    aria-pressed={escolha.tema === tm.id}
+                  >
+                    <span className="sm-tema-previa" aria-hidden="true">
+                      <i className="barra" />
+                      <i className="titulo" />
+                      <i className="card" />
+                      <i className="card" />
+                      <i className="botao" />
+                    </span>
+                    <b>{tm.nome}</b>
+                    <small>{tm.descricao}</small>
+                  </button>
+                ))}
+                <p className="sm-tema-nota">Vale para todas as páginas do site, neste e nos outros aparelhos em que você entrar.</p>
+              </div>
             ) : (
               <div className="sm-grade sm-grade-times">
                 <button type="button" className={`sm-item sem${escolha.time === null ? ' sel' : ''}`} onClick={() => escolher('time', null)} aria-pressed={escolha.time === null}>
@@ -265,7 +304,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
             {estado === 'cargo' && 'Essa moldura é exclusiva de um cargo que você não tem.'}
             {estado === 'bloqueado' && 'A personalização do seu perfil foi bloqueada por um administrador.'}
           </span>
-          <button type="button" className="btn btn-ghost" onClick={fechar}>
+          <button type="button" className="btn btn-ghost" onClick={cancelar}>
             Cancelar
           </button>
           <button type="button" className="btn btn-primary" onClick={salvar} disabled={estado === 'salvando' || !mudou}>

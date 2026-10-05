@@ -3,6 +3,7 @@ import Avisos from './Avisos.jsx'
 import { useLuzCursor } from './efeitos.jsx'
 import Nav from './Nav.jsx'
 import Rodape from './Rodape.jsx'
+import { SincronizarTema } from './tema.js'
 
 // Elementos com a classe `seletor` ganham `classe` quando aparecem na tela (entram suavemente).
 // Também pega os que surgem depois (lista que carrega da internet, troca de filtro...).
@@ -53,6 +54,7 @@ export default function Layout({ pagina, children }) {
       {children}
       <Rodape />
       <Avisos />
+      <SincronizarTema />
     </>
   )
 }

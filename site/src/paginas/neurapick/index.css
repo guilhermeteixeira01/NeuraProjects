@@ -45,8 +45,8 @@ html {
 
 body {
   background:
-    repeating-linear-gradient(0deg, transparent, transparent 42px, rgba(255, 255, 255, 0.012) 42px, rgba(255, 255, 255, 0.012) 43px),
-    repeating-linear-gradient(90deg, transparent, transparent 42px, rgba(255, 255, 255, 0.012) 42px, rgba(255, 255, 255, 0.012) 43px),
+    repeating-linear-gradient(0deg, transparent, transparent 42px, rgb(var(--tinta) / 0.012) 42px, rgb(var(--tinta) / 0.012) 43px),
+    repeating-linear-gradient(90deg, transparent, transparent 42px, rgb(var(--tinta) / 0.012) 42px, rgb(var(--tinta) / 0.012) 43px),
     var(--bg);
   color: var(--text);
   font-family: var(--font-body);
@@ -169,7 +169,7 @@ b.decider {
   position: sticky;
   top: 0;
   z-index: 200;
-  background: rgba(11, 12, 15, 0.85);
+  background: rgb(var(--fundo) / 0.85);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
 }
@@ -403,7 +403,7 @@ b.decider {
   position: relative;
 }
 .hero-visual .hud-frame {
-  background: linear-gradient(160deg, #14161b 0%, #0d0e12 100%);
+  background: linear-gradient(160deg, var(--cartao-1) 0%, var(--cartao-2) 100%);
   border: 1px solid var(--border-2);
   border-radius: 14px;
 }
@@ -719,7 +719,7 @@ b.decider {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(0deg, rgba(18, 19, 23, 0.95) 15%, rgba(18, 19, 23, 0.45)),
+    linear-gradient(0deg, rgb(var(--fundo) / 0.95) 15%, rgb(var(--fundo) / 0.45)),
     var(--img, none) center / cover,
     linear-gradient(110deg, var(--c1), var(--c2));
   filter: grayscale(1);
@@ -770,7 +770,7 @@ b.decider {
 .pool-idx {
   font-family: var(--font-mono);
   font-size: 10.5px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgb(var(--tinta) / 0.7);
   background: rgba(0, 0, 0, 0.5);
   padding: 2px 6px;
   border-radius: 4px;
@@ -835,7 +835,7 @@ b.decider {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: stretch;
-  background: linear-gradient(160deg, #14161b 0%, #0d0e12 100%);
+  background: linear-gradient(160deg, var(--cartao-1) 0%, var(--cartao-2) 100%);
   border: 1px solid var(--border-2);
   border-radius: 10px;
   overflow: hidden;
@@ -1129,7 +1129,7 @@ b.decider {
 .map-shade {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(11, 12, 15, 0.9), rgba(11, 12, 15, 0.05) 65%);
+  background: linear-gradient(to top, rgb(var(--fundo) / 0.9), rgb(var(--fundo) / 0.05) 65%);
 }
 .map-idx {
   position: absolute;
@@ -1138,7 +1138,7 @@ b.decider {
   font-family: var(--font-mono);
   font-size: 10.5px;
   letter-spacing: 1px;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgb(var(--tinta) / 0.6);
   background: rgba(0, 0, 0, 0.45);
   padding: 2px 6px;
   border-radius: 4px;
@@ -1184,7 +1184,7 @@ b.decider {
   font-weight: 700;
   letter-spacing: 3px;
   opacity: 0;
-  background: rgba(11, 12, 15, 0.55);
+  background: rgb(var(--fundo) / 0.55);
   transition: opacity 0.2s;
 }
 .act-ban .map-action {
@@ -1360,7 +1360,7 @@ b.decider {
 .summary-inner {
   background:
     radial-gradient(500px 200px at 0% 0%, rgba(61, 220, 132, 0.07), transparent 70%),
-    linear-gradient(160deg, #14161b 0%, #0d0e12 100%);
+    linear-gradient(160deg, var(--cartao-1) 0%, var(--cartao-2) 100%);
   border: 1px solid var(--border-2);
   border-radius: 10px;
   padding: 24px;
@@ -1394,7 +1394,7 @@ b.decider {
   border-radius: 8px;
   border: 1px solid var(--border);
   background:
-    linear-gradient(90deg, rgba(18, 19, 23, 0.92) 30%, rgba(18, 19, 23, 0.6)),
+    linear-gradient(90deg, rgb(var(--fundo) / 0.92) 30%, rgb(var(--fundo) / 0.6)),
     var(--img, none) center / cover,
     var(--panel);
 }
@@ -2020,7 +2020,7 @@ b.decider {
   transition: background 0.12s;
 }
 .sug.ativo {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgb(var(--tinta) / 0.06);
 }
 .team-A .sug.ativo {
   background: rgba(52, 152, 219, 0.14);

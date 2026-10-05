@@ -19,6 +19,13 @@
   --orange: #ff7a1a;
   --red: #ff4655;
   --yellow: #f5c542;
+  /* Cores que viraram variáveis para os temas (Personalizar → Tema) */
+  --cartao-1: #14161b;
+  --cartao-2: #0d0e12;
+  --brilho-esq: #1d1f26;
+  --tinta: 255 255 255; /* rgb(var(--tinta) / x): reflexos e divisórias (brancos no escuro, grafite no claro) */
+  --fundo: 11 12 15; /* rgb(var(--fundo) / x): véus por cima do conteúdo (menu, tooltip, janelas) */
+  --borda-rgb: 46 47 54; /* rgb(var(--borda-rgb) / x): bordas translúcidas */
   --font-display: 'Chakra Petch', 'Segoe UI', sans-serif;
   --font-body: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
   --font-mono: 'JetBrains Mono', 'Consolas', monospace;
@@ -31,7 +38,7 @@
   top: 0;
   z-index: 300;
   min-height: 64px;
-  background: rgba(11, 12, 15, 0.88);
+  background: rgb(var(--fundo) / 0.88);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
@@ -115,7 +122,7 @@
 }
 .nx-link:hover {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgb(var(--tinta) / 0.04);
 }
 .nx-link.is-active {
   color: var(--text);
@@ -243,7 +250,7 @@
   padding: 6px;
   border-radius: 10px;
   border: 1px solid var(--border-2);
-  background: rgba(14, 15, 19, 0.98);
+  background: rgb(var(--fundo) / 0.98);
   box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.9);
   animation: nx-descer 0.15s ease;
 }
@@ -481,7 +488,7 @@ html.nx-menu-aberto {
 }
 .nx-aviso-fechar:hover {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgb(var(--tinta) / 0.06);
 }
 @keyframes nx-aviso-entrar {
   from {
@@ -696,7 +703,7 @@ html.nx-menu-aberto {
   pointer-events: none;
 }
 .nx-nav.is-scrolled {
-  background: rgba(9, 10, 13, 0.94);
+  background: rgb(var(--fundo) / 0.94);
   box-shadow: 0 12px 30px -18px rgba(0, 0, 0, 0.95);
 }
 .nx-nav.is-scrolled::after {
@@ -890,7 +897,7 @@ html.nx-menu-aberto {
   position: relative;
   border-radius: 16px;
   padding: 1px;
-  background: linear-gradient(160deg, rgba(52, 152, 219, 0.75), rgba(46, 47, 54, 0.6) 45%, rgba(61, 220, 132, 0.6));
+  background: linear-gradient(160deg, rgba(52, 152, 219, 0.75), rgb(var(--borda-rgb) / 0.6) 45%, rgba(61, 220, 132, 0.6));
   animation: fx-pulsa 4s ease-in-out infinite;
   box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.9), 0 0 60px -20px rgba(26, 115, 232, 0.45);
 }
@@ -1116,8 +1123,8 @@ img {
   overflow: visible;
 }
 .selo-fundo {
-  fill: #121317;
-  stroke: rgba(255, 255, 255, 0.08);
+  fill: var(--panel);
+  stroke: rgb(var(--tinta) / 0.08);
   stroke-width: 1;
 }
 .selo-trilho,
@@ -1127,7 +1134,7 @@ img {
   stroke-linecap: round;
 }
 .selo-trilho {
-  stroke: rgba(255, 255, 255, 0.12);
+  stroke: rgb(var(--tinta) / 0.12);
 }
 .selo-arco {
   stroke: var(--nv);
@@ -1167,7 +1174,7 @@ img {
   height: 8px;
   border-radius: 999px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgb(var(--tinta) / 0.07);
 }
 .barra-xp-trilho i {
   display: block;
@@ -1206,4 +1213,116 @@ img {
   border: 1px solid color-mix(in srgb, var(--cg) 55%, transparent);
   background: color-mix(in srgb, var(--cg) 12%, transparent);
   box-shadow: 0 0 14px -6px var(--cg);
+}
+
+/* ── Temas (Personalizar → Tema; comum/tema.js) ──
+ * Sem data-tema: tema padrão do site (o de sempre, com todos os efeitos).
+ * data-tema="escuro" / "claro": versões otimizadas (cores próprias e sem os efeitos pesados).
+ * A seleção html[data-tema=...] ganha do :root (das páginas e do NeuraPick) em qualquer ordem. */
+html[data-tema='escuro'] {
+  color-scheme: dark;
+  --bg: #101114;
+  --bg-soft: #14161a;
+  --panel: #181a1f;
+  --panel-2: #1c1f25;
+  --border: #272a31;
+  --border-2: #33373f;
+  --text: #ececee;
+  --dim: #a2a5ad;
+  --dim-2: #757983;
+  --cartao-1: #1b1d22;
+  --cartao-2: #15171b;
+  --brilho-esq: #262930;
+  --tinta: 255 255 255;
+  --fundo: 16 17 20;
+  --borda-rgb: 51 55 63;
+}
+html[data-tema='claro'] {
+  color-scheme: light;
+  --bg: #f2f4f8;
+  --bg-soft: #e9edf3;
+  --panel: #ffffff;
+  --panel-2: #f7f9fc;
+  --border: #dde2ea;
+  --border-2: #c9d0db;
+  --text: #141821;
+  --dim: #535c6b;
+  --dim-2: #7b8494;
+  --blue: #1a6fe0;
+  --blue-2: #1662c4;
+  --green: #12804c;
+  --green-2: #0e6e40;
+  --orange: #d0590a;
+  --red: #d0283a;
+  --yellow: #9a7100;
+  --cartao-1: #ffffff;
+  --cartao-2: #f3f6fa;
+  --brilho-esq: #e3e8ef;
+  --tinta: 22 28 40;
+  --fundo: 255 255 255;
+  --borda-rgb: 201 208 219;
+}
+/* Versões otimizadas: sem partículas, brilhos do topo, desfoque de fundo, grade decorativa e luz do cursor */
+html[data-tema] .fx-fundo,
+html[data-tema] .hero-glow {
+  display: none !important;
+}
+html[data-tema] *,
+html[data-tema] *::before,
+html[data-tema] *::after {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html[data-tema] body {
+  background: var(--bg) !important;
+}
+html[data-tema='claro'] .nx-nav.is-scrolled,
+html[data-tema='claro'] .nx-nav {
+  background: rgb(var(--fundo) / 0.96);
+  box-shadow: 0 1px 0 var(--border);
+}
+/* Tema claro: cartões com imagem de mapa por trás (lista de partidas, série, NeuraPick) continuam escuros,
+ * com as cores do tema padrão dentro deles ("ilhas escuras"), senão o texto some em cima da imagem */
+html[data-tema='claro'] :is(.summary-item, .map-card, .pool-item) {
+  --bg: #0b0c0f;
+  --bg-soft: #0e0f13;
+  --panel: #121317;
+  --panel-2: #16171c;
+  --border: #232427;
+  --border-2: #2e2f36;
+  --text: #f1f1f1;
+  --dim: #9a9ba3;
+  --dim-2: #6d6e77;
+  --blue-2: #3498db;
+  --green: #3ddc84;
+  --orange: #ff7a1a;
+  --red: #ff4655;
+  --yellow: #f5c542;
+  --cartao-1: #14161b;
+  --cartao-2: #0d0e12;
+  --tinta: 255 255 255;
+  --fundo: 11 12 15;
+  --borda-rgb: 46 47 54;
+  color: var(--text);
+}
+/* Tema claro: números coloridos com mais contraste no fundo branco */
+html[data-tema='claro'] {
+  --ouro: #b8860b;
+  --prata: #7b8696;
+  --bronze: #b4612a;
+}
+html[data-tema='claro'] .rt-alto,
+html[data-tema='claro'] .rt-txt-alto b {
+  color: #b35f00 !important;
+}
+html[data-tema='claro'] .rt-bom,
+html[data-tema='claro'] .rt-txt-bom b {
+  color: #1d8a3a !important;
+}
+html[data-tema='claro'] .rt-medio {
+  color: var(--text) !important;
+}
+html[data-tema='claro'] .rt-baixo,
+html[data-tema='claro'] .rt-txt-baixo b {
+  color: #c62828 !important;
 }

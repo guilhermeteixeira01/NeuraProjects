@@ -16,7 +16,7 @@
  * O site lê o JSON para mostrar; a assinatura é conferida aqui em tudo que salva.
  *
  * KV MOLDURAS (nome antigo do banco; guarda tudo):
- *   perfis   { "<SteamID64>": { moldura?, molduraLivre? (posta por admin), time?, xp? (ajuste do admin), bloqueado?, cargos? } }
+ *   perfis   { "<SteamID64>": { moldura?, molduraLivre? (posta por admin), time?, tema?, xp? (ajuste do admin), bloqueado?, cargos? } }
  *   config   { molduraPorNivel: bool, nivelMoldura: { "<moldura>": nível }, admins: ["<SteamID64>"],
  *              cargos: [{ id, nome, cor }], molduraCargo: { "<moldura>": "<cargo>" } }  (Premium, VIP... e exclusivas)
  *   usuarios { "<SteamID64>": { nome, avatar, primeiro, visto } }  (quem já entrou no site)
@@ -167,6 +167,11 @@ function validarPerfil(corpo, soMoldura) {
     if (t !== null && (typeof t !== 'string' || !NOME_TIME.test(t))) return { erro: 'time' }
     mudar.time = t
   }
+  if (!soMoldura && 'tema' in corpo) {
+    // Tema do site (Personalizar → Tema); 'padrao' também fica guardado para valer nos outros aparelhos
+    if (!['padrao', 'escuro', 'claro'].includes(corpo.tema)) return { erro: 'tema' }
+    mudar.tema = corpo.tema
+  }
   return { mudar }
 }
 
@@ -212,7 +217,8 @@ async function salvarPerfil(req, env, site, quem, admin, config, cors, rotaAntig
   if (erro) return json({ erro }, 400, cors)
 
   const perfis = await ler(env, 'perfis')
-  if (perfis[quem.id]?.bloqueado && !admin) return json({ erro: 'bloqueado' }, 403, cors)
+  // Bloqueado não troca moldura/time (o que os outros veem); o tema é só de quem olha, então continua livre
+  if (perfis[quem.id]?.bloqueado && !admin && Object.keys(mudar).some((k) => k !== 'tema')) return json({ erro: 'bloqueado' }, 403, cors)
 
   // Moldura liberada por nível (o admin escolhe no painel); admins não têm trava
   const precisa = config.molduraPorNivel ? Number(config.nivelMoldura?.[mudar.moldura]) || 1 : 1

@@ -17,8 +17,8 @@ body {
 }
 body {
   background:
-    repeating-linear-gradient(0deg, transparent, transparent 42px, rgba(255, 255, 255, 0.012) 42px, rgba(255, 255, 255, 0.012) 43px),
-    repeating-linear-gradient(90deg, transparent, transparent 42px, rgba(255, 255, 255, 0.012) 42px, rgba(255, 255, 255, 0.012) 43px),
+    repeating-linear-gradient(0deg, transparent, transparent 42px, rgb(var(--tinta) / 0.012) 42px, rgb(var(--tinta) / 0.012) 43px),
+    repeating-linear-gradient(90deg, transparent, transparent 42px, rgb(var(--tinta) / 0.012) 42px, rgb(var(--tinta) / 0.012) 43px),
     var(--bg);
   color: var(--text);
   font-family: var(--font-body);
@@ -529,7 +529,7 @@ img {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
+  background: linear-gradient(110deg, transparent 30%, rgb(var(--tinta) / 0.45) 50%, transparent 70%);
   transform: translateX(-120%);
   animation: btn-brilho 4.5s ease-in-out infinite;
 }
@@ -552,7 +552,7 @@ img {
 /* Botão vazado com a borda acendendo */
 .btn-borda {
   position: relative;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgb(var(--tinta) / 0.02);
   backdrop-filter: blur(6px);
 }
 .btn-borda:hover {
@@ -605,7 +605,7 @@ img {
   position: absolute;
   inset: 0;
   z-index: -2;
-  background: linear-gradient(120deg, rgba(88, 101, 242, 0.7), rgba(46, 47, 54, 0.5) 40%, rgba(46, 47, 54, 0.5) 60%, rgba(61, 220, 132, 0.55));
+  background: linear-gradient(120deg, rgba(88, 101, 242, 0.7), rgb(var(--borda-rgb) / 0.5) 40%, rgb(var(--borda-rgb) / 0.5) 60%, rgba(61, 220, 132, 0.55));
 }
 .cta-x .cta-inner {
   max-width: none;

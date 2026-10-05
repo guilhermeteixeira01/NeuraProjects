@@ -46,7 +46,7 @@
   margin-top: 6px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: linear-gradient(160deg, rgba(20, 22, 27, 0.75), rgba(13, 14, 18, 0.75));
+  background: linear-gradient(160deg, rgb(var(--fundo) / 0.75), rgb(var(--fundo) / 0.75));
   backdrop-filter: blur(6px);
   overflow: hidden;
   max-width: 520px;
@@ -143,7 +143,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(160deg, rgba(52, 152, 219, 0.75), rgba(46, 47, 54, 0.6) 45%, rgba(61, 220, 132, 0.6));
+  background: linear-gradient(160deg, rgba(52, 152, 219, 0.75), rgb(var(--borda-rgb) / 0.6) 45%, rgba(61, 220, 132, 0.6));
 }
 .hx-painel {
   animation: hx-pulsa 4s ease-in-out infinite;
@@ -159,7 +159,7 @@
   position: relative;
   border: none;
   border-radius: 15px;
-  background: linear-gradient(160deg, rgba(22, 24, 30, 0.97) 0%, rgba(12, 13, 17, 0.97) 100%);
+  background: linear-gradient(160deg, rgb(var(--fundo) / 0.97) 0%, rgb(var(--fundo) / 0.97) 100%);
 }
 /* Linha de varredura passando pelo painel */
 .hx-painel .painel::after {
@@ -245,7 +245,7 @@
 
 /* ══════════════ PAINEL (linhas) ══════════════ */
 .painel {
-  background: linear-gradient(160deg, #14161b 0%, #0d0e12 100%);
+  background: linear-gradient(160deg, var(--cartao-1) 0%, var(--cartao-2) 100%);
   border: 1px solid var(--border-2);
   border-radius: 14px;
   overflow: hidden;
@@ -410,7 +410,7 @@
   font-weight: 700;
   line-height: 1;
   color: transparent;
-  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.06);
+  -webkit-text-stroke: 1px rgb(var(--tinta) / 0.06);
   transition: -webkit-text-stroke-color 0.3s, transform 0.4s;
   pointer-events: none;
 }
@@ -683,4 +683,11 @@
   .hx-painel {
     transform: none;
   }
+}
+
+/* Tema claro (Personalizar → Tema): números do topo em degradê azul escuro (o branco some no fundo claro) */
+html[data-tema='claro'] .hx-numeros dd {
+  background: linear-gradient(180deg, var(--text), var(--blue-2));
+  -webkit-background-clip: text;
+  background-clip: text;
 }
