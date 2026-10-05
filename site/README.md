@@ -89,7 +89,8 @@ De onde vêm (campo `fonte` na lista):
 - **Steam** (Loja de Pontos) e **Decor** (decorações da comunidade): a lista escolhida fica em
   `ferramentas/molduras/escolhidas.json` e `baixar.mjs` baixa, recomprime as pesadas (acima de 1,2 MB) e grava.
   A arte é dos autores/jogos de origem.
-- As demais: decorações do Discord (originais em `src/frames`, fora do repositório).
+- As decorações do Discord foram tiradas do site (arte licenciada). Quem estava com uma delas fica sem moldura até
+  escolher outra; a moldura salva que não existe mais na lista é simplesmente ignorada.
 
 Ferramentas (fora do build do site, com dependências próprias):
 
