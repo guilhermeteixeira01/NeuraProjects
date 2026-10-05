@@ -115,6 +115,18 @@ Te1xe1ra) e só ele promove ou remove outros admins.
   aparece sempre.
 - **Admins:** lista de administradores.
 
+## Temas (Personalizar → Tema)
+
+Três temas, para todas as páginas: **Padrão do site** (o de sempre), **Escuro otimizado** e **Claro otimizado**. Os
+otimizados não têm os efeitos pesados (partículas, brilhos do topo, desfoque de fundo, grade decorativa, luz do
+cursor e inclinação 3D). O tema fica no navegador (`localStorage np_tema`, aplicado por um script no `<head>` de cada
+HTML antes de desenhar, sem piscar) e, com login, no perfil do worker (`tema`), então vale nos outros aparelhos.
+
+As cores vêm de variáveis em `src/comum/site.css` (`html[data-tema='claro']` e `'escuro'`), inclusive
+`--tinta` (reflexos/divisórias), `--fundo` (véus), `--borda-rgb` e `--cartao-1/2`. Cor nova no CSS: use as
+variáveis (não `rgba(255,255,255,x)` nem fundos escuros fixos), senão ela não muda no tema claro. Cartões com imagem
+de mapa por trás (`.summary-item`, `.map-card`, `.pool-item`) continuam escuros no claro ("ilhas escuras").
+
 ## Séries (MD3/MD5)
 
 Cada página de mapa recebe, no deploy, os outros mapas da mesma série (`serieJogos`, tirado do
