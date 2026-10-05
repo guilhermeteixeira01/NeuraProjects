@@ -61,6 +61,31 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   }
 
   const lista = colecao === 'todas' ? MOLDURAS : MOLDURAS.filter((m) => m.colecao === colecao)
+  // Dentro de cada nível, separadas por coleção (na ordem de COLECOES)
+  const porColecao = (itens) => COLECOES.map((c) => [c, itens.filter((m) => m.colecao === c)]).filter(([, l]) => l.length)
+  const itemMoldura = (m, exige) => {
+    const presa = travada(m.id)
+    return (
+      <button
+        key={m.id}
+        type="button"
+        className={`sm-item${escolha.moldura === m.id ? ' sel' : ''}${presa ? ' presa' : ''}`}
+        onClick={() => !presa && escolher('moldura', m.id)}
+        aria-pressed={escolha.moldura === m.id}
+        aria-disabled={presa}
+        title={presa ? `${m.nome}: libera no nível ${exige}` : `${m.nome} · ${m.colecao}`}
+      >
+        <img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" />
+        <span>{m.nome}</span>
+        {presa && (
+          <span className="sm-exige">
+            <CadeadoMini />
+          </span>
+        )}
+      </button>
+    )
+  }
+
   // Molduras agrupadas pelo nível exigido (em ordem); com a regra desligada fica tudo num grupo só
   const gruposPorNivel = (itens) => {
     const grupos = new Map()
@@ -163,30 +188,20 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                           <span className="mono">{itens.length}</span>
                         </h4>
                       )}
-                      <div className="sm-grade">
-                        {itens.map((m) => {
-                          const presa = travada(m.id)
-                          return (
-                            <button
-                              key={m.id}
-                              type="button"
-                              className={`sm-item${escolha.moldura === m.id ? ' sel' : ''}${presa ? ' presa' : ''}`}
-                              onClick={() => !presa && escolher('moldura', m.id)}
-                              aria-pressed={escolha.moldura === m.id}
-                              aria-disabled={presa}
-                              title={presa ? `${m.nome}: libera no nível ${exige}` : `${m.nome} · ${m.colecao}`}
-                            >
-                              <img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" />
-                              <span>{m.nome}</span>
-                              {presa && (
-                                <span className="sm-exige">
-                                  <CadeadoMini />
-                                </span>
-                              )}
-                            </button>
-                          )
-                        })}
-                      </div>
+                      {porColecao(itens).map(([c, daColecao]) =>
+                        colecao === 'todas' ? (
+                          <div key={c} className="sm-sub">
+                            <h5 className="sm-sub-cab">
+                              {c} <small>{daColecao.length}</small>
+                            </h5>
+                            <div className="sm-grade">{daColecao.map((m) => itemMoldura(m, exige))}</div>
+                          </div>
+                        ) : (
+                          <div key={c} className="sm-grade">
+                            {daColecao.map((m) => itemMoldura(m, exige))}
+                          </div>
+                        ),
+                      )}
                     </section>
                   ))}
                 </div>
