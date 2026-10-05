@@ -80,8 +80,9 @@ export async function gerarRanking(pasta, { premier = true } = {}) {
       j.ultimos.push({ rating: e.rating, venceu, mapa: String(d.mapa || '').replace(/^de_/, ''), data: p.data, caminho: p.caminho || p.nome })
       if (j.ultimos.length > ULTIMOS) j.ultimos.shift()
       // Histórico completo (página de perfil): um arquivo por jogador, fora do ranking.json
-      const xpMapa = xpDaPartida({ venceu, rating: e.rating, mvp: e === mvp })
-      j.xp += xpMapa
+      // XP como o Elo da FACEIT: em ordem de data, vitória soma e derrota tira (nunca abaixo de 0)
+      const xpMapa = xpDaPartida({ venceu, empate: !vencedor, rating: e.rating, mvp: e === mvp })
+      j.xp = Math.max(0, j.xp + xpMapa)
       const meu = e.time === 'A' ? 'A' : 'B'
       j.historico.push({
         caminho: p.caminho || p.nome,
@@ -99,7 +100,8 @@ export async function gerarRanking(pasta, { premier = true } = {}) {
         assist: e.assistencias,
         adr: Math.round((10 * e.dano) / rounds) / 10,
         hs: e.kills ? Math.round((100 * e.headshots) / e.kills) : 0,
-        xp: xpMapa,
+        xp: xpMapa, // ganho (+) ou perda (-) nesta partida
+        xpTotal: j.xp, // XP total depois dela
       })
       jogadores.set(e.steamId, j)
       leu = true

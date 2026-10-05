@@ -80,12 +80,18 @@ arquivos e uma linha na lista.
 
 ## Níveis (XP)
 
-Cada partida no servidor dá XP (`src/comum/niveis.js`, a mesma tabela no deploy, no site e no worker):
-100 por jogar, +50 por vencer, +10/+25/+40 por rating 1.0/1.2/1.5 e +20 para o MVP da partida. São 10 níveis
-como na FACEIT (mesmas cores), com o XP mínimo de cada um em `NIVEIS`; o XP só sobe. O deploy calcula o XP de cada
-jogador no `ranking.json` (e quanto cada mapa rendeu no histórico do perfil). O admin pode somar ou tirar XP de
-alguém pelo painel (ajuste guardado no worker e somado no site). Aparece no ranking (com a métrica XP), no perfil
-(selo + barra até o próximo nível) e no painel.
+Funciona como o Elo da FACEIT (`src/comum/niveis.js`, a mesma tabela no deploy, no site e no worker): cada mapa
+**vitória ganha XP e derrota perde XP**, e o desempenho aumenta o ganho ou diminui a perda.
+
+- Base: vitória +100, derrota −60 (empate não mexe).
+- Rating no mapa: 1.5+ +40 · 1.2+ +25 · 1.0+ +10 · 0.8+ 0 · abaixo −10. MVP da partida +20.
+- Vitória rende pelo menos +50 e derrota tira pelo menos −10 (vitória: +50 a +160; derrota: −10 a −70).
+- O XP total nunca fica abaixo de 0; o nível pode cair. 10 níveis (cores da FACEIT) com o XP mínimo em `NIVEIS`.
+
+O deploy calcula tudo em ordem de data (`scripts/ranking.mjs`): o XP total no `ranking.json`, o ganho/perda de cada
+mapa no histórico do perfil e, em cada página de partida (`d.xp`), a coluna **NÍVEL** com o selo e o +XP/−XP de cada
+jogador. O admin pode somar ou tirar XP pelo painel (ajuste guardado no worker e somado no site). Aparece no ranking
+(métrica XP), no perfil (selo + barra até o próximo nível), nas partidas e no painel.
 
 ## Painel de administrador (`/admin/`)
 

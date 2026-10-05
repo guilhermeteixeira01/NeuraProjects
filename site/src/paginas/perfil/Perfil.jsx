@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import Layout from '../../comum/Layout.jsx'
 import { entrar, loginAtivo, useConta } from '../../comum/conta.js'
 import { lerJson, urlOk } from '../../comum/dados.js'
+import { useAoVivo } from '../../comum/aoVivo.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
 import { IconeSteam } from '../../comum/Icones.jsx'
 import { nomeMapa } from '../../comum/mapas.js'
@@ -166,7 +167,7 @@ function Historico({ mapas }) {
                     </span>
                   )}
                 </td>
-                <td className="mono pf-xp-mapa">{m.xp ? `+${m.xp}` : '—'}</td>
+                <td className={`mono pf-xp-mapa${m.xp < 0 ? ' perdeu' : ''}`}>{m.xp > 0 ? `+${m.xp}` : m.xp < 0 ? m.xp : '0'}</td>
               </tr>
             ))}
           </tbody>
@@ -353,6 +354,8 @@ export default function Perfil() {
   }, [j])
 
   const fechar = useCallback(() => setEditando(false), [])
+  // Deploy novo (partida terminou): recarrega sozinha com os números e o histórico atualizados
+  useAoVivo('/ranking/ranking.json', undefined, { selecionar: (r) => r?.atualizado, ativo: !editando })
   // Seu nível (trava das molduras por nível) e se é admin (sem trava)
   const { admin } = useAdmin(conta)
   const meuNivel = useNivelDe(dados?.ranking?.jogadores?.find((x) => x.steamId === conta?.id) || { steamId: conta?.id, xp: 0 })

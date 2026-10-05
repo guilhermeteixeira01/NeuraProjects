@@ -1,17 +1,29 @@
-// Sistema de níveis (parecido com a FACEIT: 10 níveis, mesmas cores). Cada partida jogada no servidor dá XP
-// e o XP só sobe. JavaScript puro: usado pelo deploy (scripts/ranking.mjs calcula o XP de cada jogador),
+// Sistema de níveis (parecido com a FACEIT: 10 níveis, mesmas cores). Como o Elo da FACEIT: vitória ganha XP,
+// derrota perde XP, e o desempenho (rating, MVP) aumenta o ganho ou diminui a perda. O XP total nunca fica
+// abaixo de 0 e o nível pode cair. JavaScript puro: usado pelo deploy (scripts/ranking.mjs calcula o XP de cada jogador),
 // pelo site (selo do nível e barra de XP) e pelo worker (confere o nível das molduras liberadas por nível).
 
 // XP mínimo de cada nível (nível 1 = índice 0)
-export const NIVEIS = [0, 500, 1100, 1800, 2600, 3500, 4500, 5700, 7100, 8700]
+export const NIVEIS = [0, 300, 650, 1050, 1500, 2000, 2550, 3150, 3800, 4500]
 export const NIVEL_MAX = NIVEIS.length
 
-// XP de uma partida: jogar + vencer + desempenho (rating) + MVP da partida
-export const XP = { partida: 100, vitoria: 50, mvp: 20, rating: [[1.5, 40], [1.2, 25], [1.0, 10]] }
+// XP de uma partida: base da vitória/derrota + desempenho (rating) + MVP da partida.
+// Vitória rende pelo menos ganhoMinimo; derrota tira pelo menos perdaMinima (mesmo jogando muito bem).
+// Empate (raro: o servidor tem prorrogação) não mexe no XP.
+export const XP = {
+  vitoria: 100,
+  derrota: -60,
+  rating: [[1.5, 40], [1.2, 25], [1.0, 10], [0.8, 0], [0, -10]], // [rating mínimo, XP]
+  mvp: 20,
+  ganhoMinimo: 50,
+  perdaMinima: -10,
+}
 
-export function xpDaPartida({ venceu, rating, mvp }) {
-  const bonus = XP.rating.find(([min]) => rating >= min)?.[1] || 0
-  return XP.partida + (venceu ? XP.vitoria : 0) + bonus + (mvp ? XP.mvp : 0)
+export function xpDaPartida({ venceu, empate, rating, mvp }) {
+  if (empate) return 0
+  const desempenho = XP.rating.find(([min]) => (Number(rating) || 0) >= min)?.[1] ?? 0
+  const bruto = (venceu ? XP.vitoria : XP.derrota) + desempenho + (mvp ? XP.mvp : 0)
+  return venceu ? Math.max(XP.ganhoMinimo, bruto) : Math.min(XP.perdaMinima, bruto)
 }
 
 // Nível e progresso para o próximo a partir do XP total

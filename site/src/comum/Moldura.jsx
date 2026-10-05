@@ -1,6 +1,6 @@
 // Personalização do perfil de cada jogador: moldura do avatar e time.
-// As escolhas ficam no worker do login (KV, GET /perfis = { steamId: { moldura, time } }). Toda página que mostra
-// avatar ou time lê o mapa uma vez; quem troca vê na hora (evento np-perfis) e os outros ao abrir/recarregar.
+// As escolhas ficam no worker do login (KV, GET /perfis = { steamId: { moldura, time, xp } }). Toda página que mostra
+// avatar ou time lê o mapa e confere de novo a cada 30 s (sem recarregar a página); quem troca vê na hora.
 import { useEffect, useState } from 'react'
 import { CONFIG } from './config.js'
 import { sair, tokenConta } from './conta.js'
@@ -23,12 +23,36 @@ function publicar(novo) {
   window.dispatchEvent(new Event(EVENTO))
 }
 
+// Lê os perfis do worker; só republica (e a página só redesenha) se mudou desde a última leitura
+let textoPerfis = null
 function buscar() {
-  if (!CONFIG.loginSteam) return
-  buscando ??= fetch(`${base()}/perfis`, { cache: 'no-store' })
-    .then((r) => (r.ok ? r.json() : null))
-    .then((d) => d && typeof d === 'object' && publicar(d))
+  if (!CONFIG.loginSteam || buscando) return
+  buscando = fetch(`${base()}/perfis`, { cache: 'no-store' })
+    .then((r) => (r.ok ? r.text() : null))
+    .then((texto) => {
+      if (!texto || texto === textoPerfis) return
+      textoPerfis = texto
+      const d = JSON.parse(texto)
+      if (d && typeof d === 'object') publicar(d)
+    })
     .catch(() => {})
+    .finally(() => (buscando = null))
+}
+
+// Atualização sozinha: perfis (moldura, time, XP do admin) e regras das molduras a cada 30 s, só com a aba visível,
+// e na hora em que a pessoa volta para a aba. Quem troca a moldura num lugar vê em todas as abas e aparelhos.
+const A_CADA = 30000
+let relogio = false
+function atualizarSozinho() {
+  if (relogio || typeof window === 'undefined') return
+  relogio = true
+  const tudo = () => {
+    if (document.visibilityState !== 'visible') return
+    buscar()
+    buscarConfig()
+  }
+  setInterval(tudo, A_CADA)
+  document.addEventListener('visibilitychange', tudo)
 }
 
 // Perfis de todos os jogadores ({} no HTML gerado e até a primeira leitura no navegador)
@@ -46,6 +70,7 @@ export function usePerfis() {
     const ler = () => setAtual(mapa || {})
     ler()
     buscar()
+    atualizarSozinho()
     window.addEventListener(EVENTO, ler)
     return () => window.removeEventListener(EVENTO, ler)
   }, [])
@@ -68,7 +93,10 @@ export async function chamar(rota, corpo) {
     throw Object.assign(new Error('login'), { dados: d || {} })
   }
   if (!r.ok || d?.erro) throw Object.assign(new Error(d?.erro || 'falhou'), { dados: d || {} })
-  if (d?.perfis) publicar(d.perfis) // toda mudança de perfil já aparece na página
+  if (d?.perfis) {
+    publicar(d.perfis) // toda mudança de perfil já aparece na página
+    textoPerfis = null // a próxima leitura sozinha confirma com o worker
+  }
   return d
 }
 
@@ -76,21 +104,34 @@ export async function chamar(rota, corpo) {
 export const salvarPerfil = (mudar) => chamar('/perfil', mudar)
 
 // Regras públicas: { molduraPorNivel, nivelMoldura: { idMoldura: nível } }
+const EVENTO_CONFIG = 'np-config'
+const CONFIG_PADRAO = { molduraPorNivel: false, nivelMoldura: {} }
 let config = null
+let textoConfig = null
 let buscandoConfig = null
+function buscarConfig() {
+  if (!CONFIG.loginSteam || buscandoConfig) return
+  buscandoConfig = fetch(`${base()}/config`, { cache: 'no-store' })
+    .then((r) => (r.ok ? r.text() : null))
+    .then((texto) => {
+      if (!texto || texto === textoConfig) return
+      textoConfig = texto
+      const d = JSON.parse(texto)
+      config = { molduraPorNivel: !!d?.molduraPorNivel, nivelMoldura: d?.nivelMoldura || {} }
+      window.dispatchEvent(new Event(EVENTO_CONFIG))
+    })
+    .catch(() => {})
+    .finally(() => (buscandoConfig = null))
+}
 export function useConfigSite() {
-  const [atual, setAtual] = useState(() => config || { molduraPorNivel: false, nivelMoldura: {} })
+  const [atual, setAtual] = useState(() => config || CONFIG_PADRAO)
   useEffect(() => {
-    if (!CONFIG.loginSteam) return
-    buscandoConfig ??= fetch(`${base()}/config`, { cache: 'no-store' })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => (config = d && typeof d === 'object' ? { molduraPorNivel: !!d.molduraPorNivel, nivelMoldura: d.nivelMoldura || {} } : config))
-      .catch(() => config)
-    let vivo = true
-    buscandoConfig.then((c) => vivo && c && setAtual(c))
-    return () => {
-      vivo = false
-    }
+    const ler = () => setAtual(config || CONFIG_PADRAO)
+    ler()
+    buscarConfig()
+    atualizarSozinho()
+    window.addEventListener(EVENTO_CONFIG, ler)
+    return () => window.removeEventListener(EVENTO_CONFIG, ler)
   }, [])
   return atual
 }

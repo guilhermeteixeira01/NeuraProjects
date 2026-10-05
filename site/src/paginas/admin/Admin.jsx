@@ -427,6 +427,18 @@ function Admins({ config, dono, souDono, usuarios, aoSalvar }) {
   )
 }
 
+// "há 5 s" (conta sozinho)
+function Ha({ desde }) {
+  const [, setTique] = useState(0)
+  useEffect(() => {
+    const id = setInterval(() => setTique((n) => n + 1), 1000)
+    return () => clearInterval(id)
+  }, [])
+  if (!desde) return 'agora'
+  const s = Math.max(0, Math.round((Date.now() - desde) / 1000))
+  return s < 2 ? 'agora' : s < 60 ? `há ${s} s` : `há ${Math.floor(s / 60)} min`
+}
+
 function Aviso({ titulo, texto, children }) {
   return (
     <section className="hero adm-hero">
@@ -453,18 +465,32 @@ export default function Admin() {
 
   useEffect(() => setMontado(true), [])
 
-  const carregar = useCallback(() => {
-    setErro('')
-    Promise.all([chamar('/admin/dados'), lerJson('/ranking/ranking.json')])
+  // silencioso = atualização sozinha: não pisca a tela e ignora falha de rede (tenta de novo na próxima)
+  const [atualizado, setAtualizado] = useState(null)
+  const carregar = useCallback((silencioso = false) => {
+    if (!silencioso) setErro('')
+    Promise.all([chamar('/admin/dados'), lerJson(`/ranking/ranking.json?t=${Date.now()}`)])
       .then(([p, r]) => {
         setPainel(p)
         setRanking(r)
+        setAtualizado(Date.now())
       })
-      .catch((e) => setErro(mensagemErro(e)))
+      .catch((e) => (!silencioso || e.message !== 'falhou') && setErro(mensagemErro(e)))
   }, [])
   useEffect(() => {
     if (eu.admin) carregar()
   }, [eu.admin, carregar])
+  // Atualiza sozinho a cada 15 s com a aba visível (e ao voltar para a aba); pausa enquanto edita alguém
+  useEffect(() => {
+    if (!eu.admin || editando) return
+    const tique = () => document.visibilityState === 'visible' && carregar(true)
+    const id = setInterval(tique, 15000)
+    document.addEventListener('visibilitychange', tique)
+    return () => {
+      clearInterval(id)
+      document.removeEventListener('visibilitychange', tique)
+    }
+  }, [eu.admin, editando, carregar])
 
   const usuarios = useMemo(() => (painel ? montarUsuarios(painel, ranking) : []), [painel, ranking])
   const fecharEdicao = useCallback(() => setEditando(null), [])
@@ -533,7 +559,10 @@ export default function Admin() {
                   {rotulo}
                 </button>
               ))}
-              <button type="button" className="adm-recarregar" onClick={carregar} title="Recarregar dados">
+              <span className="adm-vivo" title="O painel se atualiza sozinho a cada 15 segundos">
+                <i /> {editando ? 'Pausado (editando)' : <>Atualiza sozinho · <Ha desde={atualizado} /></>}
+              </span>
+              <button type="button" className="adm-recarregar" onClick={() => carregar()} title="Recarregar agora">
                 ↻
               </button>
             </div>

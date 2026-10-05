@@ -79,6 +79,10 @@ const { historicos, ...ranking } = await gerarRanking(saidaPartidas, { premier: 
 escrever(path.join(saida, 'ranking', 'ranking.json'), JSON.stringify(ranking, null, 2))
 // Histórico de cada jogador (página /perfil/?id=<steamId>)
 for (const [id, mapas] of Object.entries(historicos)) escrever(path.join(saida, 'perfil', 'historico', `${id}.json`), JSON.stringify(mapas))
+// XP de cada jogador em cada partida (+ganho / -perda e o total depois), para a página da partida
+const xpPorPartida = {}
+for (const [id, mapas] of Object.entries(historicos))
+  for (const m of mapas) (xpPorPartida[m.caminho] ??= {})[id] = { ganho: m.xp, total: m.xpTotal }
 console.log(`Ranking: ${ranking.jogadores.length} jogador(es) em ${ranking.partidas} mapa(s)`)
 
 // ── 5 e 6. HTML com conteúdo ──
@@ -119,6 +123,7 @@ for (const p of lista) {
   // Mapas da mesma série já jogados (a seção "Série" mostra o resultado de cada um e o link para a página dele).
   // Cada mapa novo dispara o deploy, então todas as páginas da série saem atualizadas.
   if (p.serieId) d.serieJogos = lista.filter((x) => x.serieId === p.serieId)
+  d.xp = xpPorPartida[caminho] || {} // { steamId: { ganho, total } } (nível estilo FACEIT na tabela)
   const url = `/partidas/${caminho.split('/').map(encodeURIComponent).join('/')}/`
   const titulo = `${d.timeA} ${d.placarA} x ${d.placarB} ${d.timeB} — ${nomeMapa(d.mapa)} | Neura Project`
   const descricao = `${d.timeA} ${d.placarA} x ${d.placarB} ${d.timeB} em ${nomeMapa(d.mapa)}${p.serie ? ` (${p.serie})` : ''}: placar, rounds, rating, ADR, KAST e destaques da partida.`
