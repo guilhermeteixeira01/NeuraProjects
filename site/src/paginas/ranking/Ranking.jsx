@@ -6,7 +6,7 @@ import { Contador } from '../../comum/efeitos.jsx'
 import { useAoVivo } from '../../comum/aoVivo.js'
 import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
 import Premier from '../../comum/Premier.jsx'
-import { ComMoldura, TimeEscolhido, usePerfis } from '../../comum/Moldura.jsx'
+import { CargosDe, ComMoldura, TimeEscolhido, usePerfis } from '../../comum/Moldura.jsx'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { nivelDe } from '../../comum/niveis.js'
 
@@ -88,6 +88,7 @@ function Podio({ j, pos, m, eu }) {
       <a className="pod-nome" href={perfil(j)}>
         {j.nome}
       </a>
+      <CargosDe steamId={j.steamId} classe="pod-cargos" />
       <TimeEscolhido steamId={j.steamId} classe="pod-time" />
       <span className="selos">
         <SeloNivel nivel={j.nivel} tamanho={30} />
@@ -137,6 +138,7 @@ function Linha({ j, pos, m, max, i, eu }) {
           <a href={perfil(j)}>
             {j.nome}
           </a>
+          <CargosDe steamId={j.steamId} classe="linha-cargos" />
           <TimeEscolhido steamId={j.steamId} classe="linha-time" />
           <span className="selos">
             <SeloNivel nivel={j.nivel} tamanho={24} />

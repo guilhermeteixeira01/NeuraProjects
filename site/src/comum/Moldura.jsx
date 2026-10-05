@@ -105,7 +105,7 @@ export const salvarPerfil = (mudar) => chamar('/perfil', mudar)
 
 // Regras públicas: { molduraPorNivel, nivelMoldura: { idMoldura: nível } }
 const EVENTO_CONFIG = 'np-config'
-const CONFIG_PADRAO = { molduraPorNivel: false, nivelMoldura: {} }
+const CONFIG_PADRAO = { molduraPorNivel: false, nivelMoldura: {}, cargos: [], molduraCargo: {} }
 let config = null
 let textoConfig = null
 let buscandoConfig = null
@@ -117,7 +117,12 @@ function buscarConfig() {
       if (!texto || texto === textoConfig) return
       textoConfig = texto
       const d = JSON.parse(texto)
-      config = { molduraPorNivel: !!d?.molduraPorNivel, nivelMoldura: d?.nivelMoldura || {} }
+      config = {
+        molduraPorNivel: !!d?.molduraPorNivel,
+        nivelMoldura: d?.nivelMoldura || {},
+        cargos: Array.isArray(d?.cargos) ? d.cargos : [],
+        molduraCargo: d?.molduraCargo || {},
+      }
       window.dispatchEvent(new Event(EVENTO_CONFIG))
     })
     .catch(() => {})
@@ -137,6 +142,40 @@ export function useConfigSite() {
 }
 // Nível que a moldura exige (1 = livre), conforme a regra do admin
 export const nivelDaMoldura = (config, id) => (config.molduraPorNivel ? Number(config.nivelMoldura?.[id]) || 1 : 1)
+// Cargo de quem pode usar a moldura (exclusiva de Premium, VIP...), ou null
+export const cargoDaMoldura = (config, id) => (config.cargos || []).find((c) => c.id === config.molduraCargo?.[id]) || null
+
+// Cargos do jogador (Premium, VIP...: o admin dá no painel), já com nome e cor
+export function useCargosDe(steamId) {
+  const ids = usePerfis()[steamId]?.cargos || []
+  const { cargos } = useConfigSite()
+  return cargos.filter((c) => ids.includes(c.id))
+}
+
+// Selo de cargo: coroa + nome, na cor do cargo
+export function SeloCargo({ cargo, classe = '' }) {
+  return (
+    <span className={`selo-cargo ${classe}`} style={{ '--cg': cargo.cor }} title={`Cargo: ${cargo.nome}`}>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 12H5L3 7z" />
+      </svg>
+      {cargo.nome}
+    </span>
+  )
+}
+
+// Todos os selos de cargo de um jogador (nada se não tiver)
+export function CargosDe({ steamId, classe = '' }) {
+  const cargos = useCargosDe(steamId)
+  if (!cargos.length) return null
+  return (
+    <span className={`cargos ${classe}`}>
+      {cargos.map((c) => (
+        <SeloCargo key={c.id} cargo={c} />
+      ))}
+    </span>
+  )
+}
 
 // Quem está logado é admin? (o worker confere de verdade em toda ação; aqui é só para mostrar a aba)
 let eu = { id: null, admin: false, dono: false }

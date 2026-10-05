@@ -247,3 +247,8 @@ html.sm-aberto { overflow: hidden; }
 .sm-sub-cab { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; letter-spacing: .5px; color: var(--dim); }
 .sm-sub-cab::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
 .sm-sub-cab small { font-family: var(--font-mono); font-size: 10px; color: var(--dim-2); }
+
+/* Molduras exclusivas de cargo (Premium, VIP...) */
+.sm-secao-cargo { padding: 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--cg) 35%, transparent); background: color-mix(in srgb, var(--cg) 5%, transparent); }
+.sm-secao-cargo .sm-secao-cab { border-bottom-color: color-mix(in srgb, var(--cg) 25%, transparent); }
+.sm-coroa { filter: drop-shadow(0 0 4px currentColor); }

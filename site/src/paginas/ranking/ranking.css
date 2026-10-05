@@ -246,3 +246,7 @@
 .pod .selos { justify-content: center; }
 .jog-txt .selos { align-self: flex-start; margin: 3px 0 0 4px; gap: 6px; }
 .jog-txt .selos .premier { margin: 0; }
+/* Cargos (Premium, VIP...) */
+.pod-cargos { justify-content: center; margin-top: -6px; }
+.linha-cargos { margin: 2px 0 0 4px; }
+.linha-cargos .selo-cargo { font-size: 9px; padding: 1px 6px; }

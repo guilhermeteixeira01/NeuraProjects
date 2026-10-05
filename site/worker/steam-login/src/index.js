@@ -8,6 +8,7 @@
  *                             devolve para a página com #steam=<token> (o site guarda o token no navegador)
  *   /perfis, /perfil       -> personalização dos jogadores: moldura do avatar e time
  *   /config                -> regras públicas (molduras liberadas por nível)
+ *   /jogador?id=<SteamID>  -> nome e avatar públicos da Steam (perfil de quem ainda não tem partida)
  *   /eu                    -> quem é o dono do token e se é admin
  *   /admin/...             -> painel de administrador (só admins; conferido aqui em toda chamada)
  *
@@ -15,8 +16,9 @@
  * O site lê o JSON para mostrar; a assinatura é conferida aqui em tudo que salva.
  *
  * KV MOLDURAS (nome antigo do banco; guarda tudo):
- *   perfis   { "<SteamID64>": { moldura?, time?, xp? (ajuste do admin), bloqueado? } }
- *   config   { molduraPorNivel: bool, nivelMoldura: { "<moldura>": nível }, admins: ["<SteamID64>"] }
+ *   perfis   { "<SteamID64>": { moldura?, time?, xp? (ajuste do admin), bloqueado?, cargos? } }
+ *   config   { molduraPorNivel: bool, nivelMoldura: { "<moldura>": nível }, admins: ["<SteamID64>"],
+ *              cargos: [{ id, nome, cor }], molduraCargo: { "<moldura>": "<cargo>" } }  (Premium, VIP... e exclusivas)
  *   usuarios { "<SteamID64>": { nome, avatar, primeiro, visto } }  (quem já entrou no site)
  *
  * Variáveis (wrangler.toml / painel da Cloudflare):
@@ -42,6 +44,7 @@ export default {
     if (rota === '/retorno') return retorno(url, env, site)
     if (rota === '/perfis' && req.method === 'GET') return json(await ler(env, 'perfis'), 200, publico)
     if (rota === '/config' && req.method === 'GET') return json(configPublica(await ler(env, 'config')), 200, publico)
+    if (rota === '/jogador' && req.method === 'GET') return jogadorPublico(url, env)
     // Rotas antigas (só moldura): páginas que ainda estejam abertas com uma versão anterior do site
     if (rota === '/molduras' && req.method === 'GET') return json(soMolduras(await ler(env, 'perfis')), 200, publico)
 
@@ -64,7 +67,7 @@ export default {
     if (rota.startsWith('/admin/')) {
       if (!admin) return json({ erro: 'admin' }, 403, cors)
       if (rota === '/admin/dados' && req.method === 'GET') return adminDados(env, config, cors)
-      if (rota === '/admin/perfil' && req.method === 'POST') return adminPerfil(req, env, cors)
+      if (rota === '/admin/perfil' && req.method === 'POST') return adminPerfil(req, env, config, cors)
       if (rota === '/admin/config' && req.method === 'POST') return adminConfig(req, env, config, cors)
       if (rota === '/admin/admins' && req.method === 'POST') {
         if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
@@ -80,6 +83,7 @@ const ID_STEAM = /^\d{17}$/
 const ID_MOLDURA = /^[a-z0-9-]{1,40}\/[a-z0-9-]{1,60}$/
 const NOME_TIME = /^[^\u0000-\u001f<>]{1,40}$/ // nome da lista de times (o site só mostra se ainda existir na lista)
 const NIVEL_MAX = 10
+const CARGOS_MAX = 20
 const XP_LIMITE = 1000000 // ajuste de XP do admin: de -1.000.000 a +1.000.000
 
 const json = (dados, status = 200, extra = {}) =>
@@ -119,7 +123,14 @@ async function ler(env, chave) {
 const gravar = (env, chave, valor) => env.MOLDURAS.put(chave, JSON.stringify(valor))
 
 const soMolduras = (perfis) => Object.fromEntries(Object.entries(perfis).filter(([, p]) => p.moldura).map(([id, p]) => [id, p.moldura]))
-const configPublica = (c) => ({ molduraPorNivel: !!c.molduraPorNivel, nivelMoldura: c.nivelMoldura || {} })
+const configPublica = (c) => ({
+  molduraPorNivel: !!c.molduraPorNivel,
+  nivelMoldura: c.nivelMoldura || {},
+  cargos: c.cargos || [], // [{ id, nome, cor }] (ex.: Premium, VIP)
+  molduraCargo: c.molduraCargo || {}, // { idMoldura: idCargo }: moldura exclusiva de quem tem o cargo
+})
+const ID_CARGO = /^[a-z0-9-]{1,24}$/
+const COR = /^#[0-9a-f]{6}$/i
 
 async function corpoJson(req) {
   try {
@@ -134,7 +145,7 @@ async function mudarPerfil(env, id, mudar) {
   const perfis = await ler(env, 'perfis')
   const p = { ...perfis[id] }
   for (const [k, v] of Object.entries(mudar)) {
-    if (v === null || v === false || v === 0) delete p[k]
+    if (v === null || v === false || v === 0 || (Array.isArray(v) && !v.length)) delete p[k]
     else p[k] = v
   }
   if (Object.keys(p).length) perfis[id] = p
@@ -193,6 +204,10 @@ async function salvarPerfil(req, env, site, quem, admin, config, cors, rotaAntig
     if (nivel < precisa) return json({ erro: 'nivel', precisa, nivel }, 403, cors)
   }
 
+  // Moldura exclusiva de um cargo (Premium, VIP...): só quem tem o cargo; admins não têm trava
+  const cargo = mudar.moldura ? config.molduraCargo?.[mudar.moldura] : null
+  if (cargo && !admin && !(perfis[quem.id]?.cargos || []).includes(cargo)) return json({ erro: 'cargo', cargo }, 403, cors)
+
   const novos = await mudarPerfil(env, quem.id, mudar)
   return rotaAntiga ? json({ ok: true, molduras: soMolduras(novos) }, 200, cors) : json({ ok: true, perfis: novos }, 200, cors)
 }
@@ -203,8 +218,8 @@ async function adminDados(env, config, cors) {
   return json({ perfis, usuarios, config: { ...configPublica(config), admins: config.admins || [] }, dono: env.DONO || null }, 200, cors)
 }
 
-// POST /admin/perfil { id, moldura?, time?, xp? (ajuste), bloqueado?, limpar? }
-async function adminPerfil(req, env, cors) {
+// POST /admin/perfil { id, moldura?, time?, xp? (ajuste), bloqueado?, cargos? ([idCargo]), limpar? }
+async function adminPerfil(req, env, config, cors) {
   const corpo = await corpoJson(req)
   if (!corpo || !ID_STEAM.test(String(corpo.id))) return json({ erro: 'id' }, 400, cors)
   if (corpo.limpar) {
@@ -221,10 +236,16 @@ async function adminPerfil(req, env, cors) {
     mudar.xp = xp
   }
   if ('bloqueado' in corpo) mudar.bloqueado = corpo.bloqueado === true
+  if ('cargos' in corpo) {
+    const existem = new Set((config.cargos || []).map((c) => c.id))
+    const cargos = [...new Set(Array.isArray(corpo.cargos) ? corpo.cargos : [])]
+    if (cargos.some((c) => !existem.has(c))) return json({ erro: 'cargo' }, 400, cors)
+    mudar.cargos = cargos
+  }
   return json({ ok: true, perfis: await mudarPerfil(env, corpo.id, mudar) }, 200, cors)
 }
 
-// POST /admin/config { molduraPorNivel?, nivelMoldura? }
+// POST /admin/config { molduraPorNivel?, nivelMoldura?, cargos?, molduraCargo? }
 async function adminConfig(req, env, config, cors) {
   const corpo = await corpoJson(req)
   if (!corpo) return json({ erro: 'corpo' }, 400, cors)
@@ -238,6 +259,29 @@ async function adminConfig(req, env, config, cors) {
       if (nivel > 1) mapa[id] = nivel // nível 1 = liberada para todos (não precisa guardar)
     }
     novo.nivelMoldura = mapa
+  }
+  if ('cargos' in corpo) {
+    const lista = Array.isArray(corpo.cargos) ? corpo.cargos : []
+    if (lista.length > CARGOS_MAX) return json({ erro: 'cargos' }, 400, cors)
+    const vistos = new Set()
+    novo.cargos = []
+    for (const c of lista) {
+      const nome = String(c?.nome || '').trim()
+      if (!ID_CARGO.test(String(c?.id)) || vistos.has(c.id) || !NOME_TIME.test(nome) || nome.length > 24 || !COR.test(String(c?.cor))) return json({ erro: 'cargos' }, 400, cors)
+      vistos.add(c.id)
+      novo.cargos.push({ id: c.id, nome, cor: c.cor })
+    }
+  }
+  if ('molduraCargo' in corpo || 'cargos' in corpo) {
+    // Moldura exclusiva só de cargo que existe (cargo apagado libera as molduras dele)
+    const existem = new Set((novo.cargos || []).map((c) => c.id))
+    const origem = 'molduraCargo' in corpo ? corpo.molduraCargo || {} : novo.molduraCargo || {}
+    const mapa = {}
+    for (const [id, cargo] of Object.entries(origem)) {
+      if (!ID_MOLDURA.test(id)) return json({ erro: 'molduraCargo' }, 400, cors)
+      if (cargo && existem.has(cargo)) mapa[id] = cargo
+    }
+    novo.molduraCargo = mapa
   }
   await gravar(env, 'config', novo)
   return json({ ok: true, config: { ...configPublica(novo), admins: novo.admins || [] } }, 200, cors)
@@ -344,6 +388,25 @@ async function registrarUsuario(env, id, perfil, visita = false) {
   } catch {
     // não impede o login
   }
+}
+
+// GET /jogador?id=<SteamID64> -> { nome, avatar } (público). Quem já entrou no site sai da lista de usuários;
+// os outros vêm da Web API da Steam. Resposta guardada 1 hora no cache da Cloudflare (poupa a API e o KV).
+async function jogadorPublico(url, env) {
+  const id = url.searchParams.get('id') || ''
+  if (!ID_STEAM.test(id)) return json({ erro: 'id' }, 400, { 'Access-Control-Allow-Origin': '*' })
+  const cache = caches.default
+  const chave = new Request(`https://cache.neura/jogador/${id}`)
+  const guardado = await cache.match(chave)
+  if (guardado) return guardado
+  const usuario = (await ler(env, 'usuarios'))[id]
+  const steam = usuario?.nome && usuario?.avatar ? { nome: usuario.nome, avatar: usuario.avatar } : await perfilSteam(id, env)
+  const resposta = json({ nome: steam.nome || usuario?.nome || '', avatar: steam.avatar || usuario?.avatar || '' }, 200, {
+    'Access-Control-Allow-Origin': '*',
+    'Cache-Control': 'public, max-age=3600',
+  })
+  await cache.put(chave, resposta.clone())
+  return resposta
 }
 
 // Nome e avatar pela Web API da Steam (sem chave ou com erro: vazio)
