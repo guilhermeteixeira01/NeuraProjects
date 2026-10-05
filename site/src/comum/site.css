@@ -118,7 +118,15 @@
   font-size: 13.5px;
   font-weight: 600;
   color: var(--dim);
+  white-space: nowrap; /* nunca quebra em duas linhas (ex.: "Pick & Ban") */
   transition: color 0.15s, background 0.15s;
+}
+/* Divisória entre as páginas e o Admin */
+.nx-links-sep {
+  width: 1px;
+  height: 20px;
+  margin: 0 6px;
+  background: var(--border-2);
 }
 .nx-link:hover {
   color: var(--text);
@@ -276,13 +284,40 @@
 .nx-conta-menu button {
   color: #f07a85;
 }
-@media (max-width: 900px) {
-  .nx-conta-nome,
-  .nx-steam span {
+/* Topo compacto em telas médias: menos espaço, Comunidade só com o ícone, conta só com o avatar */
+@media (max-width: 1240px) {
+  .nx-nav-inner {
+    gap: 18px;
+    padding: 0 24px;
+  }
+  .nx-link {
+    padding: 8px 10px;
+  }
+  .nx-links .nx-link.is-active::after {
+    left: 10px;
+    right: 10px;
+  }
+  .nx-acoes {
+    gap: 8px;
+  }
+  .nx-comunidade span {
+    display: none;
+  }
+  .nx-comunidade {
+    padding: 8px 10px;
+  }
+}
+@media (max-width: 1180px) {
+  .nx-conta-nome {
     display: none;
   }
   .nx-conta-btn {
     padding: 3px;
+  }
+}
+@media (max-width: 1024px) {
+  .nx-steam span {
+    display: none;
   }
   .nx-steam {
     padding: 8px 10px;
@@ -366,6 +401,26 @@ html.nx-menu-aberto {
 .nx-icone {
   flex-shrink: 0;
   margin-right: -2px;
+}
+/* Gaveta: grupo das páginas e, separado embaixo, Admin e Comunidade */
+.nx-gaveta-rotulo {
+  padding: 6px 16px 4px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--dim-2);
+}
+.nx-gaveta-extra {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.nx-gaveta .nx-link-kivo {
+  border: 1px solid var(--border-2);
 }
 .nx-gaveta .nx-link.is-active {
   background: rgba(26, 115, 232, 0.12);
@@ -522,7 +577,7 @@ html.nx-menu-aberto {
   margin-bottom: 4px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .nx-links,
   .nx-comunidade {
     display: none;
@@ -1261,7 +1316,8 @@ html[data-tema='claro'] .rt-txt-baixo b {
   position: relative;
   overflow: hidden;
   color: var(--f-texto);
-  padding: 72px 0 0;
+  /* Folga embaixo da palavra NEURA (acompanha o tamanho dela: menor no celular) */
+  padding: 72px 0 clamp(14px, 2.6vw, 36px);
   background: linear-gradient(180deg, #0b0d16 0%, #0f1a3d 34%, #163a96 70%, #2468e6 100%);
 }
 .nx-ftopo {
@@ -1388,17 +1444,54 @@ html[data-tema='claro'] .rt-txt-baixo b {
   color: #9fd0ff;
   text-decoration: underline;
 }
+/* Três colunas: © à esquerda, crédito no centro de verdade, Valve à direita (todos na mesma linha) */
 .nx-footer-legal {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px 20px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px 24px;
+  line-height: 20px;
   margin-top: 56px;
   font-size: 12px;
   color: var(--f-suave);
 }
+.nx-footer-legal > :last-child {
+  text-align: right;
+}
+/* Telas médias e celular: as três linhas uma embaixo da outra (lado a lado o texto da Valve quebraria) */
+@media (max-width: 1100px) {
+  .nx-footer-legal {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+  .nx-footer-legal > :last-child {
+    text-align: left;
+  }
+}
+/* Crédito "Site feito por" com o link do GitHub */
+.nx-fcredito {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.nx-fcredito a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+  color: var(--f-texto);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s;
+}
+.nx-fcredito a:hover {
+  border-bottom-color: currentColor;
+}
 /* Palavra gigante (SVG estica o texto na largura toda) */
 .nx-fgigante {
+  /* Só enfeite: as letras passam da caixa do SVG e cobriam os links da linha de cima (clique atravessa) */
+  pointer-events: none;
+  user-select: none;
   display: block;
   width: 100%;
   height: auto;
@@ -1449,7 +1542,6 @@ html[data-tema='claro'] .rt-txt-baixo b {
     display: flex;
   }
   .nx-footer-legal {
-    flex-direction: column;
     margin-top: 40px;
   }
 }

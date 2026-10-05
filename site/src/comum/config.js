@@ -14,6 +14,9 @@ export const CONFIG = {
   // Comunidade (Kivo: plataforma gamer de voz, chat e comunidades). '' esconde os botões e links
   comunidade: 'https://kivogamer.com/invite/bKbyhRATHR',
   comunidadeNome: 'Kivo',
+  // Crédito do rodapé ('Site feito por ...'). '' esconde
+  autorNome: 'guilhermeteixeira01',
+  autorLink: 'https://github.com/guilhermeteixeira01',
   youtube: '',
   instagram: '',
   twitch: '',

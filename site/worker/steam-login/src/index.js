@@ -16,7 +16,7 @@
  * O site lê o JSON para mostrar; a assinatura é conferida aqui em tudo que salva.
  *
  * KV MOLDURAS (nome antigo do banco; guarda tudo):
- *   perfis   { "<SteamID64>": { moldura?, molduraLivre? (posta por admin), time?, tema?, xp? (ajuste do admin), bloqueado?, cargos? } }
+ *   perfis   { "<SteamID64>": { moldura?, molduraLivre? (posta por admin), time?, tema?, idioma?, desempenho?, xp? (ajuste do admin), bloqueado?, cargos? } }
  *   config   { molduraPorNivel: bool, nivelMoldura: { "<moldura>": nível }, admins: ["<SteamID64>"],
  *              cargos: [{ id, nome, cor }], molduraCargo: { "<moldura>": "<cargo>" } }  (Premium, VIP... e exclusivas)
  *   usuarios { "<SteamID64>": { nome, avatar, primeiro, visto } }  (quem já entrou no site)
@@ -154,6 +154,8 @@ async function mudarPerfil(env, id, mudar) {
   return perfis
 }
 
+const PREFERENCIAS = ['tema', 'idioma', 'desempenho']
+
 // Valida moldura/time vindos do site; devolve { mudar } ou { erro }
 function validarPerfil(corpo, soMoldura) {
   const mudar = {}
@@ -167,10 +169,19 @@ function validarPerfil(corpo, soMoldura) {
     if (t !== null && (typeof t !== 'string' || !NOME_TIME.test(t))) return { erro: 'time' }
     mudar.time = t
   }
+  // Preferências do ⚙ Configurações do site. Ficam guardadas mesmo no valor padrão ('padrao', 'pt', 'desligado')
+  // para valer nos outros aparelhos em que a pessoa entrar.
   if (!soMoldura && 'tema' in corpo) {
-    // Tema do site (Personalizar → Tema); 'padrao' também fica guardado para valer nos outros aparelhos
     if (!['padrao', 'escuro', 'claro'].includes(corpo.tema)) return { erro: 'tema' }
     mudar.tema = corpo.tema
+  }
+  if (!soMoldura && 'idioma' in corpo) {
+    if (!['pt', 'en', 'es'].includes(corpo.idioma)) return { erro: 'idioma' }
+    mudar.idioma = corpo.idioma
+  }
+  if (!soMoldura && 'desempenho' in corpo) {
+    if (!['ligado', 'desligado'].includes(corpo.desempenho)) return { erro: 'desempenho' }
+    mudar.desempenho = corpo.desempenho
   }
   return { mudar }
 }
@@ -209,7 +220,7 @@ async function nivelDoJogador(env, site, id, perfis) {
 }
 
 // ── Jogador salvando o próprio perfil ──
-// POST /perfil { moldura?, time? }  (POST /moldura = rota antiga, só moldura)
+// POST /perfil { moldura?, time?, tema?, idioma?, desempenho? }  (POST /moldura = rota antiga, só moldura)
 async function salvarPerfil(req, env, site, quem, admin, config, cors, rotaAntiga) {
   const corpo = await corpoJson(req)
   if (!corpo) return json({ erro: 'corpo' }, 400, cors)
@@ -217,8 +228,8 @@ async function salvarPerfil(req, env, site, quem, admin, config, cors, rotaAntig
   if (erro) return json({ erro }, 400, cors)
 
   const perfis = await ler(env, 'perfis')
-  // Bloqueado não troca moldura/time (o que os outros veem); o tema é só de quem olha, então continua livre
-  if (perfis[quem.id]?.bloqueado && !admin && Object.keys(mudar).some((k) => k !== 'tema')) return json({ erro: 'bloqueado' }, 403, cors)
+  // Bloqueado não troca moldura/time (o que os outros veem); tema, idioma e desempenho são só de quem olha: continuam livres
+  if (perfis[quem.id]?.bloqueado && !admin && Object.keys(mudar).some((k) => !PREFERENCIAS.includes(k))) return json({ erro: 'bloqueado' }, 403, cors)
 
   // Moldura liberada por nível (o admin escolhe no painel); admins não têm trava
   const precisa = config.molduraPorNivel ? Number(config.nivelMoldura?.[mudar.moldura]) || 1 : 1
@@ -248,8 +259,11 @@ async function adminPerfil(req, env, config, cors) {
   const corpo = await corpoJson(req)
   if (!corpo || !ID_STEAM.test(String(corpo.id))) return json({ erro: 'id' }, 400, cors)
   if (corpo.limpar) {
+    // Limpa moldura, time, XP, cargos e bloqueio; as preferências da pessoa (tema, idioma, desempenho) ficam
     const perfis = await ler(env, 'perfis')
-    delete perfis[corpo.id]
+    const fica = Object.fromEntries(PREFERENCIAS.filter((k) => perfis[corpo.id]?.[k] !== undefined).map((k) => [k, perfis[corpo.id][k]]))
+    if (Object.keys(fica).length) perfis[corpo.id] = fica
+    else delete perfis[corpo.id]
     await gravar(env, 'perfis', perfis)
     return json({ ok: true, perfis }, 200, cors)
   }

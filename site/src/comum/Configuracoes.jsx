@@ -1,11 +1,10 @@
 // Botão ⚙ Configurações do topo: idioma, tema e "Melhorar desempenho". Vale para todas as páginas e fica
-// guardado no navegador (o tema também vai para o perfil de quem está logado, valendo nos outros aparelhos).
+// guardado no navegador e, com login, na conta (vale nos outros aparelhos; preferencias.js).
 import { useEffect, useRef, useState } from 'react'
-import { useConta } from './conta.js'
-import { EVENTO_DESEMPENHO, aplicarDesempenho, desempenhoAtivo } from './desempenho.js'
-import { IDIOMAS, aplicarIdioma, useT } from './i18n.js'
-import { salvarPerfil } from './Moldura.jsx'
-import { EVENTO_TEMA, TEMAS, aplicarTema, temaAtual } from './tema.js'
+import { EVENTO_DESEMPENHO, desempenhoAtivo } from './desempenho.js'
+import { IDIOMAS, useT } from './i18n.js'
+import { escolherDesempenho, escolherIdioma, escolherTema } from './preferencias.js'
+import { EVENTO_TEMA, TEMAS, temaAtual } from './tema.js'
 
 function IconeEngrenagem() {
   return (
@@ -18,7 +17,6 @@ function IconeEngrenagem() {
 
 export default function Configuracoes() {
   const t = useT()
-  const conta = useConta()
   const [aberto, setAberto] = useState(false)
   const [tema, setTema] = useState('padrao') // igual ao HTML gerado; o efeito lê o de verdade
   const [desempenho, setDesempenho] = useState(false)
@@ -51,11 +49,6 @@ export default function Configuracoes() {
     }
   }, [aberto])
 
-  const trocarTema = (id) => {
-    aplicarTema(id)
-    if (conta) salvarPerfil({ tema: id }).catch(() => {}) // sem login ou fora do ar: fica só neste navegador
-  }
-
   return (
     <div className="nx-config" ref={caixa}>
       <button type="button" className="nx-config-btn" aria-label={t('Configurações')} title={t('Configurações')} aria-expanded={aberto} onClick={() => setAberto((a) => !a)}>
@@ -67,7 +60,7 @@ export default function Configuracoes() {
 
           <label className="nx-config-campo">
             <span>{t('Idioma')}</span>
-            <select value={t.idioma} onChange={(e) => aplicarIdioma(e.target.value)}>
+            <select value={t.idioma} onChange={(e) => escolherIdioma(e.target.value)}>
               {IDIOMAS.map((i) => (
                 <option key={i.id} value={i.id}>
                   {i.nome}
@@ -80,7 +73,7 @@ export default function Configuracoes() {
             <span>{t('Tema')}</span>
             <div className="nx-config-temas" role="radiogroup" aria-label={t('Tema')}>
               {TEMAS.map((tm) => (
-                <button key={tm.id} type="button" role="radio" aria-checked={tema === tm.id} className={`nx-config-tema tema-${tm.id}${tema === tm.id ? ' sel' : ''}`} onClick={() => trocarTema(tm.id)}>
+                <button key={tm.id} type="button" role="radio" aria-checked={tema === tm.id} className={`nx-config-tema tema-${tm.id}${tema === tm.id ? ' sel' : ''}`} onClick={() => escolherTema(tm.id)}>
                   <i aria-hidden="true" />
                   {t(tm.nome)}
                 </button>
@@ -89,7 +82,7 @@ export default function Configuracoes() {
           </div>
 
           <label className="nx-config-switch">
-            <input type="checkbox" checked={desempenho} onChange={(e) => aplicarDesempenho(e.target.checked)} />
+            <input type="checkbox" checked={desempenho} onChange={(e) => escolherDesempenho(e.target.checked)} />
             <span className="nx-config-chave" aria-hidden="true" />
             <span>
               <b>{t('Melhorar desempenho')}</b>

@@ -114,7 +114,7 @@ export default function Nav({ pagina }) {
     if (!aberto) return
     const tecla = (e) => e.key === 'Escape' && setAberto(false)
     // Virou tela grande (ex.: girou o tablet): o menu de cima volta, a gaveta fecha
-    const tamanho = () => window.innerWidth > 900 && setAberto(false)
+    const tamanho = () => window.innerWidth > 1024 && setAberto(false)
     document.addEventListener('keydown', tecla)
     window.addEventListener('resize', tamanho)
     return () => {
@@ -125,7 +125,9 @@ export default function Nav({ pagina }) {
 
   const conta = useConta()
   const { admin } = useAdmin(conta)
-  const links = [...MENU, ...(admin ? [ITEM_ADMIN] : [])].map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
+  // Páginas do site de um lado; Admin (só para admin) separado delas, no topo e na gaveta
+  const paginas = MENU.map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
+  const linkAdmin = admin && <LinkMenu item={ITEM_ADMIN} atual={pagina} />
 
   return (
     <header data-site-nav="" className={`nx-nav${aberto ? ' is-open' : ''}${rolou ? ' is-scrolled' : ''}`}>
@@ -138,7 +140,13 @@ export default function Nav({ pagina }) {
           </span>
         </a>
         <nav className="nx-links" aria-label={t('Menu principal')}>
-          {links}
+          {paginas}
+          {linkAdmin && (
+            <>
+              <span className="nx-links-sep" aria-hidden="true" />
+              {linkAdmin}
+            </>
+          )}
         </nav>
         <div className="nx-acoes">
           {CONFIG.comunidade && (
@@ -165,11 +173,25 @@ export default function Nav({ pagina }) {
       {aberto && (
         // Tocar num link fecha a gaveta
         <div className="nx-gaveta" onClick={(e) => e.target.closest('a') && setAberto(false)}>
-          {links}
-          {CONFIG.comunidade && (
-            <a className="nx-link" href={CONFIG.comunidade} target="_blank" rel="noopener">
-              <IconeKivo /> {t('Comunidade na {nome}', { nome: CONFIG.comunidadeNome })}
-            </a>
+          <span className="nx-gaveta-rotulo">{t('Páginas')}</span>
+          {paginas}
+          {(linkAdmin || CONFIG.comunidade) && (
+            <div className="nx-gaveta-extra">
+              {linkAdmin && (
+                <>
+                  <span className="nx-gaveta-rotulo">{t('Administração')}</span>
+                  {linkAdmin}
+                </>
+              )}
+              {CONFIG.comunidade && (
+                <>
+                  <span className="nx-gaveta-rotulo">{t('Comunidade')}</span>
+                  <a className="nx-link nx-link-kivo" href={CONFIG.comunidade} target="_blank" rel="noopener">
+                    <IconeKivo /> {t('Comunidade na {nome}', { nome: CONFIG.comunidadeNome })}
+                  </a>
+                </>
+              )}
+            </div>
           )}
         </div>
       )}

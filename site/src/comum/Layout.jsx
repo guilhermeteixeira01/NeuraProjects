@@ -3,7 +3,7 @@ import Avisos from './Avisos.jsx'
 import { useLuzCursor } from './efeitos.jsx'
 import Nav from './Nav.jsx'
 import Rodape from './Rodape.jsx'
-import { SincronizarTema } from './tema.js'
+import { SincronizarPreferencias } from './preferencias.js'
 import { MostrarAposIdioma } from './i18n.js'
 
 // Elementos com a classe `seletor` ganham `classe` quando aparecem na tela (entram suavemente).
@@ -55,7 +55,7 @@ export default function Layout({ pagina, children }) {
       {children}
       <Rodape />
       <Avisos />
-      <SincronizarTema />
+      <SincronizarPreferencias />
       <MostrarAposIdioma />
     </>
   )

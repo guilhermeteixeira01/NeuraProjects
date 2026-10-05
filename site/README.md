@@ -119,6 +119,9 @@ Te1xe1ra) e só ele promove ou remove outros admins.
 
 O botão ⚙ no topo (`src/comum/Configuracoes.jsx`) abre o painel com **Idioma**, **Tema** e **Melhorar desempenho**.
 Tudo fica no navegador e é aplicado pelo script do `<head>` de cada HTML antes de desenhar (sem piscar).
+Com login, as três também ficam na conta (perfil do worker: `tema`, `idioma`, `desempenho`) e valem em qualquer
+aparelho em que a pessoa entrar; a conta vence o navegador (`src/comum/preferencias.js`). São preferências de quem
+olha: continuam livres para conta bloqueada, e o "Limpar perfil" do admin não apaga.
 
 - **Melhorar desempenho** (`src/comum/desempenho.js`, `localStorage np_desempenho`, `html[data-desempenho]`): desliga
   animações, transições, partículas, brilhos, desfoque, luz do cursor e contadores animados. CSS no fim de `site.css`.
