@@ -6,6 +6,7 @@ import { Contador, useInclinar } from '../../comum/efeitos.jsx'
 import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
 import Letreiro from '../../comum/Letreiro.jsx'
 import { Icone, IconeKivo } from '../../comum/Icones.jsx'
+import { useT } from '../../comum/i18n.js'
 
 const SETA = (
   <Icone tamanho={14} traco={2.4}>
@@ -138,6 +139,7 @@ function useNumeros() {
 }
 
 export default function Inicio() {
+  const t = useT()
   const painel = useInclinar(7)
   const numeros = useNumeros()
 
@@ -152,17 +154,16 @@ export default function Inicio() {
             <div className="hx-texto">
               <span className="chip fx-entra" style={{ '--e': 0 }}>
                 <span className="ponto" />
-                ESTÚDIO INDEPENDENTE · BRASIL
+                {t('ESTÚDIO INDEPENDENTE · BRASIL')}
               </span>
               <h1 className="hx-titulo">
-                <Palavras texto="Jogos e ferramentas feitos por" />
+                <Palavras texto={t('Jogos e ferramentas feitos por')} />
                 <span className="fx-gradiente">
-                  <Palavras texto="quem joga." inicio={5} />
+                  <Palavras texto={t('quem joga.')} inicio={5} />
                 </span>
               </h1>
               <p className="lead fx-entra" style={{ '--e': 4 }}>
-                A Neura Project é um pequeno estúdio focado em jogos. Criamos ferramentas para a comunidade competitiva — do
-                Pick &amp; Ban às estatísticas, ranking e níveis das partidas do nosso servidor.
+                {t('A Neura Project é um pequeno estúdio focado em jogos. Criamos ferramentas para a comunidade competitiva — do Pick & Ban às estatísticas, ranking e níveis das partidas do nosso servidor.')}
               </p>
               <div className="hero-acoes fx-entra" style={{ '--e': 5 }}>
                 <a className="btn btn-primary btn-lg btn-brilho" href="#projetos">
@@ -172,19 +173,19 @@ export default function Inicio() {
                     <rect x="3" y="14" width="7" height="7" rx="1" />
                     <rect x="14" y="14" width="7" height="7" rx="1" />
                   </Icone>
-                  Ver projetos
+                  {t('Ver projetos')}
                 </a>
-                <LinkComunidade className="btn btn-ghost btn-lg btn-borda">Entrar na comunidade</LinkComunidade>
+                <LinkComunidade className="btn btn-ghost btn-lg btn-borda">{t('Entrar na comunidade')}</LinkComunidade>
               </div>
               <dl className="hx-numeros fx-entra" style={{ '--e': 6 }}>
                 <div>
-                  <dt>MAPAS JOGADOS</dt>
+                  <dt>{t('MAPAS JOGADOS')}</dt>
                   <dd>
                     <Contador valor={numeros.mapas} />
                   </dd>
                 </div>
                 <div>
-                  <dt>JOGADORES</dt>
+                  <dt>{t('JOGADORES')}</dt>
                   <dd>
                     <Contador valor={numeros.jogadores} />
                   </dd>
@@ -209,7 +210,7 @@ export default function Inicio() {
                 <div className="painel">
                   <div className="painel-head">
                     <span className="mono">
-                      <span className="hx-pisca">▮</span> PROJETOS NEURA
+                      <span className="hx-pisca">▮</span> {t('PROJETOS NEURA')}
                     </span>
                     <span className="luzes" aria-hidden="true">
                       <i />
@@ -223,7 +224,7 @@ export default function Inicio() {
                     </span>
                     <span>
                       <b>NeuraPick</b>
-                      <small>Pick &amp; Ban de mapas do CS2</small>
+                      <small>{t('Pick & Ban de mapas do CS2')}</small>
                     </span>
                     <span className="estado">ONLINE</span>
                   </a>
@@ -232,8 +233,8 @@ export default function Inicio() {
                       <Icone>{IC_PARTIDAS}</Icone>
                     </span>
                     <span>
-                      <b>Partidas</b>
-                      <small>Estatísticas de cada mapa jogado</small>
+                      <b>{t('Partidas')}</b>
+                      <small>{t('Estatísticas de cada mapa jogado')}</small>
                     </span>
                     <span className="estado">ONLINE</span>
                   </a>
@@ -243,7 +244,7 @@ export default function Inicio() {
                     </span>
                     <span>
                       <b>Ranking</b>
-                      <small>Top 15 jogadores do servidor</small>
+                      <small>{t('Top 15 jogadores do servidor')}</small>
                     </span>
                     <span className="estado">ONLINE</span>
                   </a>
@@ -252,15 +253,15 @@ export default function Inicio() {
                       <Icone>{IC_PERFIL}</Icone>
                     </span>
                     <span>
-                      <b>Seu perfil</b>
-                      <small>Nível, XP, moldura e time</small>
+                      <b>{t('Seu perfil')}</b>
+                      <small>{t('Nível, XP, moldura e time')}</small>
                     </span>
                     <span className="estado">ONLINE</span>
                   </a>
                   <div className="painel-rodape">
-                    <span className="mono">FEITO NO BRASIL</span>
+                    <span className="mono">{t('FEITO NO BRASIL')}</span>
                     <span className="mono hx-sys">
-                      <i /> SISTEMAS OPERANDO
+                      <i /> {t('SISTEMAS OPERANDO')}
                     </span>
                   </div>
                 </div>
@@ -268,7 +269,7 @@ export default function Inicio() {
             </div>
           </div>
 
-          <a className="hx-rolar" href="#projetos" aria-label="Ir para os projetos">
+          <a className="hx-rolar" href="#projetos" aria-label={t('Ir para os projetos')}>
             <span />
           </a>
         </section>
@@ -281,13 +282,10 @@ export default function Inicio() {
           <div className="wrap">
             <div className="secao-head reveal">
               <span className="kicker">
-                <b>01</b> O QUE FAZEMOS
+                <b>01</b> {t('O QUE FAZEMOS')}
               </span>
-              <h2>Nossos projetos</h2>
-              <p>
-                Cada projeto nasce de um problema real de quem joga: montar o veto de um campeonato, jogar uma partida
-                justa, entender o que aconteceu nela e ver a sua evolução.
-              </p>
+              <h2>{t('Nossos projetos')}</h2>
+              <p>{t('Cada projeto nasce de um problema real de quem joga: montar o veto de um campeonato, jogar uma partida justa, entender o que aconteceu nela e ver a sua evolução.')}</p>
             </div>
 
             <div className="projetos">
@@ -348,10 +346,10 @@ export default function Inicio() {
                       </span>
                       <span className={`tag ${p.tag[1]}`}>{p.tag[0]}</span>
                     </div>
-                    <h3>{p.titulo}</h3>
-                    <p>{p.texto}</p>
+                    <h3>{t(p.titulo)}</h3>
+                    <p>{t(p.texto)}</p>
                     <span className="projeto-link">
-                      {p.link} {SETA}
+                      {t(p.link)} {SETA}
                     </span>
                   </>
                 )
@@ -385,31 +383,21 @@ export default function Inicio() {
             <div className="sobre-texto reveal">
               <div className="secao-head" style={{ marginBottom: 22 }}>
                 <span className="kicker">
-                  <b>02</b> SOBRE A NEURA
+                  <b>02</b> {t('SOBRE A NEURA')}
                 </span>
-                <h2>Um estúdio pequeno, feito por jogadores</h2>
+                <h2>{t('Um estúdio pequeno, feito por jogadores')}</h2>
               </div>
-              <p>
-                A <strong>Neura Project</strong> nasceu da vontade de ter ferramentas melhores para jogar: veto de mapas sem
-                planilha, servidor com estatística de verdade e os jogos organizados num só lugar. Então começamos a construir
-                as ferramentas que a gente queria usar.
-              </p>
-              <p>
-                Hoje somos um <strong>estúdio independente</strong> focado em jogos — pequeno de propósito. Isso deixa a gente
-                perto de quem usa: ideia que chega na comunidade da Kivo vira recurso, bug reportado vira correção.
-              </p>
-              <p>
-                O objetivo é simples: tornar o competitivo mais organizado, justo e divertido, para campeonatos de amigos e
-                para a comunidade inteira.
-              </p>
+              <p>{t('A Neura Project nasceu da vontade de ter ferramentas melhores para jogar: veto de mapas sem planilha, servidor com estatística de verdade e os jogos organizados num só lugar. Então começamos a construir as ferramentas que a gente queria usar.')}</p>
+              <p>{t('Hoje somos um estúdio independente focado em jogos — pequeno de propósito. Isso deixa a gente perto de quem usa: ideia que chega na comunidade da Kivo vira recurso, bug reportado vira correção.')}</p>
+              <p>{t('O objetivo é simples: tornar o competitivo mais organizado, justo e divertido, para campeonatos de amigos e para a comunidade inteira.')}</p>
             </div>
             <div className="hud-frame reveal" style={{ '--d': '.1s' }}>
               <div className="ficha">
                 <div className="ficha-scan" aria-hidden="true" />
                 {FICHA.map(([rotulo, valor]) => (
                   <div key={rotulo} className="ficha-linha">
-                    <span className="mono">{rotulo}</span>
-                    <span>{valor}</span>
+                    <span className="mono">{t(rotulo)}</span>
+                    <span>{t(valor)}</span>
                   </div>
                 ))}
               </div>
@@ -422,9 +410,9 @@ export default function Inicio() {
           <div className="wrap">
             <div className="secao-head reveal">
               <span className="kicker">
-                <b>03</b> COMO TRABALHAMOS
+                <b>03</b> {t('COMO TRABALHAMOS')}
               </span>
-              <h2>O que guia cada projeto</h2>
+              <h2>{t('O que guia cada projeto')}</h2>
             </div>
             <ol className="trilha">
               {PRINCIPIOS.map(([icone, titulo, texto, tag], i) => (
@@ -434,10 +422,10 @@ export default function Inicio() {
                   </span>
                   <div className="trilha-corpo">
                     <span className="mono">
-                      {String(i + 1).padStart(2, '0')} · {tag}
+                      {String(i + 1).padStart(2, '0')} · {t(tag)}
                     </span>
-                    <h3>{titulo}</h3>
-                    <p>{texto}</p>
+                    <h3>{t(titulo)}</h3>
+                    <p>{t(texto)}</p>
                   </div>
                 </li>
               ))}
@@ -451,18 +439,16 @@ export default function Inicio() {
             <div className="cta-x spot reveal">
               <div className="cta-inner">
                 <span className="kicker">
-                  <b>04</b> COMUNIDADE
+                  <b>04</b> {t('COMUNIDADE')}
                 </span>
-                <h2>Joga com a gente?</h2>
-                <p className="lead">
-                  Entre na nossa comunidade na Kivo para jogar no servidor, participar dos campeonatos e acompanhar o que estamos criando.
-                </p>
+                <h2>{t('Joga com a gente?')}</h2>
+                <p className="lead">{t('Entre na nossa comunidade na Kivo para jogar no servidor, participar dos campeonatos e acompanhar o que estamos criando.')}</p>
                 <div className="cta-acoes">
                   <LinkComunidade className="btn btn-comunidade btn-lg btn-brilho">
-                    <IconeKivo tamanho={20} /> Entrar na Kivo
+                    <IconeKivo tamanho={20} /> {t('Entrar na Kivo')}
                   </LinkComunidade>
                   <a className="btn btn-ghost btn-lg btn-borda" href="/partidas/">
-                    Ver últimas partidas
+                    {t('Ver últimas partidas')}
                   </a>
                 </div>
               </div>

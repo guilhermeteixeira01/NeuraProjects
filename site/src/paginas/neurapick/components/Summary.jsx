@@ -4,11 +4,13 @@ import { FORMATS, SIDE_LABEL, other } from '../data/veto.js'
 import { IconCopy } from './Icons.jsx'
 import TeamLogo from './TeamLogo.jsx'
 import { acharTime, useTimes } from '../data/times.js'
+import { useT } from '../../../comum/i18n.js'
 
 // O console do CS2 corta a linha colada em ~254 caracteres
 const LIMITE_CONSOLE = 250
 
 export default function Summary({ teams, logos, format, picks, decider }) {
+  const tr = useT()
   // Qual botão de copiar mostra "Copiado!" agora
   const [copied, setCopied] = useState(null)
   const times = useTimes()
@@ -27,10 +29,10 @@ export default function Summary({ teams, logos, format, picks, decider }) {
     ...picks.map((p) => ({
       map: getMap(p.map),
       pickedBy: p.pickedBy,
-      sideText: `${teams[p.sideBy]} começa de ${SIDE_LABEL[p.side]}`,
+      sideText: tr('{time} começa de {lado}', { time: teams[p.sideBy], lado: tr(SIDE_LABEL[p.side]) }),
       side: p.side,
     })),
-    { map: getMap(decider), pickedBy: null, sideText: 'Lado no knife round' },
+    { map: getMap(decider), pickedBy: null, sideText: tr('Lado no knife round') },
   ]
 
   // Comando para colar no console do servidor (plugin BaseComp): configura a série inteira.
@@ -83,9 +85,9 @@ export default function Summary({ teams, logos, format, picks, decider }) {
   // Lado de cada time no primeiro mapa (no decider, quem decide é o round faca)
   const first = picks[0]
   const firstSide = (team) => {
-    if (!first) return 'Lado decidido no round faca'
+    if (!first) return tr('Lado decidido no round faca')
     const ctTeam = first.side === 'ct' ? first.sideBy : other(first.sideBy)
-    return `Começa de ${team === ctTeam ? 'CT' : 'TR'} em ${getMap(first.map).name}`
+    return tr('Começa de {lado} em {mapa}', { lado: team === ctTeam ? 'CT' : tr('TR'), mapa: getMap(first.map).name })
   }
 
   return (
@@ -94,38 +96,37 @@ export default function Summary({ teams, logos, format, picks, decider }) {
         <div className="summary-head">
           <div>
             <span className="hero-status">
-              <span className="dot-live" /> VETO CONCLUÍDO
+              <span className="dot-live" /> {tr('VETO CONCLUÍDO')}
             </span>
-            <h2>{games.length === 1 ? 'Mapa da partida' : 'Mapas da série'}</h2>
+            <h2>{games.length === 1 ? tr('Mapa da partida') : tr('Mapas da série')}</h2>
           </div>
           <button
             className="btn btn-primary"
             onClick={copy}
-            title="Copia o comando css_serie para colar no console do servidor"
+            title={tr('Copia o comando css_serie para colar no console do servidor')}
           >
-            <IconCopy /> {copied === 'serie' ? 'Copiado!' : 'Copiar resultado'}
+            <IconCopy /> {copied === 'serie' ? tr('Copiado!') : tr('Copiar resultado')}
           </button>
         </div>
         {linhas.slice(1).map((linha, i) => (
           <div key={i} className="logos-aviso">
-            <span>O console do CS2 corta linhas grandes: depois do resultado, cole também esta linha (logo).</span>
-            <button className="btn btn-ghost btn-sm" onClick={() => copyText(`linha-${i}`, linha)} title="Copia o comando css_serie_logo">
-              <IconCopy /> {copied === `linha-${i}` ? 'Copiado!' : 'Copiar logo'}
+            <span>{tr('O console do CS2 corta linhas grandes: depois do resultado, cole também esta linha (logo).')}</span>
+            <button className="btn btn-ghost btn-sm" onClick={() => copyText(`linha-${i}`, linha)} title={tr('Copia o comando css_serie_logo')}>
+              <IconCopy /> {copied === `linha-${i}` ? tr('Copiado!') : tr('Copiar logo')}
             </button>
           </div>
         ))}
         {grandes.length > 0 && (
           <div className="logos-aviso">
             <span>
-              O link do logo de <b>{grandes.join(' e ')}</b> é grande demais para o console. Cadastre o time na{' '}
-              <a href="/times/">lista de times</a> que o servidor pega o logo sozinho.
+              {tr('O link do logo de {times} é grande demais para o console. Cadastre o time na lista de times que o servidor pega o logo sozinho.', { times: grandes.join(` ${tr('e')} `) })}{' '}
+              <a href="/times/">{tr('Gerenciar lista de times')}</a>
             </span>
           </div>
         )}
         {logosDaLista.length > 0 && (
           <p className="hint logos-lista">
-            Logo de <b>{logosDaLista.map((t) => teams[t]).join(' e ')}</b> vem da lista de times: o servidor carrega
-            sozinho ao colar o resultado.
+            {tr('Logo de {times} vem da lista de times: o servidor carrega sozinho ao colar o resultado.', { times: logosDaLista.map((t) => teams[t]).join(` ${tr('e')} `) })}
           </p>
         )}
 
@@ -136,7 +137,7 @@ export default function Summary({ teams, logos, format, picks, decider }) {
               className="summary-item"
               style={{ '--c1': g.map.colors[0], '--c2': g.map.colors[1], '--img': `url(${mapImage(g.map.id)})` }}
             >
-              <span className="summary-num">MAPA {String(i + 1).padStart(2, '0')}</span>
+              <span className="summary-num">{tr('MAPA {n}', { n: String(i + 1).padStart(2, '0') })}</span>
               <span className="summary-map">
                 <img className="summary-icon" src={mapIcon(g.map.id)} alt="" />
                 {g.map.name}
@@ -144,7 +145,7 @@ export default function Summary({ teams, logos, format, picks, decider }) {
               <span className="summary-meta">
                 {g.pickedBy ? (
                   <>
-                    Pick de <b className={`t-${g.pickedBy}`}>{teams[g.pickedBy]}</b>
+                    {tr('Pick de')} <b className={`t-${g.pickedBy}`}>{teams[g.pickedBy]}</b>
                   </>
                 ) : (
                   <b className="decider">Decider</b>
@@ -157,7 +158,7 @@ export default function Summary({ teams, logos, format, picks, decider }) {
 
         {/* Como cada time entra no servidor e cai no lado certo (plugin BaseComp: !time A / !time B) */}
         <div className="join">
-          <span className="mono-label">// COMO ENTRAR NO SERVIDOR</span>
+          <span className="mono-label">// {tr('COMO ENTRAR NO SERVIDOR')}</span>
           <div className="join-grid">
             {['A', 'B'].map((t) => (
               <div key={t} className={`join-card team-${t}`}>
@@ -170,22 +171,22 @@ export default function Summary({ teams, logos, format, picks, decider }) {
                 </div>
                 <ol className="join-steps">
                   <li>
-                    Entre no servidor: você fica como <b>espectador</b>
+                    {tr('Entre no servidor: você fica como espectador')}
                   </li>
                   <li>
-                    No chat, digite{' '}
-                    <button className="join-code" onClick={() => copyText(`time-${t}`, `!time ${t}`)} title="Copiar">
+                    {tr('No chat, digite')}{' '}
+                    <button className="join-code" onClick={() => copyText(`time-${t}`, `!time ${t}`)} title={tr('Copiar')}>
                       !time {t}
                     </button>
-                    {copied === `time-${t}` && <span className="join-copied">copiado</span>}
-                    <span className="join-note">o servidor te coloca no lado certo — nos próximos mapas é automático</span>
+                    {copied === `time-${t}` && <span className="join-copied">{tr('copiado')}</span>}
+                    <span className="join-note">{tr('o servidor te coloca no lado certo — nos próximos mapas é automático')}</span>
                   </li>
                 </ol>
               </div>
             ))}
           </div>
           <p className="hint">
-            O admin precisa carregar a série no servidor antes (botão <b>Copiar resultado</b> → colar no console).
+            {tr('O admin precisa carregar a série no servidor antes (botão Copiar resultado → colar no console).')}
           </p>
         </div>
       </div>

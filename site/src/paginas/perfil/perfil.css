@@ -253,29 +253,4 @@ html.sm-aberto { overflow: hidden; }
 .sm-secao-cargo .sm-secao-cab { border-bottom-color: color-mix(in srgb, var(--cg) 25%, transparent); }
 .sm-coroa { filter: drop-shadow(0 0 4px currentColor); }
 
-/* Aba Tema do Personalizar: cada cartão mostra uma miniatura de página nas cores do tema */
-.sm-temas { flex: 1; min-height: 0; overflow-y: auto; padding: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; align-content: start; }
-.sm-tema {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 12px; text-align: left; cursor: pointer;
-  border-radius: 14px; border: 1px solid var(--border); background: rgb(var(--tinta) / 0.02); color: var(--text); font: inherit;
-  transition: border-color .15s, transform .15s, box-shadow .15s;
-}
-.sm-tema:hover { border-color: var(--border-2); transform: translateY(-2px); }
-.sm-tema.sel { border-color: var(--blue-2); box-shadow: 0 0 0 1px var(--blue-2), 0 10px 26px -14px var(--blue-2); }
-.sm-tema b { font-family: var(--font-display); font-size: 15px; }
-.sm-tema small { font-size: 12px; color: var(--dim); line-height: 1.35; }
-.sm-tema-previa {
-  --p-bg: #0b0c0f; --p-card: #16171c; --p-borda: #2e2f36; --p-txt: #f1f1f1; --p-azul: #1a73e8; --p-brilho: rgba(26, 115, 232, .35);
-  position: relative; width: 100%; aspect-ratio: 16 / 10; margin-bottom: 4px; border-radius: 10px; overflow: hidden;
-  border: 1px solid var(--p-borda); background: radial-gradient(circle at 25% 0%, var(--p-brilho), transparent 55%), var(--p-bg);
-  display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 14% 18% 1fr 16%; gap: 6%; padding: 7%;
-}
-.tema-escuro .sm-tema-previa { --p-bg: #101114; --p-card: #1c1f25; --p-borda: #33373f; --p-txt: #ececee; --p-brilho: transparent; }
-.tema-claro .sm-tema-previa { --p-bg: #f2f4f8; --p-card: #ffffff; --p-borda: #c9d0db; --p-txt: #141821; --p-azul: #1a6fe0; --p-brilho: transparent; }
-.sm-tema-previa i { display: block; border-radius: 4px; }
-.sm-tema-previa .barra { grid-column: 1 / -1; background: var(--p-card); border: 1px solid var(--p-borda); }
-.sm-tema-previa .titulo { grid-column: 1 / -1; width: 60%; background: var(--p-txt); opacity: .85; border-radius: 3px; }
-.sm-tema-previa .card { background: var(--p-card); border: 1px solid var(--p-borda); }
-.sm-tema-previa .botao { width: 70%; background: var(--p-azul); }
-.sm-tema-nota { grid-column: 1 / -1; font-size: 12.5px; color: var(--dim); }
-@media (max-width: 720px) { .sm-temas { grid-template-columns: 1fr 1fr; } }
+

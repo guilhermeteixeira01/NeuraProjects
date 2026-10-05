@@ -6,6 +6,7 @@ import MapCard from './MapCard.jsx'
 import Summary from './Summary.jsx'
 import TeamLogo from './TeamLogo.jsx'
 import { IconRestart, IconUndo } from './Icons.jsx'
+import { useT } from '../../../comum/i18n.js'
 
 const VERB = { ban: 'BANIR', pick: 'ESCOLHER' }
 const STEP_LABEL = { ban: 'BAN', pick: 'PICK', side: 'LADO' }
@@ -37,6 +38,7 @@ function Countdown({ seconds, onExpire }) {
 }
 
 export default function Veto({ match, onNewMatch }) {
+  const tr = useT()
   const { teams, format, firstTeam, pool, timer, coinFlip } = match
   const logos = match.logos ?? { A: '', B: '' }
   const steps = useMemo(() => buildSteps(format, firstTeam), [format, firstTeam])
@@ -86,9 +88,9 @@ export default function Veto({ match, onNewMatch }) {
 
   const describe = (h) => {
     const who = <b className={`t-${h.team}`}>{teams[h.team]}</b>
-    if (h.type === 'ban') return <>{who} baniu <b>{getMap(h.map).name}</b></>
-    if (h.type === 'pick') return <>{who} escolheu <b>{getMap(h.map).name}</b></>
-    return <>{who} começa de <b className={h.side}>{SIDE_LABEL[h.side]}</b></>
+    if (h.type === 'ban') return <>{who} {tr('baniu')} <b>{getMap(h.map).name}</b></>
+    if (h.type === 'pick') return <>{who} {tr('escolheu')} <b>{getMap(h.map).name}</b></>
+    return <>{who} {tr('começa de')} <b className={h.side}>{tr(SIDE_LABEL[h.side])}</b></>
   }
 
   return (
@@ -98,27 +100,27 @@ export default function Veto({ match, onNewMatch }) {
         <div className="hud-frame scoreboard-frame">
           <div className="scoreboard">
             <div className={`sb-team team-a ${step?.team === 'A' ? 'active' : ''}`}>
-              <span className="mono-label">TIME A</span>
+              <span className="mono-label">{tr('TIME {t}', { t: 'A' })}</span>
               <span className="sb-id">
                 <TeamLogo url={logos.A} name={teams.A} team="A" size={44} />
                 <span className="sb-name">{teams.A}</span>
               </span>
-              {step?.team === 'A' && <span className="sb-turn">NA VEZ</span>}
+              {step?.team === 'A' && <span className="sb-turn">{tr('NA VEZ')}</span>}
             </div>
             <div className="sb-center">
-              <span className="sb-format">{FORMATS[format].label}</span>
+              <span className="sb-format">{tr(FORMATS[format].label)}</span>
               <span className="mono-label">
-                {done ? 'VETO FINALIZADO' : `ETAPA ${pad(history.length + 1)} / ${pad(steps.length)}`}
+                {done ? tr('VETO FINALIZADO') : tr('ETAPA {n} / {total}', { n: pad(history.length + 1), total: pad(steps.length) })}
               </span>
-              {coinFlip && <span className="sb-coin">{teams[firstTeam]} venceu o sorteio</span>}
+              {coinFlip && <span className="sb-coin">{tr('{time} venceu o sorteio', { time: teams[firstTeam] })}</span>}
             </div>
             <div className={`sb-team team-b ${step?.team === 'B' ? 'active' : ''}`}>
-              <span className="mono-label">TIME B</span>
+              <span className="mono-label">{tr('TIME {t}', { t: 'B' })}</span>
               <span className="sb-id">
                 <span className="sb-name">{teams.B}</span>
                 <TeamLogo url={logos.B} name={teams.B} team="B" size={44} />
               </span>
-              {step?.team === 'B' && <span className="sb-turn">NA VEZ</span>}
+              {step?.team === 'B' && <span className="sb-turn">{tr('NA VEZ')}</span>}
             </div>
           </div>
         </div>
@@ -130,7 +132,7 @@ export default function Veto({ match, onNewMatch }) {
               key={i}
               className={`step ${s.type} t-${s.team} ${i < history.length ? 'done' : ''} ${i === history.length ? 'current' : ''}`}
             >
-              <span className="step-type">{STEP_LABEL[s.type]}</span>
+              <span className="step-type">{tr(STEP_LABEL[s.type])}</span>
               <span className="step-team">{teams[s.team]}</span>
             </li>
           ))}
@@ -145,16 +147,16 @@ export default function Veto({ match, onNewMatch }) {
         {!done && (
           <div className={`turn turn-${step.team}`}>
             <div className="turn-text">
-              <span className="mono-label">SUA VEZ</span>
+              <span className="mono-label">{tr('SUA VEZ')}</span>
               <p>
                 <span className="turn-team">{teams[step.team]}</span>{' '}
                 {step.type === 'side' ? (
                   <>
-                    escolha o <b>lado inicial</b> em <b>{getMap(sideMap).name}</b>
+                    {tr('escolha o')} <b>{tr('lado inicial')}</b> {tr('em')} <b>{getMap(sideMap).name}</b>
                   </>
                 ) : (
                   <>
-                    deve <b className={step.type}>{VERB[step.type].toLowerCase()}</b> um mapa
+                    {tr('deve')} <b className={step.type}>{tr(VERB[step.type]).toLowerCase()}</b> {tr('um mapa')}
                   </>
                 )}
               </p>
@@ -167,11 +169,11 @@ export default function Veto({ match, onNewMatch }) {
           <div className="side-picker">
             <button className="side-btn ct" onClick={() => act({ side: 'ct' })}>
               <span className="side-code">CT</span>
-              <span className="mono-label">CONTRA-TERRORISTA</span>
+              <span className="mono-label">{tr('CONTRA-TERRORISTA')}</span>
             </button>
             <button className="side-btn t" onClick={() => act({ side: 't' })}>
-              <span className="side-code">TR</span>
-              <span className="mono-label">TERRORISTA</span>
+              <span className="side-code">{tr('TR')}</span>
+              <span className="mono-label">{tr('TERRORISTA')}</span>
             </button>
           </div>
         )}
@@ -198,37 +200,37 @@ export default function Veto({ match, onNewMatch }) {
         {/* Histórico */}
         <div className="log-section">
           <div className="log-head">
-            <h2>Histórico do veto</h2>
+            <h2>{tr('Histórico do veto')}</h2>
             <div className="log-actions">
               <button className="btn btn-ghost btn-sm" onClick={undo} disabled={history.length === 0}>
-                <IconUndo /> Desfazer
+                <IconUndo /> {tr('Desfazer')}
               </button>
               <button className="btn btn-ghost btn-sm" onClick={restart} disabled={history.length === 0}>
-                <IconRestart /> Reiniciar
+                <IconRestart /> {tr('Reiniciar')}
               </button>
               <button className="btn btn-ghost btn-sm" onClick={onNewMatch}>
-                Nova partida
+                {tr('Nova partida')}
               </button>
             </div>
           </div>
 
           <div className="spec-list">
-            {history.length === 0 && <p className="log-empty">Nenhuma ação registrada ainda.</p>}
+            {history.length === 0 && <p className="log-empty">{tr('Nenhuma ação registrada ainda.')}</p>}
             {history.map((h, i) => (
               <div key={i} className="spec-row">
                 <span className="spec-num">{pad(i + 1)}</span>
                 <div className="spec-body">
                   {describe(h)}
-                  {h.auto && <em className="auto"> · tempo esgotado</em>}
+                  {h.auto && <em className="auto"> · {tr('tempo esgotado')}</em>}
                 </div>
-                <span className={`spec-tag ${h.type}`}>{STEP_LABEL[h.type]}</span>
+                <span className={`spec-tag ${h.type}`}>{tr(STEP_LABEL[h.type])}</span>
               </div>
             ))}
             {decider && (
               <div className="spec-row">
                 <span className="spec-num">{pad(history.length + 1)}</span>
                 <div className="spec-body">
-                  <b>{getMap(decider).name}</b> sobrou no pool
+                  <b>{getMap(decider).name}</b> {tr('sobrou no pool')}
                 </div>
                 <span className="spec-tag decider">DECIDER</span>
               </div>

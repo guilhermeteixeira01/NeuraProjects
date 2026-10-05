@@ -12,6 +12,7 @@ import { CargosDe, ComMoldura, TimeEscolhido, useAdmin, useTimeDe } from '../../
 import Premier from '../../comum/Premier.jsx'
 import { BarraXp, SeloNivel, useNivelDe } from '../../comum/Nivel.jsx'
 import SeletorMoldura from './SeletorMoldura.jsx'
+import { useT } from '../../comum/i18n.js'
 
 // Perfil do jogador: /perfil/?id=<SteamID64>. Sem id, mostra o de quem está logado pela Steam.
 // Dados: ranking/ranking.json (totais) e perfil/historico/<id>.json (todos os mapas), gerados no deploy.
@@ -26,12 +27,12 @@ const steam = (id) => `https://steamcommunity.com/profiles/${encodeURIComponent(
 const iniciais = (nome) => String(nome || '?').trim().slice(0, 2).toUpperCase()
 
 // Data/hora no horário de Brasília (a página é gerada num servidor em UTC)
-const dataBr = (iso, hora = true) => {
+const dataBr = (iso, local = 'pt-BR', hora = true) => {
   const d = new Date(iso)
   return isNaN(d)
     ? ''
     : d
-        .toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', ...(hora ? { hour: '2-digit', minute: '2-digit' } : { year: '2-digit' }), timeZone: 'America/Sao_Paulo' })
+        .toLocaleString(local, { day: '2-digit', month: '2-digit', ...(hora ? { hour: '2-digit', minute: '2-digit' } : { year: '2-digit' }), timeZone: 'America/Sao_Paulo' })
         .replace(',', '')
 }
 
@@ -47,6 +48,7 @@ function Avatar({ src, nome, classe }) {
 // Rating por mapa (últimos NO_GRAFICO, mais antigo à esquerda). Uma série só (azul); a linha tracejada
 // marca 1.00 (média). Vitória/derrota fica no V/D embaixo de cada barra, não na cor.
 function GraficoRating({ mapas }) {
+  const t = useT()
   const [foco, setFoco] = useState(null)
   const lista = mapas.slice(0, NO_GRAFICO).reverse()
   // Escala: até 3 de 0,5 em 0,5; acima disso, passos maiores (sempre umas 4–6 linhas)
@@ -63,8 +65,8 @@ function GraficoRating({ mapas }) {
   return (
     <div className="pf-grafico-card spot">
       <div className="pf-card-cab">
-        <h2>Rating por mapa</h2>
-        <span className="mono">ÚLTIMOS {lista.length} MAPAS</span>
+        <h2>{t('Rating por mapa')}</h2>
+        <span className="mono">{t('ÚLTIMOS {n} MAPAS', { n: lista.length })}</span>
       </div>
       <div className="pf-grafico">
         <div className="pf-grade" aria-hidden="true">
@@ -85,19 +87,19 @@ function GraficoRating({ mapas }) {
               onPointerLeave={() => setFoco(null)}
               onFocus={(e) => mostrar(e, i)}
               onBlur={() => setFoco(null)}
-              aria-label={`${nomeMapa(m.mapa)}, ${m.venceu ? 'vitória' : 'derrota'} ${m.placar[0]} a ${m.placar[1]}, rating ${fmt(m.rating, 2)}`}
+              aria-label={`${nomeMapa(m.mapa)}, ${m.venceu ? t('vitória') : t('derrota')} ${m.placar[0]}–${m.placar[1]}, rating ${fmt(m.rating, 2)}`}
             >
               <i style={{ height: `${Math.max(1.5, (m.rating / topo) * 100)}%` }} />
               {foco?.i === i && (
                 <span className={`pf-tip${foco.esq ? ' esq' : ''}`} role="tooltip">
                   <b>{nomeMapa(m.mapa)}</b>
                   <span>
-                    {m.venceu ? 'Vitória' : 'Derrota'} {m.placar[0]}–{m.placar[1]} vs {m.adversario}
+                    {m.venceu ? t('Vitória') : t('Derrota')} {m.placar[0]}–{m.placar[1]} vs {m.adversario}
                   </span>
                   <span>
                     Rating <b>{fmt(m.rating, 2)}</b> · {m.kills}/{m.mortes}/{m.assist} · ADR {fmt(m.adr, 1)}
                   </span>
-                  <span className="mono">{dataBr(m.data)}</span>
+                  <span className="mono">{dataBr(m.data, t.local)}</span>
                 </span>
               )}
             </a>
@@ -107,7 +109,7 @@ function GraficoRating({ mapas }) {
       <div className="pf-vd" aria-hidden="true">
         {lista.map((m) => (
           <span key={m.caminho} className={m.venceu ? 'v' : 'd'}>
-            {m.venceu ? 'V' : 'D'}
+            {m.venceu ? t('V') : t('D')}
           </span>
         ))}
       </div>
@@ -116,21 +118,22 @@ function GraficoRating({ mapas }) {
 }
 
 function Historico({ mapas }) {
+  const t = useT()
   const [qtd, setQtd] = useState(POR_PAGINA)
   return (
     <div className="pf-hist-card spot">
       <div className="pf-card-cab">
-        <h2>Histórico de partidas</h2>
-        <span className="mono">{mapas.length} MAPAS</span>
+        <h2>{t('Histórico de partidas')}</h2>
+        <span className="mono">{t('{n} MAPAS', { n: mapas.length })}</span>
       </div>
       <div className="tabela">
         <table>
           <thead>
             <tr>
-              <th className="esq">DATA</th>
-              <th className="esq">MAPA</th>
-              <th className="esq">PARTIDA</th>
-              <th>RESULTADO</th>
+              <th className="esq">{t('DATA')}</th>
+              <th className="esq">{t('MAPA')}</th>
+              <th className="esq">{t('PARTIDA')}</th>
+              <th>{t('RESULTADO')}</th>
               <th>K / D / A</th>
               <th>ADR</th>
               <th>HS%</th>
@@ -141,7 +144,7 @@ function Historico({ mapas }) {
           <tbody>
             {mapas.slice(0, qtd).map((m) => (
               <tr key={m.caminho} onClick={() => (location.href = linkPartida(m.caminho))}>
-                <td className="esq mono">{dataBr(m.data)}</td>
+                <td className="esq mono">{dataBr(m.data, t.local)}</td>
                 <td className="esq">
                   <a href={linkPartida(m.caminho)} className="pf-mapa">
                     {nomeMapa(m.mapa)}
@@ -153,7 +156,7 @@ function Historico({ mapas }) {
                 </td>
                 <td>
                   <span className={`pf-res ${m.venceu ? 'v' : 'd'}`}>
-                    {m.venceu ? 'V' : 'D'} {m.placar[0]}–{m.placar[1]}
+                    {m.venceu ? t('V') : t('D')} {m.placar[0]}–{m.placar[1]}
                   </span>
                 </td>
                 <td className="mono">
@@ -164,7 +167,7 @@ function Historico({ mapas }) {
                 <td>
                   <span className={`rt rt-${classeRating(m.rating)}`}>{fmt(m.rating, 2)}</span>
                   {m.mvp && (
-                    <span className="pf-mvp" title="MVP da partida">
+                    <span className="pf-mvp" title={t('MVP da partida')}>
                       ★
                     </span>
                   )}
@@ -177,7 +180,7 @@ function Historico({ mapas }) {
       </div>
       {qtd < mapas.length && (
         <button type="button" className="pf-mais" onClick={() => setQtd((q) => q + POR_PAGINA)}>
-          Mostrar mais ({mapas.length - qtd})
+          {t('Mostrar mais ({n})', { n: mapas.length - qtd })}
         </button>
       )}
     </div>
@@ -205,6 +208,7 @@ function IconePincel() {
 }
 
 function Jogador({ j, mapas, pos, total, eu, personalizar }) {
+  const t = useT()
   const timeEscolhido = useTimeDe(j.steamId)
   const nivel = useNivelDe(j)
   // CS Rating do Premier: vem do ranking (deploy); sem ele (jogador sem partidas, ou deploy sem Leetify),
@@ -238,14 +242,14 @@ function Jogador({ j, mapas, pos, total, eu, personalizar }) {
           </ComMoldura>
           <div className="pf-id fx-entra" style={{ '--e': 1 }}>
             <span className="kicker">
-              PERFIL DO JOGADOR{eu && <span className="pf-voce">VOCÊ</span>}
+              {t('PERFIL DO JOGADOR')}{eu && <span className="pf-voce">{t('VOCÊ')}</span>}
             </span>
             <h1>{j.nome}</h1>
             <div className="pf-meta">
               <span className="pf-nivel">
                 <SeloNivel nivel={nivel.nivel} tamanho={38} />
                 <span>
-                  NÍVEL <b>{nivel.nivel}</b>
+                  {t('NÍVEL')} <b>{nivel.nivel}</b>
                 </span>
               </span>
               <CargosDe steamId={j.steamId} />
@@ -260,7 +264,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar }) {
               <Premier key={premier || 0} j={{ ...j, premier }} />
               {pos > 0 && (
                 <a className="pf-pos" href="/ranking/">
-                  #{pos} <small>de {total} no ranking</small>
+                  #{pos} <small>{t('de {total} no ranking', { total })}</small>
                 </a>
               )}
             </div>
@@ -268,14 +272,14 @@ function Jogador({ j, mapas, pos, total, eu, personalizar }) {
             <div className="pf-acoes">
               {eu && (
                 <button type="button" className="btn btn-primary" onClick={personalizar}>
-                <IconePincel /> Personalizar
+                <IconePincel /> {t('Personalizar')}
               </button>
               )}
               <a className="btn btn-ghost" href={steam(j.steamId)} target="_blank" rel="noopener">
-                <IconeSteam /> Perfil na Steam
+                <IconeSteam /> {t('Perfil na Steam')}
               </a>
               <a className="btn btn-ghost" href="/ranking/">
-                Ver ranking
+                {t('Ver ranking')}
               </a>
             </div>
           </div>
@@ -285,21 +289,21 @@ function Jogador({ j, mapas, pos, total, eu, personalizar }) {
       <section className="secao pf-secao">
         <div className="wrap">
           <div className={`pf-estats${sem ? ' vazio' : ''}`}>
-            <Estat rotulo="RATING" valor={v(fmt(j.rating, 2))} sub={sem ? 'sem partidas' : `melhor ${fmt(j.melhorRating, 2)}`} classe={sem ? 'destaque' : `destaque rt-txt-${classeRating(j.rating)}`} />
-            <Estat rotulo="K/D" valor={v(fmt(j.kd, 2))} sub={`${j.kills} kills · ${j.mortes} mortes`} />
-            <Estat rotulo="ADR" valor={v(fmt(j.adr, 1))} sub="dano por round" />
-            <Estat rotulo="KAST" valor={v(`${fmt(j.kast, 1)}%`)} sub="rounds com impacto" />
-            <Estat rotulo="HS%" valor={v(`${fmt(j.hsPct, 1)}%`)} sub="kills de headshot" />
-            <Estat rotulo="VITÓRIAS" valor={v(`${fmt(j.winRate, 0)}%`)} sub={`${j.vitorias}V · ${derrotas}D em ${j.mapas} mapas`} />
-            <Estat rotulo="ENTRADAS" valor={v(`${j.fk} / ${j.fd}`)} sub="primeira kill / primeira morte" />
+            <Estat rotulo="RATING" valor={v(fmt(j.rating, 2))} sub={sem ? t('sem partidas') : t('melhor {v}', { v: fmt(j.melhorRating, 2) })} classe={sem ? 'destaque' : `destaque rt-txt-${classeRating(j.rating)}`} />
+            <Estat rotulo="K/D" valor={v(fmt(j.kd, 2))} sub={t('{k} kills · {d} mortes', { k: j.kills, d: j.mortes })} />
+            <Estat rotulo="ADR" valor={v(fmt(j.adr, 1))} sub={t('dano por round')} />
+            <Estat rotulo="KAST" valor={v(`${fmt(j.kast, 1)}%`)} sub={t('rounds com impacto')} />
+            <Estat rotulo="HS%" valor={v(`${fmt(j.hsPct, 1)}%`)} sub={t('kills de headshot')} />
+            <Estat rotulo={t('VITÓRIAS')} valor={v(`${fmt(j.winRate, 0)}%`)} sub={t('{v}V · {d}D em {n} mapas', { v: j.vitorias, d: derrotas, n: j.mapas })} />
+            <Estat rotulo={t('ENTRADAS')} valor={v(`${j.fk} / ${j.fd}`)} sub={t('primeira kill / primeira morte')} />
             <Estat rotulo="MULTI-KILLS" valor={v(`${j.multi?.k5 || 0} · ${j.multi?.k4 || 0} · ${j.multi?.k3 || 0}`)} sub="5K · 4K · 3K" />
-            <Estat rotulo="MVP DA PARTIDA" valor={v(j.mvpPartida)} sub={`${j.mvps} MVPs de round`} />
+            <Estat rotulo={t('MVP DA PARTIDA')} valor={v(j.mvpPartida)} sub={t('{n} MVPs de round', { n: j.mvps })} />
           </div>
 
           {sem && (
             <div className="pf-sem spot">
-              <b>{eu ? 'Você ainda não tem partidas no servidor' : 'Ainda sem partidas no servidor'}</b>
-              <span>Assim que {eu ? 'você jogar' : 'o jogador jogar'} um mapa, as estatísticas, o gráfico de rating e o histórico aparecem aqui — e cada partida dá XP para subir de nível.</span>
+              <b>{eu ? t('Você ainda não tem partidas no servidor') : t('Ainda sem partidas no servidor')}</b>
+              <span>{eu ? t('Assim que você jogar um mapa, as estatísticas, o gráfico de rating e o histórico aparecem aqui — e cada partida dá XP para subir de nível.') : t('Assim que o jogador jogar um mapa, as estatísticas, o gráfico de rating e o histórico aparecem aqui — e cada partida dá XP para subir de nível.')}</span>
             </div>
           )}
 
@@ -313,13 +317,14 @@ function Jogador({ j, mapas, pos, total, eu, personalizar }) {
 
 // Tela simples (sem login, jogador sem partidas, carregando)
 function Aviso({ titulo, texto, children }) {
+  const t = useT()
   return (
     <section className="hero pf-hero pf-aviso">
       <FundoHero quantidade={10} />
       <div className="wrap">
-        <span className="kicker">PERFIL DO JOGADOR</span>
-        <h1>{titulo}</h1>
-        {texto && <p className="lead">{texto}</p>}
+        <span className="kicker">{t('PERFIL DO JOGADOR')}</span>
+        <h1>{t(titulo)}</h1>
+        {texto && <p className="lead">{t(texto)}</p>}
         {children && <div className="pf-acoes">{children}</div>}
       </div>
     </section>
@@ -327,6 +332,7 @@ function Aviso({ titulo, texto, children }) {
 }
 
 export default function Perfil() {
+  const t = useT()
   const conta = useConta()
   const [idUrl, setIdUrl] = useState(null) // null = ainda não leu o endereço (HTML gerado)
   const [dados, setDados] = useState(null)
@@ -368,8 +374,8 @@ export default function Perfil() {
   // Nome do jogador na aba do navegador
   const j = dados?.ranking?.jogadores?.find((x) => x.steamId === id)
   useEffect(() => {
-    if (j) document.title = `${j.nome} — Perfil | Neura Project`
-  }, [j])
+    if (j) document.title = `${j.nome} — ${t('Perfil')} | Neura Project`
+  }, [j, t.idioma]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fechar = useCallback(() => setEditando(false), [])
   // Deploy novo (partida terminou): recarrega sozinha com os números e o histórico atualizados
@@ -384,13 +390,13 @@ export default function Perfil() {
     conteudo = loginAtivo() ? (
       <Aviso titulo="Seu perfil" texto="Entre com a Steam para ver suas estatísticas, seu histórico de partidas e sua posição no ranking.">
         <button type="button" className="btn btn-primary" onClick={entrar}>
-          <IconeSteam /> Entrar com Steam
+          <IconeSteam /> {t('Entrar com Steam')}
         </button>
       </Aviso>
     ) : (
       <Aviso titulo="Perfil do jogador" texto="Abra o perfil de um jogador pelo ranking.">
         <a className="btn btn-primary" href="/ranking/">
-          Ver ranking
+          {t('Ver ranking')}
         </a>
       </Aviso>
     )
@@ -399,7 +405,7 @@ export default function Perfil() {
     const eu = conta?.id === id
     const vazio = {
       steamId: id,
-      nome: (eu && conta.nome) || (steamPublico?.id === id && steamPublico.nome) || 'Jogador',
+      nome: (eu && conta.nome) || (steamPublico?.id === id && steamPublico.nome) || t('Jogador'),
       avatar: (eu && conta.avatar) || (steamPublico?.id === id && steamPublico.avatar) || '',
       time: '', logoTime: '', premier: null, xp: 0,
       mapas: 0, vitorias: 0, kills: 0, mortes: 0, fk: 0, fd: 0, multi: {}, mvps: 0, mvpPartida: 0, rating: 0, melhorRating: 0, adr: 0, kast: 0, hsPct: 0, kd: 0, winRate: 0,
@@ -414,7 +420,7 @@ export default function Perfil() {
     <Layout pagina="perfil">
       <main>{conteudo}</main>
       {editando && conta && (
-        <SeletorMoldura steamId={conta.id} avatar={conta.avatar || j?.avatar} nome={conta.nome || j?.nome || 'Você'} nivel={meuNivel.nivel} admin={admin} fechar={fechar} />
+        <SeletorMoldura steamId={conta.id} avatar={conta.avatar || j?.avatar} nome={conta.nome || j?.nome || t('Você')} nivel={meuNivel.nivel} admin={admin} fechar={fechar} />
       )}
     </Layout>
   )

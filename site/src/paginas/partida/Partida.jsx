@@ -8,8 +8,10 @@ import { lerJson, urlOk } from '../../comum/dados.js'
 import { linkPerfil } from '../../comum/conta.js'
 import { fundoMapa, getMap, mapIcon, nomeMapa } from '../../comum/mapas.js'
 import { ComMoldura, usePerfis } from '../../comum/Moldura.jsx'
+import { desempenhoAtivo } from '../../comum/desempenho.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { nivelDe } from '../../comum/niveis.js'
+import { dataNoIdioma, useT } from '../../comum/i18n.js'
 
 // Página de estatísticas de um mapa jogado no servidor.
 // Os dados vêm do partida.json que o plugin BaseComp manda para o GitHub (formato em `partida.json`, versão 1).
@@ -75,9 +77,9 @@ const iniciais = (nome) => (String(nome || '?').match(/[\p{L}\p{N}]/gu) || []).s
 // Maior valor; no empate fica o primeiro (igual ao MaxBy do plugin)
 const maior = (lista, valor) => lista.reduce((m, e) => (valor(e) > valor(m) ? e : m), lista[0])
 // "2026-10-02 20:23" -> "02/10/2026 20:23"
-const dataBr = (d) => {
+const dataBr = (d, idioma) => {
   const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}:\d{2})/.exec(d || '')
-  return m ? `${m[3]}/${m[2]}/${m[1]} ${m[4]}` : String(d || '')
+  return m ? `${dataNoIdioma(m[1], m[2], m[3], idioma)} ${m[4]}` : String(d || '')
 }
 
 // Foto da Steam ou as iniciais
@@ -92,10 +94,11 @@ function Avatar({ e, classe }) {
 
 // Badge da FACEIT: número numa caixinha colorida com a barrinha de progresso embaixo
 function RatingBadge({ rating, extra = '' }) {
+  const tr = useT()
   const classe = classeRating(rating)
   const largura = Math.min(100, Math.max(4, (rating / 2) * 100)).toFixed(0)
   return (
-    <span className={`rt-cel ${extra}`} title={`Rating ${f(rating)} · ${TEXTO_RATING[classe]}`}>
+    <span className={`rt-cel ${extra}`} title={`Rating ${f(rating)} · ${tr(TEXTO_RATING[classe])}`}>
       <span className={`rt-box rt-${classe}`}>{f(rating)}</span>
       <span className="rt-barra">
         <i className={`rt-${classe}`} style={{ '--w': `${largura}%` }} />
@@ -108,7 +111,7 @@ function RatingBadge({ rating, extra = '' }) {
 function Contador({ alvo, ativo, className }) {
   const [v, setV] = useState(alvo)
   useEffect(() => {
-    if (!ativo || !alvo || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    if (!ativo || !alvo || desempenhoAtivo() || matchMedia('(prefers-reduced-motion: reduce)').matches) return
     let t0 = null
     let quadro
     const passo = (t) => {
@@ -160,17 +163,19 @@ function LogoTime({ url, nome, capitao, t }) {
 }
 
 function NomeTime({ nome, venceu, t }) {
+  const tr = useT()
   return (
     <div className={`bn-nome bn-nome-${t}`}>
-      {venceu && <span className="bn-venc">VENCEDOR</span>}
+      {venceu && <span className="bn-venc">{tr('VENCEDOR')}</span>}
       <b>{nome}</b>
     </div>
   )
 }
 
 function Banner({ d, nomeTime, vencedor, porRating, comecou }) {
+  const tr = useT()
   const serie = d.serie
-  const trilhaFim = serie ? `Mapa ${serie.atual + 1} de ${serie.mapas.length}` : 'Partida encerrada'
+  const trilhaFim = serie ? tr('Mapa {n} de {total}', { n: serie.atual + 1, total: serie.mapas.length }) : tr('Partida encerrada')
   const logo = (t) => (
     <LogoTime t={t} url={t === 'A' ? d.logoA : d.logoB} nome={nomeTime(t)} capitao={porRating.find((e) => e.time === t)} />
   )
@@ -186,7 +191,7 @@ function Banner({ d, nomeTime, vencedor, porRating, comecou }) {
               <IconeElim />
               <b>{String(d.organizacao || '').toUpperCase()}</b>
               <i>/</i>
-              <span>{d.categoria === 'normal' ? 'Partida' : String(d.categoria).toUpperCase()}</span>
+              <span>{d.categoria === 'normal' ? tr('Partida') : String(d.categoria).toUpperCase()}</span>
               <i>/</i>
               <span className="bn-tag">{trilhaFim}</span>
             </div>
@@ -194,15 +199,15 @@ function Banner({ d, nomeTime, vencedor, porRating, comecou }) {
               {getMap(d.mapa) && <img className="bn-mapa" src={mapIcon(d.mapa)} alt="" />}
               <b>{nomeMapa(d.mapa)}</b>
               <span>
-                <IconeData /> {dataBr(d.inicio)}
+                <IconeData /> {dataBr(d.inicio, tr.idioma)}
               </span>
               <span>
                 <IconeTempo /> {d.duracaoMin} min
               </span>
-              <span>{d.placarA + d.placarB} rounds</span>
+              <span>{tr('{n} rounds', { n: d.placarA + d.placarB })}</span>
               {urlOk(d.demo) && (
                 <a className="bn-demo" href={d.demo}>
-                  <IconeDownload /> Baixar demo
+                  <IconeDownload /> {tr('Baixar demo')}
                 </a>
               )}
             </div>
@@ -238,6 +243,7 @@ const linkPartida = (p) => `/partidas/${(p.caminho || p.nome).split('/').map(enc
 // Série mapa a mapa, sempre atualizada: a página é gerada de novo a cada mapa novo e, ao abrir,
 // ainda confere o histórico. Mapa jogado vira link; o que falta fica "A jogar" (ou "Não jogado" se a série acabou).
 function Serie({ serie, nomeTime, jogos, caminhoAtual, anuncio }) {
+  const tr = useT()
   const jogados = jogadosDaSerie(jogos)
   const vitorias = { A: 0, B: 0 }
   Object.values(jogados).forEach((p) => {
@@ -259,8 +265,8 @@ function Serie({ serie, nomeTime, jogos, caminhoAtual, anuncio }) {
       <div className="section-head-row">
         <div className="section-head">
           <span className="kicker">
-            SÉRIE {serie.formato}
-            {cancelada && <span className="serie-cancelada"> · CANCELADA</span>}
+            {tr('SÉRIE {formato}', { formato: serie.formato })}
+            {cancelada && <span className="serie-cancelada"> · {tr('CANCELADA')}</span>}
           </span>
           <h2>
             <span className="t-A">{nomeTime('A')}</span> {vitorias.A} x {vitorias.B} <span className="t-B">{nomeTime('B')}</span>
@@ -275,18 +281,18 @@ function Serie({ serie, nomeTime, jogos, caminhoAtual, anuncio }) {
           const placar = p && `${Math.max(p.placarA, p.placarB)}-${Math.min(p.placarA, p.placarB)}`
           const [classe, texto] = p
             ? venc
-              ? [`res-${venc}`, `${nomeTime(venc)} venceu · ${placar}`]
-              : ['', `Empate · ${placar}`]
+              ? [`res-${venc}`, `${tr('{time} venceu', { time: nomeTime(venc) })} · ${placar}`]
+              : ['', `${tr('Empate')} · ${placar}`]
             : m.vencedor // página antiga, sem histórico
-              ? [`res-${m.vencedor}`, `${nomeTime(m.vencedor)} venceu · ${m.placar}`]
+              ? [`res-${m.vencedor}`, `${tr('{time} venceu', { time: nomeTime(m.vencedor) })} · ${m.placar}`]
               : acabou
-                ? ['nao-jogado', cancelada ? 'Cancelado' : 'Não jogado']
+                ? ['nao-jogado', cancelada ? tr('Cancelado') : tr('Não jogado')]
                 : anuncio?.status === 'andamento' && anuncio.mapaAtual === i
-                  ? ['ao-vivo', 'Ao vivo'] // o plugin avisou que este mapa começou valendo
-                  : ['aguardando', 'A jogar']
+                  ? ['ao-vivo', tr('Ao vivo')] // o plugin avisou que este mapa começou valendo
+                  : ['aguardando', tr('A jogar')]
           const conteudo = (
             <>
-              <span className="summary-num">MAPA {i + 1}</span>
+              <span className="summary-num">{tr('MAPA {n}', { n: i + 1 })}</span>
               <span className="summary-map">
                 {getMap(m.mapa) && <img className="summary-icon" src={mapIcon(m.mapa)} alt="" />}
                 {nomeMapa(m.mapa)}
@@ -297,7 +303,7 @@ function Serie({ serie, nomeTime, jogos, caminhoAtual, anuncio }) {
                 {texto}
               </span>
               {m.faca ? (
-                <span className="summary-side knife">FACA</span>
+                <span className="summary-side knife">{tr('FACA')}</span>
               ) : m.ct ? (
                 <span className="summary-side ct">{nomeTime(m.ct)} CT</span>
               ) : (
@@ -323,21 +329,23 @@ function Serie({ serie, nomeTime, jogos, caminhoAtual, anuncio }) {
 }
 
 function ItemDestaque({ e, valor, rotulo, ehMvp }) {
+  const tr = useT()
   return (
-    <a className={`mvp-item spot mvp-${e.time}`} href={linkPerfil(e.steamId)} title={`Perfil de ${e.nome}`}>
+    <a className={`mvp-item spot mvp-${e.time}`} href={linkPerfil(e.steamId)} title={tr('Perfil de {nome}', { nome: e.nome })}>
       <ComMoldura steamId={e.steamId}>
         <Avatar e={e} classe="av" />
       </ComMoldura>
       <b className={ehMvp ? `t-${e.time}` : ''}>{e.nome}</b>
       <span className="mvp-val">
         <b>{valor}</b>
-        <em>{rotulo}</em>
+        <em>{tr(rotulo)}</em>
       </span>
     </a>
   )
 }
 
 function Destaques({ jogadores, porRating, totalRounds, nomeTime }) {
+  const tr = useT()
   const mvp = porRating[0]
   const maisKills = maior(jogadores, (e) => e.kills)
   const maisDano = maior(jogadores, (e) => e.dano)
@@ -352,13 +360,13 @@ function Destaques({ jogadores, porRating, totalRounds, nomeTime }) {
   return (
     <section className="section revelar">
       <div className="section-head">
-        <span className="kicker">DESTAQUES</span>
-        <h2>Melhores da partida</h2>
+        <span className="kicker">{tr('DESTAQUES')}</span>
+        <h2>{tr('Melhores da partida')}</h2>
       </div>
       <div className="mvp-grid">
         {/* Card grande do MVP (igual ao da sala da FACEIT) */}
         <div className={`mvp-card spot mvp-${mvp.time}`}>
-          <a className="mvp-perfil" href={linkPerfil(mvp.steamId)} title={`Perfil de ${mvp.nome}`}>
+          <a className="mvp-perfil" href={linkPerfil(mvp.steamId)} title={tr('Perfil de {nome}', { nome: mvp.nome })}>
             <ComMoldura steamId={mvp.steamId}>
               <Avatar e={mvp} classe="mvp-av" />
             </ComMoldura>
@@ -368,7 +376,7 @@ function Destaques({ jogadores, porRating, totalRounds, nomeTime }) {
           <div className="mvp-info">
             <div className="mvp-rt">
               <span className={`rt-box rt-g rt-${classe}`}>{f(mvp.rating)}</span>
-              <span className={`rt-txt rt-${classe}`}>{TEXTO_RATING[classe]}</span>
+              <span className={`rt-txt rt-${classe}`}>{tr(TEXTO_RATING[classe])}</span>
             </div>
             <span className="mono-label">RATING HLTV 1.0</span>
             <div className="mvp-stats">
@@ -384,7 +392,7 @@ function Destaques({ jogadores, porRating, totalRounds, nomeTime }) {
               </div>
               <div>
                 <b>{f(hsMvp, 1)}%</b>
-                <span>% de HS</span>
+                <span>{tr('% de HS')}</span>
               </div>
               <div>
                 <b>{f(kastPct(mvp), 1)}%</b>
@@ -410,13 +418,14 @@ function Destaques({ jogadores, porRating, totalRounds, nomeTime }) {
 }
 
 function Rounds({ d, nomeTime }) {
+  const tr = useT()
   const maxRounds = d.maxRounds || 24
   const meioOt = Math.max(1, Math.floor((d.roundsProrrogacao || 6) / 2))
   const total = d.rounds.length
   return (
     <section className="section revelar">
       <div className="section-head">
-        <span className="kicker">LINHA DO TEMPO</span>
+        <span className="kicker">{tr('LINHA DO TEMPO')}</span>
         <h2>Rounds</h2>
       </div>
       <div className="rounds-card">
@@ -427,7 +436,7 @@ function Rounds({ d, nomeTime }) {
             // Troca de lado: meio do tempo normal e cada metade da prorrogação
             const fimDoTempo = n === maxRounds / 2 || n === maxRounds || (n > maxRounds && (n - maxRounds) % meioOt === 0)
             return [
-              <div key={n} className={`r r-${r.time}`} style={{ '--i': i }} title={`Round ${n}: ${nomeTime(r.time)} (${r.lado}) — ${texto}`}>
+              <div key={n} className={`r r-${r.time}`} style={{ '--i': i }} title={`Round ${n}: ${nomeTime(r.time)} (${r.lado}) — ${tr(texto)}`}>
                 <Icone />
                 <span>{n}</span>
               </div>,
@@ -439,16 +448,16 @@ function Rounds({ d, nomeTime }) {
           <span className="t-A">■ {nomeTime('A')}</span>
           <span className="t-B">■ {nomeTime('B')}</span>
           <span>
-            <IconeElim /> eliminação
+            <IconeElim /> {tr('eliminação')}
           </span>
           <span>
-            <IconeBomba /> bomba explodiu
+            <IconeBomba /> {tr('bomba explodiu')}
           </span>
           <span>
-            <IconeDesarme /> desarme
+            <IconeDesarme /> {tr('desarme')}
           </span>
           <span>
-            <IconeTempo /> tempo
+            <IconeTempo /> {tr('tempo')}
           </span>
         </div>
       </div>
@@ -466,22 +475,23 @@ const TIPOS_UTIL = [
 ]
 
 function TabelaUtil({ doTime, mvp }) {
+  const tr = useT()
   return (
     <div className="tabela">
       <table className="tabela-util">
         <thead>
           <tr>
-            <th>JOGADOR</th>
-            <th title="Granadas lançadas (F flash · H HE · S smoke · M molotov)">LANÇADOS</th>
-            <th title="Compradas e não lançadas">NÃO USADOS</th>
-            <th title="Dano de HE e fogo nos inimigos">DANO UTIL.</th>
-            <th title="Dano de HE e fogo recebido dos inimigos">DANO RECEBIDO</th>
-            <th title="Dano de HE e fogo nos próprios aliados">DANO EM ALIADOS</th>
-            <th title="Inimigos cegos pelas suas flashes (mais de 0,5s)">INIMIGOS CEGOS</th>
-            <th title="Tempo somado dos inimigos cegos">TEMPO CEGO</th>
-            <th title="Kills de colegas em inimigos cegos pela sua flash">FLASH ASSIST</th>
-            <th title="Aliados cegos pelas suas flashes">ALIADOS CEGOS</th>
-            <th title="Tempo somado dos aliados cegos">TEMPO ALIADOS</th>
+            <th>{tr('JOGADOR')}</th>
+            <th title={tr('Granadas lançadas (F flash · H HE · S smoke · M molotov)')}>{tr('LANÇADOS')}</th>
+            <th title={tr('Compradas e não lançadas')}>{tr('NÃO USADOS')}</th>
+            <th title={tr('Dano de HE e fogo nos inimigos')}>{tr('DANO UTIL.')}</th>
+            <th title={tr('Dano de HE e fogo recebido dos inimigos')}>{tr('DANO RECEBIDO')}</th>
+            <th title={tr('Dano de HE e fogo nos próprios aliados')}>{tr('DANO EM ALIADOS')}</th>
+            <th title={tr('Inimigos cegos pelas suas flashes (mais de 0,5s)')}>{tr('INIMIGOS CEGOS')}</th>
+            <th title={tr('Tempo somado dos inimigos cegos')}>{tr('TEMPO CEGO')}</th>
+            <th title={tr('Kills de colegas em inimigos cegos pela sua flash')}>FLASH ASSIST</th>
+            <th title={tr('Aliados cegos pelas suas flashes')}>{tr('ALIADOS CEGOS')}</th>
+            <th title={tr('Tempo somado dos aliados cegos')}>{tr('TEMPO ALIADOS')}</th>
           </tr>
         </thead>
         <tbody>
@@ -497,7 +507,7 @@ function TabelaUtil({ doTime, mvp }) {
                     </ComMoldura>
                     <span>{e.nome}</span>
                     {e === mvp && (
-                      <span className="estrela" title="MVP da partida">
+                      <span className="estrela" title={tr('MVP da partida')}>
                         ★
                       </span>
                     )}
@@ -507,7 +517,7 @@ function TabelaUtil({ doTime, mvp }) {
                   <span className="util-total">{lancados}</span>
                   <span className="util-tipos">
                     {TIPOS_UTIL.map(([k, letra, nome]) => (
-                      <i key={k} className={`util-${k}`} title={`${nome}: ${u[k] || 0}`}>
+                      <i key={k} className={`util-${k}`} title={`${tr(nome)}: ${u[k] || 0}`}>
                         {letra}
                         {u[k] || 0}
                       </i>
@@ -533,6 +543,7 @@ function TabelaUtil({ doTime, mvp }) {
 }
 
 function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba }) {
+  const tr = useT()
   const doTime = jogadores.filter((e) => e.time === t).sort((a, b) => b.rating - a.rating)
   if (!doTime.length) return null
 
@@ -554,21 +565,21 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
       <div className="team-head">
         <span className={`team-score ${classe}`}>{placarTime}</span>
         <span className={`team-name t-${t}`}>{nomeTime(t)}</span>
-        <span className={`res ${classe}`}>{texto}</span>
+        <span className={`res ${classe}`}>{tr(texto)}</span>
         <div className="team-meta">
           <span>
-            Média da equipe <RatingBadge rating={media} extra="rt-mini" />
+            {tr('Média da equipe')} <RatingBadge rating={media} extra="rt-mini" />
           </span>
           <span className="sep" />
           <span>
-            Primeiro half <b>{half1}</b>
+            {tr('Primeiro half')} <b>{half1}</b>
           </span>
           <span>
-            Segundo half <b>{half2}</b>
+            {tr('Segundo half')} <b>{half2}</b>
           </span>
           {prorrogacao >= 0 && (
             <span>
-              Prorrogação <b>{prorrogacao}</b>
+              {tr('Prorrogação')} <b>{prorrogacao}</b>
             </span>
           )}
         </div>
@@ -580,8 +591,8 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
         <table>
           <thead>
             <tr>
-              <th>JOGADOR</th>
-              {temXp && <th title="Nível depois deste mapa e o XP que o jogador ganhou ou perdeu nele">NÍVEL</th>}
+              <th>{tr('JOGADOR')}</th>
+              {temXp && <th title={tr('Nível depois deste mapa e o XP que o jogador ganhou ou perdeu nele')}>{tr('NÍVEL')}</th>}
               <th className="col-rt">RATING</th>
               <th>K</th>
               <th>D</th>
@@ -593,7 +604,7 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
               <th>HS</th>
               <th>HS%</th>
               <th>KAST</th>
-              <th title="Primeiras kills - primeiras mortes">FK-FD</th>
+              <th title={tr('Primeiras kills - primeiras mortes')}>FK-FD</th>
               <th>5K</th>
               <th>4K</th>
               <th>3K</th>
@@ -615,7 +626,7 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
                       </ComMoldura>
                       <span>{e.nome}</span>
                       {e === mvp && (
-                        <span className="estrela" title="MVP da partida">
+                        <span className="estrela" title={tr('MVP da partida')}>
                           ★
                         </span>
                       )}
@@ -672,6 +683,7 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
 }
 
 function Conteudo({ d }) {
+  const tr = useT()
   const [comecou, setComecou] = useState(false)
   // Outros mapas da mesma série: vêm com a página (deploy) e são conferidos de novo no histórico ao abrir
   const [jogos, setJogos] = useState(d.serieJogos ?? null)
@@ -724,7 +736,7 @@ function Conteudo({ d }) {
       <div id="carregando" className={comecou ? 'fim' : ''} aria-hidden="true">
         <div className="ld">
           <img src="/assets/logos/logo-np-64.png" alt="" />
-          <span className="mono-label">CARREGANDO ESTATÍSTICAS</span>
+          <span className="mono-label">{tr('CARREGANDO ESTATÍSTICAS')}</span>
           <div className="barra" />
         </div>
       </div>
@@ -736,17 +748,17 @@ function Conteudo({ d }) {
         {/* Tabelas: vencedor primeiro */}
         <section className="section revelar">
           <div className="section-head">
-            <span className="kicker">PLACAR</span>
-            <h2>Estatísticas dos jogadores</h2>
+            <span className="kicker">{tr('PLACAR')}</span>
+            <h2>{tr('Estatísticas dos jogadores')}</h2>
           </div>
           {temUtil && (
-            <div className="abas-tabela" role="tablist" aria-label="Estatísticas">
+            <div className="abas-tabela" role="tablist" aria-label={tr('Estatísticas')}>
               {[
                 ['geral', 'Resumo'],
                 ['util', 'Utilitários'],
               ].map(([id, rotulo]) => (
                 <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'active' : ''} onClick={() => setAba(id)}>
-                  {rotulo}
+                  {tr(rotulo)}
                 </button>
               ))}
             </div>
@@ -757,13 +769,14 @@ function Conteudo({ d }) {
           {aba === 'util' && <GraficoUtil jogadores={jogadores} ordem={vencedor === 'B' ? ['B', 'A'] : ['A', 'B']} nomeTime={nomeTime} mvp={mvp} />}
         </section>
       </main>
-      <p className="wrap gerado">Gerado pelo BaseComp em {dataBr(d.gerado)} · Rating HLTV 1.0</p>
+      <p className="wrap gerado">{tr('Gerado pelo BaseComp em {data}', { data: dataBr(d.gerado, tr.idioma) })} · Rating HLTV 1.0</p>
     </>
   )
 }
 
 // dados: partida.json (vem junto com a página gerada no deploy; no `npm run dev` é buscado da pasta da partida)
 export default function Partida({ dados: inicial }) {
+  const tr = useT()
   const [d, setD] = useState(inicial ?? null)
   const [erro, setErro] = useState(false)
 
@@ -783,7 +796,7 @@ export default function Partida({ dados: inicial }) {
       ) : (
         <main className="wrap">
           <p className="gerado" style={{ padding: '80px 0' }}>
-            {erro ? 'Partida não encontrada.' : 'Carregando…'}
+            {erro ? tr('Partida não encontrada.') : tr('Carregando…')}
           </p>
         </main>
       )}

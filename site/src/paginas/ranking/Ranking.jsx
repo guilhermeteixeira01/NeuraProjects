@@ -10,6 +10,7 @@ import { CargosDe, ComMoldura, TimeEscolhido, usePerfis } from '../../comum/Mold
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { nivelDe } from '../../comum/niveis.js'
 import { MIN_MAPAS } from '../../comum/ranking.js'
+import { useT } from '../../comum/i18n.js'
 
 const TOP = 15
 
@@ -31,12 +32,12 @@ const perfil = (j) => linkPerfil(j.steamId) // página de perfil do site (estat�
 const iniciais = (nome) => String(nome || '?').trim().slice(0, 2).toUpperCase()
 
 // Data/hora sempre no horário de Brasília (a página é gerada num servidor em UTC)
-function dataBr(iso) {
+function dataBr(iso, local = 'pt-BR') {
   const d = new Date(iso)
   return isNaN(d)
     ? ''
     : d
-        .toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })
+        .toLocaleString(local, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })
         .replace(',', '')
 }
 
@@ -53,6 +54,7 @@ function Avatar({ j, classe }) {
 }
 
 function Forma({ j }) {
+  const t = useT()
   return (
     <span className="forma">
       {(j.ultimos || []).map((u, i) => (
@@ -60,9 +62,9 @@ function Forma({ j }) {
           key={i}
           className={u.venceu ? 'v' : 'd'}
           href={`/partidas/${String(u.caminho).split('/').map(encodeURIComponent).join('/')}/`}
-          title={`${u.mapa} · rating ${fmt(u.rating, 2)} · ${u.venceu ? 'vitória' : 'derrota'}`}
+          title={`${u.mapa} · rating ${fmt(u.rating, 2)} · ${u.venceu ? t('vitória') : t('derrota')}`}
         >
-          {u.venceu ? 'V' : 'D'}
+          {u.venceu ? t('V') : t('D')}
         </a>
       ))}
     </span>
@@ -70,10 +72,11 @@ function Forma({ j }) {
 }
 
 function Podio({ j, pos, m, eu }) {
+  const t = useT()
   const [chave, , rotulo, casas, suf] = m
   return (
     <div className={`pod spot p${pos}${eu ? ' eu' : ''}`} data-pos={pos}>
-      {eu && <span className="selo-eu">VOCÊ</span>}
+      {eu && <span className="selo-eu">{t('VOCÊ')}</span>}
       {pos === 1 && (
         <svg className="coroa" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 12H5L3 7z" />
@@ -99,7 +102,7 @@ function Podio({ j, pos, m, eu }) {
           {fmt(j[chave], casas)}
           {suf}
         </b>
-        <span className="mono">{rotulo}</span>
+        <span className="mono">{t(rotulo)}</span>
       </span>
       <div className="pod-mini">
         <div>
@@ -116,7 +119,7 @@ function Podio({ j, pos, m, eu }) {
         </div>
         <div>
           <b>{j.mapas}</b>
-          <span>MAPAS</span>
+          <span>{t('MAPAS')}</span>
         </div>
       </div>
       <Forma j={j} />
@@ -125,6 +128,7 @@ function Podio({ j, pos, m, eu }) {
 }
 
 function Linha({ j, pos, m, max, i, eu }) {
+  const t = useT()
   const [chave, , , casas, suf] = m
   const w = max > 0 ? Math.max(3, (j[chave] / max) * 100) : 0
   return (
@@ -161,7 +165,7 @@ function Linha({ j, pos, m, max, i, eu }) {
         <span className="num-c c-rt">{j.kills}</span>
       ) : (
         <span className="num-c c-rt">
-          <span className={`rt rt-${classeRating(j.rating)}`} title="Rating médio">
+          <span className={`rt rt-${classeRating(j.rating)}`} title={t('Rating médio')}>
             {fmt(j.rating, 2)}
           </span>
         </span>
@@ -179,6 +183,7 @@ function Linha({ j, pos, m, max, i, eu }) {
 
 // eu: SteamID de quem está logado (destaque na lista e, fora do top, a posição dele embaixo)
 function Conteudo({ dados, chave, eu }) {
+  const t = useT()
   const m = METRICAS.find((x) => x[0] === chave) || METRICAS[0]
   const todos = dados.jogadores
     .filter((j) => j.mapas >= MIN_MAPAS)
@@ -187,7 +192,7 @@ function Conteudo({ dados, chave, eu }) {
   const minhaPos = eu ? todos.findIndex((j) => j.steamId === eu) : -1
 
   if (top.length === 0) {
-    return <p className="vazio">Ainda não há jogadores no ranking. Assim que uma partida terminar no servidor, ela entra aqui.</p>
+    return <p className="vazio">{t('Ainda não há jogadores no ranking. Assim que uma partida terminar no servidor, ela entra aqui.')}</p>
   }
 
   const resto = top.slice(3)
@@ -204,14 +209,14 @@ function Conteudo({ dados, chave, eu }) {
         <div className="tabela-card">
           <div className="linha cab">
             <span className="num-c">#</span>
-            <span>JOGADOR</span>
-            <span className="sel">{m[2]}</span>
+            <span>{t('JOGADOR')}</span>
+            <span className="sel">{t(m[2])}</span>
             <span className="num-c c-rt">{m[0] === 'rating' ? 'KILLS' : 'RATING'}</span>
             <span className="num-c c-kd">K/D</span>
             <span className="num-c c-adr">ADR</span>
             <span className="num-c c-kast">KAST</span>
             <span className="num-c c-hs">HS%</span>
-            <span className="c-forma">FORMA</span>
+            <span className="c-forma">{t('FORMA')}</span>
           </div>
           {resto.map((j, i) => (
             <Linha key={j.steamId} j={j} pos={i + 4} m={m} max={max} i={i} eu={j.steamId === eu} />
@@ -220,7 +225,7 @@ function Conteudo({ dados, chave, eu }) {
       )}
       {minhaPos >= TOP && (
         <div className="tabela-card minha-pos">
-          <div className="minha-pos-tit mono">SUA POSIÇÃO</div>
+          <div className="minha-pos-tit mono">{t('SUA POSIÇÃO')}</div>
           <Linha j={todos[minhaPos]} pos={minhaPos + 1} m={m} max={max || todos[0][m[0]]} i={0} eu />
         </div>
       )}
@@ -249,6 +254,7 @@ const normalizar = (d) => (d && Array.isArray(d.jogadores) ? d : { jogadores: []
 
 // dados: ranking.json (vem junto com a página gerada no deploy; no `npm run dev` é buscado aqui)
 export default function Ranking({ dados: inicial }) {
+  const t = useT()
   const [dados, setDados] = useState(inicial ? normalizar(inicial) : null)
   const [chave, setChave] = useState('rating')
   const conta = useConta()
@@ -276,7 +282,7 @@ export default function Ranking({ dados: inicial }) {
     setChave(c)
   }
 
-  const quando = dados && dataBr(dados.atualizado)
+  const quando = dados && dataBr(dados.atualizado, t.local)
   return (
     <Layout pagina="ranking">
       <main>
@@ -286,28 +292,27 @@ export default function Ranking({ dados: inicial }) {
             <div>
               <span className="chip fx-entra" style={{ '--e': 0 }}>
                 <span className="ponto" />
-                <span>{!dados ? 'CARREGANDO…' : quando ? `ATUALIZADO ${quando}` : 'SEM DADOS AINDA'}</span>
+                <span>{!dados ? t('CARREGANDO…') : quando ? t('ATUALIZADO {quando}', { quando }) : t('SEM DADOS AINDA')}</span>
               </span>
               <h1>
                 <Palavras texto="Top 15" />
                 <span className="fx-gradiente">
-                  <Palavras texto="jogadores" inicio={2} />
+                  <Palavras texto={t('jogadores')} inicio={2} />
                 </span>
               </h1>
               <p className="lead fx-entra" style={{ '--e': 3 }}>
-                Ranking montado com todas as partidas registradas no servidor. Cada mapa novo entra na conta sozinho: rating,
-                ADR, KAST, kills e forma recente.
+                {t('Ranking montado com todas as partidas registradas no servidor. Cada mapa novo entra na conta sozinho: rating, ADR, KAST, kills e forma recente.')}
               </p>
             </div>
             <div className="resumo fx-entra" style={{ '--e': 4 }}>
               <div className="caixa">
-                <span className="mono">JOGADORES</span>
+                <span className="mono">{t('JOGADORES')}</span>
                 <b>
                   <Contador valor={dados ? dados.jogadores.length : null} />
                 </b>
               </div>
               <div className="caixa">
-                <span className="mono">MAPAS</span>
+                <span className="mono">{t('MAPAS')}</span>
                 <b>
                   <Contador valor={dados ? dados.partidas || 0 : null} />
                 </b>
@@ -325,15 +330,15 @@ export default function Ranking({ dados: inicial }) {
         <section className="secao" style={{ paddingTop: 40 }}>
           <div className="wrap">
             <div className="barra-topo">
-              <div className="metricas" role="tablist" aria-label="Ordenar ranking por">
+              <div className="metricas" role="tablist" aria-label={t('Ordenar ranking por')}>
                 {dados &&
                   METRICAS.map(([c, rotulo]) => (
                     <button key={c} type="button" role="tab" aria-selected={c === chave} className={c === chave ? 'active' : ''} onClick={() => escolher(c)}>
-                      {rotulo}
+                      {t(rotulo)}
                     </button>
                   ))}
               </div>
-              <span className="nota">{dados && `MÍNIMO DE ${MIN_MAPAS} MAPA${MIN_MAPAS === 1 ? '' : 'S'} · RATING HLTV 1.0`}</span>
+              <span className="nota">{dados && `${MIN_MAPAS === 1 ? t('MÍNIMO DE {n} MAPA', { n: MIN_MAPAS }) : t('MÍNIMO DE {n} MAPAS', { n: MIN_MAPAS })} · RATING HLTV 1.0`}</span>
             </div>
             <div id="conteudo">{dados ? <Conteudo dados={comXp} chave={chave} eu={conta?.id} /> : <Esqueleto />}</div>
           </div>

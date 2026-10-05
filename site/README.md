@@ -115,7 +115,33 @@ Te1xe1ra) e só ele promove ou remove outros admins.
   aparece sempre.
 - **Admins:** lista de administradores.
 
-## Temas (Personalizar → Tema)
+## Configurações ⚙ (idioma, tema e desempenho)
+
+O botão ⚙ no topo (`src/comum/Configuracoes.jsx`) abre o painel com **Idioma**, **Tema** e **Melhorar desempenho**.
+Tudo fica no navegador e é aplicado pelo script do `<head>` de cada HTML antes de desenhar (sem piscar).
+
+- **Melhorar desempenho** (`src/comum/desempenho.js`, `localStorage np_desempenho`, `html[data-desempenho]`): desliga
+  animações, transições, partículas, brilhos, desfoque, luz do cursor e contadores animados. CSS no fim de `site.css`.
+
+## Idiomas (i18n)
+
+Português (padrão), inglês e espanhol, no ⚙ do topo e no seletor do rodapé (`localStorage np_idioma`).
+`src/comum/i18n.js` tem o `useT()`; a **chave é o próprio texto em português**:
+
+```jsx
+const t = useT()
+t('Ver ranking')                                     // texto simples
+t('faltam {xp} para o nível {n}', { xp, n })         // com variáveis
+v.toLocaleString(t.local)                            // números/datas no formato do idioma
+```
+
+As traduções ficam em `src/comum/idiomas/en.js` e `es.js` (`'texto em português': 'tradução'`). Texto sem tradução
+aparece em português. Texto novo na tela: passe por `t()` e acrescente a linha nos dois arquivos (as `{variáveis}`
+ficam iguais). Não são traduzidos: nomes de mapas, molduras, times e jogadores, e os avisos das notificações push
+(`novidades.js`). O HTML gerado no deploy sai em português; com outro idioma guardado, o `<head>` esconde a página
+(`html.i18n-trocando`), o React troca o texto e mostra (no máximo 2,5 s escondida, se algo falhar).
+
+## Temas (⚙ Configurações → Tema)
 
 Três temas, para todas as páginas: **Padrão do site** (o de sempre), **Escuro otimizado** e **Claro otimizado**. Os
 otimizados não têm os efeitos pesados (partículas, brilhos do topo, desfoque de fundo, grade decorativa, luz do

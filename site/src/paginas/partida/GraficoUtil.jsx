@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ComMoldura } from '../../comum/Moldura.jsx'
 import { linkPerfil } from '../../comum/conta.js'
+import { useT } from '../../comum/i18n.js'
 
 // Detalhe do uso de utilitários: por time, total + barra de proporção por tipo + barras empilhadas por jogador.
 // Cores no estilo do CS (smoke azul-acinzentada, flash amarela, HE vermelha, molotov laranja, decoy verde),
@@ -44,6 +45,7 @@ function Avatar({ e }) {
 }
 
 function CardTime({ nome, t, jogadores, modo, mvp }) {
+  const tr = useT()
   const [foco, setFoco] = useState(null)
   const porJogador = jogadores.map((e) => ({ e, v: valores(e, modo) }))
   const totais = Object.fromEntries(TIPOS.map((tp) => [tp.id, porJogador.reduce((s, x) => s + x.v[tp.id], 0)]))
@@ -55,7 +57,7 @@ function CardTime({ nome, t, jogadores, modo, mvp }) {
       <div className="gu-topo">
         <b className={`t-${t}`}>{nome}</b>
         <div className="gu-total">
-          <span>{modo === 'nao' ? 'Não utilizados' : 'Total de utilitários'}</span>
+          <span>{modo === 'nao' ? tr('Não utilizados') : tr('Total de utilitários')}</span>
           <b>{total}</b>
         </div>
       </div>
@@ -126,7 +128,7 @@ function CardTime({ nome, t, jogadores, modo, mvp }) {
       </div>
       <div className="gu-nomes">
         {porJogador.map(({ e, v }) => (
-          <a key={e.steamId} className="gu-nome" href={linkPerfil(e.steamId)} title={`Perfil de ${e.nome}`}>
+          <a key={e.steamId} className="gu-nome" href={linkPerfil(e.steamId)} title={tr('Perfil de {nome}', { nome: e.nome })}>
             <span className="gu-num">{soma(v)}</span>
             <ComMoldura steamId={e.steamId}>
               <Avatar e={e} />
@@ -140,18 +142,19 @@ function CardTime({ nome, t, jogadores, modo, mvp }) {
 }
 
 export default function GraficoUtil({ jogadores, ordem, nomeTime, mvp }) {
+  const tr = useT()
   const [modo, setModo] = useState('usado')
   return (
     <div className="gu">
       <div className="gu-cabeca">
-        <h3>Detalhe do uso de utilitários</h3>
-        <div className="gu-modo" role="tablist" aria-label="Mostrar">
+        <h3>{tr('Detalhe do uso de utilitários')}</h3>
+        <div className="gu-modo" role="tablist" aria-label={tr('Mostrar')}>
           {[
             ['usado', 'Utilizado'],
             ['nao', 'Não utilizado'],
           ].map(([id, rotulo]) => (
             <button key={id} type="button" role="tab" aria-selected={modo === id} className={modo === id ? 'active' : ''} onClick={() => setModo(id)}>
-              {rotulo}
+              {tr(rotulo)}
             </button>
           ))}
         </div>

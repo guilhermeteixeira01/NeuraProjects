@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
+import { desempenhoAtivo } from './desempenho.js'
 
-// Sem efeitos: quem pediu menos movimento no sistema ou está num tema otimizado (Personalizar → Tema)
+// Sem efeitos: quem pediu menos movimento no sistema, está num tema otimizado ou ligou "Melhorar desempenho"
 const reduzir = () =>
-  typeof window !== 'undefined' && (!!document.documentElement.dataset.tema || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
+  typeof window !== 'undefined' &&
+  (!!document.documentElement.dataset.tema || desempenhoAtivo() || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
 
 // Luz que segue o cursor: todo elemento com a classe "spot" recebe --mx/--my (posição do mouse nele, em px).
 // O CSS usa isso num radial-gradient. Um ouvinte só para a página inteira.

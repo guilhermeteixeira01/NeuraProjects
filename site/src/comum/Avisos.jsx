@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { descreverPartida } from './novidades.js'
+import { useT } from './i18n.js'
 
 // Avisos de partida:
 // - card no canto da tela (com o site aberto): o histórico é conferido a cada 30s; o cookie guarda a última
@@ -69,6 +70,7 @@ async function pedirPermissao() {
 }
 
 function Aviso({ aviso, onFechar }) {
+  const t = useT()
   const [saindo, setSaindo] = useState(false)
   const fechar = useRef(onFechar)
   fechar.current = onFechar
@@ -89,9 +91,9 @@ function Aviso({ aviso, onFechar }) {
     <div className={`nx-aviso nx-aviso-${aviso.tipo}${saindo ? ' is-saindo' : ''}`}>
       <span className="nx-aviso-ponto" />
       <div className="nx-aviso-corpo">
-        <b>{aviso.titulo}</b>
+        <b>{t(aviso.titulo)}</b>
         {aviso.texto.split('\n').map((linha, i) => (
-          <p key={i}>{linha}</p>
+          <p key={i}>{t(linha)}</p>
         ))}
         {aviso.acoes ? (
           <div className="nx-aviso-acoes">
@@ -105,15 +107,15 @@ function Aviso({ aviso, onFechar }) {
                   setSaindo(true)
                 }}
               >
-                {rotulo}
+                {t(rotulo)}
               </button>
             ))}
           </div>
         ) : (
-          aviso.link && <a href={aviso.link}>{aviso.rotulo} →</a>
+          aviso.link && <a href={aviso.link}>{t(aviso.rotulo)} →</a>
         )}
       </div>
-      <button type="button" className="nx-aviso-fechar" aria-label="Fechar aviso" onClick={() => setSaindo(true)}>
+      <button type="button" className="nx-aviso-fechar" aria-label={t('Fechar aviso')} onClick={() => setSaindo(true)}>
         ×
       </button>
     </div>

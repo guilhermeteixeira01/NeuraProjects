@@ -6,13 +6,16 @@ import { Contador } from '../../comum/efeitos.jsx'
 import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
 import { urlOk } from '../../comum/dados.js'
 import { fundoMapa, getMap, idMapa, mapIcon } from '../../comum/mapas.js'
+import { dataNoIdioma, traduzir, useT } from '../../comum/i18n.js'
 
 const NOMES_CAT = { md1: 'MD1', md3: 'MD3', md5: 'MD5', normal: 'Normais' }
 
-const dataBr = (d) => {
+const dataBr = (d, idioma) => {
   const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2})/.exec(d || '')
-  return m ? `${m[3]}/${m[2]}/${m[1]} ${m[4]}` : String(d || '')
+  return m ? `${dataNoIdioma(m[1], m[2], m[3], idioma)} ${m[4]}` : String(d || '')
 }
+// Nome da categoria da série (MD3...) no idioma
+const nomeCat = (cat, idioma) => traduzir(NOMES_CAT[cat] || 'SÉRIE', null, idioma)
 const link = (p) => `/partidas/${(p.caminho || p.nome).split('/').map(encodeURIComponent).join('/')}/`
 const categoria = (p) => p.categoria || 'normal'
 // Filtro = pasta da organização ("dga/md3/<partida>" -> "dga"); partidas antigas sem pasta caem em "geral"
@@ -60,10 +63,11 @@ function IconeMapaCard({ mapa }) {
 }
 
 function Card({ p, i }) {
+  const t = useT()
   const venc = p.placarA > p.placarB ? 'A' : p.placarB > p.placarA ? 'B' : ''
   return (
     <a className="summary-item partida spot" href={link(p)} style={{ ...fundoMapa(p.mapa), '--i': i }}>
-      <span className="summary-num">{dataBr(p.data)}</span>
+      <span className="summary-num">{dataBr(p.data, t.idioma)}</span>
       <span className="summary-map">
         <IconeMapaCard mapa={p.mapa} />
         {getMap(p.mapa)?.name ?? idMapa(p.mapa)}
@@ -77,14 +81,16 @@ function Card({ p, i }) {
         <span className={`t-B${venc === 'B' ? ' venc' : ''}`}>{p.timeB}</span>
         <MiniLogo url={p.logoB} />
       </span>
-      <span className={`summary-side cat-${categoria(p)}`}>{p.serie || 'PARTIDA'}</span>
+      <span className={`summary-side cat-${categoria(p)}`}>{p.serie || t('PARTIDA')}</span>
     </a>
   )
 }
 
 // Mapa da série que não foi jogado (série decidida ou cancelada) ou que ainda vai ser jogado
 function CardPendente({ mapa, n, total, cat, acabou, cancelada, aoVivo, i }) {
-  const nome = getMap(mapa)?.name ?? (idMapa(mapa) || `Mapa ${n}`)
+  const t = useT()
+  const nome = getMap(mapa)?.name ?? (idMapa(mapa) || t('Mapa {n}', { n }))
+  const rotulo = `${nomeCat(cat, t.idioma)} · ${t('mapa {n}/{total}', { n, total })}`
   // Mapa sendo jogado agora: "AO VIVO" com o ponto vermelho piscando
   if (aoVivo)
     return (
@@ -96,9 +102,9 @@ function CardPendente({ mapa, n, total, cat, acabou, cancelada, aoVivo, i }) {
         </span>
         <span className="placar-linha">
           <i className="ponto-vivo" />
-          AO VIVO
+          {t('AO VIVO')}
         </span>
-        <span className={`summary-side cat-${cat}`}>{`${NOMES_CAT[cat] || 'SÉRIE'} · mapa ${n}/${total}`}</span>
+        <span className={`summary-side cat-${cat}`}>{rotulo}</span>
       </div>
     )
   return (
@@ -110,14 +116,15 @@ function CardPendente({ mapa, n, total, cat, acabou, cancelada, aoVivo, i }) {
       </span>
       <span className="placar-linha">
         {!acabou && <CarregandoPontos />}
-        {cancelada ? 'CANCELADO' : acabou ? 'NÃO JOGADO' : 'A JOGAR'}
+        {cancelada ? t('CANCELADO') : acabou ? t('NÃO JOGADO') : t('A JOGAR')}
       </span>
-      <span className={`summary-side cat-${cat}`}>{`${NOMES_CAT[cat] || 'SÉRIE'} · mapa ${n}/${total}`}</span>
+      <span className={`summary-side cat-${cat}`}>{rotulo}</span>
     </div>
   )
 }
 
 function BlocoSerie({ b, i }) {
+  const t = useT()
   const a = b.anuncio
   // Série anunciada sem nenhum mapa jogado: os dados do topo vêm do anúncio
   const ult = b.mapas[0] || {
@@ -153,30 +160,30 @@ function BlocoSerie({ b, i }) {
     <div className={`serie-bloco${cancelada ? ' cancelada' : acabou ? ' acabou' : iniciando ? ' iniciando' : ''}`} style={{ '--i': i }}>
       <div className="serie-head">
         <span className="serie-tag org">{nomePasta(pasta(ult))}</span>
-        <span className="serie-tag">{NOMES_CAT[cat] || 'SÉRIE'}</span>
+        <span className="serie-tag">{nomeCat(cat, t.idioma)}</span>
         {cancelada ? (
           <span className="serie-status cancelada">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
-            CANCELADA
+            {t('CANCELADA')}
           </span>
         ) : acabou ? (
           <span className="serie-status fim">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M20 6 9 17l-5-5" />
             </svg>
-            FINALIZADO
+            {t('FINALIZADO')}
           </span>
         ) : iniciando ? (
           <span className="serie-status iniciando">
             <i />
-            INICIANDO
+            {t('INICIANDO')}
           </span>
         ) : (
           <span className="serie-status andamento">
             <i />
-            EM ANDAMENTO · MAPA {aoVivo ?? mapas.length + 1}/{total}
+            {t('EM ANDAMENTO · MAPA {n}/{total}', { n: aoVivo ?? mapas.length + 1, total })}
           </span>
         )}
         <span className="serie-placar">
@@ -188,7 +195,7 @@ function BlocoSerie({ b, i }) {
           <span className={`t-B${vB > vA ? ' venc' : ''}`}>{ult.serieTimeB || ult.timeB}</span>
           <MiniLogo url={ult.logoB} />
         </span>
-        <span className="mono-label">{dataBr(mapas[0]?.data ?? ult.data)}</span>
+        <span className="mono-label">{dataBr(mapas[0]?.data ?? ult.data, t.idioma)}</span>
       </div>
       <div className="serie-mapas">
         {mapas.map((p, k) => (
@@ -203,6 +210,7 @@ function BlocoSerie({ b, i }) {
 }
 
 function Resumo({ lista }) {
+  const t = useT()
   const carregando = !lista
   const l = lista || []
   const contagem = {}
@@ -216,25 +224,25 @@ function Resumo({ lista }) {
     <div className="hud-frame">
       <div className="stats">
         <div className="stat">
-          <span className="mono-label">PARTIDAS</span>
+          <span className="mono-label">{t('PARTIDAS')}</span>
           <b className={cls}>
             <Contador valor={carregando ? null : l.length} />
           </b>
         </div>
         <div className="stat">
-          <span className="mono-label">SÉRIES</span>
+          <span className="mono-label">{t('SÉRIES')}</span>
           <b className={cls}>
             <Contador valor={carregando ? null : new Set(l.filter((p) => p.serieId).map((p) => p.serieId)).size} />
           </b>
         </div>
         <div className="stat stat-mapa" style={top && getMap(top[0]) ? fundoMapa(top[0]) : undefined}>
-          <span className="mono-label">MAPA MAIS JOGADO</span>
+          <span className="mono-label">{t('MAPA MAIS JOGADO')}</span>
           <b className={cls}>{carregando ? '—' : top ? (getMap(top[0])?.name ?? top[0]) : '—'}</b>
-          <em>{top ? `${top[1]} ${top[1] === 1 ? 'partida' : 'partidas'}` : ''}</em>
+          <em>{top ? (top[1] === 1 ? t('{n} partida', { n: top[1] }) : t('{n} partidas', { n: top[1] })) : ''}</em>
         </div>
         <div className="stat">
-          <span className="mono-label">ÚLTIMA PARTIDA</span>
-          <b className={cls}>{carregando ? '—' : l[0] ? dataBr(l[0].data).split(' ')[0] : '—'}</b>
+          <span className="mono-label">{t('ÚLTIMA PARTIDA')}</span>
+          <b className={cls}>{carregando ? '—' : l[0] ? dataBr(l[0].data, t.idioma).split(' ')[0] : '—'}</b>
         </div>
       </div>
     </div>
@@ -244,6 +252,7 @@ function Resumo({ lista }) {
 // dados: { lista: partidas.json, series: series.json } (vem junto com a página gerada no deploy;
 // no `npm run dev` é buscado aqui). Versões antigas mandavam só a lista (array).
 export default function Partidas({ dados: inicial }) {
+  const t = useT()
   const [lista, setLista] = useState(Array.isArray(inicial) ? inicial : Array.isArray(inicial?.lista) ? inicial.lista : null)
   const [anuncios, setAnuncios] = useState(Array.isArray(inicial?.series) ? inicial.series : [])
   const [filtro, setFiltro] = useState('todas')
@@ -286,17 +295,16 @@ export default function Partidas({ dados: inicial }) {
           <div className="hist-texto">
             <span className="hero-status fx-entra" style={{ '--e': 0 }}>
               <span className="dot-live" />
-              <span>{lista ? `${qtd} PARTIDA${qtd === 1 ? '' : 'S'} NO HISTÓRICO` : 'CARREGANDO…'}</span>
+              <span>{lista ? (qtd === 1 ? t('{n} PARTIDA NO HISTÓRICO', { n: qtd }) : t('{n} PARTIDAS NO HISTÓRICO', { n: qtd })) : t('CARREGANDO…')}</span>
             </span>
             <h1 className="titulo">
-              <Palavras texto="Partidas do" />
+              <Palavras texto={t('Partidas do')} />
               <span className="fx-gradiente">
-                <Palavras texto="servidor" inicio={2} />
+                <Palavras texto={t('servidor')} inicio={2} />
               </span>
             </h1>
             <p className="lead fx-entra" style={{ '--e': 3 }}>
-              Cada mapa jogado vira uma página: placar, rounds, rating, ADR, KAST, destaques e a demo para baixar. Filtre por
-              organização.
+              {t('Cada mapa jogado vira uma página: placar, rounds, rating, ADR, KAST, destaques e a demo para baixar. Filtre por organização.')}
             </p>
           </div>
           <div className="fx-entra" style={{ '--e': 4 }}>
@@ -306,10 +314,10 @@ export default function Partidas({ dados: inicial }) {
       </section>
       <main className="wrap">
         <section className="section">
-          <div className="filtros" role="tablist" aria-label="Filtrar partidas">
+          <div className="filtros" role="tablist" aria-label={t('Filtrar partidas')}>
             {['todas', ...pastas].map((id) => (
               <button key={id} type="button" className={filtro === id ? 'active' : ''} onClick={() => escolher(id)}>
-                {id === 'todas' ? 'Todas' : nomePasta(id)} <i>{lista ? blocosDaPasta(lista, anuncios, id).length : ''}</i>
+                {id === 'todas' ? t('Todas') : nomePasta(id)} <i>{lista ? blocosDaPasta(lista, anuncios, id).length : ''}</i>
               </button>
             ))}
           </div>
@@ -329,8 +337,8 @@ export default function Partidas({ dados: inicial }) {
           {lista && daVez.length === 0 && (
             <p className="vazio">
               {todos.length === 0
-                ? 'Nenhuma partida por enquanto. Assim que um mapa terminar no servidor, ele aparece aqui.'
-                : `Nenhuma partida em ${nomePasta(filtro)} por enquanto.`}
+                ? t('Nenhuma partida por enquanto. Assim que um mapa terminar no servidor, ele aparece aqui.')
+                : t('Nenhuma partida em {pasta} por enquanto.', { pasta: nomePasta(filtro) })}
             </p>
           )}
         </section>

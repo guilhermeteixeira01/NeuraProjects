@@ -19,7 +19,7 @@
   --orange: #ff7a1a;
   --red: #ff4655;
   --yellow: #f5c542;
-  /* Cores que viraram variáveis para os temas (Personalizar → Tema) */
+  /* Cores que viraram variáveis para os temas (Configurações ⚙ → Tema) */
   --cartao-1: #14161b;
   --cartao-2: #0d0e12;
   --brilho-esq: #1d1f26;
@@ -1137,7 +1137,7 @@ img {
   box-shadow: 0 0 14px -6px var(--cg);
 }
 
-/* ── Temas (Personalizar → Tema; comum/tema.js) ──
+/* ── Temas (Configurações ⚙ → Tema; comum/tema.js) ──
  * Sem data-tema: tema padrão do site (o de sempre, com todos os efeitos).
  * data-tema="escuro" / "claro": versões otimizadas (cores próprias e sem os efeitos pesados).
  * A seleção html[data-tema=...] ganha do :root (das páginas e do NeuraPick) em qualquer ordem. */
@@ -1451,5 +1451,208 @@ html[data-tema='claro'] .rt-txt-baixo b {
   .nx-footer-legal {
     flex-direction: column;
     margin-top: 40px;
+  }
+}
+
+/* ── "Melhorar desempenho" (Configurações ⚙; comum/desempenho.js) ──
+ * Toda animação e transição termina na hora (o elemento já aparece no estado final, nada fica escondido)
+ * e os efeitos pesados somem: partículas, brilhos do topo, desfoque de fundo e grade decorativa. */
+html[data-desempenho] {
+  scroll-behavior: auto !important;
+}
+html[data-desempenho] *,
+html[data-desempenho] *::before,
+html[data-desempenho] *::after {
+  animation-duration: 0.001ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  transition-delay: 0s !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html[data-desempenho] .fx-fundo,
+html[data-desempenho] .hero-glow {
+  display: none !important;
+}
+html[data-desempenho] body {
+  background: var(--bg) !important;
+}
+/* Idioma guardado ≠ português: a página fica escondida até o React trocar o texto (comum/i18n.js) */
+html.i18n-trocando body {
+  visibility: hidden;
+}
+
+/* ── Configurações ⚙ do topo (comum/Configuracoes.jsx) ── */
+.nx-config {
+  position: relative;
+}
+.nx-config-btn {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--border-2);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, transform 0.3s;
+}
+.nx-config-btn:hover,
+.nx-config-btn[aria-expanded='true'] {
+  border-color: var(--blue-2);
+  color: var(--blue-2);
+}
+.nx-config-btn[aria-expanded='true'] svg {
+  transform: rotate(60deg);
+}
+.nx-config-btn svg {
+  transition: transform 0.3s;
+}
+.nx-config-painel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 330;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border-2);
+  background: rgb(var(--fundo) / 0.98);
+  box-shadow: 0 22px 50px -18px rgba(0, 0, 0, 0.75);
+  color: var(--text);
+  animation: nx-descer 0.15s ease;
+}
+.nx-config-cab {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+}
+.nx-config-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.nx-config-campo > span {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.nx-config-campo select {
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg-soft);
+  border: 1px solid var(--border-2);
+  border-radius: 9px;
+  padding: 9px 10px;
+  cursor: pointer;
+}
+.nx-config-temas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.nx-config-tema {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 4px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border-2);
+  background: rgb(var(--tinta) / 0.02);
+  color: var(--text);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+}
+.nx-config-tema i {
+  width: 34px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  background: linear-gradient(135deg, #0b0c0f 55%, #1a73e8);
+}
+.nx-config-tema.tema-escuro i {
+  background: linear-gradient(135deg, #101114 55%, #33373f);
+}
+.nx-config-tema.tema-claro i {
+  background: linear-gradient(135deg, #f2f4f8 55%, #1a6fe0);
+}
+.nx-config-tema.sel {
+  border-color: var(--blue-2);
+  box-shadow: 0 0 0 1px var(--blue-2);
+}
+.nx-config-switch {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+}
+.nx-config-switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.nx-config-chave {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 22px;
+  margin-top: 2px;
+  border-radius: 999px;
+  background: var(--border-2);
+  transition: background 0.15s;
+}
+.nx-config-chave::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s;
+}
+.nx-config-switch input:checked + .nx-config-chave {
+  background: var(--green);
+}
+.nx-config-switch input:checked + .nx-config-chave::after {
+  transform: translateX(18px);
+}
+.nx-config-switch input:focus-visible + .nx-config-chave {
+  outline: 2px solid var(--blue-2);
+  outline-offset: 2px;
+}
+.nx-config-switch b {
+  display: block;
+  font-size: 13.5px;
+}
+.nx-config-switch small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--dim);
+  line-height: 1.35;
+}
+@media (max-width: 520px) {
+  .nx-config-painel {
+    position: fixed;
+    top: 70px;
+    left: 12px;
+    right: 12px;
+    width: auto;
   }
 }

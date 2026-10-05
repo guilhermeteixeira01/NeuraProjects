@@ -3,12 +3,15 @@ import { CONFIG, MENU } from './config.js'
 import { entrar, linkPerfil, loginAtivo, sair, useConta } from './conta.js'
 import { ICONES_MENU, IconeKivo, IconeSteam } from './Icones.jsx'
 import { useAdmin } from './Moldura.jsx'
+import Configuracoes from './Configuracoes.jsx'
+import { useT } from './i18n.js'
 
 // Aba do painel de administrador (só aparece para admin; o worker confere de novo em toda ação)
 const ITEM_ADMIN = { id: 'admin', rotulo: 'Admin', href: '/admin/', icone: 'escudo' }
 import { ComMoldura } from './Moldura.jsx'
 
 function LinkMenu({ item, atual }) {
+  const t = useT()
   const ativo = item.id === atual
   const IconeItem = item.icone ? ICONES_MENU[item.icone] : null
   return (
@@ -19,7 +22,7 @@ function LinkMenu({ item, atual }) {
       {...(ativo ? { 'aria-current': 'page' } : {})}
     >
       {IconeItem && <IconeItem />}
-      {item.rotulo}
+      {t(item.rotulo)}
       {item.selo && <span className="nx-selo">{item.selo}</span>}
     </a>
   )
@@ -27,6 +30,7 @@ function LinkMenu({ item, atual }) {
 
 // Login pela Steam: botão "Entrar" ou o avatar com o menu da conta
 function Conta() {
+  const t = useT()
   const conta = useConta()
   const [aberto, setAberto] = useState(false)
   const [erroAvatar, setErroAvatar] = useState(false)
@@ -49,11 +53,11 @@ function Conta() {
     return (
       <button type="button" className="nx-btn nx-steam" onClick={entrar}>
         <IconeSteam />
-        <span>Entrar</span>
+        <span>{t('Entrar')}</span>
       </button>
     )
 
-  const nome = conta.nome || 'Minha conta'
+  const nome = conta.nome || t('Minha conta')
   return (
     <div className="nx-conta" ref={caixa}>
       <button type="button" className="nx-conta-btn" aria-haspopup="menu" aria-expanded={aberto} onClick={() => setAberto((a) => !a)}>
@@ -69,10 +73,10 @@ function Conta() {
       {aberto && (
         <div className="nx-conta-menu" role="menu">
           <a role="menuitem" href={linkPerfil(conta.id)}>
-            Meu perfil
+            {t('Meu perfil')}
           </a>
           <a role="menuitem" href={`https://steamcommunity.com/profiles/${conta.id}`} target="_blank" rel="noopener">
-            Perfil na Steam
+            {t('Perfil na Steam')}
           </a>
           <button
             type="button"
@@ -82,7 +86,7 @@ function Conta() {
               sair()
             }}
           >
-            Sair
+            {t('Sair')}
           </button>
         </div>
       )}
@@ -93,6 +97,7 @@ function Conta() {
 // Menu do topo de todas as páginas. No celular vira uma gaveta em tela cheia:
 // a página por trás some e não rola enquanto ela está aberta.
 export default function Nav({ pagina }) {
+  const t = useT()
   const [aberto, setAberto] = useState(false)
   const [rolou, setRolou] = useState(false)
 
@@ -132,21 +137,22 @@ export default function Nav({ pagina }) {
             <span className="nx-sub">GAME STUDIO</span>
           </span>
         </a>
-        <nav className="nx-links" aria-label="Menu principal">
+        <nav className="nx-links" aria-label={t('Menu principal')}>
           {links}
         </nav>
         <div className="nx-acoes">
           {CONFIG.comunidade && (
-            <a className="nx-btn nx-btn-ghost nx-comunidade" href={CONFIG.comunidade} target="_blank" rel="noopener" title={`Comunidade na ${CONFIG.comunidadeNome}`}>
+            <a className="nx-btn nx-btn-ghost nx-comunidade" href={CONFIG.comunidade} target="_blank" rel="noopener" title={t('Comunidade na {nome}', { nome: CONFIG.comunidadeNome })}>
               <IconeKivo />
-              <span>Comunidade</span>
+              <span>{t('Comunidade')}</span>
             </a>
           )}
+          <Configuracoes />
           <Conta />
           <button
             className="nx-burger"
             type="button"
-            aria-label={aberto ? 'Fechar menu' : 'Abrir menu'}
+            aria-label={aberto ? t('Fechar menu') : t('Abrir menu')}
             aria-expanded={aberto}
             onClick={() => setAberto((a) => !a)}
           >
@@ -162,7 +168,7 @@ export default function Nav({ pagina }) {
           {links}
           {CONFIG.comunidade && (
             <a className="nx-link" href={CONFIG.comunidade} target="_blank" rel="noopener">
-              <IconeKivo /> Comunidade na {CONFIG.comunidadeNome}
+              <IconeKivo /> {t('Comunidade na {nome}', { nome: CONFIG.comunidadeNome })}
             </a>
           )}
         </div>

@@ -1,4 +1,4 @@
-// Tema do site (Personalizar → Tema): padrão (o de sempre), escuro otimizado ou claro otimizado.
+// Tema do site (Configurações ⚙ → Tema): padrão (o de sempre), escuro otimizado ou claro otimizado.
 // Vale para todas as páginas. Fica guardado no navegador (localStorage np_tema, aplicado já no <head> de cada
 // página, antes de desenhar, então não pisca) e, com login, no perfil do worker (acompanha a pessoa em outros
 // aparelhos: SincronizarTema aplica o tema salvo no perfil).
@@ -17,14 +17,14 @@ const COR_BARRA = { padrao: '#0b0c0f', escuro: '#101114', claro: '#f2f4f8' } // 
 
 export const temaAtual = () => (typeof document === 'undefined' ? 'padrao' : document.documentElement.dataset.tema || 'padrao')
 
-// Troca o tema na hora. guardar = salvar no navegador (a prévia do Personalizar não guarda)
+// Troca o tema na hora. guardar = salvar no navegador (false: só vale nesta página)
 export function aplicarTema(id, { guardar = true } = {}) {
   const tema = TEMAS.some((t) => t.id === id) ? id : 'padrao'
   const html = document.documentElement
   if (tema === 'padrao') delete html.dataset.tema
   else html.dataset.tema = tema
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', COR_BARRA[tema])
-  window.dispatchEvent(new Event(EVENTO_TEMA)) // avisa quem mostra o tema (ex.: seletor do rodapé)
+  window.dispatchEvent(new Event(EVENTO_TEMA)) // avisa quem mostra o tema (painel ⚙ Configurações)
   if (guardar) {
     try {
       if (tema === 'padrao') localStorage.removeItem(CHAVE)

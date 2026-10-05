@@ -5,6 +5,7 @@ import { Icone } from '../../comum/Icones.jsx'
 import { carregarTimes } from '../../comum/times.js'
 import { Contador } from '../../comum/efeitos.jsx'
 import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
+import { useT } from '../../comum/i18n.js'
 
 const CHAVE_TOKEN = 'neura_gh_token'
 const API = `https://api.github.com/repos/${CONFIG.repositorio}/contents/${CONFIG.arquivoTimes}`
@@ -63,6 +64,7 @@ function Logo({ time, className = 'logo' }) {
 }
 
 export default function Times() {
+  const tr = useT()
   const [original, setOriginal] = useState([]) // como está no site
   const [times, setTimes] = useState([]) // como está na tela
   const [marcados, setMarcados] = useState({}) // nome (minúsculo) -> 'novo' | 'editado'
@@ -105,7 +107,7 @@ export default function Times() {
       setMarcados({})
       setErroLista('')
     } catch (e) {
-      setErroLista(`Não consegui carregar a lista (${e.message}). Confira o token.`)
+      setErroLista(tr('Não consegui carregar a lista ({erro}). Confira o token.', { erro: e.message }))
     } finally {
       setCarregou(true)
     }
@@ -146,7 +148,7 @@ export default function Times() {
     const url = logo.trim()
     if (!limpo || !logoValido(url)) return
     if (times.some((t, i) => i !== editando && chave(t.nome) === chave(limpo))) {
-      setErroNome('Já existe um time com esse nome na lista.')
+      setErroNome(tr('Já existe um time com esse nome na lista.'))
       return
     }
     const novos = { ...marcados }
@@ -175,7 +177,7 @@ export default function Times() {
   }
 
   function remover(i) {
-    if (!confirm(`Remover "${times[i].nome}" da lista?`)) return
+    if (!confirm(tr('Remover "{nome}" da lista?', { nome: times[i].nome }))) return
     const novos = { ...marcados }
     delete novos[chave(times[i].nome)]
     setMarcados(novos)
@@ -215,11 +217,11 @@ export default function Times() {
     if (!lerToken()) {
       setTokenAberto(true)
       campoTokenRef.current?.focus()
-      setMsg({ texto: 'Coloque o token do GitHub para salvar no site.', tipo: 'erro' })
+      setMsg({ texto: tr('Coloque o token do GitHub para salvar no site.'), tipo: 'erro' })
       return
     }
     setSalvando(true)
-    setMsg({ texto: 'Salvando no site...', tipo: '' })
+    setMsg({ texto: tr('Salvando no site...'), tipo: '' })
     try {
       // Pega o sha mais novo (alguém pode ter salvo antes) e grava
       const r = await fetch(`${API}?ref=${CONFIG.branch}&t=${Date.now()}`, { headers: cabecalhos(), cache: 'no-store' })
@@ -243,12 +245,12 @@ export default function Times() {
       setOriginal(times)
       setMarcados({})
       setMostrarSalvo(true)
-      setMsg({ texto: 'Salvo! O Pick & Ban já usa a lista nova em alguns minutos.', tipo: 'ok' })
+      setMsg({ texto: tr('Salvo! O Pick & Ban já usa a lista nova em alguns minutos.'), tipo: 'ok' })
       setTimeout(() => setMostrarSalvo(false), 5000)
     } catch (e) {
       const permissao = /401|403|Bad credentials|not accessible/i.test(e.message)
       setMsg({
-        texto: `Não salvou: ${e.message}${permissao ? ' — confira o token e a permissão Contents: Read and write.' : ''}`,
+        texto: `${tr('Não salvou: {erro}', { erro: e.message })}${permissao ? tr(' — confira o token e a permissão Contents: Read and write.') : ''}`,
         tipo: 'erro',
       })
     } finally {
@@ -263,8 +265,8 @@ export default function Times() {
   const textoMsg =
     mudou && !msg.texto
       ? token
-        ? 'Você tem alterações não salvas.'
-        : 'Alterações não salvas. Coloque o token do GitHub (ao lado) para salvar no site.'
+        ? tr('Você tem alterações não salvas.')
+        : tr('Alterações não salvas. Coloque o token do GitHub (ao lado) para salvar no site.')
       : msg.texto
 
   return (
@@ -276,28 +278,27 @@ export default function Times() {
             <div>
               <span className="chip fx-entra" style={{ '--e': 0 }}>
                 <span className="ponto" />
-                CONFIGURAÇÃO · PICK &amp; BAN
+                {tr('CONFIGURAÇÃO · PICK & BAN')}
               </span>
               <h1>
-                <Palavras texto="Lista de" />
+                <Palavras texto={tr('Lista de')} />
                 <span className="fx-gradiente">
-                  <Palavras texto="times" inicio={2} />
+                  <Palavras texto={tr('times')} inicio={2} />
                 </span>
               </h1>
               <p className="lead fx-entra" style={{ '--e': 3 }}>
-                Cadastre o nome e o logo de cada time uma vez. No Pick &amp; Ban, é só digitar o nome que o logo já entra
-                sozinho — e vai junto para o servidor e para a página das partidas.
+                {tr('Cadastre o nome e o logo de cada time uma vez. No Pick & Ban, é só digitar o nome que o logo já entra sozinho — e vai junto para o servidor e para a página das partidas.')}
               </p>
             </div>
             <div className="resumo fx-entra" style={{ '--e': 4 }}>
               <div className="caixa">
-                <span className="mono">TIMES</span>
+                <span className="mono">{tr('TIMES')}</span>
                 <b>
                   <Contador valor={carregou ? times.length : null} />
                 </b>
               </div>
               <div className="caixa">
-                <span className="mono">COM LOGO</span>
+                <span className="mono">{tr('COM LOGO')}</span>
                 <b>
                   <Contador valor={carregou ? times.filter((t) => t.logo).length : null} />
                 </b>
@@ -311,16 +312,16 @@ export default function Times() {
             {/* Adicionar / editar */}
             <div className="card hud-frame spot" style={{ padding: 0 }}>
               <div className="card-head">
-                <h2>{editando === null ? 'Adicionar time' : 'Editar time'}</h2>
-                <span className="mono">{editando === null ? 'NOVO' : 'EDITANDO'}</span>
+                <h2>{editando === null ? tr('Adicionar time') : tr('Editar time')}</h2>
+                <span className="mono">{editando === null ? tr('NOVO') : tr('EDITANDO')}</span>
               </div>
               <form className="card-body" ref={form} autoComplete="off" onSubmit={enviar}>
                 <label className="campo">
-                  <span className="mono">NOME DO TIME</span>
+                  <span className="mono">{tr('NOME DO TIME')}</span>
                   <input
                     ref={campoNome}
                     maxLength={24}
-                    placeholder="Ex.: Pain"
+                    placeholder={tr('Ex.: Pain')}
                     required
                     value={nome}
                     onChange={(e) => {
@@ -328,10 +329,10 @@ export default function Times() {
                       setErroNome('')
                     }}
                   />
-                  <span className={`dica${erroNome ? ' erro' : ''}`}>{erroNome || DICA_NOME}</span>
+                  <span className={`dica${erroNome ? ' erro' : ''}`}>{erroNome || tr(DICA_NOME)}</span>
                 </label>
                 <label className="campo">
-                  <span className="mono">LOGO (URL DA IMAGEM)</span>
+                  <span className="mono">{tr('LOGO (URL DA IMAGEM)')}</span>
                   <input
                     type="url"
                     inputMode="url"
@@ -343,24 +344,24 @@ export default function Times() {
                   />
                   <span className={`dica${logoOk ? '' : ' erro'}`}>
                     {logoOk
-                      ? 'Link que abre direto a imagem (.png, .jpg…). Opcional.'
-                      : 'Precisa ser um link https:// de imagem (até 300 caracteres).'}
+                      ? tr('Link que abre direto a imagem (.png, .jpg…). Opcional.')
+                      : tr('Precisa ser um link https:// de imagem (até 300 caracteres).')}
                   </span>
                 </label>
                 <div className="previa">
                   <Logo time={{ nome: nome || '?', logo: logoOk ? logo.trim() : '' }} />
                   <div>
-                    <span className="mono">PRÉVIA</span>
-                    <b>{nome.trim() || 'Nome do time'}</b>
+                    <span className="mono">{tr('PRÉVIA')}</span>
+                    <b>{nome.trim() || tr('Nome do time')}</b>
                   </div>
                 </div>
                 <div className="ferramentas">
                   <button className="btn btn-primary" type="submit">
-                    {editando === null ? 'Adicionar à lista' : 'Salvar alteração'}
+                    {editando === null ? tr('Adicionar à lista') : tr('Salvar alteração')}
                   </button>
                   {editando !== null && (
                     <button className="btn btn-ghost" type="button" onClick={limparForm}>
-                      Cancelar
+                      {tr('Cancelar')}
                     </button>
                   )}
                 </div>
@@ -368,44 +369,44 @@ export default function Times() {
 
               <details className="token" open={tokenAberto} onToggle={(e) => setTokenAberto(e.currentTarget.open)}>
                 <summary>
-                  <span>Acesso para salvar no site</span>
-                  <span className={`estado-token ${token ? 'on' : 'off'}`}>{token ? 'TOKEN SALVO' : 'SEM TOKEN'}</span>
+                  <span>{tr('Acesso para salvar no site')}</span>
+                  <span className={`estado-token ${token ? 'on' : 'off'}`}>{token ? tr('TOKEN SALVO') : tr('SEM TOKEN')}</span>
                 </summary>
                 <div className="card-body">
                   <ol className="passos">
                     <li>
-                      Abra{' '}
+                      {tr('Abra')}{' '}
                       <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">
-                        github.com → novo token (Fine-grained)
+                        {tr('github.com → novo token (Fine-grained)')}
                       </a>
                     </li>
                     <li>
-                      <b>Repository access:</b> só o <b>NeuraProjects</b>
+                      <b>Repository access:</b> {tr('só o')} <b>NeuraProjects</b>
                     </li>
                     <li>
                       <b>Permissions → Contents:</b> Read and write
                     </li>
                     <li>
-                      Cole abaixo. Ele fica salvo <b>só neste navegador</b>.
+                      {tr('Cole abaixo. Ele fica salvo só neste navegador.')}
                     </li>
                   </ol>
                   <label className="campo">
-                    <span className="mono">TOKEN DO GITHUB</span>
+                    <span className="mono">{tr('TOKEN DO GITHUB')}</span>
                     <input
                       ref={campoTokenRef}
                       type="password"
-                      placeholder={token ? '•••••••• (salvo neste navegador)' : 'github_pat_...'}
+                      placeholder={token ? `•••••••• (${tr('salvo neste navegador')})` : 'github_pat_...'}
                       value={campoToken}
                       onChange={(e) => setCampoToken(e.target.value)}
                     />
                   </label>
                   <div className="ferramentas">
                     <button className="btn btn-ghost" type="button" onClick={salvarToken}>
-                      Salvar token
+                      {tr('Salvar token')}
                     </button>
                     {token && (
                       <button className="btn btn-ghost" type="button" onClick={removerToken}>
-                        Remover token
+                        {tr('Remover token')}
                       </button>
                     )}
                   </div>
@@ -417,11 +418,11 @@ export default function Times() {
             <div>
               <div className="card">
                 <div className="card-head">
-                  <h2>Times cadastrados</h2>
+                  <h2>{tr('Times cadastrados')}</h2>
                   <input
                     className="busca"
                     type="search"
-                    placeholder="Buscar time..."
+                    placeholder={tr('Buscar time...')}
                     value={busca}
                     onChange={(e) => setBusca(e.target.value)}
                     style={{
@@ -438,12 +439,12 @@ export default function Times() {
                 </div>
                 <div className="lista">
                   {!carregou ? (
-                    <div className="vazio">Carregando lista...</div>
+                    <div className="vazio">{tr('Carregando lista...')}</div>
                   ) : erroLista ? (
                     <div className="vazio">{erroLista}</div>
                   ) : visiveis.length === 0 ? (
                     <div className="vazio">
-                      {times.length ? 'Nenhum time encontrado.' : 'Nenhum time cadastrado ainda. Adicione o primeiro ao lado.'}
+                      {times.length ? tr('Nenhum time encontrado.') : tr('Nenhum time cadastrado ainda. Adicione o primeiro ao lado.')}
                     </div>
                   ) : (
                     visiveis.map(({ t, i }, n) => (
@@ -455,10 +456,10 @@ export default function Times() {
                         <Logo time={t} />
                         <div>
                           <b>{t.nome}</b>
-                          <small>{t.logo || 'sem logo'}</small>
+                          <small>{t.logo || tr('sem logo')}</small>
                         </div>
                         <div className="acoes-time">
-                          <button className="icone-btn" type="button" title="Editar" aria-label={`Editar ${t.nome}`} onClick={() => editar(i)}>
+                          <button className="icone-btn" type="button" title={tr('Editar')} aria-label={tr('Editar {nome}', { nome: t.nome })} onClick={() => editar(i)}>
                             <Icone tamanho={15}>
                               <path d="M12 20h9" />
                               <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
@@ -467,8 +468,8 @@ export default function Times() {
                           <button
                             className="icone-btn perigo"
                             type="button"
-                            title="Remover"
-                            aria-label={`Remover ${t.nome}`}
+                            title={tr('Remover')}
+                            aria-label={tr('Remover {nome}', { nome: t.nome })}
                             onClick={() => remover(i)}
                           >
                             <Icone tamanho={15}>
@@ -487,10 +488,10 @@ export default function Times() {
                   <span className={`msg${msg.tipo ? ` ${msg.tipo}` : ''}`}>{textoMsg}</span>
                   <div className="ferramentas">
                     <button className="btn btn-ghost" type="button" onClick={desfazer}>
-                      Desfazer
+                      {tr('Desfazer')}
                     </button>
                     <button className="btn btn-primary" type="button" onClick={salvar} disabled={salvando}>
-                      Salvar no site
+                      {tr('Salvar no site')}
                     </button>
                   </div>
                 </div>
