@@ -1,5 +1,24 @@
 [
   {
+    "id": "2026-10-05_19-37_Neura-Project-x-Digital-Gamers",
+    "organizacao": "dga",
+    "categoria": "md3",
+    "formato": "MD3",
+    "timeA": "Neura Project",
+    "timeB": "Digital Gamers",
+    "logoA": "https://i.imgur.com/0lhPoBJ.png",
+    "logoB": "https://i.imgur.com/EgmqWQi.jpg",
+    "mapas": [
+      "de_overpass",
+      "de_nuke",
+      "de_inferno"
+    ],
+    "status": "iniciando",
+    "mapaAtual": 0,
+    "criada": "2026-10-05 19:37",
+    "atualizada": "2026-10-05 19:37"
+  },
+  {
     "id": "2026-10-05_18-26_Neura-Project-x-Digital-Gamers",
     "organizacao": "dga",
     "categoria": "md3",
