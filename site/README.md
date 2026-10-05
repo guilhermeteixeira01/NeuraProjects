@@ -13,7 +13,7 @@ O site inteiro (neuraproject.com.br) é um projeto React + Vite com uma página 
 | Lista de times | `/times/` | `src/paginas/times/` |
 | Painel de administrador | `/admin/` | `src/paginas/admin/` |
 
-Menu, rodapé, avisos de novidade e configuração (Discord, login...) ficam em `src/comum/`.
+Menu, rodapé, avisos de novidade e configuração (comunidade na Kivo, login...) ficam em `src/comum/`.
 Cada página tem um único CSS, que começa importando a base do site (`src/comum/site.css` e `paginas.css`).
 
 ## Comandos (dentro de `site/`)

@@ -5,7 +5,7 @@ import { lerJson } from '../../comum/dados.js'
 import { Contador, useInclinar } from '../../comum/efeitos.jsx'
 import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
 import Letreiro from '../../comum/Letreiro.jsx'
-import { Icone } from '../../comum/Icones.jsx'
+import { Icone, IconeKivo } from '../../comum/Icones.jsx'
 
 const SETA = (
   <Icone tamanho={14} traco={2.4}>
@@ -85,7 +85,7 @@ const PRINCIPIOS = [
   [
     <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z" />,
     'A comunidade decide junto',
-    'Sugestões e problemas chegam pelo Discord e viram prioridade. A gente constrói o que os jogadores realmente usam.',
+    'Sugestões e problemas chegam pela comunidade na Kivo e viram prioridade. A gente constrói o que os jogadores realmente usam.',
     'COMUNIDADE',
   ],
   [
@@ -108,14 +108,14 @@ const FICHA = [
   ['FORMATO', 'Independente'],
   ['FOCO', 'Jogos e competitivo'],
   ['BASE', 'Brasil'],
-  ['COMUNIDADE', 'Discord'],
+  ['COMUNIDADE', 'Kivo'],
 ]
 
-// Link do Discord (some se não tiver Discord configurado)
-function LinkDiscord({ className, children }) {
-  if (!CONFIG.discord) return null
+// Link da comunidade na Kivo (some se não tiver comunidade configurada)
+function LinkComunidade({ className, children }) {
+  if (!CONFIG.comunidade) return null
   return (
-    <a className={className} href={CONFIG.discord} target="_blank" rel="noopener">
+    <a className={className} href={CONFIG.comunidade} target="_blank" rel="noopener">
       {children}
     </a>
   )
@@ -174,7 +174,7 @@ export default function Inicio() {
                   </Icone>
                   Ver projetos
                 </a>
-                <LinkDiscord className="btn btn-ghost btn-lg btn-borda">Entrar na comunidade</LinkDiscord>
+                <LinkComunidade className="btn btn-ghost btn-lg btn-borda">Entrar na comunidade</LinkComunidade>
               </div>
               <dl className="hx-numeros fx-entra" style={{ '--e': 6 }}>
                 <div>
@@ -327,7 +327,7 @@ export default function Inicio() {
                   link: 'Ver ranking',
                 },
                 {
-                  discord: true,
+                  comunidade: true,
                   cor: 'var(--yellow)',
                   brilho: 'rgba(245,197,66,.12)',
                   icone: IC_SERVIDOR,
@@ -359,9 +359,9 @@ export default function Inicio() {
                   className: `projeto spot reveal${p.grande ? ' grande' : ''}`,
                   style: { '--d': `${i * 0.07}s`, '--cor': p.cor, '--brilho': p.brilho },
                 }
-                if (p.discord)
-                  return CONFIG.discord ? (
-                    <a key={i} {...props} href={CONFIG.discord} target="_blank" rel="noopener">
+                if (p.comunidade)
+                  return CONFIG.comunidade ? (
+                    <a key={i} {...props} href={CONFIG.comunidade} target="_blank" rel="noopener">
                       {conteudo}
                     </a>
                   ) : (
@@ -396,7 +396,7 @@ export default function Inicio() {
               </p>
               <p>
                 Hoje somos um <strong>estúdio independente</strong> focado em jogos — pequeno de propósito. Isso deixa a gente
-                perto de quem usa: ideia que chega no Discord vira recurso, bug reportado vira correção.
+                perto de quem usa: ideia que chega na comunidade da Kivo vira recurso, bug reportado vira correção.
               </p>
               <p>
                 O objetivo é simples: tornar o competitivo mais organizado, justo e divertido, para campeonatos de amigos e
@@ -455,10 +455,12 @@ export default function Inicio() {
                 </span>
                 <h2>Joga com a gente?</h2>
                 <p className="lead">
-                  Entre no Discord para jogar no servidor, participar dos campeonatos e acompanhar o que estamos criando.
+                  Entre na nossa comunidade na Kivo para jogar no servidor, participar dos campeonatos e acompanhar o que estamos criando.
                 </p>
                 <div className="cta-acoes">
-                  <LinkDiscord className="btn btn-discord btn-lg btn-brilho">Entrar no Discord</LinkDiscord>
+                  <LinkComunidade className="btn btn-comunidade btn-lg btn-brilho">
+                    <IconeKivo tamanho={20} /> Entrar na Kivo
+                  </LinkComunidade>
                   <a className="btn btn-ghost btn-lg btn-borda" href="/partidas/">
                     Ver últimas partidas
                   </a>
