@@ -116,3 +116,76 @@
   .pf-grafico-card, .pf-hist-card { padding: 16px 12px 12px; }
   .pf-vd span { font-size: 9px; }
 }
+
+/* ── Janela "Personalizar perfil" (SeletorMoldura.jsx) ── */
+html.sm-aberto { overflow: hidden; }
+.sm-fundo {
+  position: fixed; inset: 0; z-index: 400; display: grid; place-items: center; padding: 20px;
+  background: rgba(5, 6, 8, .78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  animation: sm-entra .18s ease;
+}
+.sm-painel {
+  width: min(980px, 100%); max-height: min(720px, 100%); display: flex; flex-direction: column; overflow: hidden;
+  border-radius: 16px; border: 1px solid var(--border-2); background: linear-gradient(160deg, var(--panel-2), var(--bg-soft));
+  box-shadow: 0 30px 80px -30px rgba(0,0,0,.95), 0 0 0 1px rgba(52,152,219,.08);
+}
+.sm-cab { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.sm-cab h2 { font-family: var(--font-display); font-size: 20px; }
+.sm-fechar { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border-2); background: none; color: var(--text); font-size: 22px; line-height: 1; cursor: pointer; }
+.sm-fechar:hover { border-color: var(--blue-2); }
+.sm-corpo { flex: 1; min-height: 0; display: grid; grid-template-columns: 260px minmax(0, 1fr); }
+
+/* Prévia: seu avatar com a moldura animada */
+.sm-previa {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 28px 20px; text-align: center;
+  border-right: 1px solid var(--border); background: radial-gradient(circle at 50% 38%, rgba(26,115,232,.16), transparent 65%);
+}
+.sm-av { width: 132px; height: 132px; margin-bottom: 22px; }
+.sm-av > img, .sm-av > .sm-ini { width: 100%; height: 100%; object-fit: cover; }
+.sm-ini { display: grid; place-items: center; background: var(--panel-2); font-family: var(--font-display); font-size: 40px; color: var(--dim); }
+.sm-previa b { font-family: var(--font-display); font-size: 20px; overflow-wrap: anywhere; }
+.sm-previa .mono { font-size: 11px; letter-spacing: 1.5px; color: var(--blue-2); }
+.sm-previa small { font-size: 12px; color: var(--dim); }
+
+/* Lista: abas das coleções + grade de miniaturas */
+.sm-lista { min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+.sm-colecoes { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px 16px; border-bottom: 1px solid var(--border); flex: none; }
+.sm-colecoes button {
+  flex: none; font: inherit; font-size: 12.5px; font-weight: 600; color: var(--dim); white-space: nowrap; cursor: pointer;
+  padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border-2); background: none; transition: color .15s, border-color .15s, background .15s;
+}
+.sm-colecoes button:hover { color: var(--text); }
+.sm-colecoes button.active { color: var(--text); border-color: var(--blue); background: rgba(26,115,232,.16); }
+.sm-grade {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; align-content: start;
+}
+.sm-item {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 6px 8px; cursor: pointer;
+  border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,.02); color: var(--dim); font: inherit;
+  transition: border-color .15s, background .15s, transform .15s;
+}
+.sm-item:hover { border-color: var(--border-2); background: rgba(255,255,255,.04); transform: translateY(-2px); }
+.sm-item.sel { border-color: var(--blue-2); background: rgba(26,115,232,.14); color: var(--text); box-shadow: 0 0 22px -8px rgba(52,152,219,.9); }
+.sm-item img { width: 72px; height: 72px; max-width: none; }
+.sm-item > span:last-child { font-size: 11.5px; font-weight: 600; line-height: 1.2; text-align: center; overflow-wrap: anywhere; }
+.sm-sem-icone { display: grid; place-items: center; width: 72px; height: 72px; font-size: 34px; color: var(--dim-2); border: 2px dashed var(--border-2); border-radius: 50%; }
+
+.sm-rodape { display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--border); }
+.sm-msg { flex: 1; font-size: 13px; color: #ff6b6b; }
+.sm-rodape .btn { cursor: pointer; font-family: inherit; }
+.sm-rodape .btn:disabled { opacity: .5; cursor: default; }
+@keyframes sm-entra { from { opacity: 0; } }
+
+@media (max-width: 720px) {
+  .sm-fundo { padding: 0; }
+  .sm-painel { max-height: 100%; height: 100%; border-radius: 0; }
+  .sm-corpo { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .sm-previa { display: grid; grid-template-columns: auto minmax(0, 1fr); justify-items: start; align-content: center; text-align: left; gap: 2px 20px; padding: 18px 20px; border-right: 0; border-bottom: 1px solid var(--border); }
+  .sm-av { grid-row: 1 / span 3; width: 84px; height: 84px; margin: 8px; }
+  .sm-previa > :not(.sm-av) { grid-column: 2; }
+  .sm-previa b { font-size: 17px; }
+  .sm-colecoes { flex-wrap: nowrap; overflow-x: auto; }
+  .sm-grade { grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); }
+  .sm-item img, .sm-sem-icone { width: 60px; height: 60px; }
+}

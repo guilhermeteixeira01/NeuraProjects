@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { CONFIG, MENU } from './config.js'
 import { entrar, linkPerfil, loginAtivo, sair, useConta } from './conta.js'
 import { ICONES_MENU, IconeDiscord, IconeSteam } from './Icones.jsx'
+import { ComMoldura } from './Moldura.jsx'
 
 function LinkMenu({ item, atual }) {
   const ativo = item.id === atual
@@ -52,11 +53,13 @@ function Conta() {
   return (
     <div className="nx-conta" ref={caixa}>
       <button type="button" className="nx-conta-btn" aria-haspopup="menu" aria-expanded={aberto} onClick={() => setAberto((a) => !a)}>
-        {conta.avatar && !erroAvatar ? (
-          <img src={conta.avatar} alt="" width="28" height="28" onError={() => setErroAvatar(true)} />
-        ) : (
-          <span className="nx-conta-ini">{nome.slice(0, 2).toUpperCase()}</span>
-        )}
+        <ComMoldura steamId={conta.id}>
+          {conta.avatar && !erroAvatar ? (
+            <img src={conta.avatar} alt="" width="28" height="28" onError={() => setErroAvatar(true)} />
+          ) : (
+            <span className="nx-conta-ini">{nome.slice(0, 2).toUpperCase()}</span>
+          )}
+        </ComMoldura>
         <span className="nx-conta-nome">{nome}</span>
       </button>
       {aberto && (

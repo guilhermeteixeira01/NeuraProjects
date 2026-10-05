@@ -41,6 +41,16 @@ function capturarDaUrl() {
   history.replaceState(null, '', location.pathname + location.search)
 }
 
+// Token guardado (o worker confere a assinatura ao salvar a moldura); null sem login ou vencido
+export function tokenConta() {
+  try {
+    const t = localStorage.getItem(CHAVE)
+    return t && decodificar(t) ? t : null
+  } catch {
+    return null
+  }
+}
+
 export const loginAtivo = () => Boolean(CONFIG.loginSteam)
 
 export function entrar() {

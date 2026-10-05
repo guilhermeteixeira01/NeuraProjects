@@ -1019,3 +1019,31 @@ img {
     scrollbar-width: thin;
   }
 }
+
+/* ── Moldura de avatar (comum/Moldura.jsx) ──
+ * A moldura (288x288) é 20% maior que o avatar e fica centrada por cima dele, como no Discord.
+ * Com moldura o avatar fica redondo (as molduras são feitas para avatar redondo). */
+.moldura-box {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  vertical-align: middle;
+}
+.moldura-box.cheio {
+  width: 100%;
+  height: 100%;
+}
+.moldura-box > img,
+.moldura-box > span:not(.moldura) {
+  border-radius: 50% !important;
+}
+.moldura {
+  position: absolute;
+  left: -10%;
+  top: -10%;
+  width: 120%;
+  height: 120%;
+  z-index: 2;
+  pointer-events: none;
+  background: center / contain no-repeat;
+}

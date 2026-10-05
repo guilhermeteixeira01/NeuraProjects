@@ -6,9 +6,10 @@
  *   /login?volta=<página>  -> manda para o login da Steam
  *   /retorno               -> a Steam volta aqui; confirma com ela, busca nome e avatar e devolve para
  *                             a página com #steam=<token> (o site guarda o token no navegador)
+ *   /molduras, /moldura    -> molduras de avatar dos jogadores (KV MOLDURAS, mais abaixo)
  *
  * Token: base64url(JSON { id, nome, avatar, exp }) + "." + base64url(HMAC-SHA256 com o SEGREDO).
- * A assinatura deixa um backend futuro confiar no token; o site hoje só lê o JSON para mostrar.
+ * O site lê o JSON para mostrar; a assinatura é conferida aqui quando o jogador salva a moldura (/moldura).
  *
  * Variáveis (wrangler.toml / painel da Cloudflare):
  *   SITE            endereço do site (padrão https://neuraproject.com.br)
@@ -29,8 +30,78 @@ export default {
     const site = (env.SITE || 'https://neuraproject.com.br').replace(/\/$/, '')
     if (url.pathname === '/login') return login(url, env, site)
     if (url.pathname === '/retorno') return retorno(url, env, site)
+    if (url.pathname === '/molduras' && req.method === 'GET') return lerMolduras(env)
+    if (url.pathname === '/moldura') return salvarMoldura(req, env, site)
     return Response.redirect(`${site}/`, 302)
   },
+}
+
+// ── Molduras de avatar (personalização do perfil) ──
+// Guardadas no KV MOLDURAS numa chave só: { "<SteamID64>": "<coleção>/<moldura>" }.
+//   GET  /molduras -> o mapa inteiro (qualquer página do site lê, para mostrar a moldura de cada jogador)
+//   POST /moldura  -> { moldura: "<id>" | null } com "Authorization: Bearer <token do login>"; só muda a do dono do token
+const CHAVE_MOLDURAS = 'molduras'
+const ID_MOLDURA = /^[a-z0-9-]{1,40}\/[a-z0-9-]{1,60}$/
+
+const json = (dados, status = 200, extra = {}) =>
+  new Response(JSON.stringify(dados), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...extra } })
+
+async function mapaMolduras(env) {
+  try {
+    return (await env.MOLDURAS.get(CHAVE_MOLDURAS, 'json')) || {}
+  } catch {
+    return {}
+  }
+}
+
+async function lerMolduras(env) {
+  // Cache curto: troca de moldura aparece para os outros em poucos segundos
+  return json(await mapaMolduras(env), 200, { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=5' })
+}
+
+async function salvarMoldura(req, env, site) {
+  // Só o próprio site (e as ORIGENS_EXTRAS) pode salvar
+  const permitidas = [site, ...String(env.ORIGENS_EXTRAS || '').split(',').map((s) => s.trim().replace(/\/$/, '')).filter(Boolean)]
+  const origem = req.headers.get('Origin') || ''
+  const cors = permitidas.includes(origem)
+    ? { 'Access-Control-Allow-Origin': origem, 'Access-Control-Allow-Methods': 'POST', 'Access-Control-Allow-Headers': 'Authorization, Content-Type', Vary: 'Origin' }
+    : {}
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors })
+  if (req.method !== 'POST') return json({ erro: 'metodo' }, 405, cors)
+  if (!cors['Access-Control-Allow-Origin']) return json({ erro: 'origem' }, 403)
+
+  const token = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '')
+  const dono = env.SEGREDO ? await conferir(token, env.SEGREDO) : null
+  if (!dono) return json({ erro: 'login' }, 401, cors) // login inválido ou vencido: entrar de novo
+
+  let moldura
+  try {
+    moldura = (await req.json())?.moldura ?? null
+  } catch {
+    return json({ erro: 'corpo' }, 400, cors)
+  }
+  if (moldura !== null && (typeof moldura !== 'string' || !ID_MOLDURA.test(moldura))) return json({ erro: 'moldura' }, 400, cors)
+
+  const mapa = await mapaMolduras(env)
+  if (moldura) mapa[dono.id] = moldura
+  else delete mapa[dono.id]
+  await env.MOLDURAS.put(CHAVE_MOLDURAS, JSON.stringify(mapa))
+  return json({ ok: true, molduras: mapa }, 200, cors)
+}
+
+// Token do login: assinatura certa e dentro da validade -> { id, ... }; senão null
+async function conferir(token, segredo) {
+  const [corpo, assinatura] = String(token).split('.')
+  if (!corpo || !assinatura) return null
+  try {
+    const de64 = (s) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0))
+    const chave = await crypto.subtle.importKey('raw', new TextEncoder().encode(segredo), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify'])
+    if (!(await crypto.subtle.verify('HMAC', chave, de64(assinatura), new TextEncoder().encode(corpo)))) return null
+    const dados = JSON.parse(new TextDecoder().decode(de64(corpo)))
+    return /^\d{17}$/.test(dados.id) && dados.exp * 1000 > Date.now() ? dados : null
+  } catch {
+    return null
+  }
 }
 
 // Para onde voltar depois do login: só páginas do próprio site (ou das ORIGENS_EXTRAS)

@@ -236,3 +236,4 @@
 .linha.eu { background: rgba(26,115,232,.12); box-shadow: inset 3px 0 0 var(--blue-2); }
 .minha-pos { margin-top: 14px; }
 .minha-pos-tit { padding: 10px 16px 4px; font-size: 11px; letter-spacing: 1.5px; color: var(--blue-2); }
+.pod-pos { z-index: 3; } /* número da posição fica por cima da moldura */
