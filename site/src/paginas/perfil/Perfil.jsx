@@ -3,10 +3,11 @@ import Layout from '../../comum/Layout.jsx'
 import { entrar, loginAtivo, useConta } from '../../comum/conta.js'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { useAoVivo } from '../../comum/aoVivo.js'
+import { CONFIG } from '../../comum/config.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
 import { IconeSteam } from '../../comum/Icones.jsx'
 import { nomeMapa } from '../../comum/mapas.js'
-import { ComMoldura, TimeEscolhido, useAdmin, useTimeDe } from '../../comum/Moldura.jsx'
+import { CargosDe, ComMoldura, TimeEscolhido, useAdmin, useTimeDe } from '../../comum/Moldura.jsx'
 import Premier from '../../comum/Premier.jsx'
 import { BarraXp, SeloNivel, useNivelDe } from '../../comum/Nivel.jsx'
 import SeletorMoldura from './SeletorMoldura.jsx'
@@ -246,6 +247,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar }) {
                   NÍVEL <b>{nivel.nivel}</b>
                 </span>
               </span>
+              <CargosDe steamId={j.steamId} />
               {/* Time escolhido no "Personalizar"; sem escolha, o da última partida */}
               <TimeEscolhido steamId={j.steamId} classe="pf-time" />
               {!timeEscolhido && j.time && (
@@ -328,6 +330,7 @@ export default function Perfil() {
   const [idUrl, setIdUrl] = useState(null) // null = ainda não leu o endereço (HTML gerado)
   const [dados, setDados] = useState(null)
   const [editando, setEditando] = useState(false) // janela "Personalizar" aberta
+  const [steamPublico, setSteamPublico] = useState(null) // nome/avatar da Steam de quem não está no ranking
 
   useEffect(() => {
     const id = new URLSearchParams(location.search).get('id') || ''
@@ -346,6 +349,20 @@ export default function Perfil() {
       vivo = false
     }
   }, [id])
+
+  // Jogador fora do ranking (sem partidas): nome e avatar da Steam pelo worker (/jogador, público)
+  const noRanking = !!dados?.ranking?.jogadores?.some((x) => x.steamId === id)
+  useEffect(() => {
+    if (!id || !dados || noRanking || !CONFIG.loginSteam) return
+    let vivo = true
+    fetch(`${CONFIG.loginSteam.replace(/\/$/, '')}/jogador?id=${encodeURIComponent(id)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => vivo && d && setSteamPublico({ id, nome: d.nome || '', avatar: d.avatar || '' }))
+      .catch(() => {})
+    return () => {
+      vivo = false
+    }
+  }, [id, dados, noRanking])
 
   // Nome do jogador na aba do navegador
   const j = dados?.ranking?.jogadores?.find((x) => x.steamId === id)
@@ -380,7 +397,10 @@ export default function Perfil() {
     // Sem partidas: o perfil aparece do mesmo jeito (nível pelo ajuste do admin, moldura, time), números em "—"
     const eu = conta?.id === id
     const vazio = {
-      steamId: id, nome: (eu && conta.nome) || 'Jogador', avatar: eu ? conta.avatar : '', time: '', logoTime: '', premier: null, xp: 0,
+      steamId: id,
+      nome: (eu && conta.nome) || (steamPublico?.id === id && steamPublico.nome) || 'Jogador',
+      avatar: (eu && conta.avatar) || (steamPublico?.id === id && steamPublico.avatar) || '',
+      time: '', logoTime: '', premier: null, xp: 0,
       mapas: 0, vitorias: 0, kills: 0, mortes: 0, fk: 0, fd: 0, multi: {}, mvps: 0, mvpPartida: 0, rating: 0, melhorRating: 0, adr: 0, kast: 0, hsPct: 0, kd: 0, winRate: 0,
     }
     conteudo = <Jogador j={vazio} mapas={[]} pos={0} total={0} eu={eu} personalizar={() => setEditando(true)} />

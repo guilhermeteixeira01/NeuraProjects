@@ -3,7 +3,7 @@ import Layout from '../../comum/Layout.jsx'
 import { entrar, linkPerfil, loginAtivo, useConta } from '../../comum/conta.js'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
-import { CamadaMoldura, ComMoldura, chamar, useAdmin, useListaTimes } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, ComMoldura, SeloCargo, chamar, useAdmin, useListaTimes } from '../../comum/Moldura.jsx'
 import { COLECOES, MOLDURAS, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { NIVEL_MAX, nivelDe } from '../../comum/niveis.js'
@@ -58,6 +58,7 @@ function Usuarios({ usuarios, painel, dono, editar }) {
     ['logados', 'Entraram no site', (u) => u.usuario],
     ['personalizados', 'Com perfil', (u) => Object.keys(u.perfil).length > 0],
     ['bloqueados', 'Bloqueados', (u) => u.perfil.bloqueado],
+    ['cargos', 'Com cargo', (u) => (u.perfil.cargos || []).length > 0],
     ['admins', 'Admins', (u) => admins.has(u.id)],
   ]
   const termo = busca.trim().toLowerCase()
@@ -123,6 +124,11 @@ function Usuarios({ usuarios, painel, dono, editar }) {
                       {u.id === dono && <i className="dono">DONO</i>}
                       {u.id !== dono && admins.has(u.id) && <i className="admin">ADMIN</i>}
                       {u.perfil.bloqueado && <i className="bloq">BLOQUEADO</i>}
+                      {(painel.config.cargos || [])
+                        .filter((c) => (u.perfil.cargos || []).includes(c.id))
+                        .map((c) => (
+                          <SeloCargo key={c.id} cargo={c} />
+                        ))}
                       {u.usuario ? <i>LOGIN</i> : <i className="apagado">SÓ PARTIDAS</i>}
                     </span>
                   </td>
@@ -144,12 +150,14 @@ function Usuarios({ usuarios, painel, dono, editar }) {
 }
 
 // Janela de edição de um usuário
-function EditarUsuario({ u, ehAdmin, fechar, aoSalvar }) {
+function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
   const times = useListaTimes()
   const [moldura, setMoldura] = useState(u.perfil.moldura || '')
   const [time, setTime] = useState(u.perfil.time || '')
   const [ajuste, setAjuste] = useState(u.ajuste)
   const [bloqueado, setBloqueado] = useState(!!u.perfil.bloqueado)
+  const [meus, setMeus] = useState(() => (u.perfil.cargos || []).filter((id) => cargos.some((c) => c.id === id)))
+  const trocarCargo = (id, ligado) => setMeus((l) => (ligado ? [...new Set([...l, id])] : l.filter((x) => x !== id)))
   const [estado, setEstado] = useState('')
   const previa = nivelDe(u.xpBase + (Number(ajuste) || 0))
 
@@ -169,8 +177,8 @@ function EditarUsuario({ u, ehAdmin, fechar, aoSalvar }) {
       setEstado(mensagemErro(e))
     }
   }
-  const salvar = () => enviar({ moldura: moldura || null, time: time || null, xp: Math.round(Number(ajuste) || 0), bloqueado })
-  const limpar = () => window.confirm(`Apagar moldura, time, ajuste de XP e bloqueio de ${u.nome || u.id}?`) && enviar({ limpar: true })
+  const salvar = () => enviar({ moldura: moldura || null, time: time || null, xp: Math.round(Number(ajuste) || 0), bloqueado, cargos: meus })
+  const limpar = () => window.confirm(`Apagar moldura, time, ajuste de XP, cargos e bloqueio de ${u.nome || u.id}?`) && enviar({ limpar: true })
 
   return (
     <div className="sm-fundo" onClick={fechar}>
@@ -244,6 +252,23 @@ function EditarUsuario({ u, ehAdmin, fechar, aoSalvar }) {
             </select>
           </label>
 
+          <div className="adm-campo">
+            <span>Cargos</span>
+            {cargos.length ? (
+              <div className="adm-cargos-check">
+                {cargos.map((c) => (
+                  <label key={c.id} className={meus.includes(c.id) ? 'ligado' : ''} style={{ '--cg': c.cor }}>
+                    <input type="checkbox" checked={meus.includes(c.id)} onChange={(e) => trocarCargo(c.id, e.target.checked)} />
+                    <SeloCargo cargo={c} />
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <small>Nenhum cargo criado ainda (aba Cargos).</small>
+            )}
+            <small>Cargos liberam as molduras exclusivas deles e aparecem como selo no perfil e no ranking.</small>
+          </div>
+
           <label className="adm-check">
             <input type="checkbox" checked={bloqueado} onChange={(e) => setBloqueado(e.target.checked)} />
             <span>
@@ -279,16 +304,23 @@ function EditarUsuario({ u, ehAdmin, fechar, aoSalvar }) {
 function Molduras({ config, aoSalvar }) {
   const [porNivel, setPorNivel] = useState(!!config.molduraPorNivel)
   const [niveis, setNiveis] = useState(() => ({ ...config.nivelMoldura }))
+  const [exclusiva, setExclusiva] = useState(() => ({ ...config.molduraCargo }))
   const [estado, setEstado] = useState('')
+  const cargos = config.cargos || []
   const nivelDe1 = (id) => Number(niveis[id]) || 1
-  const mudou = porNivel !== !!config.molduraPorNivel || MOLDURAS.some((m) => nivelDe1(m.id) !== (Number(config.nivelMoldura?.[m.id]) || 1))
+  const cargoDe = (id) => cargos.find((c) => c.id === exclusiva[id]) || null
+  const mudou =
+    porNivel !== !!config.molduraPorNivel ||
+    MOLDURAS.some((m) => nivelDe1(m.id) !== (Number(config.nivelMoldura?.[m.id]) || 1) || (exclusiva[m.id] || '') !== (config.molduraCargo?.[m.id] || ''))
+  const tornarExclusiva = (ids, cargo) => setExclusiva((v) => ({ ...v, ...Object.fromEntries(ids.map((id) => [id, cargo])) }))
 
   const definir = (ids, n) => setNiveis((v) => ({ ...v, ...Object.fromEntries(ids.map((id) => [id, Number(n)])) }))
   const salvar = async () => {
     setEstado('salvando')
     try {
       const nivelMoldura = Object.fromEntries(MOLDURAS.filter((m) => nivelDe1(m.id) > 1).map((m) => [m.id, nivelDe1(m.id)]))
-      const d = await chamar('/admin/config', { molduraPorNivel: porNivel, nivelMoldura })
+      const molduraCargo = Object.fromEntries(MOLDURAS.filter((m) => cargoDe(m.id)).map((m) => [m.id, exclusiva[m.id]]))
+      const d = await chamar('/admin/config', { molduraPorNivel: porNivel, nivelMoldura, molduraCargo })
       aoSalvar(d.config)
       setEstado('Salvo!')
     } catch (e) {
@@ -316,14 +348,32 @@ function Molduras({ config, aoSalvar }) {
         </div>
       </div>
 
-      <div className={`adm-colecoes${porNivel ? '' : ' desligado'}`}>
+      <p className="adm-nota">
+        <b>Exclusiva de:</b> a moldura só pode ser usada por quem tem o cargo (crie os cargos na aba Cargos). Vale mesmo com a regra de nível
+        desligada; com as duas, o jogador precisa do cargo e do nível.
+      </p>
+      <div className="adm-colecoes">
         {COLECOES.map((c) => {
           const daColecao = MOLDURAS.filter((m) => m.colecao === c)
           return (
             <section key={c} className="adm-colecao">
               <div className="adm-colecao-cab">
                 <h3>{c}</h3>
-                <label>
+                {cargos.length > 0 && (
+                  <label>
+                    Exclusiva:
+                    <select value="" onChange={(e) => e.target.value && tornarExclusiva(daColecao.map((m) => m.id), e.target.value === '-' ? '' : e.target.value)}>
+                      <option value="">coleção inteira…</option>
+                      <option value="-">Todos (sem cargo)</option>
+                      {cargos.map((cg) => (
+                        <option key={cg.id} value={cg.id}>
+                          {cg.nome}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+                <label className={porNivel ? '' : 'desligado'}>
                   Coleção inteira:
                   <select value="" onChange={(e) => e.target.value && definir(daColecao.map((m) => m.id), e.target.value)}>
                     <option value="">nível…</option>
@@ -337,10 +387,20 @@ function Molduras({ config, aoSalvar }) {
               </div>
               <div className="adm-molduras">
                 {daColecao.map((m) => (
-                  <div key={m.id} className="adm-mold">
+                  <div key={m.id} className={`adm-mold${cargoDe(m.id) ? ' exclusiva' : ''}`} style={cargoDe(m.id) ? { '--cg': cargoDe(m.id).cor } : undefined}>
                     <img src={urlMiniatura(m.id)} alt="" loading="lazy" />
                     <span>{m.nome}</span>
-                    <span className="adm-mold-nivel">
+                    {cargos.length > 0 && (
+                      <select className="adm-mold-cargo" value={exclusiva[m.id] || ''} onChange={(e) => tornarExclusiva([m.id], e.target.value)} aria-label={`Exclusiva de (${m.nome})`}>
+                        <option value="">Todos</option>
+                        {cargos.map((cg) => (
+                          <option key={cg.id} value={cg.id}>
+                            Só {cg.nome}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    <span className={`adm-mold-nivel${porNivel ? '' : ' desligado'}`}>
                       <SeloNivel nivel={nivelDe1(m.id)} tamanho={24} />
                       <select value={nivelDe1(m.id)} onChange={(e) => definir([m.id], e.target.value)} aria-label={`Nível de ${m.nome}`}>
                         {NIVEIS_OPCOES.map((n) => (
@@ -356,6 +416,103 @@ function Molduras({ config, aoSalvar }) {
             </section>
           )
         })}
+      </div>
+    </div>
+  )
+}
+
+// ── Aba Cargos: criar/editar/apagar (Premium, VIP...) ──
+const slug = (s) =>
+  String(s)
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 24)
+
+function Cargos({ config, usuarios, aoSalvar }) {
+  const [lista, setLista] = useState(() => (config.cargos || []).map((c) => ({ ...c })))
+  const [novoNome, setNovoNome] = useState('')
+  const [novaCor, setNovaCor] = useState('#f5c542')
+  const [estado, setEstado] = useState('')
+  const mudou = JSON.stringify(lista) !== JSON.stringify(config.cargos || [])
+  const membros = (id) => usuarios.filter((u) => (u.perfil.cargos || []).includes(id))
+  const exclusivas = (id) => Object.values(config.molduraCargo || {}).filter((c) => c === id).length
+
+  const mudar = (i, campo, valor) => setLista((l) => l.map((c, k) => (k === i ? { ...c, [campo]: valor } : c)))
+  const adicionar = () => {
+    const nome = novoNome.trim()
+    const base = slug(nome) || 'cargo'
+    let id = base
+    for (let n = 2; lista.some((c) => c.id === id); n++) id = `${base}-${n}`
+    setLista((l) => [...l, { id, nome, cor: novaCor }])
+    setNovoNome('')
+  }
+  const apagar = (i) => {
+    const c = lista[i]
+    const n = membros(c.id).length
+    if (window.confirm(`Apagar o cargo ${c.nome}? ${n} jogador(es) perdem o cargo e as molduras exclusivas dele ficam livres.`)) setLista((l) => l.filter((_, k) => k !== i))
+  }
+  const salvar = async () => {
+    setEstado('salvando')
+    try {
+      const d = await chamar('/admin/config', { cargos: lista.map((c) => ({ ...c, nome: c.nome.trim() })) })
+      aoSalvar(d.config)
+      setEstado('Salvo!')
+    } catch (e) {
+      setEstado(mensagemErro(e))
+    }
+  }
+  const valido = lista.every((c) => c.nome.trim().length > 0 && c.nome.trim().length <= 24)
+
+  return (
+    <div className="adm-bloco adm-cargos">
+      <div className="adm-config-topo">
+        <p className="adm-nota">
+          Cargos (Premium, VIP...) dão um selo no perfil e no ranking e liberam molduras exclusivas. Dê o cargo a alguém em <b>Usuários → Editar</b>;
+          escolha as molduras de cada cargo na aba <b>Molduras</b>.
+        </p>
+        <div className="adm-salvar">
+          <span className="sm-msg" role="status">
+            {estado !== 'salvando' && estado}
+          </span>
+          <button type="button" className="btn btn-primary" onClick={salvar} disabled={!mudou || !valido || estado === 'salvando'}>
+            {estado === 'salvando' ? 'Salvando…' : 'Salvar cargos'}
+          </button>
+        </div>
+      </div>
+      <ul>
+        {lista.map((c, i) => (
+          <li key={c.id}>
+            <input type="color" value={c.cor} onChange={(e) => mudar(i, 'cor', e.target.value)} aria-label={`Cor do cargo ${c.nome}`} />
+            <input className="adm-cargo-nome" value={c.nome} maxLength={24} onChange={(e) => mudar(i, 'nome', e.target.value)} aria-label="Nome do cargo" />
+            <SeloCargo cargo={{ ...c, nome: c.nome || '…' }} />
+            <span className="adm-cargo-info">
+              {membros(c.id).length} jogador(es) · {exclusivas(c.id)} moldura(s) exclusiva(s)
+              <span className="adm-cargo-membros">
+                {membros(c.id)
+                  .slice(0, 8)
+                  .map((u) => (
+                    <a key={u.id} href={linkPerfil(u.id)} title={u.nome}>
+                      <Avatar src={u.avatar} nome={u.nome} classe="adm-av mini" />
+                    </a>
+                  ))}
+              </span>
+            </span>
+            <button type="button" className="btn btn-ghost adm-perigo" onClick={() => apagar(i)}>
+              Apagar
+            </button>
+          </li>
+        ))}
+        {lista.length === 0 && <li className="adm-vazio">Nenhum cargo ainda.</li>}
+      </ul>
+      <div className="adm-novo-admin">
+        <input type="color" value={novaCor} onChange={(e) => setNovaCor(e.target.value)} aria-label="Cor do novo cargo" />
+        <input placeholder="Nome do cargo (ex.: Premium)" value={novoNome} maxLength={24} onChange={(e) => setNovoNome(e.target.value)} />
+        <button type="button" className="btn btn-ghost" disabled={!novoNome.trim() || lista.length >= 20} onClick={adicionar}>
+          Adicionar cargo
+        </button>
       </div>
     </div>
   )
@@ -527,6 +684,7 @@ export default function Admin() {
     const ABAS = [
       ['usuarios', 'Usuários'],
       ['molduras', 'Molduras'],
+      ['cargos', 'Cargos'],
       ['admins', 'Admins'],
     ]
     conteudo = (
@@ -568,10 +726,11 @@ export default function Admin() {
             </div>
             {aba === 'usuarios' && <Usuarios usuarios={usuarios} painel={painel} dono={painel.dono} editar={setEditando} />}
             {aba === 'molduras' && <Molduras key={JSON.stringify(painel.config)} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
+            {aba === 'cargos' && <Cargos key={JSON.stringify(painel.config.cargos || [])} config={painel.config} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
             {aba === 'admins' && <Admins config={painel.config} dono={painel.dono} souDono={eu.dono} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
           </div>
         </section>
-        {editando && <EditarUsuario u={editando} ehAdmin={editando.id === painel.dono || (painel.config.admins || []).includes(editando.id)} fechar={fecharEdicao} aoSalvar={(perfis) => setPainel((p) => ({ ...p, perfis }))} />}
+        {editando && <EditarUsuario u={editando} cargos={painel.config.cargos || []} ehAdmin={editando.id === painel.dono || (painel.config.admins || []).includes(editando.id)} fechar={fecharEdicao} aoSalvar={(perfis) => setPainel((p) => ({ ...p, perfis }))} />}
       </>
     )
   }

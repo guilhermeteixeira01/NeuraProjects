@@ -1176,3 +1176,27 @@ img {
     width: 0;
   }
 }
+
+/* Cargo (Premium, VIP...: comum/Moldura.jsx, SeloCargo) */
+.cargos {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.selo-cargo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--cg);
+  border: 1px solid color-mix(in srgb, var(--cg) 55%, transparent);
+  background: color-mix(in srgb, var(--cg) 12%, transparent);
+  box-shadow: 0 0 14px -6px var(--cg);
+}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CamadaMoldura, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, SeloCargo, cargoDaMoldura, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { COLECOES, MOLDURAS, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { urlOk } from '../../comum/dados.js'
@@ -28,7 +28,13 @@ function Logo({ url, nome, classe }) {
 export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin = false, fechar }) {
   const perfil = usePerfis()[steamId] || {}
   const config = useConfigSite()
-  const travada = (id) => !admin && nivelDaMoldura(config, id) > nivel
+  // Trava: nível abaixo do exigido ou moldura exclusiva de um cargo que a pessoa não tem (admin não tem trava)
+  const meusCargos = perfil.cargos || []
+  const semCargo = (id) => {
+    const cargo = cargoDaMoldura(config, id)
+    return !!cargo && !meusCargos.includes(cargo.id)
+  }
+  const travada = (id) => !admin && (nivelDaMoldura(config, id) > nivel || semCargo(id))
   const [falta, setFalta] = useState(0) // nível exigido, quando o worker recusa
   const times = useListaTimes()
   const salvo = { moldura: perfil.moldura || null, time: perfil.time || null }
@@ -73,13 +79,24 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         onClick={() => !presa && escolher('moldura', m.id)}
         aria-pressed={escolha.moldura === m.id}
         aria-disabled={presa}
-        title={presa ? `${m.nome}: libera no nível ${exige}` : `${m.nome} · ${m.colecao}`}
+        title={
+          !presa
+            ? `${m.nome} · ${m.colecao}`
+            : semCargo(m.id)
+              ? `${m.nome}: exclusiva de ${cargoDaMoldura(config, m.id).nome}`
+              : `${m.nome}: libera no nível ${exige}`
+        }
       >
         <img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" />
         <span>{m.nome}</span>
-        {presa && (
+        {(presa || cargoDaMoldura(config, m.id)) && (
           <span className="sm-exige">
-            <CadeadoMini />
+            {cargoDaMoldura(config, m.id) && (
+              <svg className="sm-coroa" style={{ color: cargoDaMoldura(config, m.id).cor }} width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 12H5L3 7z" />
+              </svg>
+            )}
+            {presa && <CadeadoMini />}
           </span>
         )}
       </button>
@@ -96,6 +113,24 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
     }
     return [...grupos.entries()].sort((x, y) => x[0] - y[0])
   }
+  // Exclusivas de cargo têm seção própria (uma por cargo, no topo); o resto vai para as seções de nível
+  const exclusivas = (config.cargos || []).map((c) => [c, lista.filter((m) => config.molduraCargo?.[m.id] === c.id)]).filter(([, l]) => l.length)
+  const comuns = lista.filter((m) => !cargoDaMoldura(config, m.id))
+  const subgrupos = (itens, exige) =>
+    porColecao(itens).map(([c, daColecao]) =>
+      colecao === 'todas' ? (
+        <div key={c} className="sm-sub">
+          <h5 className="sm-sub-cab">
+            {c} <small>{daColecao.length}</small>
+          </h5>
+          <div className="sm-grade">{daColecao.map((m) => itemMoldura(m, exige(m)))}</div>
+        </div>
+      ) : (
+        <div key={c} className="sm-grade">
+          {daColecao.map((m) => itemMoldura(m, exige(m)))}
+        </div>
+      ),
+    )
   const moldura = molduraPorId(escolha.moldura)
   const time = times.find((t) => t.nome === escolha.time) || null
   const mudou = escolha.moldura !== salvo.moldura || escolha.time !== salvo.time
@@ -107,7 +142,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
       fechar()
     } catch (e) {
       setFalta(e.dados?.precisa || 0)
-      setEstado(['login', 'nivel', 'bloqueado'].includes(e.message) ? e.message : 'erro')
+      setEstado(['login', 'nivel', 'bloqueado', 'cargo'].includes(e.message) ? e.message : 'erro')
     }
   }
 
@@ -174,7 +209,18 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                       </button>
                     </div>
                   )}
-                  {gruposPorNivel(lista).map(([exige, itens]) => (
+                  {exclusivas.map(([cargo, itens]) => (
+                    <section key={cargo.id} className="sm-secao sm-secao-cargo" style={{ '--cg': cargo.cor }}>
+                      <h4 className={`sm-secao-cab${!admin && !meusCargos.includes(cargo.id) ? ' presa' : ''}`}>
+                        <SeloCargo cargo={cargo} />
+                        Exclusivas
+                        <small>{admin || meusCargos.includes(cargo.id) ? 'liberado' : `só para ${cargo.nome}`}</small>
+                        <span className="mono">{itens.length}</span>
+                      </h4>
+                      {subgrupos(itens, (m) => nivelDaMoldura(config, m.id))}
+                    </section>
+                  ))}
+                  {gruposPorNivel(comuns).map(([exige, itens]) => (
                     <section key={exige} className="sm-secao">
                       {config.molduraPorNivel && (
                         <h4 className={`sm-secao-cab${!admin && exige > nivel ? ' presa' : ''}`}>
@@ -188,20 +234,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                           <span className="mono">{itens.length}</span>
                         </h4>
                       )}
-                      {porColecao(itens).map(([c, daColecao]) =>
-                        colecao === 'todas' ? (
-                          <div key={c} className="sm-sub">
-                            <h5 className="sm-sub-cab">
-                              {c} <small>{daColecao.length}</small>
-                            </h5>
-                            <div className="sm-grade">{daColecao.map((m) => itemMoldura(m, exige))}</div>
-                          </div>
-                        ) : (
-                          <div key={c} className="sm-grade">
-                            {daColecao.map((m) => itemMoldura(m, exige))}
-                          </div>
-                        ),
-                      )}
+                      {subgrupos(itens, () => exige)}
                     </section>
                   ))}
                 </div>
@@ -229,6 +262,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
             {estado === 'erro' && 'Não deu para salvar. Tente de novo.'}
             {estado === 'login' && 'Seu login venceu. Entre de novo com a Steam.'}
             {estado === 'nivel' && `Essa moldura libera no nível ${falta}.`}
+            {estado === 'cargo' && 'Essa moldura é exclusiva de um cargo que você não tem.'}
             {estado === 'bloqueado' && 'A personalização do seu perfil foi bloqueada por um administrador.'}
           </span>
           <button type="button" className="btn btn-ghost" onClick={fechar}>

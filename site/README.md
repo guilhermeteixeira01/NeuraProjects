@@ -105,6 +105,10 @@ Te1xe1ra) e só ele promove ou remove outros admins.
 - **Molduras:** liga "liberar molduras por nível" e escolhe o nível de cada moldura (ou da coleção inteira).
   Ligado, o Personalizar mostra as molduras acima do nível com cadeado e o worker recusa salvar
   (ele lê o XP do `ranking.json` publicado + o ajuste).
+- **Cargos:** cria cargos (Premium, VIP...) com nome e cor. O admin dá/tira cargos em Usuários → Editar; o cargo vira
+  selo no perfil e no ranking. Na aba Molduras, cada moldura (ou coleção) pode ser **exclusiva de um cargo**: o
+  Personalizar mostra essas numa seção própria ("Exclusivas · Premium"), travadas para quem não tem o cargo, e o worker
+  recusa salvar. Vale junto com a regra de nível (precisa das duas). Admins não têm trava.
 - **Admins:** lista de administradores.
 
 ## Séries (MD3/MD5)
