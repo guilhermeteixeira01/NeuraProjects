@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Layout from '../../comum/Layout.jsx'
 import { linkPerfil, useConta } from '../../comum/conta.js'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { Contador } from '../../comum/efeitos.jsx'
 import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
 import Premier from '../../comum/Premier.jsx'
-import { ComMoldura, TimeEscolhido } from '../../comum/Moldura.jsx'
+import { ComMoldura, TimeEscolhido, usePerfis } from '../../comum/Moldura.jsx'
+import { SeloNivel } from '../../comum/Nivel.jsx'
+import { nivelDe } from '../../comum/niveis.js'
 
 const TOP = 15
 const MIN_MAPAS = 1 // mapas mínimos para entrar no ranking (suba quando tiver mais partidas)
@@ -19,6 +21,7 @@ const METRICAS = [
   ['kd', 'K/D', 'K/D', 2, ''],
   ['hsPct', 'HS%', 'HS%', 1, '%'],
   ['winRate', 'Vitórias', 'VITÓRIAS', 0, '%'],
+  ['xp', 'XP', 'XP', 0, ''],
 ]
 
 const fmt = (v, casas) => Number(v || 0).toFixed(casas)
@@ -85,7 +88,10 @@ function Podio({ j, pos, m, eu }) {
         {j.nome}
       </a>
       <TimeEscolhido steamId={j.steamId} classe="pod-time" />
-      <Premier j={j} />
+      <span className="selos">
+        <SeloNivel nivel={j.nivel} tamanho={30} />
+        <Premier j={j} />
+      </span>
       <span className="pod-valor">
         <b>
           {fmt(j[chave], casas)}
@@ -131,7 +137,10 @@ function Linha({ j, pos, m, max, i, eu }) {
             {j.nome}
           </a>
           <TimeEscolhido steamId={j.steamId} classe="linha-time" />
-          <Premier j={j} />
+          <span className="selos">
+            <SeloNivel nivel={j.nivel} tamanho={24} />
+            <Premier j={j} />
+          </span>
         </span>
       </span>
       <span className="barra-val">
@@ -238,6 +247,16 @@ export default function Ranking({ dados: inicial }) {
   const [dados, setDados] = useState(inicial ? normalizar(inicial) : null)
   const [chave, setChave] = useState('rating')
   const conta = useConta()
+  const perfis = usePerfis()
+  // XP com o ajuste do admin (perfil no worker) e o nível dele
+  const comXp = useMemo(() => {
+    if (!dados) return null
+    const jogadores = dados.jogadores.map((j) => {
+      const xp = (Number(j.xp) || 0) + (Number(perfis[j.steamId]?.xp) || 0)
+      return { ...j, xp, nivel: nivelDe(xp).nivel }
+    })
+    return { ...dados, jogadores }
+  }, [dados, perfis])
 
   useEffect(() => {
     if (!inicial) lerJson('/ranking/ranking.json').then((d) => setDados(normalizar(d)))
@@ -309,7 +328,7 @@ export default function Ranking({ dados: inicial }) {
               </div>
               <span className="nota">{dados && `MÍNIMO DE ${MIN_MAPAS} MAPA${MIN_MAPAS === 1 ? '' : 'S'} · RATING HLTV 1.0`}</span>
             </div>
-            <div id="conteudo">{dados ? <Conteudo dados={dados} chave={chave} eu={conta?.id} /> : <Esqueleto />}</div>
+            <div id="conteudo">{dados ? <Conteudo dados={comXp} chave={chave} eu={conta?.id} /> : <Esqueleto />}</div>
           </div>
         </section>
       </main>

@@ -96,12 +96,11 @@ function montarPagina(modelo, pagina, dadosPagina, trocar = {}) {
 
 const PAGINAS = [
   ['index.html', 'inicio'],
-  ['launcher/index.html', 'launcher'],
   ['neurapick/index.html', 'neurapick'],
   ['times/index.html', 'times'],
-  ['admin.html', 'admin'],
   ['partidas/index.html', 'partidas', { lista, series }],
   ['ranking/index.html', 'ranking', ranking],
+  ['admin/index.html', 'admin'], // painel de administrador (dados vêm do worker, com login)
   ['perfil/index.html', 'perfil'], // jogador vem do endereço (?id=), a página busca os dados no navegador
 ]
 for (const [arq, pagina, dadosPagina] of PAGINAS) {
@@ -113,7 +112,7 @@ for (const [arq, pagina, dadosPagina] of PAGINAS) {
 const modeloPartida = path.join(saidaPartidas, 'partida.html')
 const modelo = ler(modeloPartida)
 const nomeMapa = (m) => String(m || '').replace(/^de_/, '').replace(/^./, (c) => c.toUpperCase())
-const urls = ['/', '/neurapick/', '/partidas/', '/ranking/', '/launcher/']
+const urls = ['/', '/neurapick/', '/partidas/', '/ranking/']
 for (const p of lista) {
   const caminho = p.caminho || p.nome
   const d = lerJson(path.join(saidaPartidas, caminho, 'partida.json'))

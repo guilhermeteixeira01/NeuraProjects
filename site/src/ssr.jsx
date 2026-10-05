@@ -3,7 +3,6 @@
 import { renderToString } from 'react-dom/server'
 import Admin from './paginas/admin/Admin.jsx'
 import Inicio from './paginas/inicio/Inicio.jsx'
-import Launcher from './paginas/launcher/Launcher.jsx'
 import NeuraPick from './paginas/neurapick/App.jsx'
 import Partida from './paginas/partida/Partida.jsx'
 import Partidas from './paginas/partidas/Partidas.jsx'
@@ -11,7 +10,7 @@ import Perfil from './paginas/perfil/Perfil.jsx'
 import Ranking from './paginas/ranking/Ranking.jsx'
 import Times from './paginas/times/Times.jsx'
 
-const PAGINAS = { admin: Admin, inicio: Inicio, launcher: Launcher, neurapick: NeuraPick, partida: Partida, partidas: Partidas, perfil: Perfil, ranking: Ranking, times: Times }
+const PAGINAS = { admin: Admin, inicio: Inicio, neurapick: NeuraPick, partida: Partida, partidas: Partidas, perfil: Perfil, ranking: Ranking, times: Times }
 
 export function renderizar(pagina, dados) {
   const Pagina = PAGINAS[pagina]

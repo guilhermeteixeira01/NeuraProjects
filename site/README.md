@@ -5,16 +5,15 @@ O site inteiro (neuraproject.com.br) é um projeto React + Vite com uma página 
 | Página | Endereço | Código |
 | --- | --- | --- |
 | Início | `/` | `src/paginas/inicio/` |
-| Launcher | `/launcher/` | `src/paginas/launcher/` |
 | Pick & Ban | `/neurapick/` | `src/paginas/neurapick/` |
 | Partidas | `/partidas/` | `src/paginas/partidas/` |
 | Página de uma partida | `/partidas/<org>/<md>/<partida>/` | `src/paginas/partida/` |
 | Ranking | `/ranking/` | `src/paginas/ranking/` |
 | Perfil do jogador | `/perfil/?id=<SteamID64>` | `src/paginas/perfil/` |
 | Lista de times | `/times/` | `src/paginas/times/` |
-| Painel de anúncios | `/admin.html` | `src/paginas/admin/` |
+| Painel de administrador | `/admin/` | `src/paginas/admin/` |
 
-Menu, rodapé, avisos de novidade e configuração (Discord, launcher...) ficam em `src/comum/`.
+Menu, rodapé, avisos de novidade e configuração (Discord, login...) ficam em `src/comum/`.
 Cada página tem um único CSS, que começa importando a base do site (`src/comum/site.css` e `paginas.css`).
 
 ## Comandos (dentro de `site/`)
@@ -78,6 +77,29 @@ todas as páginas que mostram o avatar ou o time leem `GET /perfis` ao abrir (as
 As molduras ficam em `public/assets/molduras/<coleção>/<nome>.png` (APNG 288x288, animado) com uma miniatura
 parada `.webp` (144x144) ao lado, e a lista em `src/comum/molduras.js`. Para adicionar uma: coloque os dois
 arquivos e uma linha na lista.
+
+## Níveis (XP)
+
+Cada partida no servidor dá XP (`src/comum/niveis.js`, a mesma tabela no deploy, no site e no worker):
+100 por jogar, +50 por vencer, +10/+25/+40 por rating 1.0/1.2/1.5 e +20 para o MVP da partida. São 10 níveis
+como na FACEIT (mesmas cores), com o XP mínimo de cada um em `NIVEIS`; o XP só sobe. O deploy calcula o XP de cada
+jogador no `ranking.json` (e quanto cada mapa rendeu no histórico do perfil). O admin pode somar ou tirar XP de
+alguém pelo painel (ajuste guardado no worker e somado no site). Aparece no ranking (com a métrica XP), no perfil
+(selo + barra até o próximo nível) e no painel.
+
+## Painel de administrador (`/admin/`)
+
+A aba **Admin** aparece no menu só para administradores, mas quem decide é o worker: toda chamada `/admin/...`
+confere o login e se a pessoa é admin. O dono é o `DONO` do `worker/steam-login/wrangler.toml` (SteamID64 do
+Te1xe1ra) e só ele promove ou remove outros admins.
+
+- **Usuários:** todo mundo do ranking e quem já entrou com a Steam (o worker registra cada login), com busca e
+  filtros. Editar: ajuste de XP, moldura (qualquer uma, sem trava de nível), time, bloquear a personalização
+  (o jogador não troca mais sozinho) ou limpar o perfil.
+- **Molduras:** liga "liberar molduras por nível" e escolhe o nível de cada moldura (ou da coleção inteira).
+  Ligado, o Personalizar mostra as molduras acima do nível com cadeado e o worker recusa salvar
+  (ele lê o XP do `ranking.json` publicado + o ajuste).
+- **Admins:** lista de administradores.
 
 ## Séries (MD3/MD5)
 

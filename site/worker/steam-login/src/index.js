@@ -1,19 +1,28 @@
 /*
- * Login pela Steam do neuraproject.com.br (Cloudflare Worker).
+ * Login pela Steam e dados dos jogadores do neuraproject.com.br (Cloudflare Worker).
  *
  * O site é estático (GitHub Pages) e não consegue confirmar sozinho que o login da Steam é verdadeiro:
- * isso exige uma chamada servidor → Steam. Este worker faz só essa parte:
+ * isso exige uma chamada servidor → Steam. Este worker faz essa parte e guarda o que muda sem deploy:
  *   /login?volta=<página>  -> manda para o login da Steam
- *   /retorno               -> a Steam volta aqui; confirma com ela, busca nome e avatar e devolve para
- *                             a página com #steam=<token> (o site guarda o token no navegador)
- *   /perfis, /perfil       -> personalização dos jogadores: moldura do avatar e time (KV MOLDURAS, mais abaixo)
+ *   /retorno               -> a Steam volta aqui; confirma com ela, busca nome e avatar, registra o usuário e
+ *                             devolve para a página com #steam=<token> (o site guarda o token no navegador)
+ *   /perfis, /perfil       -> personalização dos jogadores: moldura do avatar e time
+ *   /config                -> regras públicas (molduras liberadas por nível)
+ *   /eu                    -> quem é o dono do token e se é admin
+ *   /admin/...             -> painel de administrador (só admins; conferido aqui em toda chamada)
  *
  * Token: base64url(JSON { id, nome, avatar, exp }) + "." + base64url(HMAC-SHA256 com o SEGREDO).
- * O site lê o JSON para mostrar; a assinatura é conferida aqui quando o jogador salva o perfil (/perfil).
+ * O site lê o JSON para mostrar; a assinatura é conferida aqui em tudo que salva.
+ *
+ * KV MOLDURAS (nome antigo do banco; guarda tudo):
+ *   perfis   { "<SteamID64>": { moldura?, time?, xp? (ajuste do admin), bloqueado? } }
+ *   config   { molduraPorNivel: bool, nivelMoldura: { "<moldura>": nível }, admins: ["<SteamID64>"] }
+ *   usuarios { "<SteamID64>": { nome, avatar, primeiro, visto } }  (quem já entrou no site)
  *
  * Variáveis (wrangler.toml / painel da Cloudflare):
  *   SITE            endereço do site (padrão https://neuraproject.com.br)
- *   ORIGENS_EXTRAS  outros endereços que podem receber o login, separados por vírgula
+ *   DONO            SteamID64 do dono: sempre admin e o único que muda a lista de admins
+ *   ORIGENS_EXTRAS  outros endereços que podem usar o login, separados por vírgula
  *                   (ex.: http://localhost:5173 para testar no `npm run dev`)
  * Segredos (npx wrangler secret put <NOME>):
  *   SEGREDO         texto aleatório longo que assina os tokens (obrigatório)
@@ -28,95 +37,218 @@ export default {
   async fetch(req, env) {
     const url = new URL(req.url)
     const site = (env.SITE || 'https://neuraproject.com.br').replace(/\/$/, '')
-    if (url.pathname === '/login') return login(url, env, site)
-    if (url.pathname === '/retorno') return retorno(url, env, site)
-    if (url.pathname === '/perfis' && req.method === 'GET') return lerPerfis(env)
-    if (url.pathname === '/perfil') return salvarPerfil(req, env, site, null)
-    // Rotas antigas (só moldura): páginas que ainda estejam abertas com a versão anterior do site
-    if (url.pathname === '/molduras' && req.method === 'GET') return lerMolduras(env)
-    if (url.pathname === '/moldura') return salvarPerfil(req, env, site, 'moldura')
-    return Response.redirect(`${site}/`, 302)
+    const rota = url.pathname
+    if (rota === '/login') return login(url, env, site)
+    if (rota === '/retorno') return retorno(url, env, site)
+    if (rota === '/perfis' && req.method === 'GET') return json(await ler(env, 'perfis'), 200, publico)
+    if (rota === '/config' && req.method === 'GET') return json(configPublica(await ler(env, 'config')), 200, publico)
+    // Rotas antigas (só moldura): páginas que ainda estejam abertas com uma versão anterior do site
+    if (rota === '/molduras' && req.method === 'GET') return json(soMolduras(await ler(env, 'perfis')), 200, publico)
+
+    // Daqui para baixo: só o próprio site, com login
+    const cors = corsDe(req, env, site)
+    if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors })
+    if (!cors['Access-Control-Allow-Origin']) return json({ erro: 'origem' }, 403)
+    const quem = await logado(req, env)
+    if (!quem) return json({ erro: 'login' }, 401, cors) // login inválido ou vencido: entrar de novo
+    const config = await ler(env, 'config')
+    const admin = ehAdmin(quem.id, env, config)
+
+    if (rota === '/eu' && req.method === 'GET') return json({ id: quem.id, admin, dono: quem.id === env.DONO }, 200, cors)
+    if (req.method === 'POST' && (rota === '/perfil' || rota === '/moldura')) return salvarPerfil(req, env, site, quem, admin, config, cors, rota === '/moldura')
+
+    if (rota.startsWith('/admin/')) {
+      if (!admin) return json({ erro: 'admin' }, 403, cors)
+      if (rota === '/admin/dados' && req.method === 'GET') return adminDados(env, config, cors)
+      if (rota === '/admin/perfil' && req.method === 'POST') return adminPerfil(req, env, cors)
+      if (rota === '/admin/config' && req.method === 'POST') return adminConfig(req, env, config, cors)
+      if (rota === '/admin/admins' && req.method === 'POST') {
+        if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
+        return adminAdmins(req, env, config, cors)
+      }
+    }
+    return json({ erro: 'rota' }, 404, cors)
   },
 }
 
-// ── Perfil dos jogadores (personalização): moldura do avatar e time ──
-// Guardado no KV MOLDURAS numa chave só: { "<SteamID64>": { "moldura": "<coleção>/<moldura>", "time": "<nome>" } }.
-//   GET  /perfis -> o mapa inteiro (toda página do site lê, para mostrar a moldura e o time de cada jogador)
-//   POST /perfil -> { moldura?: "<id>" | null, time?: "<nome>" | null } com "Authorization: Bearer <token do login>";
-//                   só muda os campos enviados (null tira) e só do dono do token
-const CHAVE_PERFIS = 'perfis'
-const CHAVE_ANTIGA = 'molduras' // formato antigo { "<SteamID64>": "<moldura>" }: lido uma vez e convertido
+// ── Utilidades ──
+const ID_STEAM = /^\d{17}$/
 const ID_MOLDURA = /^[a-z0-9-]{1,40}\/[a-z0-9-]{1,60}$/
 const NOME_TIME = /^[^\u0000-\u001f<>]{1,40}$/ // nome da lista de times (o site só mostra se ainda existir na lista)
+const NIVEL_MAX = 10
+const XP_LIMITE = 1000000 // ajuste de XP do admin: de -1.000.000 a +1.000.000
 
 const json = (dados, status = 200, extra = {}) =>
   new Response(JSON.stringify(dados), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...extra } })
 const publico = { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=5' } // troca aparece em segundos
 
-async function mapaPerfis(env) {
-  try {
-    const perfis = await env.MOLDURAS.get(CHAVE_PERFIS, 'json')
-    if (perfis) return perfis
-    const antigo = (await env.MOLDURAS.get(CHAVE_ANTIGA, 'json')) || {}
-    return Object.fromEntries(Object.entries(antigo).map(([id, moldura]) => [id, { moldura }]))
-  } catch {
-    return {}
-  }
-}
+const origensPermitidas = (env, site) => [site, ...String(env.ORIGENS_EXTRAS || '').split(',').map((s) => s.trim().replace(/\/$/, '')).filter(Boolean)]
 
-const lerPerfis = async (env) => json(await mapaPerfis(env), 200, publico)
-
-async function lerMolduras(env) {
-  const perfis = await mapaPerfis(env)
-  return json(Object.fromEntries(Object.entries(perfis).filter(([, p]) => p.moldura).map(([id, p]) => [id, p.moldura])), 200, publico)
-}
-
-// campo = 'moldura' na rota antiga (/moldura): só aceita a moldura; null = qualquer campo do perfil
-async function salvarPerfil(req, env, site, campo) {
-  // Só o próprio site (e as ORIGENS_EXTRAS) pode salvar
-  const permitidas = [site, ...String(env.ORIGENS_EXTRAS || '').split(',').map((s) => s.trim().replace(/\/$/, '')).filter(Boolean)]
+function corsDe(req, env, site) {
   const origem = req.headers.get('Origin') || ''
-  const cors = permitidas.includes(origem)
-    ? { 'Access-Control-Allow-Origin': origem, 'Access-Control-Allow-Methods': 'POST', 'Access-Control-Allow-Headers': 'Authorization, Content-Type', Vary: 'Origin' }
+  return origensPermitidas(env, site).includes(origem)
+    ? { 'Access-Control-Allow-Origin': origem, 'Access-Control-Allow-Methods': 'GET, POST', 'Access-Control-Allow-Headers': 'Authorization, Content-Type', Vary: 'Origin' }
     : {}
-  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors })
-  if (req.method !== 'POST') return json({ erro: 'metodo' }, 405, cors)
-  if (!cors['Access-Control-Allow-Origin']) return json({ erro: 'origem' }, 403)
+}
 
+async function logado(req, env) {
   const token = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '')
-  const dono = env.SEGREDO ? await conferir(token, env.SEGREDO) : null
-  if (!dono) return json({ erro: 'login' }, 401, cors) // login inválido ou vencido: entrar de novo
+  return env.SEGREDO ? conferir(token, env.SEGREDO) : null
+}
 
-  let corpo
+const ehAdmin = (id, env, config) => id === env.DONO || (config.admins || []).includes(id)
+
+// Lê uma chave do KV (objeto vazio se não existir). "perfis" ainda converte o formato antigo da chave "molduras".
+async function ler(env, chave) {
   try {
-    corpo = (await req.json()) || {}
+    const v = await env.MOLDURAS.get(chave, 'json')
+    if (v) return v
+    if (chave === 'perfis') {
+      const antigo = (await env.MOLDURAS.get('molduras', 'json')) || {}
+      return Object.fromEntries(Object.entries(antigo).map(([id, moldura]) => [id, { moldura }]))
+    }
   } catch {
-    return json({ erro: 'corpo' }, 400, cors)
+    // KV fora: segue vazio
   }
+  return {}
+}
+const gravar = (env, chave, valor) => env.MOLDURAS.put(chave, JSON.stringify(valor))
+
+const soMolduras = (perfis) => Object.fromEntries(Object.entries(perfis).filter(([, p]) => p.moldura).map(([id, p]) => [id, p.moldura]))
+const configPublica = (c) => ({ molduraPorNivel: !!c.molduraPorNivel, nivelMoldura: c.nivelMoldura || {} })
+
+async function corpoJson(req) {
+  try {
+    return (await req.json()) || {}
+  } catch {
+    return null
+  }
+}
+
+// Aplica mudanças num perfil (null tira o campo) e grava; perfil vazio sai do mapa
+async function mudarPerfil(env, id, mudar) {
+  const perfis = await ler(env, 'perfis')
+  const p = { ...perfis[id] }
+  for (const [k, v] of Object.entries(mudar)) {
+    if (v === null || v === false || v === 0) delete p[k]
+    else p[k] = v
+  }
+  if (Object.keys(p).length) perfis[id] = p
+  else delete perfis[id]
+  await gravar(env, 'perfis', perfis)
+  return perfis
+}
+
+// Valida moldura/time vindos do site; devolve { mudar } ou { erro }
+function validarPerfil(corpo, soMoldura) {
   const mudar = {}
   if ('moldura' in corpo) {
     const m = corpo.moldura ?? null
-    if (m !== null && (typeof m !== 'string' || !ID_MOLDURA.test(m))) return json({ erro: 'moldura' }, 400, cors)
+    if (m !== null && (typeof m !== 'string' || !ID_MOLDURA.test(m))) return { erro: 'moldura' }
     mudar.moldura = m
   }
-  if (!campo && 'time' in corpo) {
+  if (!soMoldura && 'time' in corpo) {
     const t = typeof corpo.time === 'string' ? corpo.time.trim() : corpo.time ?? null
-    if (t !== null && (typeof t !== 'string' || !NOME_TIME.test(t))) return json({ erro: 'time' }, 400, cors)
+    if (t !== null && (typeof t !== 'string' || !NOME_TIME.test(t))) return { erro: 'time' }
     mudar.time = t
   }
+  return { mudar }
+}
 
-  const perfis = await mapaPerfis(env)
-  const meu = { ...perfis[dono.id] }
-  for (const [k, v] of Object.entries(mudar)) {
-    if (v === null) delete meu[k]
-    else meu[k] = v
+// Nível do jogador: XP das partidas (ranking.json do site, com a tabela de níveis) + ajuste do admin
+async function nivelDoJogador(env, site, id, perfis) {
+  let ranking = null
+  try {
+    const r = await fetch(`${site}/ranking/ranking.json`, { cf: { cacheTtl: 60 } })
+    ranking = r.ok ? await r.json() : null
+  } catch {
+    // site fora: considera só o ajuste
   }
-  if (Object.keys(meu).length) perfis[dono.id] = meu
-  else delete perfis[dono.id]
-  await env.MOLDURAS.put(CHAVE_PERFIS, JSON.stringify(perfis))
-  if (campo === 'moldura')
-    return json({ ok: true, molduras: Object.fromEntries(Object.entries(perfis).filter(([, p]) => p.moldura).map(([id, p]) => [id, p.moldura])) }, 200, cors)
-  return json({ ok: true, perfis }, 200, cors)
+  const niveis = Array.isArray(ranking?.niveis) && ranking.niveis.length ? ranking.niveis : [0]
+  const xp = (Number(ranking?.jogadores?.find((j) => j.steamId === id)?.xp) || 0) + (Number(perfis[id]?.xp) || 0)
+  let nivel = 1
+  while (nivel < niveis.length && xp >= niveis[nivel]) nivel++
+  return nivel
+}
+
+// ── Jogador salvando o próprio perfil ──
+// POST /perfil { moldura?, time? }  (POST /moldura = rota antiga, só moldura)
+async function salvarPerfil(req, env, site, quem, admin, config, cors, rotaAntiga) {
+  const corpo = await corpoJson(req)
+  if (!corpo) return json({ erro: 'corpo' }, 400, cors)
+  const { mudar, erro } = validarPerfil(corpo, rotaAntiga)
+  if (erro) return json({ erro }, 400, cors)
+
+  const perfis = await ler(env, 'perfis')
+  if (perfis[quem.id]?.bloqueado && !admin) return json({ erro: 'bloqueado' }, 403, cors)
+
+  // Moldura liberada por nível (o admin escolhe no painel); admins não têm trava
+  const precisa = config.molduraPorNivel ? Number(config.nivelMoldura?.[mudar.moldura]) || 1 : 1
+  if (mudar.moldura && precisa > 1 && !admin) {
+    const nivel = await nivelDoJogador(env, site, quem.id, perfis)
+    if (nivel < precisa) return json({ erro: 'nivel', precisa, nivel }, 403, cors)
+  }
+
+  const novos = await mudarPerfil(env, quem.id, mudar)
+  return rotaAntiga ? json({ ok: true, molduras: soMolduras(novos) }, 200, cors) : json({ ok: true, perfis: novos }, 200, cors)
+}
+
+// ── Painel de administrador ──
+async function adminDados(env, config, cors) {
+  const [perfis, usuarios] = await Promise.all([ler(env, 'perfis'), ler(env, 'usuarios')])
+  return json({ perfis, usuarios, config: { ...configPublica(config), admins: config.admins || [] }, dono: env.DONO || null }, 200, cors)
+}
+
+// POST /admin/perfil { id, moldura?, time?, xp? (ajuste), bloqueado?, limpar? }
+async function adminPerfil(req, env, cors) {
+  const corpo = await corpoJson(req)
+  if (!corpo || !ID_STEAM.test(String(corpo.id))) return json({ erro: 'id' }, 400, cors)
+  if (corpo.limpar) {
+    const perfis = await ler(env, 'perfis')
+    delete perfis[corpo.id]
+    await gravar(env, 'perfis', perfis)
+    return json({ ok: true, perfis }, 200, cors)
+  }
+  const { mudar, erro } = validarPerfil(corpo, false)
+  if (erro) return json({ erro }, 400, cors)
+  if ('xp' in corpo) {
+    const xp = Math.round(Number(corpo.xp) || 0)
+    if (Math.abs(xp) > XP_LIMITE) return json({ erro: 'xp' }, 400, cors)
+    mudar.xp = xp
+  }
+  if ('bloqueado' in corpo) mudar.bloqueado = corpo.bloqueado === true
+  return json({ ok: true, perfis: await mudarPerfil(env, corpo.id, mudar) }, 200, cors)
+}
+
+// POST /admin/config { molduraPorNivel?, nivelMoldura? }
+async function adminConfig(req, env, config, cors) {
+  const corpo = await corpoJson(req)
+  if (!corpo) return json({ erro: 'corpo' }, 400, cors)
+  const novo = { ...config }
+  if ('molduraPorNivel' in corpo) novo.molduraPorNivel = corpo.molduraPorNivel === true
+  if ('nivelMoldura' in corpo) {
+    const mapa = {}
+    for (const [id, n] of Object.entries(corpo.nivelMoldura || {})) {
+      const nivel = Math.round(Number(n))
+      if (!ID_MOLDURA.test(id) || !(nivel >= 1 && nivel <= NIVEL_MAX)) return json({ erro: 'nivelMoldura' }, 400, cors)
+      if (nivel > 1) mapa[id] = nivel // nível 1 = liberada para todos (não precisa guardar)
+    }
+    novo.nivelMoldura = mapa
+  }
+  await gravar(env, 'config', novo)
+  return json({ ok: true, config: { ...configPublica(novo), admins: novo.admins || [] } }, 200, cors)
+}
+
+// POST /admin/admins { id, admin: bool }  (só o DONO)
+async function adminAdmins(req, env, config, cors) {
+  const corpo = await corpoJson(req)
+  if (!corpo || !ID_STEAM.test(String(corpo.id))) return json({ erro: 'id' }, 400, cors)
+  const admins = new Set(config.admins || [])
+  if (corpo.admin === true) admins.add(corpo.id)
+  else admins.delete(corpo.id)
+  const novo = { ...config, admins: [...admins] }
+  await gravar(env, 'config', novo)
+  return json({ ok: true, config: { ...configPublica(novo), admins: novo.admins } }, 200, cors)
 }
 
 // Token do login: assinatura certa e dentro da validade -> { id, ... }; senão null
@@ -128,18 +260,18 @@ async function conferir(token, segredo) {
     const chave = await crypto.subtle.importKey('raw', new TextEncoder().encode(segredo), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify'])
     if (!(await crypto.subtle.verify('HMAC', chave, de64(assinatura), new TextEncoder().encode(corpo)))) return null
     const dados = JSON.parse(new TextDecoder().decode(de64(corpo)))
-    return /^\d{17}$/.test(dados.id) && dados.exp * 1000 > Date.now() ? dados : null
+    return ID_STEAM.test(dados.id) && dados.exp * 1000 > Date.now() ? dados : null
   } catch {
     return null
   }
 }
 
+// ── Login pela Steam ──
 // Para onde voltar depois do login: só páginas do próprio site (ou das ORIGENS_EXTRAS)
 function destino(volta, env, site) {
-  const permitidas = [site, ...String(env.ORIGENS_EXTRAS || '').split(',').map((s) => s.trim().replace(/\/$/, '')).filter(Boolean)]
   try {
     const u = new URL(volta || '/', site)
-    if (permitidas.includes(u.origin)) {
+    if (origensPermitidas(env, site).includes(u.origin)) {
       u.hash = ''
       return u.toString()
     }
@@ -189,8 +321,22 @@ async function retorno(url, env, site) {
 
   if (!env.SEGREDO) return erro('config')
   const perfil = await perfilSteam(id, env)
+  await registrarUsuario(env, id, perfil)
   const token = await assinar({ id, nome: perfil.nome, avatar: perfil.avatar, exp: Math.floor(Date.now() / 1000) + DIAS * 86400 }, env.SEGREDO)
   return Response.redirect(`${volta}#steam=${token}`, 302)
+}
+
+// Lista de quem já entrou no site (painel do admin)
+async function registrarUsuario(env, id, perfil) {
+  try {
+    const usuarios = await ler(env, 'usuarios')
+    const agora = new Date().toISOString()
+    const antes = usuarios[id] || {}
+    usuarios[id] = { nome: perfil.nome || antes.nome || '', avatar: perfil.avatar || antes.avatar || '', primeiro: antes.primeiro || agora, visto: agora }
+    await gravar(env, 'usuarios', usuarios)
+  } catch {
+    // não impede o login
+  }
 }
 
 // Nome e avatar pela Web API da Steam (sem chave ou com erro: vazio)

@@ -5,6 +5,8 @@ compatibility_date = "2026-10-01"
 
 [vars]
 SITE = "https://neuraproject.com.br"
+# Dono do site (Te1xe1ra): sempre admin e o único que promove outros admins no painel
+DONO = "76561199151150360"
 # Para testar no `npm run dev`, descomente:
 # ORIGENS_EXTRAS = "http://localhost:5173"
 

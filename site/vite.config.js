@@ -10,14 +10,13 @@ const raiz = path.resolve(aqui, '..') // raiz do repositório (partidas/ e asset
 // Uma entrada por página do site (cada uma com o seu CSS, sem misturar)
 const PAGINAS = {
   inicio: 'index.html',
-  launcher: 'launcher/index.html',
   neurapick: 'neurapick/index.html',
   partidas: 'partidas/index.html',
   partida: 'partidas/partida.html',
   ranking: 'ranking/index.html',
   perfil: 'perfil/index.html',
+  admin: 'admin/index.html',
   times: 'times/index.html',
-  admin: 'admin.html',
 }
 
 // `npm run dev`: dados que ficam fora de site/ (no deploy eles são copiados para o site publicado)

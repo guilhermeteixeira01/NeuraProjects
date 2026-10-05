@@ -209,3 +209,25 @@ html.sm-aberto { overflow: hidden; }
 @media (max-width: 720px) {
   .sm-time-logo { width: 54px; height: 54px; }
 }
+
+/* Nível e XP (estilo FACEIT) */
+.pf-nivel { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 1.5px; color: var(--dim); }
+.pf-nivel b { font-family: var(--font-display); font-size: 18px; letter-spacing: 0; color: var(--text); }
+.pf-xp { max-width: 440px; margin-top: 16px; }
+.pf-xp-mapa { color: var(--green); }
+
+/* Moldura liberada por nível (regra do admin) */
+.sm-item { position: relative; }
+.sm-exige { position: absolute; top: 6px; right: 6px; display: inline-flex; align-items: center; gap: 3px; color: var(--dim); }
+.sm-item.presa { cursor: not-allowed; }
+.sm-item.presa img { filter: grayscale(1) brightness(.5); }
+.sm-item.presa:hover { transform: none; border-color: var(--border); background: rgba(255,255,255,.02); }
+
+/* Perfil sem partidas */
+.pf-estats.vazio .pf-estat b { color: var(--dim-2); }
+.pf-sem {
+  display: flex; flex-direction: column; gap: 6px; margin-top: 18px; padding: 22px 24px; border-radius: 14px;
+  border: 1px dashed var(--border-2); background: linear-gradient(160deg, var(--panel-2), var(--panel));
+}
+.pf-sem b { font-family: var(--font-display); font-size: 18px; }
+.pf-sem span { color: var(--dim); font-size: 14px; max-width: 640px; }

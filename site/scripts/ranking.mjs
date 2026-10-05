@@ -5,6 +5,7 @@
  */
 import fs from 'node:fs'
 import path from 'node:path'
+import { NIVEIS, XP, nivelDe, xpDaPartida } from '../src/comum/niveis.js'
 
 const ULTIMOS = 5 // forma recente: últimos mapas de cada jogador
 
@@ -50,7 +51,7 @@ export async function gerarRanking(pasta, { premier = true } = {}) {
       const j = jogadores.get(e.steamId) || {
         steamId: e.steamId, nome: '', avatar: '', time: '', logoTime: '',
         mapas: 0, vitorias: 0, rounds: 0, kills: 0, mortes: 0, assist: 0, hs: 0, dano: 0, kastRounds: 0,
-        fk: 0, fd: 0, k5: 0, k4: 0, k3: 0, k2: 0, mvps: 0, mvpPartida: 0, ratingSoma: 0, melhorRating: 0, ultimos: [], historico: [],
+        fk: 0, fd: 0, k5: 0, k4: 0, k3: 0, k2: 0, mvps: 0, mvpPartida: 0, ratingSoma: 0, melhorRating: 0, xp: 0, ultimos: [], historico: [],
       }
       const venceu = vencedor === e.time
       j.nome = e.nome || j.nome
@@ -79,6 +80,8 @@ export async function gerarRanking(pasta, { premier = true } = {}) {
       j.ultimos.push({ rating: e.rating, venceu, mapa: String(d.mapa || '').replace(/^de_/, ''), data: p.data, caminho: p.caminho || p.nome })
       if (j.ultimos.length > ULTIMOS) j.ultimos.shift()
       // Histórico completo (página de perfil): um arquivo por jogador, fora do ranking.json
+      const xpMapa = xpDaPartida({ venceu, rating: e.rating, mvp: e === mvp })
+      j.xp += xpMapa
       const meu = e.time === 'A' ? 'A' : 'B'
       j.historico.push({
         caminho: p.caminho || p.nome,
@@ -96,6 +99,7 @@ export async function gerarRanking(pasta, { premier = true } = {}) {
         assist: e.assistencias,
         adr: Math.round((10 * e.dano) / rounds) / 10,
         hs: e.kills ? Math.round((100 * e.headshots) / e.kills) : 0,
+        xp: xpMapa,
       })
       jogadores.set(e.steamId, j)
       leu = true
@@ -135,11 +139,14 @@ export async function gerarRanking(pasta, { premier = true } = {}) {
       kd: arred(j.mortes ? j.kills / j.mortes : j.kills),
       kr: arred(j.kills / j.rounds),
       winRate: arred((100 * j.vitorias) / j.mapas, 1),
+      xp: j.xp, // XP das partidas (o site soma o ajuste do admin, se houver)
+      nivel: nivelDe(j.xp).nivel,
       ultimos: j.ultimos.reverse(), // mais recente primeiro
     }))
     .sort((a, b) => b.rating - a.rating || b.kills - a.kills)
 
   // historicos: { steamId: [mapas, mais recente primeiro] } (gerar-site grava em perfil/historico/<id>.json)
   const historicos = Object.fromEntries([...jogadores.values()].map((j) => [j.steamId, j.historico.reverse()]))
-  return { atualizado: new Date().toISOString(), partidas: mapasLidos, jogadores: ranking, historicos }
+  // niveis/xpRegras: tabela usada (o worker lê daqui para conferir o nível das molduras)
+  return { atualizado: new Date().toISOString(), partidas: mapasLidos, niveis: NIVEIS, xpRegras: XP, jogadores: ranking, historicos }
 }
