@@ -1,0 +1,14 @@
+{
+  "name": "neura-molduras",
+  "private": true,
+  "type": "module",
+  "description": "Ferramentas das molduras de avatar (fora do build do site): gera a coleção Neura e baixa as escolhidas da Steam/Decor",
+  "scripts": {
+    "neura": "node neura.mjs",
+    "baixar": "node baixar.mjs"
+  },
+  "dependencies": {
+    "sharp": "^0.34.0",
+    "upng-js": "^2.1.0"
+  }
+}

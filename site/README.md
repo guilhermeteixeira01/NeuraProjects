@@ -79,9 +79,26 @@ worker (`POST /perfil`, que confere o login) e fica no KV `MOLDURAS` da Cloudfla
 todas as páginas que mostram o avatar ou o time leem `GET /perfis` ao abrir (as rotas antigas `/molduras` e
 `/moldura` continuam funcionando). Quem troca vê na hora; os outros ao abrir ou recarregar a página.
 
-As molduras ficam em `public/assets/molduras/<coleção>/<nome>.png` (APNG 288x288, animado) com uma miniatura
-parada `.webp` (144x144) ao lado, e a lista em `src/comum/molduras.js`. Para adicionar uma: coloque os dois
-arquivos e uma linha na lista.
+As molduras ficam em `public/assets/molduras/<coleção>/<nome>.png` (APNG animado; o avatar ocupa o círculo
+central e a moldura é 120% dele) com uma miniatura parada `.webp` (144x144) ao lado, e a lista em
+`src/comum/molduras.js`. Para adicionar uma: coloque os dois arquivos e uma linha na lista.
+
+De onde vêm (campo `fonte` na lista):
+- **Neura** (`fonte: 'neura'`): feitas por nós, desenhadas por código em `ferramentas/molduras/neura.mjs`
+  (anel neon, plasma, fogo, raio, radar, mira, glitch, órbita, hexágonos, coroa, C4, aurora).
+- **Steam** (Loja de Pontos) e **Decor** (decorações da comunidade): a lista escolhida fica em
+  `ferramentas/molduras/escolhidas.json` e `baixar.mjs` baixa, recomprime as pesadas (acima de 1,2 MB) e grava.
+  A arte é dos autores/jogos de origem.
+- As demais: decorações do Discord (originais em `src/frames`, fora do repositório).
+
+Ferramentas (fora do build do site, com dependências próprias):
+
+```bash
+cd ferramentas/molduras
+npm install
+node neura.mjs              # gera a coleção Neura (ou: node neura.mjs radar c4)
+node baixar.mjs             # baixa as da escolhidas.json e imprime as linhas para o molduras.js
+```
 
 ## Níveis (XP)
 

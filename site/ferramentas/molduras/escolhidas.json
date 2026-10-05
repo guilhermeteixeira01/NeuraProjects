@@ -1,0 +1,434 @@
+[
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Cyber",
+    "nome": "Neon (vermelho)",
+    "appid": 2157830,
+    "arquivo": "73de9404eb37b8f6c9581aa4bf34d6dbdd960cbc.png",
+    "original": "Neon"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Cyber",
+    "nome": "Neon Classic",
+    "appid": 3331000,
+    "arquivo": "00865933a20962680350ebd6916dd1323836432f.png",
+    "original": "Neon Classic"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Cyber",
+    "nome": "Neon Lights",
+    "appid": 1928090,
+    "arquivo": "28bea55719cae0232078a83643d8f58782bf6076.png",
+    "original": "Neon Lights"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Cyber",
+    "nome": "Sea Wave Neon",
+    "appid": 2155600,
+    "arquivo": "432655a0f51b282e92e097d1f2aedb00cc09a456.png",
+    "original": "Sea Wave Neon Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Cyber",
+    "nome": "Neon Blue",
+    "appid": 2129750,
+    "arquivo": "8333257f5cb24cdf8078cbde3e88b01ca7b85691.png",
+    "original": "Neon Blue Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Cyber",
+    "nome": "Glitch (azul)",
+    "appid": 2157830,
+    "arquivo": "92031faf3e9a462670b092b930e3596c5464956a.png",
+    "original": "Glitch"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Cyber",
+    "nome": "Glitched Frame",
+    "appid": 2494780,
+    "arquivo": "3a42017dac79fe29baa60237f21d8a5844c53e30.png",
+    "original": "Glitched Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Cyber",
+    "nome": "Cyber Core",
+    "appid": 3080480,
+    "arquivo": "fde4583a31c6bd112b47ef192b187111cb10d255.png",
+    "original": "Cyber Core Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Cyber",
+    "nome": "Pixel Glitch",
+    "appid": 2160470,
+    "arquivo": "2dfbd2a1e1253c6f18b109c9a09ba57b8eb616fd.png",
+    "original": "Pixel Glitch"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Elementos",
+    "nome": "Fire",
+    "appid": 1929290,
+    "arquivo": "b981100294d7975e53ac9a58919e3510478934e4.png",
+    "original": "Fire"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Elementos",
+    "nome": "Cyan Fire",
+    "appid": 4272270,
+    "arquivo": "2acffd48391c9f447a320a0b402b93e1a817897f.png",
+    "original": "Cyan fire frame [It's Chopping Time!]"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Elementos",
+    "nome": "Fire (vermelho)",
+    "appid": 2496920,
+    "arquivo": "119ef06f2e7bbb3a3e8c528e0365e4112987422f.png",
+    "original": "Avatar frame: Fire"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Elementos",
+    "nome": "Fire Aura",
+    "appid": 3918850,
+    "arquivo": "a1e51c6fcff5b4363ebca3e33b790d6d5cba204b.apng",
+    "original": "Fire Aura"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Elementos",
+    "nome": "Burning Frame",
+    "appid": 4141040,
+    "arquivo": "9f48bf1b291d7a7677647600f53d1903518ce674.png",
+    "original": "Burning Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Elementos",
+    "nome": "Cyan Lightning Strike",
+    "appid": 4272270,
+    "arquivo": "256bd8136e5bc0dbb00c3077cddc947a50d1dc5a.png",
+    "original": "Cyan lightning strike frame [It's Chopping Time!]"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Elementos",
+    "nome": "Lightning (amarelo)",
+    "appid": 2496920,
+    "arquivo": "fa436a2fe1eed769337795b27e30c4581627a36b.png",
+    "original": "Avatar frame: Lightning"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Elementos",
+    "nome": "Golden Spark",
+    "appid": 2461440,
+    "arquivo": "f5559d058cf0879914abd8881469158b49baaf16.png",
+    "original": "Golden Spark Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Elementos",
+    "nome": "Ninja Sparks",
+    "appid": 2542120,
+    "arquivo": "4fda651170200020062d2bb254830af37bcd2f04.apng",
+    "original": "Ninja Sparks"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Elementos",
+    "nome": "Ice",
+    "appid": 3230990,
+    "arquivo": "b90016dabc36340c1f0d86a450d07713a9328a98.png",
+    "original": "Ice"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Elementos",
+    "nome": "Burgundy Storm",
+    "appid": 3044560,
+    "arquivo": "890a06c835e38030c47a5cad7be0fc3faa5b43a7.png",
+    "original": "Burgundy Farame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "nome": "Cosmic Planets",
+    "appid": 4539530,
+    "arquivo": "79371a04545cb5971df791897825193faff8243a.png",
+    "original": "Cosmic Planets"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "nome": "Shimmering Stars",
+    "appid": 1414910,
+    "arquivo": "a3d25860681b4c87222454f26fe95de5e2dee488.png",
+    "original": "Shimmering Stars"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "nome": "Space Moon",
+    "appid": 3970070,
+    "arquivo": "60f1a8ebde7445cc6984d1925f6fc62a756323ac.png",
+    "original": "Space Moon"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "nome": "Luxury Gold",
+    "appid": 3970070,
+    "arquivo": "57d7ec59b97bf127c10ea04c7726162d8c37a79c.png",
+    "original": "Luxury Gold Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "nome": "Legendary Border",
+    "appid": 3032830,
+    "arquivo": "57500774fe21b7f7c138b5c6162ffd53ad0aab7b.png",
+    "original": "Legendary Border"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "nome": "Golden Binding",
+    "appid": 3757060,
+    "arquivo": "0779c5c334ba42e8f6a02551361c5a7497a355cd.png",
+    "original": "Golden Binding"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "nome": "Skulls",
+    "appid": 2157830,
+    "arquivo": "1f0a37734a753ca65518794d5fd3688a3baee63b.png",
+    "original": "Skulls"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "nome": "Ninja Dragon Fire",
+    "appid": 2542120,
+    "arquivo": "9c9b650c48f20c3f8eed491e6cf4305e5a28beef.apng",
+    "original": "Ninja Dragon Fire"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "nome": "NecroHell",
+    "appid": 2852980,
+    "arquivo": "aaff48fd153a9e14ef9edcdf1cdf9de5a60cd5cb.png",
+    "original": "NecroHell"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "nome": "Guns Frame",
+    "appid": 4141040,
+    "arquivo": "edd4c3121fd25761d055fd79a891fd8cbfea8aa0.png",
+    "original": "Guns Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "nome": "Assault Rifle",
+    "appid": 252490,
+    "arquivo": "0bc16c5a0d58517c8da5f77ee003f743c5d044f3.png",
+    "original": "Assault Rifle Shooting"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "nome": "Gunmetal",
+    "appid": 2855100,
+    "arquivo": "090a42f0c559f07278283566270ce768b7046bec.png",
+    "original": "Gunmetal"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Fantasy",
+    "nome": "Boiling Potion",
+    "hash": "d633ce18f71d2e14f3fb93fc78c6504e",
+    "autor": "801087834667614211",
+    "original": "Fantasy: Boiling potion blue"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Fantasy",
+    "nome": "Popping Hearts",
+    "hash": "f3503ae98ef51cc9742548ea30afd7ac",
+    "autor": "801087834667614211",
+    "original": "Fantasy: popping hearts"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Fantasy",
+    "nome": "Jūryoku",
+    "hash": "efc703ad887fcb2f3e543ab4b1963028",
+    "autor": "801087834667614211",
+    "original": "Fantasy: Jūryoku"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Fantasy",
+    "nome": "Kokusen Jūryoku",
+    "hash": "abd5203243ad0ab748b18125cb9aa16a",
+    "autor": "801087834667614211",
+    "original": "Fantasy: kokusen Jūryoku"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Fantasy",
+    "nome": "Party Ball",
+    "hash": "b7c57462d060ff70d27a8d822fc160b4",
+    "autor": "801087834667614211",
+    "original": "Fantasy: party ball"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Fantasy",
+    "nome": "Midori Jūryoku",
+    "hash": "d9e85c4af02061b69d4a671513ce5586",
+    "autor": "801087834667614211",
+    "original": "Fantasy: Midori Jūryoku"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Fantasy",
+    "nome": "Level Up",
+    "hash": "859a241830de1d35d8f169e27ca30972",
+    "autor": "801087834667614211",
+    "original": "Fantasy: level up v1"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Fantasy",
+    "nome": "Level Up (escuro)",
+    "hash": "87d0263bb0e9e9cf77b7a0de7da17257",
+    "autor": "801087834667614211",
+    "original": "Fantasy: level up dark"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Decor",
+    "nome": "HA HA HA",
+    "hash": "cdeb944eb58b7e2003c16934b71f2159",
+    "autor": "599654027764039690",
+    "original": "Ultrakill: HA HA HA | ULTRAKILL"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Decor",
+    "nome": "Blue Soul",
+    "hash": "4db997d68213c9ba8954638621b7a63a",
+    "autor": "357135526215548928",
+    "original": "Undertale: Blue Soul"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Decor",
+    "nome": "Red Soul",
+    "hash": "8f2147c262487b46eaac6459e29ee70a",
+    "autor": "357135526215548928",
+    "original": "Undertale: Red Soul"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Decor",
+    "nome": "Stand Catch",
+    "hash": "194dcc4f9590c02b18a5d41b69a30bd0",
+    "autor": "928339066838216754",
+    "original": "JoJo's Bizarre Adventure: SBR Stand Catch"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Decor",
+    "nome": "Menacing",
+    "hash": "e99e0ab112af94d9d9fc6a7129a69c2a",
+    "autor": "928339066838216754",
+    "original": "JoJo's Bizarre Adventure: 『MENACING RED』"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Decor",
+    "nome": "Stand Stat Circle",
+    "hash": "52758ac977df18edaa433b23232895be",
+    "autor": "928339066838216754",
+    "original": "JoJo's Bizarre Adventure: Stand Stat Circle"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Decor",
+    "nome": "Mothership",
+    "hash": "2fb7fc9567133390d2ec483b34b42725",
+    "autor": "599654027764039690",
+    "original": "The Behemoth: Mothership | Alien Hominid Invasion"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Decor",
+    "nome": "Front Roe Drip",
+    "hash": "380171744d972e43faaddc768b428947",
+    "autor": "194474365646012416",
+    "original": "Splatoon: Front Roe Drip"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Decor",
+    "nome": "Ink Drip",
+    "hash": "5df1ce9ebace0a131ef41058409ce99a",
+    "autor": "194474365646012416",
+    "original": "Splatoon: Splatoon Ink Drip"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Decor",
+    "nome": "Watcher Warping",
+    "hash": "924662de961c9aacf0f6626dde1c2b3d",
+    "autor": "579820082100830208",
+    "original": "Rain World: Watcher Warping"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Decor",
+    "nome": "Watcher Set",
+    "hash": "6c9bac18ac6ff61b05ad602ffe546b71",
+    "autor": "579820082100830208",
+    "original": "Rain World: Watcher Set (Warping)"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Decor",
+    "nome": "Snowglobe",
+    "hash": "8aca99ca389d32534601691f51830490",
+    "autor": "265972854170976260",
+    "original": "Winter Holidays 2023: Snowglobe"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Decor",
+    "nome": "Snowman",
+    "hash": "995db32948ce866b120974948caa958a",
+    "autor": "1180778779682033715",
+    "original": "Winter Holidays 2023: Snowman"
+  },
+  {
+    "fonte": "decor",
+    "colecao": "Decor",
+    "nome": "String Lights",
+    "hash": "ebc2586eda7c66877ef2a2edf89b24c9",
+    "autor": "194474365646012416",
+    "original": "Winter Holidays 2023: String lights RBG"
+  }
+]
