@@ -376,3 +376,7 @@ background:rgba(14,15,19,.97);border:1px solid var(--border-2);box-shadow:0 16px
 .gu-nick{font-size:12px;font-weight:700;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (max-width:980px){.gu-times{grid-template-columns:1fr}}
 @media (max-width:520px){.gu-card{padding:16px 12px}.gu-pilha{width:18px}.gu-nome{padding:0 3px}.gu-nick{font-size:10px}.gu-av{width:28px;height:28px}}
+
+/* Nível estilo FACEIT na tabela: selo + XP ganho/perdido no mapa */
+.nv-cel{display:inline-flex;align-items:center;gap:7px}
+.nv-cel b{font-family:var(--font-mono);font-size:12.5px;font-weight:700;min-width:62px;text-align:left}

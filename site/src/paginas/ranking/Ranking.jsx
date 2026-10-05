@@ -3,6 +3,7 @@ import Layout from '../../comum/Layout.jsx'
 import { linkPerfil, useConta } from '../../comum/conta.js'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { Contador } from '../../comum/efeitos.jsx'
+import { useAoVivo } from '../../comum/aoVivo.js'
 import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
 import Premier from '../../comum/Premier.jsx'
 import { ComMoldura, TimeEscolhido, usePerfis } from '../../comum/Moldura.jsx'
@@ -248,6 +249,8 @@ export default function Ranking({ dados: inicial }) {
   const [chave, setChave] = useState('rating')
   const conta = useConta()
   const perfis = usePerfis()
+  // Deploy novo (partida terminou): a página recarrega sozinha com o ranking atualizado
+  useAoVivo('/ranking/ranking.json', undefined, { selecionar: (r) => r?.atualizado })
   // XP com o ajuste do admin (perfil no worker) e o nível dele
   const comXp = useMemo(() => {
     if (!dados) return null

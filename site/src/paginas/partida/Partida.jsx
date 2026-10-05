@@ -7,7 +7,9 @@ import GraficoUtil from './GraficoUtil.jsx'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { linkPerfil } from '../../comum/conta.js'
 import { fundoMapa, getMap, mapIcon, nomeMapa } from '../../comum/mapas.js'
-import { ComMoldura } from '../../comum/Moldura.jsx'
+import { ComMoldura, usePerfis } from '../../comum/Moldura.jsx'
+import { SeloNivel } from '../../comum/Nivel.jsx'
+import { nivelDe } from '../../comum/niveis.js'
 
 // Página de estatísticas de um mapa jogado no servidor.
 // Os dados vêm do partida.json que o plugin BaseComp manda para o GitHub (formato em `partida.json`, versão 1).
@@ -543,6 +545,9 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
   const media = doTime.reduce((s, e) => s + e.rating, 0) / doTime.length
   const placarTime = t === 'A' ? d.placarA : d.placarB
   const [classe, texto] = !vencedor ? ['', 'EMPATE'] : vencedor === t ? ['win', 'VITÓRIA'] : ['loss', 'DERROTA']
+  // Nível estilo FACEIT: XP ganho/perdido neste mapa e o nível depois dele (vem do deploy em d.xp; + ajuste do admin)
+  const perfis = usePerfis()
+  const temXp = d.xp && Object.keys(d.xp).length > 0
 
   return (
     <div className={`team-card spot team-${t}`}>
@@ -576,6 +581,7 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
           <thead>
             <tr>
               <th>JOGADOR</th>
+              {temXp && <th title="Nível depois deste mapa e o XP que o jogador ganhou ou perdeu nele">NÍVEL</th>}
               <th className="col-rt">RATING</th>
               <th>K</th>
               <th>D</th>
@@ -615,6 +621,21 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
                       )}
                     </a>
                   </td>
+                  {temXp && (
+                    <td>
+                      {d.xp[e.steamId] ? (
+                        <span className="nv-cel">
+                          <SeloNivel nivel={nivelDe(d.xp[e.steamId].total + (Number(perfis[e.steamId]?.xp) || 0)).nivel} tamanho={26} />
+                          <b className={d.xp[e.steamId].ganho > 0 ? 'pos' : d.xp[e.steamId].ganho < 0 ? 'neg' : ''}>
+                            {d.xp[e.steamId].ganho > 0 ? '+' : ''}
+                            {d.xp[e.steamId].ganho} XP
+                          </b>
+                        </span>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                  )}
                   <td className="col-rt">
                     <RatingBadge rating={e.rating} />
                   </td>

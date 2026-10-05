@@ -215,6 +215,7 @@ html.sm-aberto { overflow: hidden; }
 .pf-nivel b { font-family: var(--font-display); font-size: 18px; letter-spacing: 0; color: var(--text); }
 .pf-xp { max-width: 440px; margin-top: 16px; }
 .pf-xp-mapa { color: var(--green); }
+.pf-xp-mapa.perdeu { color: #ff6b6b; }
 
 /* Moldura liberada por nível (regra do admin) */
 .sm-item { position: relative; }
