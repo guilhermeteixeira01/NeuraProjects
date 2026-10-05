@@ -5,8 +5,9 @@ import { lerJson, urlOk } from '../../comum/dados.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
 import { IconeSteam } from '../../comum/Icones.jsx'
 import { nomeMapa } from '../../comum/mapas.js'
-import { ComMoldura, TimeEscolhido, useTimeDe } from '../../comum/Moldura.jsx'
+import { ComMoldura, TimeEscolhido, useAdmin, useTimeDe } from '../../comum/Moldura.jsx'
 import Premier from '../../comum/Premier.jsx'
+import { BarraXp, SeloNivel, useNivelDe } from '../../comum/Nivel.jsx'
 import SeletorMoldura from './SeletorMoldura.jsx'
 
 // Perfil do jogador: /perfil/?id=<SteamID64>. Sem id, mostra o de quem está logado pela Steam.
@@ -131,6 +132,7 @@ function Historico({ mapas }) {
               <th>ADR</th>
               <th>HS%</th>
               <th>RATING</th>
+              <th>XP</th>
             </tr>
           </thead>
           <tbody>
@@ -164,6 +166,7 @@ function Historico({ mapas }) {
                     </span>
                   )}
                 </td>
+                <td className="mono pf-xp-mapa">{m.xp ? `+${m.xp}` : '—'}</td>
               </tr>
             ))}
           </tbody>
@@ -200,7 +203,10 @@ function IconePincel() {
 
 function Jogador({ j, mapas, pos, total, eu, personalizar }) {
   const timeEscolhido = useTimeDe(j.steamId)
+  const nivel = useNivelDe(j)
   const derrotas = j.mapas - j.vitorias
+  const sem = !j.mapas // ainda sem partidas: perfil aparece igual, com os números em "—"
+  const v = (texto) => (sem ? '—' : texto)
   return (
     <>
       <section className="hero pf-hero">
@@ -215,6 +221,12 @@ function Jogador({ j, mapas, pos, total, eu, personalizar }) {
             </span>
             <h1>{j.nome}</h1>
             <div className="pf-meta">
+              <span className="pf-nivel">
+                <SeloNivel nivel={nivel.nivel} tamanho={38} />
+                <span>
+                  NÍVEL <b>{nivel.nivel}</b>
+                </span>
+              </span>
               {/* Time escolhido no "Personalizar"; sem escolha, o da última partida */}
               <TimeEscolhido steamId={j.steamId} classe="pf-time" />
               {!timeEscolhido && j.time && (
@@ -230,6 +242,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar }) {
                 </a>
               )}
             </div>
+            <BarraXp info={nivel} classe="pf-xp" />
             <div className="pf-acoes">
               {eu && (
                 <button type="button" className="btn btn-primary" onClick={personalizar}>
@@ -249,17 +262,24 @@ function Jogador({ j, mapas, pos, total, eu, personalizar }) {
 
       <section className="secao pf-secao">
         <div className="wrap">
-          <div className="pf-estats">
-            <Estat rotulo="RATING" valor={fmt(j.rating, 2)} sub={`melhor ${fmt(j.melhorRating, 2)}`} classe={`destaque rt-txt-${classeRating(j.rating)}`} />
-            <Estat rotulo="K/D" valor={fmt(j.kd, 2)} sub={`${j.kills} kills · ${j.mortes} mortes`} />
-            <Estat rotulo="ADR" valor={fmt(j.adr, 1)} sub="dano por round" />
-            <Estat rotulo="KAST" valor={`${fmt(j.kast, 1)}%`} sub="rounds com impacto" />
-            <Estat rotulo="HS%" valor={`${fmt(j.hsPct, 1)}%`} sub="kills de headshot" />
-            <Estat rotulo="VITÓRIAS" valor={`${fmt(j.winRate, 0)}%`} sub={`${j.vitorias}V · ${derrotas}D em ${j.mapas} mapas`} />
-            <Estat rotulo="ENTRADAS" valor={`${j.fk} / ${j.fd}`} sub="primeira kill / primeira morte" />
-            <Estat rotulo="MULTI-KILLS" valor={`${j.multi?.k5 || 0} · ${j.multi?.k4 || 0} · ${j.multi?.k3 || 0}`} sub="5K · 4K · 3K" />
-            <Estat rotulo="MVP DA PARTIDA" valor={j.mvpPartida} sub={`${j.mvps} MVPs de round`} />
+          <div className={`pf-estats${sem ? ' vazio' : ''}`}>
+            <Estat rotulo="RATING" valor={v(fmt(j.rating, 2))} sub={sem ? 'sem partidas' : `melhor ${fmt(j.melhorRating, 2)}`} classe={sem ? 'destaque' : `destaque rt-txt-${classeRating(j.rating)}`} />
+            <Estat rotulo="K/D" valor={v(fmt(j.kd, 2))} sub={`${j.kills} kills · ${j.mortes} mortes`} />
+            <Estat rotulo="ADR" valor={v(fmt(j.adr, 1))} sub="dano por round" />
+            <Estat rotulo="KAST" valor={v(`${fmt(j.kast, 1)}%`)} sub="rounds com impacto" />
+            <Estat rotulo="HS%" valor={v(`${fmt(j.hsPct, 1)}%`)} sub="kills de headshot" />
+            <Estat rotulo="VITÓRIAS" valor={v(`${fmt(j.winRate, 0)}%`)} sub={`${j.vitorias}V · ${derrotas}D em ${j.mapas} mapas`} />
+            <Estat rotulo="ENTRADAS" valor={v(`${j.fk} / ${j.fd}`)} sub="primeira kill / primeira morte" />
+            <Estat rotulo="MULTI-KILLS" valor={v(`${j.multi?.k5 || 0} · ${j.multi?.k4 || 0} · ${j.multi?.k3 || 0}`)} sub="5K · 4K · 3K" />
+            <Estat rotulo="MVP DA PARTIDA" valor={v(j.mvpPartida)} sub={`${j.mvps} MVPs de round`} />
           </div>
+
+          {sem && (
+            <div className="pf-sem spot">
+              <b>{eu ? 'Você ainda não tem partidas no servidor' : 'Ainda sem partidas no servidor'}</b>
+              <span>Assim que {eu ? 'você jogar' : 'o jogador jogar'} um mapa, as estatísticas, o gráfico de rating e o histórico aparecem aqui — e cada partida dá XP para subir de nível.</span>
+            </div>
+          )}
 
           {mapas?.length > 0 && <GraficoRating mapas={mapas} />}
           {mapas?.length > 0 && <Historico mapas={mapas} />}
@@ -315,6 +335,9 @@ export default function Perfil() {
   }, [j])
 
   const fechar = useCallback(() => setEditando(false), [])
+  // Seu nível (trava das molduras por nível) e se é admin (sem trava)
+  const { admin } = useAdmin(conta)
+  const meuNivel = useNivelDe(dados?.ranking?.jogadores?.find((x) => x.steamId === conta?.id) || { steamId: conta?.id, xp: 0 })
   let conteudo
   if (idUrl === null || (id && (!dados || dados.id !== id))) {
     conteudo = <Aviso titulo="Carregando perfil…" />
@@ -333,25 +356,13 @@ export default function Perfil() {
       </Aviso>
     )
   } else if (!j) {
+    // Sem partidas: o perfil aparece do mesmo jeito (nível pelo ajuste do admin, moldura, time), números em "—"
     const eu = conta?.id === id
-    conteudo = (
-      <Aviso
-        titulo={eu && conta.nome ? conta.nome : 'Jogador sem partidas'}
-        texto={eu ? 'Você ainda não tem partidas registradas no servidor. Assim que jogar um mapa, suas estatísticas aparecem aqui.' : 'Esse jogador ainda não tem partidas registradas no servidor.'}
-      >
-        {eu && (
-          <button type="button" className="btn btn-primary" onClick={() => setEditando(true)}>
-            <IconePincel /> Personalizar
-          </button>
-        )}
-        <a className="btn btn-ghost" href={steam(id)} target="_blank" rel="noopener">
-          <IconeSteam /> Perfil na Steam
-        </a>
-        <a className="btn btn-ghost" href="/ranking/">
-          Ver ranking
-        </a>
-      </Aviso>
-    )
+    const vazio = {
+      steamId: id, nome: (eu && conta.nome) || 'Jogador', avatar: eu ? conta.avatar : '', time: '', logoTime: '', premier: null, xp: 0,
+      mapas: 0, vitorias: 0, kills: 0, mortes: 0, fk: 0, fd: 0, multi: {}, mvps: 0, mvpPartida: 0, rating: 0, melhorRating: 0, adr: 0, kast: 0, hsPct: 0, kd: 0, winRate: 0,
+    }
+    conteudo = <Jogador j={vazio} mapas={[]} pos={0} total={0} eu={eu} personalizar={() => setEditando(true)} />
   } else {
     const ordem = dados.ranking.jogadores.filter((x) => x.mapas >= 1).sort((a, b) => b.rating - a.rating || b.kills - a.kills)
     conteudo = <Jogador j={j} mapas={dados.mapas} pos={ordem.indexOf(j) + 1} total={ordem.length} eu={conta?.id === id} personalizar={() => setEditando(true)} />
@@ -361,7 +372,7 @@ export default function Perfil() {
     <Layout pagina="perfil">
       <main>{conteudo}</main>
       {editando && conta && (
-        <SeletorMoldura steamId={conta.id} avatar={conta.avatar || j?.avatar} nome={conta.nome || j?.nome || 'Você'} fechar={fechar} />
+        <SeletorMoldura steamId={conta.id} avatar={conta.avatar || j?.avatar} nome={conta.nome || j?.nome || 'Você'} nivel={meuNivel.nivel} admin={admin} fechar={fechar} />
       )}
     </Layout>
   )

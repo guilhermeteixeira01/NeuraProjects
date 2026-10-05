@@ -522,6 +522,15 @@ b.decider {
 .field .logo-field input.invalid {
   border-color: var(--red);
 }
+/* Time da lista com logo: só o logo (sem o campo de URL), na mesma altura do campo */
+.logo-field.logo-lista {
+  min-height: 36px;
+}
+.logo-field.logo-lista span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dim);
+}
 .warn-hint {
   color: var(--red);
   margin-top: -8px;

@@ -1,23 +1,5 @@
-/*
- * Configuração do site inteiro (menu, rodapé, launcher, redes sociais).
- *
- * ┌──────────────────────────── CONFIGURAÇÃO ────────────────────────────┐
- * │ launcherAtivo: true = download liberado | false = "Em breve"          │
- * └───────────────────────────────────────────────────────────────────────┘
- */
+// Configuração do site inteiro (menu, rodapé, login, redes sociais).
 export const CONFIG = {
-  launcherAtivo: false,
-
-  // Download e informações da versão (tamanho/versão aparecem sozinhos na página do launcher)
-  launcherDownload: 'https://webhook.neuraproject.com.br/download/latest',
-  launcherInfo: 'https://webhook.neuraproject.com.br/download/latest/info',
-
-  // Jogos do launcher (aparecem na página do launcher)
-  launcherJogos: [
-    { nome: 'Counter-Strike 1.6', status: 'Suportado' },
-    { nome: 'Mais jogos', status: 'Em breve' },
-  ],
-
   // Lista de times (nome + logo) usada pelo Pick & Ban; editada na página /times/.
   // O plugin do servidor também lê esse arquivo (UrlListaTimes no BaseComp.json): não mude o caminho.
   repositorio: 'guilhermeteixeira01/NeuraProjects',
@@ -38,7 +20,6 @@ export const CONFIG = {
 // Itens do menu do topo (o "id" marca a página atual)
 export const MENU = [
   { id: 'inicio', rotulo: 'Início', href: '/' },
-  { id: 'launcher', rotulo: 'Launcher', href: '/launcher/', selo: CONFIG.launcherAtivo ? '' : 'EM BREVE' },
   { id: 'pick', rotulo: 'Pick & Ban', href: '/neurapick/' },
   { id: 'partidas', rotulo: 'Partidas', href: '/partidas/' },
   { id: 'ranking', rotulo: 'Ranking', href: '/ranking/' },

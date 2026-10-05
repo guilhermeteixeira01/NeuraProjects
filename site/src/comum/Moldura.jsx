@@ -52,23 +52,72 @@ export function usePerfis() {
   return atual
 }
 
-// Salva o perfil de quem está logado. mudar = { moldura?, time? } (só os campos enviados mudam; null tira).
-// Erro 'login' = login vencido (sai da conta).
-export async function salvarPerfil(mudar) {
+// Chamada ao worker com o login (GET sem corpo, POST com corpo). Erros: 'login' (login vencido: sai da conta)
+// ou a resposta do worker ({ erro, ... }, ex.: 'nivel', 'bloqueado', 'admin').
+export async function chamar(rota, corpo) {
   const token = tokenConta()
-  if (!token) throw new Error('login')
-  const r = await fetch(`${base()}/perfil`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(mudar),
+  if (!token || !CONFIG.loginSteam) throw Object.assign(new Error('login'), { dados: {} })
+  const r = await fetch(`${base()}${rota}`, {
+    method: corpo === undefined ? 'GET' : 'POST',
+    headers: { Authorization: `Bearer ${token}`, ...(corpo === undefined ? {} : { 'Content-Type': 'application/json' }) },
+    body: corpo === undefined ? undefined : JSON.stringify(corpo),
   })
+  const d = await r.json().catch(() => null)
   if (r.status === 401) {
     sair()
-    throw new Error('login')
+    throw Object.assign(new Error('login'), { dados: d || {} })
   }
-  const d = await r.json().catch(() => null)
-  if (!r.ok || !d?.ok) throw new Error('falhou')
-  publicar(d.perfis)
+  if (!r.ok || d?.erro) throw Object.assign(new Error(d?.erro || 'falhou'), { dados: d || {} })
+  if (d?.perfis) publicar(d.perfis) // toda mudança de perfil já aparece na página
+  return d
+}
+
+// Salva o perfil de quem está logado. mudar = { moldura?, time? } (só os campos enviados mudam; null tira).
+export const salvarPerfil = (mudar) => chamar('/perfil', mudar)
+
+// Regras públicas: { molduraPorNivel, nivelMoldura: { idMoldura: nível } }
+let config = null
+let buscandoConfig = null
+export function useConfigSite() {
+  const [atual, setAtual] = useState(() => config || { molduraPorNivel: false, nivelMoldura: {} })
+  useEffect(() => {
+    if (!CONFIG.loginSteam) return
+    buscandoConfig ??= fetch(`${base()}/config`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => (config = d && typeof d === 'object' ? { molduraPorNivel: !!d.molduraPorNivel, nivelMoldura: d.nivelMoldura || {} } : config))
+      .catch(() => config)
+    let vivo = true
+    buscandoConfig.then((c) => vivo && c && setAtual(c))
+    return () => {
+      vivo = false
+    }
+  }, [])
+  return atual
+}
+// Nível que a moldura exige (1 = livre), conforme a regra do admin
+export const nivelDaMoldura = (config, id) => (config.molduraPorNivel ? Number(config.nivelMoldura?.[id]) || 1 : 1)
+
+// Quem está logado é admin? (o worker confere de verdade em toda ação; aqui é só para mostrar a aba)
+let eu = { id: null, admin: false, dono: false }
+let buscandoEu = null
+export function useAdmin(conta) {
+  const [atual, setAtual] = useState(eu)
+  useEffect(() => {
+    if (!conta?.id) {
+      setAtual({ id: null, admin: false, dono: false })
+      return
+    }
+    if (eu.id !== conta.id) buscandoEu = null
+    buscandoEu ??= chamar('/eu')
+      .then((d) => (eu = { id: d.id, admin: !!d.admin, dono: !!d.dono }))
+      .catch(() => (eu = { id: conta.id, admin: false, dono: false }))
+    let vivo = true
+    buscandoEu.then((e) => vivo && setAtual(e))
+    return () => {
+      vivo = false
+    }
+  }, [conta?.id])
+  return atual
 }
 
 // ── Time escolhido ──

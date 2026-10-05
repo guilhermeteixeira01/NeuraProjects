@@ -1,861 +1,551 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import Layout from '../../comum/Layout.jsx'
+import { entrar, linkPerfil, loginAtivo, useConta } from '../../comum/conta.js'
+import { lerJson, urlOk } from '../../comum/dados.js'
+import { FundoHero } from '../../comum/HeroFundo.jsx'
+import { CamadaMoldura, ComMoldura, chamar, useAdmin, useListaTimes } from '../../comum/Moldura.jsx'
+import { COLECOES, MOLDURAS, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
+import { SeloNivel } from '../../comum/Nivel.jsx'
+import { NIVEL_MAX, nivelDe } from '../../comum/niveis.js'
 
-// Painel de anúncios do Neura Launcher: anúncios, imagens da Hero e servidores.
-// Tudo fica salvo no navegador (localStorage) e vai para o repositório do launcher pela API do GitHub.
+// Painel de administrador (/admin/). A aba só aparece para admin, mas quem decide é o worker:
+// toda chamada /admin/... confere o login e se a pessoa é admin (o dono, ou quem o dono promoveu).
 
-const HERO_PADRAO = {
-  enabled: true,
-  interval: 7500,
-  images: [
-    'https://4kwallpapers.com/images/wallpapers/counter-strike--9192.png',
-    'https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/items/273110/5517e9ce03717bff29b8d5da5bbc6484fc9c8904.jpg',
-    'https://wallpaperaccess.com/full/2086790.jpg',
-    'https://sm.ign.com/t/ign_ap/articlepage/c/counter-strike-nexon-zombies-free-to-play-hits-ste/counter-strike-nexon-zombies-free-to-play-hits-ste_pamy.1280.jpg',
-  ],
+const NIVEIS_OPCOES = Array.from({ length: NIVEL_MAX }, (_, i) => i + 1)
+const fmt = (v) => Number(v || 0).toLocaleString('pt-BR')
+const iniciais = (nome) => String(nome || '?').trim().slice(0, 2).toUpperCase()
+const dataBr = (iso) => {
+  const d = new Date(iso)
+  return isNaN(d) ? '—' : d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }).replace(',', '')
+}
+const mensagemErro = (e) =>
+  ({ login: 'Seu login venceu. Entre de novo com a Steam.', admin: 'Você não é mais administrador.', dono: 'Só o dono pode mudar os administradores.', xp: 'Ajuste de XP fora do limite.' })[e.message] ||
+  'Não deu para salvar. Tente de novo.'
+
+function Avatar({ src, nome, classe = 'adm-av' }) {
+  const [erro, setErro] = useState(false)
+  return urlOk(src) && !erro ? <img className={classe} src={src} alt="" loading="lazy" onError={() => setErro(true)} /> : <span className={`${classe} ini`}>{iniciais(nome)}</span>
 }
 
-const TIPOS = { news: '📰 NOTÍCIA', update: '🔄 ATUALIZAÇÃO', event: '🎯 EVENTO', promo: '🎁 PROMOÇÃO' }
-const PRIORIDADES = { 1: '⭐ ALTA', 2: '🔥 URGENTE' }
-
-// ── localStorage (protegido: navegador sem acesso não quebra a página) ──
-const ler = (chave, padrao) => {
-  try {
-    const v = localStorage.getItem(chave)
-    return v === null ? padrao : v
-  } catch {
-    return padrao
+// Junta todo mundo que o site conhece: jogadores do ranking, quem já entrou pela Steam e quem tem perfil salvo
+function montarUsuarios(painel, ranking) {
+  const lista = new Map()
+  const pegar = (id) => {
+    if (!lista.has(id)) lista.set(id, { id, nome: '', avatar: '', xpBase: 0, mapas: 0, usuario: null, perfil: {} })
+    return lista.get(id)
   }
-}
-const lerJsonLocal = (chave, padrao) => {
-  try {
-    return JSON.parse(ler(chave, '')) ?? padrao
-  } catch {
-    return padrao
+  for (const j of ranking?.jogadores || []) Object.assign(pegar(j.steamId), { nome: j.nome, avatar: j.avatar, xpBase: Number(j.xp) || 0, mapas: j.mapas })
+  for (const [id, u] of Object.entries(painel.usuarios || {})) {
+    const x = pegar(id)
+    x.usuario = u
+    x.nome ||= u.nome
+    x.avatar ||= u.avatar
   }
-}
-const gravar = (chave, valor) => {
-  try {
-    localStorage.setItem(chave, valor)
-  } catch {
-    /* sem localStorage */
-  }
+  for (const [id, p] of Object.entries(painel.perfis || {})) pegar(id).perfil = p
+  return [...lista.values()].map((x) => {
+    const ajuste = Number(x.perfil.xp) || 0
+    return { ...x, ajuste, nivel: nivelDe(x.xpBase + ajuste) }
+  })
 }
 
-const configGh = () => ({
-  owner: ler('gh_owner', '') || 'guilhermeteixeira01',
-  repo: ler('gh_repo', '') || 'NeuraCSlauncher',
-  path: ler('gh_path', '') || 'src/announcements.json',
-  serversPath: ler('gh_servers_path', '') || 'src/server-list.json',
-  branch: ler('gh_branch', '') || 'main',
-  token: ler('gh_token', ''),
-})
+// ── Aba Usuários ──
+function Usuarios({ usuarios, painel, dono, editar }) {
+  const [busca, setBusca] = useState('')
+  const [filtro, setFiltro] = useState('todos')
+  const admins = new Set([dono, ...(painel.config.admins || [])])
+  const FILTROS = [
+    ['todos', 'Todos', () => true],
+    ['logados', 'Entraram no site', (u) => u.usuario],
+    ['personalizados', 'Com perfil', (u) => Object.keys(u.perfil).length > 0],
+    ['bloqueados', 'Bloqueados', (u) => u.perfil.bloqueado],
+    ['admins', 'Admins', (u) => admins.has(u.id)],
+  ]
+  const termo = busca.trim().toLowerCase()
+  const visiveis = usuarios
+    .filter(FILTROS.find((f) => f[0] === filtro)[2])
+    .filter((u) => !termo || u.nome.toLowerCase().includes(termo) || u.id.includes(termo))
+    .sort((a, b) => b.nivel.xp - a.nivel.xp || a.nome.localeCompare(b.nome))
 
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7)
-const fmtData = (iso) => {
-  if (!iso) return ''
-  const [y, m, d] = iso.split('-')
-  return `${d}/${m}/${y}`
-}
-const hoje = () => new Date().toISOString().slice(0, 10)
-const codificar = (texto) => btoa(unescape(encodeURIComponent(texto)))
-const decodificar = (base64) => decodeURIComponent(escape(atob(base64.replace(/\n/g, ''))))
-const servidorVazio = () => ({ name: '', host: '', port: 27015, label: '', private: false, password: '' })
-const anuncioVazio = () => ({ title: '', description: '', image: '', type: 'news', date: hoje(), link: '', status: 'active', priority: '0' })
-
-function IconeGithub() {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-      <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
-    </svg>
-  )
-}
-
-function Toasts({ lista }) {
-  const icones = { success: '✓', error: '✕', info: '•' }
-  return (
-    <div id="toast-wrap">
-      {lista.map((t) => (
-        <div key={t.id} className={`toast ${t.tipo}${t.visivel ? ' show' : ''}`}>
-          <span>{icones[t.tipo]}</span> {t.msg}
+    <div className="adm-bloco">
+      <div className="adm-ferramentas">
+        <input className="adm-busca" type="search" placeholder="Buscar por nome ou SteamID…" value={busca} onChange={(e) => setBusca(e.target.value)} />
+        <div className="adm-chips" role="tablist" aria-label="Filtrar usuários">
+          {FILTROS.map(([id, rotulo, f]) => (
+            <button key={id} type="button" role="tab" aria-selected={filtro === id} className={filtro === id ? 'active' : ''} onClick={() => setFiltro(id)}>
+              {rotulo} <small>{usuarios.filter(f).length}</small>
+            </button>
+          ))}
         </div>
-      ))}
+      </div>
+      <div className="tabela adm-tabela-box">
+        <table className="adm-tabela">
+          <thead>
+            <tr>
+              <th className="esq">JOGADOR</th>
+              <th>NÍVEL</th>
+              <th className="esq">MOLDURA</th>
+              <th className="esq">TIME</th>
+              <th className="esq">SITUAÇÃO</th>
+              <th>ÚLTIMO ACESSO</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {visiveis.map((u) => {
+              const m = molduraPorId(u.perfil.moldura)
+              return (
+                <tr key={u.id}>
+                  <td className="esq">
+                    <span className="adm-jog">
+                      <ComMoldura steamId={u.id}>
+                        <Avatar src={u.avatar} nome={u.nome} />
+                      </ComMoldura>
+                      <span>
+                        <a href={linkPerfil(u.id)}>{u.nome || 'Sem nome'}</a>
+                        <small className="mono">{u.id}</small>
+                      </span>
+                    </span>
+                  </td>
+                  <td>
+                    <span className="adm-nivel">
+                      <SeloNivel nivel={u.nivel.nivel} tamanho={28} />
+                      <span>
+                        <b>{fmt(u.nivel.xp)} XP</b>
+                        {u.ajuste !== 0 && <small className={u.ajuste > 0 ? 'mais' : 'menos'}>{u.ajuste > 0 ? `+${fmt(u.ajuste)}` : fmt(u.ajuste)} ajuste</small>}
+                      </span>
+                    </span>
+                  </td>
+                  <td className="esq">{m ? <span className="adm-moldura"><img src={urlMiniatura(m.id)} alt="" loading="lazy" />{m.nome}</span> : <span className="adm-nada">—</span>}</td>
+                  <td className="esq">{u.perfil.time || <span className="adm-nada">—</span>}</td>
+                  <td className="esq">
+                    <span className="adm-tags">
+                      {u.id === dono && <i className="dono">DONO</i>}
+                      {u.id !== dono && admins.has(u.id) && <i className="admin">ADMIN</i>}
+                      {u.perfil.bloqueado && <i className="bloq">BLOQUEADO</i>}
+                      {u.usuario ? <i>LOGIN</i> : <i className="apagado">SÓ PARTIDAS</i>}
+                    </span>
+                  </td>
+                  <td className="mono">{u.usuario ? dataBr(u.usuario.visto) : '—'}</td>
+                  <td>
+                    <button type="button" className="btn btn-ghost adm-editar" onClick={() => editar(u)}>
+                      Editar
+                    </button>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+        {visiveis.length === 0 && <p className="adm-vazio">Ninguém encontrado.</p>}
+      </div>
     </div>
   )
 }
 
-const rotuloCampo = { fontSize: 10, color: 'var(--dim)', marginBottom: 5, fontWeight: 700 }
+// Janela de edição de um usuário
+function EditarUsuario({ u, fechar, aoSalvar }) {
+  const times = useListaTimes()
+  const [moldura, setMoldura] = useState(u.perfil.moldura || '')
+  const [time, setTime] = useState(u.perfil.time || '')
+  const [ajuste, setAjuste] = useState(u.ajuste)
+  const [bloqueado, setBloqueado] = useState(!!u.perfil.bloqueado)
+  const [estado, setEstado] = useState('')
+  const previa = nivelDe(u.xpBase + (Number(ajuste) || 0))
 
-export default function Admin() {
-  const [anuncios, setAnuncios] = useState([])
-  const [hero, setHero] = useState(HERO_PADRAO)
-  const [servidores, setServidores] = useState([])
-  const [ultimaEdicao, setUltimaEdicao] = useState('—')
-  const [busca, setBusca] = useState('')
-  const [filtroTipo, setFiltroTipo] = useState('')
-  const [filtroStatus, setFiltroStatus] = useState('')
-  const [modal, setModal] = useState(null) // { id | null, campos }
-  const [config, setConfig] = useState(null) // campos do modal de configuração
-  const [cfg, setCfg] = useState(configGh)
-  const [carregando, setCarregando] = useState(false)
-  const [salvando, setSalvando] = useState(false)
-  const [toasts, setToasts] = useState([])
-  const shaAnuncios = useRef(null)
-  const shaServidores = useRef(null)
-  const campoTitulo = useRef(null)
-
-  const toast = useCallback((msg, tipo = 'info') => {
-    const id = uid()
-    setToasts((l) => [...l, { id, msg, tipo, visivel: false }])
-    requestAnimationFrame(() => requestAnimationFrame(() => setToasts((l) => l.map((t) => (t.id === id ? { ...t, visivel: true } : t)))))
-    setTimeout(() => {
-      setToasts((l) => l.map((t) => (t.id === id ? { ...t, visivel: false } : t)))
-      setTimeout(() => setToasts((l) => l.filter((t) => t.id !== id)), 300)
-    }, 3000)
-  }, [])
-
-  // Anúncios: guarda no navegador a cada mudança
-  const mudarAnuncios = (lista) => {
-    setAnuncios(lista)
-    gravar('ncs_announcements', JSON.stringify(lista))
-    const data = new Date().toLocaleDateString('pt-BR')
-    gravar('ncs_last_edit', data)
-    setUltimaEdicao(data)
-  }
-
-  // ── GitHub ──
-  const carregarAnuncios = useCallback(
-    async ({ silencioso = false } = {}) => {
-      const c = configGh()
-      if (!c.owner || !c.repo) {
-        if (!silencioso) toast('Configure o GitHub primeiro.', 'error')
-        return
-      }
-      const headers = { Accept: 'application/vnd.github.v3+json' }
-      if (c.token) headers.Authorization = `token ${c.token}`
-      try {
-        const res = await fetch(`https://api.github.com/repos/${c.owner}/${c.repo}/contents/${c.path}?ref=${c.branch}`, { headers })
-        if (res.status === 404) {
-          // Arquivo ainda não existe no repo — não é erro, é primeira vez
-          shaAnuncios.current = null
-          if (!silencioso) toast('Nenhum announcements.json encontrado ainda no repositório.', 'info')
-          return
-        }
-        if (!res.ok) throw new Error(`GitHub API: ${res.status} ${res.statusText}`)
-        const data = await res.json()
-        shaAnuncios.current = data.sha || null
-        const json = JSON.parse(decodificar(data.content || ''))
-        const lista = Array.isArray(json.announcements) ? json.announcements : []
-        if (json.hero) {
-          const h = {
-            enabled: json.hero.enabled !== false,
-            interval: Number(json.hero.interval) || 7500,
-            images: Array.isArray(json.hero.images) ? json.hero.images : [],
-          }
-          setHero(h)
-          gravar('ncs_hero', JSON.stringify(h))
-        }
-        setAnuncios(lista)
-        gravar('ncs_announcements', JSON.stringify(lista))
-        if (!silencioso) toast(`✓ ${lista.length} anúncio(s) carregado(s) do GitHub.`, 'success')
-      } catch (err) {
-        console.error(err)
-        if (!silencioso) toast(`Erro ao carregar: ${err.message}`, 'error')
-      }
-    },
-    [toast],
-  )
-
-  const carregarServidores = useCallback(
-    async ({ silencioso = false } = {}) => {
-      const c = configGh()
-      if (!c.owner || !c.repo) {
-        if (!silencioso) toast('Configure o GitHub primeiro.', 'error')
-        return
-      }
-      const headers = { Accept: 'application/vnd.github.v3+json' }
-      if (c.token) headers.Authorization = `token ${c.token}`
-      try {
-        const res = await fetch(`https://api.github.com/repos/${c.owner}/${c.repo}/contents/${c.serversPath}?ref=${c.branch}`, { headers })
-        if (res.status === 404) {
-          shaServidores.current = null
-          if (!silencioso) toast('Nenhum server-list.json encontrado ainda no repositório.', 'info')
-          return
-        }
-        if (!res.ok) throw new Error(`GitHub API: ${res.status} ${res.statusText}`)
-        const data = await res.json()
-        shaServidores.current = data.sha || null
-        const json = JSON.parse(decodificar(data.content || ''))
-        const lista = Array.isArray(json.servers) ? json.servers : []
-        setServidores(lista)
-        gravar('ncs_servers', JSON.stringify(lista))
-        if (!silencioso) toast(`✓ ${lista.length} servidor(es) carregado(s) do GitHub.`, 'success')
-      } catch (err) {
-        console.error(err)
-        if (!silencioso) toast(`Erro ao carregar servidores: ${err.message}`, 'error')
-      }
-    },
-    [toast],
-  )
-
-  // Grava um arquivo no repositório do launcher (pega o sha atual se ainda não tiver)
-  async function gravarNoGithub(caminho, conteudo, mensagem, shaRef) {
-    const c = configGh()
-    const url = `https://api.github.com/repos/${c.owner}/${c.repo}/contents/${caminho}`
-    const headers = { Authorization: `token ${c.token}`, 'Content-Type': 'application/json', Accept: 'application/vnd.github.v3+json' }
-    let sha = shaRef.current
-    if (!sha) {
-      const r = await fetch(`${url}?ref=${c.branch}`, { headers })
-      if (r.ok) sha = (await r.json()).sha
-    }
-    const body = { message: mensagem, content: codificar(conteudo), branch: c.branch }
-    if (sha) body.sha = sha
-    const res = await fetch(url, { method: 'PUT', headers, body: JSON.stringify(body) })
-    if (!res.ok) throw new Error(`GitHub API: ${res.status} ${res.statusText}`)
-    shaRef.current = (await res.json()).content?.sha || null
-  }
-
-  async function salvarTudo() {
-    const c = configGh()
-    if (!c.owner || !c.repo || !c.token) {
-      abrirConfig()
-      toast('Configure o GitHub primeiro.', 'error')
-      return
-    }
-    const agora = new Date().toISOString().slice(0, 19).replace('T', ' ')
-    setSalvando(true)
-    try {
-      // Envia TODOS os anúncios (ativos e inativos): o launcher já filtra por "active" sozinho
-      await gravarNoGithub(c.path, JSON.stringify({ hero, announcements: anuncios }, null, 2), `chore: update announcements [dashboard] — ${agora}`, shaAnuncios)
-      toast('Salvo no GitHub com sucesso!', 'success')
-    } catch (err) {
-      console.error(err)
-      toast(`Erro: ${err.message}`, 'error')
-    }
-    try {
-      // Servidor sem host (linha em branco esquecida) não vai para o launcher
-      const limpos = servidores.filter((s) => s.host && s.host.trim())
-      await gravarNoGithub(c.serversPath, JSON.stringify({ servers: limpos }, null, 2), `chore: update server-list [dashboard] — ${agora}`, shaServidores)
-      toast('Servidores salvos no GitHub com sucesso!', 'success')
-    } catch (err) {
-      console.error(err)
-      toast(`Erro ao salvar servidores: ${err.message}`, 'error')
-    }
-    setSalvando(false)
-  }
-
-  async function recarregarTudo() {
-    setCarregando(true)
-    await carregarAnuncios()
-    await carregarServidores()
-    setCarregando(false)
-  }
-
-  // Começo: o que está no navegador e, por cima, o que está no GitHub
   useEffect(() => {
-    setAnuncios(lerJsonLocal('ncs_announcements', []))
-    setHero(lerJsonLocal('ncs_hero', HERO_PADRAO))
-    setServidores(lerJsonLocal('ncs_servers', []))
-    setUltimaEdicao(ler('ncs_last_edit', '—'))
-    carregarAnuncios({ silencioso: true })
-    carregarServidores({ silencioso: true })
-  }, [carregarAnuncios, carregarServidores])
-
-  // ── Modais ──
-  function abrirNovo() {
-    setModal({ id: null, campos: anuncioVazio() })
-  }
-  function abrirEdicao(a) {
-    setModal({
-      id: a.id,
-      campos: {
-        title: a.title,
-        description: a.description,
-        image: a.image || '',
-        type: a.type,
-        date: a.date,
-        link: a.link || '',
-        status: a.status,
-        priority: String(a.priority || 0),
-      },
-    })
-  }
-  function abrirConfig() {
-    setConfig({ ...configGh() })
-  }
-
-  function salvarAnuncio() {
-    const { campos, id } = modal
-    const titulo = campos.title.trim()
-    const desc = campos.description.trim()
-    if (!titulo) return toast('O título é obrigatório.', 'error')
-    if (!desc) return toast('A descrição é obrigatória.', 'error')
-    const obj = {
-      id: id || uid(),
-      title: titulo,
-      description: desc,
-      image: campos.image.trim() || null,
-      type: campos.type,
-      date: campos.date || hoje(),
-      link: campos.link.trim() || null,
-      status: campos.status,
-      priority: parseInt(campos.priority, 10) || 0,
-    }
-    if (id) {
-      mudarAnuncios(anuncios.map((x) => (x.id === id ? obj : x)))
-      toast('Anúncio atualizado!', 'success')
-    } else {
-      mudarAnuncios([obj, ...anuncios])
-      toast('Anúncio criado!', 'success')
-    }
-    setModal(null)
-  }
-
-  function salvarConfig() {
-    gravar('gh_owner', config.owner.trim())
-    gravar('gh_repo', config.repo.trim())
-    gravar('gh_path', config.path.trim())
-    gravar('gh_servers_path', config.serversPath.trim())
-    gravar('gh_branch', config.branch.trim())
-    gravar('gh_token', config.token.trim())
-    setCfg(configGh())
-    toast('Configuração salva!', 'success')
-    setConfig(null)
-  }
-
-  // Esc fecha os modais; Ctrl+Enter salva o anúncio
-  const salvarRef = useRef(salvarAnuncio)
-  salvarRef.current = salvarAnuncio
-  useEffect(() => {
-    const tecla = (e) => {
-      if (e.key === 'Escape') {
-        setModal(null)
-        setConfig(null)
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && modal) salvarRef.current()
-    }
+    const tecla = (e) => e.key === 'Escape' && fechar()
     document.addEventListener('keydown', tecla)
     return () => document.removeEventListener('keydown', tecla)
-  }, [modal])
+  }, [fechar])
 
-  useEffect(() => {
-    if (modal) campoTitulo.current?.focus()
-  }, [modal?.id, modal === null])
-
-  // ── Lista filtrada: prioridade maior primeiro; no empate, mais recente (mesma regra do launcher) ──
-  const termo = busca.toLowerCase()
-  const lista = anuncios
-    .filter(
-      (a) =>
-        (!termo || a.title.toLowerCase().includes(termo) || a.description.toLowerCase().includes(termo)) &&
-        (!filtroTipo || a.type === filtroTipo) &&
-        (!filtroStatus || a.status === filtroStatus),
-    )
-    .sort((a, b) => (b.priority || 0) - (a.priority || 0) || (b.date || '').localeCompare(a.date || ''))
-
-  const ghOk = cfg.owner && cfg.repo && cfg.token
-  const campo = (nome) => ({
-    value: modal.campos[nome],
-    onChange: (e) => setModal((m) => ({ ...m, campos: { ...m.campos, [nome]: e.target.value } })),
-  })
-  const contador = (n, aviso, max) => `char-count${n > aviso ? (n >= max ? ' over' : ' warn') : ''}`
-  const mudarServidor = (i, mudanca) => setServidores((l) => l.map((s, j) => (j === i ? { ...s, ...mudanca } : s)))
+  const enviar = async (corpo) => {
+    setEstado('salvando')
+    try {
+      const d = await chamar('/admin/perfil', { id: u.id, ...corpo })
+      aoSalvar(d.perfis)
+      fechar()
+    } catch (e) {
+      setEstado(mensagemErro(e))
+    }
+  }
+  const salvar = () => enviar({ moldura: moldura || null, time: time || null, xp: Math.round(Number(ajuste) || 0), bloqueado })
+  const limpar = () => window.confirm(`Apagar moldura, time, ajuste de XP e bloqueio de ${u.nome || u.id}?`) && enviar({ limpar: true })
 
   return (
-    <>
-      {/* HEADER */}
-      <header>
-        <div className="header-brand">
-          <svg width="20" height="20" viewBox="-50 -55 100 110" fill="none" stroke="currentColor" strokeWidth="3">
-            <path d="M0,-44 L38,-22 L38,14 Q38,38 0,52 Q-38,38 -38,14 L-38,-22 Z" strokeLinejoin="round" />
-            <polygon points="0,-22 5,-8 20,-8 8,1 13,15 0,6 -13,15 -8,1 -20,-8 -5,-8" fill="currentColor" stroke="none" />
-          </svg>
-          Neura Project &nbsp;<span>/ ADMIN</span>
-        </div>
-        <div className="header-right">
-          <span className="badge-env">PAINEL ADMIN</span>
-          <button id="btn-config" onClick={abrirConfig}>
-            ⚙ Configurar GitHub
+    <div className="sm-fundo" onClick={fechar}>
+      <div className="adm-janela" role="dialog" aria-modal="true" aria-labelledby="adm-ed-titulo" onClick={(e) => e.stopPropagation()}>
+        <div className="sm-cab">
+          <h2 id="adm-ed-titulo">Editar usuário</h2>
+          <button type="button" className="sm-fechar" aria-label="Fechar" onClick={fechar}>
+            ×
           </button>
         </div>
-      </header>
-
-      {/* MAIN */}
-      <div className="container">
-        <div className="page-title">
-          <div>
-            <h1>
-              Gerenciar <span>Anúncios</span>
-            </h1>
-            <p>Os anúncios são salvos em JSON e carregados pelo launcher automaticamente.</p>
+        <div className="adm-ed-corpo">
+          <div className="adm-ed-topo">
+            <span className="moldura-box adm-ed-av">
+              <Avatar src={u.avatar} nome={u.nome} classe="adm-ed-img" />
+              <CamadaMoldura id={moldura} />
+            </span>
+            <div>
+              <b>{u.nome || 'Sem nome'}</b>
+              <a className="mono" href={`https://steamcommunity.com/profiles/${u.id}`} target="_blank" rel="noopener">
+                {u.id}
+              </a>
+              <span className="adm-ed-nivel">
+                <SeloNivel nivel={previa.nivel} tamanho={30} />
+                Nível {previa.nivel} · {fmt(previa.xp)} XP
+              </span>
+            </div>
           </div>
-          <button className="btn-primary" onClick={abrirNovo}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Novo Anúncio
+
+          <label className="adm-campo">
+            <span>Ajuste de XP</span>
+            <div className="adm-xp">
+              {[-500, -100, 100, 500].map((d) => (
+                <button key={d} type="button" onClick={() => setAjuste((a) => (Number(a) || 0) + d)}>
+                  {d > 0 ? `+${d}` : d}
+                </button>
+              ))}
+              <input type="number" step="50" value={ajuste} onChange={(e) => setAjuste(e.target.value)} />
+            </div>
+            <small>
+              Partidas: {fmt(u.xpBase)} XP · ajuste: {Number(ajuste) > 0 ? '+' : ''}
+              {fmt(ajuste)} · total: {fmt(previa.xp)} XP
+            </small>
+          </label>
+
+          <label className="adm-campo">
+            <span>Moldura</span>
+            <select value={moldura} onChange={(e) => setMoldura(e.target.value)}>
+              <option value="">Sem moldura</option>
+              {COLECOES.map((c) => (
+                <optgroup key={c} label={c}>
+                  {MOLDURAS.filter((m) => m.colecao === c).map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.nome}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+            <small>O admin pode dar qualquer moldura, mesmo acima do nível do jogador.</small>
+          </label>
+
+          <label className="adm-campo">
+            <span>Time</span>
+            <select value={time} onChange={(e) => setTime(e.target.value)}>
+              <option value="">Sem time</option>
+              {times.map((t) => (
+                <option key={t.nome} value={t.nome}>
+                  {t.nome}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="adm-check">
+            <input type="checkbox" checked={bloqueado} onChange={(e) => setBloqueado(e.target.checked)} />
+            <span>
+              <b>Bloquear personalização</b>
+              <small>O jogador não consegue mais trocar a moldura nem o time sozinho.</small>
+            </span>
+          </label>
+        </div>
+        <div className="sm-rodape">
+          <button type="button" className="btn btn-ghost adm-perigo" onClick={limpar} disabled={estado === 'salvando'}>
+            Limpar perfil
+          </button>
+          <span className="sm-msg" role="status">
+            {estado !== 'salvando' && estado}
+          </span>
+          <button type="button" className="btn btn-ghost" onClick={fechar}>
+            Cancelar
+          </button>
+          <button type="button" className="btn btn-primary" onClick={salvar} disabled={estado === 'salvando'}>
+            {estado === 'salvando' ? 'Salvando…' : 'Salvar'}
           </button>
         </div>
+      </div>
+    </div>
+  )
+}
 
-        {/* STATS */}
-        <div className="stats">
-          <div className="stat-card">
-            <div className="stat-label">TOTAL</div>
-            <div className="stat-value orange">{anuncios.length}</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">ATIVOS</div>
-            <div className="stat-value green">{anuncios.filter((a) => a.status === 'active').length}</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">INATIVOS</div>
-            <div className="stat-value" style={{ color: 'var(--dim)' }}>
-              {anuncios.filter((a) => a.status === 'inactive').length}
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">ÚLTIMA EDIÇÃO</div>
-            <div className="stat-value yellow" style={{ fontSize: 13, marginTop: 8 }}>
-              {ultimaEdicao}
-            </div>
-          </div>
-        </div>
+// ── Aba Molduras: liberar por nível ──
+function Molduras({ config, aoSalvar }) {
+  const [porNivel, setPorNivel] = useState(!!config.molduraPorNivel)
+  const [niveis, setNiveis] = useState(() => ({ ...config.nivelMoldura }))
+  const [estado, setEstado] = useState('')
+  const nivelDe1 = (id) => Number(niveis[id]) || 1
+  const mudou = porNivel !== !!config.molduraPorNivel || MOLDURAS.some((m) => nivelDe1(m.id) !== (Number(config.nivelMoldura?.[m.id]) || 1))
 
-        {/* HERO */}
-        <div className="json-section" style={{ marginBottom: 28 }}>
-          <div className="json-header">
-            <span>🖼️ HERO — IMAGENS DO BANNER</span>
-            <button className="btn-copy" onClick={() => setHero((h) => ({ ...h, images: [...h.images, ''] }))}>
-              + Adicionar imagem
-            </button>
-          </div>
-          <div style={{ padding: 16 }}>
-            {hero.images.length === 0 ? (
-              <div className="empty-state" style={{ padding: 30 }}>
-                <p>Nenhuma imagem configurada para a Hero.</p>
-              </div>
-            ) : (
-              hero.images.map((url, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'auto 1fr auto',
-                    gap: 12,
-                    alignItems: 'center',
-                    marginBottom: 10,
-                    background: 'var(--panel2)',
-                    border: '1px solid var(--border)',
-                    padding: 10,
-                    borderRadius: 8,
-                  }}
-                >
-                  <div style={{ width: 80, height: 45, borderRadius: 6, overflow: 'hidden', background: '#0b0c0f' }}>
-                    {url && (
-                      <img
-                        src={url}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        onError={(e) => (e.currentTarget.style.display = 'none')}
-                        onLoad={(e) => (e.currentTarget.style.display = '')}
-                        alt=""
-                      />
-                    )}
-                  </div>
-                  <div>
-                    <div style={rotuloCampo}>IMAGEM {i + 1}</div>
-                    <input
-                      type="text"
-                      value={url}
-                      placeholder="https://.../imagem.jpg"
-                      onChange={(e) => setHero((h) => ({ ...h, images: h.images.map((u, j) => (j === i ? e.target.value : u)) }))}
-                    />
-                  </div>
-                  <button className="btn-icon del" title="Remover" onClick={() => setHero((h) => ({ ...h, images: h.images.filter((_, j) => j !== i) }))}>
-                    ✕
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-          <div style={{ padding: '0 16px 16px' }}>
-            <button
-              className="btn-primary"
-              onClick={() => {
-                const h = { ...hero, images: hero.images.map((u) => u.trim()).filter(Boolean) }
-                setHero(h)
-                gravar('ncs_hero', JSON.stringify(h))
-                toast('Configuração da Hero salva!', 'success')
-              }}
-            >
-              💾 Salvar configuração da Hero
-            </button>
-          </div>
-        </div>
+  const definir = (ids, n) => setNiveis((v) => ({ ...v, ...Object.fromEntries(ids.map((id) => [id, Number(n)])) }))
+  const salvar = async () => {
+    setEstado('salvando')
+    try {
+      const nivelMoldura = Object.fromEntries(MOLDURAS.filter((m) => nivelDe1(m.id) > 1).map((m) => [m.id, nivelDe1(m.id)]))
+      const d = await chamar('/admin/config', { molduraPorNivel: porNivel, nivelMoldura })
+      aoSalvar(d.config)
+      setEstado('Salvo!')
+    } catch (e) {
+      setEstado(mensagemErro(e))
+    }
+  }
 
-        {/* SERVIDORES */}
-        <div className="json-section" style={{ marginBottom: 28 }}>
-          <div className="json-header">
-            <span>🖥️ SERVIDORES — ABA &quot;SERVIDORES&quot; DO LAUNCHER</span>
-            <button className="btn-copy" onClick={() => setServidores((l) => [...l, servidorVazio()])}>
-              + Adicionar servidor
-            </button>
-          </div>
-          <p style={{ fontSize: 11, color: 'var(--dim)', padding: '12px 16px 0' }}>
-            O launcher consulta cada servidor ao vivo (mapa, jogadores, status) direto por UDP — aqui você só cadastra QUAIS
-            servidores mostrar (nome, endereço e uma legenda opcional), não os dados de jogo em si. Usa os mesmos botões
-            &quot;Recarregar do GitHub&quot; / &quot;Salvar no GitHub&quot; lá embaixo (salva anúncios + servidores juntos).
-          </p>
-          <div style={{ padding: 16 }}>
-            {servidores.length === 0 ? (
-              <div className="empty-state" style={{ padding: 30 }}>
-                <p>Nenhum servidor cadastrado ainda.</p>
-              </div>
-            ) : (
-              servidores.map((srv, i) => (
-                <div key={i} style={{ marginBottom: 10, background: 'var(--panel2)', border: '1px solid var(--border)', padding: 10, borderRadius: 8 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.4fr 90px 1fr auto', gap: 10, alignItems: 'center' }}>
-                    {[
-                      ['NOME', 'name', 'Servidor Principal'],
-                      ['HOST / IP', 'host', '185.219.189.44'],
-                      ['PORTA', 'port', '27015'],
-                      ['LEGENDA', 'label', 'Brasil'],
-                    ].map(([rotulo, nome, exemplo]) => (
-                      <div key={nome}>
-                        <div style={rotuloCampo}>{rotulo}</div>
-                        <input
-                          type="text"
-                          value={srv[nome] ?? ''}
-                          placeholder={exemplo}
-                          onChange={(e) => mudarServidor(i, { [nome]: nome === 'port' ? Number(e.target.value) || 0 : e.target.value })}
-                        />
-                      </div>
-                    ))}
-                    <button className="btn-icon del" title="Remover" style={{ marginTop: 16 }} onClick={() => setServidores((l) => l.filter((_, j) => j !== i))}>
-                      ✕
-                    </button>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--dim)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                      <input type="checkbox" checked={!!srv.private} onChange={(e) => mudarServidor(i, { private: e.target.checked })} />
-                      🔒 Servidor privado
-                    </label>
-                    <input
-                      type="text"
-                      value={srv.password ?? ''}
-                      placeholder="Senha pra destravar"
-                      onChange={(e) => mudarServidor(i, { password: e.target.value })}
-                      style={{ flex: 1, ...(srv.private ? {} : { opacity: 0.4, pointerEvents: 'none' }) }}
-                    />
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* TOOLBAR */}
-        <div className="toolbar">
-          <div className="search-wrap">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input type="text" placeholder="Buscar anúncios..." value={busca} onChange={(e) => setBusca(e.target.value)} />
-          </div>
-          <select className="filter-select" value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
-            <option value="">Todos os tipos</option>
-            <option value="news">Notícia</option>
-            <option value="update">Atualização</option>
-            <option value="event">Evento</option>
-            <option value="promo">Promoção</option>
-          </select>
-          <select className="filter-select" value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)}>
-            <option value="">Todos os status</option>
-            <option value="active">Ativos</option>
-            <option value="inactive">Inativos</option>
-          </select>
-        </div>
-
-        {/* LISTA */}
-        <div className="ann-list">
-          {lista.length === 0 ? (
-            <div className="empty-state">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-                <polyline points="10 9 9 9 8 9" />
-              </svg>
-              <p>
-                {busca || filtroTipo || filtroStatus
-                  ? 'Nenhum anúncio encontrado com esses filtros.'
-                  : 'Nenhum anúncio ainda. Clique em "Novo Anúncio" para começar.'}
-              </p>
-            </div>
-          ) : (
-            lista.map((a) => (
-              <div key={a.id} className={`ann-card type-${a.type}${a.status === 'inactive' ? ' inactive' : ''}`} style={{ gridTemplateColumns: 'auto 1fr auto' }}>
-                {a.image ? (
-                  <img
-                    src={a.image}
-                    alt=""
-                    style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
-                    onError={(e) => (e.currentTarget.style.display = 'none')}
-                  />
-                ) : (
-                  <div style={{ width: 56, height: 56, borderRadius: 8, background: 'var(--panel2)', flexShrink: 0 }} />
-                )}
-                <div>
-                  <div className="ann-meta">
-                    <span className={`ann-type ${a.type}`}>{TIPOS[a.type] || a.type}</span>
-                    <span className="ann-date">{fmtData(a.date)}</span>
-                    <span className={`ann-status ${a.status}`}>{a.status === 'active' ? 'ATIVO' : 'INATIVO'}</span>
-                    {a.priority ? (
-                      <span className="ann-status" style={{ color: 'var(--orange)', borderColor: 'rgba(255,122,26,.3)', background: 'rgba(255,122,26,.1)' }}>
-                        {PRIORIDADES[a.priority] || ''}
-                      </span>
-                    ) : null}
-                  </div>
-                  <div className="ann-title">{a.title}</div>
-                  <div className="ann-body">{a.description}</div>
-                  {a.link && <div style={{ fontSize: 11, color: 'var(--orange)', marginTop: 6 }}>🔗 {a.link}</div>}
-                </div>
-                <div className="ann-actions">
-                  <div className="ann-row-actions">
-                    <button className="btn-icon edit" title="Editar" onClick={() => abrirEdicao(a)}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                      </svg>
-                    </button>
-                    <button
-                      className="btn-icon toggle"
-                      title={a.status === 'active' ? 'Desativar' : 'Ativar'}
-                      onClick={() => {
-                        const ativo = a.status !== 'active'
-                        mudarAnuncios(anuncios.map((x) => (x.id === a.id ? { ...x, status: ativo ? 'active' : 'inactive' } : x)))
-                        toast(ativo ? 'Anúncio ativado.' : 'Anúncio desativado.', 'info')
-                      }}
-                    >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                        {a.status === 'active' ? (
-                          <>
-                            <rect x="2" y="7" width="20" height="14" rx="2" />
-                            <path d="M16 3 8 3 12 7" />
-                          </>
-                        ) : (
-                          <>
-                            <circle cx="12" cy="12" r="10" />
-                            <line x1="12" y1="8" x2="12" y2="16" />
-                            <line x1="8" y1="12" x2="16" y2="12" />
-                          </>
-                        )}
-                      </svg>
-                    </button>
-                    <button
-                      className="btn-icon del"
-                      title="Excluir"
-                      onClick={() => {
-                        if (!confirm('Excluir este anúncio permanentemente?')) return
-                        mudarAnuncios(anuncios.filter((x) => x.id !== a.id))
-                        toast('Anúncio excluído.', 'info')
-                      }}
-                    >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                        <path d="M10 11v6" />
-                        <path d="M14 11v6" />
-                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
+  return (
+    <div className="adm-bloco">
+      <div className="adm-config-topo">
+        <label className="adm-check grande">
+          <input type="checkbox" checked={porNivel} onChange={(e) => setPorNivel(e.target.checked)} />
+          <span>
+            <b>Liberar molduras por nível</b>
+            <small>Ligado: cada moldura só pode ser usada a partir do nível escolhido abaixo. Desligado: todas ficam livres.</small>
+          </span>
+        </label>
+        <div className="adm-salvar">
+          <span className="sm-msg" role="status">
+            {estado !== 'salvando' && estado}
+          </span>
+          <button type="button" className="btn btn-primary" onClick={salvar} disabled={!mudou || estado === 'salvando'}>
+            {estado === 'salvando' ? 'Salvando…' : 'Salvar regras'}
+          </button>
         </div>
       </div>
 
-      {/* BARRA DE SALVAR */}
-      <div className="save-bar">
-        <div className="save-info">
-          <span className={`status-dot ${ghOk ? 'ok' : 'err'}`} />
-          <span title={ghOk ? `${cfg.owner}/${cfg.repo} — ${cfg.path} + ${cfg.serversPath}` : undefined}>
-            {ghOk ? `${cfg.owner}/${cfg.repo}` : 'Configure o GitHub para salvar automaticamente'}
+      <div className={`adm-colecoes${porNivel ? '' : ' desligado'}`}>
+        {COLECOES.map((c) => {
+          const daColecao = MOLDURAS.filter((m) => m.colecao === c)
+          return (
+            <section key={c} className="adm-colecao">
+              <div className="adm-colecao-cab">
+                <h3>{c}</h3>
+                <label>
+                  Coleção inteira:
+                  <select value="" onChange={(e) => e.target.value && definir(daColecao.map((m) => m.id), e.target.value)}>
+                    <option value="">nível…</option>
+                    {NIVEIS_OPCOES.map((n) => (
+                      <option key={n} value={n}>
+                        {n === 1 ? 'Livre (1)' : `Nível ${n}`}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="adm-molduras">
+                {daColecao.map((m) => (
+                  <div key={m.id} className="adm-mold">
+                    <img src={urlMiniatura(m.id)} alt="" loading="lazy" />
+                    <span>{m.nome}</span>
+                    <span className="adm-mold-nivel">
+                      <SeloNivel nivel={nivelDe1(m.id)} tamanho={24} />
+                      <select value={nivelDe1(m.id)} onChange={(e) => definir([m.id], e.target.value)} aria-label={`Nível de ${m.nome}`}>
+                        {NIVEIS_OPCOES.map((n) => (
+                          <option key={n} value={n}>
+                            {n === 1 ? 'Livre' : `Nível ${n}`}
+                          </option>
+                        ))}
+                      </select>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── Aba Admins ──
+function Admins({ config, dono, souDono, usuarios, aoSalvar }) {
+  const [novo, setNovo] = useState('')
+  const [estado, setEstado] = useState('')
+  const nomeDe = (id) => usuarios.find((u) => u.id === id)?.nome || 'Sem nome'
+  const avatarDe = (id) => usuarios.find((u) => u.id === id)?.avatar
+  const mudar = async (id, admin) => {
+    setEstado('salvando')
+    try {
+      const d = await chamar('/admin/admins', { id, admin })
+      aoSalvar(d.config)
+      setNovo('')
+      setEstado('')
+    } catch (e) {
+      setEstado(mensagemErro(e))
+    }
+  }
+  const valido = /^\d{17}$/.test(novo.trim())
+
+  return (
+    <div className="adm-bloco adm-admins">
+      <p className="adm-nota">
+        Admins acessam este painel e editam os usuários e as regras das molduras. {souDono ? 'Só você (dono) muda esta lista.' : 'Só o dono muda esta lista.'}
+      </p>
+      <ul>
+        {[dono, ...(config.admins || []).filter((id) => id !== dono)].filter(Boolean).map((id) => (
+          <li key={id}>
+            <Avatar src={avatarDe(id)} nome={nomeDe(id)} />
+            <span>
+              <b>{nomeDe(id)}</b>
+              <small className="mono">{id}</small>
+            </span>
+            {id === dono ? (
+              <i className="dono">DONO</i>
+            ) : (
+              souDono && (
+                <button type="button" className="btn btn-ghost adm-perigo" onClick={() => mudar(id, false)} disabled={estado === 'salvando'}>
+                  Remover
+                </button>
+              )
+            )}
+          </li>
+        ))}
+      </ul>
+      {souDono && (
+        <div className="adm-novo-admin">
+          <input list="adm-lista-ids" placeholder="SteamID64 (17 números)" value={novo} onChange={(e) => setNovo(e.target.value)} />
+          <datalist id="adm-lista-ids">
+            {usuarios.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.nome}
+              </option>
+            ))}
+          </datalist>
+          <button type="button" className="btn btn-primary" disabled={!valido || estado === 'salvando'} onClick={() => mudar(novo.trim(), true)}>
+            Tornar admin
+          </button>
+          <span className="sm-msg" role="status">
+            {estado !== 'salvando' && estado}
           </span>
         </div>
-        <div className="save-actions" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button
-            onClick={recarregarTudo}
-            disabled={carregando}
-            style={{
-              background: 'transparent',
-              border: '1px solid var(--border2)',
-              color: 'var(--dim)',
-              padding: '9px 14px',
-              borderRadius: 7,
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              opacity: carregando ? 0.6 : 1,
-            }}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-              <polyline points="23 4 23 10 17 10" />
-              <polyline points="1 20 1 14 7 14" />
-              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-            </svg>
-            Recarregar do GitHub
-          </button>
-          <button id="btn-save-gh" onClick={salvarTudo} disabled={salvando}>
-            {salvando ? (
-              '⏳ Salvando...'
-            ) : (
-              <>
-                <IconeGithub /> Salvar no GitHub
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* MODAL: ANÚNCIO */}
-      {modal && (
-        <div className="overlay" onClick={(e) => e.target === e.currentTarget && setModal(null)}>
-          <div className="modal">
-            <div className="modal-header">
-              <h2>
-                {modal.id ? 'Editar' : 'Novo'} <span>Anúncio</span>
-              </h2>
-              <button className="btn-close" onClick={() => setModal(null)}>
-                ✕
-              </button>
-            </div>
-            <div className="form-grid">
-              <div className="form-group full">
-                <label>Título</label>
-                <input ref={campoTitulo} type="text" placeholder="Ex: Atualização de Mapas" maxLength={60} {...campo('title')} />
-                <div className={contador(modal.campos.title.length, 50, 60)}>{modal.campos.title.length} / 60</div>
-              </div>
-              <div className="form-group full">
-                <label>Descrição</label>
-                <textarea placeholder="Descreva o anúncio em até 160 caracteres..." maxLength={160} {...campo('description')} />
-                <div className={contador(modal.campos.description.length, 130, 160)}>{modal.campos.description.length} / 160</div>
-              </div>
-              <div className="form-group full">
-                <label>Imagem (URL)</label>
-                <input type="text" placeholder="https://.../imagem.png" {...campo('image')} />
-              </div>
-              <div className="form-group">
-                <label>Tipo</label>
-                <select {...campo('type')}>
-                  <option value="news">📰 Notícia</option>
-                  <option value="update">🔄 Atualização</option>
-                  <option value="event">🎯 Evento</option>
-                  <option value="promo">🎁 Promoção</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Data</label>
-                <input type="date" {...campo('date')} />
-              </div>
-              <div className="form-group">
-                <label>Link (opcional)</label>
-                <input type="text" placeholder="https://..." {...campo('link')} />
-              </div>
-              <div className="form-group">
-                <label>Status</label>
-                <select {...campo('status')}>
-                  <option value="active">✅ Ativo</option>
-                  <option value="inactive">⏸ Inativo</option>
-                </select>
-              </div>
-              <div className="form-group full">
-                <label>Prioridade</label>
-                <select {...campo('priority')}>
-                  <option value="0">Normal</option>
-                  <option value="1">Alta</option>
-                  <option value="2">Urgente</option>
-                </select>
-                <p style={{ fontSize: 11, color: 'var(--dim)', marginTop: 4 }}>
-                  Anúncios com prioridade maior aparecem primeiro (na página inicial do launcher e na aba de notícias). Em caso
-                  de empate, o mais recente vem na frente.
-                </p>
-              </div>
-            </div>
-            <div className="form-actions">
-              <button className="btn-cancel" onClick={() => setModal(null)}>
-                Cancelar
-              </button>
-              <button className="btn-primary" onClick={salvarAnuncio}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                  <polyline points="17 21 17 13 7 13 7 21" />
-                  <polyline points="7 3 7 8 15 8" />
-                </svg>
-                Salvar
-              </button>
-            </div>
-          </div>
-        </div>
       )}
+    </div>
+  )
+}
 
-      {/* MODAL: CONFIGURAR GITHUB */}
-      {config && (
-        <div className="overlay" onClick={(e) => e.target === e.currentTarget && setConfig(null)}>
-          <div className="modal">
-            <div className="modal-header">
-              <h2>
-                Configurar <span>GitHub</span>
-              </h2>
-              <button className="btn-close" onClick={() => setConfig(null)}>
-                ✕
-              </button>
-            </div>
-            <div className="config-section">
-              <h3>Repositório</h3>
+function Aviso({ titulo, texto, children }) {
+  return (
+    <section className="hero adm-hero">
+      <FundoHero quantidade={8} />
+      <div className="wrap">
+        <span className="kicker">ADMINISTRAÇÃO</span>
+        <h1>{titulo}</h1>
+        {texto && <p className="lead">{texto}</p>}
+        {children && <div className="adm-acoes">{children}</div>}
+      </div>
+    </section>
+  )
+}
+
+export default function Admin() {
+  const conta = useConta()
+  const eu = useAdmin(conta)
+  const [montado, setMontado] = useState(false)
+  const [painel, setPainel] = useState(null)
+  const [ranking, setRanking] = useState(null)
+  const [erro, setErro] = useState('')
+  const [aba, setAba] = useState('usuarios')
+  const [editando, setEditando] = useState(null)
+
+  useEffect(() => setMontado(true), [])
+
+  const carregar = useCallback(() => {
+    setErro('')
+    Promise.all([chamar('/admin/dados'), lerJson('/ranking/ranking.json')])
+      .then(([p, r]) => {
+        setPainel(p)
+        setRanking(r)
+      })
+      .catch((e) => setErro(mensagemErro(e)))
+  }, [])
+  useEffect(() => {
+    if (eu.admin) carregar()
+  }, [eu.admin, carregar])
+
+  const usuarios = useMemo(() => (painel ? montarUsuarios(painel, ranking) : []), [painel, ranking])
+  const fecharEdicao = useCallback(() => setEditando(null), [])
+
+  let conteudo
+  if (!montado || (conta && eu.id !== conta.id)) conteudo = <Aviso titulo="Carregando…" />
+  else if (!conta)
+    conteudo = (
+      <Aviso titulo="Painel de administrador" texto="Entre com a Steam para acessar.">
+        {loginAtivo() && (
+          <button type="button" className="btn btn-primary" onClick={entrar}>
+            Entrar com Steam
+          </button>
+        )}
+      </Aviso>
+    )
+  else if (!eu.admin) conteudo = <Aviso titulo="Acesso restrito" texto="Esta área é só para administradores do site." />
+  else if (erro)
+    conteudo = (
+      <Aviso titulo="Não deu para carregar" texto={erro}>
+        <button type="button" className="btn btn-primary" onClick={carregar}>
+          Tentar de novo
+        </button>
+      </Aviso>
+    )
+  else if (!painel) conteudo = <Aviso titulo="Carregando painel…" />
+  else {
+    const n = {
+      logados: Object.keys(painel.usuarios || {}).length,
+      ranking: ranking?.jogadores?.length || 0,
+      perfis: Object.keys(painel.perfis || {}).length,
+      bloqueados: Object.values(painel.perfis || {}).filter((p) => p.bloqueado).length,
+    }
+    const ABAS = [
+      ['usuarios', 'Usuários'],
+      ['molduras', 'Molduras'],
+      ['admins', 'Admins'],
+    ]
+    conteudo = (
+      <>
+        <section className="hero adm-hero">
+          <FundoHero quantidade={8} />
+          <div className="wrap">
+            <span className="kicker">ADMINISTRAÇÃO</span>
+            <h1>Painel do site</h1>
+            <div className="adm-resumo">
               {[
-                ['Usuário/Org', 'owner', 'guilhermeteixeira01'],
-                ['Repositório', 'repo', 'NeuraCSlauncher'],
-                ['Caminho do arquivo (anúncios)', 'path', 'src/announcements.json'],
-                ['Caminho do arquivo (servidores)', 'serversPath', 'src/server-list.json'],
-                ['Branch', 'branch', 'main'],
-              ].map(([rotulo, nome, exemplo]) => (
-                <div key={nome} className="config-row">
-                  <label>{rotulo}</label>
-                  <input type="text" placeholder={exemplo} value={config[nome]} onChange={(e) => setConfig((c) => ({ ...c, [nome]: e.target.value }))} />
+                ['ENTRARAM NO SITE', n.logados],
+                ['JOGADORES NO RANKING', n.ranking],
+                ['PERFIS PERSONALIZADOS', n.perfis],
+                ['BLOQUEADOS', n.bloqueados],
+              ].map(([r, v]) => (
+                <div key={r} className="caixa">
+                  <span className="mono">{r}</span>
+                  <b>{v}</b>
                 </div>
               ))}
             </div>
-            <div className="config-section">
-              <h3>Autenticação</h3>
-              <div className="config-row">
-                <label>Personal Access Token</label>
-                <input type="text" placeholder="ghp_xxxxxxxxxxxx" value={config.token} onChange={(e) => setConfig((c) => ({ ...c, token: e.target.value }))} />
-              </div>
-              <p style={{ fontSize: 11, color: 'var(--dim)', marginTop: 4 }}>
-                O token é salvo apenas no seu navegador (localStorage). Gere um em GitHub → Settings → Developer settings → Tokens
-                (classic) com permissão <strong>repo</strong>.
-              </p>
-            </div>
-            <div className="form-actions">
-              <button className="btn-cancel" onClick={() => setConfig(null)}>
-                Cancelar
-              </button>
-              <button className="btn-primary" onClick={salvarConfig}>
-                Salvar Configuração
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        </section>
+        <section className="secao adm-secao">
+          <div className="wrap">
+            <div className="adm-abas" role="tablist" aria-label="Seções do painel">
+              {ABAS.map(([id, rotulo]) => (
+                <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'active' : ''} onClick={() => setAba(id)}>
+                  {rotulo}
+                </button>
+              ))}
+              <button type="button" className="adm-recarregar" onClick={carregar} title="Recarregar dados">
+                ↻
+              </button>
+            </div>
+            {aba === 'usuarios' && <Usuarios usuarios={usuarios} painel={painel} dono={painel.dono} editar={setEditando} />}
+            {aba === 'molduras' && <Molduras key={JSON.stringify(painel.config)} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
+            {aba === 'admins' && <Admins config={painel.config} dono={painel.dono} souDono={eu.dono} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
+          </div>
+        </section>
+        {editando && <EditarUsuario u={editando} fechar={fecharEdicao} aoSalvar={(perfis) => setPainel((p) => ({ ...p, perfis }))} />}
+      </>
+    )
+  }
 
-      <Toasts lista={toasts} />
-    </>
+  return (
+    <Layout pagina="admin">
+      <main>{conteudo}</main>
+    </Layout>
   )
 }

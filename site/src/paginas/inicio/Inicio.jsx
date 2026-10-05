@@ -14,10 +14,16 @@ const SETA = (
 )
 
 // Ícones dos projetos (os mesmos no painel do topo e nos cards)
-const IC_LAUNCHER = (
+const IC_PERFIL = (
   <>
-    <rect x="2" y="4" width="20" height="14" rx="2" />
-    <path d="M8 21h8M12 18v3" />
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 21a8 8 0 0 1 16 0" />
+  </>
+)
+const IC_TROFEU = (
+  <>
+    <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z" />
+    <path d="M17 6h3v2a3 3 0 0 1-3 3M7 6H4v2a3 3 0 0 0 3 3" />
   </>
 )
 const IC_PICK = (
@@ -132,7 +138,6 @@ function useNumeros() {
 }
 
 export default function Inicio() {
-  const launcher = CONFIG.launcherAtivo
   const painel = useInclinar(7)
   const numeros = useNumeros()
 
@@ -157,7 +162,7 @@ export default function Inicio() {
               </h1>
               <p className="lead fx-entra" style={{ '--e': 4 }}>
                 A Neura Project é um pequeno estúdio focado em jogos. Criamos ferramentas para a comunidade competitiva — do
-                launcher que organiza seus jogos ao Pick &amp; Ban e às estatísticas das partidas do nosso servidor.
+                Pick &amp; Ban às estatísticas, ranking e níveis das partidas do nosso servidor.
               </p>
               <div className="hero-acoes fx-entra" style={{ '--e': 5 }}>
                 <a className="btn btn-primary btn-lg btn-brilho" href="#projetos">
@@ -212,16 +217,6 @@ export default function Inicio() {
                       <i />
                     </span>
                   </div>
-                  <a className="painel-linha spot" href="/launcher/">
-                    <span className="ico">
-                      <Icone>{IC_LAUNCHER}</Icone>
-                    </span>
-                    <span>
-                      <b>Neura Launcher</b>
-                      <small>Seus jogos num só lugar</small>
-                    </span>
-                    <span className={`estado${launcher ? '' : ' breve'}`}>{launcher ? 'DISPONÍVEL' : 'EM BREVE'}</span>
-                  </a>
                   <a className="painel-linha spot" href="/neurapick/">
                     <span className="ico">
                       <Icone>{IC_PICK}</Icone>
@@ -244,14 +239,21 @@ export default function Inicio() {
                   </a>
                   <a className="painel-linha spot" href="/ranking/">
                     <span className="ico">
-                      <Icone>
-                        <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z" />
-                        <path d="M17 6h3v2a3 3 0 0 1-3 3M7 6H4v2a3 3 0 0 0 3 3" />
-                      </Icone>
+                      <Icone>{IC_TROFEU}</Icone>
                     </span>
                     <span>
                       <b>Ranking</b>
                       <small>Top 15 jogadores do servidor</small>
+                    </span>
+                    <span className="estado">ONLINE</span>
+                  </a>
+                  <a className="painel-linha spot" href="/perfil/">
+                    <span className="ico">
+                      <Icone>{IC_PERFIL}</Icone>
+                    </span>
+                    <span>
+                      <b>Seu perfil</b>
+                      <small>Nível, XP, moldura e time</small>
                     </span>
                     <span className="estado">ONLINE</span>
                   </a>
@@ -283,8 +285,8 @@ export default function Inicio() {
               </span>
               <h2>Nossos projetos</h2>
               <p>
-                Cada projeto nasce de um problema real de quem joga: organizar os jogos, montar o veto de um campeonato,
-                jogar uma partida justa e entender o que aconteceu nela.
+                Cada projeto nasce de um problema real de quem joga: montar o veto de um campeonato, jogar uma partida
+                justa, entender o que aconteceu nela e ver a sua evolução.
               </p>
             </div>
 
@@ -314,15 +316,15 @@ export default function Inicio() {
                   link: 'Ver partidas',
                 },
                 {
-                  href: '/launcher/',
+                  href: '/ranking/',
                   cor: 'var(--blue-2)',
                   brilho: 'rgba(26,115,232,.18)',
-                  icone: IC_LAUNCHER,
-                  tag: launcher ? ['DISPONÍVEL', 'verde'] : ['EM BREVE', 'amarelo'],
-                  titulo: 'Neura Launcher',
+                  icone: IC_TROFEU,
+                  tag: ['ONLINE', 'verde'],
+                  titulo: 'Ranking, níveis e perfil',
                   texto:
-                    'Um launcher para vários jogos: encontra suas instalações, mantém tudo atualizado e reúne amigos, chat, servidores e notícias num só lugar.',
-                  link: 'Conhecer o launcher',
+                    'Cada partida no servidor dá XP: suba do nível 1 ao 10, entre no top 15 e personalize seu perfil com moldura de avatar e o seu time.',
+                  link: 'Ver ranking',
                 },
                 {
                   discord: true,

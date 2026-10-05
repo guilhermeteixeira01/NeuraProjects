@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { CONFIG, MENU } from './config.js'
 import { entrar, linkPerfil, loginAtivo, sair, useConta } from './conta.js'
 import { ICONES_MENU, IconeDiscord, IconeSteam } from './Icones.jsx'
+import { useAdmin } from './Moldura.jsx'
+
+// Aba do painel de administrador (só aparece para admin; o worker confere de novo em toda ação)
+const ITEM_ADMIN = { id: 'admin', rotulo: 'Admin', href: '/admin/', icone: 'escudo' }
 import { ComMoldura } from './Moldura.jsx'
 
 function LinkMenu({ item, atual }) {
@@ -114,7 +118,9 @@ export default function Nav({ pagina }) {
     }
   }, [aberto])
 
-  const links = MENU.map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
+  const conta = useConta()
+  const { admin } = useAdmin(conta)
+  const links = [...MENU, ...(admin ? [ITEM_ADMIN] : [])].map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
 
   return (
     <header data-site-nav="" className={`nx-nav${aberto ? ' is-open' : ''}${rolou ? ' is-scrolled' : ''}`}>

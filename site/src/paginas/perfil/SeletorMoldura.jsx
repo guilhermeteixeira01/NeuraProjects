@@ -1,7 +1,17 @@
 import { useEffect, useState } from 'react'
-import { CamadaMoldura, salvarPerfil, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
+import { SeloNivel } from '../../comum/Nivel.jsx'
 import { COLECOES, MOLDURAS, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { urlOk } from '../../comum/dados.js'
+
+function CadeadoMini() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="4" y="11" width="16" height="10" rx="2" />
+      <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+    </svg>
+  )
+}
 
 function Logo({ url, nome, classe }) {
   const [erro, setErro] = useState(false)
@@ -14,15 +24,19 @@ function Logo({ url, nome, classe }) {
 
 // Janela "Personalizar perfil": aba Moldura (moldura do avatar) e aba Time (time que aparece no ranking e no
 // perfil). A prévia mostra as duas escolhas; Salvar manda as duas juntas e todas as páginas passam a mostrar.
-export default function SeletorMoldura({ steamId, avatar, nome, fechar }) {
+// nivel: nível de quem está personalizando; admin: sem trava de nível
+export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin = false, fechar }) {
   const perfil = usePerfis()[steamId] || {}
+  const config = useConfigSite()
+  const travada = (id) => !admin && nivelDaMoldura(config, id) > nivel
+  const [falta, setFalta] = useState(0) // nível exigido, quando o worker recusa
   const times = useListaTimes()
   const salvo = { moldura: perfil.moldura || null, time: perfil.time || null }
   const [escolha, setEscolha] = useState(salvo)
   const [mexeu, setMexeu] = useState(false)
   const [aba, setAba] = useState('moldura') // 'moldura' | 'time'
   const [colecao, setColecao] = useState('todas')
-  const [estado, setEstado] = useState('') // '' | 'salvando' | 'erro' | 'login'
+  const [estado, setEstado] = useState('') // '' | 'salvando' | 'erro' | 'login' | 'nivel' | 'bloqueado'
   const [erroAvatar, setErroAvatar] = useState(false)
 
   // O perfil salvo pode chegar depois de abrir: enquanto não mexeu em nada, acompanha ele
@@ -57,7 +71,8 @@ export default function SeletorMoldura({ steamId, avatar, nome, fechar }) {
       await salvarPerfil(escolha)
       fechar()
     } catch (e) {
-      setEstado(e.message === 'login' ? 'login' : 'erro')
+      setFalta(e.dados?.precisa || 0)
+      setEstado(['login', 'nivel', 'bloqueado'].includes(e.message) ? e.message : 'erro')
     }
   }
 
@@ -121,12 +136,30 @@ export default function SeletorMoldura({ steamId, avatar, nome, fechar }) {
                       <span>Sem moldura</span>
                     </button>
                   )}
-                  {lista.map((m) => (
-                    <button key={m.id} type="button" className={`sm-item${escolha.moldura === m.id ? ' sel' : ''}`} onClick={() => escolher('moldura', m.id)} aria-pressed={escolha.moldura === m.id} title={`${m.nome} · ${m.colecao}`}>
-                      <img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" />
-                      <span>{m.nome}</span>
-                    </button>
-                  ))}
+                  {lista.map((m) => {
+                    const exige = nivelDaMoldura(config, m.id)
+                    const presa = travada(m.id)
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        className={`sm-item${escolha.moldura === m.id ? ' sel' : ''}${presa ? ' presa' : ''}`}
+                        onClick={() => !presa && escolher('moldura', m.id)}
+                        aria-pressed={escolha.moldura === m.id}
+                        aria-disabled={presa}
+                        title={presa ? `${m.nome}: libera no nível ${exige}` : `${m.nome} · ${m.colecao}`}
+                      >
+                        <img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" />
+                        <span>{m.nome}</span>
+                        {exige > 1 && (
+                          <span className="sm-exige">
+                            {presa && <CadeadoMini />}
+                            <SeloNivel nivel={exige} tamanho={20} />
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
                 </div>
               </>
             ) : (
@@ -151,6 +184,8 @@ export default function SeletorMoldura({ steamId, avatar, nome, fechar }) {
           <span className="sm-msg" role="status">
             {estado === 'erro' && 'Não deu para salvar. Tente de novo.'}
             {estado === 'login' && 'Seu login venceu. Entre de novo com a Steam.'}
+            {estado === 'nivel' && `Essa moldura libera no nível ${falta}.`}
+            {estado === 'bloqueado' && 'A personalização do seu perfil foi bloqueada por um administrador.'}
           </span>
           <button type="button" className="btn btn-ghost" onClick={fechar}>
             Cancelar

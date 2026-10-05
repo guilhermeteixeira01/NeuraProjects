@@ -33,20 +33,25 @@ export default function Setup({ onStart }) {
   const [timer, setTimer] = useState(0)
   const [pool, setPool] = useState(DEFAULT_POOL)
 
-  // Lista de times do site (/times/): escolhendo um nome cadastrado, o logo entra sozinho
+  // Lista de times do site (/times/): escolhendo um nome cadastrado, o logo entra sozinho e o campo de URL some
+  // (time da lista com logo usa sempre o logo da lista). Time fora da lista: URL digitada na mão, opcional.
   const times = useTimes()
   const [logoAuto, setLogoAuto] = useState({ A: '', B: '' })
-  // A lista chega depois de digitar o nome: completa o logo que ainda estiver vazio
+  const logoDaLista = (nome) => {
+    const achado = acharTime(times, nome)
+    return achado?.logo && logoValido(achado.logo) ? achado.logo : ''
+  }
+  // A lista chega depois de digitar o nome: põe o logo dos times que estão nela
   useEffect(() => {
     if (!times.length) return
     ;[
-      ['A', teamA, logoA, setLogoA],
-      ['B', teamB, logoB, setLogoB],
-    ].forEach(([t, nome, logo, setLogo]) => {
-      const achado = acharTime(times, nome)
-      if (!logo.trim() && achado?.logo && logoValido(achado.logo)) {
-        setLogo(achado.logo)
-        setLogoAuto((a) => ({ ...a, [t]: achado.logo }))
+      ['A', teamA, setLogoA],
+      ['B', teamB, setLogoB],
+    ].forEach(([t, nome, setLogo]) => {
+      const daLista = logoDaLista(nome)
+      if (daLista) {
+        setLogo(daLista)
+        setLogoAuto((a) => ({ ...a, [t]: daLista }))
       }
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -54,13 +59,11 @@ export default function Setup({ onStart }) {
 
   const trocarNome = (t, valor, setNome, logo, setLogo) => {
     setNome(valor)
-    const achado = acharTime(times, valor)
-    // Só mexe no logo se ele estiver vazio ou se foi a lista que preencheu (não apaga logo digitado na mão)
-    const podeTrocar = !logo.trim() || logo === logoAuto[t]
-    if (!podeTrocar) return
-    const novo = achado?.logo && logoValido(achado.logo) ? achado.logo : ''
-    setLogo(novo)
-    setLogoAuto((a) => ({ ...a, [t]: novo }))
+    const daLista = logoDaLista(valor)
+    // Saiu de um time da lista: limpa o logo que a lista tinha posto (não apaga logo digitado na mão)
+    if (!daLista && logo.trim() && logo !== logoAuto[t]) return
+    setLogo(daLista)
+    setLogoAuto((a) => ({ ...a, [t]: daLista }))
   }
 
   const nameA = teamA.trim() || 'Time A'
@@ -171,19 +174,26 @@ export default function Setup({ onStart }) {
                             placeholder={`Time ${t}`}
                           />
                         </label>
-                        <label className="logo-field">
-                          <TeamLogo url={logo} name={nome || `Time ${t}`} team={t} size={34} />
-                          <input
-                            type="url"
-                            inputMode="url"
-                            value={logo}
-                            onChange={(e) => setLogo(e.target.value)}
-                            placeholder="Logo (URL, opcional)"
-                            maxLength={MAX_LOGO_URL}
-                            className={logo.trim() && !logoValido(logo) ? 'invalid' : ''}
-                            aria-label={`URL do logo do time ${t}`}
-                          />
-                        </label>
+                        {logoDaLista(nome) ? (
+                          <div className="logo-field logo-lista">
+                            <TeamLogo url={logoDaLista(nome)} name={nome || `Time ${t}`} team={t} size={34} />
+                            <span>Logo da lista de times</span>
+                          </div>
+                        ) : (
+                          <label className="logo-field">
+                            <TeamLogo url={logo} name={nome || `Time ${t}`} team={t} size={34} />
+                            <input
+                              type="url"
+                              inputMode="url"
+                              value={logo}
+                              onChange={(e) => setLogo(e.target.value)}
+                              placeholder="Logo (URL, opcional)"
+                              maxLength={MAX_LOGO_URL}
+                              className={logo.trim() && !logoValido(logo) ? 'invalid' : ''}
+                              aria-label={`URL do logo do time ${t}`}
+                            />
+                          </label>
+                        )}
                       </div>
                     </div>
                   ))}
