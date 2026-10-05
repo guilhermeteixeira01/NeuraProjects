@@ -9,9 +9,9 @@ import Premier from '../../comum/Premier.jsx'
 import { CargosDe, ComMoldura, TimeEscolhido, usePerfis } from '../../comum/Moldura.jsx'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { nivelDe } from '../../comum/niveis.js'
+import { MIN_MAPAS } from '../../comum/ranking.js'
 
 const TOP = 15
-const MIN_MAPAS = 1 // mapas mínimos para entrar no ranking (suba quando tiver mais partidas)
 
 // Métricas que podem ordenar o ranking: [chave, rótulo do botão, rótulo curto, casas decimais, sufixo]
 const METRICAS = [
@@ -131,9 +131,11 @@ function Linha({ j, pos, m, max, i, eu }) {
     <div className={`linha spot${eu ? ' eu' : ''}`} style={{ '--i': i }}>
       <span className="pos-n">{pos}</span>
       <span className="jog">
-        <ComMoldura steamId={j.steamId}>
-          <Avatar j={j} classe="av" />
-        </ComMoldura>
+        <a className="jog-av" href={perfil(j)} aria-hidden="true" tabIndex={-1}>
+          <ComMoldura steamId={j.steamId}>
+            <Avatar j={j} classe="av" />
+          </ComMoldura>
+        </a>
         <span className="jog-txt">
           <a href={perfil(j)}>
             {j.nome}

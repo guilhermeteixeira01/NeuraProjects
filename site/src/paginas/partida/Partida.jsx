@@ -324,7 +324,7 @@ function Serie({ serie, nomeTime, jogos, caminhoAtual, anuncio }) {
 
 function ItemDestaque({ e, valor, rotulo, ehMvp }) {
   return (
-    <div className={`mvp-item spot mvp-${e.time}`}>
+    <a className={`mvp-item spot mvp-${e.time}`} href={linkPerfil(e.steamId)} title={`Perfil de ${e.nome}`}>
       <ComMoldura steamId={e.steamId}>
         <Avatar e={e} classe="av" />
       </ComMoldura>
@@ -333,7 +333,7 @@ function ItemDestaque({ e, valor, rotulo, ehMvp }) {
         <b>{valor}</b>
         <em>{rotulo}</em>
       </span>
-    </div>
+    </a>
   )
 }
 
@@ -358,13 +358,13 @@ function Destaques({ jogadores, porRating, totalRounds, nomeTime }) {
       <div className="mvp-grid">
         {/* Card grande do MVP (igual ao da sala da FACEIT) */}
         <div className={`mvp-card spot mvp-${mvp.time}`}>
-          <div className="mvp-perfil">
+          <a className="mvp-perfil" href={linkPerfil(mvp.steamId)} title={`Perfil de ${mvp.nome}`}>
             <ComMoldura steamId={mvp.steamId}>
               <Avatar e={mvp} classe="mvp-av" />
             </ComMoldura>
             <b>{mvp.nome}</b>
             <span className={`mono-label t-${mvp.time}`}>{nomeTime(mvp.time)}</span>
-          </div>
+          </a>
           <div className="mvp-info">
             <div className="mvp-rt">
               <span className={`rt-box rt-g rt-${classe}`}>{f(mvp.rating)}</span>

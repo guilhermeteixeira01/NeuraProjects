@@ -109,6 +109,10 @@ Te1xe1ra) e só ele promove ou remove outros admins.
   selo no perfil e no ranking. Na aba Molduras, cada moldura (ou coleção) pode ser **exclusiva de um cargo**: o
   Personalizar mostra essas numa seção própria ("Exclusivas · Premium"), travadas para quem não tem o cargo, e o worker
   recusa salvar. Vale junto com a regra de nível (precisa das duas). Admins não têm trava.
+  Cargo **automático** ("Automático: top N"): os N primeiros do ranking (rating, a ordem do top 15) ganham o cargo
+  e perdem sozinhos ao sair do top N; não fica gravado no perfil, é recalculado do ranking no site e no worker. Moldura
+  exclusiva de um cargo que a pessoa perdeu deixa de aparecer (volta se ela recuperar); moldura posta por um admin
+  aparece sempre.
 - **Admins:** lista de administradores.
 
 ## Séries (MD3/MD5)

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CamadaMoldura, SeloCargo, cargoDaMoldura, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, SeloCargo, cargoDaMoldura, useCargosIdsDe, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { COLECOES, MOLDURAS, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { urlOk } from '../../comum/dados.js'
@@ -29,7 +29,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   const perfil = usePerfis()[steamId] || {}
   const config = useConfigSite()
   // Trava: nível abaixo do exigido ou moldura exclusiva de um cargo que a pessoa não tem (admin não tem trava)
-  const meusCargos = perfil.cargos || []
+  const meusCargos = useCargosIdsDe(steamId) // os dados pelo admin + os automáticos (top do ranking)
   const semCargo = (id) => {
     const cargo = cargoDaMoldura(config, id)
     return !!cargo && !meusCargos.includes(cargo.id)
