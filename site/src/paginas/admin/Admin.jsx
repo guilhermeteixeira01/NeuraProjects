@@ -144,7 +144,7 @@ function Usuarios({ usuarios, painel, dono, editar }) {
 }
 
 // Janela de edição de um usuário
-function EditarUsuario({ u, fechar, aoSalvar }) {
+function EditarUsuario({ u, ehAdmin, fechar, aoSalvar }) {
   const times = useListaTimes()
   const [moldura, setMoldura] = useState(u.perfil.moldura || '')
   const [time, setTime] = useState(u.perfil.time || '')
@@ -248,7 +248,11 @@ function EditarUsuario({ u, fechar, aoSalvar }) {
             <input type="checkbox" checked={bloqueado} onChange={(e) => setBloqueado(e.target.checked)} />
             <span>
               <b>Bloquear personalização</b>
-              <small>O jogador não consegue mais trocar a moldura nem o time sozinho.</small>
+              <small>
+                {ehAdmin
+                  ? 'Este usuário é admin: o bloqueio não vale para admins (eles continuam podendo personalizar).'
+                  : 'O jogador não consegue mais trocar a moldura nem o time sozinho.'}
+              </small>
             </span>
           </label>
         </div>
@@ -538,7 +542,7 @@ export default function Admin() {
             {aba === 'admins' && <Admins config={painel.config} dono={painel.dono} souDono={eu.dono} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
           </div>
         </section>
-        {editando && <EditarUsuario u={editando} fechar={fecharEdicao} aoSalvar={(perfis) => setPainel((p) => ({ ...p, perfis }))} />}
+        {editando && <EditarUsuario u={editando} ehAdmin={editando.id === painel.dono || (painel.config.admins || []).includes(editando.id)} fechar={fecharEdicao} aoSalvar={(perfis) => setPainel((p) => ({ ...p, perfis }))} />}
       </>
     )
   }
