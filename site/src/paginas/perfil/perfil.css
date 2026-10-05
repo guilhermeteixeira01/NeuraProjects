@@ -241,3 +241,9 @@ html.sm-aberto { overflow: hidden; }
 .sm-secao-cab small { font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: var(--green); }
 .sm-secao-cab.presa small { color: var(--dim-2); }
 .sm-secao-cab .mono { margin-left: auto; font-size: 11px; color: var(--dim-2); }
+/* Dentro de cada nível: subgrupo por coleção */
+.sm-secao { gap: 12px; }
+.sm-sub { display: flex; flex-direction: column; gap: 8px; }
+.sm-sub-cab { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; letter-spacing: .5px; color: var(--dim); }
+.sm-sub-cab::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
+.sm-sub-cab small { font-family: var(--font-mono); font-size: 10px; color: var(--dim-2); }
