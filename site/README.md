@@ -37,6 +37,11 @@ npm run preview  # abre o dist-final/ no navegador
   série começa.
 - `../assets/data/times.json` — lista de times, editada na página `/times/`. O plugin também lê
   esse arquivo, então ele não muda de lugar.
+- `../assets/data/twitch.json` — área "Ao vivo" da página inicial (`src/paginas/inicio/LiveTwitch.jsx`):
+  `{ "canais": ["nome-do-canal"], "chat": true }` (nome ou link do canal). O player da Twitch diz se está ao vivo
+  (sem chave de API); com vários canais mostra o primeiro ao vivo e confere a lista de novo a cada 90 s.
+  Ninguém ao vivo: aparece a capa "Offline" com o link do canal. Lista vazia: a área não aparece.
+  O site lê o arquivo ao abrir a página, então trocar o canal não precisa de deploy do código, só do arquivo.
 
 ## Deploy
 

@@ -55,6 +55,8 @@ function atualizarSozinho() {
   }
   setInterval(tudo, A_CADA)
   document.addEventListener('visibilitychange', tudo)
+  // Voltou para esta janela (ex.: mudou algo no celular e voltou ao computador): confere na hora
+  window.addEventListener('focus', tudo)
 }
 
 // Perfis de todos os jogadores ({} no HTML gerado e até a primeira leitura no navegador)
