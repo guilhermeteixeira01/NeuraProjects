@@ -12,6 +12,7 @@ export const TEMAS = [
   { id: 'claro', nome: 'Claro otimizado', descricao: 'Fundo claro, ótimo de dia, também sem os efeitos pesados.' },
 ]
 const CHAVE = 'np_tema'
+export const EVENTO_TEMA = 'np-tema'
 const COR_BARRA = { padrao: '#0b0c0f', escuro: '#101114', claro: '#f2f4f8' } // <meta name="theme-color">
 
 export const temaAtual = () => (typeof document === 'undefined' ? 'padrao' : document.documentElement.dataset.tema || 'padrao')
@@ -23,6 +24,7 @@ export function aplicarTema(id, { guardar = true } = {}) {
   if (tema === 'padrao') delete html.dataset.tema
   else html.dataset.tema = tema
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', COR_BARRA[tema])
+  window.dispatchEvent(new Event(EVENTO_TEMA)) // avisa quem mostra o tema (ex.: seletor do rodapé)
   if (guardar) {
     try {
       if (tema === 'padrao') localStorage.removeItem(CHAVE)

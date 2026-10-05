@@ -508,58 +508,11 @@ html.nx-menu-aberto {
   }
 }
 
-/* ── Rodapé ── */
-.nx-footer {
-  display: block;
-  border-top: 1px solid var(--border);
-  background: var(--bg-soft);
-  padding: 48px 0 28px;
-}
+/* ── Rodapé (estilo Discord): ver o bloco "Rodapé novo" mais abaixo ── */
 .nx-wrap {
   max-width: 1180px;
   margin: 0 auto;
   padding: 0 32px;
-}
-.nx-footer-top {
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
-  gap: 32px;
-  padding-bottom: 28px;
-  border-bottom: 1px solid var(--border);
-}
-.nx-footer-marca p {
-  margin: 14px 0 18px;
-  max-width: 42ch;
-  font-size: 13px;
-  color: var(--dim);
-}
-.nx-redes {
-  display: flex;
-  gap: 14px;
-}
-.nx-redes img {
-  width: 30px;
-  height: 30px;
-  object-fit: contain;
-  display: block;
-  transition: transform 0.15s, filter 0.15s;
-}
-.nx-redes a:hover img {
-  transform: translateY(-2px);
-  filter: drop-shadow(0 0 10px rgba(88, 101, 242, 0.7));
-}
-.nx-footer-col {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  font-size: 13.5px;
-}
-.nx-footer-col a {
-  color: var(--dim);
-  width: fit-content;
-}
-.nx-footer-col a:hover {
-  color: var(--text);
 }
 .nx-mono {
   font-family: var(--font-mono);
@@ -567,15 +520,6 @@ html.nx-menu-aberto {
   letter-spacing: 1.5px;
   color: var(--dim-2);
   margin-bottom: 4px;
-}
-.nx-footer-legal {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px 20px;
-  padding-top: 20px;
-  font-size: 11.5px;
-  color: var(--dim-2);
 }
 
 @media (max-width: 900px) {
@@ -594,15 +538,6 @@ html.nx-menu-aberto {
   .nx-nav-inner,
   .nx-wrap {
     padding: 0 16px;
-  }
-  .nx-footer-top {
-    grid-template-columns: 1fr 1fr;
-  }
-  .nx-footer-marca {
-    grid-column: 1 / -1;
-  }
-  .nx-footer-legal {
-    flex-direction: column;
   }
 }
 @media (max-width: 380px) {
@@ -725,19 +660,6 @@ html.nx-menu-aberto {
 }
 .nx-links .nx-link:hover::before {
   opacity: 1;
-}
-/* Rodapé: linha luminosa no topo */
-.nx-footer {
-  position: relative;
-}
-.nx-footer::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -1px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(52, 152, 219, 0.6), rgba(61, 220, 132, 0.5), transparent);
 }
 
 /* ══════════════ Efeitos futuristas compartilhados (todas as páginas) ══════════════
@@ -1325,4 +1247,209 @@ html[data-tema='claro'] .rt-medio {
 html[data-tema='claro'] .rt-baixo,
 html[data-tema='claro'] .rt-txt-baixo b {
   color: #c62828 !important;
+}
+
+/* ── Rodapé novo (estilo Discord, comum/Rodape.jsx) ──
+ * Bloco da marca com cores próprias (iguais em qualquer tema): degradê do escuro para o azul do site,
+ * logo + tema + redes à esquerda, colunas de links à direita e a palavra NEURA gigante embaixo. */
+.nx-footer {
+  --f-texto: #ffffff;
+  --f-suave: #c3cff0;
+  --f-rotulo: #93a6d6;
+  --f-linha: rgba(255, 255, 255, 0.14);
+  display: block;
+  position: relative;
+  overflow: hidden;
+  color: var(--f-texto);
+  padding: 72px 0 0;
+  background: linear-gradient(180deg, #0b0d16 0%, #0f1a3d 34%, #163a96 70%, #2468e6 100%);
+}
+.nx-ftopo {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(0, 2fr);
+  gap: 48px;
+}
+.nx-fesq {
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+}
+.nx-flogo img {
+  display: block;
+  width: 52px;
+  height: 52px;
+  transition: transform 0.2s;
+}
+.nx-flogo:hover img {
+  transform: scale(1.06) rotate(-4deg);
+}
+.nx-frotulo {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--f-rotulo);
+}
+.nx-ftema {
+  display: block;
+  max-width: 320px;
+}
+.nx-ftema-caixa {
+  position: relative;
+  display: block;
+}
+.nx-ftema select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 16px 48px 16px 22px;
+  border: 0;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--f-texto);
+  background: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.nx-ftema select:hover,
+.nx-ftema select:focus-visible {
+  background: rgba(255, 255, 255, 0.16);
+  outline: none;
+}
+.nx-ftema select option {
+  color: #141821;
+  background: #ffffff;
+}
+.nx-ftema-caixa svg {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.nx-redes {
+  display: flex;
+  gap: 16px;
+}
+.nx-redes img {
+  display: block;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  transition: transform 0.15s, filter 0.15s;
+}
+.nx-redes a:hover img {
+  transform: translateY(-2px);
+  filter: drop-shadow(0 0 10px rgba(52, 152, 219, 0.8));
+}
+/* Colunas de links */
+.nx-fcols {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+}
+.nx-fmenu {
+  display: none;
+}
+.nx-fcol-tit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--f-rotulo);
+  text-align: left;
+  pointer-events: none; /* no computador a coluna fica sempre aberta */
+}
+.nx-fcol-tit svg {
+  display: none;
+}
+.nx-fcol-links {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.nx-fcol-links a {
+  width: fit-content;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--f-texto);
+  transition: color 0.15s;
+}
+.nx-fcol-links a:hover {
+  color: #9fd0ff;
+  text-decoration: underline;
+}
+.nx-footer-legal {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 56px;
+  font-size: 12px;
+  color: var(--f-suave);
+}
+/* Palavra gigante (SVG estica o texto na largura toda) */
+.nx-fgigante {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 28px;
+  overflow: visible;
+}
+.nx-fgigante text {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 236px;
+  fill: #dde7ff;
+}
+@media (max-width: 900px) {
+  .nx-ftopo {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .nx-fcols {
+    display: block;
+  }
+  .nx-fmenu {
+    display: block;
+  }
+  /* Celular: cada coluna vira uma sanfona */
+  .nx-fcol {
+    border-bottom: 1px solid var(--f-linha);
+  }
+  .nx-fcol-tit {
+    margin: 0;
+    padding: 20px 0;
+    font-size: 17px;
+    color: var(--f-suave);
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .nx-fcol-tit svg {
+    display: block;
+    transition: transform 0.2s;
+  }
+  .nx-fcol.aberta .nx-fcol-tit svg {
+    transform: rotate(180deg);
+  }
+  .nx-fcol-links {
+    display: none;
+    padding: 0 0 20px;
+  }
+  .nx-fcol.aberta .nx-fcol-links {
+    display: flex;
+  }
+  .nx-footer-legal {
+    flex-direction: column;
+    margin-top: 40px;
+  }
 }
