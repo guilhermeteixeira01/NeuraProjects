@@ -8,16 +8,17 @@ import { COLECOES, MOLDURAS, molduraPorId, urlMiniatura } from '../../comum/mold
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { NIVEL_MAX, nivelDe } from '../../comum/niveis.js'
 import { ordenarRanking } from '../../comum/ranking.js'
+import { localeAtual, useT } from '../../comum/i18n.js'
 
 // Painel de administrador (/admin/). A aba só aparece para admin, mas quem decide é o worker:
 // toda chamada /admin/... confere o login e se a pessoa é admin (o dono, ou quem o dono promoveu).
 
 const NIVEIS_OPCOES = Array.from({ length: NIVEL_MAX }, (_, i) => i + 1)
-const fmt = (v) => Number(v || 0).toLocaleString('pt-BR')
+const fmt = (v) => Number(v || 0).toLocaleString(localeAtual())
 const iniciais = (nome) => String(nome || '?').trim().slice(0, 2).toUpperCase()
 const dataBr = (iso) => {
   const d = new Date(iso)
-  return isNaN(d) ? '—' : d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }).replace(',', '')
+  return isNaN(d) ? '—' : d.toLocaleString(localeAtual(), { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }).replace(',', '')
 }
 const mensagemErro = (e) =>
   ({ login: 'Seu login venceu. Entre de novo com a Steam.', admin: 'Você não é mais administrador.', dono: 'Só o dono pode mudar os administradores.', xp: 'Ajuste de XP fora do limite.' })[e.message] ||
@@ -56,6 +57,7 @@ function montarUsuarios(painel, ranking) {
 
 // ── Aba Usuários ──
 function Usuarios({ usuarios, painel, dono, editar }) {
+  const tr = useT()
   const [busca, setBusca] = useState('')
   const [filtro, setFiltro] = useState('todos')
   const admins = new Set([dono, ...(painel.config.admins || [])])
@@ -76,11 +78,11 @@ function Usuarios({ usuarios, painel, dono, editar }) {
   return (
     <div className="adm-bloco">
       <div className="adm-ferramentas">
-        <input className="adm-busca" type="search" placeholder="Buscar por nome ou SteamID…" value={busca} onChange={(e) => setBusca(e.target.value)} />
-        <div className="adm-chips" role="tablist" aria-label="Filtrar usuários">
+        <input className="adm-busca" type="search" placeholder={tr('Buscar por nome ou SteamID…')} value={busca} onChange={(e) => setBusca(e.target.value)} />
+        <div className="adm-chips" role="tablist" aria-label={tr('Filtrar usuários')}>
           {FILTROS.map(([id, rotulo, f]) => (
             <button key={id} type="button" role="tab" aria-selected={filtro === id} className={filtro === id ? 'active' : ''} onClick={() => setFiltro(id)}>
-              {rotulo} <small>{usuarios.filter(f).length}</small>
+              {tr(rotulo)} <small>{usuarios.filter(f).length}</small>
             </button>
           ))}
         </div>
@@ -89,12 +91,12 @@ function Usuarios({ usuarios, painel, dono, editar }) {
         <table className="adm-tabela">
           <thead>
             <tr>
-              <th className="esq">JOGADOR</th>
-              <th>NÍVEL</th>
-              <th className="esq">MOLDURA</th>
-              <th className="esq">TIME</th>
-              <th className="esq">SITUAÇÃO</th>
-              <th>ÚLTIMO ACESSO</th>
+              <th className="esq">{tr('JOGADOR')}</th>
+              <th>{tr('NÍVEL')}</th>
+              <th className="esq">{tr('MOLDURA')}</th>
+              <th className="esq">{tr('TIME')}</th>
+              <th className="esq">{tr('SITUAÇÃO')}</th>
+              <th>{tr('ÚLTIMO ACESSO')}</th>
               <th />
             </tr>
           </thead>
@@ -109,7 +111,7 @@ function Usuarios({ usuarios, painel, dono, editar }) {
                         <Avatar src={u.avatar} nome={u.nome} />
                       </ComMoldura>
                       <span>
-                        <a href={linkPerfil(u.id)}>{u.nome || 'Sem nome'}</a>
+                        <a href={linkPerfil(u.id)}>{u.nome || tr('Sem nome')}</a>
                         <small className="mono">{u.id}</small>
                       </span>
                     </span>
@@ -119,7 +121,7 @@ function Usuarios({ usuarios, painel, dono, editar }) {
                       <SeloNivel nivel={u.nivel.nivel} tamanho={28} />
                       <span>
                         <b>{fmt(u.nivel.xp)} XP</b>
-                        {u.ajuste !== 0 && <small className={u.ajuste > 0 ? 'mais' : 'menos'}>{u.ajuste > 0 ? `+${fmt(u.ajuste)}` : fmt(u.ajuste)} ajuste</small>}
+                        {u.ajuste !== 0 && <small className={u.ajuste > 0 ? 'mais' : 'menos'}>{u.ajuste > 0 ? `+${fmt(u.ajuste)}` : fmt(u.ajuste)} {tr('ajuste')}</small>}
                       </span>
                     </span>
                   </td>
@@ -127,21 +129,21 @@ function Usuarios({ usuarios, painel, dono, editar }) {
                   <td className="esq">{u.perfil.time || <span className="adm-nada">—</span>}</td>
                   <td className="esq">
                     <span className="adm-tags">
-                      {u.id === dono && <i className="dono">DONO</i>}
+                      {u.id === dono && <i className="dono">{tr('DONO')}</i>}
                       {u.id !== dono && admins.has(u.id) && <i className="admin">ADMIN</i>}
-                      {u.perfil.bloqueado && <i className="bloq">BLOQUEADO</i>}
+                      {u.perfil.bloqueado && <i className="bloq">{tr('BLOQUEADO')}</i>}
                       {(painel.config.cargos || [])
                         .filter((c) => (u.perfil.cargos || []).includes(c.id) || u.auto.includes(c.id))
                         .map((c) => (
                           <SeloCargo key={c.id} cargo={u.auto.includes(c.id) && !(u.perfil.cargos || []).includes(c.id) ? { ...c, nome: `${c.nome} · top ${c.top}` } : c} />
                         ))}
-                      {u.usuario ? <i>LOGIN</i> : <i className="apagado">SÓ PARTIDAS</i>}
+                      {u.usuario ? <i>LOGIN</i> : <i className="apagado">{tr('SÓ PARTIDAS')}</i>}
                     </span>
                   </td>
                   <td className="mono">{u.usuario ? dataBr(u.usuario.visto) : '—'}</td>
                   <td>
                     <button type="button" className="btn btn-ghost adm-editar" onClick={() => editar(u)}>
-                      Editar
+                      {tr('Editar')}
                     </button>
                   </td>
                 </tr>
@@ -149,7 +151,7 @@ function Usuarios({ usuarios, painel, dono, editar }) {
             })}
           </tbody>
         </table>
-        {visiveis.length === 0 && <p className="adm-vazio">Ninguém encontrado.</p>}
+        {visiveis.length === 0 && <p className="adm-vazio">{tr('Ninguém encontrado.')}</p>}
       </div>
     </div>
   )
@@ -157,6 +159,7 @@ function Usuarios({ usuarios, painel, dono, editar }) {
 
 // Janela de edição de um usuário
 function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
+  const tr = useT()
   const times = useListaTimes()
   const [moldura, setMoldura] = useState(u.perfil.moldura || '')
   const [time, setTime] = useState(u.perfil.time || '')
@@ -184,14 +187,14 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
     }
   }
   const salvar = () => enviar({ moldura: moldura || null, time: time || null, xp: Math.round(Number(ajuste) || 0), bloqueado, cargos: meus })
-  const limpar = () => window.confirm(`Apagar moldura, time, ajuste de XP, cargos e bloqueio de ${u.nome || u.id}?`) && enviar({ limpar: true })
+  const limpar = () => window.confirm(tr('Apagar moldura, time, ajuste de XP, cargos e bloqueio de {nome}?', { nome: u.nome || u.id })) && enviar({ limpar: true })
 
   return (
     <div className="sm-fundo" onClick={fechar}>
       <div className="adm-janela" role="dialog" aria-modal="true" aria-labelledby="adm-ed-titulo" onClick={(e) => e.stopPropagation()}>
         <div className="sm-cab">
-          <h2 id="adm-ed-titulo">Editar usuário</h2>
-          <button type="button" className="sm-fechar" aria-label="Fechar" onClick={fechar}>
+          <h2 id="adm-ed-titulo">{tr('Editar usuário')}</h2>
+          <button type="button" className="sm-fechar" aria-label={tr('Fechar')} onClick={fechar}>
             ×
           </button>
         </div>
@@ -202,19 +205,19 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
               <CamadaMoldura id={moldura} />
             </span>
             <div>
-              <b>{u.nome || 'Sem nome'}</b>
-              <a className="mono" href={linkPerfil(u.id)} title="Abrir o perfil no site">
+              <b>{u.nome || tr('Sem nome')}</b>
+              <a className="mono" href={linkPerfil(u.id)} title={tr('Abrir o perfil no site')}>
                 {u.id}
               </a>
               <span className="adm-ed-nivel">
                 <SeloNivel nivel={previa.nivel} tamanho={30} />
-                Nível {previa.nivel} · {fmt(previa.xp)} XP
+                {tr('Nível {n}', { n: previa.nivel })} · {fmt(previa.xp)} XP
               </span>
             </div>
           </div>
 
           <label className="adm-campo">
-            <span>Ajuste de XP</span>
+            <span>{tr('Ajuste de XP')}</span>
             <div className="adm-xp">
               {[-500, -100, 100, 500].map((d) => (
                 <button key={d} type="button" onClick={() => setAjuste((a) => (Number(a) || 0) + d)}>
@@ -224,15 +227,15 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
               <input type="number" step="50" value={ajuste} onChange={(e) => setAjuste(e.target.value)} />
             </div>
             <small>
-              Partidas: {fmt(u.xpBase)} XP · ajuste: {Number(ajuste) > 0 ? '+' : ''}
-              {fmt(ajuste)} · total: {fmt(previa.xp)} XP
+              {tr('Partidas')}: {fmt(u.xpBase)} XP · {tr('ajuste')}: {Number(ajuste) > 0 ? '+' : ''}
+              {fmt(ajuste)} · {tr('total')}: {fmt(previa.xp)} XP
             </small>
           </label>
 
           <label className="adm-campo">
-            <span>Moldura</span>
+            <span>{tr('Moldura')}</span>
             <select value={moldura} onChange={(e) => setMoldura(e.target.value)}>
-              <option value="">Sem moldura</option>
+              <option value="">{tr('Sem moldura')}</option>
               {COLECOES.map((c) => (
                 <optgroup key={c} label={c}>
                   {MOLDURAS.filter((m) => m.colecao === c).map((m) => (
@@ -243,13 +246,13 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
                 </optgroup>
               ))}
             </select>
-            <small>O admin pode dar qualquer moldura, mesmo acima do nível do jogador.</small>
+            <small>{tr('O admin pode dar qualquer moldura, mesmo acima do nível do jogador.')}</small>
           </label>
 
           <label className="adm-campo">
-            <span>Time</span>
+            <span>{tr('Time')}</span>
             <select value={time} onChange={(e) => setTime(e.target.value)}>
-              <option value="">Sem time</option>
+              <option value="">{tr('Sem time')}</option>
               {times.map((t) => (
                 <option key={t.nome} value={t.nome}>
                   {t.nome}
@@ -259,7 +262,7 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
           </label>
 
           <div className="adm-campo">
-            <span>Cargos</span>
+            <span>{tr('Cargos')}</span>
             {cargos.length ? (
               <div className="adm-cargos-check">
                 {cargos.map((c) => (
@@ -267,7 +270,7 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
                     key={c.id}
                     className={meus.includes(c.id) || u.auto.includes(c.id) ? 'ligado' : ''}
                     style={{ '--cg': c.cor }}
-                    title={u.auto.includes(c.id) ? `Automático: o jogador está no top ${c.top} do ranking` : undefined}
+                    title={u.auto.includes(c.id) ? tr('Automático: o jogador está no top {n} do ranking', { n: c.top }) : undefined}
                   >
                     <input
                       type="checkbox"
@@ -276,40 +279,40 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
                       onChange={(e) => trocarCargo(c.id, e.target.checked)}
                     />
                     <SeloCargo cargo={c} />
-                    {u.auto.includes(c.id) && <small className="adm-auto">auto · top {c.top}</small>}
+                    {u.auto.includes(c.id) && <small className="adm-auto">{tr('auto · top {n}', { n: c.top })}</small>}
                   </label>
                 ))}
               </div>
             ) : (
-              <small>Nenhum cargo criado ainda (aba Cargos).</small>
+              <small>{tr('Nenhum cargo criado ainda (aba Cargos).')}</small>
             )}
-            <small>Cargos liberam as molduras exclusivas deles e aparecem como selo no perfil e no ranking.</small>
+            <small>{tr('Cargos liberam as molduras exclusivas deles e aparecem como selo no perfil e no ranking.')}</small>
           </div>
 
           <label className="adm-check">
             <input type="checkbox" checked={bloqueado} onChange={(e) => setBloqueado(e.target.checked)} />
             <span>
-              <b>Bloquear personalização</b>
+              <b>{tr('Bloquear personalização')}</b>
               <small>
                 {ehAdmin
-                  ? 'Este usuário é admin: o bloqueio não vale para admins (eles continuam podendo personalizar).'
-                  : 'O jogador não consegue mais trocar a moldura nem o time sozinho.'}
+                  ? tr('Este usuário é admin: o bloqueio não vale para admins (eles continuam podendo personalizar).')
+                  : tr('O jogador não consegue mais trocar a moldura nem o time sozinho.')}
               </small>
             </span>
           </label>
         </div>
         <div className="sm-rodape">
           <button type="button" className="btn btn-ghost adm-perigo" onClick={limpar} disabled={estado === 'salvando'}>
-            Limpar perfil
+            {tr('Limpar perfil')}
           </button>
           <span className="sm-msg" role="status">
-            {estado !== 'salvando' && estado}
+            {estado !== 'salvando' && tr(estado)}
           </span>
           <button type="button" className="btn btn-ghost" onClick={fechar}>
-            Cancelar
+            {tr('Cancelar')}
           </button>
           <button type="button" className="btn btn-primary" onClick={salvar} disabled={estado === 'salvando'}>
-            {estado === 'salvando' ? 'Salvando…' : 'Salvar'}
+            {estado === 'salvando' ? tr('Salvando…') : tr('Salvar')}
           </button>
         </div>
       </div>
@@ -319,6 +322,7 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
 
 // ── Aba Molduras: liberar por nível ──
 function Molduras({ config, aoSalvar }) {
+  const tr = useT()
   const [porNivel, setPorNivel] = useState(!!config.molduraPorNivel)
   const [niveis, setNiveis] = useState(() => ({ ...config.nivelMoldura }))
   const [exclusiva, setExclusiva] = useState(() => ({ ...config.molduraCargo }))
@@ -351,23 +355,22 @@ function Molduras({ config, aoSalvar }) {
         <label className="adm-check grande">
           <input type="checkbox" checked={porNivel} onChange={(e) => setPorNivel(e.target.checked)} />
           <span>
-            <b>Liberar molduras por nível</b>
-            <small>Ligado: cada moldura só pode ser usada a partir do nível escolhido abaixo. Desligado: todas ficam livres.</small>
+            <b>{tr('Liberar molduras por nível')}</b>
+            <small>{tr('Ligado: cada moldura só pode ser usada a partir do nível escolhido abaixo. Desligado: todas ficam livres.')}</small>
           </span>
         </label>
         <div className="adm-salvar">
           <span className="sm-msg" role="status">
-            {estado !== 'salvando' && estado}
+            {estado !== 'salvando' && tr(estado)}
           </span>
           <button type="button" className="btn btn-primary" onClick={salvar} disabled={!mudou || estado === 'salvando'}>
-            {estado === 'salvando' ? 'Salvando…' : 'Salvar regras'}
+            {estado === 'salvando' ? tr('Salvando…') : tr('Salvar regras')}
           </button>
         </div>
       </div>
 
       <p className="adm-nota">
-        <b>Exclusiva de:</b> a moldura só pode ser usada por quem tem o cargo (crie os cargos na aba Cargos). Vale mesmo com a regra de nível
-        desligada; com as duas, o jogador precisa do cargo e do nível.
+        {tr('Exclusiva de: a moldura só pode ser usada por quem tem o cargo (crie os cargos na aba Cargos). Vale mesmo com a regra de nível desligada; com as duas, o jogador precisa do cargo e do nível.')}
       </p>
       <div className="adm-colecoes">
         {COLECOES.map((c) => {
@@ -378,10 +381,10 @@ function Molduras({ config, aoSalvar }) {
                 <h3>{c}</h3>
                 {cargos.length > 0 && (
                   <label>
-                    Exclusiva:
+                    {tr('Exclusiva:')}
                     <select value="" onChange={(e) => e.target.value && tornarExclusiva(daColecao.map((m) => m.id), e.target.value === '-' ? '' : e.target.value)}>
-                      <option value="">coleção inteira…</option>
-                      <option value="-">Todos (sem cargo)</option>
+                      <option value="">{tr('coleção inteira…')}</option>
+                      <option value="-">{tr('Todos (sem cargo)')}</option>
                       {cargos.map((cg) => (
                         <option key={cg.id} value={cg.id}>
                           {cg.nome}
@@ -391,12 +394,12 @@ function Molduras({ config, aoSalvar }) {
                   </label>
                 )}
                 <label className={porNivel ? '' : 'desligado'}>
-                  Coleção inteira:
+                  {tr('Coleção inteira:')}
                   <select value="" onChange={(e) => e.target.value && definir(daColecao.map((m) => m.id), e.target.value)}>
-                    <option value="">nível…</option>
+                    <option value="">{tr('nível…')}</option>
                     {NIVEIS_OPCOES.map((n) => (
                       <option key={n} value={n}>
-                        {n === 1 ? 'Livre (1)' : `Nível ${n}`}
+                        {n === 1 ? tr('Livre (1)') : tr('Nível {n}', { n })}
                       </option>
                     ))}
                   </select>
@@ -408,21 +411,21 @@ function Molduras({ config, aoSalvar }) {
                     <img src={urlMiniatura(m.id)} alt="" loading="lazy" />
                     <span>{m.nome}</span>
                     {cargos.length > 0 && (
-                      <select className="adm-mold-cargo" value={exclusiva[m.id] || ''} onChange={(e) => tornarExclusiva([m.id], e.target.value)} aria-label={`Exclusiva de (${m.nome})`}>
-                        <option value="">Todos</option>
+                      <select className="adm-mold-cargo" value={exclusiva[m.id] || ''} onChange={(e) => tornarExclusiva([m.id], e.target.value)} aria-label={`${tr('Exclusiva de')} (${m.nome})`}>
+                        <option value="">{tr('Todos')}</option>
                         {cargos.map((cg) => (
                           <option key={cg.id} value={cg.id}>
-                            Só {cg.nome}
+                            {tr('Só {cargo}', { cargo: cg.nome })}
                           </option>
                         ))}
                       </select>
                     )}
                     <span className={`adm-mold-nivel${porNivel ? '' : ' desligado'}`}>
                       <SeloNivel nivel={nivelDe1(m.id)} tamanho={24} />
-                      <select value={nivelDe1(m.id)} onChange={(e) => definir([m.id], e.target.value)} aria-label={`Nível de ${m.nome}`}>
+                      <select value={nivelDe1(m.id)} onChange={(e) => definir([m.id], e.target.value)} aria-label={tr('Nível de {nome}', { nome: m.nome })}>
                         {NIVEIS_OPCOES.map((n) => (
                           <option key={n} value={n}>
-                            {n === 1 ? 'Livre' : `Nível ${n}`}
+                            {n === 1 ? tr('Livre') : tr('Nível {n}', { n })}
                           </option>
                         ))}
                       </select>
@@ -449,6 +452,7 @@ const slug = (s) =>
     .slice(0, 24)
 
 function Cargos({ config, usuarios, aoSalvar }) {
+  const tr = useT()
   const [lista, setLista] = useState(() => (config.cargos || []).map((c) => ({ ...c })))
   const [novoNome, setNovoNome] = useState('')
   const [novaCor, setNovaCor] = useState('#f5c542')
@@ -469,7 +473,7 @@ function Cargos({ config, usuarios, aoSalvar }) {
   const apagar = (i) => {
     const c = lista[i]
     const n = membros(c.id).length
-    if (window.confirm(`Apagar o cargo ${c.nome}? ${n} jogador(es) perdem o cargo e as molduras exclusivas dele ficam livres.`)) setLista((l) => l.filter((_, k) => k !== i))
+    if (window.confirm(tr('Apagar o cargo {nome}? {n} jogador(es) perdem o cargo e as molduras exclusivas dele ficam livres.', { nome: c.nome, n }))) setLista((l) => l.filter((_, k) => k !== i))
   }
   const salvar = async () => {
     setEstado('salvando')
@@ -487,26 +491,25 @@ function Cargos({ config, usuarios, aoSalvar }) {
     <div className="adm-bloco adm-cargos">
       <div className="adm-config-topo">
         <p className="adm-nota">
-          Cargos (Premium, VIP...) dão um selo no perfil e no ranking e liberam molduras exclusivas. Dê o cargo a alguém em <b>Usuários → Editar</b>;
-          escolha as molduras de cada cargo na aba <b>Molduras</b>.
+          {tr('Cargos (Premium, VIP...) dão um selo no perfil e no ranking e liberam molduras exclusivas. Dê o cargo a alguém em Usuários → Editar; escolha as molduras de cada cargo na aba Molduras.')}
         </p>
         <div className="adm-salvar">
           <span className="sm-msg" role="status">
-            {estado !== 'salvando' && estado}
+            {estado !== 'salvando' && tr(estado)}
           </span>
           <button type="button" className="btn btn-primary" onClick={salvar} disabled={!mudou || !valido || estado === 'salvando'}>
-            {estado === 'salvando' ? 'Salvando…' : 'Salvar cargos'}
+            {estado === 'salvando' ? tr('Salvando…') : tr('Salvar cargos')}
           </button>
         </div>
       </div>
       <ul>
         {lista.map((c, i) => (
           <li key={c.id}>
-            <input type="color" value={c.cor} onChange={(e) => mudar(i, 'cor', e.target.value)} aria-label={`Cor do cargo ${c.nome}`} />
-            <input className="adm-cargo-nome" value={c.nome} maxLength={24} onChange={(e) => mudar(i, 'nome', e.target.value)} aria-label="Nome do cargo" />
+            <input type="color" value={c.cor} onChange={(e) => mudar(i, 'cor', e.target.value)} aria-label={tr('Cor do cargo {nome}', { nome: c.nome })} />
+            <input className="adm-cargo-nome" value={c.nome} maxLength={24} onChange={(e) => mudar(i, 'nome', e.target.value)} aria-label={tr('Nome do cargo')} />
             <SeloCargo cargo={{ ...c, nome: c.nome || '…' }} />
-            <label className="adm-top" title="0 = só manual. Ex.: 3 = os 3 primeiros do ranking ganham o cargo e perdem ao sair do top 3">
-              Automático: top
+            <label className="adm-top" title={tr('0 = só manual. Ex.: 3 = os 3 primeiros do ranking ganham o cargo e perdem ao sair do top 3')}>
+              {tr('Automático: top')}
               <input
                 type="number"
                 min="0"
@@ -516,8 +519,8 @@ function Cargos({ config, usuarios, aoSalvar }) {
               />
             </label>
             <span className="adm-cargo-info">
-              {membros(c.id).length} jogador(es) · {exclusivas(c.id)} moldura(s) exclusiva(s)
-              {c.top > 0 ? ` · automático para o top ${c.top} do ranking (sai sozinho de quem cair)` : ' · só manual'}
+              {tr('{n} jogador(es) · {m} moldura(s) exclusiva(s)', { n: membros(c.id).length, m: exclusivas(c.id) })}
+              {c.top > 0 ? ` · ${tr('automático para o top {n} do ranking (sai sozinho de quem cair)', { n: c.top })}` : ` · ${tr('só manual')}`}
               <span className="adm-cargo-membros">
                 {membros(c.id)
                   .slice(0, 8)
@@ -529,17 +532,17 @@ function Cargos({ config, usuarios, aoSalvar }) {
               </span>
             </span>
             <button type="button" className="btn btn-ghost adm-perigo" onClick={() => apagar(i)}>
-              Apagar
+              {tr('Apagar')}
             </button>
           </li>
         ))}
-        {lista.length === 0 && <li className="adm-vazio">Nenhum cargo ainda.</li>}
+        {lista.length === 0 && <li className="adm-vazio">{tr('Nenhum cargo ainda.')}</li>}
       </ul>
       <div className="adm-novo-admin">
-        <input type="color" value={novaCor} onChange={(e) => setNovaCor(e.target.value)} aria-label="Cor do novo cargo" />
-        <input placeholder="Nome do cargo (ex.: Premium)" value={novoNome} maxLength={24} onChange={(e) => setNovoNome(e.target.value)} />
+        <input type="color" value={novaCor} onChange={(e) => setNovaCor(e.target.value)} aria-label={tr('Cor do novo cargo')} />
+        <input placeholder={tr('Nome do cargo (ex.: Premium)')} value={novoNome} maxLength={24} onChange={(e) => setNovoNome(e.target.value)} />
         <button type="button" className="btn btn-ghost" disabled={!novoNome.trim() || lista.length >= 20} onClick={adicionar}>
-          Adicionar cargo
+          {tr('Adicionar cargo')}
         </button>
       </div>
     </div>
@@ -548,9 +551,10 @@ function Cargos({ config, usuarios, aoSalvar }) {
 
 // ── Aba Admins ──
 function Admins({ config, dono, souDono, usuarios, aoSalvar }) {
+  const tr = useT()
   const [novo, setNovo] = useState('')
   const [estado, setEstado] = useState('')
-  const nomeDe = (id) => usuarios.find((u) => u.id === id)?.nome || 'Sem nome'
+  const nomeDe = (id) => usuarios.find((u) => u.id === id)?.nome || tr('Sem nome')
   const avatarDe = (id) => usuarios.find((u) => u.id === id)?.avatar
   const mudar = async (id, admin) => {
     setEstado('salvando')
@@ -568,7 +572,7 @@ function Admins({ config, dono, souDono, usuarios, aoSalvar }) {
   return (
     <div className="adm-bloco adm-admins">
       <p className="adm-nota">
-        Admins acessam este painel e editam os usuários e as regras das molduras. {souDono ? 'Só você (dono) muda esta lista.' : 'Só o dono muda esta lista.'}
+        {tr('Admins acessam este painel e editam os usuários e as regras das molduras.')} {souDono ? tr('Só você (dono) muda esta lista.') : tr('Só o dono muda esta lista.')}
       </p>
       <ul>
         {[dono, ...(config.admins || []).filter((id) => id !== dono)].filter(Boolean).map((id) => (
@@ -579,11 +583,11 @@ function Admins({ config, dono, souDono, usuarios, aoSalvar }) {
               <small className="mono">{id}</small>
             </a>
             {id === dono ? (
-              <i className="dono">DONO</i>
+              <i className="dono">{tr('DONO')}</i>
             ) : (
               souDono && (
                 <button type="button" className="btn btn-ghost adm-perigo" onClick={() => mudar(id, false)} disabled={estado === 'salvando'}>
-                  Remover
+                  {tr('Remover')}
                 </button>
               )
             )}
@@ -592,7 +596,7 @@ function Admins({ config, dono, souDono, usuarios, aoSalvar }) {
       </ul>
       {souDono && (
         <div className="adm-novo-admin">
-          <input list="adm-lista-ids" placeholder="SteamID64 (17 números)" value={novo} onChange={(e) => setNovo(e.target.value)} />
+          <input list="adm-lista-ids" placeholder={tr('SteamID64 (17 números)')} value={novo} onChange={(e) => setNovo(e.target.value)} />
           <datalist id="adm-lista-ids">
             {usuarios.map((u) => (
               <option key={u.id} value={u.id}>
@@ -601,10 +605,10 @@ function Admins({ config, dono, souDono, usuarios, aoSalvar }) {
             ))}
           </datalist>
           <button type="button" className="btn btn-primary" disabled={!valido || estado === 'salvando'} onClick={() => mudar(novo.trim(), true)}>
-            Tornar admin
+            {tr('Tornar admin')}
           </button>
           <span className="sm-msg" role="status">
-            {estado !== 'salvando' && estado}
+            {estado !== 'salvando' && tr(estado)}
           </span>
         </div>
       )}
@@ -614,24 +618,26 @@ function Admins({ config, dono, souDono, usuarios, aoSalvar }) {
 
 // "há 5 s" (conta sozinho)
 function Ha({ desde }) {
+  const tr = useT()
   const [, setTique] = useState(0)
   useEffect(() => {
     const id = setInterval(() => setTique((n) => n + 1), 1000)
     return () => clearInterval(id)
   }, [])
-  if (!desde) return 'agora'
+  if (!desde) return tr('agora')
   const s = Math.max(0, Math.round((Date.now() - desde) / 1000))
-  return s < 2 ? 'agora' : s < 60 ? `há ${s} s` : `há ${Math.floor(s / 60)} min`
+  return s < 2 ? tr('agora') : s < 60 ? tr('há {n} s', { n: s }) : tr('há {n} min', { n: Math.floor(s / 60) })
 }
 
 function Aviso({ titulo, texto, children }) {
+  const tr = useT()
   return (
     <section className="hero adm-hero">
       <FundoHero quantidade={8} />
       <div className="wrap">
-        <span className="kicker">ADMINISTRAÇÃO</span>
-        <h1>{titulo}</h1>
-        {texto && <p className="lead">{texto}</p>}
+        <span className="kicker">{tr('ADMINISTRAÇÃO')}</span>
+        <h1>{tr(titulo)}</h1>
+        {texto && <p className="lead">{tr(texto)}</p>}
         {children && <div className="adm-acoes">{children}</div>}
       </div>
     </section>
@@ -639,6 +645,7 @@ function Aviso({ titulo, texto, children }) {
 }
 
 export default function Admin() {
+  const tr = useT()
   const conta = useConta()
   const eu = useAdmin(conta)
   const [montado, setMontado] = useState(false)
@@ -687,7 +694,7 @@ export default function Admin() {
       <Aviso titulo="Painel de administrador" texto="Entre com a Steam para acessar.">
         {loginAtivo() && (
           <button type="button" className="btn btn-primary" onClick={entrar}>
-            Entrar com Steam
+            {tr('Entrar com Steam')}
           </button>
         )}
       </Aviso>
@@ -697,7 +704,7 @@ export default function Admin() {
     conteudo = (
       <Aviso titulo="Não deu para carregar" texto={erro}>
         <button type="button" className="btn btn-primary" onClick={carregar}>
-          Tentar de novo
+          {tr('Tentar de novo')}
         </button>
       </Aviso>
     )
@@ -720,8 +727,8 @@ export default function Admin() {
         <section className="hero adm-hero">
           <FundoHero quantidade={8} />
           <div className="wrap">
-            <span className="kicker">ADMINISTRAÇÃO</span>
-            <h1>Painel do site</h1>
+            <span className="kicker">{tr('ADMINISTRAÇÃO')}</span>
+            <h1>{tr('Painel do site')}</h1>
             <div className="adm-resumo">
               {[
                 ['ENTRARAM NO SITE', n.logados],
@@ -730,7 +737,7 @@ export default function Admin() {
                 ['BLOQUEADOS', n.bloqueados],
               ].map(([r, v]) => (
                 <div key={r} className="caixa">
-                  <span className="mono">{r}</span>
+                  <span className="mono">{tr(r)}</span>
                   <b>{v}</b>
                 </div>
               ))}
@@ -739,16 +746,16 @@ export default function Admin() {
         </section>
         <section className="secao adm-secao">
           <div className="wrap">
-            <div className="adm-abas" role="tablist" aria-label="Seções do painel">
+            <div className="adm-abas" role="tablist" aria-label={tr('Seções do painel')}>
               {ABAS.map(([id, rotulo]) => (
                 <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'active' : ''} onClick={() => setAba(id)}>
-                  {rotulo}
+                  {tr(rotulo)}
                 </button>
               ))}
-              <span className="adm-vivo" title="O painel se atualiza sozinho a cada 15 segundos">
-                <i /> {editando ? 'Pausado (editando)' : <>Atualiza sozinho · <Ha desde={atualizado} /></>}
+              <span className="adm-vivo" title={tr('O painel se atualiza sozinho a cada 15 segundos')}>
+                <i /> {editando ? tr('Pausado (editando)') : <>{tr('Atualiza sozinho')} · <Ha desde={atualizado} /></>}
               </span>
-              <button type="button" className="adm-recarregar" onClick={() => carregar()} title="Recarregar agora">
+              <button type="button" className="adm-recarregar" onClick={() => carregar()} title={tr('Recarregar agora')}>
                 ↻
               </button>
             </div>

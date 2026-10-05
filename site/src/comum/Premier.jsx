@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { desempenhoAtivo } from './desempenho.js'
+import { useT } from './i18n.js'
 
 // ── CS Rating do Premier (vem da Leetify no deploy; null = jogador sem conta na Leetify) ──
 const faixaPremier = (v) => (v >= 30000 ? 7 : v >= 25000 ? 6 : v >= 20000 ? 5 : v >= 15000 ? 4 : v >= 10000 ? 3 : v >= 5000 ? 2 : 1)
@@ -9,11 +11,12 @@ const atrasoBrilho = (id) => ((Number(String(id).slice(-4)) || 0) % 200) / 100
 
 // Contagem animada de 0 até o rating (a cor da faixa acompanha enquanto sobe)
 export default function Premier({ j }) {
+  const t = useT()
   const alvo = j.premier > 0 ? j.premier : 0
   const [v, setV] = useState(alvo)
 
   useEffect(() => {
-    if (!alvo || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    if (!alvo || desempenhoAtivo() || matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const inicio = performance.now() + 350
     const duracao = 1400
     let quadro
@@ -29,7 +32,7 @@ export default function Premier({ j }) {
 
   if (!alvo) {
     return (
-      <span className="premier sem" title="Sem CS Rating do Premier (precisa de conta na leetify.gg)">
+      <span className="premier sem" title={t('Sem CS Rating do Premier (precisa de conta na leetify.gg)')}>
         <b>---</b>
       </span>
     )
@@ -39,7 +42,7 @@ export default function Premier({ j }) {
     <span
       className={`premier t${faixaPremier(v)}`}
       style={{ '--pd': `${atrasoBrilho(j.steamId).toFixed(2)}s` }}
-      title={`CS Rating do Premier: ${alvo.toLocaleString('pt-BR')}`}
+      title={t('CS Rating do Premier: {v}', { v: alvo.toLocaleString(t.local) })}
     >
       <b>{mil}</b>
       <small>{resto}</small>

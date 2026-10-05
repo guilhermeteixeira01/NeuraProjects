@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
+import { useT } from '../../../comum/i18n.js'
 import TeamLogo from './TeamLogo.jsx'
 
 // Campo do nome do time com as sugestões da lista do site (/times/), no visual do NeuraPick
@@ -19,6 +20,7 @@ function Destaque({ texto, busca }) {
 
 // excluir = nome do time do outro lado (não aparece nas sugestões: o mesmo time não joga contra ele mesmo)
 export default function TeamCombo({ value, onChange, times, team, placeholder, excluir = '' }) {
+  const tr = useT()
   const [aberto, setAberto] = useState(false)
   const [ativo, setAtivo] = useState(0)
   const idLista = useId()
@@ -115,7 +117,7 @@ export default function TeamCombo({ value, onChange, times, team, placeholder, e
       {mostrar && (
         <ul ref={lista} className={`sugestoes team-${team}`} id={idLista} role="listbox">
           <li className="sugestoes-head" aria-hidden="true">
-            LISTA DE TIMES
+            {tr('LISTA DE TIMES')}
           </li>
           {sugestoes.map((t, i) => (
             <li
@@ -134,7 +136,7 @@ export default function TeamCombo({ value, onChange, times, team, placeholder, e
               <span className="sug-nome">
                 <Destaque texto={t.nome} busca={busca} />
               </span>
-              {!t.logo && <span className="sug-sem">sem logo</span>}
+              {!t.logo && <span className="sug-sem">{tr('sem logo')}</span>}
             </li>
           ))}
         </ul>

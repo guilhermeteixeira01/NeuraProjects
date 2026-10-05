@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { CamadaMoldura, SeloCargo, cargoDaMoldura, useCargosIdsDe, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { COLECOES, MOLDURAS, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { urlOk } from '../../comum/dados.js'
-import { TEMAS, aplicarTema, temaAtual } from '../../comum/tema.js'
+import { useT } from '../../comum/i18n.js'
 
 function CadeadoMini() {
   return (
@@ -27,6 +27,7 @@ function Logo({ url, nome, classe }) {
 // perfil). A prévia mostra as duas escolhas; Salvar manda as duas juntas e todas as páginas passam a mostrar.
 // nivel: nível de quem está personalizando; admin: sem trava de nível
 export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin = false, fechar }) {
+  const tr = useT()
   const perfil = usePerfis()[steamId] || {}
   const config = useConfigSite()
   // Trava: nível abaixo do exigido ou moldura exclusiva de um cargo que a pessoa não tem (admin não tem trava)
@@ -38,26 +39,20 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   const travada = (id) => !admin && (nivelDaMoldura(config, id) > nivel || semCargo(id))
   const [falta, setFalta] = useState(0) // nível exigido, quando o worker recusa
   const times = useListaTimes()
-  // Tema que estava valendo ao abrir (a prévia muda a página; cancelar volta para ele)
-  const temaOriginal = useRef(temaAtual())
-  const salvo = { moldura: perfil.moldura || null, time: perfil.time || null, tema: perfil.tema || temaOriginal.current }
+  const salvo = { moldura: perfil.moldura || null, time: perfil.time || null }
   const [escolha, setEscolha] = useState(salvo)
   const [mexeu, setMexeu] = useState(false)
-  const [aba, setAba] = useState('moldura') // 'moldura' | 'time' | 'tema'
+  const [aba, setAba] = useState('moldura') // 'moldura' | 'time'
   const [colecao, setColecao] = useState('todas')
   const [estado, setEstado] = useState('') // '' | 'salvando' | 'erro' | 'login' | 'nivel' | 'bloqueado'
   const [erroAvatar, setErroAvatar] = useState(false)
 
   // O perfil salvo pode chegar depois de abrir: enquanto não mexeu em nada, acompanha ele
   useEffect(() => {
-    if (!mexeu) setEscolha({ moldura: perfil.moldura || null, time: perfil.time || null, tema: perfil.tema || temaOriginal.current })
+    if (!mexeu) setEscolha({ moldura: perfil.moldura || null, time: perfil.time || null })
   }, [perfil.moldura, perfil.time, mexeu])
 
-  // Fechar sem salvar: volta o tema que estava valendo (a aba Tema mostra a prévia na página)
-  const cancelar = useCallback(() => {
-    aplicarTema(temaOriginal.current, { guardar: false })
-    fechar()
-  }, [fechar])
+  const cancelar = useCallback(() => fechar(), [fechar])
 
   // Esc fecha; a página por trás não rola
   useEffect(() => {
@@ -70,10 +65,6 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
     }
   }, [cancelar])
 
-  const escolherTema = (id) => {
-    escolher('tema', id)
-    aplicarTema(id, { guardar: false }) // prévia: a página muda na hora
-  }
 
   const escolher = (campo, valor) => {
     setEscolha((e) => ({ ...e, [campo]: valor }))
@@ -97,8 +88,8 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
           !presa
             ? `${m.nome} · ${m.colecao}`
             : semCargo(m.id)
-              ? `${m.nome}: exclusiva de ${cargoDaMoldura(config, m.id).nome}`
-              : `${m.nome}: libera no nível ${exige}`
+              ? `${m.nome}: ${tr('exclusiva de {cargo}', { cargo: cargoDaMoldura(config, m.id).nome })}`
+              : `${m.nome}: ${tr('libera no nível {n}', { n: exige })}`
         }
       >
         <img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" />
@@ -147,13 +138,12 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
     )
   const moldura = molduraPorId(escolha.moldura)
   const time = times.find((t) => t.nome === escolha.time) || null
-  const mudou = escolha.moldura !== salvo.moldura || escolha.time !== salvo.time || escolha.tema !== salvo.tema
+  const mudou = escolha.moldura !== salvo.moldura || escolha.time !== salvo.time
 
   const salvar = async () => {
     setEstado('salvando')
     try {
       await salvarPerfil(escolha)
-      aplicarTema(escolha.tema) // agora fica guardado no navegador também
       fechar()
     } catch (e) {
       setFalta(e.dados?.precisa || 0)
@@ -165,8 +155,8 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
     <div className="sm-fundo" onClick={cancelar}>
       <div className="sm-painel" role="dialog" aria-modal="true" aria-labelledby="sm-titulo" onClick={(e) => e.stopPropagation()}>
         <div className="sm-cab">
-          <h2 id="sm-titulo">Personalizar perfil</h2>
-          <button type="button" className="sm-fechar" aria-label="Fechar" onClick={cancelar}>
+          <h2 id="sm-titulo">{tr('Personalizar perfil')}</h2>
+          <button type="button" className="sm-fechar" aria-label={tr('Fechar')} onClick={cancelar}>
             ×
           </button>
         </div>
@@ -188,30 +178,29 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                 {time.nome}
               </span>
             ) : (
-              <small>Sem time</small>
+              <small>{tr('Sem time')}</small>
             )}
-            <span className="mono">{moldura ? moldura.nome.toUpperCase() : 'SEM MOLDURA'}</span>
+            <span className="mono">{moldura ? moldura.nome.toUpperCase() : tr('SEM MOLDURA')}</span>
           </div>
 
           <div className="sm-lista">
-            <div className="sm-abas" role="tablist" aria-label="O que personalizar">
+            <div className="sm-abas" role="tablist" aria-label={tr('O que personalizar')}>
               {[
                 ['moldura', 'Moldura'],
                 ['time', 'Time'],
-                ['tema', 'Tema'],
               ].map(([id, rotulo]) => (
                 <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'active' : ''} onClick={() => setAba(id)}>
-                  {rotulo}
+                  {tr(rotulo)}
                 </button>
               ))}
             </div>
 
             {aba === 'moldura' ? (
               <>
-                <div className="sm-colecoes" role="tablist" aria-label="Coleções">
+                <div className="sm-colecoes" role="tablist" aria-label={tr('Coleções')}>
                   {['todas', ...COLECOES].map((c) => (
                     <button key={c} type="button" role="tab" aria-selected={c === colecao} className={c === colecao ? 'active' : ''} onClick={() => setColecao(c)}>
-                      {c === 'todas' ? 'Todas' : c}
+                      {c === 'todas' ? tr('Todas') : c}
                     </button>
                   ))}
                 </div>
@@ -221,7 +210,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                     <div className="sm-grade">
                       <button type="button" className={`sm-item sem${escolha.moldura === null ? ' sel' : ''}`} onClick={() => escolher('moldura', null)} aria-pressed={escolha.moldura === null}>
                         <span className="sm-sem-icone">∅</span>
-                        <span>Sem moldura</span>
+                        <span>{tr('Sem moldura')}</span>
                       </button>
                     </div>
                   )}
@@ -229,8 +218,8 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                     <section key={cargo.id} className="sm-secao sm-secao-cargo" style={{ '--cg': cargo.cor }}>
                       <h4 className={`sm-secao-cab${!admin && !meusCargos.includes(cargo.id) ? ' presa' : ''}`}>
                         <SeloCargo cargo={cargo} />
-                        Exclusivas
-                        <small>{admin || meusCargos.includes(cargo.id) ? 'liberado' : `só para ${cargo.nome}`}</small>
+                        {tr('Exclusivas')}
+                        <small>{admin || meusCargos.includes(cargo.id) ? tr('liberado') : tr('só para {cargo}', { cargo: cargo.nome })}</small>
                         <span className="mono">{itens.length}</span>
                       </h4>
                       {subgrupos(itens, (m) => nivelDaMoldura(config, m.id))}
@@ -241,11 +230,11 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                       {config.molduraPorNivel && (
                         <h4 className={`sm-secao-cab${!admin && exige > nivel ? ' presa' : ''}`}>
                           <SeloNivel nivel={exige} tamanho={24} />
-                          {exige === 1 ? 'Livres' : `Nível ${exige}`}
+                          {exige === 1 ? tr('Livres') : tr('Nível {n}', { n: exige })}
                           <small>
                             {exige === 1 || admin || exige <= nivel
-                              ? 'liberado'
-                              : exige - nivel === 1 ? 'falta 1 nível' : `faltam ${exige - nivel} níveis`}
+                              ? tr('liberado')
+                              : exige - nivel === 1 ? tr('falta 1 nível') : tr('faltam {n} níveis', { n: exige - nivel })}
                           </small>
                           <span className="mono">{itens.length}</span>
                         </h4>
@@ -255,34 +244,11 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                   ))}
                 </div>
               </>
-            ) : aba === 'tema' ? (
-              <div className="sm-temas">
-                {TEMAS.map((tm) => (
-                  <button
-                    key={tm.id}
-                    type="button"
-                    className={`sm-tema tema-${tm.id}${escolha.tema === tm.id ? ' sel' : ''}`}
-                    onClick={() => escolherTema(tm.id)}
-                    aria-pressed={escolha.tema === tm.id}
-                  >
-                    <span className="sm-tema-previa" aria-hidden="true">
-                      <i className="barra" />
-                      <i className="titulo" />
-                      <i className="card" />
-                      <i className="card" />
-                      <i className="botao" />
-                    </span>
-                    <b>{tm.nome}</b>
-                    <small>{tm.descricao}</small>
-                  </button>
-                ))}
-                <p className="sm-tema-nota">Vale para todas as páginas do site, neste e nos outros aparelhos em que você entrar.</p>
-              </div>
             ) : (
               <div className="sm-grade sm-grade-times">
                 <button type="button" className={`sm-item sem${escolha.time === null ? ' sel' : ''}`} onClick={() => escolher('time', null)} aria-pressed={escolha.time === null}>
                   <span className="sm-sem-icone">∅</span>
-                  <span>Sem time</span>
+                  <span>{tr('Sem time')}</span>
                 </button>
                 {times.map((t) => (
                   <button key={t.nome} type="button" className={`sm-item${escolha.time === t.nome ? ' sel' : ''}`} onClick={() => escolher('time', t.nome)} aria-pressed={escolha.time === t.nome}>
@@ -290,7 +256,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                     <span>{t.nome}</span>
                   </button>
                 ))}
-                {times.length === 0 && <p className="sm-vazio">Nenhum time cadastrado ainda (a lista é editada em /times/).</p>}
+                {times.length === 0 && <p className="sm-vazio">{tr('Nenhum time cadastrado ainda (a lista é editada em /times/).')}</p>}
               </div>
             )}
           </div>
@@ -298,17 +264,17 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
 
         <div className="sm-rodape">
           <span className="sm-msg" role="status">
-            {estado === 'erro' && 'Não deu para salvar. Tente de novo.'}
-            {estado === 'login' && 'Seu login venceu. Entre de novo com a Steam.'}
-            {estado === 'nivel' && `Essa moldura libera no nível ${falta}.`}
-            {estado === 'cargo' && 'Essa moldura é exclusiva de um cargo que você não tem.'}
-            {estado === 'bloqueado' && 'A personalização do seu perfil foi bloqueada por um administrador.'}
+            {estado === 'erro' && tr('Não deu para salvar. Tente de novo.')}
+            {estado === 'login' && tr('Seu login venceu. Entre de novo com a Steam.')}
+            {estado === 'nivel' && tr('Essa moldura libera no nível {n}.', { n: falta })}
+            {estado === 'cargo' && tr('Essa moldura é exclusiva de um cargo que você não tem.')}
+            {estado === 'bloqueado' && tr('A personalização do seu perfil foi bloqueada por um administrador.')}
           </span>
           <button type="button" className="btn btn-ghost" onClick={cancelar}>
-            Cancelar
+            {tr('Cancelar')}
           </button>
           <button type="button" className="btn btn-primary" onClick={salvar} disabled={estado === 'salvando' || !mudou}>
-            {estado === 'salvando' ? 'Salvando…' : 'Salvar'}
+            {estado === 'salvando' ? tr('Salvando…') : tr('Salvar')}
           </button>
         </div>
       </div>

@@ -7,6 +7,7 @@ import { IconClock, IconPlay, IconShield, IconSwap, IconTarget } from './Icons.j
 import TeamLogo, { MAX_LOGO_URL, logoValido } from './TeamLogo.jsx'
 import TeamCombo from './TeamCombo.jsx'
 import { acharTime, useTimes } from '../data/times.js'
+import { useT } from '../../../comum/i18n.js'
 
 const TIMERS = [
   { value: 0, label: 'OFF' },
@@ -22,6 +23,7 @@ const FEATURES = [
 ]
 
 export default function Setup({ onStart }) {
+  const tr = useT()
   const configRef = useInclinar(3) // formulário inclina de leve com o mouse
   const [teamA, setTeamA] = useState('')
   const [teamB, setTeamB] = useState('')
@@ -66,14 +68,14 @@ export default function Setup({ onStart }) {
     setLogoAuto((a) => ({ ...a, [t]: daLista }))
   }
 
-  const nameA = teamA.trim() || 'Time A'
-  const nameB = teamB.trim() || 'Time B'
+  const nameA = teamA.trim() || tr('Time {t}', { t: 'A' })
+  const nameB = teamB.trim() || tr('Time {t}', { t: 'B' })
   const poolOk = pool.length === POOL_SIZE
   // O mesmo time não pode jogar contra ele mesmo
   const mesmoTime = teamA.trim() !== '' && teamA.trim().toLowerCase() === teamB.trim().toLowerCase()
   const podeIniciar = poolOk && !mesmoTime
   const isPremierPool = pool.length === DEFAULT_POOL.length && DEFAULT_POOL.every((id) => pool.includes(id))
-  const premierDate = new Date(`${POOL_UPDATED}T12:00:00`).toLocaleDateString('pt-BR')
+  const premierDate = new Date(`${POOL_UPDATED}T12:00:00`).toLocaleDateString(tr.local)
 
   const toggleMap = (id) => {
     setPool((p) => {
@@ -110,28 +112,27 @@ export default function Setup({ onStart }) {
               <span className="dot-live" /> MAP VETO SYSTEM · CS2
             </span>
             <h1>
-              <Palavras texto="Pick & Ban de mapas no" />
+              <Palavras texto={tr('Pick & Ban de mapas no')} />
               <span className="fx-gradiente">
-                <Palavras texto="padrão competitivo" inicio={5} />
+                <Palavras texto={tr('padrão competitivo')} inicio={5} />
               </span>
             </h1>
             <p className="lead fx-entra" style={{ '--e': 3 }}>
-              Monte o confronto, defina o formato e conduza o veto exatamente como nos campeonatos de
-              Counter-Strike 2 — até sobrar um único mapa.
+              {tr('Monte o confronto, defina o formato e conduza o veto exatamente como nos campeonatos de Counter-Strike 2 — até sobrar um único mapa.')}
             </p>
             <div className="hero-actions fx-entra" style={{ '--e': 4 }}>
               <button className="btn btn-primary btn-lg" disabled={!podeIniciar} onClick={start}>
-                <IconPlay /> Iniciar veto
+                <IconPlay /> {tr('Iniciar veto')}
               </button>
               <a className="btn btn-ghost btn-lg" href="#pool">
-                Editar map pool
+                {tr('Editar map pool')}
               </a>
             </div>
             <div className="hero-meta">
-              <span>{FORMATS[format].label}</span>
+              <span>{tr(FORMATS[format].label)}</span>
               <span className="sep">/</span>
               <span className={poolOk ? '' : 'warn'}>
-                {pool.length}/{POOL_SIZE} MAPAS
+                {pool.length}/{POOL_SIZE} {tr('MAPAS')}
               </span>
               <span className="sep">/</span>
               <span>TIMER {timer ? `${timer}S` : 'OFF'}</span>
@@ -142,7 +143,7 @@ export default function Setup({ onStart }) {
             <div className="hud-frame config-3d fx-entra" ref={configRef} style={{ '--e': 2 }}>
               <div className="config">
                 <div className="config-head">
-                  <span className="mono-label">// CONFIGURAÇÃO DA PARTIDA</span>
+                  <span className="mono-label">// {tr('CONFIGURAÇÃO DA PARTIDA')}</span>
                 </div>
 
                 <div className="teams-row">
@@ -155,13 +156,13 @@ export default function Setup({ onStart }) {
                       <div className={`field team-${t.toLowerCase()}${mesmoTime ? ' mesmo-time' : ''}`}>
                         <label className="field-inner">
                           <span className="field-label">
-                            <span className="mono-label">TIME {t}</span>
+                            <span className="mono-label">{tr('TIME {t}', { t })}</span>
                             {acharTime(times, nome) && (
-                              <span className="da-lista" title="Time cadastrado na lista: o logo veio de lá">
+                              <span className="da-lista" title={tr('Time cadastrado na lista: o logo veio de lá')}>
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                                   <path d="M20 6 9 17l-5-5" />
                                 </svg>
-                                DA LISTA
+                                {tr('DA LISTA')}
                               </span>
                             )}
                           </span>
@@ -171,26 +172,26 @@ export default function Setup({ onStart }) {
                             times={times}
                             excluir={t === 'A' ? teamB : teamA}
                             team={t}
-                            placeholder={`Time ${t}`}
+                            placeholder={tr('Time {t}', { t })}
                           />
                         </label>
                         {logoDaLista(nome) ? (
                           <div className="logo-field logo-lista">
-                            <TeamLogo url={logoDaLista(nome)} name={nome || `Time ${t}`} team={t} size={34} />
-                            <span>Logo da lista de times</span>
+                            <TeamLogo url={logoDaLista(nome)} name={nome || tr('Time {t}', { t })} team={t} size={34} />
+                            <span>{tr('Logo da lista de times')}</span>
                           </div>
                         ) : (
                           <label className="logo-field">
-                            <TeamLogo url={logo} name={nome || `Time ${t}`} team={t} size={34} />
+                            <TeamLogo url={logo} name={nome || tr('Time {t}', { t })} team={t} size={34} />
                             <input
                               type="url"
                               inputMode="url"
                               value={logo}
                               onChange={(e) => setLogo(e.target.value)}
-                              placeholder="Logo (URL, opcional)"
+                              placeholder={tr('Logo (URL, opcional)')}
                               maxLength={MAX_LOGO_URL}
                               className={logo.trim() && !logoValido(logo) ? 'invalid' : ''}
-                              aria-label={`URL do logo do time ${t}`}
+                              aria-label={tr('URL do logo do time {t}', { t })}
                             />
                           </label>
                         )}
@@ -200,36 +201,36 @@ export default function Setup({ onStart }) {
                 </div>
                 {mesmoTime && (
                   <p className="hint warn-hint" role="alert">
-                    Os dois times não podem ser o mesmo. Escolha outro time para o Time {teamB.trim() ? 'B' : 'A'}.
+                    {tr('Os dois times não podem ser o mesmo. Escolha outro time para o Time {t}.', { t: teamB.trim() ? 'B' : 'A' })}
                   </p>
                 )}
                 <p className="hint lista-hint">
                   {times.length > 0
-                    ? `${times.length} times na lista: digite o nome e escolha para o logo entrar sozinho. `
-                    : 'Cadastre os times uma vez e o logo entra sozinho no veto. '}
-                  <a href="/times/">Gerenciar lista de times</a>
+                    ? `${tr('{n} times na lista: digite o nome e escolha para o logo entrar sozinho.', { n: times.length })} `
+                    : `${tr('Cadastre os times uma vez e o logo entra sozinho no veto.')} `}
+                  <a href="/times/">{tr('Gerenciar lista de times')}</a>
                 </p>
                 {(logoA.trim() && !logoValido(logoA)) || (logoB.trim() && !logoValido(logoB)) ? (
-                  <p className="hint warn-hint">O logo precisa ser um link https:// de imagem (até {MAX_LOGO_URL} caracteres).</p>
+                  <p className="hint warn-hint">{tr('O logo precisa ser um link https:// de imagem (até {n} caracteres).', { n: MAX_LOGO_URL })}</p>
                 ) : null}
 
                 <div className="config-row">
-                  <span className="mono-label">FORMATO</span>
+                  <span className="mono-label">{tr('FORMATO')}</span>
                   <div className="segmented">
                     {Object.entries(FORMATS).map(([key, f]) => (
                       <button key={key} className={format === key ? 'active' : ''} onClick={() => setFormat(key)}>
-                        {f.label}
+                        {tr(f.label)}
                       </button>
                     ))}
                   </div>
-                  <p className="hint">{FORMATS[format].description}</p>
+                  <p className="hint">{tr(FORMATS[format].description)}</p>
                 </div>
 
                 <div className="config-row">
-                  <span className="mono-label">INICIA O VETO</span>
+                  <span className="mono-label">{tr('INICIA O VETO')}</span>
                   <div className="segmented">
                     <button className={first === 'coin' ? 'active' : ''} onClick={() => setFirst('coin')}>
-                      Sorteio
+                      {tr('Sorteio')}
                     </button>
                     <button className={first === 'A' ? 'active' : ''} onClick={() => setFirst('A')}>
                       {nameA}
@@ -241,7 +242,7 @@ export default function Setup({ onStart }) {
                 </div>
 
                 <div className="config-row">
-                  <span className="mono-label">TIMER POR AÇÃO</span>
+                  <span className="mono-label">{tr('TIMER POR AÇÃO')}</span>
                   <div className="segmented">
                     {TIMERS.map((t) => (
                       <button key={t.value} className={timer === t.value ? 'active' : ''} onClick={() => setTimer(t.value)}>
@@ -249,25 +250,25 @@ export default function Setup({ onStart }) {
                       </button>
                     ))}
                   </div>
-                  <p className="hint">Se o tempo acabar, a ação é feita aleatoriamente.</p>
+                  <p className="hint">{tr('Se o tempo acabar, a ação é feita aleatoriamente.')}</p>
                 </div>
               </div>
             </div>
             <div className="hero-tag-float">
-              FORMATO <strong>{FORMATS[format].label}</strong>
+              {tr('FORMATO')} <strong>{tr(FORMATS[format].label)}</strong>
             </div>
           </div>
         </div>
       </section>
 
       {/* Letreiro (estilo em comum/site.css): a lista vai repetida para a faixa não ter buraco em tela larga */}
-      <div className="letreiro" aria-label="Recursos">
+      <div className="letreiro" aria-label={tr('Recursos')}>
         <div className="letreiro-trilho">
           {[0, 1].map((copia) => (
             <div key={copia} className="letreiro-grupo" aria-hidden={copia === 1}>
               {[...FEATURES, ...FEATURES].map((f, i) => (
                 <span key={i} className="faixa-item">
-                  {f.icon} {f.text}
+                  {f.icon} {tr(f.text)}
                 </span>
               ))}
             </div>
@@ -280,18 +281,15 @@ export default function Setup({ onStart }) {
           <div className="section-head-row">
             <div className="section-head">
               <span className="kicker">
-                <b>01</b> Configuração do veto
+                <b>01</b> {tr('Configuração do veto')}
               </span>
               <h2>Map pool</h2>
-              <p>
-                Selecione exatamente {POOL_SIZE} mapas para o veto. O padrão é o pool atual do Premier
-                (atualizado em {premierDate}).
-              </p>
+              <p>{tr('Selecione exatamente {n} mapas para o veto. O padrão é o pool atual do Premier (atualizado em {data}).', { n: POOL_SIZE, data: premierDate })}</p>
             </div>
             <div className="pool-head-actions">
               {!isPremierPool && (
                 <button className="btn btn-ghost btn-sm" onClick={() => setPool(DEFAULT_POOL)}>
-                  Usar pool do Premier
+                  {tr('Usar pool do Premier')}
                 </button>
               )}
               <span className={`counter ${poolOk ? 'ok' : ''}`}>
@@ -315,7 +313,7 @@ export default function Setup({ onStart }) {
                   <span className="pool-top">
                     <span className="pool-idx">{String(i + 1).padStart(2, '0')}</span>
                     {DEFAULT_POOL.includes(m.id) && <span className="pool-premier">PREMIER</span>}
-                    <span className="pool-check">{on ? 'ATIVO' : 'FORA'}</span>
+                    <span className="pool-check">{on ? tr('ATIVO') : tr('FORA')}</span>
                   </span>
                   <span className="pool-main">
                     <img className="pool-icon" src={mapIcon(m.id)} alt="" />
@@ -328,7 +326,7 @@ export default function Setup({ onStart }) {
 
           <div className="pool-cta">
             <button className="btn btn-primary btn-lg" disabled={!podeIniciar} onClick={start}>
-              <IconPlay /> Iniciar veto
+              <IconPlay /> {tr('Iniciar veto')}
             </button>
           </div>
         </div>

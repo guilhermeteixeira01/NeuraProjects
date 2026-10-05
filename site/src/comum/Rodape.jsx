@@ -1,12 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { CONFIG } from './config.js'
 import { linkPerfil, useConta } from './conta.js'
-import { salvarPerfil } from './Moldura.jsx'
-import { EVENTO_TEMA, TEMAS, aplicarTema, temaAtual } from './tema.js'
+import { IDIOMAS, aplicarIdioma, useT } from './i18n.js'
 
-// Rodapé no estilo do Discord: degradê do escuro para o azul do site, logo + seletor de tema + redes à esquerda,
+// Rodapé no estilo do Discord: degradê do escuro para o azul do site, logo + seletor de idioma + redes à esquerda,
 // colunas de links à direita (no celular viram sanfonas) e a palavra NEURA gigante embaixo.
-// Cores próprias (iguais em qualquer tema), como um bloco da marca.
+// Cores próprias (iguais em qualquer tema), como um bloco da marca. Tema e desempenho ficam no ⚙ do topo.
 
 const REDES = [
   [CONFIG.comunidadeNome, CONFIG.comunidade, 'kivo'],
@@ -49,7 +48,7 @@ function colunas(conta) {
     },
     {
       titulo: 'Comunidade',
-      links: CONFIG.comunidade ? [[`${CONFIG.comunidadeNome}`, CONFIG.comunidade, true]] : [],
+      links: CONFIG.comunidade ? [[CONFIG.comunidadeNome, CONFIG.comunidade, true]] : [],
     },
   ].filter((c) => c.links.length)
 }
@@ -63,18 +62,18 @@ function Seta() {
 }
 
 // Coluna de links: no computador sempre aberta; no celular abre/fecha pelo título
-function Coluna({ titulo, links }) {
+function Coluna({ titulo, links, t }) {
   const [aberta, setAberta] = useState(false)
   return (
     <div className={`nx-fcol${aberta ? ' aberta' : ''}`}>
       <button type="button" className="nx-fcol-tit" aria-expanded={aberta} onClick={() => setAberta((a) => !a)}>
-        {titulo}
+        {t(titulo)}
         <Seta />
       </button>
       <div className="nx-fcol-links">
         {links.map(([rotulo, href, fora]) => (
           <a key={rotulo} href={href} {...(fora ? externo : {})}>
-            {rotulo}
+            {t(rotulo)}
           </a>
         ))}
       </div>
@@ -82,50 +81,33 @@ function Coluna({ titulo, links }) {
   )
 }
 
-// Seletor de tema (o mesmo do Personalizar): vale para todas as páginas; com login, vai para o perfil também
-function SeletorTema({ conta }) {
-  const [tema, setTema] = useState('padrao') // igual ao HTML gerado; o efeito lê o de verdade
-  useEffect(() => {
-    const ler = () => setTema(temaAtual())
-    ler()
-    window.addEventListener(EVENTO_TEMA, ler)
-    return () => window.removeEventListener(EVENTO_TEMA, ler)
-  }, [])
-  const trocar = (id) => {
-    aplicarTema(id)
-    if (conta) salvarPerfil({ tema: id }).catch(() => {}) // sem login ou fora do ar: fica só neste navegador
-  }
-  return (
-    <label className="nx-ftema">
-      <span className="nx-frotulo">Tema</span>
-      <span className="nx-ftema-caixa">
-        <select value={tema} onChange={(e) => trocar(e.target.value)}>
-          {TEMAS.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.nome}
-            </option>
-          ))}
-        </select>
-        <Seta />
-      </span>
-    </label>
-  )
-}
-
 export default function Rodape() {
   const conta = useConta()
+  const t = useT()
   return (
     <footer data-site-footer="" className="nx-footer">
       <div className="nx-wrap">
         <div className="nx-ftopo">
           <div className="nx-fesq">
-            <a className="nx-flogo" href="/" aria-label="Neura Project — início">
+            <a className="nx-flogo" href="/" aria-label={t('Neura Project — início')}>
               <img src="/assets/logos/logo-np-64.png" alt="" width="52" height="52" />
             </a>
-            <SeletorTema conta={conta} />
+            <label className="nx-ftema">
+              <span className="nx-frotulo">{t('Idioma')}</span>
+              <span className="nx-ftema-caixa">
+                <select value={t.idioma} onChange={(e) => aplicarIdioma(e.target.value)}>
+                  {IDIOMAS.map((i) => (
+                    <option key={i.id} value={i.id}>
+                      {i.nome}
+                    </option>
+                  ))}
+                </select>
+                <Seta />
+              </span>
+            </label>
             {REDES.length > 0 && (
               <div className="nx-fsocial">
-                <span className="nx-frotulo">Social</span>
+                <span className="nx-frotulo">{t('Social')}</span>
                 <div className="nx-redes">
                   {REDES.map(([nome, link, icone]) => (
                     <a key={icone} href={link} {...externo} title={nome} aria-label={nome}>
@@ -136,16 +118,16 @@ export default function Rodape() {
               </div>
             )}
           </div>
-          <nav className="nx-fcols" aria-label="Rodapé">
-            <span className="nx-frotulo nx-fmenu">Menu</span>
+          <nav className="nx-fcols" aria-label={t('Rodapé')}>
+            <span className="nx-frotulo nx-fmenu">{t('Menu')}</span>
             {colunas(conta).map((c) => (
-              <Coluna key={c.titulo} {...c} />
+              <Coluna key={c.titulo} {...c} t={t} />
             ))}
           </nav>
         </div>
         <div className="nx-footer-legal">
-          <span>© {ANO} Neura Project. Estúdio independente feito no Brasil.</span>
-          <span>Não afiliado à Valve Corporation. Counter-Strike é marca da Valve.</span>
+          <span>{t('© {ano} Neura Project. Estúdio independente feito no Brasil.', { ano: ANO })}</span>
+          <span>{t('Não afiliado à Valve Corporation. Counter-Strike é marca da Valve.')}</span>
         </div>
         {/* Palavra gigante: o SVG estica o texto para ocupar a largura toda em qualquer tela */}
         <svg className="nx-fgigante" viewBox="0 0 1000 205" aria-hidden="true" focusable="false">
