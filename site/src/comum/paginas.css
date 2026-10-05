@@ -116,11 +116,11 @@ img {
   border-color: var(--blue);
   color: var(--blue-2);
 }
-.btn-discord {
-  background: #5865f2;
+.btn-comunidade {
+  background: linear-gradient(135deg, #1a73e8, #3498db);
   color: #fff;
 }
-.btn-discord:hover {
+.btn-comunidade:hover {
   filter: brightness(1.1);
 }
 .btn-lg {
@@ -521,8 +521,8 @@ img {
 .btn-primary.btn-brilho {
   box-shadow: 0 12px 34px -14px rgba(61, 220, 132, 0.8);
 }
-.btn-discord.btn-brilho {
-  box-shadow: 0 12px 34px -14px rgba(88, 101, 242, 0.9);
+.btn-comunidade.btn-brilho {
+  box-shadow: 0 12px 34px -14px rgba(52, 152, 219, 0.9);
 }
 .btn-brilho::after {
   content: '';

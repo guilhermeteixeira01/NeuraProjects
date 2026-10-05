@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { CONFIG, MENU } from './config.js'
 import { entrar, linkPerfil, loginAtivo, sair, useConta } from './conta.js'
-import { ICONES_MENU, IconeDiscord, IconeSteam } from './Icones.jsx'
+import { ICONES_MENU, IconeKivo, IconeSteam } from './Icones.jsx'
 import { useAdmin } from './Moldura.jsx'
 
 // Aba do painel de administrador (só aparece para admin; o worker confere de novo em toda ação)
@@ -136,9 +136,9 @@ export default function Nav({ pagina }) {
           {links}
         </nav>
         <div className="nx-acoes">
-          {CONFIG.discord && (
-            <a className="nx-btn nx-btn-ghost nx-discord" href={CONFIG.discord} target="_blank" rel="noopener">
-              <IconeDiscord />
+          {CONFIG.comunidade && (
+            <a className="nx-btn nx-btn-ghost nx-comunidade" href={CONFIG.comunidade} target="_blank" rel="noopener" title={`Comunidade na ${CONFIG.comunidadeNome}`}>
+              <IconeKivo />
               <span>Comunidade</span>
             </a>
           )}
@@ -160,9 +160,9 @@ export default function Nav({ pagina }) {
         // Tocar num link fecha a gaveta
         <div className="nx-gaveta" onClick={(e) => e.target.closest('a') && setAberto(false)}>
           {links}
-          {CONFIG.discord && (
-            <a className="nx-link" href={CONFIG.discord} target="_blank" rel="noopener">
-              <IconeDiscord /> Comunidade no Discord
+          {CONFIG.comunidade && (
+            <a className="nx-link" href={CONFIG.comunidade} target="_blank" rel="noopener">
+              <IconeKivo /> Comunidade na {CONFIG.comunidadeNome}
             </a>
           )}
         </div>

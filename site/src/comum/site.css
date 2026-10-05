@@ -165,9 +165,16 @@
   color: var(--text);
 }
 .nx-btn-ghost:hover {
-  border-color: #5865f2;
-  color: #aab1ff;
-  background: rgba(88, 101, 242, 0.08);
+  border-color: var(--blue-2);
+  color: #9fd0ff;
+  background: rgba(52, 152, 219, 0.1);
+}
+/* Emblema da Kivo nos botões/links da comunidade */
+.ic-kivo {
+  flex: none;
+  border-radius: 50%;
+  object-fit: contain;
+  max-width: none;
 }
 
 /* Login pela Steam */
@@ -566,7 +573,7 @@ html.nx-menu-aberto {
 
 @media (max-width: 900px) {
   .nx-links,
-  .nx-discord {
+  .nx-comunidade {
     display: none;
   }
   .nx-burger {

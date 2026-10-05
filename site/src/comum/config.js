@@ -11,7 +11,9 @@ export const CONFIG = {
   loginSteam: 'https://neura-steam-login.steam-login.workers.dev',
 
   // Redes sociais (deixe '' para esconder)
-  discord: 'https://discord.gg/GJSMDJEQsn',
+  // Comunidade (Kivo: plataforma gamer de voz, chat e comunidades). '' esconde os botões e links
+  comunidade: 'https://kivogamer.com/invite/bKbyhRATHR',
+  comunidadeNome: 'Kivo',
   youtube: '',
   instagram: '',
   twitch: '',

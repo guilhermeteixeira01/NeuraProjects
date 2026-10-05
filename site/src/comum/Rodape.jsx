@@ -1,7 +1,7 @@
 import { CONFIG, MENU } from './config.js'
 
 const REDES = [
-  ['Discord', CONFIG.discord, 'discord'],
+  [CONFIG.comunidadeNome, CONFIG.comunidade, 'kivo'],
   ['YouTube', CONFIG.youtube, 'youtube'],
   ['Instagram', CONFIG.instagram, 'instagram'],
   ['Twitch', CONFIG.twitch, 'twitch'],
@@ -46,8 +46,8 @@ export default function Rodape() {
             <a href="/#sobre">Sobre</a>
             <a href="/#projetos">O que fazemos</a>
             <a href="/times/">Lista de times</a>
-            {CONFIG.discord && (
-              <a href={CONFIG.discord} {...externo}>
+            {CONFIG.comunidade && (
+              <a href={CONFIG.comunidade} {...externo}>
                 Comunidade
               </a>
             )}
