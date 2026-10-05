@@ -1033,9 +1033,21 @@ img {
   width: 100%;
   height: 100%;
 }
+/* Com moldura, a decoração antiga do avatar some (anel em degradê, borda, sombra, padding):
+ * fica só a foto redonda e a moldura por cima. !important porque cada página declara o avatar depois daqui. */
 .moldura-box > img,
 .moldura-box > span:not(.moldura) {
   border-radius: 50% !important;
+  border: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+.moldura-box > img {
+  background: none !important;
+}
+.moldura-box > span:not(.moldura) {
+  background: var(--panel-2) !important;
 }
 .moldura {
   position: absolute;
