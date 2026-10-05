@@ -54,7 +54,11 @@ export default {
     const config = await ler(env, 'config')
     const admin = ehAdmin(quem.id, env, config)
 
-    if (rota === '/eu' && req.method === 'GET') return json({ id: quem.id, admin, dono: quem.id === env.DONO }, 200, cors)
+    if (rota === '/eu' && req.method === 'GET') {
+      // Toda página com login chama /eu: registra a visita (nome/avatar do próprio login) para o painel
+      await registrarUsuario(env, quem.id, { nome: quem.nome, avatar: quem.avatar }, true)
+      return json({ id: quem.id, admin, dono: quem.id === env.DONO }, 200, cors)
+    }
     if (req.method === 'POST' && (rota === '/perfil' || rota === '/moldura')) return salvarPerfil(req, env, site, quem, admin, config, cors, rota === '/moldura')
 
     if (rota.startsWith('/admin/')) {
@@ -326,12 +330,15 @@ async function retorno(url, env, site) {
   return Response.redirect(`${volta}#steam=${token}`, 302)
 }
 
-// Lista de quem já entrou no site (painel do admin)
-async function registrarUsuario(env, id, perfil) {
+// Lista de quem já entrou no site (painel do admin). visita = chamada do /eu: só grava se for novo, se o nome ou o
+// avatar mudou ou se a última visita registrada tem mais de 1 hora (o KV grátis tem limite de gravações por dia)
+async function registrarUsuario(env, id, perfil, visita = false) {
   try {
     const usuarios = await ler(env, 'usuarios')
     const agora = new Date().toISOString()
     const antes = usuarios[id] || {}
+    const mudou = !usuarios[id] || (perfil.nome && perfil.nome !== antes.nome) || (perfil.avatar && perfil.avatar !== antes.avatar)
+    if (visita && !mudou && Date.now() - new Date(antes.visto || 0).getTime() < 3600000) return
     usuarios[id] = { nome: perfil.nome || antes.nome || '', avatar: perfil.avatar || antes.avatar || '', primeiro: antes.primeiro || agora, visto: agora }
     await gravar(env, 'usuarios', usuarios)
   } catch {

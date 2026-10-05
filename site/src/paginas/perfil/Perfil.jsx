@@ -204,6 +204,24 @@ function IconePincel() {
 function Jogador({ j, mapas, pos, total, eu, personalizar }) {
   const timeEscolhido = useTimeDe(j.steamId)
   const nivel = useNivelDe(j)
+  // CS Rating do Premier: vem do ranking (deploy); sem ele (jogador sem partidas, ou deploy sem Leetify),
+  // busca direto na Leetify (a API pública aceita chamada do navegador)
+  const [premierLeetify, setPremierLeetify] = useState(null)
+  useEffect(() => {
+    if (j.premier > 0) return
+    let vivo = true
+    fetch(`https://api-public.cs-prod.leetify.com/v3/profile?steam64_id=${encodeURIComponent(j.steamId)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const p = d?.ranks?.premier
+        if (vivo && Number.isFinite(p) && p > 0) setPremierLeetify(p)
+      })
+      .catch(() => {})
+    return () => {
+      vivo = false
+    }
+  }, [j.steamId, j.premier])
+  const premier = j.premier > 0 ? j.premier : premierLeetify
   const derrotas = j.mapas - j.vitorias
   const sem = !j.mapas // ainda sem partidas: perfil aparece igual, com os números em "—"
   const v = (texto) => (sem ? '—' : texto)
@@ -235,7 +253,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar }) {
                   {j.time}
                 </span>
               )}
-              <Premier j={j} />
+              <Premier key={premier || 0} j={{ ...j, premier }} />
               {pos > 0 && (
                 <a className="pf-pos" href="/ranking/">
                   #{pos} <small>de {total} no ranking</small>
