@@ -7,6 +7,7 @@ import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
 import Letreiro from '../../comum/Letreiro.jsx'
 import { Icone, IconeKivo } from '../../comum/Icones.jsx'
 import { useT } from '../../comum/i18n.js'
+import LiveTwitch from './LiveTwitch.jsx'
 
 const SETA = (
   <Icone tamanho={14} traco={2.4}>
@@ -276,6 +277,9 @@ export default function Inicio() {
 
         {/* LETREIRO */}
         <Letreiro itens={LETREIRO} />
+
+        {/* AO VIVO (Twitch): canais em assets/data/twitch.json; sem canal, não aparece */}
+        <LiveTwitch />
 
         {/* PROJETOS */}
         <section className="secao" id="projetos">
