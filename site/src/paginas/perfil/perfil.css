@@ -318,3 +318,50 @@ html.sm-aberto { overflow: hidden; }
   font-size: 12.5px;
   color: var(--dim);
 }
+
+/* ── Armas mais usadas: 3 em destaque e o resto em lista com barra de kills (uma cor só: azul do site) ── */
+.pf-armas-card {
+  margin-top: 18px; padding: 20px 20px 16px; border-radius: 14px;
+  border: 1px solid var(--border); background: linear-gradient(160deg, var(--panel-2), var(--panel));
+}
+.pf-armas-top { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.pf-arma-dest {
+  position: relative; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px 16px; border-radius: 12px;
+  border: 1px solid var(--border); background: rgb(var(--tinta) / .025); overflow: hidden;
+}
+.pf-arma-dest.primeira { border-color: rgba(52, 152, 219, .45); background: linear-gradient(160deg, rgba(26, 115, 232, .14), rgb(var(--tinta) / .02)); }
+.pf-arma-pos { position: absolute; top: 10px; right: 12px; font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--dim-2); opacity: .7; }
+.pf-arma-dest.primeira .pf-arma-pos { color: var(--blue-2); opacity: 1; }
+.pf-arma-img { height: 86px; display: grid; place-items: center; }
+.pf-arma-img img { max-width: 92%; max-height: 86px; object-fit: contain; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .55)); }
+.pf-arma-dest .pf-arma-nome { font-family: var(--font-display); font-size: 18px; }
+.pf-arma-nums { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-size: 12px; color: var(--dim); }
+.pf-arma-nums b { font-family: var(--font-mono); font-size: 14px; color: var(--text); }
+.pf-arma-sem { font-family: var(--font-display); font-size: 15px; color: var(--dim); }
+
+.pf-armas-lista { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; }
+.pf-armas-lista li {
+  display: grid; grid-template-columns: 74px minmax(90px, 140px) minmax(0, 1fr) 70px 64px 86px; align-items: center; gap: 12px;
+  padding: 8px 4px; border-top: 1px solid var(--border); font-size: 13.5px;
+}
+.pf-arma-mini { height: 28px; display: grid; place-items: center; }
+.pf-arma-mini img { max-width: 70px; max-height: 28px; object-fit: contain; }
+.pf-arma-mini .pf-arma-sem { font-size: 11px; }
+.pf-armas-lista .pf-arma-nome { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pf-arma-barra { height: 6px; border-radius: 4px; background: rgb(var(--tinta) / .06); overflow: hidden; }
+.pf-arma-barra i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--blue), var(--blue-2)); }
+.pf-armas-lista .mono { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0; text-transform: none; color: var(--dim); text-align: right; white-space: nowrap; }
+.pf-armas-lista .mono b { color: var(--text); font-size: 13px; }
+
+@media (max-width: 720px) {
+  .pf-armas-card { padding: 16px 12px 12px; }
+  .pf-armas-top { grid-template-columns: 1fr; }
+  .pf-arma-dest { flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .pf-arma-img { width: 110px; height: 56px; }
+  .pf-arma-img img { max-height: 56px; }
+  .pf-arma-dest .pf-arma-nome { flex: 1; }
+  .pf-arma-nums { width: 100%; grid-template-columns: repeat(4, auto); justify-content: space-between; }
+  .pf-armas-lista li { grid-template-columns: 56px minmax(0, 1fr) 62px 58px; gap: 8px; }
+  .pf-armas-lista .pf-arma-barra, .pf-armas-lista .pf-arma-dano { display: none; }
+  .pf-arma-mini img { max-width: 54px; }
+}

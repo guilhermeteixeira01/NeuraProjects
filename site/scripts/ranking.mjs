@@ -102,6 +102,7 @@ export async function gerarRanking(pasta, { premier = true } = {}) {
         hs: e.kills ? Math.round((100 * e.headshots) / e.kills) : 0,
         xp: xpMapa, // ganho (+) ou perda (-) nesta partida
         xpTotal: j.xp, // XP total depois dela
+        ...(e.armas ? { armas: e.armas } : {}), // por arma (partidas do plugin novo): { ak47: { kills, headshots, dano, acertos } }
       })
       jogadores.set(e.steamId, j)
       leu = true

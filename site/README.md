@@ -56,6 +56,13 @@ A página `/perfil/?id=<SteamID64>` mostra os números do jogador (do `ranking.j
 mapa e o histórico completo (`perfil/historico/<SteamID64>.json`, gerado no deploy pelo `scripts/ranking.mjs`).
 Os nomes no ranking e na página da partida levam para ela.
 
+**Armas mais usadas** (no perfil, embaixo do gráfico): soma o `armas` de cada mapa do histórico
+(`src/comum/armas.js`): as 3 que mais mataram em destaque (kills, % das kills, HS% e dano) e o resto em lista.
+Imagens das armas em `public/assets/armas/<nome>.webp` (`ferramentas/molduras/armas.mjs` baixa de novo).
+Partidas gravadas antes de o plugin contar armas foram preenchidas pela demo:
+`ferramentas/demos/armas-das-demos.mjs` (só as sem `armas`; `--tudo` refaz todas) baixa a demo, conta kills/dano por
+arma com as mesmas regras do plugin e só grava se as kills e headshots de cada jogador baterem com o `partida.json`.
+
 O login é opcional: com ele aparece o botão **Entrar** no menu, "Meu perfil", o destaque "VOCÊ" no ranking e a
 posição do jogador quando ele está fora do top 15. Como o site é estático, quem confirma o login com a Steam é um
 Cloudflare Worker gratuito (`worker/steam-login/`). Para ligar:
@@ -259,4 +266,5 @@ Definido pelo plugin (classe `PartidaDados` em `RelatorioPagina.cs`, `versao: 1`
 | `rounds` | um item por round: time que ganhou, lado (`CT`/`TR`) e motivo (1 bomba, 7 desarme, 12 tempo) |
 | `jogadores` | steamId, nome, foto, time e estatísticas (kills, dano, KAST, multi-kills, rating HLTV 1.0) |
 | `jogadores[].util` | utilitários: granadas lançadas por tipo, não usadas, dano de HE/fogo (nos inimigos, recebido, em aliados), inimigos/aliados cegos e o tempo, flash assists (partidas antigas não têm; a aba "Utilitários" só aparece quando tem) |
+| `jogadores[].armas` | por arma, da que mais matou para a que menos: `{ "ak47": { kills, headshots, dano, acertos } }`. Nome = arma do jogo sem `weapon_`; todas as facas = `faca`, molotov/incendiária = `molotov`, HE = `he`. Só inimigos. No dano, o jogo manda a arma base das variantes (USP-S como `hkp2000`, M4A1-S como `m4a1`...): o plugin corrige pela arma na mão |
 | `demo` | link da demo no GitHub (ou `null`) |

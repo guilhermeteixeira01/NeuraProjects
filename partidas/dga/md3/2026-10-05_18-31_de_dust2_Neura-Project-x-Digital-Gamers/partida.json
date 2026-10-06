@@ -180,6 +180,68 @@
         "flashAssists": 0,
         "aliadosCegos": 15,
         "tempoCegoAliados": 32.6
+      },
+      "armas": {
+        "awp": {
+          "kills": 8,
+          "headshots": 2,
+          "dano": 969,
+          "acertos": 12
+        },
+        "ak47": {
+          "kills": 6,
+          "headshots": 1,
+          "dano": 519,
+          "acertos": 22
+        },
+        "usp_silencer": {
+          "kills": 3,
+          "headshots": 3,
+          "dano": 260,
+          "acertos": 5
+        },
+        "m4a1": {
+          "kills": 2,
+          "headshots": 1,
+          "dano": 62,
+          "acertos": 2
+        },
+        "m4a1_silencer": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 152,
+          "acertos": 4
+        },
+        "galilar": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 98,
+          "acertos": 4
+        },
+        "deagle": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 61,
+          "acertos": 2
+        },
+        "he": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 112,
+          "acertos": 3
+        },
+        "molotov": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 37,
+          "acertos": 7
+        },
+        "glock": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 20,
+          "acertos": 1
+        }
       }
     },
     {
@@ -224,6 +286,50 @@
         "flashAssists": 0,
         "aliadosCegos": 1,
         "tempoCegoAliados": 4.4
+      },
+      "armas": {
+        "usp_silencer": {
+          "kills": 4,
+          "headshots": 4,
+          "dano": 334,
+          "acertos": 7
+        },
+        "ak47": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 185,
+          "acertos": 7
+        },
+        "galilar": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 100,
+          "acertos": 2
+        },
+        "mp5sd": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 31,
+          "acertos": 1
+        },
+        "m4a1_silencer": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 126,
+          "acertos": 3
+        },
+        "glock": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 77,
+          "acertos": 6
+        },
+        "molotov": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 23,
+          "acertos": 9
+        }
       }
     },
     {
@@ -268,6 +374,56 @@
         "flashAssists": 0,
         "aliadosCegos": 1,
         "tempoCegoAliados": 2.1
+      },
+      "armas": {
+        "m4a1": {
+          "kills": 6,
+          "headshots": 2,
+          "dano": 386,
+          "acertos": 15
+        },
+        "famas": {
+          "kills": 5,
+          "headshots": 0,
+          "dano": 595,
+          "acertos": 25
+        },
+        "m4a1_silencer": {
+          "kills": 3,
+          "headshots": 0,
+          "dano": 536,
+          "acertos": 20
+        },
+        "ak47": {
+          "kills": 3,
+          "headshots": 1,
+          "dano": 305,
+          "acertos": 7
+        },
+        "galilar": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 173,
+          "acertos": 7
+        },
+        "glock": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 158,
+          "acertos": 12
+        },
+        "usp_silencer": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 101,
+          "acertos": 6
+        },
+        "molotov": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 118,
+          "acertos": 27
+        }
       }
     },
     {
@@ -312,6 +468,56 @@
         "flashAssists": 0,
         "aliadosCegos": 12,
         "tempoCegoAliados": 26.4
+      },
+      "armas": {
+        "ak47": {
+          "kills": 8,
+          "headshots": 7,
+          "dano": 927,
+          "acertos": 26
+        },
+        "m4a1_silencer": {
+          "kills": 3,
+          "headshots": 1,
+          "dano": 212,
+          "acertos": 9
+        },
+        "galilar": {
+          "kills": 2,
+          "headshots": 0,
+          "dano": 200,
+          "acertos": 10
+        },
+        "m4a1": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 108,
+          "acertos": 3
+        },
+        "usp_silencer": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 87,
+          "acertos": 2
+        },
+        "mp9": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 54,
+          "acertos": 3
+        },
+        "glock": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 44,
+          "acertos": 2
+        },
+        "he": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 20,
+          "acertos": 2
+        }
       }
     },
     {
@@ -356,6 +562,56 @@
         "flashAssists": 0,
         "aliadosCegos": 2,
         "tempoCegoAliados": 3.2
+      },
+      "armas": {
+        "famas": {
+          "kills": 5,
+          "headshots": 4,
+          "dano": 335,
+          "acertos": 10
+        },
+        "m4a1": {
+          "kills": 2,
+          "headshots": 0,
+          "dano": 262,
+          "acertos": 15
+        },
+        "ak47": {
+          "kills": 2,
+          "headshots": 0,
+          "dano": 224,
+          "acertos": 9
+        },
+        "galilar": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 100,
+          "acertos": 2
+        },
+        "usp_silencer": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 27,
+          "acertos": 1
+        },
+        "he": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 26,
+          "acertos": 2
+        },
+        "glock": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 21,
+          "acertos": 2
+        },
+        "molotov": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 12,
+          "acertos": 5
+        }
       }
     },
     {
@@ -400,6 +656,62 @@
         "flashAssists": 1,
         "aliadosCegos": 4,
         "tempoCegoAliados": 8.4
+      },
+      "armas": {
+        "awp": {
+          "kills": 4,
+          "headshots": 0,
+          "dano": 218,
+          "acertos": 4
+        },
+        "glock": {
+          "kills": 2,
+          "headshots": 2,
+          "dano": 216,
+          "acertos": 9
+        },
+        "usp_silencer": {
+          "kills": 2,
+          "headshots": 2,
+          "dano": 170,
+          "acertos": 2
+        },
+        "m4a1": {
+          "kills": 2,
+          "headshots": 0,
+          "dano": 114,
+          "acertos": 6
+        },
+        "mp5sd": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 98,
+          "acertos": 6
+        },
+        "ssg08": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 146,
+          "acertos": 2
+        },
+        "deagle": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 53,
+          "acertos": 1
+        },
+        "mp9": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 36,
+          "acertos": 3
+        },
+        "ak47": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 35,
+          "acertos": 3
+        }
       }
     },
     {
@@ -444,6 +756,62 @@
         "flashAssists": 0,
         "aliadosCegos": 0,
         "tempoCegoAliados": 0
+      },
+      "armas": {
+        "ak47": {
+          "kills": 9,
+          "headshots": 4,
+          "dano": 620,
+          "acertos": 21
+        },
+        "m4a1_silencer": {
+          "kills": 2,
+          "headshots": 2,
+          "dano": 200,
+          "acertos": 4
+        },
+        "usp_silencer": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 98,
+          "acertos": 6
+        },
+        "mp9": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 97,
+          "acertos": 5
+        },
+        "m4a1": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 94,
+          "acertos": 4
+        },
+        "he": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 69,
+          "acertos": 2
+        },
+        "molotov": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 50,
+          "acertos": 8
+        },
+        "galilar": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 48,
+          "acertos": 2
+        },
+        "glock": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 41,
+          "acertos": 4
+        }
       }
     },
     {
@@ -488,6 +856,68 @@
         "flashAssists": 1,
         "aliadosCegos": 6,
         "tempoCegoAliados": 16.6
+      },
+      "armas": {
+        "m4a1": {
+          "kills": 6,
+          "headshots": 5,
+          "dano": 599,
+          "acertos": 18
+        },
+        "ak47": {
+          "kills": 3,
+          "headshots": 2,
+          "dano": 187,
+          "acertos": 6
+        },
+        "m4a1_silencer": {
+          "kills": 2,
+          "headshots": 0,
+          "dano": 199,
+          "acertos": 6
+        },
+        "usp_silencer": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 125,
+          "acertos": 2
+        },
+        "glock": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 118,
+          "acertos": 6
+        },
+        "galilar": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 118,
+          "acertos": 3
+        },
+        "mac10": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 99,
+          "acertos": 3
+        },
+        "he": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 134,
+          "acertos": 5
+        },
+        "molotov": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 36,
+          "acertos": 12
+        },
+        "smokegrenade": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 1,
+          "acertos": 1
+        }
       }
     },
     {
@@ -532,6 +962,44 @@
         "flashAssists": 1,
         "aliadosCegos": 1,
         "tempoCegoAliados": 1.3
+      },
+      "armas": {
+        "ak47": {
+          "kills": 7,
+          "headshots": 3,
+          "dano": 715,
+          "acertos": 20
+        },
+        "galilar": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 180,
+          "acertos": 5
+        },
+        "m4a1_silencer": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 20,
+          "acertos": 2
+        },
+        "m4a1": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 22,
+          "acertos": 1
+        },
+        "glock": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 10,
+          "acertos": 1
+        },
+        "molotov": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 2,
+          "acertos": 1
+        }
       }
     },
     {
@@ -576,6 +1044,50 @@
         "flashAssists": 1,
         "aliadosCegos": 11,
         "tempoCegoAliados": 20.1
+      },
+      "armas": {
+        "m4a1": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 235,
+          "acertos": 8
+        },
+        "usp_silencer": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 133,
+          "acertos": 4
+        },
+        "ak47": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 125,
+          "acertos": 5
+        },
+        "glock": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 50,
+          "acertos": 3
+        },
+        "deagle": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 47,
+          "acertos": 1
+        },
+        "nova": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 77,
+          "acertos": 7
+        },
+        "he": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 53,
+          "acertos": 2
+        }
       }
     }
   ],

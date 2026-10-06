@@ -7,6 +7,7 @@ import { CONFIG } from '../../comum/config.js'
 import { ordenarRanking } from '../../comum/ranking.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
 import { IconeSteam } from '../../comum/Icones.jsx'
+import { nomeArma, somarArmas, urlArma } from '../../comum/armas.js'
 import { nomeMapa } from '../../comum/mapas.js'
 import { CargosDe, ComMoldura, TimeEscolhido, salvarPerfil, useAdmin, usePerfis, useTimeDe } from '../../comum/Moldura.jsx'
 import Premier from '../../comum/Premier.jsx'
@@ -187,6 +188,84 @@ function Historico({ mapas }) {
   )
 }
 
+// Armas mais usadas (soma das partidas do histórico): as 3 primeiras em destaque e o resto numa lista com barra de kills
+const ARMAS_NA_LISTA = 8
+function ImagemArma({ id }) {
+  const [erro, setErro] = useState(false)
+  const url = urlArma(id)
+  if (!url || erro) return <span className="pf-arma-sem">{nomeArma(id)}</span>
+  return <img src={url} alt="" loading="lazy" onError={() => setErro(true)} />
+}
+function Armas({ mapas }) {
+  const t = useT()
+  const [todas, setTodas] = useState(false)
+  const { lista, mapas: n, kills } = somarArmas(mapas)
+  if (!lista.length) return null
+  const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0)
+  const destaque = lista.slice(0, 3)
+  const resto = lista.slice(3)
+  const maior = lista[0].kills || 1
+  const mostrar = todas ? resto : resto.slice(0, ARMAS_NA_LISTA)
+  return (
+    <div className="pf-armas-card spot">
+      <div className="pf-card-cab">
+        <h2>{t('Armas mais usadas')}</h2>
+        <span className="mono">{t('{n} ARMAS · {m} MAPAS', { n: lista.length, m: n })}</span>
+      </div>
+      <div className="pf-armas-top">
+        {destaque.map((a, i) => (
+          <div key={a.id} className={`pf-arma-dest${i === 0 ? ' primeira' : ''}`}>
+            <span className="pf-arma-pos">#{i + 1}</span>
+            <div className="pf-arma-img">
+              <ImagemArma id={a.id} />
+            </div>
+            <b className="pf-arma-nome">{nomeArma(a.id)}</b>
+            <div className="pf-arma-nums">
+              <span>
+                <b>{a.kills}</b> {t('kills')}
+              </span>
+              <span>
+                <b>{pct(a.kills, kills)}%</b> {t('das kills')}
+              </span>
+              <span>
+                <b>{pct(a.headshots, a.kills)}%</b> HS
+              </span>
+              <span>
+                <b>{a.dano}</b> {t('dano')}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+      {resto.length > 0 && (
+        <ul className="pf-armas-lista">
+          {mostrar.map((a) => (
+            <li key={a.id}>
+              <span className="pf-arma-mini">
+                <ImagemArma id={a.id} />
+              </span>
+              <span className="pf-arma-nome">{nomeArma(a.id)}</span>
+              <span className="pf-arma-barra" aria-hidden="true">
+                <i style={{ width: `${Math.max(2, (100 * a.kills) / maior)}%` }} />
+              </span>
+              <span className="mono">
+                <b>{a.kills}</b> {t('kills')}
+              </span>
+              <span className="mono pf-arma-hs">{a.kills ? `${pct(a.headshots, a.kills)}% HS` : "— HS"}</span>
+              <span className="mono pf-arma-dano">{a.dano} {t('dano')}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {resto.length > ARMAS_NA_LISTA && (
+        <button type="button" className="pf-mais" onClick={() => setTodas((v) => !v)}>
+          {todas ? t('Mostrar menos') : t('Mostrar mais ({n})', { n: resto.length - ARMAS_NA_LISTA })}
+        </button>
+      )}
+    </div>
+  )
+}
+
 // "Ocultar do ranking" (só dono e admins, no próprio perfil): ligado, a pessoa some do ranking e o próximo sobe
 function OcultarRanking({ steamId }) {
   const t = useT()
@@ -340,6 +419,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
           )}
 
           {mapas?.length > 0 && <GraficoRating mapas={mapas} />}
+          {mapas?.length > 0 && <Armas mapas={mapas} />}
           {mapas?.length > 0 && <Historico mapas={mapas} />}
         </div>
       </section>

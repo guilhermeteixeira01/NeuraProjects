@@ -1,0 +1,11 @@
+{
+  "name": "demos",
+  "version": "1.0.0",
+  "description": "Lê as demos das partidas (armas das partidas antigas)",
+  "type": "module",
+  "dependencies": {
+    "@laihoe/demoparser2": "^0.42.0",
+    "adm-zip": "^0.6.1"
+  },
+  "private": true
+}
