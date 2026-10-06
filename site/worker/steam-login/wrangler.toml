@@ -19,3 +19,8 @@ DONO = "76561199151150360"
 [[kv_namespaces]]
 binding = "MOLDURAS"
 id = "2a74b48573a24744b6b5771ef4ae8ba4"
+
+# Confere os cargos automáticos (top N do ranking) a cada 10 minutos: quem saiu do top perde o cargo e a moldura
+# exclusiva dele sai do perfil (scheduled() em src/index.js)
+[triggers]
+crons = ["*/10 * * * *"]

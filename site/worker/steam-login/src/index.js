@@ -36,6 +36,11 @@ const NS = 'http://specs.openid.net/auth/2.0'
 const DIAS = 30 // validade do login
 
 export default {
+  // Cron (wrangler.toml): quem saiu do top N perde o cargo automático e a moldura exclusiva dele sai do perfil
+  async scheduled(evento, env, ctx) {
+    const site = (env.SITE || 'https://neuraproject.com.br').replace(/\/$/, '')
+    ctx.waitUntil(tirarExclusivasSemCargo(env, site, await ler(env, 'config')))
+  },
   async fetch(req, env) {
     const url = new URL(req.url)
     const site = (env.SITE || 'https://neuraproject.com.br').replace(/\/$/, '')
@@ -67,8 +72,8 @@ export default {
     if (rota.startsWith('/admin/')) {
       if (!admin) return json({ erro: 'admin' }, 403, cors)
       if (rota === '/admin/dados' && req.method === 'GET') return adminDados(env, config, cors)
-      if (rota === '/admin/perfil' && req.method === 'POST') return adminPerfil(req, env, config, cors)
-      if (rota === '/admin/config' && req.method === 'POST') return adminConfig(req, env, config, cors)
+      if (rota === '/admin/perfil' && req.method === 'POST') return adminPerfil(req, env, site, config, cors)
+      if (rota === '/admin/config' && req.method === 'POST') return adminConfig(req, env, site, config, cors)
       if (rota === '/admin/admins' && req.method === 'POST') {
         if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
         return adminAdmins(req, env, config, cors)
@@ -126,11 +131,13 @@ const soMolduras = (perfis) => Object.fromEntries(Object.entries(perfis).filter(
 const configPublica = (c) => ({
   molduraPorNivel: !!c.molduraPorNivel,
   nivelMoldura: c.nivelMoldura || {},
-  cargos: c.cargos || [], // [{ id, nome, cor, top? }] (ex.: Premium, VIP). top = automático para o top N do ranking
+  cargos: c.cargos || [], // [{ id, nome, cor, icone?, top? }] (ex.: Premium, VIP). top = automático para o top N do ranking
   molduraCargo: c.molduraCargo || {}, // { idMoldura: idCargo }: moldura exclusiva de quem tem o cargo
 })
 const ID_CARGO = /^[a-z0-9-]{1,24}$/
 const COR = /^#[0-9a-f]{6}$/i
+// Ícones do selo do cargo (o desenho de cada um fica no site: src/comum/cargos.jsx)
+const ICONES_CARGO = ['coroa', 'cifrao', 'estrela', 'diamante', 'raio', 'escudo', 'fogo', 'caveira', 'trofeu', 'coracao', 'verificado', 'mira', 'microfone', 'controle']
 
 async function corpoJson(req) {
   try {
@@ -210,6 +217,27 @@ async function cargosDoJogador(site, id, perfis, config, rankingLido) {
   return [...new Set([...manuais, ...automaticos.filter((c) => pos >= 0 && pos < c.top).map((c) => c.id)])]
 }
 
+// Moldura exclusiva de um cargo que o jogador não tem mais (admin tirou, cargo automático saiu porque ele caiu no
+// ranking, moldura virou exclusiva...): sai do perfil. Vale também para moldura posta por admin. Devolve os perfis.
+async function tirarExclusivasSemCargo(env, site, config) {
+  const perfis = await ler(env, 'perfis')
+  const exclusivas = config.molduraCargo || {}
+  const comExclusiva = Object.entries(perfis).filter(([, p]) => p.moldura && exclusivas[p.moldura])
+  if (!comExclusiva.length) return perfis
+  const ranking = (config.cargos || []).some((c) => c.top > 0) ? await lerRanking(site) : null
+  let mudou = false
+  for (const [id, p] of comExclusiva) {
+    const tem = await cargosDoJogador(site, id, perfis, config, ranking)
+    if (tem.includes(exclusivas[p.moldura])) continue
+    delete p.moldura
+    delete p.molduraLivre
+    if (!Object.keys(p).length) delete perfis[id]
+    mudou = true
+  }
+  if (mudou) await gravar(env, 'perfis', perfis)
+  return perfis
+}
+
 async function nivelDoJogador(env, site, id, perfis) {
   const ranking = await lerRanking(site)
   const niveis = Array.isArray(ranking?.niveis) && ranking.niveis.length ? ranking.niveis : [0]
@@ -255,7 +283,7 @@ async function adminDados(env, config, cors) {
 }
 
 // POST /admin/perfil { id, moldura?, time?, xp? (ajuste), bloqueado?, cargos? ([idCargo]), limpar? }
-async function adminPerfil(req, env, config, cors) {
+async function adminPerfil(req, env, site, config, cors) {
   const corpo = await corpoJson(req)
   if (!corpo || !ID_STEAM.test(String(corpo.id))) return json({ erro: 'id' }, 400, cors)
   if (corpo.limpar) {
@@ -275,18 +303,28 @@ async function adminPerfil(req, env, config, cors) {
     mudar.xp = xp
   }
   if ('bloqueado' in corpo) mudar.bloqueado = corpo.bloqueado === true
-  if ('moldura' in mudar) mudar.molduraLivre = mudar.moldura ? true : null // dada pelo admin: aparece mesmo sem o cargo
+  if ('moldura' in mudar) mudar.molduraLivre = mudar.moldura ? true : null // dada pelo admin (fora as exclusivas, aparece sempre)
   if ('cargos' in corpo) {
     const existem = new Set((config.cargos || []).map((c) => c.id))
     const cargos = [...new Set(Array.isArray(corpo.cargos) ? corpo.cargos : [])]
     if (cargos.some((c) => !existem.has(c))) return json({ erro: 'cargo' }, 400, cors)
     mudar.cargos = cargos
   }
-  return json({ ok: true, perfis: await mudarPerfil(env, corpo.id, mudar) }, 200, cors)
+  // Moldura exclusiva de cargo: nem o admin dá para quem não tem o cargo (dê o cargo primeiro)
+  const exige = mudar.moldura ? config.molduraCargo?.[mudar.moldura] : null
+  if (exige) {
+    const perfis = await ler(env, 'perfis')
+    const comNovos = { ...perfis, [corpo.id]: { ...perfis[corpo.id], ...('cargos' in mudar ? { cargos: mudar.cargos } : {}) } }
+    if (!(await cargosDoJogador(site, corpo.id, comNovos, config)).includes(exige)) return json({ erro: 'exclusiva', cargo: exige }, 400, cors)
+  }
+  await mudarPerfil(env, corpo.id, mudar)
+  // Tirou um cargo: a moldura exclusiva dele sai do perfil na hora
+  const perfis = 'cargos' in mudar ? await tirarExclusivasSemCargo(env, site, config) : await ler(env, 'perfis')
+  return json({ ok: true, perfis }, 200, cors)
 }
 
 // POST /admin/config { molduraPorNivel?, nivelMoldura?, cargos?, molduraCargo? }
-async function adminConfig(req, env, config, cors) {
+async function adminConfig(req, env, site, config, cors) {
   const corpo = await corpoJson(req)
   if (!corpo) return json({ erro: 'corpo' }, 400, cors)
   const novo = { ...config }
@@ -311,7 +349,8 @@ async function adminConfig(req, env, config, cors) {
       vistos.add(c.id)
       const top = Math.round(Number(c.top) || 0)
       if (top < 0 || top > 15) return json({ erro: 'cargos' }, 400, cors)
-      novo.cargos.push({ id: c.id, nome, cor: c.cor, ...(top > 0 ? { top } : {}) })
+      const icone = ICONES_CARGO.includes(c.icone) ? c.icone : 'coroa'
+      novo.cargos.push({ id: c.id, nome, cor: c.cor, icone, ...(top > 0 ? { top } : {}) })
     }
   }
   if ('molduraCargo' in corpo || 'cargos' in corpo) {
@@ -326,6 +365,7 @@ async function adminConfig(req, env, config, cors) {
     novo.molduraCargo = mapa
   }
   await gravar(env, 'config', novo)
+  if ('cargos' in corpo || 'molduraCargo' in corpo) await tirarExclusivasSemCargo(env, site, novo)
   return json({ ok: true, config: { ...configPublica(novo), admins: novo.admins || [] } }, 200, cors)
 }
 
