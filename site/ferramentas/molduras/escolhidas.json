@@ -608,5 +608,338 @@
     "appid": 4046550,
     "arquivo": "5e4445d26f098e18c954ada300e857c910121fd1.png",
     "original": "Square Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Blue Cycle",
+    "appid": 979690,
+    "arquivo": "05396d7774ad8a6c4f803bee953377af256ce552.png",
+    "original": "Blue Cycle"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Green Storm",
+    "appid": 2480200,
+    "arquivo": "1cb12cf5cf36182f488af7e60bf037de9b43fe23.png",
+    "original": "Green Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "White Lightning",
+    "appid": 2487120,
+    "arquivo": "4a74f0c61cf38349fc65e7841933bfc739bd41c1.png",
+    "original": "White-blue Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Rose Storm",
+    "appid": 2487120,
+    "arquivo": "bf37009da38c7b1cf0d44f9403bcbe7af74fed27.png",
+    "original": "White-rose Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Red Thunder",
+    "appid": 2380450,
+    "arquivo": "462f12ff4e7022bbaf11140a28a07a19621fbbe0.png",
+    "original": "ML_RedFrame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Yellow Lightning",
+    "appid": 2407310,
+    "arquivo": "28b35dcf04fbc517055a3e08ad8aa82eadccf477.png",
+    "original": "LO_YellowFrame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Blue Frost",
+    "appid": 2380410,
+    "arquivo": "88e1e1373fa2e2e77d7c169c11f676b6f4560314.png",
+    "original": "ST_FRAME_4"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Crimson Storm",
+    "appid": 2380410,
+    "arquivo": "79545b6736fa79cff3db304275852066f90d960e.png",
+    "original": "ST_FRAME_1"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Purple Storm",
+    "appid": 2377240,
+    "arquivo": "66688b66102682f30501dc103089e6bfac1709dd.png",
+    "original": "SR2_White-Purple_Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Toxic Lightning",
+    "appid": 2351080,
+    "arquivo": "820beb8641869a3cc2bd5b9c6a8f475ce2ac0bb2.png",
+    "original": "Green_Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "White Glow",
+    "appid": 2245090,
+    "arquivo": "a0be9e8f59b988e231f3c9c5d0ce738bff0f216e.png",
+    "original": "CLS_White_Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Cyan Line",
+    "appid": 2246850,
+    "arquivo": "323ab59b914005da6946cf126e18b463116daa7b.png",
+    "original": "SR Blue Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Red Cycle",
+    "appid": 979690,
+    "arquivo": "edcfeb1b1ea067e85eff4c616d284331be488cfe.png",
+    "original": "Red cycle"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Radiant Quake",
+    "appid": 1012790,
+    "arquivo": "71df13e182ac122fca3e3d5cdaf3767b54cb3541.png",
+    "original": "Radiant Quake"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Comic Fire",
+    "appid": 322330,
+    "arquivo": "beaee5e90d93bfafa5f5f55acb23abfd28ad180c.png",
+    "original": "Fire"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Shadow Fire",
+    "appid": 322330,
+    "arquivo": "46461aaea39b18a4a3da2e6d3cf253006f2d6193.png",
+    "original": "Shadow Fire"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Fiery Halo",
+    "appid": 3757060,
+    "arquivo": "ab5fec206c0ea43e4a3804d63a632448e341f390.png",
+    "original": "Fiery Halo"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Arcflare Aura",
+    "appid": 3918850,
+    "arquivo": "212888dbbd511ca6e99ff2429b51905ced8e2994.apng",
+    "original": "Arcflare Aura"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Pipes",
+    "appid": 457140,
+    "arquivo": "23993b6666a8721ede7e8a809d1652777008a17c.png",
+    "original": "Pipes"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Artistic",
+    "appid": 2157830,
+    "arquivo": "4f61eac6ee5e6c58730a358f2495be3686bd6b11.png",
+    "original": "Artistic"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Rhythm Pulse",
+    "appid": 3099170,
+    "arquivo": "2e57ffef54e7fd81cd620570a405467d02d53093.png",
+    "original": "Rhythm Pulse"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Co-op Circles",
+    "appid": 2831890,
+    "arquivo": "75cacd3caaf89fca18a5b03f69b27cdb1a02ef67.png",
+    "original": "Co-op Circles"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Spiderweb",
+    "appid": 2542120,
+    "arquivo": "3f8c87a538453f3c8686f7f693306a7cc47fc2f3.apng",
+    "original": "Ninja Spiderweb"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Corruption",
+    "appid": 1210230,
+    "arquivo": "918d6cbab2b4a4cdc9776f39fdfe64932a809d81.png",
+    "original": "Corruption"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "AR Interface (rosa)",
+    "appid": 601220,
+    "arquivo": "331e472e4d2d5bedbb711f55a90071b8fccc3c5d.png",
+    "original": "AR Interface [Pink]"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "AR Interface (roxo)",
+    "appid": 601220,
+    "arquivo": "499ac3ba9e69f30642b12e0f9b7438927207dcac.png",
+    "original": "AR Interface [Purple]"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "AR Interface (amarelo)",
+    "appid": 601220,
+    "arquivo": "f6ba5a3003f911fbed3f574c2e340466ca383d60.png",
+    "original": "AR Interface [Yellow]"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "AR Interface (azul)",
+    "appid": 601220,
+    "arquivo": "96ff5ce05ea0cdbfaf487f96912622b0a256be0e.png",
+    "original": "AR Interface [Blue]"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Red Border",
+    "appid": 2560650,
+    "arquivo": "a330240ff9509b61ee069b2f86549226b1516418.png",
+    "original": "CSP_RedFrame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "pasta": "steam-lendas",
+    "nome": "Temptation",
+    "appid": 4602300,
+    "arquivo": "371c326bf6797ef26fa9c0f091c8262f8ae509b4.png",
+    "original": "Temptation"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "pasta": "steam-lendas",
+    "nome": "Golden Leaves",
+    "appid": 2157830,
+    "arquivo": "8be824c368d004b2f071147dc587bc34aeb71212.png",
+    "original": "Cristals"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "pasta": "steam-lendas",
+    "nome": "Comics",
+    "appid": 2157830,
+    "arquivo": "6b51e4d706ffdd058e06c3939cfc7ebe34e9133e.png",
+    "original": "Comics"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "pasta": "steam-lendas",
+    "nome": "Blood",
+    "appid": 860950,
+    "arquivo": "ffcd7cb08f88f2435f20657b019be15fe5a6613b.png",
+    "original": "Blood"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "pasta": "steam-lendas",
+    "nome": "Ooze",
+    "appid": 382560,
+    "arquivo": "a2af18d987a14aba583c3b06deebd7ca8349c540.png",
+    "original": "Ooze"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "pasta": "steam-lendas",
+    "nome": "Junk Frame",
+    "appid": 3470550,
+    "arquivo": "1b1ee1260bbe6ad05856bb0ed5f5f00252d28fbe.png",
+    "original": "Junk Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "pasta": "steam-lendas",
+    "nome": "Wood",
+    "appid": 3970070,
+    "arquivo": "0d73d776b232dda5b897ba54b126443d2b75799d.png",
+    "original": "Wood"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "pasta": "steam-lendas",
+    "nome": "Brick",
+    "appid": 1190970,
+    "arquivo": "1fd12f42dd823cffd96a214c68bb304e5319997d.png",
+    "original": "Brick Frame"
   }
 ]

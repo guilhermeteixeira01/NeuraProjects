@@ -1,5 +1,6 @@
 // Procura molduras animadas boas na Loja de Pontos da Steam e monta uma folha para escolher no olho.
-//   node buscar-steam.mjs
+//   node buscar-steam.mjs           (só nomes com tema: fogo, neon, raio...)
+//   node buscar-steam.mjs --todos   (sem o filtro de tema pelo nome; os filtros de qualidade continuam)
 // Passa só quem: anima liso (>= 15 quadros por segundo, >= 12 quadros, com movimento de verdade), não tapa a foto
 // (miolo quase vazio), tem proporção parecida com as outras (borda de dentro entre 72% e 93%) e não pesa demais.
 // Saída (pasta cache/, fora do git): candidatas.json (com a medida e a escala de cada uma) e folha-N.png.
@@ -37,7 +38,8 @@ else {
 }
 const usadas = new Set(JSON.parse(fs.readFileSync(path.join(aqui, 'escolhidas.json'), 'utf8')).filter((x) => x.fonte === 'steam').map((x) => x.arquivo))
 const texto = (x) => `${x.community_item_data.item_name} ${x.internal_description || ''}`
-const candidatas = lista.filter((x) => x.community_item_data?.animated && !usadas.has(x.community_item_data.item_image_small) && !FORA.test(texto(x)) && TEMA.test(texto(x)))
+const TODOS = process.argv.includes('--todos')
+const candidatas = lista.filter((x) => x.community_item_data?.animated && !usadas.has(x.community_item_data.item_image_small) && !FORA.test(texto(x)) && (TODOS || TEMA.test(texto(x))))
 console.log('candidatas pelo nome:', candidatas.length)
 
 // 2) Baixa (8 de cada vez) e mede

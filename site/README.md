@@ -105,6 +105,7 @@ node neura.mjs              # gera a coleção Neura (ou: node neura.mjs radar c
 node baixar.mjs             # baixa as da escolhidas.json e imprime as linhas para o molduras.js
 node paradas.mjs            # refaz as imagens paradas (.webp) de todas, a partir das animadas
 node buscar-steam.mjs       # procura mais na Steam: mede todas e monta folhas em cache/ para escolher no olho
+node buscar-steam.mjs --todos   # idem, sem o filtro de tema pelo nome (acha mais; os filtros de qualidade continuam)
 ```
 
 Como achar mais molduras da Steam: `buscar-steam.mjs` baixa as candidatas (tira nomes de personagem/fofura/memes) e
