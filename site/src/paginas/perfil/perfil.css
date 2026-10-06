@@ -5,14 +5,34 @@
 
 /* ── Topo ── */
 .pf-hero { padding: 56px 0 40px; }
-.pf-topo { display: flex; align-items: center; gap: 28px; position: relative; }
+/* Grade: foto à esquerda; à direita, em linhas, nome + selos, quadros de informação e XP + botões */
+.pf-topo {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'av id' 'av infos' 'av baixo';
+  column-gap: 32px; row-gap: 16px; align-items: start; position: relative;
+}
+.pf-topo > :first-child { grid-area: av; align-self: center; }
+.pf-id { grid-area: id; }
+.pf-infos { grid-area: infos; display: flex; flex-wrap: wrap; gap: 10px; }
+.pf-baixo { grid-area: baixo; display: flex; flex-direction: column; gap: 16px; }
+.pf-info {
+  display: flex; flex-direction: column; justify-content: center; gap: 6px; min-width: 120px; min-height: 66px; padding: 10px 14px;
+  border-radius: 12px; border: 1px solid var(--border); background: rgb(var(--fundo) / .55); color: var(--text); text-decoration: none;
+}
+.pf-info-rot { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 1.6px; color: var(--dim-2); }
+.pf-info-val { display: flex; align-items: center; gap: 8px; min-height: 30px; }
+.pf-info-val .pf-time, .pf-info-val .time-escolhido { margin: 0; }
+.pf-info-pos { border-color: rgba(52,152,219,.4); background: rgba(26,115,232,.08); transition: border-color .15s; }
+.pf-info-pos:hover { border-color: var(--blue-2); }
+.pf-info-pos b { font-family: var(--font-display); font-size: 22px; color: var(--blue-2); line-height: 1; }
+.pf-info-pos small { font-size: 12px; font-weight: 600; color: var(--dim); }
+.pf-cargos { margin-top: 2px; }
 .pf-av {
   width: 132px; height: 132px; border-radius: 22px; object-fit: cover; flex: none; max-width: none;
   border: 1px solid var(--border-2); box-shadow: 0 0 0 4px rgba(26,115,232,.12), 0 24px 50px -24px rgba(26,115,232,.8);
 }
 .pf-av.ini { display: grid; place-items: center; background: var(--panel-2); font-family: var(--font-display); font-size: 40px; color: var(--dim); }
 .pf-id { min-width: 0; }
-.pf-id h1 { font-family: var(--font-display); font-size: clamp(30px, 5vw, 52px); line-height: 1.05; margin: 6px 0 14px; overflow-wrap: anywhere; }
+.pf-id h1 { font-family: var(--font-display); font-size: clamp(30px, 5vw, 52px); line-height: 1.05; margin: 6px 0 10px; overflow-wrap: anywhere; }
 .pf-voce {
   margin-left: 10px; padding: 2px 8px; border-radius: 999px; font-size: 10px; letter-spacing: 1px; color: #fff;
   background: linear-gradient(90deg, var(--blue), var(--blue-2));
@@ -25,7 +45,7 @@
   padding: 2px 12px; border-radius: 8px; border: 1px solid rgba(52,152,219,.4); background: rgba(26,115,232,.08);
 }
 .pf-pos small { font-family: var(--font-body); font-size: 12px; font-weight: 600; color: var(--dim); }
-.pf-acoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.pf-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .pf-acoes .btn { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-family: inherit; }
 .pf-aviso h1 { font-family: var(--font-display); font-size: clamp(30px, 5vw, 48px); margin: 8px 0 12px; }
 .pf-aviso .lead { max-width: 560px; }
@@ -109,8 +129,22 @@
 .pf-mais:hover { border-color: var(--blue-2); }
 
 @media (max-width: 720px) {
-  .pf-topo { flex-direction: column; align-items: flex-start; gap: 18px; }
-  .pf-av { width: 96px; height: 96px; border-radius: 18px; }
+  /* Celular: foto ao lado do nome; quadros em 2 colunas; botões ocupando a largura */
+  .pf-topo { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'av id' 'infos infos' 'baixo baixo'; column-gap: 16px; row-gap: 16px; }
+  .pf-av { width: 84px; height: 84px; border-radius: 16px; }
+  .pf-id h1 { font-size: 28px; margin: 4px 0 8px; }
+  /* "PERFIL DO JOGADOR" + VOCÊ numa linha só (sem o tracinho do fim, que empurrava o VOCÊ) */
+  .pf-id .kicker { font-size: 9.5px; letter-spacing: 1.4px; gap: 8px; white-space: nowrap; }
+  .pf-id .kicker::after { display: none; }
+  .pf-voce { margin-left: 2px; }
+  .pf-infos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pf-info { min-width: 0; min-height: 60px; padding: 8px 12px; }
+  .pf-info-val .time-escolhido span, .pf-info-val .pf-time span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pf-xp { max-width: none; }
+  .pf-acoes { display: grid; grid-template-columns: 1fr 1fr; }
+  .pf-acoes .btn { justify-content: center; }
+  .pf-acoes .btn-primary { grid-column: 1 / -1; }
+  .pf-acoes .pf-ocultar { grid-column: 1 / -1; }
   .pf-estats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .pf-estat b { font-size: 22px; }
   .pf-grafico-card, .pf-hist-card { padding: 16px 12px 12px; }
@@ -212,8 +246,8 @@ html.sm-aberto { overflow: hidden; }
 
 /* Nível e XP (estilo FACEIT) */
 .pf-nivel { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 1.5px; color: var(--dim); }
-.pf-nivel b { font-family: var(--font-display); font-size: 18px; letter-spacing: 0; color: var(--text); }
-.pf-xp { max-width: 440px; margin-top: 16px; }
+.pf-nivel b { font-family: var(--font-display); font-size: 22px; letter-spacing: 0; color: var(--text); }
+.pf-xp { max-width: 560px; }
 .pf-xp-mapa { color: var(--green); }
 .pf-xp-mapa.perdeu { color: #ff6b6b; }
 
@@ -258,10 +292,9 @@ html.sm-aberto { overflow: hidden; }
 /* "Ocultar do ranking" (dono e admins, no próprio perfil) */
 .pf-ocultar {
   display: inline-flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin-top: 16px;
-  padding: 12px 14px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
   border-radius: 12px;
   border: 1px solid var(--border-2);
   background: rgb(var(--tinta) / 0.03);

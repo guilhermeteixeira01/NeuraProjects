@@ -631,4 +631,5 @@ export default {
   "{d} de {t} de dano": "{d} de {t} de daño",
   "Dano por acerto": "Daño por impacto",
   "{n} acertos": "{n} impactos",
+  "de {total}": "de {total}",
 }
