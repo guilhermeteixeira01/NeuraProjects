@@ -188,24 +188,70 @@ function Historico({ mapas }) {
   )
 }
 
-// Armas mais usadas (soma das partidas do histórico): as 3 primeiras em destaque e o resto numa lista com barra de kills
+// Armas mais usadas (soma das partidas do histórico): as 3 primeiras em destaque e o resto numa lista com barra de kills.
+// Clicar numa arma abre o detalhe dela com barras (participação nas kills e no dano, HS% e dano por acerto).
 const ARMAS_NA_LISTA = 8
+const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0)
 function ImagemArma({ id }) {
   const [erro, setErro] = useState(false)
   const url = urlArma(id)
   if (!url || erro) return <span className="pf-arma-sem">{nomeArma(id)}</span>
   return <img src={url} alt="" loading="lazy" onError={() => setErro(true)} />
 }
+// Barra fina com o gradiente do tema (azul → verde); `valor` em % (0–100)
+function BarraArma({ valor }) {
+  return (
+    <span className="pf-arma-barra" aria-hidden="true">
+      <i style={{ width: `${Math.max(2, Math.min(100, valor))}%` }} />
+    </span>
+  )
+}
+function DetalheArma({ a, kills, dano, fechar }) {
+  const t = useT()
+  const porAcerto = a.acertos ? Math.round(a.dano / a.acertos) : 0
+  const linhas = [
+    { rotulo: t('Participação nas kills'), valor: pct(a.kills, kills), texto: `${pct(a.kills, kills)}%`, sub: t('{k} de {t} kills', { k: a.kills, t: kills }) },
+    { rotulo: t('Headshot'), valor: pct(a.headshots, a.kills), texto: a.kills ? `${pct(a.headshots, a.kills)}%` : '—', sub: t('{n} de cabeça', { n: a.headshots }) },
+    { rotulo: t('Participação no dano'), valor: pct(a.dano, dano), texto: `${pct(a.dano, dano)}%`, sub: t('{d} de {t} de dano', { d: a.dano, t: dano }) },
+    // Dano por acerto na escala de 0 a 100 (um tiro de 100+ enche a barra)
+    { rotulo: t('Dano por acerto'), valor: porAcerto, texto: a.acertos ? String(porAcerto) : '—', sub: t('{n} acertos', { n: a.acertos }) },
+  ]
+  return (
+    <div className="pf-arma-detalhe" role="region" aria-label={nomeArma(a.id)}>
+      <div className="pf-arma-detalhe-cab">
+        <span className="pf-arma-mini">
+          <ImagemArma id={a.id} />
+        </span>
+        <b>{nomeArma(a.id)}</b>
+        <button type="button" className="pf-arma-fechar" onClick={fechar} aria-label={t('Fechar')}>
+          ×
+        </button>
+      </div>
+      {linhas.map((l) => (
+        <div key={l.rotulo} className="pf-arma-linha">
+          <span className="pf-arma-rotulo">{l.rotulo}</span>
+          <BarraArma valor={l.valor} />
+          <b className="mono">{l.texto}</b>
+          <span className="pf-arma-sub">{l.sub}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
 function Armas({ mapas }) {
   const t = useT()
   const [todas, setTodas] = useState(false)
+  const [aberta, setAberta] = useState(null) // arma com o detalhe aberto
   const { lista, mapas: n, kills } = somarArmas(mapas)
   if (!lista.length) return null
-  const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0)
+  const dano = lista.reduce((s, a) => s + a.dano, 0)
   const destaque = lista.slice(0, 3)
   const resto = lista.slice(3)
   const maior = lista[0].kills || 1
   const mostrar = todas ? resto : resto.slice(0, ARMAS_NA_LISTA)
+  const alternar = (id) => setAberta((x) => (x === id ? null : id))
+  const fechar = () => setAberta(null)
+  const abertaTop = destaque.find((a) => a.id === aberta)
   return (
     <div className="pf-armas-card spot">
       <div className="pf-card-cab">
@@ -214,13 +260,19 @@ function Armas({ mapas }) {
       </div>
       <div className="pf-armas-top">
         {destaque.map((a, i) => (
-          <div key={a.id} className={`pf-arma-dest${i === 0 ? ' primeira' : ''}`}>
+          <button
+            key={a.id}
+            type="button"
+            className={`pf-arma-dest${i === 0 ? ' primeira' : ''}${aberta === a.id ? ' aberta' : ''}`}
+            aria-expanded={aberta === a.id}
+            onClick={() => alternar(a.id)}
+          >
             <span className="pf-arma-pos">#{i + 1}</span>
-            <div className="pf-arma-img">
+            <span className="pf-arma-img">
               <ImagemArma id={a.id} />
-            </div>
+            </span>
             <b className="pf-arma-nome">{nomeArma(a.id)}</b>
-            <div className="pf-arma-nums">
+            <span className="pf-arma-nums">
               <span>
                 <b>{a.kills}</b> {t('kills')}
               </span>
@@ -228,31 +280,36 @@ function Armas({ mapas }) {
                 <b>{pct(a.kills, kills)}%</b> {t('das kills')}
               </span>
               <span>
-                <b>{pct(a.headshots, a.kills)}%</b> HS
+                <b>{a.kills ? `${pct(a.headshots, a.kills)}%` : '—'}</b> HS
               </span>
               <span>
                 <b>{a.dano}</b> {t('dano')}
               </span>
-            </div>
-          </div>
+            </span>
+            <BarraArma valor={(100 * a.kills) / maior} />
+          </button>
         ))}
       </div>
+      {abertaTop && <DetalheArma a={abertaTop} kills={kills} dano={dano} fechar={fechar} />}
       {resto.length > 0 && (
         <ul className="pf-armas-lista">
           {mostrar.map((a) => (
             <li key={a.id}>
-              <span className="pf-arma-mini">
-                <ImagemArma id={a.id} />
-              </span>
-              <span className="pf-arma-nome">{nomeArma(a.id)}</span>
-              <span className="pf-arma-barra" aria-hidden="true">
-                <i style={{ width: `${Math.max(2, (100 * a.kills) / maior)}%` }} />
-              </span>
-              <span className="mono">
-                <b>{a.kills}</b> {t('kills')}
-              </span>
-              <span className="mono pf-arma-hs">{a.kills ? `${pct(a.headshots, a.kills)}% HS` : "— HS"}</span>
-              <span className="mono pf-arma-dano">{a.dano} {t('dano')}</span>
+              <button type="button" className={`pf-arma-linha-btn${aberta === a.id ? ' aberta' : ''}`} aria-expanded={aberta === a.id} onClick={() => alternar(a.id)}>
+                <span className="pf-arma-mini">
+                  <ImagemArma id={a.id} />
+                </span>
+                <span className="pf-arma-nome">{nomeArma(a.id)}</span>
+                <BarraArma valor={(100 * a.kills) / maior} />
+                <span className="mono">
+                  <b>{a.kills}</b> {t('kills')}
+                </span>
+                <span className="mono pf-arma-hs">{a.kills ? `${pct(a.headshots, a.kills)}% HS` : '— HS'}</span>
+                <span className="mono pf-arma-dano">
+                  {a.dano} {t('dano')}
+                </span>
+              </button>
+              {aberta === a.id && <DetalheArma a={a} kills={kills} dano={dano} fechar={fechar} />}
             </li>
           ))}
         </ul>
@@ -265,6 +322,7 @@ function Armas({ mapas }) {
     </div>
   )
 }
+
 
 // "Ocultar do ranking" (só dono e admins, no próprio perfil): ligado, a pessoa some do ranking e o próximo sobe
 function OcultarRanking({ steamId }) {
@@ -362,7 +420,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
                   {t('NÍVEL')} <b>{nivel.nivel}</b>
                 </span>
               </span>
-              <CargosDe steamId={j.steamId} />
+              <CargosDe steamId={j.steamId} max={3} />
               {/* Time escolhido no "Personalizar"; sem escolha, o da última partida */}
               <TimeEscolhido steamId={j.steamId} classe="pf-time" />
               {!timeEscolhido && j.time && (

@@ -622,4 +622,13 @@ export default {
   "das kills": "de las kills",
   "dano": "daño",
   "Mostrar menos": "Mostrar menos",
+  "Mostrar mais {n} cargos": "Mostrar {n} cargos más",
+  "Participação nas kills": "Participación en las kills",
+  "{k} de {t} kills": "{k} de {t} kills",
+  "Headshot": "Headshot",
+  "{n} de cabeça": "{n} a la cabeza",
+  "Participação no dano": "Participación en el daño",
+  "{d} de {t} de dano": "{d} de {t} de daño",
+  "Dano por acerto": "Daño por impacto",
+  "{n} acertos": "{n} impactos",
 }

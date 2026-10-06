@@ -328,7 +328,10 @@ html.sm-aberto { overflow: hidden; }
 .pf-arma-dest {
   position: relative; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px 16px; border-radius: 12px;
   border: 1px solid var(--border); background: rgb(var(--tinta) / .025); overflow: hidden;
+  font: inherit; color: inherit; text-align: left; cursor: pointer; transition: border-color .15s, transform .15s;
 }
+.pf-arma-dest:hover { border-color: var(--border-2); transform: translateY(-2px); }
+.pf-arma-dest.aberta { border-color: var(--blue-2); box-shadow: 0 0 0 1px var(--blue-2) inset; }
 .pf-arma-dest.primeira { border-color: rgba(52, 152, 219, .45); background: linear-gradient(160deg, rgba(26, 115, 232, .14), rgb(var(--tinta) / .02)); }
 .pf-arma-pos { position: absolute; top: 10px; right: 12px; font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--dim-2); opacity: .7; }
 .pf-arma-dest.primeira .pf-arma-pos { color: var(--blue-2); opacity: 1; }
@@ -340,16 +343,39 @@ html.sm-aberto { overflow: hidden; }
 .pf-arma-sem { font-family: var(--font-display); font-size: 15px; color: var(--dim); }
 
 .pf-armas-lista { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; }
-.pf-armas-lista li {
+.pf-armas-lista li { border-top: 1px solid var(--border); }
+.pf-arma-linha-btn {
+  width: 100%; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; border-radius: 8px;
+  transition: background .15s;
   display: grid; grid-template-columns: 74px minmax(90px, 140px) minmax(0, 1fr) 70px 64px 86px; align-items: center; gap: 12px;
-  padding: 8px 4px; border-top: 1px solid var(--border); font-size: 13.5px;
+  padding: 8px 4px; font-size: 13.5px;
 }
+.pf-arma-linha-btn:hover, .pf-arma-linha-btn.aberta { background: rgba(26, 115, 232, .07); }
 .pf-arma-mini { height: 28px; display: grid; place-items: center; }
 .pf-arma-mini img { max-width: 70px; max-height: 28px; object-fit: contain; }
 .pf-arma-mini .pf-arma-sem { font-size: 11px; }
 .pf-armas-lista .pf-arma-nome { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pf-arma-barra { height: 6px; border-radius: 4px; background: rgb(var(--tinta) / .06); overflow: hidden; }
-.pf-arma-barra i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--blue), var(--blue-2)); }
+/* Gradiente do tema (azul → verde, as cores da marca; muda junto com o tema escolhido) */
+.pf-arma-barra i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--blue), var(--blue-2) 55%, var(--green)); box-shadow: 0 0 10px -3px var(--blue-2); }
+.pf-arma-dest .pf-arma-barra { margin-top: auto; }
+
+/* Detalhe da arma clicada */
+.pf-arma-detalhe {
+  margin: 12px 0 4px; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(52, 152, 219, .35);
+  background: linear-gradient(160deg, rgba(26, 115, 232, .08), rgb(var(--tinta) / .015)); display: flex; flex-direction: column; gap: 12px;
+  animation: nx-descer .15s ease;
+}
+.pf-armas-lista .pf-arma-detalhe { margin: 4px 0 12px; }
+.pf-arma-detalhe-cab { display: flex; align-items: center; gap: 12px; }
+.pf-arma-detalhe-cab b { font-family: var(--font-display); font-size: 17px; flex: 1; }
+.pf-arma-fechar { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border-2); background: none; color: var(--dim); font-size: 18px; line-height: 1; cursor: pointer; }
+.pf-arma-fechar:hover { color: var(--text); border-color: var(--blue-2); }
+.pf-arma-linha { display: grid; grid-template-columns: 170px minmax(0, 1fr) 56px 150px; align-items: center; gap: 12px; font-size: 13px; }
+.pf-arma-linha .pf-arma-barra { height: 8px; }
+.pf-arma-linha b.mono { font-family: var(--font-mono); font-size: 14px; text-align: right; }
+.pf-arma-rotulo { color: var(--dim); }
+.pf-arma-sub { font-size: 12px; color: var(--dim-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pf-armas-lista .mono { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0; text-transform: none; color: var(--dim); text-align: right; white-space: nowrap; }
 .pf-armas-lista .mono b { color: var(--text); font-size: 13px; }
 
@@ -361,7 +387,11 @@ html.sm-aberto { overflow: hidden; }
   .pf-arma-img img { max-height: 56px; }
   .pf-arma-dest .pf-arma-nome { flex: 1; }
   .pf-arma-nums { width: 100%; grid-template-columns: repeat(4, auto); justify-content: space-between; }
-  .pf-armas-lista li { grid-template-columns: 56px minmax(0, 1fr) 62px 58px; gap: 8px; }
-  .pf-armas-lista .pf-arma-barra, .pf-armas-lista .pf-arma-dano { display: none; }
+  .pf-arma-linha-btn { grid-template-columns: 56px minmax(0, 1fr) 62px 58px; gap: 8px; }
+  .pf-arma-linha { grid-template-columns: minmax(0, 1fr) 52px; gap: 6px 10px; }
+  .pf-arma-linha .pf-arma-barra { grid-column: 1 / -1; grid-row: 2; }
+  .pf-arma-linha .pf-arma-sub { display: none; }
+  .pf-arma-linha-btn .pf-arma-barra, .pf-arma-linha-btn .pf-arma-dano { display: none; }
+  .pf-arma-dest .pf-arma-barra { width: 100%; }
   .pf-arma-mini img { max-width: 54px; }
 }
