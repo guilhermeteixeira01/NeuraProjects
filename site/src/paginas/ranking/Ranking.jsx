@@ -91,7 +91,7 @@ function Podio({ j, pos, m, eu }) {
       <a className="pod-nome" href={perfil(j)}>
         {j.nome}
       </a>
-      <CargosDe steamId={j.steamId} classe="pod-cargos" max={3} />
+      <CargosDe steamId={j.steamId} classe="pod-cargos" max={1} />
       <TimeEscolhido steamId={j.steamId} classe="pod-time" />
       <span className="selos">
         <SeloNivel nivel={j.nivel} tamanho={30} />
