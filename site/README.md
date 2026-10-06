@@ -155,6 +155,7 @@ Te1xe1ra) e só ele promove ou remove outros admins.
   exclusiva de um cargo que a pessoa perdeu **sai do perfil** (vale também para moldura posta por admin): na hora,
   quando o admin tira o cargo ou torna a moldura exclusiva, e a cada 10 minutos (cron do worker, `scheduled()`) para
   quem saiu do top N. O admin não consegue dar moldura exclusiva para quem não tem o cargo (dê o cargo primeiro).
+  Dono e admins ficam de fora dessas regras: usam qualquer moldura, exclusiva de cargo ou não.
 - **Admins:** lista de administradores.
 
 ## Configurações ⚙ (idioma, tema e desempenho)

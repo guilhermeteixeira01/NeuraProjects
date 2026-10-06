@@ -230,7 +230,8 @@ async function cargosDoJogador(site, id, perfis, config, rankingLido) {
 }
 
 // Moldura exclusiva de um cargo que o jogador não tem mais (admin tirou, cargo automático saiu porque ele caiu no
-// ranking, moldura virou exclusiva...): sai do perfil. Vale também para moldura posta por admin. Devolve os perfis.
+// ranking, moldura virou exclusiva...): sai do perfil. Vale também para moldura posta por admin. Dono e admins ficam de
+// fora (usam qualquer moldura). Devolve os perfis.
 async function tirarExclusivasSemCargo(env, site, config) {
   const perfis = await ler(env, 'perfis')
   const exclusivas = config.molduraCargo || {}
@@ -239,6 +240,7 @@ async function tirarExclusivasSemCargo(env, site, config) {
   const ranking = (config.cargos || []).some((c) => c.top > 0) ? await lerRanking(site) : null
   let mudou = false
   for (const [id, p] of comExclusiva) {
+    if (ehAdmin(id, env, config)) continue // dono e admins usam qualquer moldura, com ou sem o cargo
     const tem = await cargosDoJogador(site, id, perfis, config, ranking)
     if (tem.includes(exclusivas[p.moldura])) continue
     delete p.moldura
@@ -324,7 +326,7 @@ async function adminPerfil(req, env, site, config, cors) {
   }
   // Moldura exclusiva de cargo: nem o admin dá para quem não tem o cargo (dê o cargo primeiro)
   const exige = mudar.moldura ? config.molduraCargo?.[mudar.moldura] : null
-  if (exige) {
+  if (exige && !ehAdmin(corpo.id, env, config)) { // dono e admins podem ter qualquer moldura
     const perfis = await ler(env, 'perfis')
     const comNovos = { ...perfis, [corpo.id]: { ...perfis[corpo.id], ...('cargos' in mudar ? { cargos: mudar.cargos } : {}) } }
     if (!(await cargosDoJogador(site, corpo.id, comNovos, config)).includes(exige)) return json({ erro: 'exclusiva', cargo: exige }, 400, cors)
