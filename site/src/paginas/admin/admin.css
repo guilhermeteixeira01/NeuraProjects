@@ -130,7 +130,7 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 .adm-nota { color: var(--dim); font-size: 13.5px; margin-bottom: 14px; }
 .adm-admins ul { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
 .adm-admins li { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: rgb(var(--tinta) / .02); }
-.adm-admins li > span:not(.adm-av) { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.adm-admins li > span:not(.adm-av):not(.selo-cargo) { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .adm-admins li small { font-size: 11px; color: var(--dim-2); }
 .adm-admins li .btn { padding: 6px 12px; font-size: 12.5px; }
 .adm-novo-admin { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
