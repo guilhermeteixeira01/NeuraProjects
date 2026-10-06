@@ -616,4 +616,10 @@ export default {
   "Só o dono e os admins têm esta opção.": "Only the owner and admins have this option.",
   "Mais": "More",
   "Times": "Teams",
+  "Armas mais usadas": "Most used weapons",
+  "{n} ARMAS · {m} MAPAS": "{n} WEAPONS · {m} MAPS",
+  "kills": "kills",
+  "das kills": "of kills",
+  "dano": "damage",
+  "Mostrar menos": "Show less",
 }

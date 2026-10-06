@@ -616,4 +616,10 @@ export default {
   "Só o dono e os admins têm esta opção.": "Solo el dueño y los admins tienen esta opción.",
   "Mais": "Más",
   "Times": "Equipos",
+  "Armas mais usadas": "Armas más usadas",
+  "{n} ARMAS · {m} MAPAS": "{n} ARMAS · {m} MAPAS",
+  "kills": "kills",
+  "das kills": "de las kills",
+  "dano": "daño",
+  "Mostrar menos": "Mostrar menos",
 }
