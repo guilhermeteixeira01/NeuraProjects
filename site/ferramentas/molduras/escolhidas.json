@@ -122,14 +122,6 @@
   {
     "fonte": "steam",
     "colecao": "Steam Lendas",
-    "nome": "NecroHell",
-    "appid": 2852980,
-    "arquivo": "aaff48fd153a9e14ef9edcdf1cdf9de5a60cd5cb.png",
-    "original": "NecroHell"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Lendas",
     "nome": "Guns Frame",
     "appid": 4141040,
     "arquivo": "edd4c3121fd25761d055fd79a891fd8cbfea8aa0.png",
@@ -877,7 +869,9 @@
     "nome": "Temptation",
     "appid": 4602300,
     "arquivo": "371c326bf6797ef26fa9c0f091c8262f8ae509b4.png",
-    "original": "Temptation"
+    "original": "Temptation",
+    "forma": "redonda",
+    "escala": 1.12
   },
   {
     "fonte": "steam",
