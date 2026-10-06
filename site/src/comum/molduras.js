@@ -101,11 +101,10 @@ export const MOLDURAS = [
   { id: 'steam-lendas/legendary-border', nome: "Legendary Border", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.14 },
   { id: 'steam-lendas/skulls', nome: "Skulls", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.30 },
   { id: 'steam-lendas/ninja-dragon-fire', nome: "Ninja Dragon Fire", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.04 },
-  { id: 'steam-lendas/necrohell', nome: "NecroHell", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.16 },
   { id: 'steam-lendas/guns-frame', nome: "Guns Frame", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.19 },
   { id: 'steam-lendas/assault-rifle', nome: "Assault Rifle", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.26 },
   { id: 'steam-lendas/gunmetal', nome: "Gunmetal", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.21 },
-  { id: 'steam-lendas/temptation', nome: "Temptation", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.24 },
+  { id: 'steam-lendas/temptation', nome: "Temptation", colecao: 'Steam Lendas', fonte: 'steam', escala: 1.12 }, // miolo redondo: avatar redondo
   { id: 'steam-lendas/golden-leaves', nome: "Golden Leaves", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.26 },
   { id: 'steam-lendas/comics', nome: "Comics", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.20 },
   { id: 'steam-lendas/blood', nome: "Blood", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.19 },

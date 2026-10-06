@@ -48,7 +48,8 @@ for (const m of lista) {
   console.log(id.padEnd(44), String(quadros.length).padStart(3), 'quadros', buf.length === original ? kb(original) : `${kb(original)} -> ${kb(buf.length)}`)
   // Steam: molduras feitas para avatar quadrado (o site deixa o avatar quadrado com elas)
   // (com a escala que põe a borda de dentro um pouco por cima da foto: medir.mjs)
-  const forma = m.fonte === 'steam' ? `, forma: 'quadrada', escala: ${medir(buf).escala.toFixed(2)}` : ''
+  // forma: 'redonda' na escolhidas.json = moldura da Steam com miolo redondo (avatar redondo, escala informada lá)
+  const forma = m.forma === 'redonda' ? `, escala: ${m.escala}` : m.fonte === 'steam' ? `, forma: 'quadrada', escala: ${medir(buf).escala.toFixed(2)}` : ''
   linhas.push(`  { id: '${id}', nome: ${JSON.stringify(m.nome)}, colecao: '${m.colecao}', fonte: '${m.fonte}'${forma} },`)
 }
 console.log('\n' + linhas.join('\n'))
