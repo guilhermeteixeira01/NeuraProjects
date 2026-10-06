@@ -632,4 +632,6 @@ export default {
   "Dano por acerto": "Daño por impacto",
   "{n} acertos": "{n} impactos",
   "de {total}": "de {total}",
+  "Padrão branco": "Predeterminado blanco",
+  "O visual completo do padrão, com todos os efeitos, em fundo branco.": "El aspecto completo predeterminado, con todos los efectos, en fondo blanco.",
 }

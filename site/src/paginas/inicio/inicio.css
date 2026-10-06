@@ -686,7 +686,7 @@
 }
 
 /* Tema claro (Configurações ⚙ → Tema): números do topo em degradê azul escuro (o branco some no fundo claro) */
-html[data-tema='claro'] .hx-numeros dd {
+html:is([data-tema='claro'], [data-tema='branco']) .hx-numeros dd {
   background: linear-gradient(180deg, var(--text), var(--blue-2));
   -webkit-background-clip: text;
   background-clip: text;

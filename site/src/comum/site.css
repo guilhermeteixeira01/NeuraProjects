@@ -260,7 +260,7 @@
   padding: 6px;
   border-radius: 10px;
   border: 1px solid var(--border-2);
-  background: rgb(var(--fundo) / 0.98);
+  background: rgb(var(--fundo)); /* opaco: no tema branco os 2% deixavam o texto de trás aparecer */
   box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.9);
   animation: nx-descer 0.15s ease;
 }
@@ -1127,7 +1127,7 @@ img {
   padding: 10px;
   border-radius: 12px;
   border: 1px solid var(--border-2);
-  background: rgb(var(--fundo) / 0.98);
+  background: rgb(var(--fundo)); /* opaco: no tema branco os 2% deixavam o texto de trás aparecer */
   box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.85);
   transform: translateX(-50%);
   animation: nx-descer 0.15s ease;
@@ -1136,6 +1136,8 @@ img {
 /* ── Temas (Configurações ⚙ → Tema; comum/tema.js) ──
  * Sem data-tema: tema padrão do site (o de sempre, com todos os efeitos).
  * data-tema="escuro" / "claro": versões otimizadas (cores próprias e sem os efeitos pesados).
+ * data-tema="branco": "Padrão branco" = cores do claro com todos os efeitos do padrão (regras do claro valem para ele;
+ * só os temas otimizados desligam os efeitos).
  * A seleção html[data-tema=...] ganha do :root (das páginas e do NeuraPick) em qualquer ordem. */
 html[data-tema='escuro'] {
   color-scheme: dark;
@@ -1155,7 +1157,7 @@ html[data-tema='escuro'] {
   --fundo: 16 17 20;
   --borda-rgb: 51 55 63;
 }
-html[data-tema='claro'] {
+html:is([data-tema='claro'], [data-tema='branco']) {
   color-scheme: light;
   --bg: #f2f4f8;
   --bg-soft: #e9edf3;
@@ -1181,27 +1183,27 @@ html[data-tema='claro'] {
   --borda-rgb: 201 208 219;
 }
 /* Versões otimizadas: sem partículas, brilhos do topo, desfoque de fundo, grade decorativa e luz do cursor */
-html[data-tema] .fx-fundo,
-html[data-tema] .hero-glow {
+html:is([data-tema='escuro'], [data-tema='claro']) .fx-fundo,
+html:is([data-tema='escuro'], [data-tema='claro']) .hero-glow {
   display: none !important;
 }
-html[data-tema] *,
-html[data-tema] *::before,
-html[data-tema] *::after {
+html:is([data-tema='escuro'], [data-tema='claro']) *,
+html:is([data-tema='escuro'], [data-tema='claro']) *::before,
+html:is([data-tema='escuro'], [data-tema='claro']) *::after {
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }
-html[data-tema] body {
+html:is([data-tema='escuro'], [data-tema='claro']) body {
   background: var(--bg) !important;
 }
-html[data-tema='claro'] .nx-nav.is-scrolled,
-html[data-tema='claro'] .nx-nav {
+html:is([data-tema='claro'], [data-tema='branco']) .nx-nav.is-scrolled,
+html:is([data-tema='claro'], [data-tema='branco']) .nx-nav {
   background: rgb(var(--fundo) / 0.96);
   box-shadow: 0 1px 0 var(--border);
 }
 /* Tema claro: cartões com imagem de mapa por trás (lista de partidas, série, NeuraPick) continuam escuros,
  * com as cores do tema padrão dentro deles ("ilhas escuras"), senão o texto some em cima da imagem */
-html[data-tema='claro'] :is(.summary-item, .map-card, .pool-item) {
+html:is([data-tema='claro'], [data-tema='branco']) :is(.summary-item, .map-card, .pool-item) {
   --bg: #0b0c0f;
   --bg-soft: #0e0f13;
   --panel: #121317;
@@ -1223,25 +1225,29 @@ html[data-tema='claro'] :is(.summary-item, .map-card, .pool-item) {
   --borda-rgb: 46 47 54;
   color: var(--text);
 }
+/* Temas claros: o logo (azul bem claro) some no fundo branco; escurece um pouco e ganha sombra */
+html:is([data-tema='claro'], [data-tema='branco']) :is(.nx-brand img, .nx-flogo img) {
+  filter: brightness(0.62) saturate(1.5) drop-shadow(0 1px 2px rgba(10, 20, 50, 0.35));
+}
 /* Tema claro: números coloridos com mais contraste no fundo branco */
-html[data-tema='claro'] {
+html:is([data-tema='claro'], [data-tema='branco']) {
   --ouro: #b8860b;
   --prata: #7b8696;
   --bronze: #b4612a;
 }
-html[data-tema='claro'] .rt-alto,
-html[data-tema='claro'] .rt-txt-alto b {
+html:is([data-tema='claro'], [data-tema='branco']) .rt-alto,
+html:is([data-tema='claro'], [data-tema='branco']) .rt-txt-alto b {
   color: #b35f00 !important;
 }
-html[data-tema='claro'] .rt-bom,
-html[data-tema='claro'] .rt-txt-bom b {
+html:is([data-tema='claro'], [data-tema='branco']) .rt-bom,
+html:is([data-tema='claro'], [data-tema='branco']) .rt-txt-bom b {
   color: #1d8a3a !important;
 }
-html[data-tema='claro'] .rt-medio {
+html:is([data-tema='claro'], [data-tema='branco']) .rt-medio {
   color: var(--text) !important;
 }
-html[data-tema='claro'] .rt-baixo,
-html[data-tema='claro'] .rt-txt-baixo b {
+html:is([data-tema='claro'], [data-tema='branco']) .rt-baixo,
+html:is([data-tema='claro'], [data-tema='branco']) .rt-txt-baixo b {
   color: #c62828 !important;
 }
 
@@ -1271,7 +1277,7 @@ html[data-tema='escuro'] .nx-footer {
   --f-meio-1: #151b2e;
 }
 /* Claro otimizado: fundo claro -> azul claro -> azul da marca; com o começo claro, os textos ficam escuros */
-html[data-tema='claro'] .nx-footer {
+html:is([data-tema='claro'], [data-tema='branco']) .nx-footer {
   --f-meio-1: #e4ecfc;
   --f-meio-2: #6f98ee;
   --f-texto: #0e1733;
@@ -1465,7 +1471,7 @@ html[data-tema='claro'] .nx-footer {
   font-size: 236px;
   fill: #dde7ff;
 }
-html[data-tema='claro'] .nx-fgigante text {
+html:is([data-tema='claro'], [data-tema='branco']) .nx-fgigante text {
   fill: #f4f7ff;
 }
 @media (max-width: 900px) {
@@ -1578,7 +1584,7 @@ html.i18n-trocando body {
   padding: 16px;
   border-radius: 14px;
   border: 1px solid var(--border-2);
-  background: rgb(var(--fundo) / 0.98);
+  background: rgb(var(--fundo)); /* opaco: no tema branco os 2% deixavam o texto de trás aparecer */
   box-shadow: 0 22px 50px -18px rgba(0, 0, 0, 0.75);
   color: var(--text);
   animation: nx-descer 0.15s ease;
@@ -1613,7 +1619,7 @@ html.i18n-trocando body {
 }
 .nx-config-temas {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
 }
 .nx-config-tema {
@@ -1645,6 +1651,9 @@ html.i18n-trocando body {
 }
 .nx-config-tema.tema-claro i {
   background: linear-gradient(135deg, #f2f4f8 55%, #1a6fe0);
+}
+.nx-config-tema.tema-branco i {
+  background: linear-gradient(135deg, #ffffff 45%, #1a73e8 75%, #3ddc84);
 }
 .nx-config-tema.sel {
   border-color: var(--blue-2);
@@ -1731,7 +1740,7 @@ html.i18n-trocando body {
   border: 1px solid rgba(255, 70, 85, 0.4);
   font-variant-numeric: tabular-nums;
 }
-html[data-tema='claro'] .contagem-remocao {
+html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
   color: #b3202e;
 }
 /* Página de partida de série cancelada depois da contagem */
@@ -1800,8 +1809,8 @@ html[data-tema='claro'] .contagem-remocao {
     background: rgb(var(--fundo) / 0.94);
     box-shadow: none;
   }
-  html[data-tema='claro'] .nx-nav.is-scrolled,
-  html[data-tema='claro'] .nx-nav {
+  html:is([data-tema='claro'], [data-tema='branco']) .nx-nav.is-scrolled,
+  html:is([data-tema='claro'], [data-tema='branco']) .nx-nav {
     box-shadow: none;
   }
   /* linha luminosa na borda direita (a mesma do topo ao rolar) */
@@ -1938,7 +1947,7 @@ html[data-tema='claro'] .contagem-remocao {
     padding: 6px 10px;
     border-radius: 8px;
     border: 1px solid var(--border-2);
-    background: rgb(var(--fundo) / 0.98);
+    background: rgb(var(--fundo)); /* opaco: no tema branco os 2% deixavam o texto de trás aparecer */
     box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.8);
     color: var(--text);
     font-family: var(--font-body);
@@ -2094,7 +2103,7 @@ html[data-tema='claro'] .contagem-remocao {
     padding: 6px;
     border-radius: 14px;
     border: 1px solid var(--border-2);
-    background: rgb(var(--fundo) / 0.98);
+    background: rgb(var(--fundo)); /* opaco: no tema branco os 2% deixavam o texto de trás aparecer */
     box-shadow: 0 -18px 40px -16px rgba(0, 0, 0, 0.85);
     animation: nx-subir 0.15s ease;
   }
