@@ -8,6 +8,7 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { gravar, lerQuadros, recomprimir, slug } from './comum.mjs'
+import { medir } from './medir.mjs'
 
 // A moldura carrega em toda página onde o avatar aparece: acima disso recomprime; se ainda passar de MAXIMO, fica de fora
 const LIMITE = 1.2 * 1024 * 1024
@@ -23,7 +24,9 @@ const url = (m) =>
 
 const linhas = []
 for (const m of lista) {
-  const id = `${slug(m.colecao)}/${slug(m.nome)}`
+  const id = `${slug(m.pasta || m.colecao)}/${slug(m.nome)}`
+  // Já está no site: pula (node baixar.mjs --tudo baixa de novo todas)
+  if (!process.argv.includes('--tudo') && fs.existsSync(path.join(aqui, '../../public/assets/molduras', id + '.png'))) continue
   const r = await fetch(url(m))
   if (!r.ok) {
     console.log('FALHOU', r.status, id)
@@ -44,7 +47,8 @@ for (const m of lista) {
   const kb = (n) => Math.round(n / 1024) + ' KB'
   console.log(id.padEnd(44), String(quadros.length).padStart(3), 'quadros', buf.length === original ? kb(original) : `${kb(original)} -> ${kb(buf.length)}`)
   // Steam: molduras feitas para avatar quadrado (o site deixa o avatar quadrado com elas)
-  const forma = m.fonte === 'steam' ? ", forma: 'quadrada'" : ''
+  // (com a escala que põe a borda de dentro um pouco por cima da foto: medir.mjs)
+  const forma = m.fonte === 'steam' ? `, forma: 'quadrada', escala: ${medir(buf).escala.toFixed(2)}` : ''
   linhas.push(`  { id: '${id}', nome: ${JSON.stringify(m.nome)}, colecao: '${m.colecao}', fonte: '${m.fonte}'${forma} },`)
 }
 console.log('\n' + linhas.join('\n'))

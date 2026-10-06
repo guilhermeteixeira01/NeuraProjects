@@ -230,5 +230,383 @@
     "hash": "ebc2586eda7c66877ef2a2edf89b24c9",
     "autor": "194474365646012416",
     "original": "Winter Holidays 2023: String lights RBG"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Bright Fire",
+    "appid": 1834960,
+    "arquivo": "f2dc9e446a624ee2407682b875d407834aa7b390.png",
+    "original": "Bright Fire"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Magic Fire",
+    "appid": 1834960,
+    "arquivo": "19e3fa6747bbaf723d405fd760cebffa35bc3566.png",
+    "original": "Magic Fire"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Blue Pulse",
+    "appid": 2287650,
+    "arquivo": "e8212ab00f5e91cf2a592789606ae3c6bd3020bb.png",
+    "original": "BLUE_Frame_2"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Rose Lightning",
+    "appid": 2487130,
+    "arquivo": "d9ca48f7a53322c7dd92e67128e6a5a5c779ccb7.png",
+    "original": "Rose Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Blue Storm",
+    "appid": 2450130,
+    "arquivo": "cb24b744818ccac0006ff0c2172db46b3bf0c567.png",
+    "original": "SHS_BlueFrame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Red Lightning",
+    "appid": 2299130,
+    "arquivo": "81590cd548719ed3a9a3e39debb30313b5702124.png",
+    "original": "SDS_LightningRedFrame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Purple Thunder",
+    "appid": 2380450,
+    "arquivo": "e2cf7c62e73b9b30d43ab8ce3f70e05ec6ad3c78.png",
+    "original": "ML_PurpleFrame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Orange Neon",
+    "appid": 2407310,
+    "arquivo": "733cf66092960022230bd1d857ac4c0428669f25.png",
+    "original": "LO_OrangeFrame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Green Lightning",
+    "appid": 2298590,
+    "arquivo": "1cc1220d70f035738470b9052c3df449f814fcb1.png",
+    "original": "Greenlightning_Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Red Glow",
+    "appid": 2245090,
+    "arquivo": "c80140425821f51ddea1293abde87db3964d1b1b.png",
+    "original": "CLS_Red_Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Neon Azul",
+    "appid": 2082170,
+    "arquivo": "244652c6c151c7e38817715df86e53d0c5fbd056.png",
+    "original": "Neon Blue Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Flame Frame",
+    "appid": 1313140,
+    "arquivo": "32c1a25966e87769ec6bcca824223abf6a53d182.png",
+    "original": "Flame Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Fire (verde)",
+    "appid": 1732740,
+    "arquivo": "d06415a2afdfaca07b4f3b7d5ba5c405f8a06021.png",
+    "original": "Fire - Green"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Violet Glow",
+    "appid": 3172280,
+    "arquivo": "512f60c2ec6c258dfb5f29cd873bae9af5cd8be5.png",
+    "original": "Violet Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Burgundy Glow",
+    "appid": 3172280,
+    "arquivo": "47b0b502c768683c79183368e50dc4c46cdec4d9.png",
+    "original": "Burgundy Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Lightning",
+    "appid": 1270580,
+    "arquivo": "62acb2d87a32cb26082a8319bd588102b4e33322.png",
+    "original": "Lightning"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Pink Plasma",
+    "appid": 601220,
+    "arquivo": "ccaeeda206ea1a561c35c9bc1252e50a9a36e78e.png",
+    "original": "Pink plasma"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Green Plasma",
+    "appid": 601220,
+    "arquivo": "6f9bde877ac7ceb9172f17008b87c31267c0a14b.png",
+    "original": "Green plasma"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Blue Plasma",
+    "appid": 601220,
+    "arquivo": "3263c975bda7633d517bdcb555f897dbb0dc711e.png",
+    "original": "Blue plasma"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Skull Border",
+    "appid": 2181930,
+    "arquivo": "15ca9acbf83c7ad88e8d0a835b14b98beb24ce49.png",
+    "original": "Skulls"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Glitch Unstable",
+    "appid": 1098340,
+    "arquivo": "71f42ec23a7f80c365f0c3900a6e61bdc78733d7.png",
+    "original": "Glitch [Unstable]"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Shadow Gradient",
+    "appid": 2206560,
+    "arquivo": "868bb90fc02c56ae7282dacd8c34d81b37f4f9f2.png",
+    "original": "Shadow [Gradient]"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Mainframe (vermelho)",
+    "appid": 556130,
+    "arquivo": "2fcf3d0b1be48e81ef533168619a4ef120df075b.png",
+    "original": "MAINFRAME (RED)"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Mainframe (azul)",
+    "appid": 556130,
+    "arquivo": "010d2415660c3a93cb1cf59db2bcf26400e899e0.png",
+    "original": "MAINFRAME (BLUE)"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Mainframe (rosa)",
+    "appid": 556130,
+    "arquivo": "79583546c479578806f60a5435aa5864c41c5149.png",
+    "original": "MAINFRAME (PINK)"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Cyberpunk Cyan",
+    "appid": 1091500,
+    "arquivo": "4f38822072e2c3a8f6960ab161b9d25e94be646d.png",
+    "original": "Cyberpunk Cyan"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Wires",
+    "appid": 457140,
+    "arquivo": "08e67b11ba810aecf3250de7ee2193fa3bb153b3.png",
+    "original": "Wires"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Multiplayer",
+    "appid": 3923090,
+    "arquivo": "828f62af546f278d5f15f8567c55f2c55e88b100.png",
+    "original": "Multiplayer Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Three Star",
+    "appid": 2782610,
+    "arquivo": "17836b2ef405ab9b74351e7aa2e34eaef7a37071.png",
+    "original": "Three Star"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Undisputed Glitch",
+    "appid": 1451190,
+    "arquivo": "c54be80ce1cf1f688875aa72d4f026f1e78b8f70.png",
+    "original": "Undisputed Glitch"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Glass",
+    "appid": 2084820,
+    "arquivo": "63fb23284a65221b979c9baca15ac77dc2d4f564.png",
+    "original": "GLASS FRAME"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Star Frame",
+    "appid": 2084820,
+    "arquivo": "a35244a2d5d13f71d18e2e67ac20edb38a3ceb2a.png",
+    "original": "STAR FRAME"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "DarkAge (roxo)",
+    "appid": 601220,
+    "arquivo": "2b817dadbde606a4773e34198e6220d8170da5c3.png",
+    "original": "DarkAge [Purple]"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "DarkAge (vermelho)",
+    "appid": 601220,
+    "arquivo": "b8b64fcfbd3db78f784d6a9e98352b69eebb6a3c.png",
+    "original": "DarkAge [Red]"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "DarkAge (rosa)",
+    "appid": 601220,
+    "arquivo": "e9afe4cf0c690c3f161b459f77c707287dec9804.png",
+    "original": "DarkAge [Pink]"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "DarkAge (azul)",
+    "appid": 601220,
+    "arquivo": "e119bfe908ffa70258fa02d6ecdf85825a8766e7.png",
+    "original": "DarkAge [Blue]"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Layering RGB",
+    "appid": 601220,
+    "arquivo": "f12e03ad412fa9c27e6d1443b2d1b1028dbf2faa.png",
+    "original": "Layering [RGB]"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Border Pink",
+    "appid": 601840,
+    "arquivo": "80ab65c366f66be94eed12cd3d80144754b7e289.png",
+    "original": "border5"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Border Circuit",
+    "appid": 601840,
+    "arquivo": "1ff82a808a21a123a36afbd8aedfe1169c12dfb9.png",
+    "original": "border4"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Border Gold",
+    "appid": 601840,
+    "arquivo": "85ac6d90549d80cfae369ad76e06d6b4c11e45e6.png",
+    "original": "border3"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Purple Tech",
+    "appid": 2096260,
+    "arquivo": "f4242c57870cd256783d4002688ee290514928da.png",
+    "original": "MTM Animated Purple Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Square Frame",
+    "appid": 4046550,
+    "arquivo": "5e4445d26f098e18c954ada300e857c910121fd1.png",
+    "original": "Square Frame"
   }
 ]
