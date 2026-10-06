@@ -144,14 +144,17 @@ Te1xe1ra) e só ele promove ou remove outros admins.
 - **Molduras:** liga "liberar molduras por nível" e escolhe o nível de cada moldura (ou da coleção inteira).
   Ligado, o Personalizar mostra as molduras acima do nível com cadeado e o worker recusa salvar
   (ele lê o XP do `ranking.json` publicado + o ajuste).
-- **Cargos:** cria cargos (Premium, VIP...) com nome e cor. O admin dá/tira cargos em Usuários → Editar; o cargo vira
+- **Cargos:** cria cargos (Premium, VIP...) com nome, cor e **ícone** do selo (coroa, cifrão, estrela, diamante,
+  raio, escudo, fogo, caveira, troféu, coração, verificado, mira, microfone, controle: `src/comum/cargos.jsx`; o
+  worker só aceita estes, em `ICONES_CARGO`). O admin dá/tira cargos em Usuários → Editar; o cargo vira
   selo no perfil e no ranking. Na aba Molduras, cada moldura (ou coleção) pode ser **exclusiva de um cargo**: o
   Personalizar mostra essas numa seção própria ("Exclusivas · Premium"), travadas para quem não tem o cargo, e o worker
   recusa salvar. Vale junto com a regra de nível (precisa das duas). Admins não têm trava.
   Cargo **automático** ("Automático: top N"): os N primeiros do ranking (rating, a ordem do top 15) ganham o cargo
   e perdem sozinhos ao sair do top N; não fica gravado no perfil, é recalculado do ranking no site e no worker. Moldura
-  exclusiva de um cargo que a pessoa perdeu deixa de aparecer (volta se ela recuperar); moldura posta por um admin
-  aparece sempre.
+  exclusiva de um cargo que a pessoa perdeu **sai do perfil** (vale também para moldura posta por admin): na hora,
+  quando o admin tira o cargo ou torna a moldura exclusiva, e a cada 10 minutos (cron do worker, `scheduled()`) para
+  quem saiu do top N. O admin não consegue dar moldura exclusiva para quem não tem o cargo (dê o cargo primeiro).
 - **Admins:** lista de administradores.
 
 ## Configurações ⚙ (idioma, tema e desempenho)

@@ -7,6 +7,7 @@ import { sair, tokenConta } from './conta.js'
 import { classeForma, molduraPorId, urlMoldura, urlParada } from './molduras.js'
 import { EVENTO_DESEMPENHO, desempenhoAtivo } from './desempenho.js'
 import { useT } from './i18n.js'
+import { IconeCargo } from './cargos.jsx'
 import { useOrdemRanking } from './ranking.js'
 
 const EVENTO = 'np-perfis'
@@ -171,9 +172,7 @@ export function useCargosDe(steamId) {
 export function SeloCargo({ cargo, classe = '' }) {
   return (
     <span className={`selo-cargo ${classe}`} style={{ '--cg': cargo.cor }} title={`Cargo: ${cargo.nome}`}>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 12H5L3 7z" />
-      </svg>
+      <IconeCargo icone={cargo.icone} />
       {cargo.nome}
     </span>
   )
@@ -270,15 +269,15 @@ export function CamadaMoldura({ id, parada = false }) {
 
 // Envolve o avatar e põe a moldura do jogador por cima (sem moldura, devolve o avatar como está).
 // cheio: o avatar ocupa 100% do pai (ex.: avatar do pódio do ranking, que tem tamanho fixo).
-// Moldura exclusiva de um cargo que o jogador perdeu (ex.: saiu do top 3) não aparece; volta se ele recuperar.
-// Moldura posta por um admin (molduraLivre) aparece sempre.
+// Moldura exclusiva de um cargo que o jogador perdeu (ex.: saiu do top 3) some na hora e o worker tira do perfil.
+// Vale também para moldura posta por admin: exclusiva só aparece para quem tem o cargo (o worker ainda tira do perfil).
 export function ComMoldura({ steamId, children, cheio = false }) {
   const perfil = usePerfis()[steamId] || {}
   const config = useConfigSite()
   const cargos = useCargosIdsDe(steamId)
   const id = perfil.moldura
   const exige = config.molduraCargo?.[id]
-  if (!molduraPorId(id) || (exige && !perfil.molduraLivre && !cargos.includes(exige))) return children
+  if (!molduraPorId(id) || (exige && !cargos.includes(exige))) return children
   return (
     <span className={`moldura-box${cheio ? ' cheio' : ''}${classeForma(id)}`}>
       {children}

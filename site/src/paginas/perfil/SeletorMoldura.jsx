@@ -4,6 +4,7 @@ import { SeloNivel } from '../../comum/Nivel.jsx'
 import { COLECOES, MOLDURAS, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { urlOk } from '../../comum/dados.js'
 import { useT } from '../../comum/i18n.js'
+import { IconeCargo } from '../../comum/cargos.jsx'
 
 function CadeadoMini() {
   return (
@@ -97,9 +98,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         {(presa || cargoDaMoldura(config, m.id)) && (
           <span className="sm-exige">
             {cargoDaMoldura(config, m.id) && (
-              <svg className="sm-coroa" style={{ color: cargoDaMoldura(config, m.id).cor }} width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 12H5L3 7z" />
-              </svg>
+              <IconeCargo className="sm-coroa" style={{ color: cargoDaMoldura(config, m.id).cor }} icone={cargoDaMoldura(config, m.id).icone} tamanho={13} />
             )}
             {presa && <CadeadoMini />}
           </span>

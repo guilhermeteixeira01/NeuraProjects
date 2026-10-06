@@ -9,6 +9,7 @@ import { SeloNivel } from '../../comum/Nivel.jsx'
 import { NIVEL_MAX, nivelDe } from '../../comum/niveis.js'
 import { ordenarRanking } from '../../comum/ranking.js'
 import { localeAtual, useT } from '../../comum/i18n.js'
+import { ICONES_CARGO, IconeCargo } from '../../comum/cargos.jsx'
 
 // Painel de administrador (/admin/). A aba só aparece para admin, mas quem decide é o worker:
 // toda chamada /admin/... confere o login e se a pessoa é admin (o dono, ou quem o dono promoveu).
@@ -21,7 +22,7 @@ const dataBr = (iso) => {
   return isNaN(d) ? '—' : d.toLocaleString(localeAtual(), { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }).replace(',', '')
 }
 const mensagemErro = (e) =>
-  ({ login: 'Seu login venceu. Entre de novo com a Steam.', admin: 'Você não é mais administrador.', dono: 'Só o dono pode mudar os administradores.', xp: 'Ajuste de XP fora do limite.' })[e.message] ||
+  ({ login: 'Seu login venceu. Entre de novo com a Steam.', admin: 'Você não é mais administrador.', dono: 'Só o dono pode mudar os administradores.', xp: 'Ajuste de XP fora do limite.', exclusiva: 'Essa moldura é exclusiva de um cargo que o jogador não tem: dê o cargo primeiro.' })[e.message] ||
   'Não deu para salvar. Tente de novo.'
 
 function Avatar({ src, nome, classe = 'adm-av' }) {
@@ -451,11 +452,46 @@ const slug = (s) =>
     .replace(/^-|-$/g, '')
     .slice(0, 24)
 
+// Botão com o ícone do cargo; clicando abre a grade com todos os ícones para escolher
+function EscolherIcone({ valor, cor, aoEscolher }) {
+  const tr = useT()
+  const [aberto, setAberto] = useState(false)
+  return (
+    <span className="adm-icone">
+      <button type="button" className="adm-icone-btn" style={{ color: cor }} onClick={() => setAberto((a) => !a)} aria-expanded={aberto} title={tr('Ícone do cargo')}>
+        <IconeCargo icone={valor} tamanho={16} />
+      </button>
+      {aberto && (
+        <span className="adm-icone-grade" role="listbox" aria-label={tr('Ícone do cargo')}>
+          {Object.entries(ICONES_CARGO).map(([id, i]) => (
+            <button
+              key={id}
+              type="button"
+              role="option"
+              aria-selected={(valor || 'coroa') === id}
+              className={(valor || 'coroa') === id ? 'sel' : ''}
+              style={{ color: cor }}
+              title={tr(i.nome)}
+              onClick={() => {
+                aoEscolher(id)
+                setAberto(false)
+              }}
+            >
+              <IconeCargo icone={id} tamanho={18} />
+            </button>
+          ))}
+        </span>
+      )}
+    </span>
+  )
+}
+
 function Cargos({ config, usuarios, aoSalvar }) {
   const tr = useT()
   const [lista, setLista] = useState(() => (config.cargos || []).map((c) => ({ ...c })))
   const [novoNome, setNovoNome] = useState('')
   const [novaCor, setNovaCor] = useState('#f5c542')
+  const [novoIcone, setNovoIcone] = useState('coroa')
   const [estado, setEstado] = useState('')
   const mudou = JSON.stringify(lista) !== JSON.stringify(config.cargos || [])
   const membros = (id) => usuarios.filter((u) => (u.perfil.cargos || []).includes(id) || u.auto.includes(id))
@@ -467,7 +503,7 @@ function Cargos({ config, usuarios, aoSalvar }) {
     const base = slug(nome) || 'cargo'
     let id = base
     for (let n = 2; lista.some((c) => c.id === id); n++) id = `${base}-${n}`
-    setLista((l) => [...l, { id, nome, cor: novaCor }])
+    setLista((l) => [...l, { id, nome, cor: novaCor, icone: novoIcone }])
     setNovoNome('')
   }
   const apagar = (i) => {
@@ -478,7 +514,7 @@ function Cargos({ config, usuarios, aoSalvar }) {
   const salvar = async () => {
     setEstado('salvando')
     try {
-      const d = await chamar('/admin/config', { cargos: lista.map((c) => ({ id: c.id, nome: c.nome.trim(), cor: c.cor, top: Number(c.top) || 0 })) })
+      const d = await chamar('/admin/config', { cargos: lista.map((c) => ({ id: c.id, nome: c.nome.trim(), cor: c.cor, icone: c.icone || 'coroa', top: Number(c.top) || 0 })) })
       aoSalvar(d.config)
       setEstado('Salvo!')
     } catch (e) {
@@ -506,6 +542,7 @@ function Cargos({ config, usuarios, aoSalvar }) {
         {lista.map((c, i) => (
           <li key={c.id}>
             <input type="color" value={c.cor} onChange={(e) => mudar(i, 'cor', e.target.value)} aria-label={tr('Cor do cargo {nome}', { nome: c.nome })} />
+            <EscolherIcone valor={c.icone} cor={c.cor} aoEscolher={(id) => mudar(i, 'icone', id)} />
             <input className="adm-cargo-nome" value={c.nome} maxLength={24} onChange={(e) => mudar(i, 'nome', e.target.value)} aria-label={tr('Nome do cargo')} />
             <SeloCargo cargo={{ ...c, nome: c.nome || '…' }} />
             <label className="adm-top" title={tr('0 = só manual. Ex.: 3 = os 3 primeiros do ranking ganham o cargo e perdem ao sair do top 3')}>
@@ -540,6 +577,7 @@ function Cargos({ config, usuarios, aoSalvar }) {
       </ul>
       <div className="adm-novo-admin">
         <input type="color" value={novaCor} onChange={(e) => setNovaCor(e.target.value)} aria-label={tr('Cor do novo cargo')} />
+        <EscolherIcone valor={novoIcone} cor={novaCor} aoEscolher={setNovoIcone} />
         <input placeholder={tr('Nome do cargo (ex.: Premium)')} value={novoNome} maxLength={24} onChange={(e) => setNovoNome(e.target.value)} />
         <button type="button" className="btn btn-ghost" disabled={!novoNome.trim() || lista.length >= 20} onClick={adicionar}>
           {tr('Adicionar cargo')}
