@@ -3,7 +3,7 @@ import Layout from '../../comum/Layout.jsx'
 import { entrar, linkPerfil, loginAtivo, useConta } from '../../comum/conta.js'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
-import { CamadaMoldura, ComMoldura, SeloCargo, chamar, useAdmin, useListaTimes } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, ComMoldura, SELOS_PADRAO, SeloCargo, chamar, useAdmin, useListaTimes } from '../../comum/Moldura.jsx'
 import { COLECOES, MOLDURAS, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { NIVEL_MAX, nivelDe } from '../../comum/niveis.js'
@@ -130,8 +130,8 @@ function Usuarios({ usuarios, painel, dono, editar }) {
                   <td className="esq">{u.perfil.time || <span className="adm-nada">—</span>}</td>
                   <td className="esq">
                     <span className="adm-tags">
-                      {u.id === dono && <i className="dono">{tr('DONO')}</i>}
-                      {u.id !== dono && admins.has(u.id) && <i className="admin">ADMIN</i>}
+                      {u.id === dono && <SeloCargo cargo={{ ...SELOS_PADRAO.dono, ...painel.config.selos?.dono }} />}
+                      {u.id !== dono && admins.has(u.id) && <SeloCargo cargo={{ ...SELOS_PADRAO.admin, ...painel.config.selos?.admin }} />}
                       {u.perfil.bloqueado && <i className="bloq">{tr('BLOQUEADO')}</i>}
                       {(painel.config.cargos || [])
                         .filter((c) => (u.perfil.cargos || []).includes(c.id) || u.auto.includes(c.id))
@@ -486,6 +486,62 @@ function EscolherIcone({ valor, cor, aoEscolher }) {
   )
 }
 
+// Selos da equipe (dono e admins): nome, cor, ícone e se aparecem no perfil/ranking. Só o dono edita.
+function SelosEquipe({ config, aoSalvar }) {
+  const tr = useT()
+  const inicial = { dono: { ...SELOS_PADRAO.dono, ...config.selos?.dono }, admin: { ...SELOS_PADRAO.admin, ...config.selos?.admin } }
+  const [selos, setSelos] = useState(inicial)
+  const [estado, setEstado] = useState('')
+  const mudou = JSON.stringify(selos) !== JSON.stringify(inicial)
+  const mudar = (qual, campo, valor) => setSelos((s) => ({ ...s, [qual]: { ...s[qual], [campo]: valor } }))
+  const valido = ['dono', 'admin'].every((q) => selos[q].nome.trim().length > 0 && selos[q].nome.trim().length <= 24)
+  const salvar = async () => {
+    setEstado('salvando')
+    try {
+      const d = await chamar('/admin/selos', { dono: { ...selos.dono, nome: selos.dono.nome.trim() }, admin: { ...selos.admin, nome: selos.admin.nome.trim() } })
+      aoSalvar(d.config)
+      setEstado('Salvo!')
+    } catch (e) {
+      setEstado(mensagemErro(e))
+    }
+  }
+  return (
+    <div className="adm-bloco adm-cargos adm-selos">
+      <div className="adm-config-topo">
+        <p className="adm-nota">
+          <b>{tr('Selos da equipe')}</b> · {tr('Aparecem no perfil e no ranking do dono e dos admins, antes dos cargos. Só o dono edita.')}
+        </p>
+        <div className="adm-salvar">
+          <span className="sm-msg" role="status">
+            {estado !== 'salvando' && tr(estado)}
+          </span>
+          <button type="button" className="btn btn-primary" onClick={salvar} disabled={!mudou || !valido || estado === 'salvando'}>
+            {estado === 'salvando' ? tr('Salvando…') : tr('Salvar selos')}
+          </button>
+        </div>
+      </div>
+      <ul>
+        {[
+          ['dono', tr('Dono')],
+          ['admin', tr('Admins')],
+        ].map(([qual, rotulo]) => (
+          <li key={qual}>
+            <b className="adm-selo-quem">{rotulo}</b>
+            <input type="color" value={selos[qual].cor} onChange={(e) => mudar(qual, 'cor', e.target.value)} aria-label={tr('Cor do selo')} />
+            <EscolherIcone valor={selos[qual].icone} cor={selos[qual].cor} aoEscolher={(id) => mudar(qual, 'icone', id)} />
+            <input className="adm-cargo-nome" value={selos[qual].nome} maxLength={24} onChange={(e) => mudar(qual, 'nome', e.target.value)} aria-label={tr('Nome do selo')} />
+            <SeloCargo cargo={{ ...selos[qual], nome: selos[qual].nome || '…' }} />
+            <label className="adm-check">
+              <input type="checkbox" checked={selos[qual].mostrar} onChange={(e) => mudar(qual, 'mostrar', e.target.checked)} />
+              <span>{tr('Mostrar no site')}</span>
+            </label>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 function Cargos({ config, usuarios, aoSalvar }) {
   const tr = useT()
   const [lista, setLista] = useState(() => (config.cargos || []).map((c) => ({ ...c })))
@@ -621,7 +677,7 @@ function Admins({ config, dono, souDono, usuarios, aoSalvar }) {
               <small className="mono">{id}</small>
             </a>
             {id === dono ? (
-              <i className="dono">{tr('DONO')}</i>
+              <SeloCargo cargo={{ ...SELOS_PADRAO.dono, ...config.selos?.dono }} />
             ) : (
               souDono && (
                 <button type="button" className="btn btn-ghost adm-perigo" onClick={() => mudar(id, false)} disabled={estado === 'salvando'}>
@@ -799,6 +855,7 @@ export default function Admin() {
             </div>
             {aba === 'usuarios' && <Usuarios usuarios={usuarios} painel={painel} dono={painel.dono} editar={setEditando} />}
             {aba === 'molduras' && <Molduras key={JSON.stringify(painel.config)} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
+            {aba === 'cargos' && eu.dono && <SelosEquipe key={JSON.stringify(painel.config.selos || {})} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
             {aba === 'cargos' && <Cargos key={JSON.stringify(painel.config.cargos || [])} config={painel.config} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
             {aba === 'admins' && <Admins config={painel.config} dono={painel.dono} souDono={eu.dono} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
           </div>

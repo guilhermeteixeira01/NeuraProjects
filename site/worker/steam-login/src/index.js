@@ -48,7 +48,7 @@ export default {
     if (rota === '/login') return login(url, env, site)
     if (rota === '/retorno') return retorno(url, env, site)
     if (rota === '/perfis' && req.method === 'GET') return json(await ler(env, 'perfis'), 200, publico)
-    if (rota === '/config' && req.method === 'GET') return json(configPublica(await ler(env, 'config')), 200, publico)
+    if (rota === '/config' && req.method === 'GET') return json(configPublica(await ler(env, "config"), env), 200, publico)
     if (rota === '/jogador' && req.method === 'GET') return jogadorPublico(url, env)
     // Rotas antigas (só moldura): páginas que ainda estejam abertas com uma versão anterior do site
     if (rota === '/molduras' && req.method === 'GET') return json(soMolduras(await ler(env, 'perfis')), 200, publico)
@@ -74,6 +74,10 @@ export default {
       if (rota === '/admin/dados' && req.method === 'GET') return adminDados(env, config, cors)
       if (rota === '/admin/perfil' && req.method === 'POST') return adminPerfil(req, env, site, config, cors)
       if (rota === '/admin/config' && req.method === 'POST') return adminConfig(req, env, site, config, cors)
+      if (rota === '/admin/selos' && req.method === 'POST') {
+        if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
+        return adminSelos(req, env, config, cors)
+      }
       if (rota === '/admin/admins' && req.method === 'POST') {
         if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
         return adminAdmins(req, env, config, cors)
@@ -128,7 +132,15 @@ async function ler(env, chave) {
 const gravar = (env, chave, valor) => env.MOLDURAS.put(chave, JSON.stringify(valor))
 
 const soMolduras = (perfis) => Object.fromEntries(Object.entries(perfis).filter(([, p]) => p.moldura).map(([id, p]) => [id, p.moldura]))
-const configPublica = (c) => ({
+// Selos da equipe (dono e admins): o dono edita nome, cor, ícone e se aparecem (POST /admin/selos)
+const SELOS_PADRAO = {
+  dono: { nome: 'Dono', cor: '#ff4655', icone: 'coroa', mostrar: true },
+  admin: { nome: 'Admin', cor: '#3498db', icone: 'escudo', mostrar: true },
+}
+const selosDe = (c) => ({ dono: { ...SELOS_PADRAO.dono, ...c.selos?.dono }, admin: { ...SELOS_PADRAO.admin, ...c.selos?.admin } })
+const configPublica = (c, env = {}) => ({
+  selos: selosDe(c),
+  equipe: { dono: env.DONO || null, admins: (c.admins || []).filter((id) => id !== env.DONO) }, // quem recebe os selos acima
   molduraPorNivel: !!c.molduraPorNivel,
   nivelMoldura: c.nivelMoldura || {},
   cargos: c.cargos || [], // [{ id, nome, cor, icone?, top? }] (ex.: Premium, VIP). top = automático para o top N do ranking
@@ -279,7 +291,7 @@ async function salvarPerfil(req, env, site, quem, admin, config, cors, rotaAntig
 // ── Painel de administrador ──
 async function adminDados(env, config, cors) {
   const [perfis, usuarios] = await Promise.all([ler(env, 'perfis'), ler(env, 'usuarios')])
-  return json({ perfis, usuarios, config: { ...configPublica(config), admins: config.admins || [] }, dono: env.DONO || null }, 200, cors)
+  return json({ perfis, usuarios, config: { ...configPublica(config, env), admins: config.admins || [] }, dono: env.DONO || null }, 200, cors)
 }
 
 // POST /admin/perfil { id, moldura?, time?, xp? (ajuste), bloqueado?, cargos? ([idCargo]), limpar? }
@@ -366,7 +378,24 @@ async function adminConfig(req, env, site, config, cors) {
   }
   await gravar(env, 'config', novo)
   if ('cargos' in corpo || 'molduraCargo' in corpo) await tirarExclusivasSemCargo(env, site, novo)
-  return json({ ok: true, config: { ...configPublica(novo), admins: novo.admins || [] } }, 200, cors)
+  return json({ ok: true, config: { ...configPublica(novo, env), admins: novo.admins || [] } }, 200, cors)
+}
+
+// POST /admin/selos { dono?: { nome, cor, icone, mostrar }, admin?: {...} }  (só o DONO)
+async function adminSelos(req, env, config, cors) {
+  const corpo = await corpoJson(req)
+  if (!corpo) return json({ erro: 'corpo' }, 400, cors)
+  const selos = selosDe(config)
+  for (const qual of ['dono', 'admin']) {
+    if (!(qual in corpo)) continue
+    const s = corpo[qual] || {}
+    const nome = String(s.nome || '').trim()
+    if (!NOME_TIME.test(nome) || nome.length > 24 || !COR.test(String(s.cor)) || !ICONES_CARGO.includes(s.icone)) return json({ erro: 'selos' }, 400, cors)
+    selos[qual] = { nome, cor: s.cor, icone: s.icone, mostrar: s.mostrar !== false }
+  }
+  const novo = { ...config, selos }
+  await gravar(env, 'config', novo)
+  return json({ ok: true, config: { ...configPublica(novo, env), admins: novo.admins || [] } }, 200, cors)
 }
 
 // POST /admin/admins { id, admin: bool }  (só o DONO)
@@ -378,7 +407,7 @@ async function adminAdmins(req, env, config, cors) {
   else admins.delete(corpo.id)
   const novo = { ...config, admins: [...admins] }
   await gravar(env, 'config', novo)
-  return json({ ok: true, config: { ...configPublica(novo), admins: novo.admins } }, 200, cors)
+  return json({ ok: true, config: { ...configPublica(novo, env), admins: novo.admins } }, 200, cors)
 }
 
 // Token do login: assinatura certa e dentro da validade -> { id, ... }; senão null

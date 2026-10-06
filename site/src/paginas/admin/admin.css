@@ -232,3 +232,18 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
   border-color: var(--blue-2);
   background: rgba(52, 152, 219, 0.14);
 }
+
+/* Selos da equipe (dono/admins), no topo da aba Cargos */
+.adm-selos {
+  margin-bottom: 18px;
+}
+.adm-selo-quem {
+  min-width: 64px;
+  font-size: 13px;
+}
+.adm-selos .adm-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}

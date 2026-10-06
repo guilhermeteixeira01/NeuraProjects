@@ -111,7 +111,12 @@ export const salvarPerfil = (mudar) => chamar('/perfil', mudar)
 
 // Regras públicas: { molduraPorNivel, nivelMoldura: { idMoldura: nível } }
 const EVENTO_CONFIG = 'np-config'
-const CONFIG_PADRAO = { molduraPorNivel: false, nivelMoldura: {}, cargos: [], molduraCargo: {} }
+// Selos da equipe (dono e admins): o dono edita no painel (aba Cargos). Padrão igual ao do worker.
+export const SELOS_PADRAO = {
+  dono: { nome: 'Dono', cor: '#ff4655', icone: 'coroa', mostrar: true },
+  admin: { nome: 'Admin', cor: '#3498db', icone: 'escudo', mostrar: true },
+}
+const CONFIG_PADRAO = { molduraPorNivel: false, nivelMoldura: {}, cargos: [], molduraCargo: {}, selos: SELOS_PADRAO, equipe: { dono: null, admins: [] } }
 let config = null
 let textoConfig = null
 let buscandoConfig = null
@@ -128,6 +133,8 @@ function buscarConfig() {
         nivelMoldura: d?.nivelMoldura || {},
         cargos: Array.isArray(d?.cargos) ? d.cargos : [],
         molduraCargo: d?.molduraCargo || {},
+        selos: { dono: { ...SELOS_PADRAO.dono, ...d?.selos?.dono }, admin: { ...SELOS_PADRAO.admin, ...d?.selos?.admin } },
+        equipe: { dono: d?.equipe?.dono || null, admins: Array.isArray(d?.equipe?.admins) ? d.equipe.admins : [] },
       }
       window.dispatchEvent(new Event(EVENTO_CONFIG))
     })
@@ -162,10 +169,15 @@ export function useCargosIdsDe(steamId) {
   return [...new Set([...manuais, ...automaticos.filter((c) => pos >= 0 && pos < c.top).map((c) => c.id)])]
 }
 
+// Selos do jogador: primeiro o da equipe (dono ou admin, se estiver ligado), depois os cargos
 export function useCargosDe(steamId) {
   const ids = useCargosIdsDe(steamId)
-  const { cargos } = useConfigSite()
-  return cargos.filter((c) => ids.includes(c.id))
+  const { cargos, selos, equipe } = useConfigSite()
+  const daEquipe =
+    steamId && steamId === equipe?.dono ? (selos?.dono?.mostrar ? [{ id: '_dono', ...selos.dono }] : [])
+    : equipe?.admins?.includes(steamId) ? (selos?.admin?.mostrar ? [{ id: '_admin', ...selos.admin }] : [])
+    : []
+  return [...daEquipe, ...cargos.filter((c) => ids.includes(c.id))]
 }
 
 // Selo de cargo: coroa + nome, na cor do cargo
