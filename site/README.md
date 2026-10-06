@@ -212,12 +212,15 @@ ficam iguais). Não são traduzidos: nomes de mapas, molduras, times e jogadores
 
 ## Temas (⚙ Configurações → Tema)
 
-Três temas, para todas as páginas: **Padrão do site** (o de sempre), **Escuro otimizado** e **Claro otimizado**. Os
-otimizados não têm os efeitos pesados (partículas, brilhos do topo, desfoque de fundo, grade decorativa, luz do
+Quatro temas, para todas as páginas: **Padrão do site** (o de sempre), **Padrão branco** (o mesmo visual completo,
+com todos os efeitos, em fundo branco), **Escuro otimizado** e **Claro otimizado**. Os otimizados não têm os efeitos pesados (partículas, brilhos do topo, desfoque de fundo, grade decorativa, luz do
 cursor e inclinação 3D). O tema fica no navegador (`localStorage np_tema`, aplicado por um script no `<head>` de cada
 HTML antes de desenhar, sem piscar) e, com login, no perfil do worker (`tema`), então vale nos outros aparelhos.
 
-As cores vêm de variáveis em `src/comum/site.css` (`html[data-tema='claro']` e `'escuro'`), inclusive
+As cores vêm de variáveis em `src/comum/site.css` (`html:is([data-tema='claro'], [data-tema='branco'])` e
+`html[data-tema='escuro']`): o "Padrão branco" usa as mesmas cores e regras do claro, e só os otimizados
+(`html:is([data-tema='escuro'], [data-tema='claro'])`) desligam os efeitos. Regra nova para tema claro: escreva para
+os dois (`html:is([data-tema='claro'], [data-tema='branco'])`). Variáveis, inclusive
 `--tinta` (reflexos/divisórias), `--fundo` (véus), `--borda-rgb` e `--cartao-1/2`. Cor nova no CSS: use as
 variáveis (não `rgba(255,255,255,x)` nem fundos escuros fixos), senão ela não muda no tema claro. Cartões com imagem
 de mapa por trás (`.summary-item`, `.map-card`, `.pool-item`) continuam escuros no claro ("ilhas escuras").

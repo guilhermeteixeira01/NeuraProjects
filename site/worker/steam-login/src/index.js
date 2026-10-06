@@ -191,7 +191,7 @@ function validarPerfil(corpo, soMoldura) {
   // Preferências do ⚙ Configurações do site. Ficam guardadas mesmo no valor padrão ('padrao', 'pt', 'desligado')
   // para valer nos outros aparelhos em que a pessoa entrar.
   if (!soMoldura && 'tema' in corpo) {
-    if (!['padrao', 'escuro', 'claro'].includes(corpo.tema)) return { erro: 'tema' }
+    if (!['padrao', 'branco', 'escuro', 'claro'].includes(corpo.tema)) return { erro: 'tema' }
     mudar.tema = corpo.tema
   }
   if (!soMoldura && 'idioma' in corpo) {

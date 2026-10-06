@@ -386,4 +386,4 @@ a.mvp-item:hover,a.mvp-perfil:hover{border-color:var(--blue-2)}
 a.gu-nome:hover .gu-nick{color:var(--blue-2)}
 
 /* Tema claro: coluna de destaque do rating mais leve */
-html[data-tema='claro'] .col-rt{background:rgb(var(--tinta) / .05)}
+html:is([data-tema='claro'], [data-tema='branco']) .col-rt{background:rgb(var(--tinta) / .05)}
