@@ -51,8 +51,9 @@ export default function Configuracoes() {
 
   return (
     <div className="nx-config" ref={caixa}>
-      <button type="button" className="nx-config-btn" aria-label={t('Configurações')} title={t('Configurações')} aria-expanded={aberto} onClick={() => setAberto((a) => !a)}>
+      <button type="button" className="nx-config-btn" aria-label={t('Configurações')} aria-expanded={aberto} onClick={() => setAberto((a) => !a)}>
         <IconeEngrenagem />
+        <span className="nx-dica" aria-hidden="true">{t('Configurações')}</span>
       </button>
       {aberto && (
         <div className="nx-config-painel" role="dialog" aria-label={t('Configurações')}>
