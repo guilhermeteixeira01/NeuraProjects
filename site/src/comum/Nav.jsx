@@ -22,7 +22,7 @@ function LinkMenu({ item, atual }) {
       {...(ativo ? { 'aria-current': 'page' } : {})}
     >
       {IconeItem && <IconeItem />}
-      {t(item.rotulo)}
+      <span className="nx-dica">{t(item.rotulo)}</span>
       {item.selo && <span className="nx-selo">{item.selo}</span>}
     </a>
   )
@@ -53,7 +53,7 @@ function Conta() {
     return (
       <button type="button" className="nx-btn nx-steam" onClick={entrar}>
         <IconeSteam />
-        <span>{t('Entrar')}</span>
+        <span className="nx-dica">{t('Entrar')}</span>
       </button>
     )
 
@@ -68,7 +68,7 @@ function Conta() {
             <span className="nx-conta-ini">{nome.slice(0, 2).toUpperCase()}</span>
           )}
         </ComMoldura>
-        <span className="nx-conta-nome">{nome}</span>
+        <span className="nx-conta-nome nx-dica">{nome}</span>
       </button>
       {aberto && (
         <div className="nx-conta-menu" role="menu">
@@ -94,8 +94,9 @@ function Conta() {
   )
 }
 
-// Menu do topo de todas as páginas. No celular vira uma gaveta em tela cheia:
-// a página por trás some e não rola enquanto ela está aberta.
+// Menu de todas as páginas. No computador (> 1024px) é uma barra fina na lateral esquerda, só com ícones
+// (o nome aparece ao passar o mouse: .nx-dica). No celular é a barra do topo, e o ☰ abre uma gaveta em
+// tela cheia: a página por trás some e não rola enquanto ela está aberta.
 export default function Nav({ pagina }) {
   const t = useT()
   const [aberto, setAberto] = useState(false)
@@ -150,9 +151,9 @@ export default function Nav({ pagina }) {
         </nav>
         <div className="nx-acoes">
           {CONFIG.comunidade && (
-            <a className="nx-btn nx-btn-ghost nx-comunidade" href={CONFIG.comunidade} target="_blank" rel="noopener" title={t('Comunidade na {nome}', { nome: CONFIG.comunidadeNome })}>
+            <a className="nx-btn nx-btn-ghost nx-comunidade" href={CONFIG.comunidade} target="_blank" rel="noopener" aria-label={t('Comunidade na {nome}', { nome: CONFIG.comunidadeNome })}>
               <IconeKivo />
-              <span>{t('Comunidade')}</span>
+              <span className="nx-dica">{t('Comunidade')}</span>
             </a>
           )}
           <Configuracoes />

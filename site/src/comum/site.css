@@ -1843,3 +1843,218 @@ html[data-tema='claro'] .contagem-remocao {
 .serie-removida-btn:hover {
   filter: brightness(1.1);
 }
+
+/* ══════════════ Menu na lateral esquerda (computador, > 1024px) ══════════════
+ * O mesmo <header> do topo vira uma barra fina fixa, só com ícones: logo em cima, páginas, Admin
+ * separado, e embaixo Comunidade, ⚙ e a conta. O nome de cada item (.nx-dica) aparece ao lado ao passar
+ * o mouse ou focar com o teclado. Até 1024px continua a barra do topo com a gaveta ☰. */
+.nx-config-btn .nx-dica {
+  display: none;
+}
+@media (min-width: 1025px) {
+  :root {
+    --nx-lateral: 72px;
+  }
+  body {
+    padding-left: var(--nx-lateral);
+  }
+  [data-site-nav],
+  .nx-nav.is-scrolled,
+  html[data-tema] .nx-nav {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: var(--nx-lateral);
+    min-height: 0;
+    border-bottom: 0;
+    border-right: 1px solid var(--border);
+    background: rgb(var(--fundo) / 0.94);
+    box-shadow: none;
+  }
+  html[data-tema='claro'] .nx-nav.is-scrolled,
+  html[data-tema='claro'] .nx-nav {
+    box-shadow: none;
+  }
+  /* linha luminosa na borda direita (a mesma do topo ao rolar) */
+  .nx-nav::after {
+    left: auto;
+    top: 0;
+    right: -1px;
+    bottom: 0;
+    width: 1px;
+    height: auto;
+    background: linear-gradient(180deg, transparent, var(--blue-2), var(--green), transparent);
+    opacity: 0.35;
+  }
+  .nx-nav-inner {
+    height: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 14px 0 16px;
+    flex-direction: column;
+    gap: 0;
+  }
+  .nx-brand {
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-bottom: 18px;
+  }
+  .nx-brand img {
+    width: 34px;
+    height: 34px;
+  }
+  .nx-brand > span {
+    display: none;
+  }
+  .nx-links {
+    flex-direction: column;
+    gap: 6px;
+    margin: 0 0 auto;
+  }
+  .nx-links-sep {
+    width: 24px;
+    height: 1px;
+    margin: 6px 0;
+  }
+  .nx-acoes {
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+  }
+  /* Todos os botões da barra: quadrado de 44px com o ícone no meio */
+  .nx-link,
+  .nx-acoes .nx-btn,
+  .nx-config-btn,
+  .nx-conta-btn {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    max-width: none;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+    border-radius: 12px;
+  }
+  .nx-link .nx-icone {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+  }
+  .nx-config-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+  .nx-link.is-active {
+    color: var(--blue-2);
+    background: rgba(26, 115, 232, 0.14);
+  }
+  /* página atual: tracinho aceso na borda esquerda da barra */
+  .nx-links .nx-link.is-active::after {
+    left: -14px;
+    right: auto;
+    top: 10px;
+    bottom: 10px;
+    width: 3px;
+    height: auto;
+    border-radius: 0 3px 3px 0;
+    background: linear-gradient(180deg, var(--blue), var(--blue-2));
+  }
+  .nx-links .nx-link::before {
+    inset: 0;
+    border-radius: 12px;
+    background: radial-gradient(40px circle at 50% 50%, rgba(52, 152, 219, 0.2), transparent 70%);
+  }
+  .nx-selo {
+    position: absolute;
+    top: -4px;
+    right: -6px;
+    padding: 1px 4px;
+    font-size: 7px;
+    letter-spacing: 0.6px;
+    background: var(--bg);
+  }
+  .nx-acoes .nx-comunidade,
+  .nx-acoes .nx-steam {
+    display: inline-flex;
+  }
+  .nx-conta-btn img,
+  .nx-conta-ini {
+    width: 32px;
+    height: 32px;
+  }
+  /* sem borda em volta do avatar: a moldura dele já faz esse papel */
+  .nx-conta-btn {
+    border-color: transparent;
+    background: none;
+  }
+  .nx-conta-btn:hover,
+  .nx-conta-btn[aria-expanded='true'] {
+    border-color: transparent;
+    background: rgb(var(--tinta) / 0.05);
+  }
+
+  /* Nome do item ao lado da barra */
+  .nx-dica,
+  .nx-conta-nome.nx-dica,
+  .nx-config-btn .nx-dica,
+  .nx-comunidade span.nx-dica,
+  .nx-steam span.nx-dica {
+    display: block;
+    position: absolute;
+    left: calc(100% + 14px);
+    top: 50%;
+    z-index: 340;
+    max-width: 220px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-2);
+    background: rgb(var(--fundo) / 0.98);
+    box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.8);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-4px, -50%);
+    transition: opacity 0.12s, transform 0.12s;
+  }
+  :is(.nx-link, .nx-btn, .nx-config-btn, .nx-conta-btn):is(:hover, :focus-visible) > .nx-dica {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+  /* menu aberto: a dica sai para não ficar por cima dele */
+  [aria-expanded='true'] > .nx-dica {
+    opacity: 0 !important;
+  }
+
+  /* Menu da conta e painel ⚙ abrem para o lado, alinhados pela base */
+  .nx-conta-menu,
+  .nx-config-painel {
+    top: auto;
+    right: auto;
+    bottom: 0;
+    left: calc(100% + 14px);
+    animation-name: nx-lado;
+  }
+  .nx-burger,
+  .nx-gaveta {
+    display: none;
+  }
+  /* topo da página inicial ocupa a tela toda (não há mais barra em cima) */
+  .hx {
+    min-height: min(880px, 100vh);
+  }
+}
+@keyframes nx-lado {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+}

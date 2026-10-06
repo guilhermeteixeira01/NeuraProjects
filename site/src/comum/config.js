@@ -24,10 +24,10 @@ export const CONFIG = {
 
 // Itens do menu do topo (o "id" marca a página atual)
 export const MENU = [
-  { id: 'inicio', rotulo: 'Início', href: '/' },
-  { id: 'pick', rotulo: 'Pick & Ban', href: '/neurapick/' },
-  { id: 'partidas', rotulo: 'Partidas', href: '/partidas/' },
-  { id: 'ranking', rotulo: 'Ranking', href: '/ranking/' },
+  { id: 'inicio', rotulo: 'Início', href: '/', icone: 'casa' },
+  { id: 'pick', rotulo: 'Pick & Ban', href: '/neurapick/', icone: 'mapa' },
+  { id: 'partidas', rotulo: 'Partidas', href: '/partidas/', icone: 'partidas' },
+  { id: 'ranking', rotulo: 'Ranking', href: '/ranking/', icone: 'trofeu' },
   // Site de fora: abre em outra aba
   { id: 'inventario', rotulo: 'Inventário', href: 'https://inventory.cstrike.app', externo: true, icone: 'mochila' },
 ]

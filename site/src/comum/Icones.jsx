@@ -43,4 +43,40 @@ export function IconeEscudo() {
   )
 }
 
-export const ICONES_MENU = { mochila: IconeMochila, escudo: IconeEscudo }
+// Ícones das páginas no menu (barra lateral e gaveta do celular)
+function IconeMenu({ children }) {
+  return (
+    <svg className="nx-icone" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {children}
+    </svg>
+  )
+}
+export const IconeCasa = () => (
+  <IconeMenu>
+    <path d="M3 10.5 12 3l9 7.5" />
+    <path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5" />
+  </IconeMenu>
+)
+export const IconeMapa = () => (
+  <IconeMenu>
+    <path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z" />
+    <path d="M9 4v14" />
+    <path d="M15 6v14" />
+  </IconeMenu>
+)
+export const IconePartidas = () => (
+  <IconeMenu>
+    <circle cx="12" cy="12" r="8" />
+    <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
+    <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+  </IconeMenu>
+)
+export const IconeTrofeu = () => (
+  <IconeMenu>
+    <path d="M8 21h8M12 17v4" />
+    <path d="M7 4h10v5a5 5 0 0 1-10 0V4Z" />
+    <path d="M17 6h3v2a3 3 0 0 1-3 3M7 6H4v2a3 3 0 0 0 3 3" />
+  </IconeMenu>
+)
+
+export const ICONES_MENU = { casa: IconeCasa, mapa: IconeMapa, partidas: IconePartidas, trofeu: IconeTrofeu, mochila: IconeMochila, escudo: IconeEscudo }
