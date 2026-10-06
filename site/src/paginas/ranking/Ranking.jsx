@@ -91,11 +91,16 @@ function Podio({ j, pos, m, eu }) {
       <a className="pod-nome" href={perfil(j)}>
         {j.nome}
       </a>
-      <CargosDe steamId={j.steamId} classe="pod-cargos" max={1} />
-      <TimeEscolhido steamId={j.steamId} classe="pod-time" />
-      <span className="selos">
-        <SeloNivel nivel={j.nivel} tamanho={30} />
+      {/* Linhas fixas (com espaço guardado mesmo vazias): os 3 cartões ficam alinhados */}
+      <span className="pod-linha pod-linha-cargos">
+        <CargosDe steamId={j.steamId} classe="pod-cargos" max={1} />
+      </span>
+      <span className="selos pod-meta">
+        <SeloNivel nivel={j.nivel} tamanho={28} />
         <Premier j={j} />
+      </span>
+      <span className="pod-linha pod-linha-time">
+        <TimeEscolhido steamId={j.steamId} classe="pod-time" />
       </span>
       <span className="pod-valor">
         <b>
@@ -140,15 +145,16 @@ function Linha({ j, pos, m, max, i, eu }) {
             <Avatar j={j} classe="av" />
           </ComMoldura>
         </a>
+        {/* Sempre 2 linhas: nome + cargo; nível, Premier e time (todas as linhas da tabela com a mesma altura) */}
         <span className="jog-txt">
-          <a href={perfil(j)}>
-            {j.nome}
-          </a>
-          <CargosDe steamId={j.steamId} classe="linha-cargos" max={1} />
-          <TimeEscolhido steamId={j.steamId} classe="linha-time" />
-          <span className="selos">
-            <SeloNivel nivel={j.nivel} tamanho={24} />
+          <span className="jog-l1">
+            <a href={perfil(j)}>{j.nome}</a>
+            <CargosDe steamId={j.steamId} classe="linha-cargos" max={1} />
+          </span>
+          <span className="jog-l2">
+            <SeloNivel nivel={j.nivel} tamanho={22} />
             <Premier j={j} />
+            <TimeEscolhido steamId={j.steamId} classe="linha-time" />
           </span>
         </span>
       </span>
