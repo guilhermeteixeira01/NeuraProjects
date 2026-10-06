@@ -14,6 +14,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { gerarRanking } from './ranking.mjs'
+import { analisarCanceladas } from '../src/comum/series.js'
 
 const SITE = 'https://neuraproject.com.br'
 const aqui = path.dirname(fileURLToPath(import.meta.url))
@@ -64,15 +65,26 @@ if (fs.existsSync(origemPartidas)) {
 
 // ── 3. Histórico só com partidas que existem ──
 const arquivoLista = path.join(saidaPartidas, 'partidas.json')
+const arquivoSeries = path.join(saidaPartidas, 'series.json')
+const arquivoRemovidas = path.join(saidaPartidas, 'removidas.json')
+const seriesBrutas = fs.existsSync(arquivoSeries) ? lerJson(arquivoSeries) : []
+const removidas = fs.existsSync(arquivoRemovidas) ? lerJson(arquivoRemovidas) : {}
+fs.rmSync(arquivoRemovidas, { force: true }) // controle da limpeza: não vai para o site
 const listaBruta = fs.existsSync(arquivoLista) ? lerJson(arquivoLista) : []
-const lista = listaBruta.filter((p) => fs.existsSync(path.join(saidaPartidas, p.caminho || p.nome, 'partida.json')))
+
+// Série cancelada há mais de 5 minutos (src/comum/series.js) sai de tudo já no build, mesmo que a limpeza do
+// repositório (workflow limpar-series) ainda não tenha rodado ou que algo dela tenha chegado atrasado
+const canceladas = analisarCanceladas({ partidas: listaBruta, series: seriesBrutas, removidas })
+for (const p of listaBruta.filter(canceladas.sai)) fs.rmSync(path.join(saidaPartidas, p.caminho || p.nome), { recursive: true, force: true })
+if (canceladas.vencidas.size) console.log(`Séries canceladas fora do site: ${[...canceladas.vencidas].join(', ')}`)
+
+const lista = listaBruta.filter((p) => !canceladas.sai(p) && fs.existsSync(path.join(saidaPartidas, p.caminho || p.nome, 'partida.json')))
 escrever(arquivoLista, JSON.stringify(lista, null, 2))
 console.log(`Partidas no histórico: ${lista.length} (removidas: ${listaBruta.length - lista.length})`)
 
-// Séries anunciadas pelo plugin no css_serie (status ao vivo); sem o arquivo, lista vazia
-const arquivoSeries = path.join(saidaPartidas, 'series.json')
-const series = fs.existsSync(arquivoSeries) ? lerJson(arquivoSeries) : []
-if (!fs.existsSync(arquivoSeries)) escrever(arquivoSeries, '[]')
+// Séries anunciadas pelo plugin no css_serie (status ao vivo), sem as canceladas vencidas; sem o arquivo, lista vazia
+const series = seriesBrutas.filter((a) => !canceladas.vencidas.has(a.id))
+escrever(arquivoSeries, JSON.stringify(series, null, 2))
 
 // ── 4. Ranking ──
 const { historicos, ...ranking } = await gerarRanking(saidaPartidas, { premier: arg('premier', 'sim') !== 'nao' })

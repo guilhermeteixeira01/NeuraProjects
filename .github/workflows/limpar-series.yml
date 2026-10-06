@@ -1,0 +1,85 @@
+name: Limpar séries canceladas
+
+# Série cancelada (css_seriecancelar) fica 5 minutos no site com contagem regressiva e depois sai de tudo:
+# partidas (partida.json + entrada no partidas.json), anúncio (series.json) e os releases das demos.
+#  - push: o plugin marcou a série como cancelada -> espera a contagem acabar e limpa
+#  - schedule: rede de segurança (limpeza que falhou, partida/demo da série que chegou atrasada)
+# A limpeza sempre parte do commit mais novo e tenta de novo se o plugin enviar algo no meio (nada dele se perde).
+# O build (site/scripts/gerar-site.mjs) também já esconde a série vencida, mesmo antes desta limpeza.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'partidas/series.json'
+      - 'partidas/partidas.json'
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write # apagar arquivos e releases de demo
+  actions: write # disparar o deploy depois (push feito com o GITHUB_TOKEN não dispara workflow sozinho)
+
+# Uma limpeza por vez; uma nova espera a anterior (não cancela)
+concurrency:
+  group: limpar-series
+  cancel-in-progress: false
+
+jobs:
+  limpar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Esperar a contagem do site acabar
+        run: node site/scripts/limpar-series.mjs esperar
+
+      - name: Apagar do repositório
+        id: limpar
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          TAGS="$RUNNER_TEMP/tags.txt"
+          echo "mudou=nao" >> "$GITHUB_OUTPUT"
+          for tentativa in 1 2 3 4 5 6; do
+            # sempre em cima do commit mais novo (o plugin pode ter enviado partida/demo enquanto esperava)
+            git fetch --quiet origin main
+            git reset --quiet --hard origin/main
+            node site/scripts/limpar-series.mjs aplicar "$TAGS"
+            git add -A partidas
+            if git diff --cached --quiet; then
+              echo "Nada para apagar no repositório."
+              break
+            fi
+            git commit --quiet -m "Limpeza: séries canceladas removidas do site"
+            if git push --quiet origin HEAD:main; then
+              echo "mudou=sim" >> "$GITHUB_OUTPUT"
+              break
+            fi
+            echo "O repositório mudou durante a limpeza (tentativa $tentativa); recomeçando do commit mais novo..."
+            sleep $(( (RANDOM % 8) + 3 ))
+          done
+          cp "$TAGS" tags.txt 2>/dev/null || touch tags.txt
+
+      - name: Apagar as demos
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          while read -r tag; do
+            [ -z "$tag" ] && continue
+            if gh release view "$tag" >/dev/null 2>&1; then
+              gh release delete "$tag" --cleanup-tag --yes && echo "Demo apagada: $tag"
+            fi
+          done < tags.txt
+
+      - name: Publicar o site de novo
+        if: steps.limpar.outputs.mudou == 'sim'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --ref main

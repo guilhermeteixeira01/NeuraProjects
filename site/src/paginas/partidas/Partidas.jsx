@@ -7,6 +7,8 @@ import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
 import { urlOk } from '../../comum/dados.js'
 import { fundoMapa, getMap, idMapa, mapIcon } from '../../comum/mapas.js'
 import { dataNoIdioma, traduzir, useT } from '../../comum/i18n.js'
+import { analisarCanceladas, fimDaSerie } from '../../comum/series.js'
+import { ContagemRemocao, useRelogio } from '../../comum/ContagemSerie.jsx'
 
 const NOMES_CAT = { md1: 'MD1', md3: 'MD3', md5: 'MD5', normal: 'Normais' }
 
@@ -123,7 +125,7 @@ function CardPendente({ mapa, n, total, cat, acabou, cancelada, aoVivo, i }) {
   )
 }
 
-function BlocoSerie({ b, i }) {
+function BlocoSerie({ b, i, agora }) {
   const t = useT()
   const a = b.anuncio
   // Série anunciada sem nenhum mapa jogado: os dados do topo vêm do anúncio
@@ -186,6 +188,8 @@ function BlocoSerie({ b, i }) {
             {t('EM ANDAMENTO · MAPA {n}/{total}', { n: aoVivo ?? mapas.length + 1, total })}
           </span>
         )}
+        {/* Série cancelada: 5 minutos e ela sai do site */}
+        {cancelada && <ContagemRemocao fim={fimDaSerie(a)} agora={agora} classe="no-bloco" />}
         <span className="serie-placar">
           <MiniLogo url={ult.logoA} />
           <span className={`t-A${vA > vB ? ' venc' : ''}`}>{ult.serieTimeA || ult.timeA}</span>
@@ -253,13 +257,19 @@ function Resumo({ lista }) {
 // no `npm run dev` é buscado aqui). Versões antigas mandavam só a lista (array).
 export default function Partidas({ dados: inicial }) {
   const t = useT()
-  const [lista, setLista] = useState(Array.isArray(inicial) ? inicial : Array.isArray(inicial?.lista) ? inicial.lista : null)
-  const [anuncios, setAnuncios] = useState(Array.isArray(inicial?.series) ? inicial.series : [])
+  const [listaTodas, setLista] = useState(Array.isArray(inicial) ? inicial : Array.isArray(inicial?.lista) ? inicial.lista : null)
+  const [anunciosTodos, setAnuncios] = useState(Array.isArray(inicial?.series) ? inicial.series : [])
   const [filtro, setFiltro] = useState('todas')
 
   // Ao vivo: partida nova, mapa novo de uma série ou série anunciada/mudando de status recarrega a página sozinha
   useAoVivo('/partidas/partidas.json', (l) => setLista(Array.isArray(l) ? l : []))
   useAoVivo('/partidas/series.json', (s) => setAnuncios(Array.isArray(s) ? s : []))
+
+  // Série cancelada: contagem de 5 minutos e, no fim, some da página na hora (o build e a limpeza tiram do resto)
+  const agora = useRelogio(anunciosTodos.some((a) => fimDaSerie(a) !== null))
+  const vencidas = agora === null ? new Set() : analisarCanceladas({ partidas: listaTodas || [], series: anunciosTodos }, agora).vencidas
+  const lista = listaTodas && listaTodas.filter((p) => !vencidas.has(p.serieId))
+  const anuncios = anunciosTodos.filter((a) => !vencidas.has(a.id))
 
   // Filtro do link (#dga) depois que a lista chega
   useEffect(() => {
@@ -282,7 +292,7 @@ export default function Partidas({ dados: inicial }) {
   let i = 0
   const itens = daVez.map((b) => {
     if (b.unico) return <Card key={b.unico.nome} p={b.unico} i={i++} />
-    const el = <BlocoSerie key={b.mapas[0]?.serieId ?? b.anuncio.id} b={b} i={i} />
+    const el = <BlocoSerie key={b.mapas[0]?.serieId ?? b.anuncio.id} b={b} i={i} agora={agora} />
     i += b.mapas.length + 1
     return el
   })
