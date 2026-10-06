@@ -16,7 +16,7 @@
  * O site lê o JSON para mostrar; a assinatura é conferida aqui em tudo que salva.
  *
  * KV MOLDURAS (nome antigo do banco; guarda tudo):
- *   perfis   { "<SteamID64>": { moldura?, molduraLivre? (posta por admin), time?, tema?, idioma?, desempenho?, xp? (ajuste do admin), bloqueado?, cargos? } }
+ *   perfis   { "<SteamID64>": { moldura?, molduraLivre? (posta por admin), time?, tema?, idioma?, desempenho?, xp? (ajuste do admin), bloqueado?, cargos?, ocultoRanking? (dono/admin fora do ranking) } }
  *   config   { molduraPorNivel: bool, nivelMoldura: { "<moldura>": nível }, admins: ["<SteamID64>"],
  *              cargos: [{ id, nome, cor }], molduraCargo: { "<moldura>": "<cargo>" } }  (Premium, VIP... e exclusivas)
  *   usuarios { "<SteamID64>": { nome, avatar, primeiro, visto } }  (quem já entrou no site)
@@ -202,6 +202,8 @@ function validarPerfil(corpo, soMoldura) {
     if (!['ligado', 'desligado'].includes(corpo.desempenho)) return { erro: 'desempenho' }
     mudar.desempenho = corpo.desempenho
   }
+  // "Ocultar do ranking" (só dono e admins: salvarPerfil confere)
+  if (!soMoldura && 'ocultoRanking' in corpo) mudar.ocultoRanking = corpo.ocultoRanking === true || null
   return { mudar }
 }
 
@@ -216,8 +218,9 @@ async function lerRanking(site) {
 }
 
 // Ordem do top do ranking (a mesma do site, src/comum/ranking.js): quem tem mapa, por rating e depois kills
-const ordemRanking = (ranking) =>
-  (ranking?.jogadores || []).filter((j) => j.mapas >= 1).sort((a, b) => b.rating - a.rating || b.kills - a.kills)
+// Dono/admin com "Ocultar do ranking" ligado (perfis[id].ocultoRanking) fica de fora: o próximo sobe de posição
+const ordemRanking = (ranking, perfis = {}) =>
+  (ranking?.jogadores || []).filter((j) => j.mapas >= 1 && !perfis[j.steamId]?.ocultoRanking).sort((a, b) => b.rating - a.rating || b.kills - a.kills)
 
 // Cargos do jogador: os que o admin deu + os automáticos ("top N do ranking": entra e sai sozinho com a posição)
 async function cargosDoJogador(site, id, perfis, config, rankingLido) {
@@ -225,7 +228,7 @@ async function cargosDoJogador(site, id, perfis, config, rankingLido) {
   const automaticos = (config.cargos || []).filter((c) => c.top > 0)
   if (!automaticos.length) return manuais
   const ranking = rankingLido ?? (await lerRanking(site))
-  const pos = ordemRanking(ranking).findIndex((j) => j.steamId === id)
+  const pos = ordemRanking(ranking, perfis).findIndex((j) => j.steamId === id)
   return [...new Set([...manuais, ...automaticos.filter((c) => pos >= 0 && pos < c.top).map((c) => c.id)])]
 }
 
@@ -272,6 +275,8 @@ async function salvarPerfil(req, env, site, quem, admin, config, cors, rotaAntig
   const perfis = await ler(env, 'perfis')
   // Bloqueado não troca moldura/time (o que os outros veem); tema, idioma e desempenho são só de quem olha: continuam livres
   if (perfis[quem.id]?.bloqueado && !admin && Object.keys(mudar).some((k) => !PREFERENCIAS.includes(k))) return json({ erro: 'bloqueado' }, 403, cors)
+  // Só dono e admins podem se esconder do ranking
+  if ('ocultoRanking' in mudar && mudar.ocultoRanking && !admin) return json({ erro: 'admin' }, 403, cors)
 
   // Moldura liberada por nível (o admin escolhe no painel); admins não têm trava
   const precisa = config.molduraPorNivel ? Number(config.nivelMoldura?.[mudar.moldura]) || 1 : 1
@@ -409,6 +414,15 @@ async function adminAdmins(req, env, config, cors) {
   else admins.delete(corpo.id)
   const novo = { ...config, admins: [...admins] }
   await gravar(env, 'config', novo)
+  // Deixou de ser admin: volta para o ranking ("Ocultar do ranking" é só da equipe)
+  if (corpo.admin !== true && corpo.id !== env.DONO) {
+    const perfis = await ler(env, 'perfis')
+    if (perfis[corpo.id]?.ocultoRanking) {
+      delete perfis[corpo.id].ocultoRanking
+      if (!Object.keys(perfis[corpo.id]).length) delete perfis[corpo.id]
+      await gravar(env, 'perfis', perfis)
+    }
+  }
   return json({ ok: true, config: { ...configPublica(novo, env), admins: novo.admins } }, 200, cors)
 }
 

@@ -161,11 +161,12 @@ export const cargoDaMoldura = (config, id) => (config.cargos || []).find((c) => 
 // Cargos do jogador (Premium, VIP...: o admin dá no painel), já com nome e cor
 // Ids dos cargos do jogador: os que o admin deu + os automáticos ("top N do ranking", entram e saem com a posição)
 export function useCargosIdsDe(steamId) {
-  const manuais = usePerfis()[steamId]?.cargos || []
+  const perfis = usePerfis()
+  const manuais = perfis[steamId]?.cargos || []
   const { cargos } = useConfigSite()
   const automaticos = cargos.filter((c) => c.top > 0)
   const ordem = useOrdemRanking(automaticos.length > 0)
-  const pos = ordem.indexOf(steamId)
+  const pos = ordem.filter((id) => !perfis[id]?.ocultoRanking).indexOf(steamId) // oculto do ranking: o próximo sobe
   return [...new Set([...manuais, ...automaticos.filter((c) => pos >= 0 && pos < c.top).map((c) => c.id)])]
 }
 

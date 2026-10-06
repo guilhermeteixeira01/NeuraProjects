@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react'
 
 export const MIN_MAPAS = 1 // mapas mínimos para entrar no ranking (suba quando tiver mais partidas)
 
-export const ordenarRanking = (jogadores = []) =>
-  jogadores.filter((j) => j.mapas >= MIN_MAPAS).sort((a, b) => b.rating - a.rating || b.kills - a.kills)
+// perfis (do worker): dono/admin com "Ocultar do ranking" ligado (ocultoRanking) fica de fora e o próximo sobe
+export const ordenarRanking = (jogadores = [], perfis = {}) =>
+  jogadores.filter((j) => j.mapas >= MIN_MAPAS && !perfis[j.steamId]?.ocultoRanking).sort((a, b) => b.rating - a.rating || b.kills - a.kills)
 
 // SteamIDs em ordem do ranking (lê o ranking.json uma vez por página, só se ativo)
 let ordem = null

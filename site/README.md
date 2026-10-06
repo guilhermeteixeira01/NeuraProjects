@@ -156,6 +156,9 @@ Te1xe1ra) e só ele promove ou remove outros admins.
   quando o admin tira o cargo ou torna a moldura exclusiva, e a cada 10 minutos (cron do worker, `scheduled()`) para
   quem saiu do top N. O admin não consegue dar moldura exclusiva para quem não tem o cargo (dê o cargo primeiro).
   Dono e admins ficam de fora dessas regras: usam qualquer moldura, exclusiva de cargo ou não.
+- **Ocultar do ranking:** dono e admins têm no próprio perfil a opção "Ocultar do ranking" (`perfis[id].ocultoRanking`;
+  o worker só aceita de quem é da equipe). Ligada, a pessoa some do ranking, do top N e da posição do perfil, e o próximo
+  sobe (também para os cargos automáticos). Quem deixa de ser admin volta para o ranking sozinho.
 - **Admins:** lista de administradores.
 
 ## Configurações ⚙ (idioma, tema e desempenho)

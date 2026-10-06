@@ -8,7 +8,7 @@ import { ordenarRanking } from '../../comum/ranking.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
 import { IconeSteam } from '../../comum/Icones.jsx'
 import { nomeMapa } from '../../comum/mapas.js'
-import { CargosDe, ComMoldura, TimeEscolhido, useAdmin, useTimeDe } from '../../comum/Moldura.jsx'
+import { CargosDe, ComMoldura, TimeEscolhido, salvarPerfil, useAdmin, usePerfis, useTimeDe } from '../../comum/Moldura.jsx'
 import Premier from '../../comum/Premier.jsx'
 import { BarraXp, SeloNivel, useNivelDe } from '../../comum/Nivel.jsx'
 import SeletorMoldura from './SeletorMoldura.jsx'
@@ -187,6 +187,37 @@ function Historico({ mapas }) {
   )
 }
 
+// "Ocultar do ranking" (só dono e admins, no próprio perfil): ligado, a pessoa some do ranking e o próximo sobe
+function OcultarRanking({ steamId }) {
+  const t = useT()
+  const oculto = !!usePerfis()[steamId]?.ocultoRanking
+  const [salvando, setSalvando] = useState(false)
+  const [erro, setErro] = useState(false)
+  const trocar = async () => {
+    setSalvando(true)
+    setErro(false)
+    try {
+      await salvarPerfil({ ocultoRanking: !oculto })
+    } catch {
+      setErro(true)
+    } finally {
+      setSalvando(false)
+    }
+  }
+  return (
+    <label className={`pf-ocultar${oculto ? ' ligado' : ''}`}>
+      <input type="checkbox" checked={oculto} disabled={salvando} onChange={trocar} />
+      <span className="pf-ocultar-chave" aria-hidden="true" />
+      <span>
+        <b>{t('Ocultar do ranking')}</b>
+        <small>
+          {erro ? t('Não deu para salvar. Tente de novo.') : oculto ? t('Você não aparece no ranking e o próximo sobe de posição.') : t('Só o dono e os admins têm esta opção.')}
+        </small>
+      </span>
+    </label>
+  )
+}
+
 function Estat({ rotulo, valor, sub, classe = '' }) {
   return (
     <div className={`pf-estat spot ${classe}`}>
@@ -207,7 +238,7 @@ function IconePincel() {
   )
 }
 
-function Jogador({ j, mapas, pos, total, eu, personalizar }) {
+function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   const t = useT()
   const timeEscolhido = useTimeDe(j.steamId)
   const nivel = useNivelDe(j)
@@ -282,6 +313,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar }) {
                 {t('Ver ranking')}
               </a>
             </div>
+            {eu && admin && <OcultarRanking steamId={j.steamId} />}
           </div>
         </div>
       </section>
@@ -382,6 +414,7 @@ export default function Perfil() {
   useAoVivo('/ranking/ranking.json', undefined, { selecionar: (r) => r?.atualizado, ativo: !editando })
   // Seu nível (trava das molduras por nível) e se é admin (sem trava)
   const { admin } = useAdmin(conta)
+  const perfis = usePerfis()
   const meuNivel = useNivelDe(dados?.ranking?.jogadores?.find((x) => x.steamId === conta?.id) || { steamId: conta?.id, xp: 0 })
   let conteudo
   if (idUrl === null || (id && (!dados || dados.id !== id))) {
@@ -410,10 +443,11 @@ export default function Perfil() {
       time: '', logoTime: '', premier: null, xp: 0,
       mapas: 0, vitorias: 0, kills: 0, mortes: 0, fk: 0, fd: 0, multi: {}, mvps: 0, mvpPartida: 0, rating: 0, melhorRating: 0, adr: 0, kast: 0, hsPct: 0, kd: 0, winRate: 0,
     }
-    conteudo = <Jogador j={vazio} mapas={[]} pos={0} total={0} eu={eu} personalizar={() => setEditando(true)} />
+    conteudo = <Jogador j={vazio} mapas={[]} pos={0} total={0} eu={eu} admin={admin} personalizar={() => setEditando(true)} />
   } else {
-    const ordem = ordenarRanking(dados.ranking.jogadores)
-    conteudo = <Jogador j={j} mapas={dados.mapas} pos={ordem.indexOf(j) + 1} total={ordem.length} eu={conta?.id === id} personalizar={() => setEditando(true)} />
+    // Quem está oculto do ranking fica sem posição (e não conta para a dos outros)
+    const ordem = ordenarRanking(dados.ranking.jogadores, perfis)
+    conteudo = <Jogador j={j} mapas={dados.mapas} pos={ordem.indexOf(j) + 1} total={ordem.length} eu={conta?.id === id} admin={admin} personalizar={() => setEditando(true)} />
   }
 
   return (

@@ -45,7 +45,7 @@ function montarUsuarios(painel, ranking) {
     x.avatar ||= u.avatar
   }
   for (const [id, p] of Object.entries(painel.perfis || {})) pegar(id).perfil = p
-  const ordem = ordenarRanking(ranking?.jogadores || []).map((j) => j.steamId)
+  const ordem = ordenarRanking(ranking?.jogadores || [], painel.perfis || {}).map((j) => j.steamId)
   const automaticos = (painel.config.cargos || []).filter((c) => c.top > 0)
   return [...lista.values()].map((x) => {
     const ajuste = Number(x.perfil.xp) || 0
