@@ -305,22 +305,6 @@
   },
   {
     "fonte": "decor",
-    "colecao": "Fantasy",
-    "nome": "Level Up",
-    "hash": "859a241830de1d35d8f169e27ca30972",
-    "autor": "801087834667614211",
-    "original": "Fantasy: level up v1"
-  },
-  {
-    "fonte": "decor",
-    "colecao": "Fantasy",
-    "nome": "Level Up (escuro)",
-    "hash": "87d0263bb0e9e9cf77b7a0de7da17257",
-    "autor": "801087834667614211",
-    "original": "Fantasy: level up dark"
-  },
-  {
-    "fonte": "decor",
     "colecao": "Decor",
     "nome": "HA HA HA",
     "hash": "cdeb944eb58b7e2003c16934b71f2159",
@@ -346,14 +330,6 @@
   {
     "fonte": "decor",
     "colecao": "Decor",
-    "nome": "Stand Catch",
-    "hash": "194dcc4f9590c02b18a5d41b69a30bd0",
-    "autor": "928339066838216754",
-    "original": "JoJo's Bizarre Adventure: SBR Stand Catch"
-  },
-  {
-    "fonte": "decor",
-    "colecao": "Decor",
     "nome": "Menacing",
     "hash": "e99e0ab112af94d9d9fc6a7129a69c2a",
     "autor": "928339066838216754",
@@ -362,34 +338,10 @@
   {
     "fonte": "decor",
     "colecao": "Decor",
-    "nome": "Stand Stat Circle",
-    "hash": "52758ac977df18edaa433b23232895be",
-    "autor": "928339066838216754",
-    "original": "JoJo's Bizarre Adventure: Stand Stat Circle"
-  },
-  {
-    "fonte": "decor",
-    "colecao": "Decor",
     "nome": "Mothership",
     "hash": "2fb7fc9567133390d2ec483b34b42725",
     "autor": "599654027764039690",
     "original": "The Behemoth: Mothership | Alien Hominid Invasion"
-  },
-  {
-    "fonte": "decor",
-    "colecao": "Decor",
-    "nome": "Front Roe Drip",
-    "hash": "380171744d972e43faaddc768b428947",
-    "autor": "194474365646012416",
-    "original": "Splatoon: Front Roe Drip"
-  },
-  {
-    "fonte": "decor",
-    "colecao": "Decor",
-    "nome": "Ink Drip",
-    "hash": "5df1ce9ebace0a131ef41058409ce99a",
-    "autor": "194474365646012416",
-    "original": "Splatoon: Splatoon Ink Drip"
   },
   {
     "fonte": "decor",
@@ -406,14 +358,6 @@
     "hash": "6c9bac18ac6ff61b05ad602ffe546b71",
     "autor": "579820082100830208",
     "original": "Rain World: Watcher Set (Warping)"
-  },
-  {
-    "fonte": "decor",
-    "colecao": "Decor",
-    "nome": "Snowglobe",
-    "hash": "8aca99ca389d32534601691f51830490",
-    "autor": "265972854170976260",
-    "original": "Winter Holidays 2023: Snowglobe"
   },
   {
     "fonte": "decor",

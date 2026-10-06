@@ -27,7 +27,8 @@ export function recomprimir(buf) {
   return Buffer.from(UPNG.encode(bufs, largura, altura, 256, quadros.length > 1 ? atrasos : undefined))
 }
 
-// Miniatura parada (144x144 .webp) do quadro mais "cheio" da animação (tem moldura que começa vazia)
+// Imagem parada (.webp no tamanho original) do quadro mais "cheio" da animação (tem moldura que começa vazia).
+// Serve de miniatura na tela de escolha e de moldura no modo "Melhorar desempenho" (por isso não é reduzida).
 export async function miniatura(buf, destino) {
   const { largura, altura, quadros } = lerQuadros(buf)
   let melhor = quadros[0]
@@ -38,8 +39,7 @@ export async function miniatura(buf, destino) {
     if (soma > max) [max, melhor] = [soma, q]
   }
   await sharp(Buffer.from(melhor), { raw: { width: largura, height: altura, channels: 4 } })
-    .resize(144, 144)
-    .webp({ quality: 88, alphaQuality: 100 })
+    .webp({ quality: 90, alphaQuality: 100 })
     .toFile(destino)
 }
 

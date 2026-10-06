@@ -1,6 +1,6 @@
 // Molduras de avatar (personalização do perfil). Arquivos em public/assets/molduras/<coleção>/<nome>:
 //   .png  = moldura animada (APNG; o avatar ocupa o círculo central, a moldura é 120% dele)
-//   .webp = miniatura parada (144x144), usada na tela de escolha
+//   .webp = imagem parada (tamanho original): miniatura da tela de escolha e moldura do modo "Melhorar desempenho"
 // Para adicionar: coloque os dois arquivos na pasta e uma linha aqui (o id é "<coleção>/<nome>").
 // fonte: 'neura' = feitas por nós (ferramentas/molduras/neura.mjs); 'steam' = Loja de Pontos da Steam;
 // 'decor' = Decor (comunidade). Steam e Decor: ferramentas/molduras/baixar.mjs.
@@ -67,20 +67,13 @@ export const MOLDURAS = [
   { id: 'fantasy/kokusen-juryoku', nome: "Kokusen Jūryoku", colecao: 'Fantasy', fonte: 'decor' },
   { id: 'fantasy/party-ball', nome: "Party Ball", colecao: 'Fantasy', fonte: 'decor' },
   { id: 'fantasy/midori-juryoku', nome: "Midori Jūryoku", colecao: 'Fantasy', fonte: 'decor' },
-  { id: 'fantasy/level-up', nome: "Level Up", colecao: 'Fantasy', fonte: 'decor' },
-  { id: 'fantasy/level-up-escuro', nome: "Level Up (escuro)", colecao: 'Fantasy', fonte: 'decor' },
   { id: 'decor/ha-ha-ha', nome: "HA HA HA", colecao: 'Decor', fonte: 'decor' },
   { id: 'decor/blue-soul', nome: "Blue Soul", colecao: 'Decor', fonte: 'decor' },
   { id: 'decor/red-soul', nome: "Red Soul", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/stand-catch', nome: "Stand Catch", colecao: 'Decor', fonte: 'decor' },
   { id: 'decor/menacing', nome: "Menacing", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/stand-stat-circle', nome: "Stand Stat Circle", colecao: 'Decor', fonte: 'decor' },
   { id: 'decor/mothership', nome: "Mothership", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/front-roe-drip', nome: "Front Roe Drip", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/ink-drip', nome: "Ink Drip", colecao: 'Decor', fonte: 'decor' },
   { id: 'decor/watcher-warping', nome: "Watcher Warping", colecao: 'Decor', fonte: 'decor' },
   { id: 'decor/watcher-set', nome: "Watcher Set", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/snowglobe', nome: "Snowglobe", colecao: 'Decor', fonte: 'decor' },
   { id: 'decor/snowman', nome: "Snowman", colecao: 'Decor', fonte: 'decor' },
   { id: 'decor/string-lights', nome: "String Lights", colecao: 'Decor', fonte: 'decor' },
 ]
@@ -89,5 +82,7 @@ const PORID = new Map(MOLDURAS.map((m) => [m.id, m]))
 export const molduraPorId = (id) => (id ? PORID.get(id) || null : null)
 export const urlMoldura = (id) => `/assets/molduras/${id}.png`
 export const urlMiniatura = (id) => `/assets/molduras/${id}.webp`
+// Moldura parada ("Melhorar desempenho"): a mesma imagem estática da miniatura, no tamanho original da moldura
+export const urlParada = urlMiniatura
 // Classe da caixa do avatar para a forma da moldura ('' = redonda)
 export const classeForma = (id) => (molduraPorId(id)?.forma === 'quadrada' ? ' quadrada' : '')

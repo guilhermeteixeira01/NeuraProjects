@@ -4,7 +4,8 @@
 import { useEffect, useState } from 'react'
 import { CONFIG } from './config.js'
 import { sair, tokenConta } from './conta.js'
-import { classeForma, molduraPorId, urlMoldura } from './molduras.js'
+import { classeForma, molduraPorId, urlMoldura, urlParada } from './molduras.js'
+import { EVENTO_DESEMPENHO, desempenhoAtivo } from './desempenho.js'
 import { useT } from './i18n.js'
 import { useOrdemRanking } from './ranking.js'
 
@@ -245,11 +246,26 @@ export function useTimeDe(steamId) {
 }
 
 // ── Moldura ──
+// "Melhorar desempenho" ligado: molduras paradas (imagem estática no lugar da animação). Começa desligado (igual ao
+// HTML gerado) e acompanha a troca na hora.
+function useDesempenho() {
+  const [ligado, setLigado] = useState(false)
+  useEffect(() => {
+    const ler = () => setLigado(desempenhoAtivo())
+    ler()
+    window.addEventListener(EVENTO_DESEMPENHO, ler)
+    return () => window.removeEventListener(EVENTO_DESEMPENHO, ler)
+  }, [])
+  return ligado
+}
+
 // Desenho da moldura por cima de um avatar (o pai precisa ter position: relative e o tamanho do avatar)
 export function CamadaMoldura({ id, parada = false }) {
+  const desempenho = useDesempenho()
   const m = molduraPorId(id)
   if (!m) return null
-  return <span className="moldura" aria-hidden="true" style={{ backgroundImage: `url("${parada ? urlMoldura(m.id).replace(/\.png$/, '.webp') : urlMoldura(m.id)}")` }} />
+  const url = parada || desempenho ? urlParada(m.id) : urlMoldura(m.id)
+  return <span className="moldura" aria-hidden="true" style={{ backgroundImage: `url("${url}")` }} />
 }
 
 // Envolve o avatar e põe a moldura do jogador por cima (sem moldura, devolve o avatar como está).
