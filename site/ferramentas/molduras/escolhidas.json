@@ -114,14 +114,6 @@
   {
     "fonte": "steam",
     "colecao": "Steam Lendas",
-    "nome": "Ninja Dragon Fire",
-    "appid": 2542120,
-    "arquivo": "9c9b650c48f20c3f8eed491e6cf4305e5a28beef.apng",
-    "original": "Ninja Dragon Fire"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Lendas",
     "nome": "Guns Frame",
     "appid": 4141040,
     "arquivo": "edd4c3121fd25761d055fd79a891fd8cbfea8aa0.png",
@@ -254,42 +246,6 @@
     "fonte": "steam",
     "colecao": "Steam Neon & Elementos",
     "pasta": "steam-neon-elementos",
-    "nome": "Rose Lightning",
-    "appid": 2487130,
-    "arquivo": "d9ca48f7a53322c7dd92e67128e6a5a5c779ccb7.png",
-    "original": "Rose Frame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
-    "nome": "Blue Storm",
-    "appid": 2450130,
-    "arquivo": "cb24b744818ccac0006ff0c2172db46b3bf0c567.png",
-    "original": "SHS_BlueFrame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
-    "nome": "Red Lightning",
-    "appid": 2299130,
-    "arquivo": "81590cd548719ed3a9a3e39debb30313b5702124.png",
-    "original": "SDS_LightningRedFrame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
-    "nome": "Purple Thunder",
-    "appid": 2380450,
-    "arquivo": "e2cf7c62e73b9b30d43ab8ce3f70e05ec6ad3c78.png",
-    "original": "ML_PurpleFrame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
     "nome": "Orange Neon",
     "appid": 2407310,
     "arquivo": "733cf66092960022230bd1d857ac4c0428669f25.png",
@@ -317,37 +273,10 @@
     "fonte": "steam",
     "colecao": "Steam Neon & Elementos",
     "pasta": "steam-neon-elementos",
-    "nome": "Flame Frame",
-    "appid": 1313140,
-    "arquivo": "32c1a25966e87769ec6bcca824223abf6a53d182.png",
-    "original": "Flame Frame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
     "nome": "Fire (verde)",
     "appid": 1732740,
     "arquivo": "d06415a2afdfaca07b4f3b7d5ba5c405f8a06021.png",
     "original": "Fire - Green"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
-    "nome": "Violet Glow",
-    "appid": 3172280,
-    "arquivo": "512f60c2ec6c258dfb5f29cd873bae9af5cd8be5.png",
-    "original": "Violet Frame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
-    "nome": "Burgundy Glow",
-    "appid": 3172280,
-    "arquivo": "47b0b502c768683c79183368e50dc4c46cdec4d9.png",
-    "original": "Burgundy Frame"
   },
   {
     "fonte": "steam",
@@ -614,73 +543,10 @@
     "fonte": "steam",
     "colecao": "Steam Neon & Elementos",
     "pasta": "steam-neon-elementos",
-    "nome": "White Lightning",
-    "appid": 2487120,
-    "arquivo": "4a74f0c61cf38349fc65e7841933bfc739bd41c1.png",
-    "original": "White-blue Frame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
-    "nome": "Rose Storm",
-    "appid": 2487120,
-    "arquivo": "bf37009da38c7b1cf0d44f9403bcbe7af74fed27.png",
-    "original": "White-rose Frame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
-    "nome": "Red Thunder",
-    "appid": 2380450,
-    "arquivo": "462f12ff4e7022bbaf11140a28a07a19621fbbe0.png",
-    "original": "ML_RedFrame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
-    "nome": "Yellow Lightning",
-    "appid": 2407310,
-    "arquivo": "28b35dcf04fbc517055a3e08ad8aa82eadccf477.png",
-    "original": "LO_YellowFrame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
-    "nome": "Blue Frost",
-    "appid": 2380410,
-    "arquivo": "88e1e1373fa2e2e77d7c169c11f676b6f4560314.png",
-    "original": "ST_FRAME_4"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
-    "nome": "Crimson Storm",
-    "appid": 2380410,
-    "arquivo": "79545b6736fa79cff3db304275852066f90d960e.png",
-    "original": "ST_FRAME_1"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
     "nome": "Purple Storm",
     "appid": 2377240,
     "arquivo": "66688b66102682f30501dc103089e6bfac1709dd.png",
     "original": "SR2_White-Purple_Frame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
-    "nome": "Toxic Lightning",
-    "appid": 2351080,
-    "arquivo": "820beb8641869a3cc2bd5b9c6a8f475ce2ac0bb2.png",
-    "original": "Green_Frame"
   },
   {
     "fonte": "steam",
@@ -935,78 +801,6 @@
     "appid": 1886630,
     "arquivo": "4a370db04052b222025d4304e319ce8736122778.png",
     "original": "Silver"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
-    "nome": "Red Neon Core",
-    "appid": 2525230,
-    "arquivo": "a90c4cc8b94999d82cc8dbf0d1fcaba81647db60.png",
-    "original": "MLS_RedFrame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
-    "nome": "Yellow Glow",
-    "appid": 2450130,
-    "arquivo": "24b128edda3d12cc58e0308757dc21c47ed70633.png",
-    "original": "SHS_YellowFrame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
-    "nome": "Electric Blue",
-    "appid": 2421820,
-    "arquivo": "9f994785cdc1c3bbc08867e6155b9cfab82c5763.png",
-    "original": "CyCh_BlueFrame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
-    "nome": "Fire Lightning",
-    "appid": 2331970,
-    "arquivo": "734fa8c267296cb73d9d2a83b2e80efea4e25a9e.png",
-    "original": "FCS_Fire frame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
-    "nome": "Violet Lightning",
-    "appid": 2316400,
-    "arquivo": "e054d2a4bdb6fbda7a73c8c9238cfc4681a40e59.png",
-    "original": "HPC2_frame_4"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
-    "nome": "Green Neon",
-    "appid": 2245090,
-    "arquivo": "f1243121a99ebcd6dcf6a04f9ad205bcd88335dc.png",
-    "original": "CLS_Green_Frame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
-    "nome": "Frost Lightning",
-    "appid": 2155600,
-    "arquivo": "f4385db64337bf48cfd47653b4bc34376072926b.png",
-    "original": "Blue Lightning Frame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
-    "nome": "Blue Electric",
-    "appid": 2082170,
-    "arquivo": "937acd78ddbba4900c2625ad3dcc0f8a3e1eda3a.png",
-    "original": "Blue Frame"
   },
   {
     "fonte": "steam",

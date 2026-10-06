@@ -169,7 +169,9 @@ Te1xe1ra) e só ele promove ou remove outros admins.
 No computador (> 1024px) o menu (`src/comum/Nav.jsx`) é uma barra fina fixa na lateral esquerda, só com ícones: logo,
 páginas, Admin separado (só para admin) e, embaixo, Comunidade, ⚙ e a conta. O nome de cada item aparece ao lado ao
 passar o mouse ou focar pelo teclado (`.nx-dica`); o menu da conta e o painel ⚙ abrem para o lado. Até 1024px
-(tablet e celular) continua a barra do topo e o ☰ abre a gaveta em tela cheia. Ícone de cada página: campo `icone`
+(tablet e celular) fica uma barra em cima com o ícone e o nome da página atual, ⚙ e a conta, e uma barra de abas
+fixa embaixo: Início, Pick & Ban, Partidas, Ranking, Perfil (sem login, abre o login) e **Mais**, que abre um painel
+com Inventário, Admin (só admin) e Comunidade. Ícone de cada página: campo `icone`
 em `MENU` (`src/comum/config.js`), desenhos em `src/comum/Icones.jsx`.
 
 ## Configurações ⚙ (idioma, tema e desempenho)

@@ -79,4 +79,18 @@ export const IconeTrofeu = () => (
   </IconeMenu>
 )
 
-export const ICONES_MENU = { casa: IconeCasa, mapa: IconeMapa, partidas: IconePartidas, trofeu: IconeTrofeu, mochila: IconeMochila, escudo: IconeEscudo }
+export const IconePerfil = () => (
+  <IconeMenu>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 21a8 8 0 0 1 16 0" />
+  </IconeMenu>
+)
+export const IconeMais = () => (
+  <IconeMenu>
+    <circle cx="5" cy="12" r="1.6" fill="currentColor" />
+    <circle cx="12" cy="12" r="1.6" fill="currentColor" />
+    <circle cx="19" cy="12" r="1.6" fill="currentColor" />
+  </IconeMenu>
+)
+
+export const ICONES_MENU = { casa: IconeCasa, mapa: IconeMapa, partidas: IconePartidas, trofeu: IconeTrofeu, perfil: IconePerfil, mais: IconeMais, mochila: IconeMochila, escudo: IconeEscudo }
