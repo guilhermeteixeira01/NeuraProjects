@@ -614,4 +614,6 @@ export default {
   "Ocultar do ranking": "Ocultar del ranking",
   "Você não aparece no ranking e o próximo sobe de posição.": "No apareces en el ranking y el siguiente sube de posición.",
   "Só o dono e os admins têm esta opção.": "Solo el dueño y los admins tienen esta opción.",
+  "Mais": "Más",
+  "Times": "Equipos",
 }

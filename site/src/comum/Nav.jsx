@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { CONFIG, MENU } from './config.js'
 import { entrar, linkPerfil, loginAtivo, sair, useConta } from './conta.js'
 import { ICONES_MENU, IconeKivo, IconeSteam } from './Icones.jsx'
@@ -94,15 +94,50 @@ function Conta() {
   )
 }
 
-// Menu de todas as páginas. No computador (> 1024px) é uma barra fina na lateral esquerda, só com ícones
-// (o nome aparece ao passar o mouse: .nx-dica). No celular é a barra do topo, e o ☰ abre uma gaveta em
-// tela cheia: a página por trás some e não rola enquanto ela está aberta.
+// Páginas fora do MENU: só para o título da barra de cima no celular
+const OUTRAS = {
+  perfil: { rotulo: 'Perfil', icone: 'perfil' },
+  times: { rotulo: 'Times', icone: 'mapa' },
+}
+
+// Celular: "Mais" da barra de baixo abre este painel com o resto (Inventário, Admin, Comunidade)
+function PainelMais({ itens, admin, fechar }) {
+  const t = useT()
+  const caixa = useRef(null)
+  useEffect(() => {
+    const fora = (e) => !caixa.current?.contains(e.target) && !e.target.closest('.nx-baixo-mais') && fechar()
+    const tecla = (e) => e.key === 'Escape' && fechar()
+    document.addEventListener('pointerdown', fora)
+    document.addEventListener('keydown', tecla)
+    return () => {
+      document.removeEventListener('pointerdown', fora)
+      document.removeEventListener('keydown', tecla)
+    }
+  }, [fechar])
+  return (
+    <div className="nx-mais" ref={caixa} role="menu" onClick={(e) => e.target.closest('a') && fechar()}>
+      {itens}
+      {admin}
+      {CONFIG.comunidade && (
+        <a className="nx-link nx-link-kivo" role="menuitem" href={CONFIG.comunidade} target="_blank" rel="noopener">
+          <IconeKivo /> <span className="nx-dica">{t('Comunidade na {nome}', { nome: CONFIG.comunidadeNome })}</span>
+        </a>
+      )}
+    </div>
+  )
+}
+
+// Menu de todas as páginas.
+// Computador (> 1024px): barra fina na lateral esquerda, só com ícones (o nome aparece ao passar o mouse: .nx-dica).
+// Celular e tablet: barra de cima com o nome da página atual, ⚙ e a conta, e barra de abas fixa embaixo
+// (páginas, Perfil e "Mais" com o resto).
 export default function Nav({ pagina }) {
   const t = useT()
-  const [aberto, setAberto] = useState(false)
   const [rolou, setRolou] = useState(false)
+  const [mais, setMais] = useState(false)
+  const fecharMais = useCallback(() => setMais(false), [])
 
-  // Rolou a página: o menu fica com o vidro mais forte e a linha luminosa embaixo
+  // Rolou a página: o menu fica com o vidro mais forte e a linha luminosa
   useEffect(() => {
     const ver = () => setRolou(window.scrollY > 12)
     ver()
@@ -110,92 +145,88 @@ export default function Nav({ pagina }) {
     return () => window.removeEventListener('scroll', ver)
   }, [])
 
-  useEffect(() => {
-    document.documentElement.classList.toggle('nx-menu-aberto', aberto)
-    if (!aberto) return
-    const tecla = (e) => e.key === 'Escape' && setAberto(false)
-    // Virou tela grande (ex.: girou o tablet): o menu de cima volta, a gaveta fecha
-    const tamanho = () => window.innerWidth > 1024 && setAberto(false)
-    document.addEventListener('keydown', tecla)
-    window.addEventListener('resize', tamanho)
-    return () => {
-      document.removeEventListener('keydown', tecla)
-      window.removeEventListener('resize', tamanho)
-    }
-  }, [aberto])
-
   const conta = useConta()
   const { admin } = useAdmin(conta)
-  // Páginas do site de um lado; Admin (só para admin) separado delas, no topo e na gaveta
+  // Páginas do site de um lado; Admin (só para admin) separado delas
   const paginas = MENU.map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
   const linkAdmin = admin && <LinkMenu item={ITEM_ADMIN} atual={pagina} />
 
+  // Barra de baixo (celular): páginas do site; as de fora (Inventário) vão para o "Mais"
+  const abas = MENU.filter((m) => !m.externo)
+  const extras = MENU.filter((m) => m.externo).map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
+  const atual = [...MENU, ITEM_ADMIN].find((m) => m.id === pagina) || OUTRAS[pagina] || MENU[0]
+  const IconeAtual = ICONES_MENU[atual.icone]
+  const IconePerfil = ICONES_MENU.perfil
+  const IconeMais = ICONES_MENU.mais
+  const maisAtivo = pagina === 'admin'
+
   return (
-    <header data-site-nav="" className={`nx-nav${aberto ? ' is-open' : ''}${rolou ? ' is-scrolled' : ''}`}>
-      <div className="nx-nav-inner">
-        <a className="nx-brand" href="/">
-          <img src="/assets/logos/logo-np-64.png" alt="" width="30" height="30" />
-          <span>
-            NEURA <span className="nx-outline">PROJECT</span>
-            <span className="nx-sub">GAME STUDIO</span>
-          </span>
-        </a>
-        <nav className="nx-links" aria-label={t('Menu principal')}>
-          {paginas}
-          {linkAdmin && (
-            <>
-              <span className="nx-links-sep" aria-hidden="true" />
-              {linkAdmin}
-            </>
-          )}
-        </nav>
-        <div className="nx-acoes">
-          {CONFIG.comunidade && (
-            <a className="nx-btn nx-btn-ghost nx-comunidade" href={CONFIG.comunidade} target="_blank" rel="noopener" aria-label={t('Comunidade na {nome}', { nome: CONFIG.comunidadeNome })}>
-              <IconeKivo />
-              <span className="nx-dica">{t('Comunidade')}</span>
+    <>
+      <header data-site-nav="" className={`nx-nav${rolou ? ' is-scrolled' : ''}`}>
+        <div className="nx-nav-inner">
+          <a className="nx-brand" href="/">
+            <img src="/assets/logos/logo-np-64.png" alt="" width="30" height="30" />
+            <span>
+              NEURA <span className="nx-outline">PROJECT</span>
+              <span className="nx-sub">GAME STUDIO</span>
+            </span>
+          </a>
+          {/* Celular: no lugar da marca, o ícone e o nome da página atual */}
+          <a className="nx-titulo" href="/" aria-label="Neura Project">
+            {IconeAtual && <IconeAtual />}
+            <span>{t(atual.rotulo)}</span>
+          </a>
+          <nav className="nx-links" aria-label={t('Menu principal')}>
+            {paginas}
+            {linkAdmin && (
+              <>
+                <span className="nx-links-sep" aria-hidden="true" />
+                {linkAdmin}
+              </>
+            )}
+          </nav>
+          <div className="nx-acoes">
+            {CONFIG.comunidade && (
+              <a className="nx-btn nx-btn-ghost nx-comunidade" href={CONFIG.comunidade} target="_blank" rel="noopener" aria-label={t('Comunidade na {nome}', { nome: CONFIG.comunidadeNome })}>
+                <IconeKivo />
+                <span className="nx-dica">{t('Comunidade')}</span>
+              </a>
+            )}
+            <Configuracoes />
+            <Conta />
+          </div>
+        </div>
+      </header>
+
+      <nav className="nx-baixo" aria-label={t('Menu principal')}>
+        {mais && <PainelMais itens={extras} admin={linkAdmin} fechar={fecharMais} />}
+        {abas.map((m) => {
+          const Icone = ICONES_MENU[m.icone]
+          const ativo = m.id === pagina
+          return (
+            <a key={m.id} className={`nx-aba${ativo ? ' is-active' : ''}`} href={m.href} {...(ativo ? { 'aria-current': 'page' } : {})}>
+              <i>{Icone && <Icone />}</i>
+              <span>{t(m.rotulo)}</span>
             </a>
-          )}
-          <Configuracoes />
-          <Conta />
-          <button
-            className="nx-burger"
-            type="button"
-            aria-label={aberto ? t('Fechar menu') : t('Abrir menu')}
-            aria-expanded={aberto}
-            onClick={() => setAberto((a) => !a)}
-          >
-            <span />
-            <span />
-            <span />
-          </button>
-        </div>
-      </div>
-      {aberto && (
-        // Tocar num link fecha a gaveta
-        <div className="nx-gaveta" onClick={(e) => e.target.closest('a') && setAberto(false)}>
-          <span className="nx-gaveta-rotulo">{t('Páginas')}</span>
-          {paginas}
-          {(linkAdmin || CONFIG.comunidade) && (
-            <div className="nx-gaveta-extra">
-              {linkAdmin && (
-                <>
-                  <span className="nx-gaveta-rotulo">{t('Administração')}</span>
-                  {linkAdmin}
-                </>
-              )}
-              {CONFIG.comunidade && (
-                <>
-                  <span className="nx-gaveta-rotulo">{t('Comunidade')}</span>
-                  <a className="nx-link nx-link-kivo" href={CONFIG.comunidade} target="_blank" rel="noopener">
-                    <IconeKivo /> {t('Comunidade na {nome}', { nome: CONFIG.comunidadeNome })}
-                  </a>
-                </>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-    </header>
+          )
+        })}
+        {loginAtivo() &&
+          (conta ? (
+            <a className={`nx-aba${pagina === 'perfil' ? ' is-active' : ''}`} href={linkPerfil(conta.id)}>
+              <i><IconePerfil /></i>
+              <span>{t('Perfil')}</span>
+            </a>
+          ) : (
+            <button type="button" className="nx-aba" onClick={entrar}>
+              <i><IconePerfil /></i>
+              <span>{t('Perfil')}</span>
+            </button>
+          ))}
+        <button type="button" className={`nx-aba nx-baixo-mais${mais || maisAtivo ? ' is-active' : ''}`} aria-expanded={mais} aria-haspopup="menu" onClick={() => setMais((m) => !m)}>
+          <i><IconeMais /></i>
+          <span>{t('Mais')}</span>
+        </button>
+      </nav>
+    </>
   )
 }

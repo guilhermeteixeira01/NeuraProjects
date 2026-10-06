@@ -294,24 +294,6 @@ const MOLDURAS = {
     },
   },
 
-  // Aurora: faixas de luz suaves passando em volta
-  aurora: {
-    nome: 'Aurora',
-    quadro: (t) => {
-      const cores = ['#2de2a6', '#38b6ff', '#a66cff', '#2de2a6', '#ff6ec7', '#38b6ff', '#2de2a6', '#a66cff']
-      const manchas = cores
-        .map((cor, k) => {
-          const ang = (t + k / cores.length) * TAU
-          const [x, y] = ponto(132, ang)
-          const rx = 58 + 14 * onda(t * 2 + k / 8)
-          return `<ellipse cx="${f1(x)}" cy="${f1(y)}" rx="${f1(rx)}" ry="${f1(12 + 5 * onda(t * 3 + k / 8))}" fill="${cor}" opacity=".7" transform="rotate(${f1((ang * 180) / Math.PI + 90)} ${f1(x)} ${f1(y)})"/>`
-        })
-        .join('')
-      return svg(`<g filter="url(#borrar)">${manchas}</g>
-        <circle cx="${C}" cy="${C}" r="130" fill="none" stroke="#e8fff8" stroke-width="1.2" opacity=".5"/>`)
-    },
-  },
-
   // ════════ Redondas (2ª leva) ════════
 
   // Braços em espiral girando, roxo e ciano

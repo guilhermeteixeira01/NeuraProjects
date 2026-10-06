@@ -329,107 +329,9 @@
   }
 }
 
-.nx-burger {
-  display: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  border: 1px solid var(--border-2);
-  background: transparent;
-  cursor: pointer;
-  padding: 0;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-.nx-burger span {
-  display: block;
-  width: 16px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--text);
-  transition: transform 0.2s, opacity 0.2s;
-}
-.nx-nav.is-open .nx-burger span:nth-child(1) {
-  transform: translateY(6px) rotate(45deg);
-}
-.nx-nav.is-open .nx-burger span:nth-child(2) {
-  opacity: 0;
-}
-.nx-nav.is-open .nx-burger span:nth-child(3) {
-  transform: translateY(-6px) rotate(-45deg);
-}
-
-/* Menu do celular em tela cheia, embaixo da barra do topo.
- * Com o menu aberto a barra perde o backdrop-filter: com ele, o position:fixed da gaveta
- * ficaria preso dentro da barra em vez de cobrir a tela. */
-.nx-nav.is-open {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: var(--bg);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-/* Trava a rolagem só no <html>: com overflow no <body> também, o body vira a área de rolagem
- * e a barra do topo (sticky) volta para o começo da página, sumindo da tela */
-html.nx-menu-aberto {
-  overflow: hidden;
-}
-.nx-gaveta {
-  position: fixed;
-  top: 64px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 299;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 16px 16px 32px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-  animation: nx-descer 0.2s ease;
-}
-.nx-gaveta[hidden] {
-  display: none;
-}
-.nx-gaveta .nx-link {
-  padding: 14px 16px;
-  font-size: 17px;
-  border-radius: 9px;
-}
 .nx-icone {
   flex-shrink: 0;
   margin-right: -2px;
-}
-/* Gaveta: grupo das páginas e, separado embaixo, Admin e Comunidade */
-.nx-gaveta-rotulo {
-  padding: 6px 16px 4px;
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  letter-spacing: 1.6px;
-  text-transform: uppercase;
-  color: var(--dim-2);
-}
-.nx-gaveta-extra {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-}
-.nx-gaveta .nx-link-kivo {
-  border: 1px solid var(--border-2);
-}
-.nx-gaveta .nx-link.is-active {
-  background: rgba(26, 115, 232, 0.12);
-  box-shadow: inset 2px 0 0 var(--blue-2);
 }
 @keyframes nx-descer {
   from {
@@ -587,9 +489,6 @@ html.nx-menu-aberto {
   .nx-comunidade {
     display: none;
   }
-  .nx-burger {
-    display: inline-flex;
-  }
   .nx-acoes {
     margin-left: auto;
   }
@@ -603,11 +502,6 @@ html.nx-menu-aberto {
 @media (max-width: 380px) {
   .nx-sub {
     display: none;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .nx-gaveta {
-    animation: none;
   }
 }
 
@@ -703,11 +597,6 @@ html.nx-menu-aberto {
 }
 .nx-nav.is-scrolled::after {
   opacity: 0.6;
-}
-/* Menu do celular aberto: barra sempre opaca (senão a regra de cima, do rolar, deixa a página aparecer por trás) */
-.nx-nav.is-open,
-.nx-nav.is-open.is-scrolled {
-  background: var(--bg);
 }
 .nx-links .nx-link::before {
   content: '';
@@ -2043,10 +1932,6 @@ html[data-tema='claro'] .contagem-remocao {
     left: calc(100% + 14px);
     animation-name: nx-lado;
   }
-  .nx-burger,
-  .nx-gaveta {
-    display: none;
-  }
   /* topo da página inicial ocupa a tela toda (não há mais barra em cima) */
   .hx {
     min-height: min(880px, 100vh);
@@ -2056,5 +1941,148 @@ html[data-tema='claro'] .contagem-remocao {
   from {
     opacity: 0;
     transform: translateX(-6px);
+  }
+}
+
+/* ══════════════ Celular e tablet (≤ 1024px): barra de cima + abas embaixo ══════════════
+ * Em cima: ícone e nome da página atual, ⚙ e a conta. Embaixo, fixa: Início, Pick & Ban, Partidas, Ranking,
+ * Perfil e "Mais" (abre o painel com Inventário, Admin e Comunidade). No computador as duas somem (barra lateral). */
+.nx-titulo,
+.nx-baixo {
+  display: none;
+}
+@media (max-width: 1024px) {
+  :root {
+    --nx-baixo: calc(68px + env(safe-area-inset-bottom, 0px));
+  }
+  body {
+    padding-bottom: var(--nx-baixo);
+  }
+  .nx-brand {
+    display: none;
+  }
+  .nx-titulo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .nx-titulo span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nx-titulo .nx-icone {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    color: var(--blue-2);
+  }
+  .nx-baixo {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 310;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 2px;
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -14px 30px -20px rgba(0, 0, 0, 0.9);
+    font-family: var(--font-body);
+  }
+  .nx-aba {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--dim);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nx-aba i {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 32px;
+    border-radius: 10px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .nx-aba .nx-icone {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+  }
+  .nx-aba span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nx-aba.is-active {
+    color: var(--text);
+  }
+  .nx-aba.is-active i {
+    color: var(--blue-2);
+    background: rgba(26, 115, 232, 0.16);
+    box-shadow: inset 0 0 0 1px rgba(52, 152, 219, 0.35);
+  }
+  /* Painel do "Mais" */
+  .nx-mais {
+    position: absolute;
+    right: 8px;
+    bottom: calc(100% + 8px);
+    min-width: 240px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px;
+    border-radius: 14px;
+    border: 1px solid var(--border-2);
+    background: rgb(var(--fundo) / 0.98);
+    box-shadow: 0 -18px 40px -16px rgba(0, 0, 0, 0.85);
+    animation: nx-subir 0.15s ease;
+  }
+  .nx-mais .nx-link {
+    padding: 12px 14px;
+    font-size: 15px;
+    border-radius: 10px;
+  }
+  .nx-mais .nx-link .nx-icone {
+    width: 18px;
+    height: 18px;
+  }
+  .nx-mais .nx-link.is-active {
+    color: var(--blue-2);
+    background: rgba(26, 115, 232, 0.12);
+  }
+  /* o que fica preso embaixo da tela sobe para cima das abas */
+  .nx-avisos {
+    bottom: calc(var(--nx-baixo) + 12px);
+  }
+  body .barra-salvar {
+    bottom: calc(var(--nx-baixo) + 12px);
+  }
+}
+@keyframes nx-subir {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
   }
 }
