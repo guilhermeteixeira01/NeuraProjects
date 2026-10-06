@@ -89,8 +89,9 @@ De onde vêm (campo `fonte` na lista):
 - **Steam** (Loja de Pontos) e **Decor** (decorações da comunidade): a lista escolhida fica em
   `ferramentas/molduras/escolhidas.json` e `baixar.mjs` baixa, recomprime as pesadas (acima de 1,2 MB) e grava.
   A arte é dos autores/jogos de origem.
-- Molduras quadradas (`forma: 'quadrada'`, as da Steam): o avatar fica quadrado e o miolo da moldura é recortado
-  por CSS (máscara em `site.css`), porque elas trazem sombra/efeito por dentro que cobriria a foto.
+- Molduras quadradas (`forma: 'quadrada'`, as da Steam): o avatar fica quadrado e a moldura fica por cima da foto,
+  com `escala` própria (a borda de dentro de cada uma fica num lugar diferente; a escala põe a borda um pouco por cima
+  da beirada da foto). As que cobriam a foto com névoa/fumaça ou animavam travado foram tiradas.
 - "Melhorar desempenho" ligado: as molduras ficam paradas (usa o `.webp` no lugar do `.png` animado).
 - As decorações do Discord foram tiradas do site (arte licenciada). Quem estava com uma delas fica sem moldura até
   escolher outra; a moldura salva que não existe mais na lista é simplesmente ignorada.

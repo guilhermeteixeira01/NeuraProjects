@@ -18,34 +18,10 @@
   {
     "fonte": "steam",
     "colecao": "Steam Neon & Cyber",
-    "nome": "Neon Lights",
-    "appid": 1928090,
-    "arquivo": "28bea55719cae0232078a83643d8f58782bf6076.png",
-    "original": "Neon Lights"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Cyber",
     "nome": "Sea Wave Neon",
     "appid": 2155600,
     "arquivo": "432655a0f51b282e92e097d1f2aedb00cc09a456.png",
     "original": "Sea Wave Neon Frame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Cyber",
-    "nome": "Neon Blue",
-    "appid": 2129750,
-    "arquivo": "8333257f5cb24cdf8078cbde3e88b01ca7b85691.png",
-    "original": "Neon Blue Frame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Cyber",
-    "nome": "Glitch (azul)",
-    "appid": 2157830,
-    "arquivo": "92031faf3e9a462670b092b930e3596c5464956a.png",
-    "original": "Glitch"
   },
   {
     "fonte": "steam",
@@ -58,14 +34,6 @@
   {
     "fonte": "steam",
     "colecao": "Steam Neon & Cyber",
-    "nome": "Cyber Core",
-    "appid": 3080480,
-    "arquivo": "fde4583a31c6bd112b47ef192b187111cb10d255.png",
-    "original": "Cyber Core Frame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Cyber",
     "nome": "Pixel Glitch",
     "appid": 2160470,
     "arquivo": "2dfbd2a1e1253c6f18b109c9a09ba57b8eb616fd.png",
@@ -74,26 +42,10 @@
   {
     "fonte": "steam",
     "colecao": "Steam Elementos",
-    "nome": "Fire",
-    "appid": 1929290,
-    "arquivo": "b981100294d7975e53ac9a58919e3510478934e4.png",
-    "original": "Fire"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Elementos",
     "nome": "Cyan Fire",
     "appid": 4272270,
     "arquivo": "2acffd48391c9f447a320a0b402b93e1a817897f.png",
     "original": "Cyan fire frame [It's Chopping Time!]"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Elementos",
-    "nome": "Fire (vermelho)",
-    "appid": 2496920,
-    "arquivo": "119ef06f2e7bbb3a3e8c528e0365e4112987422f.png",
-    "original": "Avatar frame: Fire"
   },
   {
     "fonte": "steam",
@@ -110,54 +62,6 @@
     "appid": 4141040,
     "arquivo": "9f48bf1b291d7a7677647600f53d1903518ce674.png",
     "original": "Burning Frame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Elementos",
-    "nome": "Cyan Lightning Strike",
-    "appid": 4272270,
-    "arquivo": "256bd8136e5bc0dbb00c3077cddc947a50d1dc5a.png",
-    "original": "Cyan lightning strike frame [It's Chopping Time!]"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Elementos",
-    "nome": "Lightning (amarelo)",
-    "appid": 2496920,
-    "arquivo": "fa436a2fe1eed769337795b27e30c4581627a36b.png",
-    "original": "Avatar frame: Lightning"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Elementos",
-    "nome": "Golden Spark",
-    "appid": 2461440,
-    "arquivo": "f5559d058cf0879914abd8881469158b49baaf16.png",
-    "original": "Golden Spark Frame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Elementos",
-    "nome": "Ninja Sparks",
-    "appid": 2542120,
-    "arquivo": "4fda651170200020062d2bb254830af37bcd2f04.apng",
-    "original": "Ninja Sparks"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Elementos",
-    "nome": "Ice",
-    "appid": 3230990,
-    "arquivo": "b90016dabc36340c1f0d86a450d07713a9328a98.png",
-    "original": "Ice"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Elementos",
-    "nome": "Burgundy Storm",
-    "appid": 3044560,
-    "arquivo": "890a06c835e38030c47a5cad7be0fc3faa5b43a7.png",
-    "original": "Burgundy Farame"
   },
   {
     "fonte": "steam",
@@ -198,14 +102,6 @@
     "appid": 3032830,
     "arquivo": "57500774fe21b7f7c138b5c6162ffd53ad0aab7b.png",
     "original": "Legendary Border"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Lendas",
-    "nome": "Golden Binding",
-    "appid": 3757060,
-    "arquivo": "0779c5c334ba42e8f6a02551361c5a7497a355cd.png",
-    "original": "Golden Binding"
   },
   {
     "fonte": "steam",
@@ -306,14 +202,6 @@
   {
     "fonte": "decor",
     "colecao": "Decor",
-    "nome": "HA HA HA",
-    "hash": "cdeb944eb58b7e2003c16934b71f2159",
-    "autor": "599654027764039690",
-    "original": "Ultrakill: HA HA HA | ULTRAKILL"
-  },
-  {
-    "fonte": "decor",
-    "colecao": "Decor",
     "nome": "Blue Soul",
     "hash": "4db997d68213c9ba8954638621b7a63a",
     "autor": "357135526215548928",
@@ -334,38 +222,6 @@
     "hash": "e99e0ab112af94d9d9fc6a7129a69c2a",
     "autor": "928339066838216754",
     "original": "JoJo's Bizarre Adventure: 『MENACING RED』"
-  },
-  {
-    "fonte": "decor",
-    "colecao": "Decor",
-    "nome": "Mothership",
-    "hash": "2fb7fc9567133390d2ec483b34b42725",
-    "autor": "599654027764039690",
-    "original": "The Behemoth: Mothership | Alien Hominid Invasion"
-  },
-  {
-    "fonte": "decor",
-    "colecao": "Decor",
-    "nome": "Watcher Warping",
-    "hash": "924662de961c9aacf0f6626dde1c2b3d",
-    "autor": "579820082100830208",
-    "original": "Rain World: Watcher Warping"
-  },
-  {
-    "fonte": "decor",
-    "colecao": "Decor",
-    "nome": "Watcher Set",
-    "hash": "6c9bac18ac6ff61b05ad602ffe546b71",
-    "autor": "579820082100830208",
-    "original": "Rain World: Watcher Set (Warping)"
-  },
-  {
-    "fonte": "decor",
-    "colecao": "Decor",
-    "nome": "Snowman",
-    "hash": "995db32948ce866b120974948caa958a",
-    "autor": "1180778779682033715",
-    "original": "Winter Holidays 2023: Snowman"
   },
   {
     "fonte": "decor",

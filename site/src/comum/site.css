@@ -212,8 +212,10 @@
   align-items: center;
   gap: 8px;
   max-width: 190px;
-  padding: 4px 12px 4px 4px;
-  border-radius: 999px;
+  /* mesma altura e arredondado do botão ⚙ Configurações ao lado */
+  height: 38px;
+  padding: 0 12px 0 4px;
+  border-radius: 10px;
   border: 1px solid var(--border-2);
   background: var(--panel);
   color: var(--text);
@@ -311,8 +313,11 @@
   .nx-conta-nome {
     display: none;
   }
+  /* só o avatar: quadrado igual ao ⚙ */
   .nx-conta-btn {
-    padding: 3px;
+    width: 38px;
+    padding: 0;
+    justify-content: center;
   }
 }
 @media (max-width: 1024px) {
@@ -1043,26 +1048,20 @@ img {
 .moldura-box.quadrada > span:not(.moldura) {
   border-radius: 8% !important;
 }
-/* As da Steam trazem sombra/névoa/efeitos por dentro (na Steam ficam escondidos atrás da foto): aqui escureciam ou
- * borravam o avatar. A máscara apaga o miolo da moldura: ela só desenha fora da foto (o avatar vai de 8,3% a 91,7%
- * da moldura; o recorte fica 1% para dentro dessa borda para cobrir a emenda). */
-.moldura-box.quadrada > .moldura {
-  --recorte: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath fill-rule='evenodd' d='M0 0H100V100H0Z M15.3 9.3H84.7A6 6 0 0 1 90.7 15.3V84.7A6 6 0 0 1 84.7 90.7H15.3A6 6 0 0 1 9.3 84.7V15.3A6 6 0 0 1 15.3 9.3Z'/%3E%3C/svg%3E");
-  -webkit-mask: var(--recorte) center / 100% 100% no-repeat;
-  mask: var(--recorte) center / 100% 100% no-repeat;
-}
 .moldura-box > img {
   background: none !important;
 }
 .moldura-box > span:not(.moldura) {
   background: var(--panel-2) !important;
 }
+/* Sempre por cima da foto. --escala = tamanho em relação ao avatar (padrão 1.2; as quadradas têm a sua, em
+ * molduras.js, para a borda ficar um pouco por cima da foto) */
 .moldura {
   position: absolute;
-  left: -10%;
-  top: -10%;
-  width: 120%;
-  height: 120%;
+  left: calc(50% - var(--escala, 1.2) * 50%);
+  top: calc(50% - var(--escala, 1.2) * 50%);
+  width: calc(var(--escala, 1.2) * 100%);
+  height: calc(var(--escala, 1.2) * 100%);
   z-index: 2;
   pointer-events: none;
   background: center / contain no-repeat;
