@@ -1037,6 +1037,12 @@ img {
   box-shadow: none !important;
   outline: 0 !important;
 }
+/* Moldura quadrada (as da Steam, feitas para avatar quadrado): o avatar fica quadrado, com o cantinho levemente
+ * arredondado, em todas as páginas. A forma vem da lista (molduras.js: forma: 'quadrada'). */
+.moldura-box.quadrada > img,
+.moldura-box.quadrada > span:not(.moldura) {
+  border-radius: 8% !important;
+}
 .moldura-box > img {
   background: none !important;
 }

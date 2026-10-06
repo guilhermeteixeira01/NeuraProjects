@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react'
 import { CONFIG } from './config.js'
 import { sair, tokenConta } from './conta.js'
-import { molduraPorId, urlMoldura } from './molduras.js'
+import { classeForma, molduraPorId, urlMoldura } from './molduras.js'
 import { useT } from './i18n.js'
 import { useOrdemRanking } from './ranking.js'
 
@@ -264,7 +264,7 @@ export function ComMoldura({ steamId, children, cheio = false }) {
   const exige = config.molduraCargo?.[id]
   if (!molduraPorId(id) || (exige && !perfil.molduraLivre && !cargos.includes(exige))) return children
   return (
-    <span className={`moldura-box${cheio ? ' cheio' : ''}`}>
+    <span className={`moldura-box${cheio ? ' cheio' : ''}${classeForma(id)}`}>
       {children}
       <CamadaMoldura id={id} />
     </span>

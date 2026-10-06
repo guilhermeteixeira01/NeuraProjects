@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { CamadaMoldura, SeloCargo, cargoDaMoldura, useCargosIdsDe, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
 import { SeloNivel } from '../../comum/Nivel.jsx'
-import { COLECOES, MOLDURAS, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
+import { COLECOES, MOLDURAS, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { urlOk } from '../../comum/dados.js'
 import { useT } from '../../comum/i18n.js'
 
@@ -163,7 +163,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
 
         <div className="sm-corpo">
           <div className="sm-previa">
-            <span className="moldura-box sm-av">
+            <span className={`moldura-box sm-av${classeForma(escolha.moldura)}`}>
               {urlOk(avatar) && !erroAvatar ? (
                 <img src={avatar} alt="" onError={() => setErroAvatar(true)} />
               ) : (
