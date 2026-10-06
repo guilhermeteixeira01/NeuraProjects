@@ -308,15 +308,6 @@
     "fonte": "steam",
     "colecao": "Steam Neon & Elementos",
     "pasta": "steam-neon-elementos",
-    "nome": "Red Glow",
-    "appid": 2245090,
-    "arquivo": "c80140425821f51ddea1293abde87db3964d1b1b.png",
-    "original": "CLS_Red_Frame"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Neon & Elementos",
-    "pasta": "steam-neon-elementos",
     "nome": "Neon Azul",
     "appid": 2082170,
     "arquivo": "244652c6c151c7e38817715df86e53d0c5fbd056.png",
@@ -935,5 +926,133 @@
     "appid": 1190970,
     "arquivo": "1fd12f42dd823cffd96a214c68bb304e5319997d.png",
     "original": "Brick Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Pink Neon",
+    "appid": 1886630,
+    "arquivo": "4a370db04052b222025d4304e319ce8736122778.png",
+    "original": "Silver"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Red Neon Core",
+    "appid": 2525230,
+    "arquivo": "a90c4cc8b94999d82cc8dbf0d1fcaba81647db60.png",
+    "original": "MLS_RedFrame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Yellow Glow",
+    "appid": 2450130,
+    "arquivo": "24b128edda3d12cc58e0308757dc21c47ed70633.png",
+    "original": "SHS_YellowFrame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Electric Blue",
+    "appid": 2421820,
+    "arquivo": "9f994785cdc1c3bbc08867e6155b9cfab82c5763.png",
+    "original": "CyCh_BlueFrame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Fire Lightning",
+    "appid": 2331970,
+    "arquivo": "734fa8c267296cb73d9d2a83b2e80efea4e25a9e.png",
+    "original": "FCS_Fire frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Violet Lightning",
+    "appid": 2316400,
+    "arquivo": "e054d2a4bdb6fbda7a73c8c9238cfc4681a40e59.png",
+    "original": "HPC2_frame_4"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Green Neon",
+    "appid": 2245090,
+    "arquivo": "f1243121a99ebcd6dcf6a04f9ad205bcd88335dc.png",
+    "original": "CLS_Green_Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Frost Lightning",
+    "appid": 2155600,
+    "arquivo": "f4385db64337bf48cfd47653b4bc34376072926b.png",
+    "original": "Blue Lightning Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Blue Electric",
+    "appid": 2082170,
+    "arquivo": "937acd78ddbba4900c2625ad3dcc0f8a3e1eda3a.png",
+    "original": "Blue Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Red Neon Line",
+    "appid": 2435180,
+    "arquivo": "be4f2d724f74b5883300956ceeac9339a1cbb294.png",
+    "original": "Neyasnoe - Red Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Burn",
+    "appid": 1992640,
+    "arquivo": "2358c700376770c888ed3af3a3ad77e07073bc09.png",
+    "original": "Burn"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Wildfire",
+    "appid": 1992640,
+    "arquivo": "f3b36afd42fc5bb754d5b03f6a96d5f3a0a45da2.png",
+    "original": "Flame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Space Transmission",
+    "appid": 780310,
+    "arquivo": "254e0666f41d4a8eb03b974a5a4ed15f00127b05.png",
+    "original": "Space transmission"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Color Ring",
+    "appid": 4657600,
+    "arquivo": "b40c62c67d56e5773eccaf8892708d9b6bc59d73.png",
+    "original": "Color Ring",
+    "forma": "redonda",
+    "escala": 1.2
   }
 ]
