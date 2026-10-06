@@ -89,6 +89,9 @@ De onde vêm (campo `fonte` na lista):
 - **Steam** (Loja de Pontos) e **Decor** (decorações da comunidade): a lista escolhida fica em
   `ferramentas/molduras/escolhidas.json` e `baixar.mjs` baixa, recomprime as pesadas (acima de 1,2 MB) e grava.
   A arte é dos autores/jogos de origem.
+- Molduras quadradas (`forma: 'quadrada'`, as da Steam): o avatar fica quadrado e o miolo da moldura é recortado
+  por CSS (máscara em `site.css`), porque elas trazem sombra/efeito por dentro que cobriria a foto.
+- "Melhorar desempenho" ligado: as molduras ficam paradas (usa o `.webp` no lugar do `.png` animado).
 - As decorações do Discord foram tiradas do site (arte licenciada). Quem estava com uma delas fica sem moldura até
   escolher outra; a moldura salva que não existe mais na lista é simplesmente ignorada.
 
@@ -99,6 +102,7 @@ cd ferramentas/molduras
 npm install
 node neura.mjs              # gera a coleção Neura (ou: node neura.mjs radar c4)
 node baixar.mjs             # baixa as da escolhidas.json e imprime as linhas para o molduras.js
+node paradas.mjs            # refaz as imagens paradas (.webp) de todas, a partir das animadas
 ```
 
 ## Níveis (XP)
