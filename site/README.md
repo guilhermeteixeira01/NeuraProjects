@@ -85,9 +85,12 @@ central e a moldura é 120% dele) com uma miniatura parada `.webp` (144x144) ao 
 
 De onde vêm (campo `fonte` na lista):
 - **Neura** (`fonte: 'neura'`): feitas por nós, desenhadas por código em `ferramentas/molduras/neura.mjs`
-  (anel neon, plasma, fogo, raio, radar, mira, glitch, órbita, hexágonos, coroa, C4, aurora).
+  (anel neon, plasma, fogo, raio, radar, mira, glitch, órbita, hexágonos, coroa, C4, aurora, eclipse, hélice, runas,
+  geada, equalizador; quadradas: neon, circuito, HUD, ouro, equalizador, geada, RGB, fluxo de dados). Geradas com
+  cores completas (sem reduzir a paleta).
 - **Steam** (Loja de Pontos) e **Decor** (decorações da comunidade): a lista escolhida fica em
-  `ferramentas/molduras/escolhidas.json` e `baixar.mjs` baixa, recomprime as pesadas (acima de 1,2 MB) e grava.
+  `ferramentas/molduras/escolhidas.json` e `baixar.mjs` baixa e grava o arquivo como veio (sem recomprimir e sem
+  limite de tamanho: qualidade original).
   A arte é dos autores/jogos de origem.
 - Molduras quadradas (`forma: 'quadrada'`, as da Steam): o avatar fica quadrado e a moldura fica por cima da foto,
   com `escala` própria (a borda de dentro de cada uma fica num lugar diferente; a escala põe a borda um pouco por cima
@@ -161,9 +164,17 @@ Te1xe1ra) e só ele promove ou remove outros admins.
   sobe (também para os cargos automáticos). Quem deixa de ser admin volta para o ranking sozinho.
 - **Admins:** lista de administradores.
 
+## Menu (barra lateral)
+
+No computador (> 1024px) o menu (`src/comum/Nav.jsx`) é uma barra fina fixa na lateral esquerda, só com ícones: logo,
+páginas, Admin separado (só para admin) e, embaixo, Comunidade, ⚙ e a conta. O nome de cada item aparece ao lado ao
+passar o mouse ou focar pelo teclado (`.nx-dica`); o menu da conta e o painel ⚙ abrem para o lado. Até 1024px
+(tablet e celular) continua a barra do topo e o ☰ abre a gaveta em tela cheia. Ícone de cada página: campo `icone`
+em `MENU` (`src/comum/config.js`), desenhos em `src/comum/Icones.jsx`.
+
 ## Configurações ⚙ (idioma, tema e desempenho)
 
-O botão ⚙ no topo (`src/comum/Configuracoes.jsx`) abre o painel com **Idioma**, **Tema** e **Melhorar desempenho**.
+O botão ⚙ do menu (`src/comum/Configuracoes.jsx`) abre o painel com **Idioma**, **Tema** e **Melhorar desempenho**.
 Tudo fica no navegador e é aplicado pelo script do `<head>` de cada HTML antes de desenhar (sem piscar).
 Com login, as três também ficam na conta (perfil do worker: `tema`, `idioma`, `desempenho`) e valem em qualquer
 aparelho em que a pessoa entrar; a conta vence o navegador (`src/comum/preferencias.js`). São preferências de quem

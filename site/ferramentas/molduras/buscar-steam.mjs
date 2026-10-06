@@ -2,7 +2,7 @@
 //   node buscar-steam.mjs           (só nomes com tema: fogo, neon, raio...)
 //   node buscar-steam.mjs --todos   (sem o filtro de tema pelo nome; os filtros de qualidade continuam)
 // Passa só quem: anima liso (>= 15 quadros por segundo, >= 12 quadros, com movimento de verdade), não tapa a foto
-// (miolo quase vazio), tem proporção parecida com as outras (borda de dentro entre 72% e 93%) e não pesa demais.
+// (miolo quase vazio), tem proporção parecida com as outras (borda de dentro entre 72% e 93%).
 // Saída (pasta cache/, fora do git): candidatas.json (com a medida e a escala de cada uma) e folha-N.png.
 // Para usar uma: copie a linha dela de candidatas.json para escolhidas.json e rode node baixar.mjs.
 import fs from 'fs'
@@ -66,7 +66,7 @@ await Promise.all(Array.from({ length: 8 }, async () => { while (fila.length) aw
 
 // 3) Filtro
 const boas = resultado
-  .filter((r) => r.quadros >= 12 && r.fps >= 15 && r.movimento >= 0.004 && r.miolo < 0.01 && r.vazio >= 0.72 && r.vazio <= 0.93 && r.kb <= 1300 && r.largura >= 200)
+  .filter((r) => r.quadros >= 12 && r.fps >= 15 && r.movimento >= 0.004 && r.miolo < 0.01 && r.vazio >= 0.72 && r.vazio <= 0.93 && r.largura >= 200)
   .sort((a, b) => b.fps - a.fps)
 fs.writeFileSync(path.join(CACHE, 'candidatas.json'), JSON.stringify(boas, null, 1))
 console.log('medidas:', resultado.length, '| passaram no filtro:', boas.length)

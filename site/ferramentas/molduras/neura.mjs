@@ -650,6 +650,197 @@ const MOLDURAS = {
            <stop offset="0" stop-color="#b8860b"/><stop offset=".45" stop-color="#f5c542"/><stop offset=".5" stop-color="#fffbe0"/><stop offset=".55" stop-color="#f5c542"/><stop offset="1" stop-color="#b8860b"/></linearGradient>`)
     },
   },
+
+  // ── Redondas (segunda leva) ──
+
+  // Coroa do sol num eclipse: raios dourados tremendo e o "anel de diamante" correndo em volta
+  eclipse: {
+    nome: 'Eclipse',
+    quadro: (t) => {
+      const rnd = sorteio(31)
+      const raios = Array.from({ length: 44 }, (_, k) => {
+        const ang = (k / 44) * TAU + (rnd() - 0.5) * 0.06
+        const fase = rnd()
+        const alt = 6 + 10 * rnd() + 7 * onda(t * 2 + fase)
+        const [x1, y1] = ponto(121, ang - 0.035)
+        const [x2, y2] = ponto(121, ang + 0.035)
+        const [xp, yp] = ponto(121 + alt, ang)
+        return `<path d="M${f1(x1)},${f1(y1)} L${f1(xp)},${f1(yp)} L${f1(x2)},${f1(y2)} Z"/>`
+      }).join('')
+      const [bx, by] = ponto(124, t * TAU - Math.PI / 2)
+      return svg(`<circle cx="${C}" cy="${C}" r="128" fill="none" stroke="#ffb02e" stroke-width="16" opacity=".22" filter="url(#borrar)"/>
+        <g fill="#ffd27a" filter="url(#brilho)">${raios}</g>
+        <circle cx="${C}" cy="${C}" r="122" fill="none" stroke="#fff3c4" stroke-width="3" filter="url(#brilho)"/>
+        <circle cx="${f1(bx)}" cy="${f1(by)}" r="7" fill="#fff" filter="url(#brilhoForte)"/>
+        <circle cx="${f1(bx)}" cy="${f1(by)}" r="3" fill="#fff"/>`)
+    },
+  },
+
+  // Duas fitas (azul e verde, as cores do site) trançadas como DNA, girando em volta
+  helice: {
+    nome: 'Hélice',
+    quadro: (t) => {
+      const N = 160
+      const fita = (sinal) =>
+        Array.from({ length: N + 1 }, (_, k) => {
+          const a = (k / N) * TAU
+          return ponto(130 + sinal * 8 * Math.sin(8 * a - t * TAU), a).map(f1).join(',')
+        }).join(' ')
+      const degraus = Array.from({ length: 48 }, (_, k) => {
+        const a = (k / 48) * TAU
+        const s = Math.sin(8 * a - t * TAU)
+        const [x1, y1] = ponto(130 + 8 * s, a)
+        const [x2, y2] = ponto(130 - 8 * s, a)
+        return `<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" opacity="${f1(0.25 + 0.5 * Math.abs(Math.cos(8 * a - t * TAU)))}"/>`
+      }).join('')
+      return svg(`<g stroke="#9fd0ff" stroke-width="1.6">${degraus}</g>
+        <g fill="none" stroke-width="4" stroke-linejoin="round" filter="url(#brilho)">
+          <polyline points="${fita(1)}" stroke="#1a73e8"/><polyline points="${fita(-1)}" stroke="#3ddc84"/></g>
+        <g fill="none" stroke="#fff" stroke-width="1.1" opacity=".6"><polyline points="${fita(1)}"/><polyline points="${fita(-1)}"/></g>`)
+    },
+  },
+
+  // Círculo arcano: runas fixas que acendem quando a luz passa e dois anéis tracejados girando
+  runas: {
+    nome: 'Runas',
+    quadro: (t) => {
+      const rnd = sorteio(77)
+      const runas = Array.from({ length: 14 }, (_, k) => {
+        const ang = (k / 14) * TAU
+        const [x, y] = ponto(130, ang)
+        // runa = 3 tracinhos sorteados num quadradinho de 14 px
+        const tracos = Array.from({ length: 3 }, () => {
+          const p = () => f1((rnd() - 0.5) * 14)
+          return `M${p()},${p()} L${p()},${p()}`
+        }).join(' ')
+        const dist = Math.abs(((k / 14 - t + 1.5) % 1) - 0.5) // 0 = a luz está em cima dela
+        const luz = 0.5 + 0.5 * Math.pow(Math.max(0, 1 - dist * 4), 2)
+        return `<path d="${tracos}" transform="translate(${f1(x)} ${f1(y)}) rotate(${f1((ang * 180) / Math.PI + 90)})" opacity="${f1(luz)}"/>`
+      }).join('')
+      const anel = (r, tr, off) => `<circle cx="${C}" cy="${C}" r="${r}" fill="none" pathLength="1000" stroke-dasharray="${tr}" stroke-dashoffset="${f1(off)}"/>`
+      return svg(`<g stroke="#b26bff" stroke-width="3.2" filter="url(#brilhoForte)">${anel(122, '28 22', t * 100)}${anel(138, '6 14', -t * 200)}</g>
+        <circle cx="${C}" cy="${C}" r="122" fill="none" stroke="#e4ccff" stroke-width="1" opacity=".5"/>
+        <g fill="none" stroke="#f1e4ff" stroke-width="2.8" stroke-linecap="round" filter="url(#brilho)">${runas}</g>`)
+    },
+  },
+
+  // Cristais de gelo em volta, com um brilho que passa por eles e estrelinhas piscando
+  geada: {
+    nome: 'Geada',
+    quadro: (t) => {
+      const rnd = sorteio(55)
+      const cristais = Array.from({ length: 30 }, (_, k) => {
+        const ang = (k / 30) * TAU + (rnd() - 0.5) * 0.08
+        const alt = 8 + rnd() * 14
+        const larg = 0.035 + rnd() * 0.02
+        const [x1, y1] = ponto(120, ang - larg)
+        const [xm, ym] = ponto(120 + alt * 0.45, ang)
+        const [x2, y2] = ponto(120, ang + larg)
+        const [xp, yp] = ponto(120 + alt, ang)
+        const dist = Math.abs(((k / 30 - t + 1.5) % 1) - 0.5)
+        const luz = 0.55 + 0.45 * Math.pow(Math.max(0, 1 - dist * 5), 2)
+        return `<path d="M${f1(x1)},${f1(y1)} L${f1(xm)},${f1(ym)} L${f1(xp)},${f1(yp)} L${f1(xm)},${f1(ym)} L${f1(x2)},${f1(y2)} Z" fill="#bfefff" stroke="#fff" stroke-width=".8" opacity="${f1(luz)}"/>`
+      }).join('')
+      const estrelas = Array.from({ length: 8 }, (_, k) => {
+        const [x, y] = ponto(127 + rnd() * 12, rnd() * TAU)
+        const s = 6 * Math.pow(onda(t * 2 + k / 8), 6)
+        return s > 0.5 ? `<path d="M${f1(x)},${f1(y - s)} L${f1(x + s * 0.2)},${f1(y)} L${f1(x)},${f1(y + s)} L${f1(x - s * 0.2)},${f1(y)} Z M${f1(x - s)},${f1(y)} L${f1(x)},${f1(y - s * 0.2)} L${f1(x + s)},${f1(y)} L${f1(x)},${f1(y + s * 0.2)} Z" fill="#fff"/>` : ''
+      }).join('')
+      return svg(`<circle cx="${C}" cy="${C}" r="122" fill="none" stroke="#7fd8ff" stroke-width="4" filter="url(#brilhoForte)"/>
+        <g filter="url(#brilho)">${cristais}</g><g filter="url(#brilho)">${estrelas}</g>`)
+    },
+  },
+
+  // Barras de áudio em volta (de ciano a rosa), pulsando no ritmo
+  equalizador: {
+    nome: 'Equalizador',
+    quadro: (t) => {
+      const rnd = sorteio(64)
+      const barras = Array.from({ length: 60 }, (_, k) => {
+        const ang = (k / 60) * TAU - Math.PI / 2
+        const f1a = rnd(), f2a = rnd()
+        const v = 0.55 * onda(t * 2 + f1a) + 0.45 * onda(t * 3 + f2a)
+        const [x1, y1] = ponto(123, ang)
+        const [x2, y2] = ponto(125 + 17 * v, ang)
+        const cor = `hsl(${Math.round(185 + 135 * Math.abs(Math.sin(ang / 2 + Math.PI / 4)))} 100% 62%)`
+        return `<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="${cor}"/>`
+      }).join('')
+      return svg(`<circle cx="${C}" cy="${C}" r="121" fill="none" stroke="#fff" stroke-width="1.4" opacity=".5"/>
+        <g stroke-width="4" stroke-linecap="round" filter="url(#brilho)">${barras}</g>`)
+    },
+  },
+
+  // ── Quadradas (segunda leva) ──
+
+  'equalizador-quadrado': {
+    nome: 'Equalizador Quadrado',
+    forma: 'quadrada',
+    quadro: (t) => {
+      const rnd = sorteio(65)
+      const barras = Array.from({ length: 72 }, (_, k) => {
+        const u = (k + 0.5) / 72
+        const [x, y, nx, ny] = noQuadrado(27, u)
+        const v = 0.55 * onda(t * 2 + rnd()) + 0.45 * onda(t * 3 + rnd())
+        const alt = 2 + 15 * v
+        const cor = `hsl(${Math.round(185 + 135 * Math.abs(Math.sin(u * Math.PI)))} 100% 62%)`
+        return `<line x1="${f1(x)}" y1="${f1(y)}" x2="${f1(x + nx * alt)}" y2="${f1(y + ny * alt)}" stroke="${cor}"/>`
+      }).join('')
+      return svgQ(`<rect x="27" y="27" width="${T - 54}" height="${T - 54}" rx="12" fill="none" stroke="#fff" stroke-width="1.4" opacity=".5"/>
+        <g stroke-width="3.6" stroke-linecap="round" filter="url(#brilho)">${barras}</g>`)
+    },
+  },
+
+  'geada-quadrado': {
+    nome: 'Geada Quadrada',
+    forma: 'quadrada',
+    quadro: (t) => {
+      const rnd = sorteio(56)
+      const cristais = Array.from({ length: 40 }, (_, k) => {
+        const u = (k + 0.5) / 40 + (rnd() - 0.5) * 0.008
+        const [x, y, nx, ny] = noQuadrado(27, u)
+        const tx = -ny, ty = nx
+        const alt = 7 + rnd() * 13, larg = 4 + rnd() * 3
+        const dist = Math.abs(((u - t + 1.5) % 1) - 0.5)
+        const luz = 0.55 + 0.45 * Math.pow(Math.max(0, 1 - dist * 5), 2)
+        const xm = x + nx * alt * 0.45, ym = y + ny * alt * 0.45
+        return `<path d="M${f1(x - tx * larg)},${f1(y - ty * larg)} L${f1(xm)},${f1(ym)} L${f1(x + nx * alt)},${f1(y + ny * alt)} L${f1(xm)},${f1(ym)} L${f1(x + tx * larg)},${f1(y + ty * larg)} Z" fill="#bfefff" stroke="#fff" stroke-width=".8" opacity="${f1(luz)}"/>`
+      }).join('')
+      return svgQ(`<rect x="27" y="27" width="${T - 54}" height="${T - 54}" rx="12" fill="none" stroke="#7fd8ff" stroke-width="4" filter="url(#brilhoForte)"/>
+        <g filter="url(#brilho)">${cristais}</g>`)
+    },
+  },
+
+  // Borda "gamer" RGB: arco-íris girando e dois brilhos brancos correndo
+  'rgb-quadrado': {
+    nome: 'RGB Quadrado',
+    forma: 'quadrada',
+    quadro: (t) => {
+      const r = (extra) => `<rect x="25" y="25" width="${T - 50}" height="${T - 50}" rx="16" fill="none" pathLength="1000" ${extra}/>`
+      const cores = ['#ff2a2a', '#ffb02e', '#f5f542', '#3ddc84', '#33e1ff', '#1a73e8', '#b26bff', '#ff3df0', '#ff2a2a']
+      return svgQ(`${r('stroke="url(#rgbQ)" stroke-width="7" filter="url(#brilhoForte)"')}
+        ${r('stroke="url(#rgbQ)" stroke-width="3"')}
+        ${r(`stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-dasharray="60 440" stroke-dashoffset="${f1(-t * 1000)}" filter="url(#brilho)"`)}`,
+        `<linearGradient id="rgbQ" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${T}" y2="${T}" gradientTransform="rotate(${f1(t * 360)} ${C} ${C})">
+          ${cores.map((c, k) => `<stop offset="${f1(k / (cores.length - 1))}" stop-color="${c}"/>`).join('')}</linearGradient>`)
+    },
+  },
+
+  // Dados correndo em volta: três trilhas verdes com pacotes em velocidades diferentes
+  'dados-quadrado': {
+    nome: 'Fluxo de Dados',
+    forma: 'quadrada',
+    quadro: (t) => {
+      const trilha = (d, tr, vel, cor, w) =>
+        `<rect x="${d}" y="${d}" width="${T - 2 * d}" height="${T - 2 * d}" rx="${Math.max(4, 22 - d / 2)}" fill="none" pathLength="1000" stroke="${cor}" stroke-width="${w}" stroke-dasharray="${tr}" stroke-dashoffset="${f1(-t * 1000 * vel)}"/>`
+      return svgQ(`<rect x="27" y="27" width="${T - 54}" height="${T - 54}" rx="12" fill="none" stroke="#3ddc84" stroke-width="2.4" filter="url(#brilho)"/>
+        <g filter="url(#brilho)">
+          ${trilha(19, '40 18 12 30 6 22 70 52', 1, '#3ddc84', 3)}
+          ${trilha(12, '8 14 22 40 4 12', -1, '#2fbf6f', 2.4)}
+          ${trilha(19, '3 247', 1, '#eafff2', 4)}
+          ${trilha(12, '3 197', -1, '#eafff2', 3.4)}
+        </g>`)
+    },
+  },
 }
 
 async function gerar(id) {
@@ -659,8 +850,8 @@ async function gerar(id) {
     const { data } = await sharp(Buffer.from(m.quadro(i / QUADROS, i))).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
     quadros.push(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength))
   }
-  // 256 cores por quadro: arquivo bem menor, sem diferença visível no brilho
-  const apng = Buffer.from(UPNG.encode(quadros, T, T, 256, Array(QUADROS).fill(ATRASO)))
+  // Cores completas (sem reduzir paleta): qualidade máxima do brilho e dos degradês
+  const apng = Buffer.from(UPNG.encode(quadros, T, T, 0, Array(QUADROS).fill(ATRASO)))
   await gravar(`neura/${id}`, apng)
   console.log(`neura/${id}`.padEnd(26), m.nome.padEnd(20), (m.forma || 'redonda').padEnd(9), Math.round(apng.length / 1024) + ' KB')
 }
