@@ -64,6 +64,9 @@ async function uma(x) {
 const fila = [...candidatas]
 await Promise.all(Array.from({ length: 8 }, async () => { while (fila.length) await uma(fila.shift()) }))
 
+// Todas as medidas (para refiltrar sem baixar de novo)
+fs.writeFileSync(path.join(CACHE, 'medidas.json'), JSON.stringify(resultado))
+
 // 3) Filtro
 const boas = resultado
   .filter((r) => r.quadros >= 12 && r.fps >= 15 && r.movimento >= 0.004 && r.miolo < 0.01 && r.vazio >= 0.72 && r.vazio <= 0.93 && r.largura >= 200)

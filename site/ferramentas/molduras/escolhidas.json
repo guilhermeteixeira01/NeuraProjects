@@ -1003,5 +1003,140 @@
     "original": "Vortex",
     "forma": "redonda",
     "escala": 1.2
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Portal (laranja)",
+    "appid": 1263950,
+    "arquivo": "77a5bfca9dcc44e2e3aaaabea62249407f9f4ec0.png",
+    "original": "Portal Orange"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Portal (azul)",
+    "appid": 1263950,
+    "arquivo": "ebe6b674deca163b28423e3b925bd36b0f0f357b.png",
+    "original": "Portal Blue"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Flaming Frame",
+    "appid": 967250,
+    "arquivo": "e569336754a329c7532c0aff0a8b961689a9d60c.png",
+    "original": "DOKA 2 FLAMING FRAME"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "pasta": "steam-lendas",
+    "nome": "Bat Wings",
+    "appid": 3117660,
+    "arquivo": "5ec229680b7ece8f73c5df42d36be3cd42cae84a.png",
+    "original": "蝙蝠之翼"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "pasta": "steam-lendas",
+    "nome": "Summer Flora",
+    "appid": 1771300,
+    "arquivo": "e17bb8907987430063279d1b1f5fa3126b55ae08.png",
+    "original": "KCDII Summer Flora"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "pasta": "steam-lendas",
+    "nome": "Gothic Portal",
+    "appid": 322330,
+    "arquivo": "61f2f2c6f2c409c0ca2814f24c00efe5d23076b2.png",
+    "original": "Portal"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Tech Corners",
+    "appid": 2096260,
+    "arquivo": "394ab860339a2e8fb350f486f94dc7fc7e5d2edc.png",
+    "original": "MTM Animated Green Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Locked On",
+    "appid": 1127700,
+    "arquivo": "aad061deaa3049cef5606287b64b5b84398febbe.png",
+    "original": "Locked On"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Red Pattern",
+    "appid": 2715650,
+    "arquivo": "100f1491237fcb3a3d1c3dc3a797ba9eba0a4928.png",
+    "original": "Pattern"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Noise (branco)",
+    "appid": 2206560,
+    "arquivo": "77d71eb7b9daa70d6daaa08828665f5e274b95f7.png",
+    "original": "Noise [White & Black]"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Noise (verde)",
+    "appid": 2206560,
+    "arquivo": "8070c87b04a02782dd53f461b54352c74ffe8c87.png",
+    "original": "Noise [Green]"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Mainframe (royal)",
+    "appid": 556130,
+    "arquivo": "893cf71d3c7a452dc3871cf87ba2c42c66052ab8.png",
+    "original": "MAINFRAME (ROYAL BLUE)"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Mainframe (verde)",
+    "appid": 556130,
+    "arquivo": "c22b5ebb2d5d23846fd8a5ee5d35600ce0a08f78.png",
+    "original": "MAINFRAME (GREEN)"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Neon Border RGB",
+    "appid": 788100,
+    "arquivo": "63abe72f9ea57defcf13b125cb91dcf692bf7b6e.png",
+    "original": "Neon Border"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Ready to Copy",
+    "appid": 803050,
+    "arquivo": "30d7457f5775776588616846d645a498e677bdb3.png",
+    "original": "Ready to copy"
   }
 ]

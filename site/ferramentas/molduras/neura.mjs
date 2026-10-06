@@ -825,6 +825,120 @@ const MOLDURAS = {
   },
 }
 
+// ── Terceira leva: variações de cor das que mais ficaram (fogo e neon) e versões redondas do RGB e do HUD ──
+
+// Fogo em volta (igual ao Inferno), com as cores escolhidas: [fora, meio, dentro, anel]
+function chamasRedondas([c1, c2, c3, anel], semente) {
+  return (t) => {
+    const rnd = sorteio(semente)
+    const chamas = (cor, escala) =>
+      Array.from({ length: 40 }, (_, k) => {
+        const ang = (k / 40) * TAU
+        const fase = rnd()
+        const alt = (12 + 12 * onda(t * 2 + fase) + 8 * onda(t * 3 + fase * 2)) * escala
+        const balanco = 0.05 * Math.sin((t * 2 + fase) * TAU)
+        const [x1, y1] = ponto(121, ang - 0.09)
+        const [x2, y2] = ponto(121, ang + 0.09)
+        const [xp, yp] = ponto(121 + alt, ang + balanco)
+        const [xc, yc] = ponto(121 + alt * 0.55, ang + balanco * 0.5)
+        return `<path d="M${f1(x1)},${f1(y1)} Q${f1(xc)},${f1(yc)} ${f1(xp)},${f1(yp)} Q${f1(xc)},${f1(yc)} ${f1(x2)},${f1(y2)} Z" fill="${cor}"/>`
+      }).join('')
+    return svg(`<g filter="url(#brilho)">${chamas(c1, 1)}${chamas(c2, 0.72)}${chamas(c3, 0.42)}</g>
+      <circle cx="${C}" cy="${C}" r="122" fill="none" stroke="${anel}" stroke-width="4" filter="url(#brilho)"/>`)
+  }
+}
+// O mesmo fogo em volta do avatar quadrado (igual ao Inferno Quadrado)
+function chamasQuadradas([c1, c2, c3, anel], semente) {
+  return (t) => {
+    const rnd = sorteio(semente)
+    const chamas = (cor, escala) =>
+      Array.from({ length: 60 }, (_, k) => {
+        const [x, y, nx, ny] = noQuadrado(27, (k + 0.5) / 60)
+        const tx = -ny, ty = nx
+        const fase = rnd()
+        const alt = (10 + 9 * onda(t * 2 + fase) + 6 * onda(t * 3 + fase * 2)) * escala
+        const bal = 3 * Math.sin((t * 2 + fase) * TAU)
+        const xp = x + nx * alt + tx * bal, yp = y + ny * alt + ty * bal
+        const xc = x + nx * alt * 0.55 + tx * bal * 0.5, yc = y + ny * alt * 0.55 + ty * bal * 0.5
+        return `<path d="M${f1(x - tx * 6)},${f1(y - ty * 6)} Q${f1(xc)},${f1(yc)} ${f1(xp)},${f1(yp)} Q${f1(xc)},${f1(yc)} ${f1(x + tx * 6)},${f1(y + ty * 6)} Z" fill="${cor}"/>`
+      }).join('')
+    return svgQ(`<g filter="url(#brilho)">${chamas(c1, 1)}${chamas(c2, 0.7)}${chamas(c3, 0.4)}</g>
+      <rect x="27" y="27" width="${T - 54}" height="${T - 54}" rx="12" fill="none" stroke="${anel}" stroke-width="4" filter="url(#brilho)"/>`)
+  }
+}
+// Anel neon com degradê girando e um cometa branco (igual ao Pulso Neon), nas cores escolhidas
+function neonRedondo([a, b], id) {
+  return (t) => {
+    const ang = t * 360
+    return svg(
+      `<circle cx="${C}" cy="${C}" r="131" fill="none" stroke="url(#${id})" stroke-width="${f1(6 + 2 * onda(t * 2))}" filter="url(#brilhoForte)"/>
+       <circle cx="${C}" cy="${C}" r="131" fill="none" stroke="#fff" stroke-width="1.4" opacity=".55"/>
+       <circle cx="${C}" cy="${C}" r="131" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-dasharray="70 754" transform="rotate(${f1(ang * 2)} ${C} ${C})" filter="url(#brilho)"/>`,
+      `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="10" y1="${C}" x2="278" y2="${C}" gradientTransform="rotate(${f1(ang)} ${C} ${C})">
+         <stop offset="0" stop-color="${a}"/><stop offset=".5" stop-color="${b}"/><stop offset="1" stop-color="${a}"/></linearGradient>`,
+    )
+  }
+}
+function neonQuadrado([a, b], id) {
+  return (t) => {
+    const r = `x="26" y="26" width="${T - 52}" height="${T - 52}" rx="16" fill="none" pathLength="1000"`
+    return svgQ(`<rect ${r} stroke="url(#${id})" stroke-width="${f1(6 + 2 * onda(t * 2))}" filter="url(#brilhoForte)"/>
+      <rect ${r} stroke="#fff" stroke-width="1.3" opacity=".55"/>
+      <rect ${r} stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-dasharray="80 920" stroke-dashoffset="${f1(-t * 2000)}" filter="url(#brilho)"/>`,
+      `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="10" y1="${C}" x2="278" y2="${C}" gradientTransform="rotate(${f1(t * 360)} ${C} ${C})">
+         <stop offset="0" stop-color="${a}"/><stop offset=".5" stop-color="${b}"/><stop offset="1" stop-color="${a}"/></linearGradient>`)
+  }
+}
+const ARCO_IRIS = ['#ff2a2a', '#ffb02e', '#f5f542', '#3ddc84', '#33e1ff', '#1a73e8', '#b26bff', '#ff3df0', '#ff2a2a']
+
+Object.assign(MOLDURAS, {
+  'inferno-azul': { nome: 'Inferno Azul', quadro: chamasRedondas(['#1f5bff', '#33b4ff', '#d6f6ff', '#7fd8ff'], 7) },
+  'inferno-roxo': { nome: 'Inferno Roxo', quadro: chamasRedondas(['#7b2cff', '#c04dff', '#ffd6ff', '#e08bff'], 8) },
+  'inferno-verde': { nome: 'Inferno Verde', quadro: chamasRedondas(['#14a83c', '#3ddc84', '#e4ffd6', '#7dff9e'], 9) },
+  'inferno-azul-quadrado': { nome: 'Inferno Azul Quadrado', forma: 'quadrada', quadro: chamasQuadradas(['#1f5bff', '#33b4ff', '#d6f6ff', '#7fd8ff'], 17) },
+  'inferno-roxo-quadrado': { nome: 'Inferno Roxo Quadrado', forma: 'quadrada', quadro: chamasQuadradas(['#7b2cff', '#c04dff', '#ffd6ff', '#e08bff'], 18) },
+  'inferno-verde-quadrado': { nome: 'Inferno Verde Quadrado', forma: 'quadrada', quadro: chamasQuadradas(['#14a83c', '#3ddc84', '#e4ffd6', '#7dff9e'], 19) },
+  'neon-rosa': { nome: 'Neon Rosa', quadro: neonRedondo(['#ff3df0', '#7b2cff'], 'nrR') },
+  'neon-sol': { nome: 'Neon Sol', quadro: neonRedondo(['#ff4655', '#f5c542'], 'nsR') },
+  'neon-rosa-quadrado': { nome: 'Neon Rosa Quadrado', forma: 'quadrada', quadro: neonQuadrado(['#ff3df0', '#7b2cff'], 'nrQ') },
+  'neon-sol-quadrado': { nome: 'Neon Sol Quadrado', forma: 'quadrada', quadro: neonQuadrado(['#ff4655', '#f5c542'], 'nsQ') },
+
+  // RGB "gamer" redondo: arco-íris girando e dois brilhos brancos correndo
+  rgb: {
+    nome: 'RGB',
+    quadro: (t) => {
+      const c = (extra) => `<circle cx="${C}" cy="${C}" r="129" fill="none" pathLength="1000" ${extra}/>`
+      return svg(`${c('stroke="url(#rgbR)" stroke-width="7" filter="url(#brilhoForte)"')}
+        ${c('stroke="url(#rgbR)" stroke-width="3"')}
+        ${c(`stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-dasharray="60 440" stroke-dashoffset="${f1(-t * 1000)}" filter="url(#brilho)"`)}`,
+        `<linearGradient id="rgbR" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${T}" y2="${T}" gradientTransform="rotate(${f1(t * 360)} ${C} ${C})">
+          ${ARCO_IRIS.map((cor, k) => `<stop offset="${f1(k / (ARCO_IRIS.length - 1))}" stop-color="${cor}"/>`).join('')}</linearGradient>`)
+    },
+  },
+
+  // HUD redondo: quatro arcos de mira girando devagar, marcações e um ponto de varredura
+  'hud-redondo': {
+    nome: 'HUD Redondo',
+    quadro: (t) => {
+      const arcos = [0, 90, 180, 270].map((g) => {
+        const a0 = ((g + t * 90 + 12) * Math.PI) / 180, a1 = ((g + t * 90 + 78) * Math.PI) / 180
+        const [x0, y0] = ponto(127, a0), [x1, y1] = ponto(127, a1)
+        return `<path d="M${f1(x0)},${f1(y0)} A127,127 0 0 1 ${f1(x1)},${f1(y1)}"/>`
+      }).join('')
+      const marcas = Array.from({ length: 36 }, (_, k) => {
+        const a = (k / 36) * TAU
+        const [x0, y0] = ponto(136, a), [x1, y1] = ponto(k % 3 === 0 ? 142 : 139, a)
+        return `<line x1="${f1(x0)}" y1="${f1(y0)}" x2="${f1(x1)}" y2="${f1(y1)}"/>`
+      }).join('')
+      const [px, py] = ponto(136, -t * TAU)
+      return svg(`<circle cx="${C}" cy="${C}" r="121" fill="none" stroke="#fff" stroke-width="1.2" opacity=".35"/>
+        <g fill="none" stroke="#3ddc84" stroke-width="5" stroke-linecap="round" filter="url(#brilho)">${arcos}</g>
+        <g stroke="#3ddc84" stroke-width="1.6" opacity=".6">${marcas}</g>
+        <circle cx="${f1(px)}" cy="${f1(py)}" r="4" fill="#eafff2" filter="url(#brilhoForte)"/>`)
+    },
+  },
+})
+
 async function gerar(id) {
   const m = MOLDURAS[id]
   const quadros = []
