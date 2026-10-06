@@ -289,7 +289,9 @@ export function ComMoldura({ steamId, children, cheio = false }) {
   const cargos = useCargosIdsDe(steamId)
   const id = perfil.moldura
   const exige = config.molduraCargo?.[id]
-  if (!molduraPorId(id) || (exige && !cargos.includes(exige))) return children
+  // Dono e admins usam qualquer moldura (exclusiva de cargo também)
+  const daEquipe = steamId === config.equipe?.dono || !!config.equipe?.admins?.includes(steamId)
+  if (!molduraPorId(id) || (exige && !cargos.includes(exige) && !daEquipe)) return children
   return (
     <span className={`moldura-box${cheio ? ' cheio' : ''}${classeForma(id)}`}>
       {children}
