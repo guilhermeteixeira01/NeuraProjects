@@ -265,7 +265,7 @@ export function CamadaMoldura({ id, parada = false }) {
   const m = molduraPorId(id)
   if (!m) return null
   const url = parada || desempenho ? urlParada(m.id) : urlMoldura(m.id)
-  return <span className="moldura" aria-hidden="true" style={{ backgroundImage: `url("${url}")` }} />
+  return <span className="moldura" aria-hidden="true" style={{ backgroundImage: `url("${url}")`, ...(m.escala ? { '--escala': m.escala } : {}) }} />
 }
 
 // Envolve o avatar e põe a moldura do jogador por cima (sem moldura, devolve o avatar como está).
