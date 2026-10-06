@@ -1054,5 +1054,160 @@
     "original": "Color Ring",
     "forma": "redonda",
     "escala": 1.2
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Purple Neon Line",
+    "appid": 2435180,
+    "arquivo": "0250df398325a81b9cfa35c281259e12b5265c92.png",
+    "original": "Neyasnoe - Purple Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Green Neon Line",
+    "appid": 2435180,
+    "arquivo": "c110b76cfd4517d638b69e2db96c7f0ccc1950bd.png",
+    "original": "Neyasnoe - Green Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Blue Neon Line",
+    "appid": 2435180,
+    "arquivo": "fe4d20f040fa1d981530ee376353ee3963faf453.png",
+    "original": "Neyasnoe - Blue Frame"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Flame (azul)",
+    "appid": 1218900,
+    "arquivo": "0cc480a1de651c65f3a3ed55861d38ff1caaa758.png",
+    "original": "Flame [Blue]"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Flame (verde)",
+    "appid": 1218900,
+    "arquivo": "9b7dd56af9d0cd8d492c7af823122398ef692842.png",
+    "original": "Flame [Green]"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Flame (laranja)",
+    "appid": 1218900,
+    "arquivo": "d875fda227eae8d91d09b39e3e381f110a72f12c.png",
+    "original": "Flame [Orange]"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Fire Border",
+    "appid": 2192270,
+    "arquivo": "5da8cee726e93ce2a3e7116a06382f51bcaaba91.png",
+    "original": "Fire"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Thick Flames",
+    "appid": 2191080,
+    "arquivo": "814e9eb2c08ca1b63ec1c5241b0f02492f5b7160.png",
+    "original": "Flames (thick)"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Acid Flames",
+    "appid": 2192270,
+    "arquivo": "37e180cc6bd2d48ab1a2e3d8c3ad0e1b269c3cec.png",
+    "original": "Acid Flames (thin)"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Neon & Elementos",
+    "pasta": "steam-neon-elementos",
+    "nome": "Plasma Flames",
+    "appid": 2192270,
+    "arquivo": "f5d34cb7de09a2e6cf7e5cdeb42bdf2c67df285f.png",
+    "original": "Plasma Flames"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "pasta": "steam-lendas",
+    "nome": "Navy Chain",
+    "appid": 552990,
+    "arquivo": "d30a1213122dea04032b76d22233a1fb274fc7fe.png",
+    "original": "Navy Chain"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Lendas",
+    "pasta": "steam-lendas",
+    "nome": "Ornate Gold",
+    "appid": 2885870,
+    "arquivo": "f1f3798432781c18c47d0f37ee1422b6f63218f3.png",
+    "original": "Ornate Gold"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Timewinder",
+    "appid": 1276800,
+    "arquivo": "9530a7325c5c731c28a2cf2f1b8c406e0ce70aca.png",
+    "original": "Timewinder Rewind"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Hologram",
+    "appid": 2192270,
+    "arquivo": "f422821b2a7d74795c814462a4f626fa9fa4b8ca.png",
+    "original": "Hologram Green/Blue"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Sci-Fi Hologram",
+    "appid": 2191080,
+    "arquivo": "3be692f4ef4d27e032923287f85bece2c4e8e67a.png",
+    "original": "Sci-Fi Hologram"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Sci-Fi Frame",
+    "appid": 2191080,
+    "arquivo": "8497d8f5d76f5b836981105fdd460d3c8f87c564.png",
+    "original": "Sci-Fi Frame 1"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Vortex",
+    "appid": 2196160,
+    "arquivo": "7f21e5fe7eabffa76e22ad31444f7456d5ac0fee.png",
+    "original": "Vortex",
+    "forma": "redonda",
+    "escala": 1.2
   }
 ]
