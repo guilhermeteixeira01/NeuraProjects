@@ -43,6 +43,8 @@ for (const m of lista) {
   await gravar(id, buf)
   const kb = (n) => Math.round(n / 1024) + ' KB'
   console.log(id.padEnd(44), String(quadros.length).padStart(3), 'quadros', buf.length === original ? kb(original) : `${kb(original)} -> ${kb(buf.length)}`)
-  linhas.push(`  { id: '${id}', nome: ${JSON.stringify(m.nome)}, colecao: '${m.colecao}', fonte: '${m.fonte}' },`)
+  // Steam: molduras feitas para avatar quadrado (o site deixa o avatar quadrado com elas)
+  const forma = m.fonte === 'steam' ? ", forma: 'quadrada'" : ''
+  linhas.push(`  { id: '${id}', nome: ${JSON.stringify(m.nome)}, colecao: '${m.colecao}', fonte: '${m.fonte}'${forma} },`)
 }
 console.log('\n' + linhas.join('\n'))
