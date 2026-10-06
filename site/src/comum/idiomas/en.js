@@ -611,4 +611,7 @@ export default {
   "Nome do selo": "Badge name",
   "Mostrar no site": "Show on site",
   "Dono": "Owner",
+  "Ocultar do ranking": "Hide from ranking",
+  "Você não aparece no ranking e o próximo sobe de posição.": "You do not appear in the ranking and the next player moves up.",
+  "Só o dono e os admins têm esta opção.": "Only the owner and admins have this option.",
 }

@@ -264,7 +264,8 @@ export default function Ranking({ dados: inicial }) {
   // XP com o ajuste do admin (perfil no worker) e o nível dele
   const comXp = useMemo(() => {
     if (!dados) return null
-    const jogadores = dados.jogadores.map((j) => {
+    // Dono/admin com "Ocultar do ranking" ligado não aparece (o próximo sobe de posição)
+    const jogadores = dados.jogadores.filter((j) => !perfis[j.steamId]?.ocultoRanking).map((j) => {
       const xp = (Number(j.xp) || 0) + (Number(perfis[j.steamId]?.xp) || 0)
       return { ...j, xp, nivel: nivelDe(xp).nivel }
     })
