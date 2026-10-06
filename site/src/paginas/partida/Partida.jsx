@@ -12,6 +12,8 @@ import { desempenhoAtivo } from '../../comum/desempenho.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { nivelDe } from '../../comum/niveis.js'
 import { dataNoIdioma, useT } from '../../comum/i18n.js'
+import { fimDaSerie } from '../../comum/series.js'
+import { ContagemRemocao, useRelogio } from '../../comum/ContagemSerie.jsx'
 
 // Página de estatísticas de um mapa jogado no servidor.
 // Os dados vêm do partida.json que o plugin BaseComp manda para o GitHub (formato em `partida.json`, versão 1).
@@ -242,7 +244,7 @@ const linkPartida = (p) => `/partidas/${(p.caminho || p.nome).split('/').map(enc
 
 // Série mapa a mapa, sempre atualizada: a página é gerada de novo a cada mapa novo e, ao abrir,
 // ainda confere o histórico. Mapa jogado vira link; o que falta fica "A jogar" (ou "Não jogado" se a série acabou).
-function Serie({ serie, nomeTime, jogos, caminhoAtual, anuncio }) {
+function Serie({ serie, nomeTime, jogos, caminhoAtual, anuncio, agora }) {
   const tr = useT()
   const jogados = jogadosDaSerie(jogos)
   const vitorias = { A: 0, B: 0 }
@@ -267,6 +269,7 @@ function Serie({ serie, nomeTime, jogos, caminhoAtual, anuncio }) {
           <span className="kicker">
             {tr('SÉRIE {formato}', { formato: serie.formato })}
             {cancelada && <span className="serie-cancelada"> · {tr('CANCELADA')}</span>}
+            <ContagemRemocao fim={fimDaSerie(anuncio)} agora={agora} />
           </span>
           <h2>
             <span className="t-A">{nomeTime('A')}</span> {vitorias.A} x {vitorias.B} <span className="t-B">{nomeTime('B')}</span>
@@ -720,6 +723,10 @@ function Conteudo({ d }) {
   }, [])
   useRevelarSecoes(comecou)
 
+  // Série cancelada: contagem de 5 minutos; no fim a página avisa que a partida saiu do site
+  const fimSerie = fimDaSerie(anuncio)
+  const agora = useRelogio(fimSerie !== null)
+
   const nomeTime = (t) => (t === 'A' ? d.timeA : d.timeB)
   const vencedor = d.placarA > d.placarB ? 'A' : d.placarB > d.placarA ? 'B' : null
   const totalRounds = Math.max(1, d.placarA + d.placarB)
@@ -730,6 +737,21 @@ function Conteudo({ d }) {
   // Aba das tabelas: geral ou utilitários (só aparece se a partida tiver os utilitários)
   const temUtil = jogadores.some((e) => e.util)
   const [aba, setAba] = useState('geral')
+
+  // Contagem acabou: a série saiu do site (a limpeza apaga a página e a demo; até lá, só o aviso)
+  if (fimSerie !== null && agora !== null && agora >= fimSerie)
+    return (
+      <main className="wrap">
+        <section className="serie-removida">
+          <span className="kicker">{tr('SÉRIE CANCELADA')}</span>
+          <h1>{tr('Esta partida foi removida do site')}</h1>
+          <p>{tr('A série foi cancelada e, depois de 5 minutos, tudo dela sai do site: partidas, estatísticas e demos.')}</p>
+          <a className="serie-removida-btn" href="/partidas/">
+            {tr('Ver partidas')}
+          </a>
+        </section>
+      </main>
+    )
 
   return (
     <>
@@ -742,7 +764,7 @@ function Conteudo({ d }) {
       </div>
       <Banner d={d} nomeTime={nomeTime} vencedor={vencedor} porRating={porRating} comecou={comecou} />
       <main className="wrap">
-        {d.serie && <Serie serie={d.serie} nomeTime={nomeTime} jogos={jogos} caminhoAtual={d.caminho} anuncio={anuncio} />}
+        {d.serie && <Serie serie={d.serie} nomeTime={nomeTime} jogos={jogos} caminhoAtual={d.caminho} anuncio={anuncio} agora={agora} />}
         {mvp && <Destaques jogadores={jogadores} porRating={porRating} totalRounds={totalRounds} nomeTime={nomeTime} />}
         {d.rounds?.length > 0 && <Rounds d={d} nomeTime={nomeTime} />}
         {/* Tabelas: vencedor primeiro */}

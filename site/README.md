@@ -208,6 +208,24 @@ Cada página de mapa recebe, no deploy, os outros mapas da mesma série (`serieJ
 
 A lista `/partidas/` segue a mesma regra nos cards dos mapas que faltam.
 
+### Série cancelada: 5 minutos e sai de tudo
+
+Quando a série é cancelada, o site mostra "REMOVIDA EM 4:59…" (lista de partidas e páginas dos mapas dela) e, no
+fim da contagem, ela some da tela na hora. Depois tudo dela é apagado: pastas das partidas, entradas no
+`partidas.json`, anúncio no `series.json` e os releases das demos (`demo-<partida>`). A regra (prazo, hora do
+cancelamento) fica em `src/comum/series.js` e vale para o site, o build e a limpeza.
+
+- Hora do cancelamento: `canceladaEm` (ISO, exata; o plugin grava desde esta versão) ou, sem ela, `atualizada`
+  (horário de Brasília, só até o minuto).
+- Quem apaga: o workflow `.github/workflows/limpar-series.yml` (`scripts/limpar-series.mjs`). Ele roda quando o
+  plugin marca a série como cancelada (espera a contagem acabar) e a cada 15 minutos como rede de segurança.
+  Cada tentativa parte do commit mais novo e, se o plugin enviar algo no meio, recomeça: nada do plugin se perde.
+  Depois de apagar, dispara o deploy.
+- Atrasados: o que saiu fica anotado em `partidas/removidas.json` (não vai para o site). Partida pendente do plugin
+  ou demo enviada depois que a série já foi apagada também é apagada na próxima limpeza.
+- O build (`gerar-site.mjs`) já esconde a série vencida mesmo antes da limpeza: nunca aparece algo dela que chegou
+  atrasado no meio de um deploy.
+
 ## Formato do partida.json
 
 Definido pelo plugin (classe `PartidaDados` em `RelatorioPagina.cs`, `versao: 1`) e lido por

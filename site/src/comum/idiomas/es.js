@@ -583,4 +583,10 @@ export default {
   "Seguir na Twitch": "Seguir en Twitch",
   "Offline no momento": "Desconectado ahora",
   "Chat da transmissão": "Chat de la transmisión",
+  "REMOVIDA EM {tempo}": "SE ELIMINA EN {tempo}",
+  "REMOVENDO…": "ELIMINANDO…",
+  "Série cancelada: some do site (partidas, ranking e demos) ao fim da contagem": "Serie cancelada: sale del sitio (partidas, ranking y demos) al terminar la cuenta regresiva",
+  "SÉRIE CANCELADA": "SERIE CANCELADA",
+  "Esta partida foi removida do site": "Esta partida fue eliminada del sitio",
+  "A série foi cancelada e, depois de 5 minutos, tudo dela sai do site: partidas, estatísticas e demos.": "La serie fue cancelada y, después de 5 minutos, todo de ella sale del sitio: partidas, estadísticas y demos.",
 }

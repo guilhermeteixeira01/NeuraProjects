@@ -1784,3 +1784,62 @@ html.i18n-trocando body {
     width: auto;
   }
 }
+
+/* ── Série cancelada: contagem até sair do site (comum/ContagemSerie.jsx) ── */
+.contagem-remocao {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  color: #ffb4bb;
+  background: rgba(255, 70, 85, 0.14);
+  border: 1px solid rgba(255, 70, 85, 0.4);
+  font-variant-numeric: tabular-nums;
+}
+html[data-tema='claro'] .contagem-remocao {
+  color: #b3202e;
+}
+/* Página de partida de série cancelada depois da contagem */
+.serie-removida {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 120px 0;
+  text-align: center;
+}
+.serie-removida h1 {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 4vw, 34px);
+  margin: 12px 0;
+}
+.serie-removida p {
+  color: var(--dim);
+  margin-bottom: 26px;
+}
+.serie-removida .kicker {
+  justify-content: center;
+}
+/* Na lista de partidas fica como uma etiqueta ao lado do "CANCELADA" */
+.contagem-remocao.no-bloco {
+  margin-left: 0;
+  padding: 4px 9px;
+}
+.serie-removida-btn {
+  display: inline-flex;
+  padding: 11px 22px;
+  border-radius: 9px;
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--blue), var(--blue-2));
+  text-decoration: none;
+}
+.serie-removida-btn:hover {
+  filter: brightness(1.1);
+}
