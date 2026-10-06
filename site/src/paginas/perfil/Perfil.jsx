@@ -342,14 +342,13 @@ function OcultarRanking({ steamId }) {
     }
   }
   return (
-    <label className={`pf-ocultar${oculto ? ' ligado' : ''}`}>
+    // Compacto, na linha dos botões: a explicação fica na dica (title) e só aparece escrita quando ligado ou com erro
+    <label className={`pf-ocultar${oculto ? ' ligado' : ''}`} title={t('Só o dono e os admins têm esta opção.')}>
       <input type="checkbox" checked={oculto} disabled={salvando} onChange={trocar} />
       <span className="pf-ocultar-chave" aria-hidden="true" />
       <span>
         <b>{t('Ocultar do ranking')}</b>
-        <small>
-          {erro ? t('Não deu para salvar. Tente de novo.') : oculto ? t('Você não aparece no ranking e o próximo sobe de posição.') : t('Só o dono e os admins têm esta opção.')}
-        </small>
+        {(erro || oculto) && <small>{erro ? t('Não deu para salvar. Tente de novo.') : t('Você não aparece no ranking e o próximo sobe de posição.')}</small>}
       </span>
     </label>
   )
@@ -404,6 +403,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
     <>
       <section className="hero pf-hero">
         <FundoHero quantidade={10} />
+        {/* Topo organizado em linhas: nome e selos; quadros iguais (nível, time, Premier, ranking); XP; botões */}
         <div className="wrap pf-topo">
           <ComMoldura steamId={j.steamId}>
             <Avatar src={j.avatar} nome={j.nome} classe="pf-av fx-entra" />
@@ -413,35 +413,53 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
               {t('PERFIL DO JOGADOR')}{eu && <span className="pf-voce">{t('VOCÊ')}</span>}
             </span>
             <h1>{j.nome}</h1>
-            <div className="pf-meta">
-              <span className="pf-nivel">
-                <SeloNivel nivel={nivel.nivel} tamanho={38} />
-                <span>
-                  {t('NÍVEL')} <b>{nivel.nivel}</b>
-                </span>
+            <CargosDe steamId={j.steamId} max={3} classe="pf-cargos" />
+          </div>
+          <div className="pf-infos fx-entra" style={{ '--e': 2 }}>
+            <div className="pf-info">
+              <span className="pf-info-rot">{t('NÍVEL')}</span>
+              <span className="pf-info-val pf-nivel">
+                <SeloNivel nivel={nivel.nivel} tamanho={30} />
+                <b>{nivel.nivel}</b>
               </span>
-              <CargosDe steamId={j.steamId} max={3} />
-              {/* Time escolhido no "Personalizar"; sem escolha, o da última partida */}
-              <TimeEscolhido steamId={j.steamId} classe="pf-time" />
-              {!timeEscolhido && j.time && (
-                <span className="pf-time">
-                  {urlOk(j.logoTime) && <img src={j.logoTime} alt="" />}
-                  {j.time}
-                </span>
-              )}
-              <Premier key={premier || 0} j={{ ...j, premier }} />
-              {pos > 0 && (
-                <a className="pf-pos" href="/ranking/">
-                  #{pos} <small>{t('de {total} no ranking', { total })}</small>
-                </a>
-              )}
             </div>
+            {(timeEscolhido || j.time) && (
+              <div className="pf-info">
+                <span className="pf-info-rot">{t('TIME')}</span>
+                {/* Time escolhido no "Personalizar"; sem escolha, o da última partida */}
+                <span className="pf-info-val">
+                  <TimeEscolhido steamId={j.steamId} classe="pf-time" />
+                  {!timeEscolhido && (
+                    <span className="pf-time">
+                      {urlOk(j.logoTime) && <img src={j.logoTime} alt="" />}
+                      <span>{j.time}</span>
+                    </span>
+                  )}
+                </span>
+              </div>
+            )}
+            <div className="pf-info">
+              <span className="pf-info-rot">PREMIER</span>
+              <span className="pf-info-val">
+                <Premier key={premier || 0} j={{ ...j, premier }} />
+              </span>
+            </div>
+            {pos > 0 && (
+              <a className="pf-info pf-info-pos" href="/ranking/">
+                <span className="pf-info-rot">RANKING</span>
+                <span className="pf-info-val">
+                  <b>#{pos}</b> <small>{t('de {total}', { total })}</small>
+                </span>
+              </a>
+            )}
+          </div>
+          <div className="pf-baixo fx-entra" style={{ '--e': 3 }}>
             <BarraXp info={nivel} classe="pf-xp" />
             <div className="pf-acoes">
               {eu && (
                 <button type="button" className="btn btn-primary" onClick={personalizar}>
-                <IconePincel /> {t('Personalizar')}
-              </button>
+                  <IconePincel /> {t('Personalizar')}
+                </button>
               )}
               <a className="btn btn-ghost" href={steam(j.steamId)} target="_blank" rel="noopener">
                 <IconeSteam /> {t('Perfil na Steam')}
@@ -449,8 +467,8 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
               <a className="btn btn-ghost" href="/ranking/">
                 {t('Ver ranking')}
               </a>
+              {eu && admin && <OcultarRanking steamId={j.steamId} />}
             </div>
-            {eu && admin && <OcultarRanking steamId={j.steamId} />}
           </div>
         </div>
       </section>

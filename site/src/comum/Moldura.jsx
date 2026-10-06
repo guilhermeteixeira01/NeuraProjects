@@ -2,6 +2,7 @@
 // As escolhas ficam no worker do login (KV, GET /perfis = { steamId: { moldura, time, xp } }). Toda página que mostra
 // avatar ou time lê o mapa e confere de novo a cada 30 s (sem recarregar a página); quem troca vê na hora.
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { CONFIG } from './config.js'
 import { sair, tokenConta } from './conta.js'
 import { classeForma, molduraPorId, urlMoldura, urlParada } from './molduras.js'
@@ -192,23 +193,36 @@ export function SeloCargo({ cargo, classe = '' }) {
 }
 
 // Selos de cargo de um jogador (nada se não tiver). Com `max`, mostra só os primeiros e uma bolinha "+N" que abre
-// os outros num painel (fecha clicando fora ou com Esc).
+// os outros num painel (fecha clicando fora, com Esc ou ao rolar). O painel vai para o <body> (portal) e fica em
+// position: fixed embaixo da bolinha: assim os cards com overflow: hidden (pódio e tabela do ranking) não cortam.
 export function CargosDe({ steamId, classe = '', max = Infinity }) {
   const t = useT()
   const cargos = useCargosDe(steamId)
-  const [aberto, setAberto] = useState(false)
+  const [aberto, setAberto] = useState(null) // posição do painel ({ top, left }) ou null
   const caixa = useRef(null)
+  const painel = useRef(null)
   useEffect(() => {
     if (!aberto) return
-    const fora = (e) => !caixa.current?.contains(e.target) && setAberto(false)
-    const tecla = (e) => e.key === 'Escape' && setAberto(false)
+    const fechar = () => setAberto(null)
+    const fora = (e) => !caixa.current?.contains(e.target) && !painel.current?.contains(e.target) && fechar()
+    const tecla = (e) => e.key === 'Escape' && fechar()
     document.addEventListener('pointerdown', fora)
     document.addEventListener('keydown', tecla)
+    window.addEventListener('scroll', fechar, { passive: true, capture: true })
+    window.addEventListener('resize', fechar)
     return () => {
       document.removeEventListener('pointerdown', fora)
       document.removeEventListener('keydown', tecla)
+      window.removeEventListener('scroll', fechar, { capture: true })
+      window.removeEventListener('resize', fechar)
     }
   }, [aberto])
+  const alternar = (e) => {
+    if (aberto) return setAberto(null)
+    const r = e.currentTarget.getBoundingClientRect()
+    // centralizado na bolinha, sem sair da tela (painel tem uns 180px de largura)
+    setAberto({ top: r.bottom + 8, left: Math.min(Math.max(r.left + r.width / 2, 100), window.innerWidth - 100) })
+  }
   if (!cargos.length) return null
   const visiveis = cargos.length > max ? cargos.slice(0, max) : cargos
   const resto = cargos.slice(visiveis.length)
@@ -222,19 +236,21 @@ export function CargosDe({ steamId, classe = '', max = Infinity }) {
           <button
             type="button"
             className="cargos-mais-btn"
-            aria-expanded={aberto}
+            aria-expanded={!!aberto}
             aria-label={t('Mostrar mais {n} cargos', { n: resto.length })}
-            onClick={() => setAberto((a) => !a)}
+            onClick={alternar}
           >
             +{resto.length}
           </button>
-          {aberto && (
-            <span className="cargos-mais-painel" role="dialog" aria-label={t('Cargos')}>
-              {resto.map((c) => (
-                <SeloCargo key={c.id} cargo={c} />
-              ))}
-            </span>
-          )}
+          {aberto &&
+            createPortal(
+              <span className="cargos-mais-painel" ref={painel} role="dialog" aria-label={t('Cargos')} style={{ top: aberto.top, left: aberto.left }}>
+                {resto.map((c) => (
+                  <SeloCargo key={c.id} cargo={c} />
+                ))}
+              </span>,
+              document.body,
+            )}
         </span>
       )}
     </span>
