@@ -96,7 +96,7 @@
 /* ── Lista 4–15 ── */
 .tabela-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
 .linha {
-  display: grid; grid-template-columns: 52px minmax(0, 1.6fr) minmax(150px, 1.2fr) 74px 64px 64px 64px 56px 124px;
+  display: grid; grid-template-columns: 52px minmax(0, 2.2fr) minmax(130px, 1fr) 70px 62px 62px 62px 54px 124px;
   align-items: center; gap: 14px; padding: 12px 20px; border-top: 1px solid var(--border); transition: background .15s;
 }
 .linha.cab { border-top: none; background: var(--bg-soft); padding-top: 11px; padding-bottom: 11px; }
@@ -108,10 +108,16 @@
 .jog { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .jog .av { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; max-width: none; flex-shrink: 0; border: 1px solid var(--border-2); background: var(--panel-2); }
 .jog .av.ini { font-size: 14px; display: grid; place-items: center; }
-.jog-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.jog-txt .premier { align-self: flex-start; margin: 3px 0 0 4px; }
-.jog-txt a { font-weight: 700; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.jog-txt a:hover { color: var(--blue-2); }
+.jog-txt { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.jog-l1, .jog-l2 { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.jog-l1 a { flex: 0 1 auto; min-width: 0; font-weight: 700; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jog-l1 a:hover { color: var(--blue-2); }
+.jog-l1 .cargos { flex: none; flex-wrap: nowrap; }
+.jog-l2 > * { flex: none; }
+/* Premier menor na tabela */
+.jog-l2 .premier { --pw: 70px; --ph: 19px; font-size: 13px; padding-left: 10px; margin: 0; }
+.jog-l2 .premier b { font-size: 13px; } .jog-l2 .premier small { font-size: 10px; }
+.jog-l2 .premier::before { width: 8px; left: 3px; }
 .barra-val { display: flex; align-items: center; gap: 10px; }
 .barra-val b { font-family: var(--font-display); font-size: 18px; min-width: 52px; text-align: right; }
 .trilho { flex: 1; height: 6px; border-radius: 4px; background: rgb(var(--tinta) / .06); overflow: hidden; }
@@ -146,7 +152,7 @@
 @media (prefers-reduced-motion: reduce) { .anim *, .esq, .esq-pod { animation: none !important; } }
 
 @media (max-width: 1080px) {
-  .linha { grid-template-columns: 44px minmax(0, 1.6fr) minmax(130px, 1.2fr) 70px 60px 60px 112px; }
+  .linha { grid-template-columns: 44px minmax(0, 2.2fr) minmax(110px, 1fr) 66px 58px 58px 112px; }
   .c-hs, .c-mapas { display: none; }
 }
 @media (max-width: 900px) {
@@ -156,11 +162,15 @@
   .p1 .pod-av, .pod-av { width: 96px; height: 96px; }
   .pod-valor b, .p1 .pod-valor b { font-size: 42px; }
   .pod.esq-pod, .pod.esq-pod.p1 { height: 300px; }
+  /* Cartões um embaixo do outro: não precisa guardar espaço para alinhar */
+  .pod-linha-cargos, .pod-linha-time { min-height: 0; }
+  .pod-linha:empty { display: none; }
 }
 @media (max-width: 720px) {
   .linha { grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; padding: 12px 14px; }
   .linha .c-rt, .linha .c-kd, .linha .c-adr, .linha .c-kast, .linha .c-forma, .linha.cab { display: none; }
   .barra-val .trilho { display: none; }
+  .jog .av { width: 36px; height: 36px; }
   .barra-val b { min-width: 0; }
   .resumo { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .resumo .caixa { min-width: 0; padding: 12px; }
@@ -238,16 +248,20 @@
 .minha-pos-tit { padding: 10px 16px 4px; font-size: 11px; letter-spacing: 1.5px; color: var(--blue-2); }
 .pod-pos { z-index: 3; } /* número da posição fica por cima da moldura */
 /* Time escolhido no "Personalizar" */
-.pod-time { justify-content: center; font-size: 12.5px; margin-top: -4px; }
-.linha-time { font-size: 11.5px; margin: 2px 0 0 4px; }
-.linha-time img, .linha-time i { width: 15px; height: 15px; }
+.pod-time { justify-content: center; font-size: 12.5px; }
+.jog-l2 .linha-time { flex: 0 1 auto; min-width: 0; font-size: 12px; color: var(--dim); padding-left: 8px; border-left: 1px solid var(--border-2); }
+.linha-time span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.linha-time img, .linha-time i { width: 15px; height: 15px; flex: none; }
+/* Pódio: linhas com altura guardada (cargo e time), mesmo quando o jogador não tem */
+.pod-linha { display: flex; justify-content: center; align-items: center; width: 100%; min-width: 0; }
+.pod-linha-cargos { min-height: 22px; margin-top: -4px; }
+.pod-linha-time { min-height: 20px; margin-top: -4px; }
+.pod-meta { margin-top: -2px; }
 /* Nível (estilo FACEIT) ao lado do Premier */
 .selos { display: inline-flex; align-items: center; gap: 8px; }
 .pod .selos { justify-content: center; }
-.jog-txt .selos { align-self: flex-start; margin: 3px 0 0 4px; gap: 6px; }
-.jog-txt .selos .premier { margin: 0; }
 /* Cargos (Premium, VIP...) */
-.pod-cargos { justify-content: center; margin-top: -6px; }
-.linha-cargos { margin: 2px 0 0 4px; }
+.pod-cargos { justify-content: center; flex-wrap: nowrap; }
 .linha-cargos .selo-cargo { font-size: 9px; padding: 1px 6px; }
+.linha-cargos .cargos-mais-btn { height: 17px; min-width: 20px; font-size: 9px; }
 .jog-av { display: inline-flex; flex-shrink: 0; }
