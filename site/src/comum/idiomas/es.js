@@ -634,4 +634,6 @@ export default {
   "de {total}": "de {total}",
   "Padrão branco": "Predeterminado blanco",
   "O visual completo do padrão, com todos os efeitos, em fundo branco.": "El aspecto completo predeterminado, con todos los efectos, en fondo blanco.",
+  "Buscar moldura…": "Buscar marco…",
+  "Nenhuma moldura com esse nome.": "Ningún marco con ese nombre.",
 }

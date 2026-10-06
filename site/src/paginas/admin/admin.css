@@ -60,8 +60,6 @@
 .adm-nivel small { font-family: var(--font-mono); font-size: 10.5px; }
 .adm-nivel small.mais { color: var(--green); }
 .adm-nivel small.menos { color: #ff6b6b; }
-.adm-moldura { display: inline-flex; align-items: center; gap: 8px; }
-.adm-moldura img { width: 30px; height: 30px; max-width: none; }
 .adm-nada { color: var(--dim-2); }
 .adm-tags { display: inline-flex; flex-wrap: wrap; gap: 4px; }
 .adm-tags i, .adm-admins i {
@@ -77,7 +75,7 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 
 /* Janela de edição */
 .adm-janela {
-  width: min(560px, 100%); max-height: min(760px, 100%); display: flex; flex-direction: column; overflow: hidden;
+  width: min(760px, 100%); max-height: min(860px, 100%); display: flex; flex-direction: column; overflow: hidden;
   border-radius: 16px; border: 1px solid var(--border-2); background: linear-gradient(160deg, var(--panel-2), var(--bg-soft));
   box-shadow: 0 30px 80px -30px rgba(0,0,0,.95);
 }
@@ -105,6 +103,15 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 .adm-perigo { color: #ff6b6b !important; cursor: pointer; font-family: inherit; }
 .adm-perigo:hover { border-color: #ff6b6b !important; background: rgba(255,107,107,.08) !important; }
 .adm-janela .sm-rodape .btn { cursor: pointer; font-family: inherit; }
+/* Galeria de molduras na edição (as miniaturas aparecem antes de escolher) */
+.adm-mold-atual { font-family: var(--font-body); font-size: 12px; letter-spacing: 0; text-transform: none; color: var(--blue-2); }
+.adm-galeria { border: 1px solid var(--border); border-radius: 12px; background: rgb(var(--tinta) / .02); overflow: hidden; }
+.adm-galeria-topo { display: flex; flex-direction: column; border-bottom: 1px solid var(--border); }
+.adm-galeria-topo .sm-colecoes { border-bottom: 0; padding: 12px 12px 8px; }
+.adm-galeria-topo .sm-colecoes small { font-family: var(--font-mono); font-size: 10px; color: var(--dim-2); margin-left: 2px; }
+.adm-galeria-busca { margin: 0 12px 12px; }
+.adm-galeria-grade { max-height: 320px; padding: 12px; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
+.adm-galeria-grade .sm-item img { width: 64px; height: 64px; }
 .adm-janela .sm-rodape .btn:disabled { opacity: .5; cursor: default; }
 
 /* Molduras por nível */

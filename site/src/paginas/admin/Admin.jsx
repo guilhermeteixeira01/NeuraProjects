@@ -94,7 +94,6 @@ function Usuarios({ usuarios, painel, dono, editar }) {
             <tr>
               <th className="esq">{tr('JOGADOR')}</th>
               <th>{tr('NÍVEL')}</th>
-              <th className="esq">{tr('MOLDURA')}</th>
               <th className="esq">{tr('TIME')}</th>
               <th className="esq">{tr('SITUAÇÃO')}</th>
               <th>{tr('ÚLTIMO ACESSO')}</th>
@@ -103,7 +102,6 @@ function Usuarios({ usuarios, painel, dono, editar }) {
           </thead>
           <tbody>
             {visiveis.map((u) => {
-              const m = molduraPorId(u.perfil.moldura)
               return (
                 <tr key={u.id}>
                   <td className="esq">
@@ -126,7 +124,6 @@ function Usuarios({ usuarios, painel, dono, editar }) {
                       </span>
                     </span>
                   </td>
-                  <td className="esq">{m ? <span className="adm-moldura"><img src={urlMiniatura(m.id)} alt="" loading="lazy" />{m.nome}</span> : <span className="adm-nada">—</span>}</td>
                   <td className="esq">{u.perfil.time || <span className="adm-nada">—</span>}</td>
                   <td className="esq">
                     <span className="adm-tags">
@@ -153,6 +150,45 @@ function Usuarios({ usuarios, painel, dono, editar }) {
           </tbody>
         </table>
         {visiveis.length === 0 && <p className="adm-vazio">{tr('Ninguém encontrado.')}</p>}
+      </div>
+    </div>
+  )
+}
+
+// Galeria de molduras na edição de usuário: abas das coleções, busca pelo nome e as miniaturas (a foto lá em cima
+// mostra a escolhida na hora). Abre na coleção da moldura atual.
+function EscolherMoldura({ valor, escolher }) {
+  const tr = useT()
+  const [colecao, setColecao] = useState(() => molduraPorId(valor)?.colecao || COLECOES[0])
+  const [busca, setBusca] = useState('')
+  const termo = busca.trim().toLowerCase()
+  const lista = termo ? MOLDURAS.filter((m) => m.nome.toLowerCase().includes(termo)) : MOLDURAS.filter((m) => m.colecao === colecao)
+  return (
+    <div className="adm-galeria">
+      <div className="adm-galeria-topo">
+        <div className="sm-colecoes" role="tablist" aria-label={tr('Coleções')}>
+          {COLECOES.map((c) => (
+            <button key={c} type="button" role="tab" aria-selected={!termo && c === colecao} className={!termo && c === colecao ? 'active' : ''} onClick={() => (setColecao(c), setBusca(''))}>
+              {c} <small>{MOLDURAS.filter((m) => m.colecao === c).length}</small>
+            </button>
+          ))}
+        </div>
+        <input type="search" className="adm-galeria-busca" placeholder={tr('Buscar moldura…')} value={busca} onChange={(e) => setBusca(e.target.value)} />
+      </div>
+      <div className="sm-grade adm-galeria-grade">
+        {!termo && (
+          <button type="button" className={`sm-item sem${!valor ? ' sel' : ''}`} onClick={() => escolher('')} aria-pressed={!valor}>
+            <span className="sm-sem-icone">∅</span>
+            <span>{tr('Sem moldura')}</span>
+          </button>
+        )}
+        {lista.map((m) => (
+          <button key={m.id} type="button" className={`sm-item${valor === m.id ? ' sel' : ''}`} onClick={() => escolher(m.id)} aria-pressed={valor === m.id} title={`${m.nome} · ${m.colecao}`}>
+            <img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" />
+            <span>{m.nome}</span>
+          </button>
+        ))}
+        {termo && !lista.length && <p className="sm-vazio">{tr('Nenhuma moldura com esse nome.')}</p>}
       </div>
     </div>
   )
@@ -233,22 +269,13 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
             </small>
           </label>
 
-          <label className="adm-campo">
-            <span>{tr('Moldura')}</span>
-            <select value={moldura} onChange={(e) => setMoldura(e.target.value)}>
-              <option value="">{tr('Sem moldura')}</option>
-              {COLECOES.map((c) => (
-                <optgroup key={c} label={c}>
-                  {MOLDURAS.filter((m) => m.colecao === c).map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.nome}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
+          <div className="adm-campo">
+            <span>
+              {tr('Moldura')}: <b className="adm-mold-atual">{molduraPorId(moldura)?.nome || tr('Sem moldura')}</b>
+            </span>
+            <EscolherMoldura valor={moldura} escolher={setMoldura} />
             <small>{tr('O admin pode dar qualquer moldura, mesmo acima do nível do jogador.')}</small>
-          </label>
+          </div>
 
           <label className="adm-campo">
             <span>{tr('Time')}</span>
