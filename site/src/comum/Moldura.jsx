@@ -1,7 +1,7 @@
 // Personalização do perfil de cada jogador: moldura do avatar e time.
 // As escolhas ficam no worker do login (KV, GET /perfis = { steamId: { moldura, time, xp } }). Toda página que mostra
 // avatar ou time lê o mapa e confere de novo a cada 30 s (sem recarregar a página); quem troca vê na hora.
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CONFIG } from './config.js'
 import { sair, tokenConta } from './conta.js'
 import { classeForma, molduraPorId, urlMoldura, urlParada } from './molduras.js'
@@ -191,15 +191,52 @@ export function SeloCargo({ cargo, classe = '' }) {
   )
 }
 
-// Todos os selos de cargo de um jogador (nada se não tiver)
-export function CargosDe({ steamId, classe = '' }) {
+// Selos de cargo de um jogador (nada se não tiver). Com `max`, mostra só os primeiros e uma bolinha "+N" que abre
+// os outros num painel (fecha clicando fora ou com Esc).
+export function CargosDe({ steamId, classe = '', max = Infinity }) {
+  const t = useT()
   const cargos = useCargosDe(steamId)
+  const [aberto, setAberto] = useState(false)
+  const caixa = useRef(null)
+  useEffect(() => {
+    if (!aberto) return
+    const fora = (e) => !caixa.current?.contains(e.target) && setAberto(false)
+    const tecla = (e) => e.key === 'Escape' && setAberto(false)
+    document.addEventListener('pointerdown', fora)
+    document.addEventListener('keydown', tecla)
+    return () => {
+      document.removeEventListener('pointerdown', fora)
+      document.removeEventListener('keydown', tecla)
+    }
+  }, [aberto])
   if (!cargos.length) return null
+  const visiveis = cargos.length > max ? cargos.slice(0, max) : cargos
+  const resto = cargos.slice(visiveis.length)
   return (
     <span className={`cargos ${classe}`}>
-      {cargos.map((c) => (
+      {visiveis.map((c) => (
         <SeloCargo key={c.id} cargo={c} />
       ))}
+      {resto.length > 0 && (
+        <span className="cargos-mais" ref={caixa}>
+          <button
+            type="button"
+            className="cargos-mais-btn"
+            aria-expanded={aberto}
+            aria-label={t('Mostrar mais {n} cargos', { n: resto.length })}
+            onClick={() => setAberto((a) => !a)}
+          >
+            +{resto.length}
+          </button>
+          {aberto && (
+            <span className="cargos-mais-painel" role="dialog" aria-label={t('Cargos')}>
+              {resto.map((c) => (
+                <SeloCargo key={c.id} cargo={c} />
+              ))}
+            </span>
+          )}
+        </span>
+      )}
     </span>
   )
 }

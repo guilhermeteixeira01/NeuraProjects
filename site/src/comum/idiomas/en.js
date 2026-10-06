@@ -622,4 +622,13 @@ export default {
   "das kills": "of kills",
   "dano": "damage",
   "Mostrar menos": "Show less",
+  "Mostrar mais {n} cargos": "Show {n} more roles",
+  "Participação nas kills": "Share of kills",
+  "{k} de {t} kills": "{k} of {t} kills",
+  "Headshot": "Headshot",
+  "{n} de cabeça": "{n} to the head",
+  "Participação no dano": "Share of damage",
+  "{d} de {t} de dano": "{d} of {t} damage",
+  "Dano por acerto": "Damage per hit",
+  "{n} acertos": "{n} hits",
 }

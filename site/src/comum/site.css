@@ -1093,6 +1093,47 @@ img {
   background: color-mix(in srgb, var(--cg) 12%, transparent);
   box-shadow: 0 0 14px -6px var(--cg);
 }
+/* "+N": bolinha que abre os cargos que não couberam (CargosDe com max) */
+.cargos-mais {
+  position: relative;
+  display: inline-flex;
+}
+.cargos-mais-btn {
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid var(--border-2);
+  background: rgb(var(--tinta) / 0.06);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.cargos-mais-btn:hover,
+.cargos-mais-btn[aria-expanded='true'] {
+  border-color: var(--blue-2);
+  background: rgba(26, 115, 232, 0.16);
+}
+.cargos-mais-painel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border-2);
+  background: rgb(var(--fundo) / 0.98);
+  box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.85);
+  transform: translateX(-50%);
+  animation: nx-descer 0.15s ease;
+}
 
 /* ── Temas (Configurações ⚙ → Tema; comum/tema.js) ──
  * Sem data-tema: tema padrão do site (o de sempre, com todos os efeitos).
