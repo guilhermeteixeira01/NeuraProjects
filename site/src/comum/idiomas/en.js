@@ -634,4 +634,6 @@ export default {
   "de {total}": "of {total}",
   "Padrão branco": "Default white",
   "O visual completo do padrão, com todos os efeitos, em fundo branco.": "The full default look, with every effect, on a white background.",
+  "Buscar moldura…": "Search frames…",
+  "Nenhuma moldura com esse nome.": "No frame with that name.",
 }
