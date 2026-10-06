@@ -679,11 +679,14 @@ function Admins({ config, dono, souDono, usuarios, aoSalvar }) {
             {id === dono ? (
               <SeloCargo cargo={{ ...SELOS_PADRAO.dono, ...config.selos?.dono }} />
             ) : (
-              souDono && (
-                <button type="button" className="btn btn-ghost adm-perigo" onClick={() => mudar(id, false)} disabled={estado === 'salvando'}>
-                  {tr('Remover')}
-                </button>
-              )
+              <>
+                <SeloCargo cargo={{ ...SELOS_PADRAO.admin, ...config.selos?.admin }} />
+                {souDono && (
+                  <button type="button" className="btn btn-ghost adm-perigo" onClick={() => mudar(id, false)} disabled={estado === 'salvando'}>
+                    {tr('Remover')}
+                  </button>
+                )}
+              </>
             )}
           </li>
         ))}
