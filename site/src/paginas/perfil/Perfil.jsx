@@ -503,6 +503,37 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   )
 }
 
+// Perfil sem login: o conteúdo fica embaçado e sem clique (inert), com um cartão fixo no meio da tela pedindo o login.
+// Entrar volta para este mesmo perfil (entrar() usa o endereço atual).
+function TravaLogin({ children }) {
+  const t = useT()
+  return (
+    <div className="pf-trava">
+      <div className="pf-trava-conteudo" aria-hidden="true" inert="">
+        {children}
+      </div>
+      <div className="pf-trava-aviso" role="dialog" aria-modal="false" aria-labelledby="pf-trava-titulo">
+        <div className="pf-trava-cartao">
+          <span className="pf-trava-icone" aria-hidden="true">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="4" y="10" width="16" height="11" rx="2.5" />
+              <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+            </svg>
+          </span>
+          <h2 id="pf-trava-titulo">{t('Entre para ver este perfil')}</h2>
+          <p>{t('Estatísticas, histórico de partidas, armas e nível dos jogadores ficam disponíveis para quem entra com a conta Steam.')}</p>
+          <button type="button" className="btn btn-primary" onClick={entrar}>
+            <IconeSteam /> {t('Entrar com Steam')}
+          </button>
+          <a className="pf-trava-voltar" href="/ranking/">
+            {t('Voltar para o ranking')}
+          </a>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // Tela simples (sem login, jogador sem partidas, carregando)
 function Aviso({ titulo, texto, children }) {
   const t = useT()
@@ -573,6 +604,8 @@ export default function Perfil() {
   const perfis = usePerfis()
   const meuNivel = useNivelDe(dados?.ranking?.jogadores?.find((x) => x.steamId === conta?.id) || { steamId: conta?.id, xp: 0 })
   let conteudo
+  // Sem login, o perfil de um jogador aparece embaçado com o pedido para entrar (a tela "Seu perfil" já pede login)
+  let travado = false
   if (idUrl === null || (id && (!dados || dados.id !== id))) {
     conteudo = <Aviso titulo="Carregando perfil…" />
   } else if (!id) {
@@ -600,15 +633,17 @@ export default function Perfil() {
       mapas: 0, vitorias: 0, kills: 0, mortes: 0, fk: 0, fd: 0, multi: {}, mvps: 0, mvpPartida: 0, rating: 0, melhorRating: 0, adr: 0, kast: 0, hsPct: 0, kd: 0, winRate: 0,
     }
     conteudo = <Jogador j={vazio} mapas={[]} pos={0} total={0} eu={eu} admin={admin} personalizar={() => setEditando(true)} />
+    travado = !conta && loginAtivo()
   } else {
     // Quem está oculto do ranking fica sem posição (e não conta para a dos outros)
     const ordem = ordenarRanking(dados.ranking.jogadores, perfis)
     conteudo = <Jogador j={j} mapas={dados.mapas} pos={ordem.indexOf(j) + 1} total={ordem.length} eu={conta?.id === id} admin={admin} personalizar={() => setEditando(true)} />
+    travado = !conta && loginAtivo()
   }
 
   return (
     <Layout pagina="perfil">
-      <main>{conteudo}</main>
+      <main>{travado ? <TravaLogin>{conteudo}</TravaLogin> : conteudo}</main>
       {editando && conta && (
         <SeletorMoldura steamId={conta.id} avatar={conta.avatar || j?.avatar} nome={conta.nome || j?.nome || t('Você')} nivel={meuNivel.nivel} admin={admin} fechar={fechar} />
       )}

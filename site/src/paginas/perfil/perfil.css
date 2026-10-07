@@ -428,3 +428,32 @@ html.sm-aberto { overflow: hidden; }
   .pf-arma-dest .pf-arma-barra { width: 100%; }
   .pf-arma-mini img { max-width: 54px; }
 }
+
+/* ── Perfil sem login: embaçado, com o cartão de login fixo no meio da tela (TravaLogin) ── */
+.pf-trava { position: relative; }
+.pf-trava-conteudo {
+  filter: blur(9px) saturate(.8); opacity: .7; pointer-events: none; user-select: none;
+  max-height: 1400px; overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent);
+  mask-image: linear-gradient(180deg, #000 55%, transparent);
+}
+.pf-trava-aviso { position: absolute; inset: 0; z-index: 20; display: flex; justify-content: center; padding: 0 16px; }
+.pf-trava-cartao {
+  position: sticky; top: max(120px, 22vh); align-self: flex-start; margin-top: 120px;
+  width: min(420px, 100%); display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;
+  padding: 28px 26px 22px; border-radius: 18px; border: 1px solid rgba(52, 152, 219, .45);
+  background: rgb(var(--fundo)); box-shadow: 0 30px 70px -28px rgba(0, 0, 0, .9), 0 0 40px -16px rgba(52, 152, 219, .7);
+  animation: nx-descer .25s ease;
+}
+.pf-trava-icone {
+  width: 54px; height: 54px; display: grid; place-items: center; border-radius: 16px; color: var(--blue-2);
+  background: rgba(26, 115, 232, .14); box-shadow: inset 0 0 0 1px rgba(52, 152, 219, .4);
+}
+.pf-trava-cartao h2 { font-family: var(--font-display); font-size: 22px; line-height: 1.2; }
+.pf-trava-cartao p { font-size: 14px; color: var(--dim); line-height: 1.5; }
+.pf-trava-cartao .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 4px; cursor: pointer; font-family: inherit; }
+.pf-trava-voltar { font-size: 13px; color: var(--dim); }
+.pf-trava-voltar:hover { color: var(--blue-2); }
+@media (max-width: 720px) {
+  .pf-trava-cartao { margin-top: 70px; top: 90px; padding: 22px 18px 18px; }
+}

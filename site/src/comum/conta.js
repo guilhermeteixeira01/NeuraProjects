@@ -58,13 +58,16 @@ export function entrar() {
   location.href = `${CONFIG.loginSteam.replace(/\/$/, '')}/login?volta=${encodeURIComponent(volta)}`
 }
 
-export function sair() {
+// irParaInicio: quem clicou em "Sair" volta para a página inicial. Login vencido (o worker respondeu 401) só
+// limpa a conta e fica na página, para a mensagem "Seu login venceu" aparecer.
+export function sair({ irParaInicio = false } = {}) {
   try {
     localStorage.removeItem(CHAVE)
   } catch {
     // nada guardado
   }
   window.dispatchEvent(new Event(EVENTO))
+  if (irParaInicio) location.assign('/')
 }
 
 // Conta logada (ou null). Começa null no HTML gerado e no primeiro render do navegador (iguais),

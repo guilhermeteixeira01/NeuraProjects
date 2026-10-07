@@ -638,4 +638,7 @@ export default {
   "Nenhuma moldura com esse nome.": "Ningún marco con ese nombre.",
   "Times registrados": "Equipos registrados",
   "{n} times cadastrados no servidor.": "{n} equipos registrados en el servidor.",
+  "Entre para ver este perfil": "Inicia sesión para ver este perfil",
+  "Estatísticas, histórico de partidas, armas e nível dos jogadores ficam disponíveis para quem entra com a conta Steam.": "Las estadísticas, el historial de partidas, las armas y el nivel de los jugadores están disponibles para quien inicia sesión con Steam.",
+  "Voltar para o ranking": "Volver al ranking",
 }
