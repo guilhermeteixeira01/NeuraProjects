@@ -5,6 +5,7 @@ import { urlOk } from '../../comum/dados.js'
 import { useT } from '../../comum/i18n.js'
 import { IconeCargo } from '../../comum/cargos.jsx'
 import { IconeNenhum } from '../../comum/Icones.jsx'
+import { SeloNivel } from '../../comum/Nivel.jsx'
 
 function CadeadoMini() {
   return (
@@ -97,7 +98,11 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         <img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" />
         <span className="sm-nome">{m.nome}</span>
         {/* Nível exigido no canto esquerdo; cargo e cadeado no direito */}
-        {nv > 1 && <span className={`sm-nivel-canto${!admin && nv > nivel ? ' falta' : ''}`}>{tr('Nv {n}', { n: nv })}</span>}
+        {nv > 1 && (
+          <span className={`sm-nivel-canto${!admin && nv > nivel ? ' falta' : ''}`} title={tr('Nível {n}', { n: nv })}>
+            <SeloNivel nivel={nv} tamanho={28} />
+          </span>
+        )}
         {(cargo || presa) && (
           <span className="sm-exige">
             {cargo && <IconeCargo icone={cargo.icone} tamanho={12} />}

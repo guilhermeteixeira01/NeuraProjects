@@ -535,10 +535,8 @@ html.sm-aberto { overflow: hidden; }
 .sm-item.de-cargo.sel { border-color: var(--cg); background: color-mix(in srgb, var(--cg) 16%, transparent); box-shadow: none; }
 .sm-item.de-cargo .sm-exige { border-color: color-mix(in srgb, var(--cg) 55%, transparent); }
 /* Nível exigido no canto esquerdo de cima */
-.sm-nivel-canto {
-  position: absolute; top: 5px; left: 5px; padding: 2px 6px; border-radius: 999px; font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; line-height: 1;
-  color: var(--green); background: rgb(var(--fundo) / .85); border: 1px solid color-mix(in srgb, var(--green) 45%, transparent);
-}
-.sm-nivel-canto.falta { color: var(--dim); border-color: var(--border-2); }
+/* Selo do nível exigido (o mesmo do perfil) no canto esquerdo; ainda não alcançado: apagado */
+.sm-nivel-canto { position: absolute; top: 4px; left: 4px; display: inline-flex; border-radius: 50%; background: rgb(var(--fundo) / .8); }
+.sm-nivel-canto.falta { opacity: .8; }
 .sm-item.presa { opacity: 1; }
 .sm-item.presa > img { opacity: .55; }
