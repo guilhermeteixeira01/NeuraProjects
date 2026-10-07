@@ -9,6 +9,7 @@
  *   /perfis, /perfil       -> personalização dos jogadores: moldura do avatar e time
  *   /config                -> regras públicas (molduras liberadas por nível)
  *   /jogador?id=<SteamID>  -> nome e avatar públicos da Steam (perfil de quem ainda não tem partida)
+ *   /avatares?ids=a,b,...  -> foto atual da Steam de até 100 jogadores { id: url } (as das partidas ficam velhas)
  *   /eu                    -> quem é o dono do token e se é admin
  *   /admin/...             -> painel de administrador (só admins; conferido aqui em toda chamada)
  *
@@ -50,6 +51,7 @@ export default {
     if (rota === '/perfis' && req.method === 'GET') return json(await ler(env, 'perfis'), 200, publico)
     if (rota === '/config' && req.method === 'GET') return json(configPublica(await ler(env, "config"), env), 200, publico)
     if (rota === '/jogador' && req.method === 'GET') return jogadorPublico(url, env)
+    if (rota === '/avatares' && req.method === 'GET') return avataresAtuais(url, env)
     // Rotas antigas (só moldura): páginas que ainda estejam abertas com uma versão anterior do site
     if (rota === '/molduras' && req.method === 'GET') return json(soMolduras(await ler(env, 'perfis')), 200, publico)
 
@@ -517,8 +519,8 @@ async function registrarUsuario(env, id, perfil, visita = false) {
   }
 }
 
-// GET /jogador?id=<SteamID64> -> { nome, avatar } (público). Quem já entrou no site sai da lista de usuários;
-// os outros vêm da Web API da Steam. Resposta guardada 1 hora no cache da Cloudflare (poupa a API e o KV).
+// GET /jogador?id=<SteamID64> -> { nome, avatar } (público), atuais pela Web API da Steam (sem resposta: os do último
+// login, da lista de usuários). Resposta guardada 1 hora no cache da Cloudflare (poupa a API e o KV).
 async function jogadorPublico(url, env) {
   const id = url.searchParams.get('id') || ''
   if (!ID_STEAM.test(id)) return json({ erro: 'id' }, 400, { 'Access-Control-Allow-Origin': '*' })
@@ -527,11 +529,37 @@ async function jogadorPublico(url, env) {
   const guardado = await cache.match(chave)
   if (guardado) return guardado
   const usuario = (await ler(env, 'usuarios'))[id]
-  const steam = usuario?.nome && usuario?.avatar ? { nome: usuario.nome, avatar: usuario.avatar } : await perfilSteam(id, env)
+  // Steam primeiro (nome e foto atuais); a cópia do login (usuarios) só se a Steam não responder
+  const steam = await perfilSteam(id, env)
   const resposta = json({ nome: steam.nome || usuario?.nome || '', avatar: steam.avatar || usuario?.avatar || '' }, 200, {
     'Access-Control-Allow-Origin': '*',
     'Cache-Control': 'public, max-age=3600',
   })
+  await cache.put(chave, resposta.clone())
+  return resposta
+}
+
+// GET /avatares?ids=<id>,<id>,... (até 100) -> { "<SteamID64>": "<url da foto atual>" } (público).
+// A foto guardada nas partidas é a do dia em que a pessoa jogou; o site troca pela atual com isto.
+// Uma chamada só à Steam para a lista toda; resposta guardada 30 min no cache da Cloudflare.
+async function avataresAtuais(url, env) {
+  const cors = { 'Access-Control-Allow-Origin': '*' }
+  const ids = [...new Set(String(url.searchParams.get('ids') || '').split(',').filter((id) => ID_STEAM.test(id)))].sort().slice(0, 100)
+  if (!ids.length) return json({}, 200, cors)
+  if (!env.STEAM_API_KEY) return json({}, 200, cors)
+  const cache = caches.default
+  const chave = new Request(`https://cache.neura/avatares/${ids.join(',')}`)
+  const guardado = await cache.match(chave)
+  if (guardado) return guardado
+  let fotos = {}
+  try {
+    const r = await fetch(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${env.STEAM_API_KEY}&steamids=${ids.join(',')}`)
+    const lista = (await r.json())?.response?.players || []
+    fotos = Object.fromEntries(lista.filter((p) => p?.steamid && p?.avatarfull).map((p) => [p.steamid, p.avatarfull]))
+  } catch {
+    return json({}, 200, cors) // Steam fora do ar: o site fica com as fotos que já tem (sem guardar no cache)
+  }
+  const resposta = json(fotos, 200, { ...cors, 'Cache-Control': 'public, max-age=1800' })
   await cache.put(chave, resposta.clone())
   return resposta
 }

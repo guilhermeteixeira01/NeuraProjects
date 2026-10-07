@@ -56,6 +56,11 @@ A página `/perfil/?id=<SteamID64>` mostra os números do jogador (do `ranking.j
 mapa e o histórico completo (`perfil/historico/<SteamID64>.json`, gerado no deploy pelo `scripts/ranking.mjs`).
 Os nomes no ranking e na página da partida levam para ela.
 
+**Fotos de perfil atuais:** a foto gravada nas partidas é a do dia do jogo, e a do login é a do dia em que a pessoa entrou.
+O site mostra essa e troca pela atual da Steam (`src/comum/avatares.js`, `useAvatar(id, padrao)`): junta os jogadores da
+página numa chamada só ao worker (`GET /avatares?ids=...`, até 100, uma chamada à Web API da Steam, cache de 30 min).
+Vale no ranking, perfil, página da partida, painel admin e no botão da conta. Sem resposta, fica a foto que já tinha.
+
 **Armas mais usadas** (no perfil, embaixo do gráfico): soma o `armas` de cada mapa do histórico
 (`src/comum/armas.js`): as 3 que mais mataram em destaque (kills, % das kills, HS% e dano) e o resto em lista.
 Imagens das armas em `public/assets/armas/<nome>.webp` (`ferramentas/molduras/armas.mjs` baixa de novo).

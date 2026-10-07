@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ComMoldura } from '../../comum/Moldura.jsx'
 import { linkPerfil } from '../../comum/conta.js'
 import { useT } from '../../comum/i18n.js'
+import { useAvatar } from '../../comum/avatares.js'
 
 // Detalhe do uso de utilitários: por time, total + barra de proporção por tipo + barras empilhadas por jogador.
 // Cores no estilo do CS (smoke azul-acinzentada, flash amarela, HE vermelha, molotov laranja, decoy verde),
@@ -35,10 +36,11 @@ function escala(maximo) {
 }
 
 function Avatar({ e }) {
-  const [erro, setErro] = useState(false)
+  const src = useAvatar(e.steamId, e.avatar)
+  const [erro, setErro] = useState('')
   const ini = (String(e.nome || '?').match(/[\p{L}\p{N}]/gu) || []).slice(0, 2).join('').toUpperCase() || '?'
-  return e.avatar && !erro ? (
-    <img className="gu-av" src={e.avatar} alt="" loading="lazy" onError={() => setErro(true)} />
+  return src && erro !== src ? (
+    <img className="gu-av" src={src} alt="" loading="lazy" onError={() => setErro(src)} />
   ) : (
     <span className="gu-av gu-av-fb">{ini}</span>
   )
