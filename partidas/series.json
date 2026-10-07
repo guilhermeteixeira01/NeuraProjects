@@ -1,5 +1,24 @@
 [
   {
+    "id": "2026-10-07_18-50_Kivo-x-Neura-Project",
+    "organizacao": "dga",
+    "categoria": "md3",
+    "formato": "MD3",
+    "timeA": "Kivo",
+    "timeB": "Neura Project",
+    "logoA": "https://i.imgur.com/qOKC9BF.png",
+    "logoB": "https://i.imgur.com/0lhPoBJ.png",
+    "mapas": [
+      "de_dust2",
+      "de_nuke",
+      "de_anubis"
+    ],
+    "status": "iniciando",
+    "mapaAtual": 0,
+    "criada": "2026-10-07 18:50",
+    "atualizada": "2026-10-07 18:50"
+  },
+  {
     "id": "2026-10-05_19-41_Neura-Project-x-Digital-Gamers",
     "organizacao": "dga",
     "categoria": "md3",
