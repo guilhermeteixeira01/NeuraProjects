@@ -934,7 +934,9 @@ html:is([data-tema='claro'], [data-tema='branco']) .hx-numeros dd {
 .tc-secao { padding-bottom: 40px; }
 .tc-exc { color: var(--green); text-shadow: 0 0 18px rgba(61, 220, 132, .55); }
 .tc-faixa {
-  position: relative; overflow: hidden; padding: 8px 0 18px;
+  /* folga em cima e embaixo para o cartão subir e a sombra do hover caber (o overflow: hidden cortava);
+     a margem negativa devolve o espaço, então a seção fica do mesmo tamanho */
+  position: relative; overflow: hidden; padding: 16px 0 48px; margin: -8px 0 -30px;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
   mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
 }
