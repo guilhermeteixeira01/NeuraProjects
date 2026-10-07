@@ -147,13 +147,16 @@ export default function Nav({ pagina }) {
 
   const conta = useConta()
   const { admin } = useAdmin(conta)
+  // Sem login, o menu mostra só o Início (as outras páginas continuam abrindo pelo link; só não aparecem no menu).
+  // Site sem login configurado: mostra tudo.
+  const menu = conta || !loginAtivo() ? MENU : MENU.filter((m) => m.id === 'inicio')
   // Páginas do site de um lado; Admin (só para admin) separado delas
-  const paginas = MENU.map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
+  const paginas = menu.map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
   const linkAdmin = admin && <LinkMenu item={ITEM_ADMIN} atual={pagina} />
 
   // Barra de baixo (celular): páginas do site; as de fora (Inventário) vão para o "Mais"
-  const abas = MENU.filter((m) => !m.externo)
-  const extras = MENU.filter((m) => m.externo).map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
+  const abas = menu.filter((m) => !m.externo)
+  const extras = menu.filter((m) => m.externo).map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
   const atual = [...MENU, ITEM_ADMIN].find((m) => m.id === pagina) || OUTRAS[pagina] || MENU[0]
   const IconeAtual = ICONES_MENU[atual.icone]
   const IconePerfil = ICONES_MENU.perfil

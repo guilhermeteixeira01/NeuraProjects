@@ -8,6 +8,7 @@ import Letreiro from '../../comum/Letreiro.jsx'
 import { Icone, IconeKivo } from '../../comum/Icones.jsx'
 import { useT } from '../../comum/i18n.js'
 import LiveTwitch from './LiveTwitch.jsx'
+import TimesCarrossel from './TimesCarrossel.jsx'
 
 const SETA = (
   <Icone tamanho={14} traco={2.4}>
@@ -280,6 +281,9 @@ export default function Inicio() {
 
         {/* AO VIVO (Twitch): canais em assets/data/twitch.json; sem canal, não aparece */}
         <LiveTwitch />
+
+        {/* TIMES REGISTRADOS (assets/data/times.json): carrossel com os logos */}
+        <TimesCarrossel />
 
         {/* PROJETOS */}
         <section className="secao" id="projetos">
