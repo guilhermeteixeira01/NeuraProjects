@@ -939,15 +939,79 @@ Object.assign(MOLDURAS, {
   },
 })
 
+// ── Turbilhão (estilo da Vortex): faixas em forma de lua crescente girando em espiral em volta da foto, umas por cima das
+// outras em velocidades diferentes, e faíscas de energia saindo para os cantos. cores = [principal, clara, faíscas 1, faíscas 2]
+function turbilhao([cor, clara, fa1, fa2], semente) {
+  return (t) => {
+    const rnd = sorteio(semente)
+    // Faixa crescente: começa em a0, abre por "abre" radianos, grossura máxima "g", raio subindo em espiral
+    const faixa = (a0, abre, g, r0, sobe) => {
+      const N = 56, fora = [], dentro = []
+      for (let k = 0; k <= N; k++) {
+        const u = k / N, a = a0 + abre * u
+        const gr = g * Math.sin(Math.PI * u) ** 0.7, r = r0 + sobe * u
+        fora.push(ponto(r + gr / 2, a)); dentro.push(ponto(r - gr / 2, a))
+      }
+      return [...fora, ...dentro.reverse()].map(([x, y]) => `${f1(x)},${f1(y)}`).join(' ')
+    }
+    // Voltas por ciclo em número inteiro: a animação fecha certinho no fim
+    const lista = [
+      [1, 3.2, 11, 128, 7, cor], [-1, 2.6, 8, 135, -6, clara], [1, 2.4, 9, 122, 8, cor],
+      [2, 2.0, 6, 139, -5, clara], [-2, 2.2, 7, 125, 6, cor], [1, 1.6, 3.5, 131, 5, clara],
+    ].map(([voltas, abre, g, r0, sobe, c], k) => [faixa(t * voltas * TAU + k * 1.7, abre, g, r0, sobe), c])
+    // Brilho embaixo (borrado) e as faixas nítidas por cima, com contorno escuro separando uma da outra
+    const brilho = lista.map(([p, c]) => `<polygon points="${p}" fill="${c}"/>`).join('')
+    const nitidas = lista.map(([p, c]) => `<polygon points="${p}" fill="${c}" stroke="#03141a" stroke-width="1.6" stroke-linejoin="round"/>`).join('')
+    // Chamas de energia nos 4 cantos: línguas (como as do Inferno) saindo do anel rumo ao canto, balançando;
+    // mais umas línguas curtinhas em volta do anel todo
+    const lingua = (ang, base, alt, larg, bal, c, op) => {
+      const [x1, y1] = ponto(base, ang - larg), [x2, y2] = ponto(base, ang + larg)
+      const [xp, yp] = ponto(base + alt, ang + bal), [xc, yc] = ponto(base + alt * 0.55, ang + bal * 0.5)
+      return `<path d="M${f1(x1)},${f1(y1)} Q${f1(xc)},${f1(yc)} ${f1(xp)},${f1(yp)} Q${f1(xc)},${f1(yc)} ${f1(x2)},${f1(y2)} Z" fill="${c}" opacity="${f1(op)}"/>`
+    }
+    let chamas = ''
+    for (let q = 0; q < 4; q++) {
+      const centro = q * (Math.PI / 2) + Math.PI / 4
+      for (let k = 0; k < 14; k++) {
+        const ang = centro + (rnd() - 0.5) * 1.15, fase = rnd()
+        const perto = 1 - Math.abs(ang - centro) / 0.6 // mais comprida no meio do canto
+        const alt = (14 + 40 * Math.max(0, perto)) * (0.55 + 0.45 * onda(t * 2 + fase))
+        chamas += lingua(ang, 134, alt, 0.035 + 0.03 * rnd(), 0.12 * Math.sin((t * 2 + fase) * TAU), rnd() > 0.45 ? fa1 : fa2, 0.55 + 0.4 * rnd())
+      }
+    }
+    for (let k = 0; k < 36; k++) {
+      const ang = (k / 36) * TAU + rnd() * 0.1, fase = rnd()
+      chamas += lingua(ang, 136, 5 + 7 * onda(t * 3 + fase), 0.03, 0.05 * Math.sin((t + fase) * TAU), fa1, 0.5)
+    }
+    const faiscas = ''
+    return svg(`<g filter="url(#brilho)">${chamas}</g>${faiscas}
+      <g filter="url(#brilho)" opacity=".75">${brilho}</g>
+      <g>${nitidas}</g>
+      <circle cx="${C}" cy="${C}" r="121" fill="none" stroke="#03141a" stroke-width="2" opacity=".6"/>`)
+  }
+}
+const TURBILHOES = {
+  'turbilhao-ciano': ['Turbilhão Ciano', ['#19e6d0', '#a6fff3', '#1aa3ff', '#3ddc84']],
+  'turbilhao-violeta': ['Turbilhão Violeta', ['#a24dff', '#e2c2ff', '#ff3df0', '#6a5cff']],
+  'turbilhao-fogo': ['Turbilhão de Fogo', ['#ff6a1a', '#ffd38a', '#ff2a2a', '#ffb02e']],
+  'turbilhao-gelo': ['Turbilhão de Gelo', ['#5ab8ff', '#e8f6ff', '#ffffff', '#7fd8ff']],
+  'turbilhao-sangue': ['Turbilhão Sangue', ['#e0102a', '#ff8a96', '#ff4655', '#7a0010']],
+  'turbilhao-ouro': ['Turbilhão Dourado', ['#f5c542', '#fff2b0', '#ffb02e', '#ffffff']],
+  'turbilhao-toxico': ['Turbilhão Tóxico', ['#7dff2e', '#e4ffd0', '#c6ff00', '#2fbf6f']],
+  'turbilhao-rosa': ['Turbilhão Rosa', ['#ff3d9a', '#ffd0e6', '#ff8ad0', '#b026ff']],
+}
+Object.entries(TURBILHOES).forEach(([id, [nome, cores]], k) => (MOLDURAS[id] = { nome, quadros: 72, atraso: 40, quadro: turbilhao(cores, 500 + k) }))
+
 async function gerar(id) {
   const m = MOLDURAS[id]
+  const total = m.quadros || QUADROS // alguns desenhos usam mais quadros (animação mais lisa)
   const quadros = []
-  for (let i = 0; i < QUADROS; i++) {
-    const { data } = await sharp(Buffer.from(m.quadro(i / QUADROS, i))).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+  for (let i = 0; i < total; i++) {
+    const { data } = await sharp(Buffer.from(m.quadro(i / total, i))).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
     quadros.push(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength))
   }
   // Cores completas (sem reduzir paleta): qualidade máxima do brilho e dos degradês
-  const apng = Buffer.from(UPNG.encode(quadros, T, T, 0, Array(QUADROS).fill(ATRASO)))
+  const apng = Buffer.from(UPNG.encode(quadros, T, T, 0, Array(total).fill(m.atraso || ATRASO)))
   await gravar(`neura/${id}`, apng)
   console.log(`neura/${id}`.padEnd(26), m.nome.padEnd(20), (m.forma || 'redonda').padEnd(9), Math.round(apng.length / 1024) + ' KB')
 }
