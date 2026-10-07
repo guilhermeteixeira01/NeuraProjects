@@ -1,7 +1,7 @@
 // Foto atual da Steam de cada jogador. A foto que vem nas partidas (ranking, perfil, página da partida) é a do dia em que
 // a pessoa jogou, e a do login é a do dia em que entrou; quem troca a foto na Steam continuaria com a velha.
 // useAvatar(id, padrao) mostra a que já tem (padrao) e troca pela atual quando o worker responde (GET /avatares,
-// até 100 por chamada, com cache de 30 min lá). Os pedidos da página toda são juntados numa chamada só.
+// até 100 por chamada, com cache de 5 min por jogador lá). Os pedidos da página toda são juntados numa chamada só.
 import { useEffect, useState } from 'react'
 import { CONFIG } from './config.js'
 
