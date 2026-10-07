@@ -9,5 +9,6 @@ export function lerJson(caminho) {
 export const esc = (s) =>
   String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
 
-// Link só se for http(s) (logo de time, avatar...)
-export const urlOk = (u) => typeof u === 'string' && /^https?:\/\//i.test(u)
+// Link só se for http(s) (logo de time, avatar...). Também aceita data:image (AVATAR_VAZIO de avatares.js: foto ainda
+// carregando, o círculo fica vazio em vez de mostrar a foto velha ou as iniciais)
+export const urlOk = (u) => typeof u === 'string' && /^(https?:\/\/|data:image\/)/i.test(u)

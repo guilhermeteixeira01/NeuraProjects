@@ -59,7 +59,10 @@ Os nomes no ranking e na página da partida levam para ela.
 **Fotos de perfil atuais:** a foto gravada nas partidas é a do dia do jogo, e a do login é a do dia em que a pessoa entrou.
 O site mostra essa e troca pela atual da Steam (`src/comum/avatares.js`, `useAvatar(id, padrao)`): junta os jogadores da
 página numa chamada só ao worker (`GET /avatares?ids=...`, até 100, uma chamada à Web API da Steam, cache de 5 min por jogador).
-Vale no ranking, perfil, página da partida, painel admin e no botão da conta. Sem resposta, fica a foto que já tinha.
+Vale no ranking, perfil, página da partida, painel admin e no botão da conta. A foto velha nunca aparece: enquanto a
+atual não chega, o círculo fica vazio (`AVATAR_VAZIO`, também no HTML gerado), e a última foto conhecida de cada
+jogador fica no navegador (`localStorage np_avatares`) para aparecer na hora nas próximas visitas. Sem resposta do
+worker em 2,5 s, mostra a foto da partida.
 Avatar animado (item da Loja de Pontos da Steam) vem como GIF (`IPlayerService/GetAnimatedAvatar`); com "Melhorar
 desempenho" o site usa a foto parada (`_parado` na resposta).
 
