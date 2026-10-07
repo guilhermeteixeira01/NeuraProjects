@@ -61,6 +61,11 @@ O site mostra essa e troca pela atual da Steam (`src/comum/avatares.js`, `useAva
 página numa chamada só ao worker (`GET /avatares?ids=...`, até 100, uma chamada à Web API da Steam, cache de 30 min).
 Vale no ranking, perfil, página da partida, painel admin e no botão da conta. Sem resposta, fica a foto que já tinha.
 
+**Premier (Leetify) atualizado de hora em hora:** o `ranking.json` traz o CS Rating do último deploy. O cron do worker
+(primeira rodada de cada hora) lê o ranking publicado, busca o Premier de cada jogador na Leetify e guarda no KV
+`premier`; `GET /premier` entrega e o selo (`src/comum/Premier.jsx` + `premierAtual.js`) usa esse valor, ou o do deploy
+se não tiver. Com mais de 2 horas sem atualizar (cron parado), a própria rota dispara uma atualização.
+
 **Armas mais usadas** (no perfil, embaixo do gráfico): soma o `armas` de cada mapa do histórico
 (`src/comum/armas.js`): as 3 que mais mataram em destaque (kills, % das kills, HS% e dano) e o resto em lista.
 Imagens das armas em `public/assets/armas/<nome>.webp` (`ferramentas/molduras/armas.mjs` baixa de novo).

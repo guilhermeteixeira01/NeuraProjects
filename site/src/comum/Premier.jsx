@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { desempenhoAtivo } from './desempenho.js'
 import { useT } from './i18n.js'
+import { usePremierAtual } from './premierAtual.js'
 
-// ── CS Rating do Premier (vem da Leetify no deploy; null = jogador sem conta na Leetify) ──
+// ── CS Rating do Premier (Leetify): o atual do worker (atualizado de hora em hora) ou, sem ele, o do deploy.
+// null = jogador sem conta na Leetify ──
 const faixaPremier = (v) => (v >= 30000 ? 7 : v >= 25000 ? 6 : v >= 20000 ? 5 : v >= 15000 ? 4 : v >= 10000 ? 3 : v >= 5000 ? 2 : 1)
 // Igual ao jogo: milhares grandes e o resto pequeno (23,524)
 const partesPremier = (v) => (v < 1000 ? [String(v), ''] : [String(Math.floor(v / 1000)), ',' + String(v % 1000).padStart(3, '0')])
@@ -12,7 +14,8 @@ const atrasoBrilho = (id) => ((Number(String(id).slice(-4)) || 0) % 200) / 100
 // Contagem animada de 0 até o rating (a cor da faixa acompanha enquanto sobe)
 export default function Premier({ j }) {
   const t = useT()
-  const alvo = j.premier > 0 ? j.premier : 0
+  const atual = usePremierAtual(j.steamId)
+  const alvo = atual > 0 ? atual : j.premier > 0 ? j.premier : 0
   const [v, setV] = useState(alvo)
 
   useEffect(() => {
