@@ -1,37 +1,85 @@
 // Foto atual da Steam de cada jogador. A foto que vem nas partidas (ranking, perfil, página da partida) é a do dia em que
 // a pessoa jogou, e a do login é a do dia em que entrou; quem troca a foto na Steam continuaria com a velha.
-// useAvatar(id, padrao) mostra a que já tem (padrao) e troca pela atual quando o worker responde (GET /avatares,
-// até 100 por chamada, com cache de 5 min por jogador lá). Os pedidos da página toda são juntados numa chamada só.
-// Quem tem avatar animado (Loja de Pontos) recebe o GIF; com "Melhorar desempenho" ligado, a foto parada.
-import { useEffect, useState } from 'react'
+//
+// useAvatar(id, padrao) devolve a foto atual (GET /avatares no worker, até 100 por chamada, cache de 5 min por jogador
+// lá; os pedidos da página toda viram uma chamada só). Para a foto velha nunca aparecer antes da nova:
+//  - a última foto conhecida de cada jogador fica no navegador (localStorage np_avatares) e é usada na hora, antes de
+//    desenhar (useLayoutEffect), e confirmada/atualizada pelo worker em seguida;
+//  - jogador ainda desconhecido: AVATAR_VAZIO (imagem transparente, o círculo fica vazio) até o worker responder;
+//    sem resposta em ESPERA_MAX, mostra a foto que veio da partida (padrao).
+// No HTML gerado (sem JS) também sai AVATAR_VAZIO, igual à primeira renderização no navegador.
+// Avatar animado (Loja de Pontos) vem como GIF; com "Melhorar desempenho", a foto parada.
+import { useEffect, useLayoutEffect, useState } from 'react'
 import { CONFIG } from './config.js'
 import { EVENTO_DESEMPENHO, desempenhoAtivo } from './desempenho.js'
 
+export const AVATAR_VAZIO = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
 const EVENTO = 'np-avatares'
+const CHAVE = 'np_avatares'
+const ESPERA_MAX = 2500
 const ID = /^\d{17}$/
 const URL_OK = /^https:\/\//
+const usarLayout = typeof window !== 'undefined' ? useLayoutEffect : useEffect
+
 const atuais = new Map() // id -> url atual (GIF para quem tem avatar animado)
 const parados = new Map() // id -> foto parada de quem tem avatar animado
+const desistiu = new Set() // worker não respondeu: usa a foto da partida
 const pedidos = new Set() // esperando a próxima chamada
-const buscados = new Set() // já pedidos (não pede de novo nesta página)
+const buscados = new Set() // já pedidos nesta página
 let espera = null
+let lido = false
+
+// Última foto conhecida de cada um (guardada no navegador)
+function lerGuardadas() {
+  if (lido || typeof window === 'undefined') return
+  lido = true
+  try {
+    const d = JSON.parse(localStorage.getItem(CHAVE) || '{}')
+    for (const [id, v] of Object.entries(d)) {
+      if (URL_OK.test(v?.u || '')) atuais.set(id, v.u)
+      if (URL_OK.test(v?.p || '')) parados.set(id, v.p)
+    }
+  } catch {
+    // sem armazenamento: só não tem a foto na hora
+  }
+}
+function guardar() {
+  try {
+    const d = {}
+    for (const [id, u] of atuais) d[id] = parados.has(id) ? { u, p: parados.get(id) } : { u }
+    localStorage.setItem(CHAVE, JSON.stringify(d))
+  } catch {
+    // cheio ou bloqueado
+  }
+}
 
 async function buscar() {
   espera = null
   const ids = [...pedidos]
   pedidos.clear()
   const base = CONFIG.loginSteam.replace(/\/$/, '')
+  const desistir = setTimeout(() => {
+    for (const id of ids) if (!atuais.has(id)) desistiu.add(id)
+    window.dispatchEvent(new Event(EVENTO))
+  }, ESPERA_MAX)
   for (let i = 0; i < ids.length; i += 100) {
+    const lote = ids.slice(i, i + 100)
     try {
       // v=2: versões antigas do worker mandavam o navegador guardar por 30 min; o endereço novo não pega essa cópia velha
-      const r = await fetch(`${base}/avatares?v=2&ids=${ids.slice(i, i + 100).join(',')}`, { cache: 'no-store' })
+      const r = await fetch(`${base}/avatares?v=2&ids=${lote.join(',')}`, { cache: 'no-store' })
       const d = r.ok ? await r.json() : {}
       for (const [id, url] of Object.entries(d || {})) if (typeof url === 'string' && URL_OK.test(url)) atuais.set(id, url)
-      for (const [id, url] of Object.entries(d?._parado || {})) if (URL_OK.test(url)) parados.set(id, url)
+      for (const id of lote) {
+        if (URL_OK.test(d?._parado?.[id] || '')) parados.set(id, d._parado[id])
+        else if (d?.[id]) parados.delete(id) // tirou o avatar animado
+        if (!atuais.has(id)) desistiu.add(id) // a Steam não devolveu: fica a da partida
+      }
     } catch {
-      // sem resposta: fica a foto que já tinha
+      for (const id of lote) if (!atuais.has(id)) desistiu.add(id)
     }
   }
+  clearTimeout(desistir)
+  guardar()
   window.dispatchEvent(new Event(EVENTO))
 }
 
@@ -42,10 +90,26 @@ function pedir(id) {
   espera ??= setTimeout(buscar, 40) // junta os pedidos da mesma renderização
 }
 
+const ativo = (id) => Boolean(CONFIG.loginSteam) && ID.test(String(id || ''))
+
+function valor(id, padrao) {
+  if (!ativo(id)) return padrao
+  const chave = String(id)
+  if (desempenhoAtivo() && parados.has(chave)) return parados.get(chave)
+  if (atuais.has(chave)) return atuais.get(chave)
+  return desistiu.has(chave) ? padrao : AVATAR_VAZIO
+}
+
 export function useAvatar(id, padrao = '') {
+  // Primeira renderização (e HTML gerado): vazio, para nunca desenhar a foto velha; o efeito abaixo põe a certa
   const [, atualizar] = useState(0)
+  const [montado, setMontado] = useState(false)
+  usarLayout(() => {
+    lerGuardadas()
+    setMontado(true) // antes de pintar: a guardada já aparece no primeiro quadro
+  }, [])
   useEffect(() => {
-    if (!CONFIG.loginSteam || !ID.test(String(id || ''))) return
+    if (!ativo(id)) return
     const ouvir = () => atualizar((n) => n + 1)
     window.addEventListener(EVENTO, ouvir)
     window.addEventListener(EVENTO_DESEMPENHO, ouvir)
@@ -55,7 +119,6 @@ export function useAvatar(id, padrao = '') {
       window.removeEventListener(EVENTO_DESEMPENHO, ouvir)
     }
   }, [id])
-  const chave = String(id || '')
-  if (desempenhoAtivo() && parados.has(chave)) return parados.get(chave)
-  return atuais.get(chave) || padrao
+  if (!montado) return ativo(id) ? AVATAR_VAZIO : padrao
+  return valor(id, padrao)
 }
