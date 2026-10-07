@@ -11,6 +11,7 @@ import { SeloNivel } from '../../comum/Nivel.jsx'
 import { nivelDe } from '../../comum/niveis.js'
 import { MIN_MAPAS } from '../../comum/ranking.js'
 import { useT } from '../../comum/i18n.js'
+import { useAvatar } from '../../comum/avatares.js'
 
 const TOP = 15
 
@@ -42,15 +43,16 @@ function dataBr(iso, local = 'pt-BR') {
 }
 
 function Avatar({ j, classe }) {
-  const [erro, setErro] = useState(false)
-  if (!urlOk(j.avatar) || erro) {
+  const src = useAvatar(j.steamId, j.avatar) // foto atual da Steam (a do ranking é a da última partida)
+  const [erro, setErro] = useState('')
+  if (!urlOk(src) || erro === src) {
     return (
       <span className={`${classe} ini`}>
         <span>{iniciais(j.nome)}</span>
       </span>
     )
   }
-  return <img className={classe} src={j.avatar} alt="" loading="lazy" onError={() => setErro(true)} />
+  return <img className={classe} src={src} alt="" loading="lazy" onError={() => setErro(src)} />
 }
 
 function Forma({ j }) {

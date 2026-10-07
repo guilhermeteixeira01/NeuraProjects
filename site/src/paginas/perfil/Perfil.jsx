@@ -14,6 +14,7 @@ import Premier from '../../comum/Premier.jsx'
 import { BarraXp, SeloNivel, useNivelDe } from '../../comum/Nivel.jsx'
 import SeletorMoldura from './SeletorMoldura.jsx'
 import { useT } from '../../comum/i18n.js'
+import { useAvatar } from '../../comum/avatares.js'
 
 // Perfil do jogador: /perfil/?id=<SteamID64>. Sem id, mostra o de quem está logado pela Steam.
 // Dados: ranking/ranking.json (totais) e perfil/historico/<id>.json (todos os mapas), gerados no deploy.
@@ -37,10 +38,11 @@ const dataBr = (iso, local = 'pt-BR', hora = true) => {
         .replace(',', '')
 }
 
-function Avatar({ src, nome, classe }) {
-  const [erro, setErro] = useState(false)
-  return urlOk(src) && !erro ? (
-    <img className={classe} src={src} alt="" onError={() => setErro(true)} />
+function Avatar({ id, src: padrao, nome, classe }) {
+  const src = useAvatar(id, padrao) // foto atual da Steam
+  const [erro, setErro] = useState('')
+  return urlOk(src) && erro !== src ? (
+    <img className={classe} src={src} alt="" onError={() => setErro(src)} />
   ) : (
     <span className={`${classe} ini`}>{iniciais(nome)}</span>
   )
@@ -406,7 +408,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
         {/* Topo organizado em linhas: nome e selos; quadros iguais (nível, time, Premier, ranking); XP; botões */}
         <div className="wrap pf-topo">
           <ComMoldura steamId={j.steamId}>
-            <Avatar src={j.avatar} nome={j.nome} classe="pf-av fx-entra" />
+            <Avatar id={j.steamId} src={j.avatar} nome={j.nome} classe="pf-av fx-entra" />
           </ComMoldura>
           <div className="pf-id fx-entra" style={{ '--e': 1 }}>
             <span className="kicker">
@@ -603,6 +605,7 @@ export default function Perfil() {
   const { admin } = useAdmin(conta)
   const perfis = usePerfis()
   const meuNivel = useNivelDe(dados?.ranking?.jogadores?.find((x) => x.steamId === conta?.id) || { steamId: conta?.id, xp: 0 })
+  const minhaFoto = useAvatar(conta?.id, conta?.avatar) // prévia do "Personalizar" com a foto atual
   let conteudo
   // Sem login, o perfil de um jogador aparece embaçado com o pedido para entrar (a tela "Seu perfil" já pede login)
   let travado = false
@@ -645,7 +648,7 @@ export default function Perfil() {
     <Layout pagina="perfil">
       <main>{travado ? <TravaLogin>{conteudo}</TravaLogin> : conteudo}</main>
       {editando && conta && (
-        <SeletorMoldura steamId={conta.id} avatar={conta.avatar || j?.avatar} nome={conta.nome || j?.nome || t('Você')} nivel={meuNivel.nivel} admin={admin} fechar={fechar} />
+        <SeletorMoldura steamId={conta.id} avatar={minhaFoto || j?.avatar} nome={conta.nome || j?.nome || t('Você')} nivel={meuNivel.nivel} admin={admin} fechar={fechar} />
       )}
     </Layout>
   )

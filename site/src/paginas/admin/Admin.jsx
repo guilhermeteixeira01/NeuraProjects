@@ -10,6 +10,7 @@ import { NIVEL_MAX, nivelDe } from '../../comum/niveis.js'
 import { ordenarRanking } from '../../comum/ranking.js'
 import { localeAtual, useT } from '../../comum/i18n.js'
 import { ICONES_CARGO, IconeCargo } from '../../comum/cargos.jsx'
+import { useAvatar } from '../../comum/avatares.js'
 
 // Painel de administrador (/admin/). A aba só aparece para admin, mas quem decide é o worker:
 // toda chamada /admin/... confere o login e se a pessoa é admin (o dono, ou quem o dono promoveu).
@@ -25,9 +26,10 @@ const mensagemErro = (e) =>
   ({ login: 'Seu login venceu. Entre de novo com a Steam.', admin: 'Você não é mais administrador.', dono: 'Só o dono pode mudar os administradores.', xp: 'Ajuste de XP fora do limite.', exclusiva: 'Essa moldura é exclusiva de um cargo que o jogador não tem: dê o cargo primeiro.' })[e.message] ||
   'Não deu para salvar. Tente de novo.'
 
-function Avatar({ src, nome, classe = 'adm-av' }) {
-  const [erro, setErro] = useState(false)
-  return urlOk(src) && !erro ? <img className={classe} src={src} alt="" loading="lazy" onError={() => setErro(true)} /> : <span className={`${classe} ini`}>{iniciais(nome)}</span>
+function Avatar({ id, src: padrao, nome, classe = 'adm-av' }) {
+  const src = useAvatar(id, padrao) // foto atual da Steam
+  const [erro, setErro] = useState('')
+  return urlOk(src) && erro !== src ? <img className={classe} src={src} alt="" loading="lazy" onError={() => setErro(src)} /> : <span className={`${classe} ini`}>{iniciais(nome)}</span>
 }
 
 // Junta todo mundo que o site conhece: jogadores do ranking, quem já entrou pela Steam e quem tem perfil salvo
@@ -107,7 +109,7 @@ function Usuarios({ usuarios, painel, dono, editar }) {
                   <td className="esq">
                     <span className="adm-jog">
                       <ComMoldura steamId={u.id}>
-                        <Avatar src={u.avatar} nome={u.nome} />
+                        <Avatar id={u.id} src={u.avatar} nome={u.nome} />
                       </ComMoldura>
                       <span>
                         <a href={linkPerfil(u.id)}>{u.nome || tr('Sem nome')}</a>
@@ -238,7 +240,7 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
         <div className="adm-ed-corpo">
           <div className="adm-ed-topo">
             <span className={`moldura-box adm-ed-av${classeForma(moldura)}`}>
-              <Avatar src={u.avatar} nome={u.nome} classe="adm-ed-img" />
+              <Avatar id={u.id} src={u.avatar} nome={u.nome} classe="adm-ed-img" />
               <CamadaMoldura id={moldura} />
             </span>
             <div>
@@ -646,7 +648,7 @@ function Cargos({ config, usuarios, aoSalvar }) {
                   .slice(0, 8)
                   .map((u) => (
                     <a key={u.id} href={linkPerfil(u.id)} title={u.nome}>
-                      <Avatar src={u.avatar} nome={u.nome} classe="adm-av mini" />
+                      <Avatar id={u.id} src={u.avatar} nome={u.nome} classe="adm-av mini" />
                     </a>
                   ))}
               </span>
@@ -698,7 +700,7 @@ function Admins({ config, dono, souDono, usuarios, aoSalvar }) {
       <ul>
         {[dono, ...(config.admins || []).filter((id) => id !== dono)].filter(Boolean).map((id) => (
           <li key={id}>
-            <Avatar src={avatarDe(id)} nome={nomeDe(id)} />
+            <Avatar id={id} src={avatarDe(id)} nome={nomeDe(id)} />
             <a className="adm-admin-nome" href={linkPerfil(id)}>
               <b>{nomeDe(id)}</b>
               <small className="mono">{id}</small>

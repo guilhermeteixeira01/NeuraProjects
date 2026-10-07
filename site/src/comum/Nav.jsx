@@ -9,6 +9,7 @@ import { useT } from './i18n.js'
 // Aba do painel de administrador (só aparece para admin; o worker confere de novo em toda ação)
 const ITEM_ADMIN = { id: 'admin', rotulo: 'Admin', href: '/admin/', icone: 'escudo' }
 import { ComMoldura } from './Moldura.jsx'
+import { useAvatar } from './avatares.js'
 
 function LinkMenu({ item, atual }) {
   const t = useT()
@@ -33,7 +34,9 @@ function Conta() {
   const t = useT()
   const conta = useConta()
   const [aberto, setAberto] = useState(false)
-  const [erroAvatar, setErroAvatar] = useState(false)
+  const [erroAvatar, setErroAvatar] = useState('')
+  // A foto do token é a do dia do login (vale 30 dias): troca pela atual da Steam
+  const fotoAtual = useAvatar(conta?.id)
   const caixa = useRef(null)
 
   useEffect(() => {
@@ -58,12 +61,13 @@ function Conta() {
     )
 
   const nome = conta.nome || t('Minha conta')
+  const avatar = fotoAtual || conta.avatar
   return (
     <div className="nx-conta" ref={caixa}>
       <button type="button" className="nx-conta-btn" aria-haspopup="menu" aria-expanded={aberto} onClick={() => setAberto((a) => !a)}>
         <ComMoldura steamId={conta.id}>
-          {conta.avatar && !erroAvatar ? (
-            <img src={conta.avatar} alt="" width="28" height="28" onError={() => setErroAvatar(true)} />
+          {avatar && erroAvatar !== avatar ? (
+            <img src={avatar} alt="" width="28" height="28" onError={() => setErroAvatar(avatar)} />
           ) : (
             <span className="nx-conta-ini">{nome.slice(0, 2).toUpperCase()}</span>
           )}
