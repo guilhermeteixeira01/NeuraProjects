@@ -426,15 +426,6 @@
     "fonte": "steam",
     "colecao": "Steam Tech",
     "pasta": "steam-tech",
-    "nome": "Star Frame",
-    "appid": 2084820,
-    "arquivo": "a35244a2d5d13f71d18e2e67ac20edb38a3ceb2a.png",
-    "original": "STAR FRAME"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Tech",
-    "pasta": "steam-tech",
     "nome": "DarkAge (roxo)",
     "appid": 601220,
     "arquivo": "2b817dadbde606a4773e34198e6220d8170da5c3.png",
@@ -961,15 +952,6 @@
     "fonte": "steam",
     "colecao": "Steam Tech",
     "pasta": "steam-tech",
-    "nome": "Timewinder",
-    "appid": 1276800,
-    "arquivo": "9530a7325c5c731c28a2cf2f1b8c406e0ce70aca.png",
-    "original": "Timewinder Rewind"
-  },
-  {
-    "fonte": "steam",
-    "colecao": "Steam Tech",
-    "pasta": "steam-tech",
     "nome": "Hologram",
     "appid": 2192270,
     "arquivo": "f422821b2a7d74795c814462a4f626fa9fa4b8ca.png",
@@ -1433,5 +1415,16 @@
     "hash": "ba348c956430bf8f9da6698c9893a2f7",
     "origem": "acervo de usuários do Decor (revisada)",
     "forma": "quadrada"
+  },
+  {
+    "fonte": "steam",
+    "colecao": "Steam Tech",
+    "pasta": "steam-tech",
+    "nome": "Runic Circle",
+    "appid": 2058030,
+    "arquivo": "824a8e69fe80348d707ce63cb3f0f30ce216ac3f.png",
+    "original": "Runic Circle",
+    "forma": "redonda",
+    "escala": 1.2
   }
 ]

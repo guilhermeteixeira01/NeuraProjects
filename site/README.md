@@ -108,7 +108,7 @@ central e a moldura é 120% dele) com uma miniatura parada `.webp` (144x144) ao 
 De onde vêm (campo `fonte` na lista):
 - **Neura** (`fonte: 'neura'`): feitas por nós, desenhadas por código em `ferramentas/molduras/neura.mjs`
   (anel neon, plasma, fogo, raio, radar, mira, glitch, órbita, hexágonos, coroa, C4, aurora, eclipse, hélice, runas,
-  geada, equalizador; quadradas: neon, circuito, HUD, ouro, equalizador, geada, RGB, fluxo de dados). Geradas com
+  geada, equalizador, turbilhão em 8 cores no estilo da Vortex (72 quadros); quadradas: neon, circuito, HUD, ouro, equalizador, geada, RGB, fluxo de dados). Geradas com
   cores completas (sem reduzir a paleta).
 - **Steam** (Loja de Pontos) e **Decor** (decorações da comunidade): a lista escolhida fica em
   `ferramentas/molduras/escolhidas.json` e `baixar.mjs` baixa e grava o arquivo como veio (sem recomprimir e sem
