@@ -232,7 +232,7 @@ html.sm-aberto { overflow: hidden; }
 }
 .sm-abas button:hover { color: var(--text); }
 .sm-abas button.active { color: var(--blue-2); background: rgba(26,115,232,.16); box-shadow: inset 0 0 0 1px rgba(26,115,232,.55); }
-.sm-grade-times { padding-top: 16px; }
+.sm-rolagem .sm-grade-times { padding-top: 16px; }
 .sm-time-logo { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; max-width: none; border: 1px solid var(--border-2); }
 .sm-logo-ini { display: grid; place-items: center; background: var(--panel-2); font-family: var(--font-display); font-weight: 700; color: var(--dim); }
 .sm-time-logo.sm-logo-ini { font-size: 24px; }
@@ -266,28 +266,6 @@ html.sm-aberto { overflow: hidden; }
 }
 .pf-sem b { font-family: var(--font-display); font-size: 18px; }
 .pf-sem span { color: var(--dim); font-size: 14px; max-width: 640px; }
-
-/* Molduras separadas por nível (Personalizar) */
-.sm-rolagem { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px; display: flex; flex-direction: column; gap: 18px; }
-.sm-rolagem .sm-grade { flex: none; overflow: visible; padding: 0; }
-.sm-secao { display: flex; flex-direction: column; gap: 10px; }
-.sm-secao-cab { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-size: 15px; font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-.sm-secao-cab small { font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: var(--green); }
-.sm-secao-cab.presa small { color: var(--dim-2); }
-.sm-secao-cab .mono { margin-left: auto; font-size: 11px; color: var(--dim-2); }
-/* Dentro de cada nível: subgrupo por coleção */
-.sm-secao { gap: 12px; }
-.sm-sub { display: flex; flex-direction: column; gap: 8px; }
-.sm-sub-cab { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; letter-spacing: .5px; color: var(--dim); }
-.sm-sub-cab::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
-.sm-sub-cab small { font-family: var(--font-mono); font-size: 10px; color: var(--dim-2); }
-
-/* Molduras exclusivas de cargo (Premium, VIP...) */
-.sm-secao-cargo { padding: 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--cg) 35%, transparent); background: color-mix(in srgb, var(--cg) 5%, transparent); }
-.sm-secao-cargo .sm-secao-cab { border-bottom-color: color-mix(in srgb, var(--cg) 25%, transparent); }
-.sm-coroa { filter: drop-shadow(0 0 4px currentColor); }
-
-
 
 /* "Ocultar do ranking" (dono e admins, no próprio perfil) */
 .pf-ocultar {
@@ -457,3 +435,81 @@ html.sm-aberto { overflow: hidden; }
 @media (max-width: 720px) {
   .pf-trava-cartao { margin-top: 70px; top: 90px; padding: 22px 18px 18px; }
 }
+
+/* ══════════════ Personalizar perfil (SeletorMoldura.jsx): layout organizado ══════════════
+ * Janela de tamanho fixo (não pula ao trocar de aba). Esquerda: prévia + resumo das escolhas. Direita: abas,
+ * busca e coleções numa linha só (rola para o lado) e a grade, separada só por coleção. */
+.sm-painel { width: min(1040px, 100%); height: min(760px, 100%); max-height: none; }
+.sm-corpo { grid-template-columns: 280px minmax(0, 1fr); }
+.sm-previa { justify-content: flex-start; padding: 34px 22px 22px; gap: 10px; }
+.sm-av { width: 148px; height: 148px; margin-bottom: 18px; }
+.sm-resumo { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.sm-resumo-linha {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; padding: 10px 12px; text-align: left;
+  border-radius: 10px; border: 1px solid var(--border); background: rgb(var(--fundo) / .45); color: var(--text); font: inherit; cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.sm-resumo-linha:hover { border-color: var(--border-2); }
+.sm-resumo-linha.ativa { border-color: rgba(52, 152, 219, .55); background: rgba(26, 115, 232, .1); }
+.sm-resumo-rot { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--dim-2); }
+.sm-resumo-val { display: flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%; font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sm-resumo-linha.ativa .sm-resumo-val { color: var(--blue-2); }
+
+.sm-abas { margin: 16px 16px 0; }
+.sm-ferramentas { display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--border); flex: none; }
+.sm-busca {
+  width: 100%; height: 38px; padding: 0 12px 0 36px; border-radius: 10px; border: 1px solid var(--border-2); color: var(--text); font: inherit; font-size: 13.5px;
+  background: var(--bg-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237b8494' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 12px center;
+}
+.sm-busca:focus { outline: none; border-color: var(--blue-2); }
+/* Coleções: uma linha só, rolando para o lado (com o fim esmaecendo para mostrar que tem mais) */
+.sm-ferramentas .sm-colecoes {
+  flex-wrap: nowrap; overflow-x: auto; padding: 0 24px 2px 0; border: 0; scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent); mask-image: linear-gradient(90deg, #000 88%, transparent);
+}
+.sm-ferramentas .sm-colecoes::-webkit-scrollbar { display: none; }
+.sm-colecoes small { margin-left: 5px; font-family: var(--font-mono); font-size: 10px; color: var(--dim-2); }
+.sm-colecoes button.active small { color: var(--blue-2); }
+
+.sm-rolagem { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 16px 18px; display: flex; flex-direction: column; gap: 8px; }
+.sm-rolagem .sm-grade { flex: none; overflow: visible; padding: 0; }
+.sm-aviso { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; font-size: 12px; color: var(--dim); }
+.sm-grupo { display: flex; flex-direction: column; gap: 10px; }
+/* Título da coleção fica preso no topo enquanto rola */
+.sm-grupo-cab {
+  position: sticky; top: -4px; z-index: 2; display: flex; align-items: center; gap: 8px; margin: 0 -16px; padding: 12px 16px 8px;
+  font-family: var(--font-display); font-size: 15px; font-weight: 700; background: linear-gradient(180deg, var(--panel-2) 75%, transparent);
+}
+.sm-grupo-cab small { font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; color: var(--dim-2); }
+.sm-grupo-cab::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
+
+/* Ícone "nenhum" (sem moldura / sem time) */
+.sm-sem-icone { display: grid; place-items: center; font-size: 0; color: var(--dim-2); border: 2px dashed var(--border-2); border-radius: 50%; transition: color .15s, border-color .15s; }
+.sm-item.sem:hover .sm-sem-icone { color: var(--dim); border-color: var(--dim-2); }
+.sm-item.sem.sel .sm-sem-icone { color: var(--blue-2); border-color: var(--blue-2); }
+
+/* Selo do que libera a moldura (cargo ou nível) e cadeado */
+.sm-exige {
+  top: 5px; right: 5px; gap: 3px; padding: 2px 5px; border-radius: 999px; font-size: 9.5px; font-weight: 700; line-height: 1;
+  background: rgb(var(--fundo) / .85); border: 1px solid var(--border-2); color: var(--cg, var(--dim));
+}
+.sm-exige-nv { font-family: var(--font-mono); color: var(--dim); }
+.sm-item.presa { opacity: .62; }
+.sm-item.presa > span:nth-of-type(1) { color: var(--dim-2); }
+
+@media (max-width: 720px) {
+  .sm-painel { width: 100%; height: 100%; }
+  .sm-corpo { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .sm-previa { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; justify-items: stretch; gap: 4px 16px; padding: 14px 16px; text-align: left; }
+  .sm-av { grid-row: 1 / span 2; width: 76px; height: 76px; margin: 6px; }
+  .sm-previa > b { grid-column: 2; font-size: 17px; }
+  .sm-resumo { grid-column: 2; flex-direction: row; margin: 0; gap: 6px; }
+  .sm-resumo-linha { flex: 1; min-width: 0; padding: 7px 9px; }
+  .sm-resumo-val { font-size: 12.5px; }
+  .sm-abas { margin: 12px 12px 0; }
+  .sm-ferramentas { padding: 10px 12px; }
+  .sm-rolagem { padding: 2px 12px 14px; }
+  .sm-grupo-cab { margin: 0 -12px; padding: 10px 12px 6px; font-size: 14px; }
+  .sm-rolagem .sm-grade { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+}
+.sm-rolagem .sm-grade.sm-grade-times { padding-top: 16px; }

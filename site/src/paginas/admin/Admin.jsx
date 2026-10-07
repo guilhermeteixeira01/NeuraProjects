@@ -11,6 +11,7 @@ import { ordenarRanking } from '../../comum/ranking.js'
 import { localeAtual, useT } from '../../comum/i18n.js'
 import { ICONES_CARGO, IconeCargo } from '../../comum/cargos.jsx'
 import { useAvatar } from '../../comum/avatares.js'
+import { IconeNenhum } from '../../comum/Icones.jsx'
 
 // Painel de administrador (/admin/). A aba só aparece para admin, mas quem decide é o worker:
 // toda chamada /admin/... confere o login e se a pessoa é admin (o dono, ou quem o dono promoveu).
@@ -180,7 +181,7 @@ function EscolherMoldura({ valor, escolher }) {
       <div className="sm-grade adm-galeria-grade">
         {!termo && (
           <button type="button" className={`sm-item sem${!valor ? ' sel' : ''}`} onClick={() => escolher('')} aria-pressed={!valor}>
-            <span className="sm-sem-icone">∅</span>
+            <span className="sm-sem-icone"><IconeNenhum /></span>
             <span>{tr('Sem moldura')}</span>
           </button>
         )}

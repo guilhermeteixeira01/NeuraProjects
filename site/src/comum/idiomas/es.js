@@ -641,4 +641,6 @@ export default {
   "Entre para ver este perfil": "Inicia sesión para ver este perfil",
   "Estatísticas, histórico de partidas, armas e nível dos jogadores ficam disponíveis para quem entra com a conta Steam.": "Las estadísticas, el historial de partidas, las armas y el nivel de los jugadores están disponibles para quien inicia sesión con Steam.",
   "Voltar para o ranking": "Volver al ranking",
+  "Nv {n}": "Nv {n}",
+  "Molduras com cadeado liberam ao subir de nível ou com um cargo.": "Los marcos con candado se desbloquean al subir de nivel o con un cargo.",
 }

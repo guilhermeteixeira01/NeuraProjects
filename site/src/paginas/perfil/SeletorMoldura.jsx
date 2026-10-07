@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { CamadaMoldura, SeloCargo, cargoDaMoldura, useCargosIdsDe, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
-import { SeloNivel } from '../../comum/Nivel.jsx'
+import { CamadaMoldura, cargoDaMoldura, useCargosIdsDe, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
 import { COLECOES, MOLDURAS, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { urlOk } from '../../comum/dados.js'
 import { useT } from '../../comum/i18n.js'
 import { IconeCargo } from '../../comum/cargos.jsx'
+import { IconeNenhum } from '../../comum/Icones.jsx'
 
 function CadeadoMini() {
   return (
@@ -45,6 +45,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   const [mexeu, setMexeu] = useState(false)
   const [aba, setAba] = useState('moldura') // 'moldura' | 'time'
   const [colecao, setColecao] = useState('todas')
+  const [busca, setBusca] = useState('')
   const [estado, setEstado] = useState('') // '' | 'salvando' | 'erro' | 'login' | 'nivel' | 'bloqueado'
   const [erroAvatar, setErroAvatar] = useState(false)
 
@@ -72,11 +73,16 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
     setMexeu(true)
   }
 
-  const lista = colecao === 'todas' ? MOLDURAS : MOLDURAS.filter((m) => m.colecao === colecao)
-  // Dentro de cada nível, separadas por coleção (na ordem de COLECOES)
-  const porColecao = (itens) => COLECOES.map((c) => [c, itens.filter((m) => m.colecao === c)]).filter(([, l]) => l.length)
-  const itemMoldura = (m, exige) => {
+  // O que trava cada moldura (selo no canto): cargo exclusivo e/ou nível
+  const itemMoldura = (m) => {
     const presa = travada(m.id)
+    const cargo = cargoDaMoldura(config, m.id)
+    const nv = nivelDaMoldura(config, m.id)
+    const titulo = !presa
+      ? `${m.nome} · ${m.colecao}`
+      : semCargo(m.id)
+        ? `${m.nome}: ${tr('exclusiva de {cargo}', { cargo: cargo.nome })}`
+        : `${m.nome}: ${tr('libera no nível {n}', { n: nv })}`
     return (
       <button
         key={m.id}
@@ -85,56 +91,33 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         onClick={() => !presa && escolher('moldura', m.id)}
         aria-pressed={escolha.moldura === m.id}
         aria-disabled={presa}
-        title={
-          !presa
-            ? `${m.nome} · ${m.colecao}`
-            : semCargo(m.id)
-              ? `${m.nome}: ${tr('exclusiva de {cargo}', { cargo: cargoDaMoldura(config, m.id).nome })}`
-              : `${m.nome}: ${tr('libera no nível {n}', { n: exige })}`
-        }
+        title={titulo}
       >
         <img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" />
         <span>{m.nome}</span>
-        {(presa || cargoDaMoldura(config, m.id)) && (
-          <span className="sm-exige">
-            {cargoDaMoldura(config, m.id) && (
-              <IconeCargo className="sm-coroa" style={{ color: cargoDaMoldura(config, m.id).cor }} icone={cargoDaMoldura(config, m.id).icone} tamanho={13} />
-            )}
+        {(cargo || (presa && nv > 1)) && (
+          <span className="sm-exige" style={cargo ? { '--cg': cargo.cor } : undefined}>
+            {cargo ? <IconeCargo icone={cargo.icone} tamanho={12} /> : <span className="sm-exige-nv">{tr('Nv {n}', { n: nv })}</span>}
             {presa && <CadeadoMini />}
           </span>
         )}
       </button>
     )
   }
-
-  // Molduras agrupadas pelo nível exigido (em ordem); com a regra desligada fica tudo num grupo só
-  const gruposPorNivel = (itens) => {
-    const grupos = new Map()
-    for (const m of itens) {
-      const n = nivelDaMoldura(config, m.id)
-      if (!grupos.has(n)) grupos.set(n, [])
-      grupos.get(n).push(m)
-    }
-    return [...grupos.entries()].sort((x, y) => x[0] - y[0])
-  }
-  // Exclusivas de cargo têm seção própria (uma por cargo, no topo); o resto vai para as seções de nível
-  const exclusivas = (config.cargos || []).map((c) => [c, lista.filter((m) => config.molduraCargo?.[m.id] === c.id)]).filter(([, l]) => l.length)
-  const comuns = lista.filter((m) => !cargoDaMoldura(config, m.id))
-  const subgrupos = (itens, exige) =>
-    porColecao(itens).map(([c, daColecao]) =>
-      colecao === 'todas' ? (
-        <div key={c} className="sm-sub">
-          <h5 className="sm-sub-cab">
-            {c} <small>{daColecao.length}</small>
-          </h5>
-          <div className="sm-grade">{daColecao.map((m) => itemMoldura(m, exige(m)))}</div>
-        </div>
-      ) : (
-        <div key={c} className="sm-grade">
-          {daColecao.map((m) => itemMoldura(m, exige(m)))}
-        </div>
-      ),
-    )
+  const semMoldura = (
+    <button key="sem" type="button" className={`sm-item sem${escolha.moldura === null ? ' sel' : ''}`} onClick={() => escolher('moldura', null)} aria-pressed={escolha.moldura === null}>
+      <span className="sm-sem-icone">
+        <IconeNenhum />
+      </span>
+      <span>{tr('Sem moldura')}</span>
+    </button>
+  )
+  // Liberadas primeiro, travadas depois (na ordem da lista dentro de cada grupo)
+  const ordenar = (itens) => [...itens.filter((m) => !travada(m.id)), ...itens.filter((m) => travada(m.id))]
+  const termo = busca.trim().toLowerCase()
+  const achadas = termo ? ordenar(MOLDURAS.filter((m) => m.nome.toLowerCase().includes(termo))) : null
+  const grupos = (colecao === 'todas' ? COLECOES : [colecao]).map((c) => [c, ordenar(MOLDURAS.filter((m) => m.colecao === c))]).filter(([, l]) => l.length)
+  const algumaPresa = MOLDURAS.some((m) => travada(m.id))
   const moldura = molduraPorId(escolha.moldura)
   const time = times.find((t) => t.nome === escolha.time) || null
   const mudou = escolha.moldura !== salvo.moldura || escolha.time !== salvo.time
@@ -171,15 +154,19 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
               <CamadaMoldura id={escolha.moldura} />
             </span>
             <b>{nome}</b>
-            {time ? (
-              <span className="sm-time-previa">
-                <Logo url={time.logo} nome={time.nome} classe="sm-logo" />
-                {time.nome}
-              </span>
-            ) : (
-              <small>{tr('Sem time')}</small>
-            )}
-            <span className="mono">{moldura ? moldura.nome.toUpperCase() : tr('SEM MOLDURA')}</span>
+            <div className="sm-resumo">
+              <button type="button" className={`sm-resumo-linha${aba === 'moldura' ? ' ativa' : ''}`} onClick={() => setAba('moldura')}>
+                <span className="sm-resumo-rot">{tr('Moldura')}</span>
+                <span className="sm-resumo-val">{moldura ? moldura.nome : tr('Sem moldura')}</span>
+              </button>
+              <button type="button" className={`sm-resumo-linha${aba === 'time' ? ' ativa' : ''}`} onClick={() => setAba('time')}>
+                <span className="sm-resumo-rot">{tr('Time')}</span>
+                <span className="sm-resumo-val">
+                  {time && <Logo url={time.logo} nome={time.nome} classe="sm-logo" />}
+                  {time ? time.nome : tr('Sem time')}
+                </span>
+              </button>
+            </div>
           </div>
 
           <div className="sm-lista">
@@ -196,57 +183,62 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
 
             {aba === 'moldura' ? (
               <>
-                <div className="sm-colecoes" role="tablist" aria-label={tr('Coleções')}>
-                  {['todas', ...COLECOES].map((c) => (
-                    <button key={c} type="button" role="tab" aria-selected={c === colecao} className={c === colecao ? 'active' : ''} onClick={() => setColecao(c)}>
-                      {c === 'todas' ? tr('Todas') : c}
-                    </button>
-                  ))}
-                </div>
-                {/* Com "molduras por nível" ligado: uma seção por nível (Livres, Nível 2...); desligado: uma grade só */}
-                <div className="sm-rolagem">
-                  {colecao === 'todas' && (
-                    <div className="sm-grade">
-                      <button type="button" className={`sm-item sem${escolha.moldura === null ? ' sel' : ''}`} onClick={() => escolher('moldura', null)} aria-pressed={escolha.moldura === null}>
-                        <span className="sm-sem-icone">∅</span>
-                        <span>{tr('Sem moldura')}</span>
+                <div className="sm-ferramentas">
+                  <input type="search" className="sm-busca" placeholder={tr('Buscar moldura…')} value={busca} onChange={(e) => setBusca(e.target.value)} aria-label={tr('Buscar moldura…')} />
+                  <div className="sm-colecoes" role="tablist" aria-label={tr('Coleções')}>
+                    {['todas', ...COLECOES].map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        role="tab"
+                        aria-selected={!termo && c === colecao}
+                        className={!termo && c === colecao ? 'active' : ''}
+                        onClick={() => {
+                          setColecao(c)
+                          setBusca('')
+                        }}
+                      >
+                        {c === 'todas' ? tr('Todas') : c}
+                        <small>{c === 'todas' ? MOLDURAS.length : MOLDURAS.filter((m) => m.colecao === c).length}</small>
                       </button>
-                    </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="sm-rolagem">
+                  {!admin && algumaPresa && !termo && (
+                    <p className="sm-aviso">
+                      <CadeadoMini /> {tr('Molduras com cadeado liberam ao subir de nível ou com um cargo.')}
+                    </p>
                   )}
-                  {exclusivas.map(([cargo, itens]) => (
-                    <section key={cargo.id} className="sm-secao sm-secao-cargo" style={{ '--cg': cargo.cor }}>
-                      <h4 className={`sm-secao-cab${!admin && !meusCargos.includes(cargo.id) ? ' presa' : ''}`}>
-                        <SeloCargo cargo={cargo} />
-                        {tr('Exclusivas')}
-                        <small>{admin || meusCargos.includes(cargo.id) ? tr('liberado') : tr('só para {cargo}', { cargo: cargo.nome })}</small>
-                        <span className="mono">{itens.length}</span>
-                      </h4>
-                      {subgrupos(itens, (m) => nivelDaMoldura(config, m.id))}
-                    </section>
-                  ))}
-                  {gruposPorNivel(comuns).map(([exige, itens]) => (
-                    <section key={exige} className="sm-secao">
-                      {config.molduraPorNivel && (
-                        <h4 className={`sm-secao-cab${!admin && exige > nivel ? ' presa' : ''}`}>
-                          <SeloNivel nivel={exige} tamanho={24} />
-                          {exige === 1 ? tr('Livres') : tr('Nível {n}', { n: exige })}
-                          <small>
-                            {exige === 1 || admin || exige <= nivel
-                              ? tr('liberado')
-                              : exige - nivel === 1 ? tr('falta 1 nível') : tr('faltam {n} níveis', { n: exige - nivel })}
-                          </small>
-                          <span className="mono">{itens.length}</span>
-                        </h4>
-                      )}
-                      {subgrupos(itens, () => exige)}
-                    </section>
-                  ))}
+                  {achadas ? (
+                    <div className="sm-grade">
+                      {achadas.map(itemMoldura)}
+                      {!achadas.length && <p className="sm-vazio">{tr('Nenhuma moldura com esse nome.')}</p>}
+                    </div>
+                  ) : (
+                    grupos.map(([c, itens], k) => (
+                      <section key={c} className="sm-grupo">
+                        {colecao === 'todas' && (
+                          <h4 className="sm-grupo-cab">
+                            {c} <small>{itens.length}</small>
+                          </h4>
+                        )}
+                        <div className="sm-grade">
+                          {k === 0 && semMoldura}
+                          {itens.map(itemMoldura)}
+                        </div>
+                      </section>
+                    ))
+                  )}
                 </div>
               </>
             ) : (
+              <div className="sm-rolagem">
               <div className="sm-grade sm-grade-times">
                 <button type="button" className={`sm-item sem${escolha.time === null ? ' sel' : ''}`} onClick={() => escolher('time', null)} aria-pressed={escolha.time === null}>
-                  <span className="sm-sem-icone">∅</span>
+                  <span className="sm-sem-icone">
+                    <IconeNenhum />
+                  </span>
                   <span>{tr('Sem time')}</span>
                 </button>
                 {times.map((t) => (
@@ -256,6 +248,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                   </button>
                 ))}
                 {times.length === 0 && <p className="sm-vazio">{tr('Nenhum time cadastrado ainda (a lista é editada em /times/).')}</p>}
+              </div>
               </div>
             )}
           </div>
