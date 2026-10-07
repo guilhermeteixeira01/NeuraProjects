@@ -638,4 +638,7 @@ export default {
   "Nenhuma moldura com esse nome.": "No frame with that name.",
   "Times registrados": "Registered teams",
   "{n} times cadastrados no servidor.": "{n} teams registered on the server.",
+  "Entre para ver este perfil": "Sign in to see this profile",
+  "Estatísticas, histórico de partidas, armas e nível dos jogadores ficam disponíveis para quem entra com a conta Steam.": "Player stats, match history, weapons and level are available to anyone who signs in with Steam.",
+  "Voltar para o ranking": "Back to the ranking",
 }

@@ -83,7 +83,7 @@ function Conta() {
             role="menuitem"
             onClick={() => {
               setAberto(false)
-              sair()
+              sair({ irParaInicio: true })
             }}
           >
             {t('Sair')}
@@ -93,6 +93,9 @@ function Conta() {
     </div>
   )
 }
+
+// Páginas que aparecem no menu sem login
+const SEM_LOGIN = ['inicio', 'ranking']
 
 // Páginas fora do MENU: só para o título da barra de cima no celular
 const OUTRAS = {
@@ -147,9 +150,9 @@ export default function Nav({ pagina }) {
 
   const conta = useConta()
   const { admin } = useAdmin(conta)
-  // Sem login, o menu mostra só o Início (as outras páginas continuam abrindo pelo link; só não aparecem no menu).
+  // Sem login, o menu mostra só Início e Ranking (as outras páginas continuam abrindo pelo link; só não aparecem no menu).
   // Site sem login configurado: mostra tudo.
-  const menu = conta || !loginAtivo() ? MENU : MENU.filter((m) => m.id === 'inicio')
+  const menu = conta || !loginAtivo() ? MENU : MENU.filter((m) => SEM_LOGIN.includes(m.id))
   // Páginas do site de um lado; Admin (só para admin) separado delas
   const paginas = menu.map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
   const linkAdmin = admin && <LinkMenu item={ITEM_ADMIN} atual={pagina} />
