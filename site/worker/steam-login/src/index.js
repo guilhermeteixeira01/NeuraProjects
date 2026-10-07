@@ -582,43 +582,64 @@ async function premierPublico(env, site, ctx) {
   return json(d, 200, { ...publico, 'Cache-Control': 'public, max-age=300' })
 }
 
-// GET /avatares?ids=<id>,<id>,... (até 100) -> { "<SteamID64>": "<url da foto atual>" } (público).
-// A foto guardada nas partidas é a do dia em que a pessoa jogou; o site troca pela atual com isto.
-// Cache por jogador (5 min no cache da Cloudflare): cada página pede uma lista diferente, mas a foto de cada um é a
-// mesma em todas. Quem falta no cache vai numa chamada só à Steam. O navegador não guarda (no-store), senão a foto
-// nova demorava mais para aparecer.
-const AVATAR_CACHE_S = 300
+// GET /avatares?ids=<id>,<id>,... (até 100) -> { "<SteamID64>": "<url da foto atual>", _parado: { "<SteamID64>": "<jpg>" } }
+// (público). A foto guardada nas partidas é a do dia em que a pessoa jogou; o site troca pela atual com isto.
+// Avatar animado (item da Loja de Pontos) vem como GIF; a foto comum da Steam é sempre parada. Para quem tem animado,
+// _parado traz a foto parada (modo "Melhorar desempenho" no site).
+// Um mapa só no cache da Cloudflare com todos os jogadores ({ id: { url, parado, em } }); cada um vale 5 min.
+// Por visita: 1 leitura do mapa, 1 chamada à Steam para os vencidos, 1 por animado (até 40) e 1 gravação
+// (o Worker grátis permite 50 chamadas por pedido). O navegador não guarda (no-store).
+const AVATAR_VALIDADE_MS = 5 * 60 * 1000
+const CDN_ITENS = 'https://shared.akamai.steamstatic.com/community_assets/images/'
 async function avataresAtuais(url, env) {
   const cors = { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' }
   const ids = [...new Set(String(url.searchParams.get('ids') || '').split(',').filter((id) => ID_STEAM.test(id)))].slice(0, 100)
   if (!ids.length || !env.STEAM_API_KEY) return json({}, 200, cors)
   const cache = caches.default
-  const chave = (id) => new Request(`https://cache.neura/avatar/${id}`)
-  const fotos = {}
-  const faltam = []
-  await Promise.all(
-    ids.map(async (id) => {
-      const g = await cache.match(chave(id))
-      if (g) {
-        const u = await g.text()
-        if (u) fotos[id] = u
-      } else faltam.push(id)
-    }),
-  )
-  if (faltam.length) {
+  const chave = new Request('https://cache.neura/avatares-mapa')
+  let mapa = {}
+  try {
+    mapa = (await (await cache.match(chave))?.json()) || {}
+  } catch {
+    mapa = {}
+  }
+  const agora = Date.now()
+  const vencidos = ids.filter((id) => !(agora - (mapa[id]?.em || 0) < AVATAR_VALIDADE_MS)).slice(0, 40)
+  if (vencidos.length) {
     try {
-      const r = await fetch(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${env.STEAM_API_KEY}&steamids=${faltam.join(',')}`)
+      const r = await fetch(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${env.STEAM_API_KEY}&steamids=${vencidos.join(',')}`)
       if (!r.ok) throw new Error('steam')
       const lista = (await r.json())?.response?.players || []
-      const novos = Object.fromEntries(lista.filter((p) => p?.steamid && p?.avatarfull).map((p) => [p.steamid, p.avatarfull]))
-      Object.assign(fotos, novos)
-      // guarda também quem a Steam não devolveu (vazio), para não perguntar de novo a cada visita
-      await Promise.all(faltam.map((id) => cache.put(chave(id), new Response(novos[id] || '', { headers: { 'Cache-Control': `max-age=${AVATAR_CACHE_S}` } }))))
+      const fotos = Object.fromEntries(lista.filter((p) => p?.steamid).map((p) => [p.steamid, p.avatarfull || '']))
+      // Avatar animado: uma chamada por jogador (não precisa de chave)
+      const animados = await Promise.all(
+        vencidos.map(async (id) => {
+          try {
+            const a = await fetch(`https://api.steampowered.com/IPlayerService/GetAnimatedAvatar/v1/?steamid=${id}`)
+            const img = (await a.json())?.response?.avatar?.image_small
+            return /.gif$/i.test(img || '') ? CDN_ITENS + img : ''
+          } catch {
+            return ''
+          }
+        }),
+      )
+      vencidos.forEach((id, i) => {
+        const parado = fotos[id] || mapa[id]?.parado || ''
+        mapa[id] = { url: animados[i] || parado, parado, em: agora }
+      })
+      await cache.put(chave, new Response(JSON.stringify(mapa), { headers: { 'Cache-Control': 'max-age=86400' } }))
     } catch {
-      // Steam fora do ar: o site fica com as fotos que já tem (sem guardar no cache)
+      // Steam fora do ar: devolve o que já tinha (o site fica com as fotos que já tem)
     }
   }
-  return json(fotos, 200, cors)
+  const resposta = { _parado: {} }
+  for (const id of ids) {
+    const m = mapa[id]
+    if (!m?.url) continue
+    resposta[id] = m.url
+    if (m.parado && m.parado !== m.url) resposta._parado[id] = m.parado
+  }
+  return json(resposta, 200, cors)
 }
 
 // Nome e avatar pela Web API da Steam (sem chave ou com erro: vazio)
