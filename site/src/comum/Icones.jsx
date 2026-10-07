@@ -43,6 +43,16 @@ export function IconeEscudo() {
   )
 }
 
+// "Nenhum" (sem moldura, sem time): círculo cortado, dentro do anel tracejado do .sm-sem-icone
+export function IconeNenhum({ tamanho = 28 }) {
+  return (
+    <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M6 18 18 6" />
+    </svg>
+  )
+}
+
 // Ícones das páginas no menu (barra lateral e gaveta do celular)
 function IconeMenu({ children }) {
   return (

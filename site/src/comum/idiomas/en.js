@@ -641,4 +641,6 @@ export default {
   "Entre para ver este perfil": "Sign in to see this profile",
   "Estatísticas, histórico de partidas, armas e nível dos jogadores ficam disponíveis para quem entra com a conta Steam.": "Player stats, match history, weapons and level are available to anyone who signs in with Steam.",
   "Voltar para o ranking": "Back to the ranking",
+  "Nv {n}": "Lv {n}",
+  "Molduras com cadeado liberam ao subir de nível ou com um cargo.": "Locked frames unlock as you level up or with a role.",
 }
