@@ -58,7 +58,7 @@ Os nomes no ranking e na página da partida levam para ela.
 
 **Fotos de perfil atuais:** a foto gravada nas partidas é a do dia do jogo, e a do login é a do dia em que a pessoa entrou.
 O site mostra essa e troca pela atual da Steam (`src/comum/avatares.js`, `useAvatar(id, padrao)`): junta os jogadores da
-página numa chamada só ao worker (`GET /avatares?ids=...`, até 100, uma chamada à Web API da Steam, cache de 30 min).
+página numa chamada só ao worker (`GET /avatares?ids=...`, até 100, uma chamada à Web API da Steam, cache de 5 min por jogador).
 Vale no ranking, perfil, página da partida, painel admin e no botão da conta. Sem resposta, fica a foto que já tinha.
 
 **Premier (Leetify) atualizado de hora em hora:** o `ranking.json` traz o CS Rating do último deploy. O cron do worker
