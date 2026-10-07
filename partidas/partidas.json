@@ -1,5 +1,30 @@
 [
   {
+    "nome": "2026-10-07_18-58_de_dust2_Kivo-x-Neura-Project",
+    "data": "2026-10-07 18:58",
+    "mapa": "de_dust2",
+    "timeA": "Kivo",
+    "timeB": "Neura Project",
+    "placarA": 9,
+    "placarB": 13,
+    "serie": "MD3 · mapa 1/3",
+    "caminho": "dga/md3/2026-10-07_18-58_de_dust2_Kivo-x-Neura-Project",
+    "categoria": "md3",
+    "serieId": "2026-10-07_18-57_Kivo-x-Neura-Project",
+    "serieTimeA": "Kivo",
+    "serieTimeB": "Neura Project",
+    "serieVitoriasA": 0,
+    "serieVitoriasB": 1,
+    "serieMapas": [
+      "de_dust2",
+      "de_nuke",
+      "de_anubis"
+    ],
+    "serieCancelada": false,
+    "logoA": "https://i.imgur.com/qOKC9BF.png",
+    "logoB": "https://i.imgur.com/0lhPoBJ.png"
+  },
+  {
     "nome": "2026-10-05_20-15_de_nuke_Neura-Project-x-Digital-Gamers",
     "data": "2026-10-05 20:15",
     "mapa": "de_nuke",
