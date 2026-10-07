@@ -7,9 +7,9 @@ import { IconeCargo } from '../../comum/cargos.jsx'
 import { IconeNenhum } from '../../comum/Icones.jsx'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 
-function CadeadoMini() {
+function CadeadoMini({ tamanho = 12 }) {
   return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <rect x="4" y="11" width="16" height="10" rx="2" />
       <path d="M8 11V7a4 4 0 0 1 8 0v4" />
     </svg>
@@ -47,6 +47,13 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   const [aba, setAba] = useState('moldura') // 'moldura' | 'time'
   const [colecao, setColecao] = useState('todas')
   const [busca, setBusca] = useState('')
+  const [aviso, setAviso] = useState(null) // moldura bloqueada com o "o que falta" aberto
+  // O aviso some sozinho depois de uns segundos
+  useEffect(() => {
+    if (!aviso) return
+    const t = setTimeout(() => setAviso(null), 4500)
+    return () => clearTimeout(t)
+  }, [aviso])
   const [estado, setEstado] = useState('') // '' | 'salvando' | 'erro' | 'login' | 'nivel' | 'bloqueado'
   const [erroAvatar, setErroAvatar] = useState(false)
 
@@ -74,7 +81,8 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
     setMexeu(true)
   }
 
-  // O que trava cada moldura (selo no canto): cargo exclusivo e/ou nível
+  // O que trava cada moldura (selo no canto): cargo exclusivo e/ou nível.
+  // Bloqueada: meio apagada, cadeado no meio; clicar mostra por cima do card o que falta para usar
   const itemMoldura = (m) => {
     const presa = travada(m.id)
     const cargo = cargoDaMoldura(config, m.id)
@@ -90,23 +98,47 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         type="button"
         className={`sm-item${escolha.moldura === m.id ? ' sel' : ''}${presa ? ' presa' : ''}${cargo ? ' de-cargo' : ''}`}
         style={cargo ? { '--cg': cargo.cor } : undefined}
-        onClick={() => !presa && escolher('moldura', m.id)}
+        onClick={() => (presa ? setAviso((a) => (a === m.id ? null : m.id)) : escolher('moldura', m.id))}
         aria-pressed={escolha.moldura === m.id}
-        aria-disabled={presa}
-        title={titulo}
+        aria-expanded={presa ? aviso === m.id : undefined}
+        title={presa ? undefined : titulo}
       >
         <img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" />
         <span className="sm-nome">{m.nome}</span>
         {/* Nível exigido no canto esquerdo; cargo e cadeado no direito */}
-        {nv > 1 && (
+        {nv > 1 && aviso !== m.id && (
           <span className={`sm-nivel-canto${!admin && nv > nivel ? ' falta' : ''}`} title={tr('Nível {n}', { n: nv })}>
             <SeloNivel nivel={nv} tamanho={28} />
           </span>
         )}
-        {(cargo || presa) && (
+        {cargo && aviso !== m.id && (
           <span className="sm-exige">
-            {cargo && <IconeCargo icone={cargo.icone} tamanho={12} />}
-            {presa && <CadeadoMini />}
+            <IconeCargo icone={cargo.icone} tamanho={12} />
+          </span>
+        )}
+        {presa && aviso !== m.id && (
+          <span className="sm-cadeado" aria-hidden="true">
+            <CadeadoMini tamanho={20} />
+          </span>
+        )}
+        {presa && aviso === m.id && (
+          <span className="sm-requisitos" role="status">
+            <b>
+              <CadeadoMini /> {tr('Para usar')}
+            </b>
+            {nv > nivel && (
+              <span>
+                <SeloNivel nivel={nv} tamanho={18} />
+                {tr('Nível {n}', { n: nv })}
+                <small>{tr('você: {n}', { n: nivel })}</small>
+              </span>
+            )}
+            {semCargo(m.id) && (
+              <span>
+                <IconeCargo icone={cargo.icone} tamanho={14} style={{ color: cargo.cor }} />
+                {tr('Cargo {cargo}', { cargo: cargo.nome })}
+              </span>
+            )}
           </span>
         )}
       </button>

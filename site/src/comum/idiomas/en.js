@@ -643,4 +643,7 @@ export default {
   "Voltar para o ranking": "Back to the ranking",
   "Nv {n}": "Lv {n}",
   "Molduras com cadeado liberam ao subir de nível ou com um cargo.": "Locked frames unlock as you level up or with a role.",
+  "Para usar": "To use",
+  "você: {n}": "you: {n}",
+  "Cargo {cargo}": "Role {cargo}",
 }
