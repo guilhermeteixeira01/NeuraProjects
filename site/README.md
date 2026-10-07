@@ -179,7 +179,12 @@ passar o mouse ou focar pelo teclado (`.nx-dica`); o menu da conta e o painel �
 (tablet e celular) fica uma barra em cima com o ícone e o nome da página atual, ⚙ e a conta, e uma barra de abas
 fixa embaixo: Início, Pick & Ban, Partidas, Ranking, Perfil (sem login, abre o login) e **Mais**, que abre um painel
 com Inventário, Admin (só admin) e Comunidade. Ícone de cada página: campo `icone`
-em `MENU` (`src/comum/config.js`), desenhos em `src/comum/Icones.jsx`.
+em `MENU` (`src/comum/config.js`), desenhos em `src/comum/Icones.jsx`. Sem login, o menu mostra só o Início (as outras páginas
+continuam abrindo pelo link; só não aparecem no menu). Site sem login configurado (`loginSteam` vazio): menu completo.
+
+Na página inicial, **Times registrados** (`src/paginas/inicio/TimesCarrossel.jsx`): carrossel com o logo de cada time de
+`assets/data/times.json` (lista editada em `/times/`), passando sem parar e parando com o mouse em cima (o nome aparece
+no cartão). Sem time cadastrado, a seção some; com "Melhorar desempenho", fica parado e dá para rolar para o lado.
 
 ## Configurações ⚙ (idioma, tema e desempenho)
 

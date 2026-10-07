@@ -636,4 +636,6 @@ export default {
   "O visual completo do padrão, com todos os efeitos, em fundo branco.": "El aspecto completo predeterminado, con todos los efectos, en fondo blanco.",
   "Buscar moldura…": "Buscar marco…",
   "Nenhuma moldura com esse nome.": "Ningún marco con ese nombre.",
+  "Times registrados": "Equipos registrados",
+  "{n} times cadastrados no servidor.": "{n} equipos registrados en el servidor.",
 }

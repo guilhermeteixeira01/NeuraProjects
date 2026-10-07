@@ -636,4 +636,6 @@ export default {
   "O visual completo do padrão, com todos os efeitos, em fundo branco.": "The full default look, with every effect, on a white background.",
   "Buscar moldura…": "Search frames…",
   "Nenhuma moldura com esse nome.": "No frame with that name.",
+  "Times registrados": "Registered teams",
+  "{n} times cadastrados no servidor.": "{n} teams registered on the server.",
 }
