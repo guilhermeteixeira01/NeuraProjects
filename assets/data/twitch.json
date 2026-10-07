@@ -1,5 +1,5 @@
 {
   "_como_usar": "Coloque em 'canais' o nome do canal da Twitch (ou o link, ex.: https://twitch.tv/seucanal). Com mais de um, a página mostra o primeiro que estiver ao vivo. Lista vazia esconde a área. 'chat': false tira o chat do lado do vídeo.",
-  "canais": ["MadHousetv_", "Cafefps_", "3threexcompany"],
+  "canais": ["MadHousetv_", "Cafefps_"],
   "chat": true
 }
