@@ -110,6 +110,10 @@ De onde vêm (campo `fonte` na lista):
 - **Steam** (Loja de Pontos) e **Decor** (decorações da comunidade): a lista escolhida fica em
   `ferramentas/molduras/escolhidas.json` e `baixar.mjs` baixa e grava o arquivo como veio (sem recomprimir e sem
   limite de tamanho: qualidade original).
+  Decor: além dos presets oficiais, 35 molduras animadas do acervo enviado por usuários (`/api/decorations`, ~36 mil;
+  as animadas começam com `a_`). Filtro: contornam a foto (≥ 50–70% da volta), meio livre e animam; as que aparecem
+  repetidas no acervo (impressão digital igual) foram descartadas por serem provavelmente cópias do Discord, e o resto foi
+  revisado no olho. Coleções "Decor" (redondas) e "Decor Quadradas" (`forma: 'quadrada'` na escolhidas.json).
   A arte é dos autores/jogos de origem.
 - Molduras quadradas (`forma: 'quadrada'`, as da Steam): o avatar fica quadrado e a moldura fica por cima da foto,
   com `escala` própria (a borda de dentro de cada uma fica num lugar diferente; a escala põe a borda um pouco por cima
