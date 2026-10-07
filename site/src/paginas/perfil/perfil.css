@@ -202,7 +202,7 @@ html.sm-aberto { overflow: hidden; }
 .sm-item:hover { border-color: var(--border-2); background: rgb(var(--tinta) / .04); transform: translateY(-2px); }
 .sm-item.sel { border-color: var(--blue-2); background: rgba(26,115,232,.14); color: var(--text); box-shadow: 0 0 22px -8px rgba(52,152,219,.9); }
 .sm-item img { width: 72px; height: 72px; max-width: none; }
-.sm-item > span:last-child { font-size: 11.5px; font-weight: 600; line-height: 1.2; text-align: center; overflow-wrap: anywhere; }
+.sm-item > span:last-child, .sm-item > .sm-nome { font-size: 11.5px; font-weight: 600; line-height: 1.2; text-align: center; overflow-wrap: anywhere; }
 .sm-sem-icone { display: grid; place-items: center; width: 72px; height: 72px; font-size: 34px; color: var(--dim-2); border: 2px dashed var(--border-2); border-radius: 50%; }
 
 .sm-rodape { display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--border); }
@@ -495,7 +495,7 @@ html.sm-aberto { overflow: hidden; }
 }
 .sm-exige-nv { font-family: var(--font-mono); color: var(--dim); }
 .sm-item.presa { opacity: .62; }
-.sm-item.presa > span:nth-of-type(1) { color: var(--dim-2); }
+.sm-item.presa > .sm-nome { color: var(--dim-2); }
 
 @media (max-width: 720px) {
   .sm-painel { width: 100%; height: 100%; }
@@ -513,3 +513,32 @@ html.sm-aberto { overflow: hidden; }
   .sm-rolagem .sm-grade { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 }
 .sm-rolagem .sm-grade.sm-grade-times { padding-top: 16px; }
+
+/* Coleções do Personalizar: barra de rolagem horizontal fina visível (antes ficava escondida) */
+.sm-ferramentas .sm-colecoes {
+  scrollbar-width: auto; padding-bottom: 6px;
+  -webkit-mask-image: none; mask-image: none;
+}
+.sm-ferramentas .sm-colecoes::-webkit-scrollbar { display: block; height: 6px; }
+.sm-ferramentas .sm-colecoes::-webkit-scrollbar-track { background: transparent; }
+.sm-ferramentas .sm-colecoes::-webkit-scrollbar-thumb { border: 0; border-radius: 999px; background: var(--border-2); }
+.sm-ferramentas .sm-colecoes::-webkit-scrollbar-thumb:hover { background: var(--blue-2); }
+/* Firefox (sem ::-webkit-scrollbar): fina e discreta. No Chrome, scrollbar-width desligaria o estilo acima */
+@supports not selector(::-webkit-scrollbar) {
+  .sm-ferramentas .sm-colecoes { scrollbar-width: thin; scrollbar-color: var(--border-2) transparent; }
+}
+
+/* Moldura exclusiva de cargo: borda (e fundo leve) na cor do cargo */
+.sm-item.de-cargo { border-color: color-mix(in srgb, var(--cg) 55%, transparent); background: color-mix(in srgb, var(--cg) 7%, transparent); }
+.sm-item.de-cargo:hover { border-color: var(--cg); }
+.sm-item.de-cargo.presa:hover { border-color: color-mix(in srgb, var(--cg) 55%, transparent); background: color-mix(in srgb, var(--cg) 7%, transparent); }
+.sm-item.de-cargo.sel { border-color: var(--cg); background: color-mix(in srgb, var(--cg) 16%, transparent); box-shadow: none; }
+.sm-item.de-cargo .sm-exige { border-color: color-mix(in srgb, var(--cg) 55%, transparent); }
+/* Nível exigido no canto esquerdo de cima */
+.sm-nivel-canto {
+  position: absolute; top: 5px; left: 5px; padding: 2px 6px; border-radius: 999px; font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; line-height: 1;
+  color: var(--green); background: rgb(var(--fundo) / .85); border: 1px solid color-mix(in srgb, var(--green) 45%, transparent);
+}
+.sm-nivel-canto.falta { color: var(--dim); border-color: var(--border-2); }
+.sm-item.presa { opacity: 1; }
+.sm-item.presa > img { opacity: .55; }

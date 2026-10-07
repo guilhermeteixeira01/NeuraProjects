@@ -265,3 +265,59 @@
 .linha-cargos .selo-cargo { font-size: 9px; padding: 1px 6px; }
 .linha-cargos .cargos-mais-btn { height: 17px; min-width: 20px; font-size: 9px; }
 .jog-av { display: inline-flex; flex-shrink: 0; }
+
+/* ══════════════ Pódio: visual limpo, sem sombras ══════════════
+ * Cartão com faixa da cor da medalha no topo, fundo em degradê suave, números do rodapé num painel e o "VOCÊ"
+ * marcado só pela borda azul. Nada de box-shadow / text-shadow / brilho respirando (nem no hover). */
+.pod,
+.pod:hover,
+.pod.spot:hover,
+.pod.eu,
+.pod.p1,
+.anim .pod.p1 {
+  box-shadow: none;
+}
+.pod.p1 { animation: none; }
+.anim .pod.p1 { animation: subir 0.6s cubic-bezier(0.16, 0.84, 0.44, 1) both; animation-delay: 0.05s; }
+.pod {
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--c) 28%, var(--border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--c) 10%, transparent), transparent 42%),
+    linear-gradient(180deg, var(--panel-2), var(--panel));
+  transition: transform .25s, border-color .25s;
+}
+/* faixa da medalha no topo */
+.pod::after {
+  content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px;
+  background: linear-gradient(90deg, transparent, var(--c), transparent);
+}
+.pod:hover, .pod.spot:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--c) 60%, var(--border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--c) 14%, transparent), transparent 46%),
+    linear-gradient(180deg, var(--panel-2), var(--panel));
+}
+.pod.p1 { border-color: color-mix(in srgb, var(--c) 45%, var(--border)); }
+/* número grande do fundo: mais discreto */
+.pod::before { -webkit-text-stroke: 1.5px color-mix(in srgb, var(--c) 28%, transparent); }
+.coroa { filter: none; }
+/* avatar: anel da medalha sem brilho em volta */
+.pod-av img, .pod-av .ini { box-shadow: none; padding: 3px; }
+.pod-pos { box-shadow: none; border: 2px solid var(--panel-2); font-size: 13px; padding: 2px 11px; }
+.pod-valor b { text-shadow: none; letter-spacing: -0.5px; }
+.pod-valor .mono { letter-spacing: 2px; }
+/* rodapé: números num painel, com divisórias */
+.pod-mini {
+  margin-top: 10px; padding: 12px 4px; border: 1px solid var(--border); border-radius: 12px; background: rgb(var(--fundo) / .35);
+}
+.pod-mini div + div { border-left: 1px solid var(--border); }
+.pod-mini b { font-size: 16px; }
+/* "VOCÊ": só a borda azul */
+.pod.eu { border-color: var(--blue-2); }
+.pod.eu::after { background: linear-gradient(90deg, transparent, var(--blue-2), transparent); }
+.selo-eu { top: 12px; left: 12px; }
+/* Premier e cargos sem brilho dentro do pódio */
+.pod .premier { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pc) 55%, transparent); }
+.pod .selo-cargo { box-shadow: none; }
