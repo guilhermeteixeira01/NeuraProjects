@@ -10,6 +10,7 @@
  *   /config                -> regras públicas (molduras liberadas por nível)
  *   /jogador?id=<SteamID>  -> nome e avatar públicos da Steam (perfil de quem ainda não tem partida)
  *   /avatares?ids=a,b,...  -> foto atual da Steam de até 100 jogadores { id: url } (as das partidas ficam velhas)
+ *   /premier               -> CS Rating do Premier (Leetify) dos jogadores do ranking, atualizado de hora em hora
  *   /eu                    -> quem é o dono do token e se é admin
  *   /admin/...             -> painel de administrador (só admins; conferido aqui em toda chamada)
  *
@@ -41,8 +42,10 @@ export default {
   async scheduled(evento, env, ctx) {
     const site = (env.SITE || 'https://neuraproject.com.br').replace(/\/$/, '')
     ctx.waitUntil(tirarExclusivasSemCargo(env, site, await ler(env, 'config')))
+    // Premier (Leetify) de hora em hora: na primeira rodada de cada hora (minuto 0–9)
+    if (new Date(evento.scheduledTime).getUTCMinutes() < 10) ctx.waitUntil(atualizarPremier(env, site))
   },
-  async fetch(req, env) {
+  async fetch(req, env, ctx) {
     const url = new URL(req.url)
     const site = (env.SITE || 'https://neuraproject.com.br').replace(/\/$/, '')
     const rota = url.pathname
@@ -52,6 +55,7 @@ export default {
     if (rota === '/config' && req.method === 'GET') return json(configPublica(await ler(env, "config"), env), 200, publico)
     if (rota === '/jogador' && req.method === 'GET') return jogadorPublico(url, env)
     if (rota === '/avatares' && req.method === 'GET') return avataresAtuais(url, env)
+    if (rota === '/premier' && req.method === 'GET') return premierPublico(env, site, ctx)
     // Rotas antigas (só moldura): páginas que ainda estejam abertas com uma versão anterior do site
     if (rota === '/molduras' && req.method === 'GET') return json(soMolduras(await ler(env, 'perfis')), 200, publico)
 
@@ -537,6 +541,45 @@ async function jogadorPublico(url, env) {
   })
   await cache.put(chave, resposta.clone())
   return resposta
+}
+
+// CS Rating do Premier (Leetify) de cada jogador do ranking, buscado de hora em hora pelo cron (o ranking.json só traz
+// o do último deploy). KV "premier" = { atualizado, jogadores: { "<SteamID64>": número | null } }.
+// Um por vez (sem estourar a API da Leetify) e no máximo 45 por rodada (limite de chamadas do Worker grátis).
+async function atualizarPremier(env, site) {
+  const ranking = await lerRanking(site)
+  const ids = (ranking?.jogadores || []).map((j) => j.steamId).filter((id) => ID_STEAM.test(String(id))).slice(0, 45)
+  if (!ids.length) return
+  const antes = (await ler(env, 'premier')).jogadores || {}
+  const jogadores = {}
+  for (const id of ids) {
+    try {
+      const r = await fetch(`https://api-public.cs-prod.leetify.com/v3/profile?steam64_id=${id}`, { headers: { 'User-Agent': 'neuraproject.com.br' } })
+      if (r.status === 404) {
+        jogadores[id] = null // sem conta na Leetify
+        continue
+      }
+      const p = r.ok ? (await r.json())?.ranks?.premier : undefined
+      jogadores[id] = Number.isFinite(p) && p > 0 ? p : r.ok ? null : (antes[id] ?? null) // erro: mantém o anterior
+    } catch {
+      jogadores[id] = antes[id] ?? null
+    }
+  }
+  await gravar(env, 'premier', { atualizado: new Date().toISOString(), jogadores })
+}
+
+// GET /premier -> { atualizado, jogadores }. Com mais de 2 horas (cron parado, ou ainda vazio), dispara uma atualização
+// em segundo plano; a trava no cache (10 min) faz várias visitas ao mesmo tempo gerarem uma atualização só.
+async function premierPublico(env, site, ctx) {
+  const d = await ler(env, 'premier')
+  if (!d.atualizado || Date.now() - Date.parse(d.atualizado) > 2 * 3600 * 1000) {
+    const trava = new Request('https://cache.neura/premier-trava')
+    if (!(await caches.default.match(trava))) {
+      await caches.default.put(trava, new Response('1', { headers: { 'Cache-Control': 'max-age=600' } }))
+      ctx?.waitUntil(atualizarPremier(env, site))
+    }
+  }
+  return json(d, 200, { ...publico, 'Cache-Control': 'public, max-age=300' })
 }
 
 // GET /avatares?ids=<id>,<id>,... (até 100) -> { "<SteamID64>": "<url da foto atual>" } (público).
