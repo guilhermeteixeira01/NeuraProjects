@@ -87,17 +87,20 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
       <button
         key={m.id}
         type="button"
-        className={`sm-item${escolha.moldura === m.id ? ' sel' : ''}${presa ? ' presa' : ''}`}
+        className={`sm-item${escolha.moldura === m.id ? ' sel' : ''}${presa ? ' presa' : ''}${cargo ? ' de-cargo' : ''}`}
+        style={cargo ? { '--cg': cargo.cor } : undefined}
         onClick={() => !presa && escolher('moldura', m.id)}
         aria-pressed={escolha.moldura === m.id}
         aria-disabled={presa}
         title={titulo}
       >
         <img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" />
-        <span>{m.nome}</span>
-        {(cargo || (presa && nv > 1)) && (
-          <span className="sm-exige" style={cargo ? { '--cg': cargo.cor } : undefined}>
-            {cargo ? <IconeCargo icone={cargo.icone} tamanho={12} /> : <span className="sm-exige-nv">{tr('Nv {n}', { n: nv })}</span>}
+        <span className="sm-nome">{m.nome}</span>
+        {/* Nível exigido no canto esquerdo; cargo e cadeado no direito */}
+        {nv > 1 && <span className={`sm-nivel-canto${!admin && nv > nivel ? ' falta' : ''}`}>{tr('Nv {n}', { n: nv })}</span>}
+        {(cargo || presa) && (
+          <span className="sm-exige">
+            {cargo && <IconeCargo icone={cargo.icone} tamanho={12} />}
             {presa && <CadeadoMini />}
           </span>
         )}
