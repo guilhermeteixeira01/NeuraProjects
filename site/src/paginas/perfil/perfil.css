@@ -540,3 +540,23 @@ html.sm-aberto { overflow: hidden; }
 .sm-nivel-canto.falta { opacity: .8; }
 .sm-item.presa { opacity: 1; }
 .sm-item.presa > img { opacity: .55; }
+
+/* Moldura bloqueada: card meio apagado com cadeado no meio; clicar mostra o que falta (sm-requisitos) */
+.sm-item.presa { cursor: pointer; }
+.sm-item.presa > img { opacity: .35; filter: grayscale(.5); }
+.sm-item.presa > .sm-nome { opacity: .55; }
+.sm-item.presa:hover { transform: none; }
+.sm-cadeado {
+  position: absolute; left: 50%; top: 44px; transform: translate(-50%, -50%); display: grid; place-items: center;
+  width: 38px; height: 38px; border-radius: 50%; color: var(--text); background: rgb(var(--fundo) / .82); border: 1px solid var(--border-2);
+  pointer-events: none; transition: border-color .15s, color .15s;
+}
+.sm-item.presa:hover .sm-cadeado { border-color: var(--blue-2); color: var(--blue-2); }
+.sm-requisitos {
+  position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; justify-content: center; align-items: stretch; gap: 6px;
+  padding: 8px; border-radius: 12px; text-align: left; background: rgb(var(--fundo) / .94); border: 1px solid var(--blue-2);
+  animation: sm-entra .15s ease; cursor: pointer;
+}
+.sm-requisitos b { display: flex; align-items: center; gap: 5px; font-size: 11px; letter-spacing: .5px; text-transform: uppercase; color: var(--blue-2); }
+.sm-requisitos > span { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; font-size: 11.5px; font-weight: 700; color: var(--text); line-height: 1.25; }
+.sm-requisitos small { width: 100%; padding-left: 23px; font-size: 10px; font-weight: 500; color: var(--dim); }

@@ -643,4 +643,7 @@ export default {
   "Voltar para o ranking": "Volver al ranking",
   "Nv {n}": "Nv {n}",
   "Molduras com cadeado liberam ao subir de nível ou com um cargo.": "Los marcos con candado se desbloquean al subir de nivel o con un cargo.",
+  "Para usar": "Para usar",
+  "você: {n}": "tú: {n}",
+  "Cargo {cargo}": "Cargo {cargo}",
 }
