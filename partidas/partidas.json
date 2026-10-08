@@ -1,5 +1,30 @@
 [
   {
+    "nome": "2026-10-07_21-36_de_ancient_Time-A-x-Time-B",
+    "data": "2026-10-07 21:36",
+    "mapa": "de_ancient",
+    "timeA": "Time A",
+    "timeB": "Time B",
+    "placarA": 3,
+    "placarB": 13,
+    "serie": "MD3 · mapa 2/3",
+    "caminho": "dga/md3/2026-10-07_21-36_de_ancient_Time-A-x-Time-B",
+    "categoria": "md3",
+    "serieId": "2026-10-07_20-48_Time-A-x-Time-B",
+    "serieTimeA": "Time A",
+    "serieTimeB": "Time B",
+    "serieVitoriasA": 0,
+    "serieVitoriasB": 2,
+    "serieMapas": [
+      "de_mirage",
+      "de_ancient",
+      "de_train"
+    ],
+    "serieCancelada": false,
+    "logoA": null,
+    "logoB": null
+  },
+  {
     "nome": "2026-10-07_20-51_de_mirage_Time-A-x-Time-B",
     "data": "2026-10-07 20:51",
     "mapa": "de_mirage",
