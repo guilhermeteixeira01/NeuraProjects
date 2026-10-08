@@ -378,7 +378,8 @@ async function adminConfig(req, env, site, config, cors) {
       const top = Math.round(Number(c.top) || 0)
       if (top < 0 || top > 15) return json({ erro: 'cargos' }, 400, cors)
       const icone = ICONES_CARGO.includes(c.icone) ? c.icone : 'coroa'
-      novo.cargos.push({ id: c.id, nome, cor: c.cor, icone, ...(top > 0 ? { top } : {}) })
+      // numerar: automático mostra a posição ("Campeão 1", "Campeão 2"...)
+      novo.cargos.push({ id: c.id, nome, cor: c.cor, icone, ...(top > 0 ? { top } : {}), ...(top > 0 && c.numerar === true ? { numerar: true } : {}) })
     }
   }
   if ('molduraCargo' in corpo || 'cargos' in corpo) {

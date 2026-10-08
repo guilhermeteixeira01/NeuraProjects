@@ -659,4 +659,7 @@ export default {
   "Continuar": "Continuar",
   "falta 1 partida para ter nível": "falta 1 partida para tener nivel",
   "faltam {n} partidas para ter nível": "faltan {n} partidas para tener nivel",
+  "nunca entrou": "nunca entró",
+  "Numerar posição": "Numerar posición",
+  "Mostra a posição no selo: {nome} 1, {nome} 2, {nome} 3...": "Muestra la posición en el sello: {nome} 1, {nome} 2, {nome} 3...",
 }

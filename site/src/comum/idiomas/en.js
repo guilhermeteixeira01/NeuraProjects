@@ -659,4 +659,7 @@ export default {
   "Continuar": "Continue",
   "falta 1 partida para ter nível": "1 match left to get a level",
   "faltam {n} partidas para ter nível": "{n} matches left to get a level",
+  "nunca entrou": "never signed in",
+  "Numerar posição": "Number by position",
+  "Mostra a posição no selo: {nome} 1, {nome} 2, {nome} 3...": "Shows the position on the badge: {nome} 1, {nome} 2, {nome} 3...",
 }

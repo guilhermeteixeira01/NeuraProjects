@@ -3,7 +3,7 @@ import Layout from '../../comum/Layout.jsx'
 import { entrar, linkPerfil, loginAtivo, useConta } from '../../comum/conta.js'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
-import { CamadaMoldura, ComMoldura, SELOS_PADRAO, SeloCargo, chamar, useAdmin, useListaTimes } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, ComMoldura, SELOS_PADRAO, SeloCargo, chamar, nomeDoCargo, useAdmin, useListaTimes } from '../../comum/Moldura.jsx'
 import { COLECOES, MOLDURAS, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { NIVEL_MAX, nivelDe } from '../../comum/niveis.js'
@@ -96,7 +96,7 @@ function Usuarios({ usuarios, painel, dono, editar }) {
           <thead>
             <tr>
               <th className="esq">{tr('JOGADOR')}</th>
-              <th>{tr('NÍVEL')}</th>
+              <th className="esq">{tr('NÍVEL')}</th>
               <th className="esq">{tr('TIME')}</th>
               <th className="esq">{tr('SITUAÇÃO')}</th>
               <th>{tr('ÚLTIMO ACESSO')}</th>
@@ -118,7 +118,7 @@ function Usuarios({ usuarios, painel, dono, editar }) {
                       </span>
                     </span>
                   </td>
-                  <td>
+                  <td className="esq">
                     <span className="adm-nivel">
                       <SeloNivel nivel={u.nivel.nivel} tamanho={28} />
                       <span>
@@ -136,12 +136,11 @@ function Usuarios({ usuarios, painel, dono, editar }) {
                       {(painel.config.cargos || [])
                         .filter((c) => (u.perfil.cargos || []).includes(c.id) || u.auto.includes(c.id))
                         .map((c) => (
-                          <SeloCargo key={c.id} cargo={u.auto.includes(c.id) && !(u.perfil.cargos || []).includes(c.id) ? { ...c, nome: `${c.nome} · top ${c.top}` } : c} />
+                          <SeloCargo key={c.id} cargo={{ ...c, nome: nomeDoCargo(c, u.auto.includes(c.id) ? u.pos : -1) }} />
                         ))}
-                      {u.usuario ? <i>LOGIN</i> : <i className="apagado">{tr('SÓ PARTIDAS')}</i>}
                     </span>
                   </td>
-                  <td className="mono">{u.usuario ? dataBr(u.usuario.visto) : '—'}</td>
+                  <td className="mono">{u.usuario ? dataBr(u.usuario.visto) : <span className="adm-nunca">{tr('nunca entrou')}</span>}</td>
                   <td>
                     <button type="button" className="btn btn-ghost adm-editar" onClick={() => editar(u)}>
                       {tr('Editar')}
@@ -600,7 +599,7 @@ function Cargos({ config, usuarios, aoSalvar }) {
   const salvar = async () => {
     setEstado('salvando')
     try {
-      const d = await chamar('/admin/config', { cargos: lista.map((c) => ({ id: c.id, nome: c.nome.trim(), cor: c.cor, icone: c.icone || 'coroa', top: Number(c.top) || 0 })) })
+      const d = await chamar('/admin/config', { cargos: lista.map((c) => ({ id: c.id, nome: c.nome.trim(), cor: c.cor, icone: c.icone || 'coroa', top: Number(c.top) || 0, numerar: Number(c.top) > 0 && !!c.numerar })) })
       aoSalvar(d.config)
       setEstado('Salvo!')
     } catch (e) {
@@ -630,7 +629,7 @@ function Cargos({ config, usuarios, aoSalvar }) {
             <input type="color" value={c.cor} onChange={(e) => mudar(i, 'cor', e.target.value)} aria-label={tr('Cor do cargo {nome}', { nome: c.nome })} />
             <EscolherIcone valor={c.icone} cor={c.cor} aoEscolher={(id) => mudar(i, 'icone', id)} />
             <input className="adm-cargo-nome" value={c.nome} maxLength={24} onChange={(e) => mudar(i, 'nome', e.target.value)} aria-label={tr('Nome do cargo')} />
-            <SeloCargo cargo={{ ...c, nome: c.nome || '…' }} />
+            <SeloCargo cargo={{ ...c, nome: c.top > 0 && c.numerar ? `${c.nome || '…'} 1` : c.nome || '…' }} />
             <label className="adm-top" title={tr('0 = só manual. Ex.: 3 = os 3 primeiros do ranking ganham o cargo e perdem ao sair do top 3')}>
               {tr('Automático: top')}
               <input
@@ -640,6 +639,10 @@ function Cargos({ config, usuarios, aoSalvar }) {
                 value={c.top || 0}
                 onChange={(e) => mudar(i, 'top', Math.min(15, Math.max(0, Math.round(Number(e.target.value) || 0))))}
               />
+            </label>
+            <label className={`adm-numerar${c.top > 0 ? '' : ' desligado'}`} title={tr('Mostra a posição no selo: {nome} 1, {nome} 2, {nome} 3...', { nome: c.nome || '…' })}>
+              <input type="checkbox" checked={c.top > 0 && !!c.numerar} disabled={!(c.top > 0)} onChange={(e) => mudar(i, 'numerar', e.target.checked)} />
+              {tr('Numerar posição')}
             </label>
             <span className="adm-cargo-info">
               {tr('{n} jogador(es) · {m} moldura(s) exclusiva(s)', { n: membros(c.id).length, m: exclusivas(c.id) })}

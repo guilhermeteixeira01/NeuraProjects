@@ -1,52 +1,21 @@
-// Ícones do selo dos cargos (Premium, VIP...): o admin escolhe um por cargo (aba Cargos). Todos preenchidos, no mesmo
-// estilo da coroa (24x24, cor do cargo). A lista de nomes também está no worker (ICONES_CARGO), que só aceita estes.
+// Ícones do selo dos cargos (Premium, VIP...): o admin escolhe um por cargo (aba Cargos). Estilo geométrico/futurista:
+// cantos retos, recortes vazados (par: evenodd) e alguns detalhes em traço (l). 24x24, na cor do cargo.
+// A lista de nomes também está no worker (ICONES_CARGO), que só aceita estes.
 export const ICONES_CARGO = {
-  coroa: { nome: 'Coroa', d: 'M3 7l4.5 4L12 4l4.5 7L21 7l-2 12H5L3 7z' },
-  cifrao: {
-    nome: 'Cifrão',
-    d: 'M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z',
-  },
-  estrela: { nome: 'Estrela', d: 'M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z' },
-  diamante: { nome: 'Diamante', d: 'M6 3h12l4 6-10 12L2 9l4-6zm1.2 2L5 8.4h4.2L10.5 5H7.2zm5.3 0l1.3 3.4H19L16.8 5h-4.3z', par: true },
-  raio: { nome: 'Raio', d: 'M7 2v11h3v9l7-12h-4l4-8z' },
-  escudo: { nome: 'Escudo', d: 'M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z' },
-  fogo: {
-    nome: 'Fogo',
-    d: 'M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67z',
-  },
-  caveira: {
-    nome: 'Caveira',
-    d: 'M12 2C7 2 3 5.6 3 10.2c0 2.6 1.3 4.9 3.4 6.4V20a1 1 0 0 0 1 1h2v-2h1.6v2h2v-2h1.6v2h2a1 1 0 0 0 1-1v-3.4c2.1-1.5 3.4-3.8 3.4-6.4C21 5.6 17 2 12 2zM8.5 13a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm7 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4z',
-    par: true,
-  },
-  trofeu: {
-    nome: 'Troféu',
-    d: 'M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z',
-    par: true,
-  },
-  coracao: {
-    nome: 'Coração',
-    d: 'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z',
-  },
-  verificado: {
-    nome: 'Verificado',
-    d: 'M23 12l-2.44-2.79.34-3.69-3.61-.82-1.89-3.2L12 2.96 8.6 1.5 6.71 4.69 3.1 5.5l.34 3.7L1 12l2.44 2.79-.34 3.7 3.61.82L8.6 22.5l3.4-1.47 3.4 1.46 1.89-3.19 3.61-.82-.34-3.69L23 12zm-12.91 4.72l-3.8-3.81 1.48-1.48 2.32 2.33 5.85-5.87 1.48 1.48-7.33 7.35z',
-    par: true,
-  },
-  mira: {
-    nome: 'Mira',
-    d: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 17.93V17h-2v2.93A8 8 0 0 1 4.07 13H7v-2H4.07A8 8 0 0 1 11 4.07V7h2V4.07A8 8 0 0 1 19.93 11H17v2h2.93A8 8 0 0 1 13 19.93zM12 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4z',
-    par: true,
-  },
-  microfone: {
-    nome: 'Microfone',
-    d: 'M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z',
-  },
-  controle: {
-    nome: 'Controle',
-    d: 'M21.58 16.09l-1.09-7.66C20.21 6.46 18.52 5 16.53 5H7.47C5.48 5 3.79 6.46 3.51 8.43l-1.09 7.66C2.2 17.63 3.39 19 4.94 19c.68 0 1.32-.27 1.8-.75L9 16h6l2.25 2.25c.48.48 1.13.75 1.8.75 1.56 0 2.75-1.37 2.53-2.91zM11 11H9v2H8v-2H6v-1h2V8h1v2h2v1zm4-1c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm2 3c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z',
-    par: true,
-  },
+  coroa: { nome: 'Coroa', d: 'M2.5 7.5 7 11l5-8 5 8 4.5-3.5-1.8 10.5H4.3z M12 9.6l1.7 2.9L12 15.4l-1.7-2.9z M4.5 19.5h15V22h-15z', par: true },
+  cifrao: { nome: 'Cifrão', d: 'M10.6 2h2.8v2.2h4.1v2.9H9.7l-.9.9v1.4l.9.9h5.6l2.7 2.7v2.9L15.3 18.6h-1.9V22h-2.8v-3.4H6.5v-2.9h7.8l.9-.9v-1.4l-.9-.9H8.7L6 9.8V7l2.7-2.8h1.9z' },
+  estrela: { nome: 'Estrela', d: 'M12 1.5l2.9 6.6 7.1.8-5.4 4.8 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 8.9l7.1-.8z M12 7.6l-1.2 2.8-3 .3 2.3 2 -.7 3 2.6-1.6 2.6 1.6-.7-3 2.3-2-3-.3z', par: true },
+  diamante: { nome: 'Diamante', d: 'M6.5 3h11L22 9 12 21.5 2 9z M7.6 5 5.4 8h3.9l1-3z M13.7 5l1 3h3.9l-2.2-3z M6 10.2l4.6 6.1-1.4-6.1z M14.8 10.2l-1.4 6.1 4.6-6.1z M11.1 10.2 12 14l.9-3.8z', par: true },
+  raio: { nome: 'Raio', d: 'M14.5 1.5 4.5 13.4h6.3L8.6 22.5l11-12.3h-6.6z M12.4 6.6l-.8 4.6h4.2l-4.5 5 .7-3.2H8.2z', par: true },
+  escudo: { nome: 'Escudo', d: 'M12 1.5 20.5 4.8v6.4c0 5.1-3.5 9.3-8.5 11.3-5-2-8.5-6.2-8.5-11.3V4.8z M12 5v13.9c3.1-1.6 5-4.4 5-7.7V7z', par: true },
+  fogo: { nome: 'Fogo', d: 'M12.5 1.5c.4 3.1-1 4.9-2.6 6.6l-1.3-2.3C5.7 8.6 4 11.4 4 14.6 4 19 7.6 22.5 12 22.5s8-3.5 8-7.9c0-2.4-1-4.4-2.6-6l-.9 2.5c-.6-4.2-1.6-7.6-4-9.6z M12 12.5l-2.6 3.6c0 1.7 1.1 3 2.6 3s2.6-1.3 2.6-3z', par: true },
+  caveira: { nome: 'Caveira', d: 'M7 2h10l3.5 3.5v7L18.5 15v4.5l-2 2.5h-9l-2-2.5V15l-2-2.5v-7z M7.4 9h3.8v3.6H8.6L7.4 11.4z M12.8 9h3.8v2.4l-1.2 1.2h-2.6z M11 14.6h2l.8 2.4h-3.6z M9 19v1.5h1.4V19z M13.6 19v1.5H15V19z', par: true },
+  trofeu: { nome: 'Troféu', d: 'M6.5 2h11v2.2h4V8c0 2.4-1.7 4.2-4.1 4.6-.9 1.9-2.5 3.1-4.1 3.4v2.3h3.2l1 1.7v2.5H6.5V20l1-1.7h3.2V16c-1.6-.3-3.2-1.5-4.1-3.4C4.2 12.2 2.5 10.4 2.5 8V4.2h4z M4.6 6.3v1.7c0 1 .6 1.9 1.8 2.3l-.1-4z M19.4 6.3h-1.7l-.1 4c1.2-.4 1.8-1.3 1.8-2.3z M12 4.6l1.2 2.4 2.6.4-1.9 1.8.5 2.6L12 10.6l-2.4 1.2.5-2.6-1.9-1.8 2.6-.4z', par: true },
+  coracao: { nome: 'Coração', d: 'M12 21.5 2.5 12V6l3.5-3.5h3.7L12 4.8l2.3-2.3H18L21.5 6v6z M12 16.6 18.6 10V7.3l-1.8-1.8h-1.3L12 9 8.5 5.5H7.2L5.4 7.3V10z', par: true },
+  verificado: { nome: 'Verificado', d: 'M12 1 21.5 6.4v11.2L12 23l-9.5-5.4V6.4z M10.4 16.7l-4-4 1.7-1.7 2.3 2.3 5.5-5.5 1.7 1.7z', par: true },
+  mira: { nome: 'Mira', d: 'M10.9 1.5h2.2v6h-2.2z M10.9 16.5h2.2v6h-2.2z M1.5 10.9h6v2.2h-6z M16.5 10.9h6v2.2h-6z M12 9.8l2.2 2.2-2.2 2.2L9.8 12z', l: 'M5 9V5h4 M15 5h4v4 M19 15v4h-4 M9 19H5v-4' },
+  microfone: { nome: 'Microfone', d: 'M9 1.5h6l1 1v9.5L13.8 14h-3.6L8 12V2.5z M10.6 4v1.4h2.8V4z M10.6 7v1.4h2.8V7z', l: 'M5 10v3.2L8.8 17h6.4l3.8-3.8V10 M12 17v4.5 M8 21.5h8', par: true },
+  controle: { nome: 'Controle', d: 'M6.5 5h11l4.5 5.5v6.2L19.3 19.5h-2.6l-3-3h-3.4l-3 3H4.7L2 16.7v-6.2z M7 8.8v1.6H5.4v2.2H7v1.6h2.2v-1.6h1.6v-2.2H9.2V8.8z M15.6 9.2h2v2h-2z M17.6 11.4h2v2h-2z', par: true },
 }
 
 // Desenho do ícone do cargo (sem ícone salvo ou ícone desconhecido: coroa, o de antes)
@@ -55,6 +24,7 @@ export function IconeCargo({ icone, tamanho = 12, className, style }) {
   return (
     <svg className={className} style={style} width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d={i.d} fillRule={i.par ? 'evenodd' : undefined} />
+      {i.l && <path d={i.l} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" strokeLinejoin="miter" />}
     </svg>
   )
 }
