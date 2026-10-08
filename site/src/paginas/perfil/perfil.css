@@ -610,3 +610,10 @@ html.sm-aberto { overflow: hidden; }
 .sm-item.presa > .sm-cadeado { display: none; }
 /* aviso "Para usar" com a mesma cara */
 .sm-requisitos { border-style: solid; border-color: var(--border-2); background: rgb(var(--fundo) / .97); }
+/* "Para usar": uma linha por requisito (rótulo pequeno + gema/selo + texto) */
+.sm-requisitos { gap: 7px; padding: 8px 9px; }
+.sm-req-linha { display: grid !important; grid-template-columns: auto 1fr; grid-template-rows: auto auto; align-items: center; column-gap: 6px; row-gap: 1px; }
+.sm-req-linha > small { grid-column: 1 / -1; width: auto !important; padding: 0 !important; font-family: var(--font-mono); font-size: 8.5px !important; letter-spacing: 1px; text-transform: uppercase; color: var(--dim-2) !important; }
+.sm-req-linha > b { font-size: 11.5px; font-weight: 800; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sm-req-linha > .sm-req-atual { color: var(--dim); }
+.sm-req-linha > .selo-cargo { grid-column: 1 / -1; justify-self: start; max-width: 100%; overflow: hidden; }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { CamadaMoldura, cargoDaMoldura, useCargosIdsDe, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, SeloCargo, cargoDaMoldura, useCargosIdsDe, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
 import { COLECOES, MOLDURAS, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { urlOk } from '../../comum/dados.js'
 import { useT } from '../../comum/i18n.js'
@@ -138,17 +138,26 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
             <b>
               <CadeadoMini /> {tr('Para usar')}
             </b>
+            {/* Nível: o necessário e o seu, cada um com a gema do nível */}
             {nv > nivelEf && (
-              <span>
-                <SeloNivel nivel={nv} tamanho={18} />
-                {tr('Nível {n}', { n: nv })}
-                <small>{nivel > 0 ? tr('você: {n}', { n: nivel }) : tr('você: sem classificação')}</small>
-              </span>
+              <>
+                <span className="sm-req-linha">
+                  <small>{tr('Necessário')}</small>
+                  <SeloNivel nivel={nv} tamanho={20} />
+                  <b>{tr('Nível {n}', { n: nv })}</b>
+                </span>
+                <span className="sm-req-linha">
+                  <small>{tr('Seu nível')}</small>
+                  <SeloNivel nivel={nivel} tamanho={20} />
+                  <b className="sm-req-atual">{nivel > 0 ? tr('Nível {n}', { n: nivel }) : tr('Sem classificação')}</b>
+                </span>
+              </>
             )}
+            {/* Cargo: o mesmo selo de cargo do resto do site */}
             {semCargo(m.id) && (
-              <span>
-                <IconeCargo icone={cargo.icone} tamanho={14} style={{ color: cargo.cor }} />
-                {tr('Cargo {cargo}', { cargo: cargo.nome })}
+              <span className="sm-req-linha">
+                <small>{tr('Cargo')}</small>
+                <SeloCargo cargo={cargo} />
               </span>
             )}
           </span>
