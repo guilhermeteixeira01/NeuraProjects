@@ -2194,3 +2194,8 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
 @media (prefers-reduced-motion: reduce) {
   .selo-nivel.anim-revela, .selo-nivel.anim-sobe, .selo-nivel.anim-desce, .nx-nivel-fundo { animation-duration: .01s; }
 }
+/* Sem classificação no celular: título numa linha e "faltam X partidas" embaixo (não quebra feio lado a lado) */
+.barra-xp.sem-class .barra-xp-topo b { white-space: nowrap; }
+@media (max-width: 720px) {
+  .barra-xp.sem-class .barra-xp-topo { flex-direction: column; align-items: flex-start; gap: 2px; }
+}

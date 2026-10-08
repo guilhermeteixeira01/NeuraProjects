@@ -702,15 +702,16 @@ function Admins({ config, dono, souDono, usuarios, aoSalvar }) {
         {[dono, ...(config.admins || []).filter((id) => id !== dono)].filter(Boolean).map((id) => (
           <li key={id}>
             <Avatar id={id} src={avatarDe(id)} nome={nomeDe(id)} />
-            <a className="adm-admin-nome" href={linkPerfil(id)}>
-              <b>{nomeDe(id)}</b>
+            {/* Nome, selo (Dono/Admin) e SteamID empilhados; à direita só o botão Remover */}
+            <span className="adm-admin-info">
+              <a className="adm-admin-nome" href={linkPerfil(id)}>
+                <b>{nomeDe(id)}</b>
+              </a>
+              <SeloCargo cargo={id === dono ? { ...SELOS_PADRAO.dono, ...config.selos?.dono } : { ...SELOS_PADRAO.admin, ...config.selos?.admin }} />
               <small className="mono">{id}</small>
-            </a>
-            {id === dono ? (
-              <SeloCargo cargo={{ ...SELOS_PADRAO.dono, ...config.selos?.dono }} />
-            ) : (
+            </span>
+            {id === dono ? null : (
               <>
-                <SeloCargo cargo={{ ...SELOS_PADRAO.admin, ...config.selos?.admin }} />
                 {souDono && (
                   <button type="button" className="btn btn-ghost adm-perigo" onClick={() => mudar(id, false)} disabled={estado === 'salvando'}>
                     {tr('Remover')}

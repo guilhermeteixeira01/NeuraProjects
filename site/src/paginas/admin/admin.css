@@ -254,3 +254,11 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
   gap: 6px;
   font-size: 13px;
 }
+
+/* Aba Admins: nome em cima, selo no meio, SteamID embaixo (não se sobrepõem no celular) */
+.adm-admins li > .adm-admin-info { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+.adm-admin-info .adm-admin-nome { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adm-admin-info .adm-admin-nome b { font-size: 15px; }
+.adm-admin-info .adm-admin-nome:hover b { color: var(--blue-2); }
+.adm-admin-info small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adm-admins li .btn { flex: none; }
