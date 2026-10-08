@@ -19,25 +19,6 @@
     "atualizada": "2026-10-07 21:36"
   },
   {
-    "id": "2026-10-07_20-47_Time-A-x-Time-B",
-    "organizacao": "dga",
-    "categoria": "md3",
-    "formato": "MD3",
-    "timeA": "Time A",
-    "timeB": "Time B",
-    "logoA": null,
-    "logoB": null,
-    "mapas": [
-      "de_mirage",
-      "de_ancient",
-      "de_train"
-    ],
-    "status": "iniciando",
-    "mapaAtual": 0,
-    "criada": "2026-10-07 20:47",
-    "atualizada": "2026-10-07 20:47"
-  },
-  {
     "id": "2026-10-07_19-55_Kivo-x-Neura-Project",
     "organizacao": "dga",
     "categoria": "md3",
@@ -74,25 +55,6 @@
     "mapaAtual": 1,
     "criada": "2026-10-07 18:57",
     "atualizada": "2026-10-07 19:28"
-  },
-  {
-    "id": "2026-10-07_18-50_Kivo-x-Neura-Project",
-    "organizacao": "dga",
-    "categoria": "md3",
-    "formato": "MD3",
-    "timeA": "Kivo",
-    "timeB": "Neura Project",
-    "logoA": "https://i.imgur.com/qOKC9BF.png",
-    "logoB": "https://i.imgur.com/0lhPoBJ.png",
-    "mapas": [
-      "de_dust2",
-      "de_nuke",
-      "de_anubis"
-    ],
-    "status": "iniciando",
-    "mapaAtual": 0,
-    "criada": "2026-10-07 18:50",
-    "atualizada": "2026-10-07 18:50"
   },
   {
     "id": "2026-10-05_19-41_Neura-Project-x-Digital-Gamers",
