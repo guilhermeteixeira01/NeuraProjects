@@ -282,6 +282,11 @@ cancelamento) fica em `src/comum/series.js` e vale para o site, o build e a limp
 - O build (`gerar-site.mjs`) já esconde a série vencida mesmo antes da limpeza: nunca aparece algo dela que chegou
   atrasado no meio de um deploy.
 
+
+**Série abandonada:** se uma série fica em "iniciando" (nenhum mapa começou) e depois outra série é criada, a que
+ficou para trás sai na hora, sem contagem, pelo mesmo caminho das canceladas (`analisarCanceladas` em
+`src/comum/series.js`). Só vale para série sem nenhuma partida: o que já foi jogado nunca é apagado por isso.
+
 ## Formato do partida.json
 
 Definido pelo plugin (classe `PartidaDados` em `RelatorioPagina.cs`, `versao: 1`) e lido por
