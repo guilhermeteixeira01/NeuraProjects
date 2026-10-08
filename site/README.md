@@ -148,6 +148,18 @@ no site e imprime as linhas para o `molduras.js`, já com a `escala` medida por 
 
 ## Níveis (XP)
 
+**Classificação (como a FACEIT):** o nível só aparece depois de **10 partidas** (`PARTIDAS_CLASSIFICACAO` em
+`src/comum/niveis.js`, `nivelDe(xp, mapas)`). Antes disso o jogador fica "Sem classificação" (nível 0, gema cinza com
+"?") e o perfil mostra 10 traços, um por partida. O XP conta por trás e o nível aparece de uma vez na 10ª partida.
+Para as molduras por nível, sem classificação vale como nível 1 (só as livres), no site e no worker.
+
+**Selo (modelo Gema, `src/comum/Nivel.jsx`):** pedra lapidada de 8 lados na cor da faixa (1 cinza, 2–3 verde, 4–7
+amarelo, 8–9 laranja, 10 vermelho), com uma estrela piscando do nível 8 em diante.
+
+**Aviso de nível (`src/comum/AvisoNivel.jsx`):** para quem está logado, aparece uma vez por cima do site quando pega o
+primeiro nível, sobe ou volta de nível (gema animada, com partículas ao subir). O último nível visto fica no navegador
+(`localStorage np_nivel_<SteamID>`).
+
 Funciona como o Elo da FACEIT (`src/comum/niveis.js`, a mesma tabela no deploy, no site e no worker): cada mapa
 **vitória ganha XP e derrota perde XP**, e o desempenho aumenta o ganho ou diminui a perda.
 

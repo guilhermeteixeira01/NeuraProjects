@@ -102,6 +102,7 @@ export async function gerarRanking(pasta, { premier = true } = {}) {
         hs: e.kills ? Math.round((100 * e.headshots) / e.kills) : 0,
         xp: xpMapa, // ganho (+) ou perda (-) nesta partida
         xpTotal: j.xp, // XP total depois dela
+        mapasAte: j.mapas, // partidas jogadas até esta (nível só depois de 10)
         ...(e.armas ? { armas: e.armas } : {}), // por arma (partidas do plugin novo): { ak47: { kills, headshots, dano, acertos } }
       })
       jogadores.set(e.steamId, j)
@@ -143,7 +144,7 @@ export async function gerarRanking(pasta, { premier = true } = {}) {
       kr: arred(j.kills / j.rounds),
       winRate: arred((100 * j.vitorias) / j.mapas, 1),
       xp: j.xp, // XP das partidas (o site soma o ajuste do admin, se houver)
-      nivel: nivelDe(j.xp).nivel,
+      nivel: nivelDe(j.xp, j.mapas).nivel, // 0 = sem classificação (menos de 10 partidas)
       ultimos: j.ultimos.reverse(), // mais recente primeiro
     }))
     .sort((a, b) => b.rating - a.rating || b.kills - a.kills)

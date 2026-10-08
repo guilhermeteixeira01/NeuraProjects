@@ -560,3 +560,4 @@ html.sm-aberto { overflow: hidden; }
 .sm-requisitos b { display: flex; align-items: center; gap: 5px; font-size: 11px; letter-spacing: .5px; text-transform: uppercase; color: var(--blue-2); }
 .sm-requisitos > span { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; font-size: 11.5px; font-weight: 700; color: var(--text); line-height: 1.25; }
 .sm-requisitos small { width: 100%; padding-left: 23px; font-size: 10px; font-weight: 500; color: var(--dim); }
+.pf-sem-nivel { font-size: 12.5px; font-weight: 700; color: var(--dim); }

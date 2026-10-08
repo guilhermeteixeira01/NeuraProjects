@@ -422,7 +422,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
               <span className="pf-info-rot">{t('NÍVEL')}</span>
               <span className="pf-info-val pf-nivel">
                 <SeloNivel nivel={nivel.nivel} tamanho={30} />
-                <b>{nivel.nivel}</b>
+                {nivel.classificado ? <b>{nivel.nivel}</b> : <small className="pf-sem-nivel">{t('Sem classificação')}</small>}
               </span>
             </div>
             {(timeEscolhido || j.time) && (

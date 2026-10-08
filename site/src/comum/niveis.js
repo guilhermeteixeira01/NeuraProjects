@@ -6,6 +6,8 @@
 // XP mínimo de cada nível (nível 1 = índice 0)
 export const NIVEIS = [0, 300, 650, 1050, 1500, 2000, 2550, 3150, 3800, 4500]
 export const NIVEL_MAX = NIVEIS.length
+// Como a FACEIT: só recebe nível depois de jogar esta quantidade de partidas (antes: "Sem classificação", nível 0)
+export const PARTIDAS_CLASSIFICACAO = 10
 
 // XP de uma partida: base da vitória/derrota + desempenho (rating) + MVP da partida.
 // Vitória rende pelo menos ganhoMinimo; derrota tira pelo menos perdaMinima (mesmo jogando muito bem).
@@ -26,15 +28,23 @@ export function xpDaPartida({ venceu, empate, rating, mvp }) {
   return venceu ? Math.max(XP.ganhoMinimo, bruto) : Math.min(XP.perdaMinima, bruto)
 }
 
-// Nível e progresso para o próximo a partir do XP total
-export function nivelDe(xp) {
+// Nível e progresso para o próximo a partir do XP total.
+// mapas (partidas jogadas): com menos de PARTIDAS_CLASSIFICACAO o nível é 0 ("Sem classificação"); o XP continua
+// contando por trás e o nível aparece de uma vez na 10ª partida. Sem mapas (undefined): só pelo XP.
+export function nivelDe(xp, mapas) {
   const total = Math.max(0, Math.round(Number(xp) || 0))
   let nivel = 1
   while (nivel < NIVEL_MAX && total >= NIVEIS[nivel]) nivel++
   const base = NIVEIS[nivel - 1]
   const proximo = nivel < NIVEL_MAX ? NIVEIS[nivel] : null
+  const jogadas = Math.max(0, Number(mapas) || 0)
+  const classificado = mapas === undefined || jogadas >= PARTIDAS_CLASSIFICACAO
   return {
-    nivel,
+    nivel: classificado ? nivel : 0,
+    nivelXp: nivel, // nível que o XP daria (o que aparece quando completar as partidas)
+    classificado,
+    partidas: jogadas,
+    faltamPartidas: classificado ? 0 : PARTIDAS_CLASSIFICACAO - jogadas,
     xp: total,
     base, // XP onde este nível começa
     proximo, // XP do próximo nível (null no 10)

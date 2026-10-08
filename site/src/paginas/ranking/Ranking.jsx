@@ -275,7 +275,7 @@ export default function Ranking({ dados: inicial }) {
     // Dono/admin com "Ocultar do ranking" ligado não aparece (o próximo sobe de posição)
     const jogadores = dados.jogadores.filter((j) => !perfis[j.steamId]?.ocultoRanking).map((j) => {
       const xp = (Number(j.xp) || 0) + (Number(perfis[j.steamId]?.xp) || 0)
-      return { ...j, xp, nivel: nivelDe(xp).nivel }
+      return { ...j, xp, nivel: nivelDe(xp, j.mapas).nivel }
     })
     return { ...dados, jogadores }
   }, [dados, perfis])
