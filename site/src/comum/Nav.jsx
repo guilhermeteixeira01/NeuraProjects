@@ -208,7 +208,7 @@ export default function Nav({ pagina }) {
         </div>
       </header>
 
-      {/* Computador (estilo FACEIT): barra fina à direita com a conta, ⚙ e Comunidade, e abas de texto no topo */}
+      {/* Computador (estilo FACEIT): barra fina à direita com a conta, ⚙ e Comunidade */}
       <aside className="nx-direita" aria-label={t('Conta e configurações')}>
         <Conta />
         <span className="nx-direita-sep" aria-hidden="true" />
@@ -220,17 +220,6 @@ export default function Nav({ pagina }) {
           </a>
         )}
       </aside>
-      <nav className="nx-topo-abas" aria-label={t('Páginas')}>
-        {[...abas, ...(admin ? [ITEM_ADMIN] : [])].map((m) => {
-          const ativo = m.id === pagina
-          return (
-            <a key={m.id} className={`nx-topo-aba${ativo ? ' is-active' : ''}`} href={m.href} {...(ativo ? { 'aria-current': 'page' } : {})}>
-              {t(m.rotulo)}
-            </a>
-          )
-        })}
-      </nav>
-
       <nav className="nx-baixo" aria-label={t('Menu principal')}>
         {mais && <PainelMais itens={extras} admin={linkAdmin} fechar={fecharMais} />}
         {abas.map((m) => {

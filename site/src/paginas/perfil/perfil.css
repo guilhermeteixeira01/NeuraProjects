@@ -587,3 +587,26 @@ html.sm-aberto { overflow: hidden; }
   .pf-arma-linha-btn { grid-template-columns: 44px minmax(0, 1fr) 56px 52px; gap: 8px; }
   .pf-arma-mini img { max-width: 42px; }
 }
+
+/* ── Molduras bloqueadas (versão nova): imagem atrás de um vidro escuro com cadeado e, embaixo do nome, um chip
+ * com o que libera, na cor do nível ou do cargo. Clicar ainda abre o "Para usar" com os detalhes. ── */
+.sm-arte { position: relative; display: grid; place-items: center; width: 72px; height: 72px; }
+.sm-item.presa > .sm-arte > img { opacity: .45; filter: grayscale(.85) brightness(.8); }
+.sm-vidro {
+  position: absolute; inset: 14px; display: grid; place-items: center; border-radius: 50%;
+  color: var(--text); background: rgb(var(--fundo) / .7); border: 1px solid rgb(var(--tinta) / .14);
+  backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); transition: color .15s, border-color .15s, transform .2s;
+}
+.sm-item.presa:hover .sm-vidro { color: var(--blue-2); border-color: var(--blue-2); transform: scale(1.06); }
+.sm-item.presa { border-style: dashed; border-color: var(--border-2); background: rgb(var(--tinta) / .015); }
+.sm-item.presa.de-cargo { border-color: color-mix(in srgb, var(--cg) 45%, transparent); }
+.sm-item.presa > .sm-nome { opacity: .7; }
+.sm-req {
+  display: inline-flex; align-items: center; gap: 4px; max-width: 100%; padding: 2px 7px 2px 4px; border-radius: 999px;
+  font-size: 10px; font-weight: 800; letter-spacing: .3px; text-transform: uppercase; white-space: nowrap; overflow: hidden;
+  color: var(--rq); border: 1px solid color-mix(in srgb, var(--rq) 50%, transparent); background: color-mix(in srgb, var(--rq) 10%, transparent);
+}
+.sm-req .selo-nivel { flex: none; }
+.sm-item.presa > .sm-cadeado { display: none; }
+/* aviso "Para usar" com a mesma cara */
+.sm-requisitos { border-style: solid; border-color: var(--border-2); background: rgb(var(--fundo) / .97); }

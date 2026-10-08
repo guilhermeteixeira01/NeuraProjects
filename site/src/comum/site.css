@@ -2202,9 +2202,8 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
 
 /* ══════════════ Navegação estilo FACEIT (computador, > 1024px) ══════════════
  * Esquerda: só a marca e as páginas (ícones), com traço branco na página atual e grupos separados.
- * Direita: barra fina com a conta (avatar), ⚙ e Comunidade. Topo: abas de texto centralizadas com sublinhado. */
-.nx-direita,
-.nx-topo-abas {
+ * Direita: barra fina com a conta (avatar), ⚙ e Comunidade. */
+.nx-direita {
   display: none;
 }
 @media (min-width: 1025px) {
@@ -2327,48 +2326,6 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
     animation-name: nx-lado-esq;
   }
 
-  .nx-topo-abas {
-    position: sticky;
-    top: 0;
-    z-index: 250;
-    display: flex;
-    justify-content: center;
-    gap: 34px;
-    height: 58px;
-    background: rgb(var(--fundo) / 0.92);
-    border-bottom: 1px solid var(--border);
-    font-family: var(--font-body);
-  }
-  .nx-topo-aba {
-    position: relative;
-    display: flex;
-    align-items: center;
-    padding: 0 2px;
-    font-size: 13.5px;
-    font-weight: 800;
-    letter-spacing: 0.6px;
-    text-transform: uppercase;
-    text-decoration: none;
-    color: var(--dim);
-    transition: color 0.15s;
-  }
-  .nx-topo-aba:hover {
-    color: var(--text);
-  }
-  .nx-topo-aba.is-active {
-    color: var(--text);
-  }
-  .nx-topo-aba.is-active::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    bottom: 10px;
-    width: 30px;
-    height: 3px;
-    border-radius: 2px;
-    transform: translateX(-50%);
-    background: linear-gradient(90deg, var(--blue), var(--blue-2));
-  }
   .nx-avisos {
     right: calc(var(--nx-direita) + 16px);
   }
