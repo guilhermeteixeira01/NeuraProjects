@@ -1,7 +1,8 @@
 /*
  * Ranking dos jogadores: soma as estatísticas de TODAS as partidas registradas (partida.json de cada uma).
  * Roda no deploy (scripts/gerar-site.mjs), então cada partida nova que o plugin envia já atualiza o ranking.
- * CS Rating do Premier: API pública da Leetify (não existe API oficial da Valve).
+ * CS Rating do Premier: não é buscado aqui (deixava o deploy lento). O worker busca na Leetify de hora em hora
+ * (GET /premier) e o site mostra de lá (src/comum/premierAtual.js).
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -14,22 +15,8 @@ const jogaram = (d) => (d.jogadores || []).filter((e) => e.time && (e.rounds > 0
 const mvpDa = (lista) => lista.reduce((m, e) => (m === null || e.rating > m.rating ? e : m), null)
 const kastPct = (e) => (100 * e.kast) / Math.max(1, e.rounds)
 
-// CS Rating do Premier do jogador. Só vem para quem tem conta na Leetify; sem conta, sem rede ou com erro fica null.
-async function buscarPremier(steamId) {
-  try {
-    const res = await fetch(`https://api-public.cs-prod.leetify.com/v3/profile?steam64_id=${steamId}`, {
-      signal: AbortSignal.timeout(10000),
-    })
-    if (!res.ok) return null
-    const premier = (await res.json())?.ranks?.premier
-    return Number.isFinite(premier) && premier > 0 ? premier : null
-  } catch {
-    return null
-  }
-}
-
-// pasta = pasta "partidas" (com partidas.json e <caminho>/partida.json); premier: false no `npm run dev`
-export async function gerarRanking(pasta, { premier = true } = {}) {
+// pasta = pasta "partidas" (com partidas.json e <caminho>/partida.json)
+export async function gerarRanking(pasta) {
   const arquivoLista = path.join(pasta, 'partidas.json')
   const lista = fs.existsSync(arquivoLista) ? JSON.parse(fs.readFileSync(arquivoLista, 'utf8')) : []
   const jogadores = new Map()
@@ -111,9 +98,6 @@ export async function gerarRanking(pasta, { premier = true } = {}) {
     if (leu) mapasLidos++
   }
 
-  // Premier: um por vez, sem estourar a API
-  const premiers = new Map()
-  if (premier) for (const id of jogadores.keys()) premiers.set(id, await buscarPremier(id))
 
   const arred = (v, casas = 2) => Math.round(v * 10 ** casas) / 10 ** casas
   const ranking = [...jogadores.values()]
@@ -123,7 +107,7 @@ export async function gerarRanking(pasta, { premier = true } = {}) {
       avatar: j.avatar,
       time: j.time,
       logoTime: j.logoTime,
-      premier: premiers.get(j.steamId) ?? null,
+      premier: null, // vem do worker (premierAtual.js)
       mapas: j.mapas,
       vitorias: j.vitorias,
       rounds: j.rounds,

@@ -66,10 +66,10 @@ worker em 2,5 s, mostra a foto da partida.
 Avatar animado (item da Loja de Pontos da Steam) vem como GIF (`IPlayerService/GetAnimatedAvatar`); com "Melhorar
 desempenho" o site usa a foto parada (`_parado` na resposta).
 
-**Premier (Leetify) atualizado de hora em hora:** o `ranking.json` traz o CS Rating do último deploy. O cron do worker
+**Premier (Leetify) atualizado de hora em hora:** o deploy não busca mais o Premier (deixava o build lento). O cron do worker
 (primeira rodada de cada hora) lê o ranking publicado, busca o Premier de cada jogador na Leetify e guarda no KV
-`premier`; `GET /premier` entrega e o selo (`src/comum/Premier.jsx` + `premierAtual.js`) usa esse valor, ou o do deploy
-se não tiver. Com mais de 2 horas sem atualizar (cron parado), a própria rota dispara uma atualização.
+`premier`; `GET /premier` entrega e o selo (`src/comum/Premier.jsx` + `premierAtual.js`) usa esse valor (o perfil ainda pergunta direto à Leetify, no navegador,
+se o worker não tiver o jogador). Com mais de 2 horas sem atualizar (cron parado), a própria rota dispara uma atualização.
 
 **Armas mais usadas** (no perfil, embaixo do gráfico): soma o `armas` de cada mapa do histórico
 (`src/comum/armas.js`): as 3 que mais mataram em destaque (kills, % das kills, HS% e dano) e o resto em lista.

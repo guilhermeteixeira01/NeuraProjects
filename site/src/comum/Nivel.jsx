@@ -47,7 +47,8 @@ export function SeloNivel({ nivel, tamanho = 30, classe = '' }) {
 }
 
 // Barra de progresso até o próximo nível. Sem classificação: 10 traços, um por partida, e quantas faltam.
-export function BarraXp({ info, classe = '' }) {
+// eu: é o perfil de quem está olhando ("seu nível"); de outro jogador: "para ter nível"
+export function BarraXp({ info, classe = '', eu = false }) {
   const t = useT()
   const fmt = (v) => v.toLocaleString(t.local)
   if (!info.classificado) {
@@ -56,7 +57,9 @@ export function BarraXp({ info, classe = '' }) {
         <div className="barra-xp-topo">
           <b>{t('Sem classificação')}</b>
           <span>
-            {info.faltamPartidas === 1 ? t('falta 1 partida para obter seu nível') : t('faltam {n} partidas para obter seu nível', { n: info.faltamPartidas })}
+            {eu
+              ? info.faltamPartidas === 1 ? t('falta 1 partida para obter seu nível') : t('faltam {n} partidas para obter seu nível', { n: info.faltamPartidas })
+              : info.faltamPartidas === 1 ? t('falta 1 partida para ter nível') : t('faltam {n} partidas para ter nível', { n: info.faltamPartidas })}
           </span>
         </div>
         <div className="barra-partidas" role="progressbar" aria-valuemin={0} aria-valuemax={PARTIDAS_CLASSIFICACAO} aria-valuenow={info.partidas}>

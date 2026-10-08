@@ -192,7 +192,7 @@ function Historico({ mapas }) {
 
 // Armas mais usadas (soma das partidas do histórico): as 3 primeiras em destaque e o resto numa lista com barra de kills.
 // Clicar numa arma abre o detalhe dela com barras (participação nas kills e no dano, HS% e dano por acerto).
-const ARMAS_NA_LISTA = 8
+const ARMAS_NA_LISTA = 5
 const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0)
 function ImagemArma({ id }) {
   const [erro, setErro] = useState(false)
@@ -422,7 +422,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
               <span className="pf-info-rot">{t('NÍVEL')}</span>
               <span className="pf-info-val pf-nivel">
                 <SeloNivel nivel={nivel.nivel} tamanho={30} />
-                {nivel.classificado ? <b>{nivel.nivel}</b> : <small className="pf-sem-nivel">{t('Sem classificação')}</small>}
+                {nivel.classificado ? <b>{nivel.nivel}</b> : <b className="pf-sem-nivel" title={t('Sem classificação')}>—</b>}
               </span>
             </div>
             {(timeEscolhido || j.time) && (
@@ -456,7 +456,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
             )}
           </div>
           <div className="pf-baixo fx-entra" style={{ '--e': 3 }}>
-            <BarraXp info={nivel} classe="pf-xp" />
+            <BarraXp info={nivel} classe="pf-xp" eu={eu} />
             <div className="pf-acoes">
               {eu && (
                 <button type="button" className="btn btn-primary" onClick={personalizar}>

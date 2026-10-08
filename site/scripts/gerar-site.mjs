@@ -87,7 +87,7 @@ const series = seriesBrutas.filter((a) => !canceladas.vencidas.has(a.id))
 escrever(arquivoSeries, JSON.stringify(series, null, 2))
 
 // ── 4. Ranking ──
-const { historicos, ...ranking } = await gerarRanking(saidaPartidas, { premier: arg('premier', 'sim') !== 'nao' })
+const { historicos, ...ranking } = await gerarRanking(saidaPartidas)
 escrever(path.join(saida, 'ranking', 'ranking.json'), JSON.stringify(ranking, null, 2))
 // Histórico de cada jogador (página /perfil/?id=<steamId>)
 for (const [id, mapas] of Object.entries(historicos)) escrever(path.join(saida, 'perfil', 'historico', `${id}.json`), JSON.stringify(mapas))

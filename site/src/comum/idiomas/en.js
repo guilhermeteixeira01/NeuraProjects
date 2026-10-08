@@ -657,4 +657,6 @@ export default {
   "Do nível {de} para o {para}. Continue jogando bem para chegar ao próximo.": "From level {de} to {para}. Keep playing well to reach the next one.",
   "Do nível {de} para o {para}. Vença as próximas partidas para recuperar.": "From level {de} to {para}. Win your next matches to get it back.",
   "Continuar": "Continue",
+  "falta 1 partida para ter nível": "1 match left to get a level",
+  "faltam {n} partidas para ter nível": "{n} matches left to get a level",
 }

@@ -38,7 +38,7 @@ function dadosNoDev() {
         const historico = /^\/perfil\/historico\/(\d+)\.json$/.exec(url)
         if (url === '/ranking/ranking.json' || historico) {
           const { gerarRanking } = await import('./scripts/ranking.mjs')
-          const { historicos, ...ranking } = await gerarRanking(path.join(raiz, 'partidas'), { premier: false })
+          const { historicos, ...ranking } = await gerarRanking(path.join(raiz, 'partidas'))
           const resposta = historico ? historicos[historico[1]] : ranking
           if (!resposta) return next()
           res.setHeader('Content-Type', 'application/json; charset=utf-8')
