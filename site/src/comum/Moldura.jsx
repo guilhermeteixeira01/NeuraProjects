@@ -159,16 +159,25 @@ export const nivelDaMoldura = (config, id) => (config.molduraPorNivel ? Number(c
 // Cargo de quem pode usar a moldura (exclusiva de Premium, VIP...), ou null
 export const cargoDaMoldura = (config, id) => (config.cargos || []).find((c) => c.id === config.molduraCargo?.[id]) || null
 
-// Cargos do jogador (Premium, VIP...: o admin dá no painel), já com nome e cor
+// Nome do cargo no selo. Cargo automático com "numerar" ligado mostra a posição de quem está no top:
+// "Campeão 1", "Campeão 2", "Campeão 3". pos = posição no ranking (0 = primeiro), -1 = fora.
+export const nomeDoCargo = (c, pos) => (c.numerar && c.top > 0 && pos >= 0 && pos < c.top ? `${c.nome} ${pos + 1}` : c.nome)
+
+// Posição do jogador no ranking que vale para os cargos automáticos (-1 = fora ou sem cargo automático)
+function usePosicaoTop(steamId) {
+  const perfis = usePerfis()
+  const { cargos } = useConfigSite()
+  const ordem = useOrdemRanking(cargos.some((c) => c.top > 0))
+  return ordem.filter((id) => !perfis[id]?.ocultoRanking).indexOf(steamId) // oculto do ranking: o próximo sobe
+}
+
 // Ids dos cargos do jogador: os que o admin deu + os automáticos ("top N do ranking", entram e saem com a posição)
 export function useCargosIdsDe(steamId) {
   const perfis = usePerfis()
   const manuais = perfis[steamId]?.cargos || []
   const { cargos } = useConfigSite()
-  const automaticos = cargos.filter((c) => c.top > 0)
-  const ordem = useOrdemRanking(automaticos.length > 0)
-  const pos = ordem.filter((id) => !perfis[id]?.ocultoRanking).indexOf(steamId) // oculto do ranking: o próximo sobe
-  return [...new Set([...manuais, ...automaticos.filter((c) => pos >= 0 && pos < c.top).map((c) => c.id)])]
+  const pos = usePosicaoTop(steamId)
+  return [...new Set([...manuais, ...cargos.filter((c) => c.top > 0 && pos >= 0 && pos < c.top).map((c) => c.id)])]
 }
 
 // Selos do jogador: primeiro o da equipe (dono ou admin, se estiver ligado), depois os cargos
@@ -179,7 +188,8 @@ export function useCargosDe(steamId) {
     steamId && steamId === equipe?.dono ? (selos?.dono?.mostrar ? [{ id: '_dono', ...selos.dono }] : [])
     : equipe?.admins?.includes(steamId) ? (selos?.admin?.mostrar ? [{ id: '_admin', ...selos.admin }] : [])
     : []
-  return [...daEquipe, ...cargos.filter((c) => ids.includes(c.id))]
+  const pos = usePosicaoTop(steamId)
+  return [...daEquipe, ...cargos.filter((c) => ids.includes(c.id)).map((c) => ({ ...c, nome: nomeDoCargo(c, pos) }))]
 }
 
 // Selo de cargo: coroa + nome, na cor do cargo
