@@ -6,6 +6,7 @@ import { useT } from '../../comum/i18n.js'
 import { IconeCargo } from '../../comum/cargos.jsx'
 import { IconeNenhum } from '../../comum/Icones.jsx'
 import { SeloNivel } from '../../comum/Nivel.jsx'
+import { corNivel } from '../../comum/niveis.js'
 
 function CadeadoMini({ tamanho = 12 }) {
   return (
@@ -105,22 +106,31 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         aria-expanded={presa ? aviso === m.id : undefined}
         title={presa ? undefined : titulo}
       >
-        <img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" />
+        <span className="sm-arte">
+          <img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" />
+          {presa && (
+            <span className="sm-vidro" aria-hidden="true">
+              <CadeadoMini tamanho={16} />
+            </span>
+          )}
+        </span>
         <span className="sm-nome">{m.nome}</span>
-        {/* Nível exigido no canto esquerdo; cargo e cadeado no direito */}
-        {nv > 1 && aviso !== m.id && (
+        {/* Bloqueada: chip com o que libera (cargo na cor dele, ou o nível na cor da faixa) */}
+        {presa && (
+          <span className="sm-req" style={{ '--rq': semCargo(m.id) ? cargo.cor : corNivel(nv) }}>
+            {semCargo(m.id) ? <IconeCargo icone={cargo.icone} tamanho={11} /> : <SeloNivel nivel={nv} tamanho={14} />}
+            {semCargo(m.id) ? cargo.nome : tr('Nível {n}', { n: nv })}
+          </span>
+        )}
+        {/* Liberada: nível exigido no canto esquerdo e cargo no direito */}
+        {!presa && nv > 1 && aviso !== m.id && (
           <span className={`sm-nivel-canto${!admin && nv > nivelEf ? ' falta' : ''}`} title={tr('Nível {n}', { n: nv })}>
             <SeloNivel nivel={nv} tamanho={28} />
           </span>
         )}
-        {cargo && aviso !== m.id && (
+        {!presa && cargo && aviso !== m.id && (
           <span className="sm-exige">
             <IconeCargo icone={cargo.icone} tamanho={12} />
-          </span>
-        )}
-        {presa && aviso !== m.id && (
-          <span className="sm-cadeado" aria-hidden="true">
-            <CadeadoMini tamanho={20} />
           </span>
         )}
         {presa && aviso === m.id && (
