@@ -663,4 +663,7 @@ export default {
   "Numerar posição": "Numerar posición",
   "Mostra a posição no selo: {nome} 1, {nome} 2, {nome} 3...": "Muestra la posición en el sello: {nome} 1, {nome} 2, {nome} 3...",
   "Conta e configurações": "Cuenta y configuración",
+  "Necessário": "Necesario",
+  "Seu nível": "Tu nivel",
+  "Cargo": "Cargo",
 }

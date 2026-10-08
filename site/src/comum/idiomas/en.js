@@ -663,4 +663,7 @@ export default {
   "Numerar posição": "Number by position",
   "Mostra a posição no selo: {nome} 1, {nome} 2, {nome} 3...": "Shows the position on the badge: {nome} 1, {nome} 2, {nome} 3...",
   "Conta e configurações": "Account and settings",
+  "Necessário": "Required",
+  "Seu nível": "Your level",
+  "Cargo": "Role",
 }
