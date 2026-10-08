@@ -1,3 +1,4 @@
+// Série abandonada (ficou em "iniciando" e outra série começou depois) sai na hora, sem contagem.
 // Série cancelada (css_seriecancelar): fica no site por 5 minutos, com contagem regressiva, e depois sai de tudo
 // (lista de partidas, páginas dos mapas, ranking, histórico dos jogadores e as demos). Quem apaga de verdade é o
 // workflow .github/workflows/limpar-series.yml (scripts/limpar-series.mjs); o build e as páginas também já escondem
@@ -34,6 +35,14 @@ export function analisarCanceladas({ partidas = [], series = [], removidas = {} 
     if (fim === null) continue
     if (fim <= agora) vencidas.add(a.id)
     else pendentes.push({ id: a.id, fim })
+  }
+  // Série abandonada: ficou em "iniciando" (nenhum mapa começou) e depois outra série foi criada. Sai na hora, junto
+  // com as canceladas vencidas. Só se não tiver nenhuma partida dela (o que já foi jogado nunca é apagado por isso).
+  const comPartida = new Set(partidas.map((p) => p.serieId).filter(Boolean))
+  const quando = (a) => String(a.criada || a.id || '')
+  for (const a of series) {
+    if (a.status !== 'iniciando' || comPartida.has(a.id)) continue
+    if (series.some((b) => b.id !== a.id && quando(b) > quando(a))) vencidas.add(a.id)
   }
   const conhecidas = new Set(series.map((a) => a.id))
   for (const p of partidas) if (p.serieCancelada && p.serieId && !conhecidas.has(p.serieId)) vencidas.add(p.serieId)
