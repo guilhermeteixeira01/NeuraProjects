@@ -55,7 +55,7 @@ function montarUsuarios(painel, ranking) {
     const pos = ordem.indexOf(x.id)
     // auto: cargos que o jogador tem agora por estar no top N do ranking (saem sozinhos se ele cair)
     const auto = automaticos.filter((c) => pos >= 0 && pos < c.top).map((c) => c.id)
-    return { ...x, ajuste, nivel: nivelDe(x.xpBase + ajuste), pos, auto }
+    return { ...x, ajuste, nivel: nivelDe(x.xpBase + ajuste, x.mapas), pos, auto }
   })
 }
 
@@ -208,7 +208,7 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
   const [meus, setMeus] = useState(() => (u.perfil.cargos || []).filter((id) => cargos.some((c) => c.id === id)))
   const trocarCargo = (id, ligado) => setMeus((l) => (ligado ? [...new Set([...l, id])] : l.filter((x) => x !== id)))
   const [estado, setEstado] = useState('')
-  const previa = nivelDe(u.xpBase + (Number(ajuste) || 0))
+  const previa = nivelDe(u.xpBase + (Number(ajuste) || 0), u.mapas)
 
   useEffect(() => {
     const tecla = (e) => e.key === 'Escape' && fechar()

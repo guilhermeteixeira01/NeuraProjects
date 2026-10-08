@@ -94,7 +94,7 @@ for (const [id, mapas] of Object.entries(historicos)) escrever(path.join(saida, 
 // XP de cada jogador em cada partida (+ganho / -perda e o total depois), para a página da partida
 const xpPorPartida = {}
 for (const [id, mapas] of Object.entries(historicos))
-  for (const m of mapas) (xpPorPartida[m.caminho] ??= {})[id] = { ganho: m.xp, total: m.xpTotal }
+  for (const m of mapas) (xpPorPartida[m.caminho] ??= {})[id] = { ganho: m.xp, total: m.xpTotal, mapas: m.mapasAte }
 console.log(`Ranking: ${ranking.jogadores.length} jogador(es) em ${ranking.partidas} mapa(s)`)
 
 // ── 5 e 6. HTML com conteúdo ──

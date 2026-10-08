@@ -641,7 +641,7 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
                     <td>
                       {d.xp[e.steamId] ? (
                         <span className="nv-cel">
-                          <SeloNivel nivel={nivelDe(d.xp[e.steamId].total + (Number(perfis[e.steamId]?.xp) || 0)).nivel} tamanho={26} />
+                          <SeloNivel nivel={nivelDe(d.xp[e.steamId].total + (Number(perfis[e.steamId]?.xp) || 0), d.xp[e.steamId].mapas).nivel} tamanho={26} />
                           <b className={d.xp[e.steamId].ganho > 0 ? 'pos' : d.xp[e.steamId].ganho < 0 ? 'neg' : ''}>
                             {d.xp[e.steamId].ganho > 0 ? '+' : ''}
                             {d.xp[e.steamId].ganho} XP

@@ -38,7 +38,9 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
     const cargo = cargoDaMoldura(config, id)
     return !!cargo && !meusCargos.includes(cargo.id)
   }
-  const travada = (id) => !admin && (nivelDaMoldura(config, id) > nivel || semCargo(id))
+  // Sem classificação (nível 0, menos de 10 partidas) vale como nível 1: só as livres
+  const nivelEf = Math.max(1, Number(nivel) || 0)
+  const travada = (id) => !admin && (nivelDaMoldura(config, id) > nivelEf || semCargo(id))
   const [falta, setFalta] = useState(0) // nível exigido, quando o worker recusa
   const times = useListaTimes()
   const salvo = { moldura: perfil.moldura || null, time: perfil.time || null }
@@ -107,7 +109,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         <span className="sm-nome">{m.nome}</span>
         {/* Nível exigido no canto esquerdo; cargo e cadeado no direito */}
         {nv > 1 && aviso !== m.id && (
-          <span className={`sm-nivel-canto${!admin && nv > nivel ? ' falta' : ''}`} title={tr('Nível {n}', { n: nv })}>
+          <span className={`sm-nivel-canto${!admin && nv > nivelEf ? ' falta' : ''}`} title={tr('Nível {n}', { n: nv })}>
             <SeloNivel nivel={nv} tamanho={28} />
           </span>
         )}
@@ -126,11 +128,11 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
             <b>
               <CadeadoMini /> {tr('Para usar')}
             </b>
-            {nv > nivel && (
+            {nv > nivelEf && (
               <span>
                 <SeloNivel nivel={nv} tamanho={18} />
                 {tr('Nível {n}', { n: nv })}
-                <small>{tr('você: {n}', { n: nivel })}</small>
+                <small>{nivel > 0 ? tr('você: {n}', { n: nivel }) : tr('você: sem classificação')}</small>
               </span>
             )}
             {semCargo(m.id) && (

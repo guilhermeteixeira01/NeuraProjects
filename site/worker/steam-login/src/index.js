@@ -264,7 +264,10 @@ async function tirarExclusivasSemCargo(env, site, config) {
 async function nivelDoJogador(env, site, id, perfis) {
   const ranking = await lerRanking(site)
   const niveis = Array.isArray(ranking?.niveis) && ranking.niveis.length ? ranking.niveis : [0]
-  const xp = (Number(ranking?.jogadores?.find((j) => j.steamId === id)?.xp) || 0) + (Number(perfis[id]?.xp) || 0)
+  const jog = ranking?.jogadores?.find((j) => j.steamId === id)
+  // Menos de 10 partidas: "Sem classificação" no site; para as molduras vale como nível 1 (só as livres)
+  if ((Number(jog?.mapas) || 0) < 10) return 1
+  const xp = (Number(jog?.xp) || 0) + (Number(perfis[id]?.xp) || 0)
   let nivel = 1
   while (nivel < niveis.length && xp >= niveis[nivel]) nivel++
   return nivel
