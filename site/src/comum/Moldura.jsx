@@ -180,7 +180,7 @@ export function useCargosIdsDe(steamId) {
   return [...new Set([...manuais, ...cargos.filter((c) => c.top > 0 && pos >= 0 && pos < c.top).map((c) => c.id)])]
 }
 
-// Selos do jogador: primeiro o da equipe (dono ou admin, se estiver ligado), depois os cargos
+// Selos do jogador: os cargos e, por último, o da equipe (dono ou admin, se estiver ligado)
 export function useCargosDe(steamId) {
   const ids = useCargosIdsDe(steamId)
   const { cargos, selos, equipe } = useConfigSite()
@@ -189,7 +189,8 @@ export function useCargosDe(steamId) {
     : equipe?.admins?.includes(steamId) ? (selos?.admin?.mostrar ? [{ id: '_admin', ...selos.admin }] : [])
     : []
   const pos = usePosicaoTop(steamId)
-  return [...daEquipe, ...cargos.filter((c) => ids.includes(c.id)).map((c) => ({ ...c, nome: nomeDoCargo(c, pos) }))]
+  // Cargos primeiro; o selo da equipe (Dono/Admin) por último, para não tomar o lugar do cargo onde só cabe 1
+  return [...cargos.filter((c) => ids.includes(c.id)).map((c) => ({ ...c, nome: nomeDoCargo(c, pos) })), ...daEquipe]
 }
 
 // Selo de cargo: coroa + nome, na cor do cargo

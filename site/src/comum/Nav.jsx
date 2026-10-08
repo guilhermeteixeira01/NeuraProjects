@@ -208,6 +208,29 @@ export default function Nav({ pagina }) {
         </div>
       </header>
 
+      {/* Computador (estilo FACEIT): barra fina à direita com a conta, ⚙ e Comunidade, e abas de texto no topo */}
+      <aside className="nx-direita" aria-label={t('Conta e configurações')}>
+        <Conta />
+        <span className="nx-direita-sep" aria-hidden="true" />
+        <Configuracoes />
+        {CONFIG.comunidade && (
+          <a className="nx-btn nx-btn-ghost nx-comunidade" href={CONFIG.comunidade} target="_blank" rel="noopener" aria-label={t('Comunidade na {nome}', { nome: CONFIG.comunidadeNome })}>
+            <IconeKivo />
+            <span className="nx-dica">{t('Comunidade')}</span>
+          </a>
+        )}
+      </aside>
+      <nav className="nx-topo-abas" aria-label={t('Páginas')}>
+        {[...abas, ...(admin ? [ITEM_ADMIN] : [])].map((m) => {
+          const ativo = m.id === pagina
+          return (
+            <a key={m.id} className={`nx-topo-aba${ativo ? ' is-active' : ''}`} href={m.href} {...(ativo ? { 'aria-current': 'page' } : {})}>
+              {t(m.rotulo)}
+            </a>
+          )
+        })}
+      </nav>
+
       <nav className="nx-baixo" aria-label={t('Menu principal')}>
         {mais && <PainelMais itens={extras} admin={linkAdmin} fechar={fecharMais} />}
         {abas.map((m) => {

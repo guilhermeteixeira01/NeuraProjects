@@ -2199,3 +2199,183 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
 @media (max-width: 720px) {
   .barra-xp.sem-class .barra-xp-topo { flex-direction: column; align-items: flex-start; gap: 2px; }
 }
+
+/* ══════════════ Navegação estilo FACEIT (computador, > 1024px) ══════════════
+ * Esquerda: só a marca e as páginas (ícones), com traço branco na página atual e grupos separados.
+ * Direita: barra fina com a conta (avatar), ⚙ e Comunidade. Topo: abas de texto centralizadas com sublinhado. */
+.nx-direita,
+.nx-topo-abas {
+  display: none;
+}
+@media (min-width: 1025px) {
+  :root {
+    --nx-direita: 64px;
+  }
+  body {
+    padding-right: var(--nx-direita);
+  }
+  /* o que ia embaixo da barra esquerda agora fica na direita */
+  .nx-nav .nx-acoes {
+    display: none;
+  }
+  .nx-nav-inner {
+    padding-bottom: 14px;
+  }
+  .nx-brand {
+    margin-bottom: 10px;
+  }
+  .nx-links {
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  /* página atual: ícone branco, fundo leve e traço branco na borda (como a FACEIT) */
+  .nx-link.is-active {
+    color: var(--text);
+    background: rgb(var(--tinta) / 0.08);
+  }
+  .nx-links .nx-link.is-active::after {
+    background: var(--text);
+    left: -10px;
+    width: 3px;
+  }
+
+  .nx-direita {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 300;
+    width: var(--nx-direita);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 0;
+    background: rgb(var(--fundo) / 0.94);
+    border-left: 1px solid var(--border);
+    font-family: var(--font-body);
+    color: var(--text);
+  }
+  .nx-direita-sep {
+    width: 26px;
+    height: 1px;
+    margin: 2px 0;
+    background: var(--border-2);
+  }
+  .nx-direita .nx-btn,
+  .nx-direita .nx-config-btn,
+  .nx-direita .nx-conta-btn {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    max-width: none;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+    border-radius: 12px;
+  }
+  .nx-direita .nx-conta-btn {
+    border-color: transparent;
+    background: none;
+  }
+  .nx-direita .nx-conta-btn:hover,
+  .nx-direita .nx-conta-btn[aria-expanded='true'] {
+    background: rgb(var(--tinta) / 0.06);
+    border-color: transparent;
+  }
+  .nx-direita .nx-conta-btn img,
+  .nx-direita .nx-conta-ini {
+    width: 34px;
+    height: 34px;
+  }
+  .nx-direita .nx-steam span.nx-dica,
+  .nx-direita .nx-conta-nome.nx-dica,
+  .nx-direita .nx-dica {
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: auto;
+    right: calc(100% + 14px);
+    z-index: 340;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-2);
+    background: rgb(var(--fundo));
+    color: var(--text);
+    font-size: 12.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(4px, -50%);
+    transition: opacity 0.12s, transform 0.12s;
+  }
+  .nx-direita :is(.nx-btn, .nx-config-btn, .nx-conta-btn):is(:hover, :focus-visible) > .nx-dica {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+  .nx-direita [aria-expanded='true'] > .nx-dica {
+    opacity: 0 !important;
+  }
+  /* menu da conta e painel ⚙ abrem para a esquerda, alinhados pelo topo */
+  .nx-direita .nx-conta-menu,
+  .nx-direita .nx-config-painel {
+    top: 0;
+    bottom: auto;
+    left: auto;
+    right: calc(100% + 14px);
+    animation-name: nx-lado-esq;
+  }
+
+  .nx-topo-abas {
+    position: sticky;
+    top: 0;
+    z-index: 250;
+    display: flex;
+    justify-content: center;
+    gap: 34px;
+    height: 58px;
+    background: rgb(var(--fundo) / 0.92);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-body);
+  }
+  .nx-topo-aba {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0 2px;
+    font-size: 13.5px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--dim);
+    transition: color 0.15s;
+  }
+  .nx-topo-aba:hover {
+    color: var(--text);
+  }
+  .nx-topo-aba.is-active {
+    color: var(--text);
+  }
+  .nx-topo-aba.is-active::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 10px;
+    width: 30px;
+    height: 3px;
+    border-radius: 2px;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, var(--blue), var(--blue-2));
+  }
+  .nx-avisos {
+    right: calc(var(--nx-direita) + 16px);
+  }
+}
+@keyframes nx-lado-esq {
+  from {
+    opacity: 0;
+    transform: translateX(6px);
+  }
+}
