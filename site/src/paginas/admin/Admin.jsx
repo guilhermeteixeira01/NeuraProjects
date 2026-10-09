@@ -3,7 +3,7 @@ import Layout from '../../comum/Layout.jsx'
 import { entrar, linkPerfil, loginAtivo, useConta } from '../../comum/conta.js'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
-import { CamadaMoldura, ComMoldura, SELOS_PADRAO, SeloCargo, chamar, nomeDoCargo, useAdmin, useListaTimes } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, CargosDe, ComMoldura, SELOS_PADRAO, SeloCargo, chamar, nomeDoCargo, useAdmin, useListaTimes } from '../../comum/Moldura.jsx'
 import { COLECOES, MOLDURAS, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { NIVEL_MAX, nivelDe } from '../../comum/niveis.js'
@@ -130,15 +130,20 @@ function Usuarios({ usuarios, painel, dono, editar }) {
                   </td>
                   <td className="esq">{u.perfil.time || <span className="adm-nada">—</span>}</td>
                   <td className="esq">
+                    {/* No máximo 1 selo e o "+N" com o resto (cargos primeiro; Dono/Admin por último, como no site) */}
                     <span className="adm-tags">
-                      {u.id === dono && <SeloCargo cargo={{ ...SELOS_PADRAO.dono, ...painel.config.selos?.dono }} />}
-                      {u.id !== dono && admins.has(u.id) && <SeloCargo cargo={{ ...SELOS_PADRAO.admin, ...painel.config.selos?.admin }} />}
                       {u.perfil.bloqueado && <i className="bloq">{tr('BLOQUEADO')}</i>}
-                      {(painel.config.cargos || [])
-                        .filter((c) => (u.perfil.cargos || []).includes(c.id) || u.auto.includes(c.id))
-                        .map((c) => (
-                          <SeloCargo key={c.id} cargo={{ ...c, nome: nomeDoCargo(c, u.auto.includes(c.id) ? u.pos : -1) }} />
-                        ))}
+                      <CargosDe
+                        max={1}
+                        classe="adm-cargos-lista"
+                        lista={[
+                          ...(painel.config.cargos || [])
+                            .filter((c) => (u.perfil.cargos || []).includes(c.id) || u.auto.includes(c.id))
+                            .map((c) => ({ ...c, nome: nomeDoCargo(c, u.auto.includes(c.id) ? u.pos : -1) })),
+                          ...(u.id === dono ? [{ id: '_dono', ...SELOS_PADRAO.dono, ...painel.config.selos?.dono }] : []),
+                          ...(u.id !== dono && admins.has(u.id) ? [{ id: '_admin', ...SELOS_PADRAO.admin, ...painel.config.selos?.admin }] : []),
+                        ]}
+                      />
                     </span>
                   </td>
                   <td className="mono">{u.usuario ? dataBr(u.usuario.visto) : <span className="adm-nunca">{tr('nunca entrou')}</span>}</td>
@@ -617,7 +622,7 @@ function Cargos({ config, usuarios, aoSalvar }) {
   const salvar = async () => {
     setEstado('salvando')
     try {
-      const d = await chamar('/admin/config', { cargos: lista.map((c) => ({ id: c.id, nome: c.nome.trim(), cor: c.cor, icone: c.icone || 'coroa', top: Number(c.top) || 0, numerar: Number(c.top) > 0 && !!c.numerar })) })
+      const d = await chamar('/admin/config', { cargos: lista.map((c) => ({ id: c.id, nome: c.nome.trim(), cor: c.cor, icone: c.icone || 'coroa', top: Number(c.top) || 0, numerar: Number(c.top) > 0 && !!c.numerar, oculto: !!c.oculto })) })
       aoSalvar(d.config)
       setEstado('Salvo!')
     } catch (e) {
@@ -662,7 +667,12 @@ function Cargos({ config, usuarios, aoSalvar }) {
               <input type="checkbox" checked={c.top > 0 && !!c.numerar} disabled={!(c.top > 0)} onChange={(e) => mudar(i, 'numerar', e.target.checked)} />
               {tr('Numerar posição')}
             </label>
+            <label className="adm-numerar" title={tr('Desligado: o selo não aparece no perfil, no ranking nem nos amigos, mas o cargo continua liberando as molduras exclusivas dele.')}>
+              <input type="checkbox" checked={!c.oculto} onChange={(e) => mudar(i, 'oculto', !e.target.checked)} />
+              {tr('Mostrar no site')}
+            </label>
             <span className="adm-cargo-info">
+              {c.oculto && <b className="adm-oculto">{tr('Oculto no site')} · </b>}
               {tr('{n} jogador(es) · {m} moldura(s) exclusiva(s)', { n: membros(c.id).length, m: exclusivas(c.id) })}
               {c.top > 0 ? ` · ${tr('automático para o top {n} do ranking (sai sozinho de quem cair)', { n: c.top })}` : ` · ${tr('só manual')}`}
               <span className="adm-cargo-membros">

@@ -198,8 +198,9 @@ export function useCargosDe(steamId) {
     : equipe?.admins?.includes(steamId) ? (selos?.admin?.mostrar ? [{ id: '_admin', ...selos.admin }] : [])
     : []
   const pos = usePosicaoTop(steamId)
-  // Cargos primeiro; o selo da equipe (Dono/Admin) por último, para não tomar o lugar do cargo onde só cabe 1
-  return [...cargos.filter((c) => ids.includes(c.id)).map((c) => ({ ...c, nome: nomeDoCargo(c, pos) })), ...daEquipe]
+  // Cargos primeiro; o selo da equipe (Dono/Admin) por último, para não tomar o lugar do cargo onde só cabe 1.
+  // Cargo com "Mostrar no site" desligado (oculto) não aparece como selo, mas continua valendo (molduras exclusivas).
+  return [...cargos.filter((c) => ids.includes(c.id) && !c.oculto).map((c) => ({ ...c, nome: nomeDoCargo(c, pos) })), ...daEquipe]
 }
 
 // Selo de cargo: coroa + nome, na cor do cargo
@@ -215,9 +216,11 @@ export function SeloCargo({ cargo, classe = '' }) {
 // Selos de cargo de um jogador (nada se não tiver). Com `max`, mostra só os primeiros e uma bolinha "+N" que abre
 // os outros num painel (fecha clicando fora, com Esc ou ao rolar). O painel vai para o <body> (portal) e fica em
 // position: fixed embaixo da bolinha: assim os cards com overflow: hidden (pódio e tabela do ranking) não cortam.
-export function CargosDe({ steamId, classe = '', max = Infinity }) {
+// lista: selos já montados (ex.: tabela do painel admin) no lugar dos do jogador
+export function CargosDe({ steamId, classe = '', max = Infinity, lista }) {
   const t = useT()
-  const cargos = useCargosDe(steamId)
+  const doJogador = useCargosDe(steamId)
+  const cargos = lista ?? doJogador
   const [aberto, setAberto] = useState(null) // posição do painel ({ top, left }) ou null
   const caixa = useRef(null)
   const painel = useRef(null)
