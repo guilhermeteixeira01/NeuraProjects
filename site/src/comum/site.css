@@ -2347,11 +2347,12 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
 .nx-amigos-on { position: absolute; top: 4px; right: 4px; width: 9px; height: 9px; border-radius: 50%; background: var(--green); border: 2px solid var(--bg); }
 .am-painel { display: none; }
 @media (min-width: 1025px) {
-  html.amigos-aberto body { padding-right: calc(var(--nx-direita) + 280px); }
   .am-painel {
     position: fixed; top: 0; bottom: 0; right: var(--nx-direita); z-index: 299; width: 280px;
     display: flex; flex-direction: column; background: var(--bg-soft); border-left: 1px solid var(--border);
     font-family: var(--font-body); color: var(--text); animation: am-entra .18s ease;
+    /* por cima do site (não empurra a página) */
+    z-index: 320; box-shadow: -18px 0 40px -20px rgba(0, 0, 0, .7);
   }
 }
 @keyframes am-entra { from { opacity: 0; transform: translateX(10px); } }
