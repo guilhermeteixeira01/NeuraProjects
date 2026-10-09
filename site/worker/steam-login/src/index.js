@@ -18,7 +18,8 @@
  * O site lê o JSON para mostrar; a assinatura é conferida aqui em tudo que salva.
  *
  * KV MOLDURAS (nome antigo do banco; guarda tudo):
- *   perfis   { "<SteamID64>": { moldura?, molduraLivre? (posta por admin), time?, tema?, idioma?, desempenho?, xp? (ajuste do admin), bloqueado?, cargos?, ocultoRanking? (dono/admin fora do ranking) } }
+ *   perfis   { "<SteamID64>": { moldura?, molduraLivre? (posta por admin), time?, tema?, idioma?, desempenho?, xp? (ajuste do admin), bloqueado?, cargos?, ocultoRanking? (dono/admin fora do ranking),
+ *              insignias? { "<insígnia>": quando ganhou (ms) } (o admin dá; "top3" o cron dá sozinho) } }
  *   config   { molduraPorNivel: bool, nivelMoldura: { "<moldura>": nível }, admins: ["<SteamID64>"],
  *              cargos: [{ id, nome, cor }], molduraCargo: { "<moldura>": "<cargo>" } }  (Premium, VIP... e exclusivas)
  *   usuarios { "<SteamID64>": { nome, avatar, primeiro, visto } }  (quem já entrou no site)
@@ -44,7 +45,7 @@ export default {
   // Cron (wrangler.toml): quem saiu do top N perde o cargo automático e a moldura exclusiva dele sai do perfil
   async scheduled(evento, env, ctx) {
     const site = (env.SITE || 'https://neuraproject.com.br').replace(/\/$/, '')
-    ctx.waitUntil(tirarExclusivasSemCargo(env, site, await ler(env, 'config')))
+    ctx.waitUntil(tirarExclusivasSemCargo(env, site, await ler(env, 'config')).then(() => darInsigniaTop3(env, site)))
     // Premier (Leetify) de hora em hora: na primeira rodada de cada hora (minuto 0–9)
     if (new Date(evento.scheduledTime).getUTCMinutes() < 10) ctx.waitUntil(atualizarPremier(env, site))
   },
@@ -193,6 +194,24 @@ async function mudarPerfil(env, id, mudar) {
 
 const PREFERENCIAS = ['tema', 'idioma', 'desempenho']
 
+// Insígnias (arte e descrição ficam no site: src/comum/insignias.js). "top3" também vem sozinha (darInsigniaTop3)
+const INSIGNIAS = ['top3', 'staff', 'embaixador', 'designer']
+
+// Insígnia "top3": quem aparece no top 3 do ranking ganha e não perde mais (mesmo se cair depois). Roda no cron.
+async function darInsigniaTop3(env, site) {
+  const ranking = await lerRanking(site)
+  if (!ranking) return
+  const perfis = await ler(env, 'perfis')
+  const agora = Date.now()
+  let mudou = false
+  for (const j of ordemRanking(ranking, perfis).slice(0, 3)) {
+    if (perfis[j.steamId]?.insignias?.top3) continue
+    perfis[j.steamId] = { ...perfis[j.steamId], insignias: { ...perfis[j.steamId]?.insignias, top3: agora } }
+    mudou = true
+  }
+  if (mudou) await gravar(env, 'perfis', perfis)
+}
+
 // Valida moldura/time vindos do site; devolve { mudar } ou { erro }
 function validarPerfil(corpo, soMoldura) {
   const mudar = {}
@@ -322,14 +341,14 @@ async function adminDados(env, config, cors) {
   return json({ perfis, usuarios, config: { ...configPublica(config, env), admins: config.admins || [] }, dono: env.DONO || null }, 200, cors)
 }
 
-// POST /admin/perfil { id, moldura?, time?, xp? (ajuste), bloqueado?, cargos? ([idCargo]), limpar? }
+// POST /admin/perfil { id, moldura?, time?, xp? (ajuste), bloqueado?, cargos? ([idCargo]), insignias? ([id]), limpar? }
 async function adminPerfil(req, env, site, config, cors) {
   const corpo = await corpoJson(req)
   if (!corpo || !ID_STEAM.test(String(corpo.id))) return json({ erro: 'id' }, 400, cors)
   if (corpo.limpar) {
-    // Limpa moldura, time, XP, cargos e bloqueio; as preferências da pessoa (tema, idioma, desempenho) ficam
+    // Limpa moldura, time, XP, cargos e bloqueio; as preferências da pessoa (tema, idioma, desempenho) e as insígnias ficam
     const perfis = await ler(env, 'perfis')
-    const fica = Object.fromEntries(PREFERENCIAS.filter((k) => perfis[corpo.id]?.[k] !== undefined).map((k) => [k, perfis[corpo.id][k]]))
+    const fica = Object.fromEntries([...PREFERENCIAS, 'insignias'].filter((k) => perfis[corpo.id]?.[k] !== undefined).map((k) => [k, perfis[corpo.id][k]]))
     if (Object.keys(fica).length) perfis[corpo.id] = fica
     else delete perfis[corpo.id]
     await gravar(env, 'perfis', perfis)
@@ -349,6 +368,14 @@ async function adminPerfil(req, env, site, config, cors) {
     const cargos = [...new Set(Array.isArray(corpo.cargos) ? corpo.cargos : [])]
     if (cargos.some((c) => !existem.has(c))) return json({ erro: 'cargo' }, 400, cors)
     mudar.cargos = cargos
+  }
+  // Insígnias: lista das que o jogador fica tendo; as que ele já tinha mantêm a data em que ganhou
+  if ('insignias' in corpo) {
+    const lista = [...new Set(Array.isArray(corpo.insignias) ? corpo.insignias : [])]
+    if (lista.some((i) => !INSIGNIAS.includes(i))) return json({ erro: 'insignia' }, 400, cors)
+    const antes = (await ler(env, 'perfis'))[corpo.id]?.insignias || {}
+    const agora = Date.now()
+    mudar.insignias = lista.length ? Object.fromEntries(lista.map((i) => [i, Number(antes[i]) || agora])) : null
   }
   // Moldura exclusiva de cargo: nem o admin dá para quem não tem o cargo (dê o cargo primeiro)
   const exige = mudar.moldura ? config.molduraCargo?.[mudar.moldura] : null

@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import Avisos from './Avisos.jsx'
 import AvisoNivel from './AvisoNivel.jsx'
+import AvisoInsignia from './Insignias.jsx'
 import { useLuzCursor } from './efeitos.jsx'
 import Nav from './Nav.jsx'
 import Rodape from './Rodape.jsx'
@@ -57,6 +58,7 @@ export default function Layout({ pagina, children }) {
       <Rodape />
       <Avisos />
       <AvisoNivel />
+      <AvisoInsignia />
       <SincronizarPreferencias />
       <MostrarAposIdioma />
     </>

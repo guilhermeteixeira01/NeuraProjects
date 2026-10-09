@@ -10,6 +10,7 @@ import { NIVEL_MAX, nivelDe } from '../../comum/niveis.js'
 import { ordenarRanking } from '../../comum/ranking.js'
 import { localeAtual, useT } from '../../comum/i18n.js'
 import { ICONES_CARGO, IconeCargo } from '../../comum/cargos.jsx'
+import { INSIGNIAS, imagemInsignia } from '../../comum/insignias.js'
 import { useAvatar } from '../../comum/avatares.js'
 import { IconeNenhum } from '../../comum/Icones.jsx'
 
@@ -206,6 +207,8 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
   const [bloqueado, setBloqueado] = useState(!!u.perfil.bloqueado)
   const [meus, setMeus] = useState(() => (u.perfil.cargos || []).filter((id) => cargos.some((c) => c.id === id)))
   const trocarCargo = (id, ligado) => setMeus((l) => (ligado ? [...new Set([...l, id])] : l.filter((x) => x !== id)))
+  const [insignias, setInsignias] = useState(() => Object.keys(u.perfil.insignias || {}).filter((id) => INSIGNIAS.some((i) => i.id === id)))
+  const trocarInsignia = (id) => setInsignias((l) => (l.includes(id) ? l.filter((x) => x !== id) : [...l, id]))
   const [estado, setEstado] = useState('')
   const previa = nivelDe(u.xpBase + (Number(ajuste) || 0), u.mapas)
 
@@ -225,8 +228,8 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
       setEstado(mensagemErro(e))
     }
   }
-  const salvar = () => enviar({ moldura: moldura || null, time: time || null, xp: Math.round(Number(ajuste) || 0), bloqueado, cargos: meus })
-  const limpar = () => window.confirm(tr('Apagar moldura, time, ajuste de XP, cargos e bloqueio de {nome}?', { nome: u.nome || u.id })) && enviar({ limpar: true })
+  const salvar = () => enviar({ moldura: moldura || null, time: time || null, xp: Math.round(Number(ajuste) || 0), bloqueado, cargos: meus, insignias })
+  const limpar = () => window.confirm(tr('Apagar moldura, time, ajuste de XP, cargos e bloqueio de {nome}? (as insígnias ficam)', { nome: u.nome || u.id })) && enviar({ limpar: true })
 
   return (
     <div className="sm-fundo" onClick={fechar}>
@@ -317,6 +320,21 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
               <small>{tr('Nenhum cargo criado ainda (aba Cargos).')}</small>
             )}
             <small>{tr('Cargos liberam as molduras exclusivas deles e aparecem como selo no perfil e no ranking.')}</small>
+          </div>
+
+          <div className="adm-campo">
+            <span>{tr('Insígnias')}</span>
+            <div className="adm-insignias">
+              {INSIGNIAS.map((i) => (
+                <button key={i.id} type="button" className={`adm-insignia${insignias.includes(i.id) ? ' ligado' : ''}`} aria-pressed={insignias.includes(i.id)} onClick={() => trocarInsignia(i.id)} title={tr(i.descricao)}>
+                  <img src={imagemInsignia(i.id)} alt="" loading="lazy" />
+                  <b>{tr(i.nome)}</b>
+                  {i.auto && <small className="adm-auto">{tr('auto · top {n}', { n: 3 })}</small>}
+                  <i aria-hidden="true">{insignias.includes(i.id) ? '✓' : '+'}</i>
+                </button>
+              ))}
+            </div>
+            <small>{tr('Ao salvar, o jogador vê o aviso "Você recebeu uma nova insígnia!" com som. A Top 3 é dada sozinha para quem aparece no top 3 do ranking e não sai mais.')}</small>
           </div>
 
           <label className="adm-check">
