@@ -233,6 +233,22 @@ ele está online agora.
   (aba em segundo plano ou 5 min parado). No site: `src/comum/amigos.js` (uma conexão por página, reconecta sozinha),
   `src/comum/PainelAmigos.jsx` e `src/paginas/perfil/Amizade.jsx`.
 
+## Insígnias
+
+Conquistas com arte própria (Top 3, Staff, Embaixador, Designer) que aparecem no perfil, embaixo do nome; passando o
+mouse (ou tocando, no celular) abre uma caixinha com o nome, a descrição e a data em que a pessoa ganhou.
+
+- **Dar e tirar:** painel admin → Usuários → Editar → **Insígnias**. Ficam em `perfis[id].insignias`
+  (`{ "<insígnia>": quando ganhou }`) no worker; "Limpar perfil" não apaga.
+- **Top 3 automática:** o cron do worker (a cada 10 min) dá a insígnia `top3` para quem está no top 3 do ranking. Ela
+  não sai mais, mesmo se o jogador cair depois.
+- **Aviso:** quem ganha vê "Você recebeu uma nova insígnia!" por cima do site, com som, uma vez para cada insígnia
+  (`src/comum/Insignias.jsx`; as já avisadas ficam no navegador). Os navegadores só tocam som depois que a pessoa
+  clica ou tecla no site, então, se ela ainda não interagiu, o aviso espera o primeiro clique.
+- **Nova insígnia:** ponha a arte em `public/assets/insignia/<id>.png`, rode `node ferramentas/molduras/insignias.mjs`
+  (gera a versão leve em `public/assets/insignia/web/<id>.webp`), adicione em `src/comum/insignias.js` e na lista
+  `INSIGNIAS` do worker (`worker/steam-login/src/index.js`) e faça o deploy do worker.
+
 ## Configurações ⚙ (idioma, tema e desempenho)
 
 O botão ⚙ do menu (`src/comum/Configuracoes.jsx`) abre o painel com **Idioma**, **Tema** e **Melhorar desempenho**.

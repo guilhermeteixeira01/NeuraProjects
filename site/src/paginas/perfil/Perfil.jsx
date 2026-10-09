@@ -16,6 +16,7 @@ import SeletorMoldura from './SeletorMoldura.jsx'
 import { useT } from '../../comum/i18n.js'
 import { useAvatar } from '../../comum/avatares.js'
 import { BotaoAmizade, StatusAmigo } from './Amizade.jsx'
+import { InsigniasDe } from '../../comum/Insignias.jsx'
 
 // Perfil do jogador: /perfil/?id=<SteamID64>. Sem id, mostra o de quem está logado pela Steam.
 // Dados: ranking/ranking.json (totais) e perfil/historico/<id>.json (todos os mapas), gerados no deploy.
@@ -418,6 +419,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
             <h1>{j.nome}</h1>
             {!eu && <StatusAmigo id={j.steamId} />}
             <CargosDe steamId={j.steamId} max={3} classe="pf-cargos" />
+            <InsigniasDe steamId={j.steamId} classe="pf-insignias" />
           </div>
           <div className="pf-infos fx-entra" style={{ '--e': 2 }}>
             <div className="pf-info">
