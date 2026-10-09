@@ -162,7 +162,7 @@ const configPublica = (c, env = {}) => ({
   equipe: { dono: env.DONO || null, admins: (c.admins || []).filter((id) => id !== env.DONO) }, // quem recebe os selos acima
   molduraPorNivel: !!c.molduraPorNivel,
   nivelMoldura: c.nivelMoldura || {},
-  cargos: c.cargos || [], // [{ id, nome, cor, icone?, top? }] (ex.: Premium, VIP). top = automático para o top N do ranking
+  cargos: c.cargos || [], // [{ id, nome, cor, icone?, top?, numerar?, oculto? (selo não aparece no site) }] (ex.: Premium, VIP). top = automático para o top N do ranking
   molduraCargo: c.molduraCargo || {}, // { idMoldura: idCargo }: moldura exclusiva de quem tem o cargo
 })
 const ID_CARGO = /^[a-z0-9-]{1,24}$/
@@ -423,7 +423,7 @@ async function adminConfig(req, env, site, config, cors) {
       if (top < 0 || top > 15) return json({ erro: 'cargos' }, 400, cors)
       const icone = ICONES_CARGO.includes(c.icone) ? c.icone : 'coroa'
       // numerar: automático mostra a posição ("Campeão 1", "Campeão 2"...)
-      novo.cargos.push({ id: c.id, nome, cor: c.cor, icone, ...(top > 0 ? { top } : {}), ...(top > 0 && c.numerar === true ? { numerar: true } : {}) })
+      novo.cargos.push({ id: c.id, nome, cor: c.cor, icone, ...(top > 0 ? { top } : {}), ...(top > 0 && c.numerar === true ? { numerar: true } : {}), ...(c.oculto === true ? { oculto: true } : {}) })
     }
   }
   if ('molduraCargo' in corpo || 'cargos' in corpo) {

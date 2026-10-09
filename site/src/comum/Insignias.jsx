@@ -4,7 +4,7 @@
 //    descrição e quando ganhou.
 //  - AvisoInsignia (no Layout, só com login): "Você recebeu uma nova insígnia!" por cima do site, com som, uma vez
 //    para cada insígnia nova. As já avisadas ficam no navegador (localStorage np_insignias_<SteamID>); os perfis são
-//    relidos a cada 30 s, então quem ganha com o site aberto vê o aviso em seguida.
+//    relidos a cada 30 s e, com o site aberto, o perfil novo chega na hora pela conexão ao vivo (amigos.js).
 import { useEffect, useRef, useState } from 'react'
 import { useConta } from './conta.js'
 import { usePerfis } from './Moldura.jsx'
@@ -90,8 +90,13 @@ const marcar = (id, marca) => {
 // Marca = insígnia + quando ganhou: se o admin tirar e der de novo, avisa de novo
 const marcaDe = (i) => `${i.id}:${i.desde || 0}`
 
-// Som de conquista (feito na hora, sem arquivo): acorde subindo com brilho no fim
+// Som de conquista (feito na hora, sem arquivo): acorde subindo com brilho no fim.
+// Os navegadores só liberam som depois de um toque/clique/tecla na página. No celular o toque só conta quando o dedo
+// solta (touchend/pointerup/click), não quando encosta. Por isso: o som é liberado no primeiro toque em qualquer lugar
+// do site (antes mesmo da insígnia chegar); se a insígnia chegar antes disso, o aviso aparece na hora mesmo assim e o
+// som toca no primeiro toque com ele aberto.
 let audio = null
+let somPendente = false
 function contexto() {
   try {
     audio ??= new (window.AudioContext || window.webkitAudioContext)()
@@ -100,9 +105,33 @@ function contexto() {
   }
   return audio
 }
+const GESTOS = ['pointerup', 'touchend', 'click', 'keydown']
+let preparado = false
+function prepararSom() {
+  if (preparado || typeof window === 'undefined') return
+  preparado = true
+  const liberar = () => {
+    const ctx = contexto()
+    if (!ctx) return parar()
+    const pronto = () => {
+      if (ctx.state !== 'running') return
+      parar()
+      // Espera o clique terminar: se o toque foi no "Continuar" (fechou o aviso), não toca
+      setTimeout(() => somPendente && tocar(), 80)
+    }
+    if (ctx.state === 'running') return pronto()
+    ctx.resume().then(pronto, () => {})
+  }
+  const parar = () => GESTOS.forEach((g) => window.removeEventListener(g, liberar, true))
+  GESTOS.forEach((g) => window.addEventListener(g, liberar, true))
+}
 function tocar() {
   const ctx = contexto()
-  if (!ctx || ctx.state !== 'running') return
+  if (!ctx || ctx.state !== 'running') {
+    somPendente = true // toca quando o navegador liberar (primeiro toque)
+    return
+  }
+  somPendente = false
   const agora = ctx.currentTime + 0.05
   const geral = ctx.createGain()
   geral.gain.value = 0.22
@@ -130,24 +159,13 @@ export default function AvisoInsignia() {
   const conta = useConta()
   const perfis = usePerfis()
   const [fila, setFila] = useState([])
-  const [pode, setPode] = useState(false) // som liberado pelo navegador (ou a pessoa já clicou/teclou na página)
   const [livre, setLivre] = useState(false) // sem o aviso de nível aberto por cima
   const tocou = useRef(null)
 
-  // Navegadores só deixam tocar som depois que a pessoa interage com o site: espera o primeiro clique/tecla
+  // Com login: já deixa o som pronto para liberar no primeiro toque/clique no site
   useEffect(() => {
-    if (!fila.length || pode) return
-    const ctx = contexto()
-    if (!ctx || ctx.state === 'running') return setPode(true)
-    const liberar = () => ctx.resume().finally(() => setPode(true))
-    ctx.resume().then(() => ctx.state === 'running' && setPode(true)).catch(() => {})
-    window.addEventListener('pointerdown', liberar, { once: true, capture: true })
-    window.addEventListener('keydown', liberar, { once: true, capture: true })
-    return () => {
-      window.removeEventListener('pointerdown', liberar, { capture: true })
-      window.removeEventListener('keydown', liberar, { capture: true })
-    }
-  }, [fila.length, pode])
+    if (conta?.id) prepararSom()
+  }, [conta?.id])
 
   // Espera o aviso de nível fechar (os dois juntos ficariam um por cima do outro)
   useEffect(() => {
@@ -165,7 +183,8 @@ export default function AvisoInsignia() {
     setFila((f) => [...f, ...novas.filter((i) => !f.some((x) => marcaDe(x) === marcaDe(i)))])
   }, [conta?.id, perfis])
 
-  const atual = pode && livre ? fila[0] : null
+  // O aviso aparece na hora (não espera o som ser liberado)
+  const atual = livre ? fila[0] : null
   useEffect(() => {
     if (!atual || tocou.current === marcaDe(atual)) return
     tocou.current = marcaDe(atual)
@@ -174,6 +193,7 @@ export default function AvisoInsignia() {
 
   const fechar = () => {
     if (!atual) return
+    somPendente = false // fechou antes de o som ser liberado: não toca depois
     marcar(conta.id, marcaDe(atual))
     setFila((f) => f.slice(1))
   }

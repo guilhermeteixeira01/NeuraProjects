@@ -296,3 +296,7 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 .adm-insignia.ligado img { filter: none; opacity: 1; }
 .adm-insignia.ligado i { color: #fff; background: var(--blue); border-color: var(--blue); }
 .adm-insignia:focus-visible { outline: 2px solid var(--blue-2); outline-offset: 2px; }
+
+/* Tabela de usuários: 1 selo e o "+N" na mesma linha; cargo oculto (não aparece no site) na aba Cargos */
+.adm-cargos-lista { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: 4px; }
+.adm-oculto { color: var(--dim); font-weight: 700; }
