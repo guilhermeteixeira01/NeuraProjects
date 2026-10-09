@@ -9,6 +9,7 @@ import { useAvatar } from './avatares.js'
 import { linkPerfil } from './conta.js'
 import { CargosDe, ComMoldura } from './Moldura.jsx'
 import { useT } from './i18n.js'
+import { InsigniasMini } from './Insignias.jsx'
 
 const CHAVE = 'np_amigos_aberto'
 
@@ -41,7 +42,10 @@ function Linha({ a, st, visto, children }) {
           <i className="am-bolinha" aria-label={t(st === 'online' ? 'Online' : st === 'ausente' ? 'Ausente' : 'Offline')} />
         </span>
         <span className="am-txt">
-          <b>{a.nome || a.id}</b>
+          <span className="am-nome">
+            <b>{a.nome || a.id}</b>
+            <InsigniasMini steamId={a.id} max={3} />
+          </span>
           {st === 'offline' && visto ? <small>{t('visto {quando}', { quando: tempoDesde(visto, t) })}</small> : <CargosDe steamId={a.id} max={1} classe="am-cargos" />}
         </span>
       </a>

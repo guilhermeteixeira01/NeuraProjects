@@ -1,6 +1,7 @@
 // Amigos e presença (worker: src/amigos.js). Uma conexão só por página, compartilhada por todos os componentes:
 //  - lista (GET /amigos): amigos, pedidos recebidos e enviados, com nome e foto;
-//  - presença (WebSocket /presenca): online / ausente / offline de cada amigo, ao vivo, e "visto por último".
+//  - presença (WebSocket /presenca): online / ausente / offline de cada amigo, ao vivo, e "visto por último";
+//    a mesma conexão traz o meu perfil quando o admin muda algo nele (evento np-perfil-ao-vivo).
 // Ausente: aba em segundo plano ou 5 min sem mexer no mouse/teclado. A conexão volta sozinha se cair.
 import { useEffect, useState } from 'react'
 import { CONFIG } from './config.js'
@@ -89,6 +90,8 @@ function conectar(id) {
     if (m.tipo === 'estado') publicar({ status: m.status || {} })
     else if (m.tipo === 'mudou') publicar({ status: { ...estado.status, [m.id]: { st: m.st, visto: m.visto ?? estado.status[m.id]?.visto ?? null } } })
     else if (m.tipo === 'lista') carregarLista()
+    // O admin mudou o meu perfil (ex.: deu uma insígnia): Moldura.jsx atualiza na hora e o aviso aparece
+    else if (m.tipo === 'perfil' && m.id) window.dispatchEvent(new CustomEvent('np-perfil-ao-vivo', { detail: { id: m.id, perfil: m.perfil } }))
   }
   ws.onclose = () => {
     clearInterval(pingar)

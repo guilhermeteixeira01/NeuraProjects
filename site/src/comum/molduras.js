@@ -8,6 +8,7 @@
 // páginas. Sem forma = redonda.
 // escala: tamanho da moldura em relação ao avatar (padrão 1.2 = 120%). As quadradas têm a borda de dentro em lugares
 // diferentes: a escala de cada uma põe a borda um pouco por cima da foto (na frente dela, sem vão).
+// animada: final do arquivo animado quando não é APNG (ex.: '-anim.webp' = <nome>-anim.webp, WebP animado).
 
 export const COLECOES = [
   'Neura',
@@ -20,6 +21,7 @@ export const COLECOES = [
 ]
 
 export const MOLDURAS = [
+  { id: 'neura/centopeia-kaiju', nome: 'Centopeia Kaiju', colecao: 'Neura', fonte: 'neura', animada: '-anim.webp' },
   { id: 'neura/pulso-neon', nome: 'Pulso Neon', colecao: 'Neura', fonte: 'neura' },
   { id: 'neura/plasma', nome: 'Plasma', colecao: 'Neura', fonte: 'neura' },
   { id: 'neura/inferno', nome: 'Inferno', colecao: 'Neura', fonte: 'neura' },
@@ -245,7 +247,7 @@ export const MOLDURAS = [
 
 const PORID = new Map(MOLDURAS.map((m) => [m.id, m]))
 export const molduraPorId = (id) => (id ? PORID.get(id) || null : null)
-export const urlMoldura = (id) => `/assets/molduras/${id}.png`
+export const urlMoldura = (id) => `/assets/molduras/${id}${molduraPorId(id)?.animada || '.png'}`
 export const urlMiniatura = (id) => `/assets/molduras/${id}.webp`
 // Moldura parada ("Melhorar desempenho"): a mesma imagem estática da miniatura, no tamanho original da moldura
 export const urlParada = urlMiniatura

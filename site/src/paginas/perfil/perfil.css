@@ -624,7 +624,7 @@ html.sm-aberto { overflow: hidden; }
 .pf-amizade-par { display: inline-flex; gap: 8px; flex-wrap: wrap; }
 .pf-sao-amigos { color: var(--green); border-color: color-mix(in srgb, var(--green) 45%, transparent); }
 .pf-amizade-erro { font-size: 12.5px; color: #ff6b6b; }
-.pf-status { display: inline-flex; align-items: center; gap: 7px; margin: -4px 0 8px; font-size: 13px; font-weight: 700; color: var(--dim); }
+.pf-status { display: flex; width: max-content; align-items: center; gap: 7px; margin: -4px 0 10px; font-size: 13px; font-weight: 700; color: var(--dim); }
 .pf-status i { width: 9px; height: 9px; border-radius: 50%; background: #6d717b; }
 .pf-status-online { color: var(--green); }
 .pf-status-online i { background: var(--green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 25%, transparent); }
