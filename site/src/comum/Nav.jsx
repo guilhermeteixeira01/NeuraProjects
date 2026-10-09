@@ -10,6 +10,7 @@ import { useT } from './i18n.js'
 const ITEM_ADMIN = { id: 'admin', rotulo: 'Admin', href: '/admin/', icone: 'escudo' }
 import { ComMoldura } from './Moldura.jsx'
 import { useAvatar } from './avatares.js'
+import PainelAmigos from './PainelAmigos.jsx'
 
 function LinkMenu({ item, atual }) {
   const t = useT()
@@ -213,6 +214,7 @@ export default function Nav({ pagina }) {
       <aside className="nx-direita" aria-label={t('Conta e configurações')}>
         <Conta />
         <span className="nx-direita-sep" aria-hidden="true" />
+        <PainelAmigos />
         <Configuracoes />
         {CONFIG.comunidade && (
           <a className="nx-btn nx-btn-ghost nx-comunidade" href={CONFIG.comunidade} target="_blank" rel="noopener" aria-label={t('Comunidade na {nome}', { nome: CONFIG.comunidadeNome })}>

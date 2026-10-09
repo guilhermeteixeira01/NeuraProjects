@@ -617,3 +617,21 @@ html.sm-aberto { overflow: hidden; }
 .sm-req-linha > b { font-size: 11.5px; font-weight: 800; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sm-req-linha > .sm-req-atual { color: var(--dim); }
 .sm-req-linha > .selo-cargo { grid-column: 1 / -1; justify-self: start; max-width: 100%; overflow: hidden; }
+
+/* Amizade no perfil */
+.pf-amizade { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-family: inherit; }
+.pf-amizade:disabled { opacity: .6; cursor: default; }
+.pf-amizade-par { display: inline-flex; gap: 8px; flex-wrap: wrap; }
+.pf-sao-amigos { color: var(--green); border-color: color-mix(in srgb, var(--green) 45%, transparent); }
+.pf-amizade-erro { font-size: 12.5px; color: #ff6b6b; }
+.pf-status { display: inline-flex; align-items: center; gap: 7px; margin: -4px 0 8px; font-size: 13px; font-weight: 700; color: var(--dim); }
+.pf-status i { width: 9px; height: 9px; border-radius: 50%; background: #6d717b; }
+.pf-status-online { color: var(--green); }
+.pf-status-online i { background: var(--green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 25%, transparent); }
+.pf-status-ausente { color: #f5a524; }
+.pf-status-ausente i { background: #f5a524; }
+@media (max-width: 720px) {
+  .pf-acoes .pf-amizade, .pf-acoes .pf-amizade-par { grid-column: 1 / -1; }
+  .pf-acoes .pf-amizade { justify-content: center; }
+  .pf-amizade-par { display: grid; grid-template-columns: 1fr 1fr; }
+}

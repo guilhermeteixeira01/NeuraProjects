@@ -25,3 +25,13 @@ id = "2a74b48573a24744b6b5771ef4ae8ba4"
 # Premier (Leetify) dos jogadores do ranking (KV "premier", rota GET /premier)
 [triggers]
 crons = ["*/10 * * * *"]
+
+# Amigos: presença em tempo real (online / ausente / offline). Um Durable Object só ("global") guarda os WebSockets
+# abertos pelo site (src/amigos.js). SQLite: é o tipo que funciona no plano grátis.
+[[durable_objects.bindings]]
+name = "PRESENCA"
+class_name = "Presenca"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Presenca"]

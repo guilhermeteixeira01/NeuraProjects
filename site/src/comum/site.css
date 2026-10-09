@@ -2336,3 +2336,65 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
     transform: translateX(6px);
   }
 }
+
+/* ══════════════ Amigos (comum/PainelAmigos.jsx): botão na barra da direita + painel encostado nela ══════════════ */
+.nx-amigos-btn { position: relative; }
+.nx-amigos-btn.ativo { color: var(--blue-2); border-color: var(--blue-2); }
+.nx-amigos-pedidos {
+  position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+  display: grid; place-items: center; font: 800 10.5px var(--font-body); color: #fff; background: var(--red); border: 2px solid var(--bg);
+}
+.nx-amigos-on { position: absolute; top: 4px; right: 4px; width: 9px; height: 9px; border-radius: 50%; background: var(--green); border: 2px solid var(--bg); }
+.am-painel { display: none; }
+@media (min-width: 1025px) {
+  html.amigos-aberto body { padding-right: calc(var(--nx-direita) + 280px); }
+  .am-painel {
+    position: fixed; top: 0; bottom: 0; right: var(--nx-direita); z-index: 299; width: 280px;
+    display: flex; flex-direction: column; background: var(--bg-soft); border-left: 1px solid var(--border);
+    font-family: var(--font-body); color: var(--text); animation: am-entra .18s ease;
+  }
+}
+@keyframes am-entra { from { opacity: 0; transform: translateX(10px); } }
+.am-cab { display: flex; align-items: center; gap: 8px; height: 58px; padding: 0 12px 0 16px; border-bottom: 1px solid var(--border); flex: none; }
+.am-cab b { font-family: var(--font-display); font-size: 16px; }
+.am-cab .mono { font-family: var(--font-mono); font-size: 11px; color: var(--dim-2); }
+.am-fechar { margin-left: auto; width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border-2); background: none; color: var(--dim); font-size: 18px; line-height: 1; cursor: pointer; }
+.am-fechar:hover { color: var(--text); border-color: var(--blue-2); }
+.am-rolagem { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px 8px 16px; }
+.am-grupo { margin-top: 12px; }
+.am-grupo h4, .am-ver-enviados {
+  display: flex; align-items: center; gap: 4px; padding: 0 8px 6px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 700;
+  letter-spacing: 1.4px; color: var(--dim-2);
+}
+.am-ver-enviados { width: 100%; border: 0; background: none; cursor: pointer; text-align: left; }
+.am-ver-enviados:hover { color: var(--dim); }
+.am-grupo ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.am-linha { display: flex; align-items: center; gap: 6px; border-radius: 10px; transition: background .12s; }
+.am-linha:hover { background: rgb(var(--tinta) / .05); }
+.am-pessoa { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 6px 8px; color: inherit; text-decoration: none; }
+.am-av { position: relative; flex: none; width: 36px; height: 36px; }
+.am-av img, .am-av .am-ini { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; display: block; }
+.am-ini { display: grid !important; place-items: center; background: var(--panel-2); font: 700 12px var(--font-display); color: var(--dim); }
+.am-bolinha { position: absolute; right: -2px; bottom: -2px; z-index: 3; width: 13px; height: 13px; border-radius: 50%; border: 3px solid var(--bg-soft); background: #6d717b; }
+.am-online .am-bolinha { background: var(--green); }
+.am-ausente .am-bolinha { background: #f5a524; }
+.am-pedido .am-bolinha { display: none; }
+.am-txt { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.am-txt b { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.am-txt small { font-size: 11.5px; color: var(--dim-2); }
+.am-cargos .selo-cargo { font-size: 9px; padding: 1px 6px; }
+.am-cargos .cargos-mais-btn { height: 17px; min-width: 20px; font-size: 9px; }
+.am-off .am-pessoa { opacity: .55; }
+.am-off .am-linha:hover .am-pessoa { opacity: 1; }
+.am-ausente .am-txt b { color: var(--dim); }
+.am-botoes { display: flex; gap: 4px; padding-right: 6px; flex: none; }
+.am-botoes button, .am-cancelar {
+  height: 28px; min-width: 28px; border-radius: 8px; border: 1px solid var(--border-2); background: var(--panel); color: var(--text);
+  font: 700 12px var(--font-body); cursor: pointer;
+}
+.am-sim:hover { border-color: var(--green); color: var(--green); }
+.am-nao:hover, .am-cancelar:hover { border-color: var(--red); color: var(--red); }
+.am-cancelar { margin-right: 6px; padding: 0 9px; }
+.am-botoes button:disabled, .am-cancelar:disabled { opacity: .5; cursor: default; }
+.am-pedidos h4 { color: var(--blue-2); }
+.am-vazio { padding: 14px 10px; font-size: 13px; color: var(--dim); line-height: 1.5; }
