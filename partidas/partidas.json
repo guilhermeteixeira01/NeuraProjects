@@ -1,5 +1,28 @@
 [
   {
+    "nome": "2026-10-09_18-46_de_mirage_Neura-Project-x-Digital-Gamers",
+    "data": "2026-10-09 18:46",
+    "mapa": "de_mirage",
+    "timeA": "Neura Project",
+    "timeB": "Digital Gamers",
+    "placarA": 4,
+    "placarB": 13,
+    "serie": "MD1 · mapa 1/1",
+    "caminho": "dga/md1/2026-10-09_18-46_de_mirage_Neura-Project-x-Digital-Gamers",
+    "categoria": "md1",
+    "serieId": "2026-10-09_18-42_Neura-Project-x-Digital-Gamers",
+    "serieTimeA": "Neura Project",
+    "serieTimeB": "Digital Gamers",
+    "serieVitoriasA": 0,
+    "serieVitoriasB": 1,
+    "serieMapas": [
+      "de_mirage"
+    ],
+    "serieCancelada": false,
+    "logoA": "https://i.imgur.com/0lhPoBJ.png",
+    "logoB": "https://i.imgur.com/EgmqWQi.jpg"
+  },
+  {
     "nome": "2026-10-07_21-36_de_ancient_Time-A-x-Time-B",
     "data": "2026-10-07 21:36",
     "mapa": "de_ancient",
