@@ -17,6 +17,7 @@ const PAGINAS = {
   perfil: 'perfil/index.html',
   admin: 'admin/index.html',
   times: 'times/index.html',
+  naoencontrada: '404.html', // GitHub Pages mostra para qualquer endereço que não existe
 }
 
 // `npm run dev`: dados que ficam fora de site/ (no deploy eles são copiados para o site publicado)

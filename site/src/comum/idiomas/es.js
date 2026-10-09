@@ -666,4 +666,11 @@ export default {
   "Necessário": "Necesario",
   "Seu nível": "Tu nivel",
   "Cargo": "Cargo",
+  "Página não encontrada": "Página no encontrada",
+  "PÁGINA NÃO ENCONTRADA": "PÁGINA NO ENCONTRADA",
+  "Essa página saiu do mapa": "Esta página salió del mapa",
+  "Essa partida não existe mais. Partidas de séries canceladas saem do site alguns minutos depois do cancelamento.": "Esta partida ya no existe. Las partidas de series canceladas salen del sitio unos minutos después de cancelarse.",
+  "Esse perfil não foi encontrado. Confira o link ou procure o jogador no ranking.": "No se encontró este perfil. Revisa el enlace o busca al jugador en el ranking.",
+  "O link pode estar errado ou a página foi removida. Escolha um destino abaixo.": "El enlace puede estar mal o la página fue eliminada. Elige un destino abajo.",
+  "Voltar ao início": "Volver al inicio",
 }

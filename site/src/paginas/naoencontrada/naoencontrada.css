@@ -1,0 +1,44 @@
+/* Ordem: base do site, base das páginas e depois o desta página (o desta página ganha) */
+@import '../../comum/site.css';
+@import '../../comum/paginas.css';
+
+/* Página 404: número gigante vazado, o "0" girando como mira, texto e atalhos */
+.nf-hero { min-height: min(760px, calc(100vh - 40px)); display: flex; align-items: center; padding: 70px 0 80px; }
+.nf-wrap { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; max-width: 760px; }
+.nf-codigo {
+  display: flex; align-items: center; gap: .04em; font-family: var(--font-display); font-weight: 700; line-height: .9;
+  font-size: clamp(110px, 22vw, 220px); color: transparent; -webkit-text-stroke: 2px var(--blue-2); user-select: none;
+}
+.nf-codigo .nf-zero {
+  display: inline-block; -webkit-text-stroke: 0; color: transparent;
+  background: linear-gradient(135deg, var(--blue), var(--blue-2) 50%, var(--green)); -webkit-background-clip: text; background-clip: text;
+  animation: nf-gira 6s linear infinite;
+}
+@keyframes nf-gira { to { transform: rotate(360deg); } }
+.nf-wrap h1 { font-family: var(--font-display); font-size: clamp(30px, 5vw, 48px); line-height: 1.05; text-wrap: balance; }
+.nf-texto { color: var(--dim); font-size: 16px; max-width: 58ch; }
+.nf-caminho {
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 6px 12px; border-radius: 8px;
+  font-family: var(--font-mono); font-size: 12.5px; color: var(--dim); background: rgb(var(--tinta) / .04); border: 1px solid var(--border);
+}
+.nf-acoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.nf-acoes .btn { display: inline-flex; align-items: center; gap: 8px; }
+@media (max-width: 720px) {
+  .nf-hero { min-height: 0; padding: 40px 0 56px; }
+  .nf-acoes { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+  .nf-acoes .btn { justify-content: center; }
+  .nf-acoes .btn-primary { grid-column: 1 / -1; }
+}
+@media (prefers-reduced-motion: reduce) { .nf-codigo .nf-zero { animation: none; } }
+html[data-desempenho] .nf-codigo .nf-zero { animation: none; }
+
+/* Sem menu: a tela inteira é o bloco do 404, centralizado (tira o espaço que o site guarda para as barras) */
+body { padding: 0 !important; }
+.nf-tela { min-height: 100vh; display: flex; }
+.nf-tela .nf-hero { flex: 1; min-height: 100vh; justify-content: center; padding: 40px 0; }
+.nf-tela .nf-wrap { margin: 0 auto; }
+/* Tudo centralizado (número, textos e botões) */
+.nf-tela .nf-wrap { align-items: center; text-align: center; }
+.nf-tela .nf-texto { margin: 0 auto; }
+.nf-tela .nf-acoes { justify-content: center; }
+.nf-tela .kicker::after { display: none; }

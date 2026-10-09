@@ -114,6 +114,7 @@ const PAGINAS = [
   ['index.html', 'inicio'],
   ['neurapick/index.html', 'neurapick'],
   ['times/index.html', 'times'],
+  ['404.html', 'naoencontrada'], // qualquer link errado do site
   ['partidas/index.html', 'partidas', { lista, series }],
   ['ranking/index.html', 'ranking', ranking],
   ['admin/index.html', 'admin'], // painel de administrador (dados vêm do worker, com login)

@@ -666,4 +666,11 @@ export default {
   "Necessário": "Required",
   "Seu nível": "Your level",
   "Cargo": "Role",
+  "Página não encontrada": "Page not found",
+  "PÁGINA NÃO ENCONTRADA": "PAGE NOT FOUND",
+  "Essa página saiu do mapa": "This page left the map",
+  "Essa partida não existe mais. Partidas de séries canceladas saem do site alguns minutos depois do cancelamento.": "This match no longer exists. Matches from cancelled series leave the site a few minutes after being cancelled.",
+  "Esse perfil não foi encontrado. Confira o link ou procure o jogador no ranking.": "This profile was not found. Check the link or look for the player in the ranking.",
+  "O link pode estar errado ou a página foi removida. Escolha um destino abaixo.": "The link may be wrong or the page was removed. Pick a destination below.",
+  "Voltar ao início": "Back to home",
 }
