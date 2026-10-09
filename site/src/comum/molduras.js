@@ -3,7 +3,8 @@
 //   .webp = imagem parada (tamanho original): miniatura da tela de escolha e moldura do modo "Melhorar desempenho"
 // Para adicionar: coloque os dois arquivos na pasta e uma linha aqui (o id é "<coleção>/<nome>").
 // fonte: 'neura' = feitas por nós (ferramentas/molduras/neura.mjs); 'steam' = Loja de Pontos da Steam;
-// 'decor' = Decor (comunidade). Steam e Decor: ferramentas/molduras/baixar.mjs.
+// 'decor' = Decor (comunidade). Steam e Decor: ferramentas/molduras/baixar.mjs. Pasta solta posta à mão
+// (public/assets/molduras/<Qualquer Nome>/*.gif|png): ferramentas/molduras/importar.mjs organiza e imprime as linhas.
 // forma: 'quadrada' = moldura feita para avatar quadrado (as da Steam); com ela o avatar fica quadrado em todas as
 // páginas. Sem forma = redonda.
 // escala: tamanho da moldura em relação ao avatar (padrão 1.2 = 120%). As quadradas têm a borda de dentro em lugares
@@ -18,6 +19,18 @@ export const COLECOES = [
   'Steam Tech',
   'Decor',
   'Decor Quadradas',
+  "Call of Duty",
+  "Creepy Crawlers",
+  "Fin",
+  "Flux Vol 2",
+  "Jujutsu Kaisen",
+  "My Hero Academia",
+  "Night Terrors",
+  "Star Wars",
+  "Street Fighter 6",
+  "Toy Story",
+  "Tron",
+  "Underworld",
 ]
 
 export const MOLDURAS = [
@@ -243,6 +256,69 @@ export const MOLDURAS = [
   { id: 'decor/matriz-roxa', nome: "Matriz Roxa", colecao: 'Decor Quadradas', fonte: 'decor', forma: 'quadrada', escala: 1.14 },
   { id: 'decor/glitch-rosa', nome: "Glitch Rosa", colecao: 'Decor Quadradas', fonte: 'decor', forma: 'quadrada', escala: 1.08 },
   { id: 'decor/glitch-branco', nome: "Glitch Branco", colecao: 'Decor Quadradas', fonte: 'decor', forma: 'quadrada', escala: 1.04 },
+  // Decorações no estilo Discord por tema (ferramentas/molduras/importar.mjs)
+  { id: 'call-of-duty/cymbal-monkey', nome: "Cymbal Monkey", colecao: "Call of Duty", fonte: 'decor' },
+  { id: 'call-of-duty/embrace-the-madness', nome: "Embrace the Madness", colecao: "Call of Duty", fonte: 'decor' },
+  { id: 'call-of-duty/hallucination', nome: "Hallucination", colecao: "Call of Duty", fonte: 'decor' },
+  { id: 'creepy-crawlers/black-widow', nome: "Black Widow", colecao: "Creepy Crawlers", fonte: 'decor' },
+  { id: 'creepy-crawlers/bug-hug', nome: "Bug Hug", colecao: "Creepy Crawlers", fonte: 'decor' },
+  { id: 'creepy-crawlers/bug-reveal', nome: "Bug Reveal", colecao: "Creepy Crawlers", fonte: 'decor' },
+  { id: 'creepy-crawlers/motyxia', nome: "Motyxia", colecao: "Creepy Crawlers", fonte: 'decor' },
+  { id: 'fin/shark-attack', nome: "Shark Attack", colecao: "Fin", fonte: 'decor' },
+  { id: 'flux-vol-2/cyclinglights-iridescent', nome: "Cycling Lights Iridescent", colecao: "Flux Vol 2", fonte: 'decor' },
+  { id: 'flux-vol-2/cyclinglights-rgb', nome: "Cycling Lights RGB", colecao: "Flux Vol 2", fonte: 'decor' },
+  { id: 'flux-vol-2/cyclinglights-vaporwave', nome: "Cycling Lights Vaporwave", colecao: "Flux Vol 2", fonte: 'decor' },
+  { id: 'jujutsu-kaisen/kento-nanami', nome: "Kento Nanami", colecao: "Jujutsu Kaisen", fonte: 'decor' },
+  { id: 'jujutsu-kaisen/mahito', nome: "Mahito", colecao: "Jujutsu Kaisen", fonte: 'decor', escala: 1.39 },
+  { id: 'jujutsu-kaisen/megumi-fushiguro', nome: "Megumi Fushiguro", colecao: "Jujutsu Kaisen", fonte: 'decor' },
+  { id: 'jujutsu-kaisen/nobara-kugisaki', nome: "Nobara Kugisaki", colecao: "Jujutsu Kaisen", fonte: 'decor' },
+  { id: 'jujutsu-kaisen/ryomen-sukuna', nome: "Ryomen Sukuna", colecao: "Jujutsu Kaisen", fonte: 'decor' },
+  { id: 'jujutsu-kaisen/satoru-gojo', nome: "Satoru Gojo", colecao: "Jujutsu Kaisen", fonte: 'decor' },
+  { id: 'jujutsu-kaisen/suguru-geto', nome: "Suguru Geto", colecao: "Jujutsu Kaisen", fonte: 'decor' },
+  { id: 'jujutsu-kaisen/yuji-itadori', nome: "Yuji Itadori", colecao: "Jujutsu Kaisen", fonte: 'decor' },
+  { id: 'my-hero-academia/all-might', nome: "All Might", colecao: "My Hero Academia", fonte: 'decor' },
+  { id: 'my-hero-academia/endeavor', nome: "Endeavor", colecao: "My Hero Academia", fonte: 'decor' },
+  { id: 'my-hero-academia/hawks', nome: "Hawks", colecao: "My Hero Academia", fonte: 'decor' },
+  { id: 'my-hero-academia/izuku-midoriya', nome: "Izuku Midoriya", colecao: "My Hero Academia", fonte: 'decor' },
+  { id: 'my-hero-academia/katsuki-bakugo', nome: "Katsuki Bakugo", colecao: "My Hero Academia", fonte: 'decor' },
+  { id: 'my-hero-academia/shoto-todoroki', nome: "Shoto Todoroki", colecao: "My Hero Academia", fonte: 'decor' },
+  { id: 'my-hero-academia/tomura-shigaraki', nome: "Tomura Shigaraki", colecao: "My Hero Academia", fonte: 'decor' },
+  { id: 'night-terrors/snack-time', nome: "Snack Time", colecao: "Night Terrors", fonte: 'decor' },
+  { id: 'night-terrors/trapped-souls', nome: "Trapped Souls", colecao: "Night Terrors", fonte: 'decor' },
+  { id: 'night-terrors/wraithling', nome: "Wraithling", colecao: "Night Terrors", fonte: 'decor' },
+  { id: 'star-wars/curious-bb-8', nome: "Curious BB-8", colecao: "Star Wars", fonte: 'decor' },
+  { id: 'star-wars/lightsabers-r-b', nome: "Lightsabers Vermelho e Azul", colecao: "Star Wars", fonte: 'decor' },
+  { id: 'star-wars/lightsabers-r-g', nome: "Lightsabers Vermelho e Verde", colecao: "Star Wars", fonte: 'decor' },
+  { id: 'star-wars/mando-s-flamethrower', nome: "Mando's Flamethrower", colecao: "Star Wars", fonte: 'decor' },
+  { id: 'star-wars/millennium-falcon-hyperdrive', nome: "Millennium Falcon Hyperdrive", colecao: "Star Wars", fonte: 'decor' },
+  { id: 'star-wars/r2-d2-on-tatooine', nome: "R2-D2 on Tatooine", colecao: "Star Wars", fonte: 'decor' },
+  { id: 'star-wars/sippy-soup', nome: "Sippy Soup", colecao: "Star Wars", fonte: 'decor' },
+  { id: 'star-wars/space-battle', nome: "Space Battle", colecao: "Star Wars", fonte: 'decor' },
+  { id: 'star-wars/yoda-on-dagobah', nome: "Yoda on Dagobah", colecao: "Star Wars", fonte: 'decor' },
+  { id: 'street-fighter-6/akuma', nome: "Akuma", colecao: "Street Fighter 6", fonte: 'decor' },
+  { id: 'street-fighter-6/cammy', nome: "Cammy", colecao: "Street Fighter 6", fonte: 'decor' },
+  { id: 'street-fighter-6/chun-li', nome: "Chun-Li", colecao: "Street Fighter 6", fonte: 'decor' },
+  { id: 'street-fighter-6/guile', nome: "Guile", colecao: "Street Fighter 6", fonte: 'decor' },
+  { id: 'street-fighter-6/juri', nome: "Juri", colecao: "Street Fighter 6", fonte: 'decor' },
+  { id: 'street-fighter-6/ken', nome: "Ken", colecao: "Street Fighter 6", fonte: 'decor' },
+  { id: 'street-fighter-6/m-bison', nome: "M. Bison", colecao: "Street Fighter 6", fonte: 'decor' },
+  { id: 'street-fighter-6/ryu', nome: "Ryu", colecao: "Street Fighter 6", fonte: 'decor' },
+  { id: 'toy-story/andy-s-room-clouds', nome: "Andy's Room Clouds", colecao: "Toy Story", fonte: 'decor' },
+  { id: 'toy-story/bo-peep', nome: "Bo Peep", colecao: "Toy Story", fonte: 'decor' },
+  { id: 'toy-story/buzz-lightyear', nome: "Buzz Lightyear", colecao: "Toy Story", fonte: 'decor' },
+  { id: 'toy-story/jessie', nome: "Jessie", colecao: "Toy Story", fonte: 'decor' },
+  { id: 'toy-story/rex', nome: "Rex", colecao: "Toy Story", fonte: 'decor' },
+  { id: 'toy-story/the-clawww', nome: "The Clawww", colecao: "Toy Story", fonte: 'decor' },
+  { id: 'toy-story/woody', nome: "Woody", colecao: "Toy Story", fonte: 'decor' },
+  { id: 'tron/ares-disc', nome: "Ares Disc", colecao: "Tron", fonte: 'decor' },
+  { id: 'tron/encom-grid', nome: "Encom Grid", colecao: "Tron", fonte: 'decor' },
+  { id: 'tron/hologram-disc', nome: "Hologram Disc", colecao: "Tron", fonte: 'decor' },
+  { id: 'tron/legacy-disc', nome: "Legacy Disc", colecao: "Tron", fonte: 'decor' },
+  { id: 'tron/light-cycles', nome: "Light Cycles", colecao: "Tron", fonte: 'decor' },
+  { id: 'underworld/hellflame', nome: "Hellflame", colecao: "Underworld", fonte: 'decor' },
+  { id: 'underworld/lord-of-the-dead-blue', nome: "Lord of the Dead Azul", colecao: "Underworld", fonte: 'decor' },
+  { id: 'underworld/lord-of-the-dead-red', nome: "Lord of the Dead Vermelho", colecao: "Underworld", fonte: 'decor' },
+  { id: 'underworld/styxspirits', nome: "Styx Spirits", colecao: "Underworld", fonte: 'decor' },
 ]
 
 const PORID = new Map(MOLDURAS.map((m) => [m.id, m]))
