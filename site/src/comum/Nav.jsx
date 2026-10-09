@@ -204,6 +204,7 @@ export default function Nav({ pagina }) {
                 <span className="nx-dica">{t('Comunidade')}</span>
               </a>
             )}
+            <PainelAmigos celular />
             <Configuracoes />
             <Conta />
           </div>

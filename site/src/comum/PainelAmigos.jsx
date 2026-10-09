@@ -3,6 +3,7 @@
 // Abre por cima do site (não empurra a página); fecha com Esc ou clicando fora.
 // Aberto/fechado fica guardado no navegador. Dados e presença: comum/amigos.js.
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { acaoAmizade, tempoDesde, useAmigos } from './amigos.js'
 import { useAvatar } from './avatares.js'
 import { linkPerfil } from './conta.js'
@@ -61,7 +62,8 @@ function Grupo({ titulo, n, children, classe = '' }) {
   )
 }
 
-export default function PainelAmigos() {
+// celular: botão na barra de cima e lista em tela cheia (não guarda aberto/fechado nem mexe no computador)
+export default function PainelAmigos({ celular = false }) {
   const t = useT()
   const { lista, status, eu } = useAmigos()
   const [aberto, setAberto] = useState(false)
@@ -69,6 +71,7 @@ export default function PainelAmigos() {
   const [verEnviados, setVerEnviados] = useState(false)
 
   useEffect(() => {
+    if (celular) return
     try {
       setAberto(localStorage.getItem(CHAVE) === '1')
     } catch {
@@ -76,6 +79,11 @@ export default function PainelAmigos() {
     }
   }, [])
   useEffect(() => {
+    if (celular) {
+      // tela cheia: a página por trás não rola
+      document.documentElement.classList.toggle('amigos-cel-aberto', !!(aberto && eu))
+      return
+    }
     document.documentElement.classList.toggle('amigos-aberto', !!(aberto && eu))
     try {
       localStorage.setItem(CHAVE, aberto ? '1' : '0')
@@ -87,7 +95,7 @@ export default function PainelAmigos() {
   // Por cima do site: fecha com Esc ou clicando fora (no painel e no botão, não)
   useEffect(() => {
     if (!aberto) return
-    const fora = (e) => !e.target.closest?.('.am-painel, .nx-amigos-btn') && setAberto(false)
+    const fora = (e) => !celular && !e.target.closest?.('.am-painel, .nx-amigos-btn') && setAberto(false)
     const tecla = (e) => e.key === 'Escape' && setAberto(false)
     document.addEventListener('pointerdown', fora)
     document.addEventListener('keydown', tecla)
@@ -106,6 +114,9 @@ export default function PainelAmigos() {
   const offline = amigos.filter((a) => st(a) === 'offline').sort((x, y) => (status[y.id]?.visto || 0) - (status[x.id]?.visto || 0) || porNome(x, y))
   const recebidos = lista?.recebidos || []
   const enviados = lista?.enviados || []
+
+  // No celular o painel vai direto no <body>: a barra de cima (com desfoque) prenderia a tela cheia dentro dela
+  const naTela = (el) => (celular ? createPortal(el, document.body) : el)
 
   const fazer = async (acao, id) => {
     setOcupado(id + acao)
@@ -128,8 +139,8 @@ export default function PainelAmigos() {
           {t('Amigos')}
         </span>
       </button>
-      {aberto && (
-        <aside className="am-painel" aria-label={t('Amigos')}>
+      {aberto && naTela(
+        <aside className={`am-painel${celular ? ' am-celular' : ''}`} aria-label={t('Amigos')} onClick={(e) => celular && e.target.closest('a') && setAberto(false)}>
           <div className="am-cab">
             <b>{t('Amigos')}</b>
             <span className="mono">
@@ -192,7 +203,7 @@ export default function PainelAmigos() {
               </section>
             )}
           </div>
-        </aside>
+        </aside>,
       )}
     </>
   )
