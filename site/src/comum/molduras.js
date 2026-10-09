@@ -34,7 +34,6 @@ export const COLECOES = [
 ]
 
 export const MOLDURAS = [
-  { id: 'neura/centopeia-kaiju', nome: 'Centopeia Kaiju', colecao: 'Neura', fonte: 'neura', animada: '-anim.webp' },
   { id: 'neura/pulso-neon', nome: 'Pulso Neon', colecao: 'Neura', fonte: 'neura' },
   { id: 'neura/plasma', nome: 'Plasma', colecao: 'Neura', fonte: 'neura' },
   { id: 'neura/inferno', nome: 'Inferno', colecao: 'Neura', fonte: 'neura' },
@@ -237,7 +236,6 @@ export const MOLDURAS = [
   { id: 'decor/eclipse-branco', nome: "Eclipse Branco", colecao: 'Decor', fonte: 'decor' },
   { id: 'decor/circulo-arcano', nome: "Círculo Arcano", colecao: 'Decor', fonte: 'decor' },
   { id: 'decor/chama-magenta', nome: "Chama Magenta", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/nevoa-gelada', nome: "Névoa Gelada", colecao: 'Decor', fonte: 'decor' },
   { id: 'decor/aro-degrade', nome: "Aro Degradê", colecao: 'Decor', fonte: 'decor' },
   { id: 'decor/orbitas', nome: "Órbitas", colecao: 'Decor', fonte: 'decor' },
   { id: 'decor/satelites', nome: "Satélites", colecao: 'Decor', fonte: 'decor' },
