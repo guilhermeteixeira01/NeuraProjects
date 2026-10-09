@@ -33,6 +33,9 @@
  *   STEAM_API_KEY   chave da Web API da Steam (opcional; sem ela o token vai sem nome/avatar e o site
  *                   usa os do ranking)
  */
+import { Presenca, rotaAmigos, rotaPresenca } from './amigos.js'
+export { Presenca } // Durable Object da presença (wrangler.toml)
+
 const OPENID = 'https://steamcommunity.com/openid/login'
 const NS = 'http://specs.openid.net/auth/2.0'
 const DIAS = 30 // validade do login
@@ -59,6 +62,14 @@ export default {
     // Rotas antigas (só moldura): páginas que ainda estejam abertas com uma versão anterior do site
     if (rota === '/molduras' && req.method === 'GET') return json(soMolduras(await ler(env, 'perfis')), 200, publico)
 
+    // Presença em tempo real (WebSocket): o navegador não manda cabeçalho de login, então o token vem no endereço
+    if (rota === '/presenca') {
+      if (!origensPermitidas(env, site).includes(req.headers.get('Origin') || '')) return new Response('origem', { status: 403 })
+      const quemWs = env.SEGREDO ? await conferir(url.searchParams.get('t') || '', env.SEGREDO) : null
+      if (!quemWs) return new Response('login', { status: 401 })
+      return rotaPresenca(req, env, quemWs.id)
+    }
+
     // Daqui para baixo: só o próprio site, com login
     const cors = corsDe(req, env, site)
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors })
@@ -73,6 +84,7 @@ export default {
       await registrarUsuario(env, quem.id, { nome: quem.nome, avatar: quem.avatar }, true)
       return json({ id: quem.id, admin, dono: quem.id === env.DONO }, 200, cors)
     }
+    if (rota === '/amigos' && (req.method === 'GET' || req.method === 'POST')) return rotaAmigos(req, env, quem, cors)
     if (req.method === 'POST' && (rota === '/perfil' || rota === '/moldura')) return salvarPerfil(req, env, site, quem, admin, config, cors, rota === '/moldura')
 
     if (rota.startsWith('/admin/')) {

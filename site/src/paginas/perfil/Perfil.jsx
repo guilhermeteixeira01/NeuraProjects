@@ -15,6 +15,7 @@ import { BarraXp, SeloNivel, useNivelDe } from '../../comum/Nivel.jsx'
 import SeletorMoldura from './SeletorMoldura.jsx'
 import { useT } from '../../comum/i18n.js'
 import { useAvatar } from '../../comum/avatares.js'
+import { BotaoAmizade, StatusAmigo } from './Amizade.jsx'
 
 // Perfil do jogador: /perfil/?id=<SteamID64>. Sem id, mostra o de quem está logado pela Steam.
 // Dados: ranking/ranking.json (totais) e perfil/historico/<id>.json (todos os mapas), gerados no deploy.
@@ -415,6 +416,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
               {t('PERFIL DO JOGADOR')}{eu && <span className="pf-voce">{t('VOCÊ')}</span>}
             </span>
             <h1>{j.nome}</h1>
+            {!eu && <StatusAmigo id={j.steamId} />}
             <CargosDe steamId={j.steamId} max={3} classe="pf-cargos" />
           </div>
           <div className="pf-infos fx-entra" style={{ '--e': 2 }}>
@@ -463,6 +465,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
                   <IconePincel /> {t('Personalizar')}
                 </button>
               )}
+              {!eu && <BotaoAmizade id={j.steamId} />}
               <a className="btn btn-ghost" href={steam(j.steamId)} target="_blank" rel="noopener">
                 <IconeSteam /> {t('Perfil na Steam')}
               </a>

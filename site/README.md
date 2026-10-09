@@ -219,6 +219,20 @@ Na página inicial, **Times registrados** (`src/paginas/inicio/TimesCarrossel.js
 `assets/data/times.json` (lista editada em `/times/`), passando sem parar e parando com o mouse em cima (o nome aparece
 no cartão). Sem time cadastrado, a seção some; com "Melhorar desempenho", fica parado e dá para rolar para o lado.
 
+## Amigos e presença
+
+Amizade como na FACEIT: no perfil de outro jogador, **Adicionar amigo** manda um pedido; quem recebe aceita ou recusa
+(no perfil ou no painel). Amigos aparecem no **painel de amigos** (computador: botão com o ícone de pessoas na barra
+da direita), separados em Pedidos, Online, Ausente e Offline (com "visto há…"), e o perfil de um amigo mostra se
+ele está online agora.
+
+- **Lista de amizades:** KV `amigos` no worker (`worker/steam-login/src/amigos.js`), rotas `GET /amigos` e
+  `POST /amigos { acao: pedir | aceitar | recusar | cancelar | remover, id }`.
+- **Presença em tempo real:** Durable Object `Presenca` (plano grátis, SQLite), uma instância só. Cada aba com login
+  abre um WebSocket em `/presenca?t=<token>`; o objeto avisa só os amigos quando alguém entra, sai ou fica ausente
+  (aba em segundo plano ou 5 min parado). No site: `src/comum/amigos.js` (uma conexão por página, reconecta sozinha),
+  `src/comum/PainelAmigos.jsx` e `src/paginas/perfil/Amizade.jsx`.
+
 ## Configurações ⚙ (idioma, tema e desempenho)
 
 O botão ⚙ do menu (`src/comum/Configuracoes.jsx`) abre o painel com **Idioma**, **Tema** e **Melhorar desempenho**.
