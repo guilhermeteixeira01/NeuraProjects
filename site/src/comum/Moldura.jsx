@@ -60,6 +60,15 @@ function atualizarSozinho() {
   document.addEventListener('visibilitychange', tudo)
   // Voltou para esta janela (ex.: mudou algo no celular e voltou ao computador): confere na hora
   window.addEventListener('focus', tudo)
+  // Perfil que chegou pela conexão ao vivo (amigos.js): o admin mudou o meu perfil agora (insígnia nova, moldura...)
+  window.addEventListener('np-perfil-ao-vivo', (e) => {
+    const { id, perfil } = e.detail || {}
+    if (!id) return
+    const novo = { ...(mapa || {}) }
+    if (perfil) novo[id] = perfil
+    else delete novo[id]
+    publicar(novo)
+  })
 }
 
 // Perfis de todos os jogadores ({} no HTML gerado e até a primeira leitura no navegador)

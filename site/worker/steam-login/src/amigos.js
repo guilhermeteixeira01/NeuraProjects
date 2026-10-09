@@ -99,6 +99,14 @@ export async function rotaAmigos(req, env, quem, cors) {
   return json(await minhaLista(env, quem.id, todos), 200, cors)
 }
 
+// Perfil mudou (admin deu insígnia, moldura...): manda o perfil novo para as abas abertas da pessoa, na hora
+// (o site mostra o aviso de insígnia nova sem esperar a releitura dos perfis). Sem aba aberta, não faz nada.
+export async function avisarPerfil(env, id, perfil) {
+  await presenca(env)
+    .fetch('https://presenca/mandar', { method: 'POST', body: JSON.stringify({ ids: [id], msg: { tipo: 'perfil', id, perfil: perfil || null } }) })
+    .catch(() => {})
+}
+
 // GET /presenca?t=<token> (WebSocket): o index.js confere o token e manda para o objeto com o SteamID em X-Id
 export function rotaPresenca(req, env, id) {
   const r = new Request(req)
@@ -161,6 +169,12 @@ export class Presenca {
         this.enviar(id, { tipo: 'lista' }) // a aba busca GET /amigos de novo
         if (this.state.getWebSockets(id).length) this.enviar(id, await this.estadoPara(id))
       }
+      return new Response('ok')
+    }
+
+    if (url.pathname === '/mandar') {
+      const { ids = [], msg } = await req.json().catch(() => ({}))
+      if (msg) for (const id of ids) this.enviar(id, msg)
       return new Response('ok')
     }
 

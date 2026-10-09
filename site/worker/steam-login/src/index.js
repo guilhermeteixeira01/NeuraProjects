@@ -34,7 +34,7 @@
  *   STEAM_API_KEY   chave da Web API da Steam (opcional; sem ela o token vai sem nome/avatar e o site
  *                   usa os do ranking)
  */
-import { Presenca, rotaAmigos, rotaPresenca } from './amigos.js'
+import { Presenca, avisarPerfil, rotaAmigos, rotaPresenca } from './amigos.js'
 export { Presenca } // Durable Object da presença (wrangler.toml)
 
 const OPENID = 'https://steamcommunity.com/openid/login'
@@ -203,13 +203,15 @@ async function darInsigniaTop3(env, site) {
   if (!ranking) return
   const perfis = await ler(env, 'perfis')
   const agora = Date.now()
-  let mudou = false
+  const novos = []
   for (const j of ordemRanking(ranking, perfis).slice(0, 3)) {
     if (perfis[j.steamId]?.insignias?.top3) continue
     perfis[j.steamId] = { ...perfis[j.steamId], insignias: { ...perfis[j.steamId]?.insignias, top3: agora } }
-    mudou = true
+    novos.push(j.steamId)
   }
-  if (mudou) await gravar(env, 'perfis', perfis)
+  if (!novos.length) return
+  await gravar(env, 'perfis', perfis)
+  for (const id of novos) await avisarPerfil(env, id, perfis[id]) // quem está com o site aberto vê o aviso na hora
 }
 
 // Valida moldura/time vindos do site; devolve { mudar } ou { erro }
@@ -352,6 +354,7 @@ async function adminPerfil(req, env, site, config, cors) {
     if (Object.keys(fica).length) perfis[corpo.id] = fica
     else delete perfis[corpo.id]
     await gravar(env, 'perfis', perfis)
+    await avisarPerfil(env, corpo.id, perfis[corpo.id])
     return json({ ok: true, perfis }, 200, cors)
   }
   const { mudar, erro } = validarPerfil(corpo, false)
@@ -384,9 +387,11 @@ async function adminPerfil(req, env, site, config, cors) {
     const comNovos = { ...perfis, [corpo.id]: { ...perfis[corpo.id], ...('cargos' in mudar ? { cargos: mudar.cargos } : {}) } }
     if (!(await cargosDoJogador(site, corpo.id, comNovos, config)).includes(exige)) return json({ erro: 'exclusiva', cargo: exige }, 400, cors)
   }
-  await mudarPerfil(env, corpo.id, mudar)
+  const gravados = await mudarPerfil(env, corpo.id, mudar)
   // Tirou um cargo: a moldura exclusiva dele sai do perfil na hora
-  const perfis = 'cargos' in mudar ? await tirarExclusivasSemCargo(env, site, config) : await ler(env, 'perfis')
+  const perfis = 'cargos' in mudar ? await tirarExclusivasSemCargo(env, site, config) : gravados
+  // A pessoa vê a mudança na hora se estiver com o site aberto (insígnia nova: aviso com som)
+  await avisarPerfil(env, corpo.id, perfis[corpo.id])
   return json({ ok: true, perfis }, 200, cors)
 }
 

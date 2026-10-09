@@ -284,7 +284,7 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
   border: 1px solid var(--border-2); background: rgb(var(--tinta) / .02); color: var(--text); font: inherit; cursor: pointer;
   transition: border-color .15s ease, background .15s ease;
 }
-.adm-insignia img { width: 56px; height: 64px; object-fit: contain; filter: grayscale(1) brightness(.6); opacity: .6; transition: filter .15s ease, opacity .15s ease; }
+.adm-insignia img { width: auto; height: 64px; filter: grayscale(1) brightness(.6); opacity: .6; transition: filter .15s ease, opacity .15s ease; }
 .adm-insignia b { font-size: 13px; }
 .adm-insignia small { font-size: 10.5px; }
 .adm-insignia i {

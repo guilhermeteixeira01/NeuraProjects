@@ -1,4 +1,5 @@
 // Insígnias (catálogo e regras: comum/insignias.js)
+//  - InsigniasMini: versão pequena, ao lado do nome na lista de amigos.
 //  - InsigniasDe: fileira de insígnias do perfil; passando o mouse (ou tocando, no celular) abre a caixinha com nome,
 //    descrição e quando ganhou.
 //  - AvisoInsignia (no Layout, só com login): "Você recebeu uma nova insígnia!" por cima do site, com som, uma vez
@@ -52,6 +53,20 @@ export function InsigniasDe({ steamId, classe = '' }) {
         <Item key={i.id} i={i} />
       ))}
     </ul>
+  )
+}
+
+// Versão pequena (lista de amigos): só as artes, ao lado do nome; o nome de cada uma aparece ao parar o mouse
+export function InsigniasMini({ steamId, max = 4, classe = '' }) {
+  const t = useT()
+  const lista = insigniasDe(usePerfis(), steamId).slice(0, max)
+  if (!lista.length) return null
+  return (
+    <span className={`ins-mini ${classe}`}>
+      {lista.map((i) => (
+        <img key={i.id} src={imagemInsignia(i.id)} alt={t(i.nome)} title={`${t(i.nome)} · ${t(i.descricao)}`} loading="lazy" draggable="false" />
+      ))}
+    </span>
   )
 }
 
