@@ -2399,3 +2399,30 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
 .am-botoes button:disabled, .am-cancelar:disabled { opacity: .5; cursor: default; }
 .am-pedidos h4 { color: var(--blue-2); }
 .am-vazio { padding: 14px 10px; font-size: 13px; color: var(--dim); line-height: 1.5; }
+
+/* Amigos no celular (PainelAmigos celular): botão na barra de cima e lista em tela cheia, acima das abas de baixo.
+ * No computador a barra de cima não aparece, então nada disto muda o computador. */
+@media (max-width: 1024px) {
+  html.amigos-cel-aberto { overflow: hidden; }
+  .nx-nav .nx-amigos-btn { width: 38px; height: 38px; }
+  .nx-nav .nx-amigos-btn .nx-dica { display: none; }
+  .am-painel.am-celular {
+    position: fixed; inset: 0; z-index: 460; display: flex; flex-direction: column;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: var(--bg); color: var(--text); font-family: var(--font-body); animation: am-sobe .2s ease;
+  }
+  .am-celular .am-cab { height: 64px; padding: 0 12px 0 18px; }
+  .am-celular .am-cab b { font-size: 19px; }
+  .am-celular .am-fechar { width: 40px; height: 40px; font-size: 22px; }
+  .am-celular .am-rolagem { padding: 6px 10px 24px; }
+  .am-celular .am-grupo h4, .am-celular .am-ver-enviados { font-size: 11.5px; padding: 0 8px 8px; }
+  .am-celular .am-pessoa { padding: 8px; gap: 12px; }
+  .am-celular .am-av, .am-celular .am-av img, .am-celular .am-av .am-ini { width: 44px; height: 44px; }
+  .am-celular .am-bolinha { width: 15px; height: 15px; border-color: var(--bg); }
+  .am-celular .am-txt b { font-size: 15.5px; }
+  .am-celular .am-botoes button { height: 38px; min-width: 38px; font-size: 15px; border-radius: 10px; }
+  .am-celular .am-cancelar { height: 36px; padding: 0 12px; }
+  .am-celular .am-linha:hover { background: none; }
+  .am-celular .am-off .am-pessoa { opacity: .6; }
+}
+@keyframes am-sobe { from { opacity: 0; transform: translateY(14px); } }
