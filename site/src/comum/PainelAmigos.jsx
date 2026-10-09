@@ -1,5 +1,6 @@
 // Lista de amigos (computador): botão na barra da direita e painel encostado nela, no estilo da lista de membros do
 // Discord: Pedidos, Online, Ausente e Offline, com a contagem de cada grupo. Clicar no amigo abre o perfil.
+// Abre por cima do site (não empurra a página); fecha com Esc ou clicando fora.
 // Aberto/fechado fica guardado no navegador. Dados e presença: comum/amigos.js.
 import { useEffect, useState } from 'react'
 import { acaoAmizade, tempoDesde, useAmigos } from './amigos.js'
@@ -82,6 +83,19 @@ export default function PainelAmigos() {
       // ignora
     }
   }, [aberto, eu])
+
+  // Por cima do site: fecha com Esc ou clicando fora (no painel e no botão, não)
+  useEffect(() => {
+    if (!aberto) return
+    const fora = (e) => !e.target.closest?.('.am-painel, .nx-amigos-btn') && setAberto(false)
+    const tecla = (e) => e.key === 'Escape' && setAberto(false)
+    document.addEventListener('pointerdown', fora)
+    document.addEventListener('keydown', tecla)
+    return () => {
+      document.removeEventListener('pointerdown', fora)
+      document.removeEventListener('keydown', tecla)
+    }
+  }, [aberto])
 
   if (!eu) return null
   const amigos = lista?.amigos || []
