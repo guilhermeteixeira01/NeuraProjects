@@ -105,6 +105,7 @@ const SEM_LOGIN = ['inicio', 'ranking']
 const OUTRAS = {
   perfil: { rotulo: 'Perfil', icone: 'perfil' },
   times: { rotulo: 'Times', icone: 'mapa' },
+  naoencontrada: { rotulo: 'Página não encontrada', icone: 'casa' },
 }
 
 // Celular: "Mais" da barra de baixo abre este painel com o resto (Inventário, Admin, Comunidade)

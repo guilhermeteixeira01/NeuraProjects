@@ -9,8 +9,9 @@ import Partidas from './paginas/partidas/Partidas.jsx'
 import Perfil from './paginas/perfil/Perfil.jsx'
 import Ranking from './paginas/ranking/Ranking.jsx'
 import Times from './paginas/times/Times.jsx'
+import NaoEncontrada from './paginas/naoencontrada/NaoEncontrada.jsx'
 
-const PAGINAS = { admin: Admin, inicio: Inicio, neurapick: NeuraPick, partida: Partida, partidas: Partidas, perfil: Perfil, ranking: Ranking, times: Times }
+const PAGINAS = { admin: Admin, inicio: Inicio, neurapick: NeuraPick, partida: Partida, partidas: Partidas, perfil: Perfil, ranking: Ranking, times: Times, naoencontrada: NaoEncontrada }
 
 export function renderizar(pagina, dados) {
   const Pagina = PAGINAS[pagina]
