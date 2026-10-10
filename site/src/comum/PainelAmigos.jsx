@@ -46,9 +46,9 @@ function Linha({ a, st, visto, children }) {
             <b>{a.nome || a.id}</b>
             <IconeEquipe steamId={a.id} />
           </span>
-          {st === 'offline' && visto ? <small>{t('visto {quando}', { quando: tempoDesde(visto, t) })}</small> : <CargosDe steamId={a.id} max={1} classe="am-cargos" />}
-          {/* Insígnias numa linha própria, embaixo (como no perfil) */}
+          {/* Insígnias (menores) numa linha própria, entre o nome e o status */}
           <InsigniasMini steamId={a.id} max={3} classe="am-ins" />
+          {st === 'offline' && visto ? <small>{t('visto {quando}', { quando: tempoDesde(visto, t) })}</small> : <CargosDe steamId={a.id} max={1} classe="am-cargos" />}
         </span>
       </a>
       {children}
