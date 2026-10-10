@@ -262,7 +262,13 @@
 .pod .selos { justify-content: center; }
 /* Cargos (Premium, VIP...) */
 .pod-cargos { justify-content: center; flex-wrap: nowrap; }
-.linha-cargos .selo-cargo { font-size: 9px; padding: 1px 6px; }
+.linha-cargos .selo-cargo { font-size: 9px; }
+/* Ícone de dono/admin do lado direito do nome (IconeEquipe): na lista o espaço vem do gap; no pódio o ícone é um pouco menor que o nome.
+ * No pódio o nome encurta com "…" e o ícone fica sempre visível. */
+.jog-l1 > .icone-equipe { margin-left: 0; }
+.pod-nome { display: flex; align-items: center; justify-content: center; }
+.pod-nome-txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pod-nome .icone-equipe svg, .pod-nome .icone-equipe img { width: 0.8em; height: 0.8em; }
 .linha-cargos .cargos-mais-btn { height: 17px; min-width: 20px; font-size: 9px; }
 .jog-av { display: inline-flex; flex-shrink: 0; }
 

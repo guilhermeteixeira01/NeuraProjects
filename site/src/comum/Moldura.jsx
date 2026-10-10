@@ -189,18 +189,41 @@ export function useCargosIdsDe(steamId) {
   return [...new Set([...manuais, ...cargos.filter((c) => c.top > 0 && pos >= 0 && pos < c.top).map((c) => c.id)])]
 }
 
+// Selo da equipe do jogador ({ id: '_dono' | '_admin', nome, cor, icone }), ou null se não for da equipe
+// ou se o admin desligou esse selo ("mostrar")
+function useSeloEquipe(steamId) {
+  const { selos, equipe } = useConfigSite()
+  if (steamId && steamId === equipe?.dono) return selos?.dono?.mostrar ? { id: '_dono', ...selos.dono } : null
+  if (equipe?.admins?.includes(steamId)) return selos?.admin?.mostrar ? { id: '_admin', ...selos.admin } : null
+  return null
+}
+
 // Selos do jogador: os cargos e, por último, o da equipe (dono ou admin, se estiver ligado)
 export function useCargosDe(steamId) {
   const ids = useCargosIdsDe(steamId)
-  const { cargos, selos, equipe } = useConfigSite()
-  const daEquipe =
-    steamId && steamId === equipe?.dono ? (selos?.dono?.mostrar ? [{ id: '_dono', ...selos.dono }] : [])
-    : equipe?.admins?.includes(steamId) ? (selos?.admin?.mostrar ? [{ id: '_admin', ...selos.admin }] : [])
-    : []
+  const { cargos } = useConfigSite()
+  const seloEquipe = useSeloEquipe(steamId)
   const pos = usePosicaoTop(steamId)
   // Cargos primeiro; o selo da equipe (Dono/Admin) por último, para não tomar o lugar do cargo onde só cabe 1.
   // Cargo com "Mostrar no site" desligado (oculto) não aparece como selo, mas continua valendo (molduras exclusivas).
-  return [...cargos.filter((c) => ids.includes(c.id) && !c.oculto).map((c) => ({ ...c, nome: nomeDoCargo(c, pos) })), ...daEquipe]
+  return [...cargos.filter((c) => ids.includes(c.id) && !c.oculto).map((c) => ({ ...c, nome: nomeDoCargo(c, pos) })), ...(seloEquipe ? [seloEquipe] : [])]
+}
+
+// Imagem do selo de dono/admin: public/assets/logos/verified.png (a pasta public é servida na raiz do site).
+// Se a imagem não carregar, volta o ícone desenhado do cargo.
+const IMAGEM_EQUIPE = '/assets/logos/verified.png'
+
+// Dono e admin: só o ícone, colado na frente do nome do jogador. Nada se não for da equipe.
+// Use dentro do nome: <IconeEquipe steamId={id} />{nome}
+export function IconeEquipe({ steamId }) {
+  const selo = useSeloEquipe(steamId)
+  const [semImagem, setSemImagem] = useState(false)
+  if (!selo) return null
+  return (
+    <span className="icone-equipe" style={{ '--cg': selo.cor }} title={selo.nome} role="img" aria-label={selo.nome}>
+      {semImagem ? <IconeCargo icone={selo.icone} tamanho={16} /> : <img src={IMAGEM_EQUIPE} alt="" draggable={false} onError={() => setSemImagem(true)} />}
+    </span>
+  )
 }
 
 // Selo de cargo: coroa + nome, na cor do cargo
@@ -220,7 +243,9 @@ export function SeloCargo({ cargo, classe = '' }) {
 export function CargosDe({ steamId, classe = '', max = Infinity, lista }) {
   const t = useT()
   const doJogador = useCargosDe(steamId)
-  const cargos = lista ?? doJogador
+  // Dono/admin aparecem só como ícone na frente do nome (IconeEquipe), não como selo de texto.
+  // Com `lista` (tabela do painel admin) nada muda: os selos vêm prontos.
+  const cargos = lista ?? doJogador.filter((c) => c.id !== '_dono' && c.id !== '_admin')
   const [aberto, setAberto] = useState(null) // posição do painel ({ top, left }) ou null
   const caixa = useRef(null)
   const painel = useRef(null)
