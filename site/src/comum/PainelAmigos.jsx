@@ -7,7 +7,7 @@ import { createPortal } from 'react-dom'
 import { acaoAmizade, tempoDesde, useAmigos } from './amigos.js'
 import { useAvatar } from './avatares.js'
 import { linkPerfil } from './conta.js'
-import { CargosDe, ComMoldura } from './Moldura.jsx'
+import { CargosDe, ComMoldura, IconeEquipe } from './Moldura.jsx'
 import { useT } from './i18n.js'
 import { InsigniasMini } from './Insignias.jsx'
 
@@ -44,9 +44,11 @@ function Linha({ a, st, visto, children }) {
         <span className="am-txt">
           <span className="am-nome">
             <b>{a.nome || a.id}</b>
-            <InsigniasMini steamId={a.id} max={3} />
+            <IconeEquipe steamId={a.id} />
           </span>
           {st === 'offline' && visto ? <small>{t('visto {quando}', { quando: tempoDesde(visto, t) })}</small> : <CargosDe steamId={a.id} max={1} classe="am-cargos" />}
+          {/* Insígnias numa linha própria, embaixo (como no perfil) */}
+          <InsigniasMini steamId={a.id} max={3} classe="am-ins" />
         </span>
       </a>
       {children}
