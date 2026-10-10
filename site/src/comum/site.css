@@ -2533,10 +2533,13 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
 .am-nome > .icone-equipe {
   margin-left: 0;
 }
-/* Insígnias da lista de amigos: menores que as do resto do site, numa linha entre o nome e o status */
+/* Insígnias da lista de amigos: na linha do nome, depois do ícone de verificado, com um espaço, e um pouco menores */
+.am-nome > .am-ins {
+  margin-left: 4px;
+}
 .am-txt .am-ins img {
-  height: 14px;
+  height: 16px;
 }
 .am-celular .am-txt .am-ins img {
-  height: 17px;
+  height: 19px;
 }

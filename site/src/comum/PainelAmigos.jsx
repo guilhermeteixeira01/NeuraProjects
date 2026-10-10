@@ -45,9 +45,9 @@ function Linha({ a, st, visto, children }) {
           <span className="am-nome">
             <b>{a.nome || a.id}</b>
             <IconeEquipe steamId={a.id} />
+            {/* Insígnias na frente do ícone de verificado, com um espaço */}
+            <InsigniasMini steamId={a.id} max={3} classe="am-ins" />
           </span>
-          {/* Insígnias (menores) numa linha própria, entre o nome e o status */}
-          <InsigniasMini steamId={a.id} max={3} classe="am-ins" />
           {st === 'offline' && visto ? <small>{t('visto {quando}', { quando: tempoDesde(visto, t) })}</small> : <CargosDe steamId={a.id} max={1} classe="am-cargos" />}
         </span>
       </a>
