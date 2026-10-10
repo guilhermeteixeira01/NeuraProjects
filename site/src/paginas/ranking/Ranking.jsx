@@ -6,7 +6,7 @@ import { Contador } from '../../comum/efeitos.jsx'
 import { useAoVivo } from '../../comum/aoVivo.js'
 import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
 import Premier from '../../comum/Premier.jsx'
-import { CargosDe, ComMoldura, TimeEscolhido, usePerfis } from '../../comum/Moldura.jsx'
+import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, usePerfis } from '../../comum/Moldura.jsx'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { nivelDe } from '../../comum/niveis.js'
 import { MIN_MAPAS } from '../../comum/ranking.js'
@@ -91,7 +91,8 @@ function Podio({ j, pos, m, eu }) {
         <span className="pod-pos">#{pos}</span>
       </a>
       <a className="pod-nome" href={perfil(j)}>
-        {j.nome}
+        <span className="pod-nome-txt">{j.nome}</span>
+        <IconeEquipe steamId={j.steamId} />
       </a>
       {/* Linhas fixas (com espaço guardado mesmo vazias): os 3 cartões ficam alinhados */}
       <span className="pod-linha pod-linha-cargos">
@@ -151,6 +152,7 @@ function Linha({ j, pos, m, max, i, eu }) {
         <span className="jog-txt">
           <span className="jog-l1">
             <a href={perfil(j)}>{j.nome}</a>
+            <IconeEquipe steamId={j.steamId} />
             <CargosDe steamId={j.steamId} classe="linha-cargos" max={1} />
           </span>
           <span className="jog-l2">

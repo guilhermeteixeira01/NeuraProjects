@@ -9,7 +9,7 @@ import { FundoHero } from '../../comum/HeroFundo.jsx'
 import { IconeSteam } from '../../comum/Icones.jsx'
 import { nomeArma, somarArmas, urlArma } from '../../comum/armas.js'
 import { nomeMapa } from '../../comum/mapas.js'
-import { CargosDe, ComMoldura, TimeEscolhido, salvarPerfil, useAdmin, usePerfis, useTimeDe } from '../../comum/Moldura.jsx'
+import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, salvarPerfil, useAdmin, usePerfis, useTimeDe } from '../../comum/Moldura.jsx'
 import Premier from '../../comum/Premier.jsx'
 import { BarraXp, SeloNivel, useNivelDe } from '../../comum/Nivel.jsx'
 import SeletorMoldura from './SeletorMoldura.jsx'
@@ -416,7 +416,10 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
             <span className="kicker">
               {t('PERFIL DO JOGADOR')}{eu && <span className="pf-voce">{t('VOCÊ')}</span>}
             </span>
-            <h1>{j.nome}</h1>
+            <h1>
+              {j.nome}
+              <IconeEquipe steamId={j.steamId} />
+            </h1>
             {!eu && <StatusAmigo id={j.steamId} />}
             <CargosDe steamId={j.steamId} max={3} classe="pf-cargos" />
             <InsigniasDe steamId={j.steamId} classe="pf-insignias" />
