@@ -2528,3 +2528,8 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
   .ins-raios, .ins-palco img, .ins-aviso, .ins-fundo { animation: none !important; }
   .ins-botao, .ins-dica { transition: none; }
 }
+
+/* Lista de amigos: o ícone de dono/admin fica ao lado do nome (o espaço vem do gap do .am-nome) */
+.am-nome > .icone-equipe {
+  margin-left: 0;
+}
