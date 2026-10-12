@@ -1,5 +1,30 @@
 [
   {
+    "nome": "2026-10-12_19-58_de_cache_Time-A-x-Time-B",
+    "data": "2026-10-12 19:58",
+    "mapa": "de_cache",
+    "timeA": "Time A",
+    "timeB": "Time B",
+    "placarA": 5,
+    "placarB": 13,
+    "serie": "MD3 · mapa 2/3",
+    "caminho": "dga/md3/2026-10-12_19-58_de_cache_Time-A-x-Time-B",
+    "categoria": "md3",
+    "serieId": "2026-10-12_19-19_Time-A-x-Time-B",
+    "serieTimeA": "Time A",
+    "serieTimeB": "Time B",
+    "serieVitoriasA": 0,
+    "serieVitoriasB": 2,
+    "serieMapas": [
+      "de_anubis",
+      "de_cache",
+      "de_nuke"
+    ],
+    "serieCancelada": false,
+    "logoA": null,
+    "logoB": null
+  },
+  {
     "nome": "2026-10-12_19-25_de_anubis_Time-A-x-Time-B",
     "data": "2026-10-12 19:25",
     "mapa": "de_anubis",
