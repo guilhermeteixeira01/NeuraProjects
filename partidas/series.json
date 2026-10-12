@@ -1,5 +1,24 @@
 [
   {
+    "id": "2026-10-12_16-25_Time-A-x-Time-B",
+    "organizacao": "dga",
+    "categoria": "md3",
+    "formato": "MD3",
+    "timeA": "Time A",
+    "timeB": "Time B",
+    "logoA": null,
+    "logoB": null,
+    "mapas": [
+      "de_train",
+      "de_overpass",
+      "de_cache"
+    ],
+    "status": "iniciando",
+    "mapaAtual": 0,
+    "criada": "2026-10-12 16:25",
+    "atualizada": "2026-10-12 16:25"
+  },
+  {
     "id": "2026-10-12_15-13_Neura-Project-x-Digital-Gamers",
     "organizacao": "dga",
     "categoria": "md3",
