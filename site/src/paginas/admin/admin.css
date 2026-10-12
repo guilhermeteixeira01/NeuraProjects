@@ -266,11 +266,16 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 /* Tabela de usuários alinhada: tudo no meio da linha na vertical; nível e selos à esquerda (a gema não "pula" com o
  * tamanho do XP); selos numa linha só (rola a tabela, não quebra) */
 .adm-tabela td { vertical-align: middle; }
-.adm-tabela th:nth-child(2), .adm-tabela td:nth-child(2) { width: 150px; }
+/* 1ª coluna = botão Editar (antes da foto); nível, time e último acesso são as colunas 3, 4 e 6 */
+.adm-tabela th:first-child, .adm-tabela td.adm-col-editar { width: 1%; padding-right: 0; text-align: left; }
 .adm-tabela th:nth-child(3), .adm-tabela td:nth-child(3) { width: 150px; }
-.adm-tabela td:nth-child(3) { overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+.adm-tabela th:nth-child(4), .adm-tabela td:nth-child(4) { width: 150px; }
+.adm-tabela td:nth-child(4) { overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
 .adm-tabela td .adm-tags { flex-wrap: nowrap; align-items: center; }
-.adm-tabela th:nth-child(5), .adm-tabela td:nth-child(5) { width: 140px; }
+.adm-tabela th:nth-child(6), .adm-tabela td:nth-child(6) { width: 140px; }
+/* Nome + ícone de verificado (dono/admin) na mesma linha */
+.adm-nome-linha { display: inline-flex; align-items: center; min-width: 0; }
+.adm-nome-linha .icone-equipe svg, .adm-nome-linha .icone-equipe img { width: 15px; height: 15px; }
 .adm-nunca { color: var(--dim-2); font-family: var(--font-body); font-size: 12px; }
 /* Cargos: "Numerar posição" (Campeão 1, 2, 3) */
 .adm-numerar { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--dim); white-space: nowrap; cursor: pointer; }

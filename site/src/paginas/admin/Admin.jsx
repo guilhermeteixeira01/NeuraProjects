@@ -3,7 +3,7 @@ import Layout from '../../comum/Layout.jsx'
 import { entrar, linkPerfil, loginAtivo, useConta } from '../../comum/conta.js'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
-import { CamadaMoldura, CargosDe, ComMoldura, SELOS_PADRAO, SeloCargo, chamar, nomeDoCargo, useAdmin, useListaTimes } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, CargosDe, ComMoldura, IconeEquipe, SELOS_PADRAO, SeloCargo, chamar, nomeDoCargo, useAdmin, useListaTimes } from '../../comum/Moldura.jsx'
 import { COLECOES, MOLDURAS, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { NIVEL_MAX, nivelDe } from '../../comum/niveis.js'
@@ -96,25 +96,34 @@ function Usuarios({ usuarios, painel, dono, editar }) {
         <table className="adm-tabela">
           <thead>
             <tr>
+              <th />
               <th className="esq">{tr('JOGADOR')}</th>
               <th className="esq">{tr('NÍVEL')}</th>
               <th className="esq">{tr('TIME')}</th>
               <th className="esq">{tr('SITUAÇÃO')}</th>
               <th>{tr('ÚLTIMO ACESSO')}</th>
-              <th />
             </tr>
           </thead>
           <tbody>
             {visiveis.map((u) => {
               return (
                 <tr key={u.id}>
+                  <td className="adm-col-editar">
+                    <button type="button" className="btn btn-ghost adm-editar" onClick={() => editar(u)}>
+                      {tr('Editar')}
+                    </button>
+                  </td>
                   <td className="esq">
                     <span className="adm-jog">
                       <ComMoldura steamId={u.id}>
                         <Avatar id={u.id} src={u.avatar} nome={u.nome} />
                       </ComMoldura>
                       <span>
-                        <a href={linkPerfil(u.id)}>{u.nome || tr('Sem nome')}</a>
+                        <span className="adm-nome-linha">
+                          <a href={linkPerfil(u.id)}>{u.nome || tr('Sem nome')}</a>
+                          {/* Dono e admin: só o ícone de verificado, do lado direito do nome (como no resto do site) */}
+                          {admins.has(u.id) && <IconeEquipe steamId={u.id} />}
+                        </span>
                         <small className="mono">{u.id}</small>
                       </span>
                     </span>
@@ -130,7 +139,7 @@ function Usuarios({ usuarios, painel, dono, editar }) {
                   </td>
                   <td className="esq">{u.perfil.time || <span className="adm-nada">—</span>}</td>
                   <td className="esq">
-                    {/* No máximo 1 selo e o "+N" com o resto (cargos primeiro; Dono/Admin por último, como no site) */}
+                    {/* No máximo 1 selo e o "+N" com o resto. Dono/Admin não entram aqui: viram o ícone ao lado do nome */}
                     <span className="adm-tags">
                       {u.perfil.bloqueado && <i className="bloq">{tr('BLOQUEADO')}</i>}
                       <CargosDe
@@ -140,18 +149,11 @@ function Usuarios({ usuarios, painel, dono, editar }) {
                           ...(painel.config.cargos || [])
                             .filter((c) => (u.perfil.cargos || []).includes(c.id) || u.auto.includes(c.id))
                             .map((c) => ({ ...c, nome: nomeDoCargo(c, u.auto.includes(c.id) ? u.pos : -1) })),
-                          ...(u.id === dono ? [{ id: '_dono', ...SELOS_PADRAO.dono, ...painel.config.selos?.dono }] : []),
-                          ...(u.id !== dono && admins.has(u.id) ? [{ id: '_admin', ...SELOS_PADRAO.admin, ...painel.config.selos?.admin }] : []),
                         ]}
                       />
                     </span>
                   </td>
                   <td className="mono">{u.usuario ? dataBr(u.usuario.visto) : <span className="adm-nunca">{tr('nunca entrou')}</span>}</td>
-                  <td>
-                    <button type="button" className="btn btn-ghost adm-editar" onClick={() => editar(u)}>
-                      {tr('Editar')}
-                    </button>
-                  </td>
                 </tr>
               )
             })}
