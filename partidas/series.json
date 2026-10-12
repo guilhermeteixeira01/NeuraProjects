@@ -1,5 +1,24 @@
 [
   {
+    "id": "2026-10-12_19-19_Time-A-x-Time-B",
+    "organizacao": "dga",
+    "categoria": "md3",
+    "formato": "MD3",
+    "timeA": "Time A",
+    "timeB": "Time B",
+    "logoA": null,
+    "logoB": null,
+    "mapas": [
+      "de_anubis",
+      "de_cache",
+      "de_nuke"
+    ],
+    "status": "iniciando",
+    "mapaAtual": 0,
+    "criada": "2026-10-12 19:19",
+    "atualizada": "2026-10-12 19:19"
+  },
+  {
     "id": "2026-10-12_18-01_Time-A-x-Time-B",
     "organizacao": "dga",
     "categoria": "md3",
