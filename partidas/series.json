@@ -1,5 +1,24 @@
 [
   {
+    "id": "2026-10-16_19-56_Digital-Gamers-x-Neura-Project",
+    "organizacao": "dga",
+    "categoria": "md3",
+    "formato": "MD3",
+    "timeA": "Digital Gamers",
+    "timeB": "Neura Project",
+    "logoA": "https://i.imgur.com/EgmqWQi.jpg",
+    "logoB": "https://i.imgur.com/0lhPoBJ.png",
+    "mapas": [
+      "de_dust2",
+      "de_anubis",
+      "de_cache"
+    ],
+    "status": "iniciando",
+    "mapaAtual": 0,
+    "criada": "2026-10-16 19:56",
+    "atualizada": "2026-10-16 19:56"
+  },
+  {
     "id": "2026-10-12_19-19_Time-A-x-Time-B",
     "organizacao": "dga",
     "categoria": "md3",
