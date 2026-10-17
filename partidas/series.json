@@ -13,10 +13,11 @@
       "de_ancient",
       "de_inferno"
     ],
-    "status": "andamento",
-    "mapaAtual": 0,
+    "status": "cancelada",
+    "mapaAtual": 1,
     "criada": "2026-10-16 22:46",
-    "atualizada": "2026-10-16 22:49"
+    "atualizada": "2026-10-16 23:31",
+    "canceladaEm": "2026-10-16T23:31:02-03:00"
   },
   {
     "id": "2026-10-16_19-56_Digital-Gamers-x-Neura-Project",
