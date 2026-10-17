@@ -1,5 +1,30 @@
 [
   {
+    "nome": "2026-10-16_20-35_de_anubis_Digital-Gamers-x-Neura-Project",
+    "data": "2026-10-16 20:35",
+    "mapa": "de_anubis",
+    "timeA": "Digital Gamers",
+    "timeB": "Neura Project",
+    "placarA": 13,
+    "placarB": 9,
+    "serie": "MD3 · mapa 2/3",
+    "caminho": "dga/md3/2026-10-16_20-35_de_anubis_Digital-Gamers-x-Neura-Project",
+    "categoria": "md3",
+    "serieId": "2026-10-16_19-56_Digital-Gamers-x-Neura-Project",
+    "serieTimeA": "Digital Gamers",
+    "serieTimeB": "Neura Project",
+    "serieVitoriasA": 2,
+    "serieVitoriasB": 0,
+    "serieMapas": [
+      "de_dust2",
+      "de_anubis",
+      "de_cache"
+    ],
+    "serieCancelada": false,
+    "logoA": "https://i.imgur.com/EgmqWQi.jpg",
+    "logoB": "https://i.imgur.com/0lhPoBJ.png"
+  },
+  {
     "nome": "2026-10-16_19-59_de_dust2_Digital-Gamers-x-Neura-Project",
     "data": "2026-10-16 19:59",
     "mapa": "de_dust2",
