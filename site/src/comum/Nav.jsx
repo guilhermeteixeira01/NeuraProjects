@@ -136,6 +136,92 @@ function PainelMais({ itens, admin, fechar }) {
   )
 }
 
+// Barra de rolagem do computador, do lado de dentro: fica encostada na barra da direita (a do navegador, que ficava
+// do lado de fora dela, é escondida em site.css). A rolagem continua sendo a da janela (window), então nada
+// que escuta o scroll da página muda. Celular e tablet continuam com a barra normal.
+function BarraRolagem() {
+  const trilho = useRef(null)
+  const alca = useRef(null)
+
+  useEffect(() => {
+    const el = document.documentElement
+    const t = trilho.current
+    const a = alca.current
+    if (!t || !a) return
+    let quadro = 0
+    const medidas = () => ({ vis: el.clientHeight, total: el.scrollHeight })
+
+    const medir = () => {
+      const { vis, total } = medidas()
+      const cabe = total <= vis + 1
+      t.classList.toggle('oculta', cabe)
+      if (cabe) return
+      const alt = Math.max(40, (vis / total) * vis)
+      const topo = (window.scrollY / (total - vis)) * (vis - alt)
+      a.style.height = `${alt}px`
+      a.style.transform = `translateY(${topo}px)`
+    }
+    const agendar = () => {
+      cancelAnimationFrame(quadro)
+      quadro = requestAnimationFrame(medir)
+    }
+    medir()
+    window.addEventListener('scroll', agendar, { passive: true })
+    window.addEventListener('resize', agendar)
+    const ro = new ResizeObserver(agendar)
+    ro.observe(document.body)
+
+    // arrastar a alça
+    let arrasto = null
+    const baixo = (e) => {
+      e.preventDefault()
+      arrasto = { y: e.clientY, topo: window.scrollY }
+      a.setPointerCapture(e.pointerId)
+      t.classList.add('arrastando')
+    }
+    const mexe = (e) => {
+      if (!arrasto) return
+      const { vis, total } = medidas()
+      const razao = (total - vis) / Math.max(1, vis - a.offsetHeight)
+      window.scrollTo({ top: arrasto.topo + (e.clientY - arrasto.y) * razao, behavior: 'instant' })
+    }
+    const solta = () => {
+      arrasto = null
+      t.classList.remove('arrastando')
+    }
+    // clicar no trilho leva a alça até ali
+    const clicaTrilho = (e) => {
+      if (e.target !== t) return
+      const { vis, total } = medidas()
+      const alt = a.offsetHeight
+      window.scrollTo({ top: ((e.clientY - alt / 2) / Math.max(1, vis - alt)) * (total - vis), behavior: 'smooth' })
+    }
+    a.addEventListener('pointerdown', baixo)
+    a.addEventListener('pointermove', mexe)
+    a.addEventListener('pointerup', solta)
+    a.addEventListener('pointercancel', solta)
+    t.addEventListener('pointerdown', clicaTrilho)
+
+    return () => {
+      cancelAnimationFrame(quadro)
+      window.removeEventListener('scroll', agendar)
+      window.removeEventListener('resize', agendar)
+      ro.disconnect()
+      a.removeEventListener('pointerdown', baixo)
+      a.removeEventListener('pointermove', mexe)
+      a.removeEventListener('pointerup', solta)
+      a.removeEventListener('pointercancel', solta)
+      t.removeEventListener('pointerdown', clicaTrilho)
+    }
+  }, [])
+
+  return (
+    <div className="nx-rolagem oculta" ref={trilho} aria-hidden="true">
+      <div className="nx-rolagem-alca" ref={alca} />
+    </div>
+  )
+}
+
 // Menu de todas as páginas.
 // Computador (> 1024px): barra fina na lateral esquerda, só com ícones (o nome aparece ao passar o mouse: .nx-dica).
 // Celular e tablet: barra de cima com o nome da página atual, ⚙ e a conta, e barra de abas fixa embaixo
@@ -210,6 +296,8 @@ export default function Nav({ pagina }) {
           </div>
         </div>
       </header>
+
+      <BarraRolagem />
 
       {/* Computador (estilo FACEIT): barra fina à direita com a conta, ⚙ e Comunidade */}
       <aside className="nx-direita" aria-label={t('Conta e configurações')}>
