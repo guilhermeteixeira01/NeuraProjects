@@ -140,7 +140,11 @@ export default function PainelAmigos({ celular = false }) {
       <button type="button" className={`nx-config-btn nx-amigos-btn${aberto ? ' ativo' : ''}`} aria-expanded={aberto} aria-label={t('Amigos')} onClick={() => setAberto((a) => !a)}>
         <IconeAmigos />
         {recebidos.length > 0 && <span className="nx-amigos-pedidos">{recebidos.length}</span>}
-        {!recebidos.length && online.length > 0 && <span className="nx-amigos-on" aria-hidden="true" />}
+        {online.length > 0 && (
+          <span className="nx-amigos-on" aria-hidden="true">
+            <b>{online.length}</b>
+          </span>
+        )}
         <span className="nx-dica" aria-hidden="true">
           {t('Amigos')}
         </span>
