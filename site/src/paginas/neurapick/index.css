@@ -18,9 +18,6 @@
   --orange: #ff7a1a;
   --red: #ff4655;
   --yellow: #f5c542;
-  /* Pick/Ban: o destaque do site (amarelo, --accent) continua verde aqui */
-  --accent: var(--green);
-  --accent-2: var(--green-2);
 
   --team-a: var(--blue-2);
   --team-b: var(--orange);
@@ -30,11 +27,6 @@
   --font-display: 'Chakra Petch', 'Segoe UI', sans-serif;
   --font-body: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
   --font-mono: 'JetBrains Mono', 'Consolas', monospace;
-}
-
-html:is([data-tema='claro'], [data-tema='branco']) {
-  --accent: var(--green);
-  --accent-2: var(--green-2);
 }
 
 *,
@@ -266,8 +258,8 @@ b.decider {
   opacity: 0.4;
 }
 .btn-primary {
-  background: linear-gradient(135deg, var(--green), var(--green-2));
-  color: #06170e;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #1a1300;
 }
 .btn-primary:hover:not(:disabled) {
   filter: brightness(1.06);
@@ -319,7 +311,7 @@ b.decider {
   height: 420px;
   bottom: -160px;
   right: -110px;
-  background: var(--green);
+  background: var(--accent);
   opacity: 0.12;
   animation: heroGlowDrift2 16s ease-in-out infinite;
 }
@@ -2096,16 +2088,16 @@ b.decider {
 ::-webkit-scrollbar-thumb {
   border: 2px solid var(--bg-soft);
   border-radius: 999px;
-  background: linear-gradient(180deg, var(--blue), var(--blue-2) 45%, var(--green));
+  background: linear-gradient(180deg, var(--blue), var(--blue-2) 45%, var(--accent));
 }
 ::-webkit-scrollbar-thumb:horizontal {
-  background: linear-gradient(90deg, var(--blue), var(--blue-2) 45%, var(--green));
+  background: linear-gradient(90deg, var(--blue), var(--blue-2) 45%, var(--accent));
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, var(--blue-2), var(--green));
+  background: linear-gradient(180deg, var(--blue-2), var(--accent));
 }
 ::-webkit-scrollbar-thumb:horizontal:hover {
-  background: linear-gradient(90deg, var(--blue-2), var(--green));
+  background: linear-gradient(90deg, var(--blue-2), var(--accent));
 }
 ::-webkit-scrollbar-corner {
   background: var(--bg-soft);

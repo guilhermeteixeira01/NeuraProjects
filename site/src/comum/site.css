@@ -1245,7 +1245,7 @@ html:is([data-tema='claro'], [data-tema='branco']) :is(.summary-item, .map-card,
   --dim-2: #6d6e77;
   --blue-2: #3498db;
   --green: #3ddc84;
-  --accent: #3ddc84; /* só vale nas ilhas escuras do Pick/Ban */
+  --accent: #f5c542;
   --orange: #ff7a1a;
   --red: #ff4655;
   --yellow: #f5c542;
