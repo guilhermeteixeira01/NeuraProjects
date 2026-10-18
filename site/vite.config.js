@@ -56,20 +56,21 @@ function dadosNoDev() {
   }
 }
 
-// Imagens dos selos da equipe (dono/admins): é só colocar o arquivo em public/assets/selos-equipe/ (png, webp, svg, jpg
-// ou gif). A lista vira o módulo virtual 'virtual:selos-equipe', que o painel admin usa para escolher a imagem.
-function selosEquipe() {
-  const pasta = path.resolve(aqui, 'public/assets/selos-equipe')
-  const id = 'virtual:selos-equipe'
-  const ler = () => (fs.existsSync(pasta) ? fs.readdirSync(pasta).filter((n) => /\.(png|webp|svg|jpe?g|gif)$/i.test(n)).sort() : [])
+// Listas de imagens que o painel e o perfil usam para escolher: é só colocar o arquivo na pasta (png, webp, svg, jpg ou
+// gif). Cada pasta vira um módulo virtual com a lista de nomes de arquivo:
+//   public/assets/selos-equipe/  -> 'virtual:selos-equipe'  (selo do dono e dos admins, aba Cargos do painel)
+//   public/assets/cards/         -> 'virtual:cards-perfil'  (banner do card do perfil, janela Personalizar)
+function imagensDaPasta(id, subpasta) {
+  const pasta = path.resolve(aqui, 'public/assets', subpasta)
+  const ler = () => (fs.existsSync(pasta) ? fs.readdirSync(pasta).filter((n) => /\.(png|webp|avif|svg|jpe?g|gif)$/i.test(n)).sort() : [])
   return {
-    name: 'neura-selos-equipe',
+    name: 'neura-' + subpasta,
     resolveId: (origem) => (origem === id ? '\0' + id : null),
     load: (origem) => (origem === '\0' + id ? `export default ${JSON.stringify(ler())}` : null),
     configureServer(server) {
       server.watcher.add(pasta)
       const recarregar = (arq) => {
-        if (!arq.startsWith(pasta)) return
+        if (!path.resolve(arq).startsWith(pasta)) return
         const mod = server.moduleGraph.getModuleById('\0' + id)
         if (mod) server.moduleGraph.invalidateModule(mod)
         server.ws.send({ type: 'full-reload' })
@@ -81,7 +82,7 @@ function selosEquipe() {
 }
 
 export default defineConfig({
-  plugins: [react(), dadosNoDev(), selosEquipe()],
+  plugins: [react(), dadosNoDev(), imagensDaPasta('virtual:selos-equipe', 'selos-equipe'), imagensDaPasta('virtual:cards-perfil', 'cards')],
   build: {
     // Arquivos do React em /static/ (a pasta /assets/ é das imagens e dos dados do site)
     assetsDir: 'static',

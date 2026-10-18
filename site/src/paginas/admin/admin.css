@@ -318,3 +318,8 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 .adm-imagens-grade button { width: 40px; height: 40px; }
 .adm-imagens-grade button img { width: 26px; height: 26px; object-fit: contain; }
 .adm-imagens-dica { grid-column: 1 / -1; max-width: 270px; padding-top: 4px; font-size: 11px; line-height: 1.35; color: var(--dim-2); }
+
+/* Aba Cards */
+.adm-cards-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-top: 12px; }
+.adm-card-regra img { width: 100%; aspect-ratio: 282 / 395; height: auto; object-fit: cover; border-radius: 8px; }
+.adm-anim-tag { margin-left: 4px; padding: 1px 5px; border-radius: 999px; font: 800 8.5px var(--font-mono); letter-spacing: .6px; color: #1a1400; background: var(--accent); }

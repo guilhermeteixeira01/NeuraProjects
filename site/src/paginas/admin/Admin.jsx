@@ -15,6 +15,7 @@ import { INSIGNIAS, imagemInsignia } from '../../comum/insignias.js'
 import { useAvatar } from '../../comum/avatares.js'
 import SeletorMoldura from '../perfil/SeletorMoldura.jsx'
 import { IMAGENS_SELO, urlSelo } from '../../comum/selosEquipe.js'
+import { CARDS, ehAnimado, nomeCard, urlCard } from '../../comum/cardsPerfil.js'
 
 // Painel de administrador (/admin/). A aba só aparece para admin, mas quem decide é o worker:
 // toda chamada /admin/... confere o login e se a pessoa é admin (o dono, ou quem o dono promoveu).
@@ -173,6 +174,7 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
   const [personalizando, setPersonalizando] = useState(false)
   const [moldura, setMoldura] = useState(u.perfil.moldura || '')
   const [time, setTime] = useState(u.perfil.time || '')
+  const [card, setCard] = useState(u.perfil.card || '')
   const [ajuste, setAjuste] = useState(u.ajuste)
   const [bloqueado, setBloqueado] = useState(!!u.perfil.bloqueado)
   const [meus, setMeus] = useState(() => (u.perfil.cargos || []).filter((id) => cargos.some((c) => c.id === id)))
@@ -199,7 +201,7 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
       setEstado(mensagemErro(e))
     }
   }
-  const salvar = () => enviar({ moldura: moldura || null, time: time || null, xp: Math.round(Number(ajuste) || 0), bloqueado, cargos: meus, insignias })
+  const salvar = () => enviar({ moldura: moldura || null, time: time || null, card: card || null, xp: Math.round(Number(ajuste) || 0), bloqueado, cargos: meus, insignias })
   const limpar = () => window.confirm(tr('Apagar moldura, time, ajuste de XP, cargos e bloqueio de {nome}? (as insígnias ficam)', { nome: u.nome || u.id })) && enviar({ limpar: true })
 
   return (
@@ -246,13 +248,16 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
           </label>
 
           <div className="adm-campo">
-            <span>{tr('Moldura e time')}</span>
+            <span>{tr('Moldura, time e card')}</span>
             <button type="button" className="adm-personalizar" onClick={() => setPersonalizando(true)}>
               <span>
                 {tr('Moldura')}: <b className="adm-mold-atual">{molduraPorId(moldura)?.nome || tr('Sem moldura')}</b>
               </span>
               <span>
                 {tr('Time')}: <b className="adm-mold-atual">{time || tr('Sem time')}</b>
+              </span>
+              <span>
+                {tr('Card')}: <b className="adm-mold-atual">{card ? nomeCard(card) : tr('Sem card')}</b>
               </span>
               <span className="adm-personalizar-ir">{tr('Personalizar')} ›</span>
             </button>
@@ -266,10 +271,11 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
                 nome={u.nome || u.id}
                 nivel={previa.nivel}
                 admin
-                inicial={{ moldura: moldura || null, time: time || null }}
+                inicial={{ moldura: moldura || null, time: time || null, card: card || null }}
                 aoSalvar={(e) => {
                   setMoldura(e.moldura || '')
                   setTime(e.time || '')
+                  setCard(e.card || '')
                 }}
                 fechar={() => setPersonalizando(false)}
               />,
@@ -345,6 +351,116 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
             {estado === 'salvando' ? tr('Salvando…') : tr('Salvar')}
           </button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Aba Cards: liberar por nível e exclusivos de cargo (as mesmas regras das molduras) ──
+function CardsRegras({ config, aoSalvar }) {
+  const tr = useT()
+  const [porNivel, setPorNivel] = useState(!!config.cardPorNivel)
+  const [niveis, setNiveis] = useState(() => ({ ...config.nivelCard }))
+  const [exclusivo, setExclusivo] = useState(() => ({ ...config.cardCargo }))
+  const [estado, setEstado] = useState('')
+  const cargos = config.cargos || []
+  const nivelDe1 = (nome) => Number(niveis[nome]) || 1
+  const cargoDe = (nome) => cargos.find((c) => c.id === exclusivo[nome]) || null
+  const mudou = porNivel !== !!config.cardPorNivel || CARDS.some((c) => nivelDe1(c) !== (Number(config.nivelCard?.[c]) || 1) || (exclusivo[c] || '') !== (config.cardCargo?.[c] || ''))
+  const definir = (nomes, n) => setNiveis((v) => ({ ...v, ...Object.fromEntries(nomes.map((c) => [c, Number(n)])) }))
+  const tornarExclusivo = (nomes, cargo) => setExclusivo((v) => ({ ...v, ...Object.fromEntries(nomes.map((c) => [c, cargo])) }))
+  const salvar = async () => {
+    setEstado('salvando')
+    try {
+      const nivelCard = Object.fromEntries(CARDS.filter((c) => nivelDe1(c) > 1).map((c) => [c, nivelDe1(c)]))
+      const cardCargo = Object.fromEntries(CARDS.filter((c) => cargoDe(c)).map((c) => [c, exclusivo[c]]))
+      const d = await chamar('/admin/config', { cardPorNivel: porNivel, nivelCard, cardCargo })
+      aoSalvar(d.config)
+      setEstado('Salvo!')
+    } catch (e) {
+      setEstado(mensagemErro(e))
+    }
+  }
+  return (
+    <div className="adm-bloco">
+      <div className="adm-config-topo">
+        <label className="adm-check grande">
+          <input type="checkbox" checked={porNivel} onChange={(e) => setPorNivel(e.target.checked)} />
+          <span>
+            <b>{tr('Liberar cards por nível')}</b>
+            <small>{tr('Ligado: cada card só pode ser usado a partir do nível escolhido abaixo. Desligado: todos ficam livres.')}</small>
+          </span>
+        </label>
+        <div className="adm-salvar">
+          <span className="sm-msg" role="status">
+            {estado !== 'salvando' && tr(estado)}
+          </span>
+          <button type="button" className="btn btn-primary" onClick={salvar} disabled={!mudou || estado === 'salvando'}>
+            {estado === 'salvando' ? tr('Salvando…') : tr('Salvar regras')}
+          </button>
+        </div>
+      </div>
+      <p className="adm-nota">
+        {tr('Exclusivo de: o card só pode ser usado por quem tem o cargo (crie os cargos na aba Cargos). Vale mesmo com a regra de nível desligada; com as duas, o jogador precisa do cargo e do nível. Para ter mais cards, coloque imagens em site/public/assets/cards/.')}
+      </p>
+      <div className="adm-colecao-cab">
+        <h3>{tr('Todos os cards')}</h3>
+        {cargos.length > 0 && (
+          <label>
+            {tr('Exclusivo:')}
+            <select value="" onChange={(e) => e.target.value && tornarExclusivo(CARDS, e.target.value === '-' ? '' : e.target.value)}>
+              <option value="">{tr('todos os cards…')}</option>
+              <option value="-">{tr('Todos (sem cargo)')}</option>
+              {cargos.map((cg) => (
+                <option key={cg.id} value={cg.id}>
+                  {cg.nome}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        <label className={porNivel ? '' : 'desligado'}>
+          {tr('Todos os cards:')}
+          <select value="" onChange={(e) => e.target.value && definir(CARDS, e.target.value)}>
+            <option value="">{tr('nível…')}</option>
+            {NIVEIS_OPCOES.map((n) => (
+              <option key={n} value={n}>
+                {n === 1 ? tr('Livre (1)') : tr('Nível {n}', { n })}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <div className="adm-cards-grade">
+        {CARDS.map((c) => (
+          <div key={c} className={`adm-mold adm-card-regra${cargoDe(c) ? ' exclusiva' : ''}`} style={cargoDe(c) ? { '--cg': cargoDe(c).cor } : undefined}>
+            <img src={urlCard(c)} alt="" loading="lazy" />
+            <span>
+              {nomeCard(c)} {ehAnimado(c) && <small className="adm-anim-tag">{tr('ANIMADO')}</small>}
+            </span>
+            {cargos.length > 0 && (
+              <select className="adm-mold-cargo" value={exclusivo[c] || ''} onChange={(e) => tornarExclusivo([c], e.target.value)} aria-label={`${tr('Exclusivo de')} (${nomeCard(c)})`}>
+                <option value="">{tr('Todos')}</option>
+                {cargos.map((cg) => (
+                  <option key={cg.id} value={cg.id}>
+                    {tr('Só {cargo}', { cargo: cg.nome })}
+                  </option>
+                ))}
+              </select>
+            )}
+            <span className={`adm-mold-nivel${porNivel ? '' : ' desligado'}`}>
+              <SeloNivel nivel={nivelDe1(c)} tamanho={24} />
+              <select value={nivelDe1(c)} onChange={(e) => definir([c], e.target.value)} aria-label={tr('Nível de {nome}', { nome: nomeCard(c) })}>
+                {NIVEIS_OPCOES.map((n) => (
+                  <option key={n} value={n}>
+                    {n === 1 ? tr('Livre') : tr('Nível {n}', { n })}
+                  </option>
+                ))}
+              </select>
+            </span>
+          </div>
+        ))}
+        {CARDS.length === 0 && <p className="sm-vazio">{tr('Nenhum card ainda (coloque imagens em site/public/assets/cards/).')}</p>}
       </div>
     </div>
   )
@@ -890,6 +1006,7 @@ export default function Admin() {
     const ABAS = [
       ['usuarios', 'Usuários'],
       ['molduras', 'Molduras'],
+      ['cards', 'Cards'],
       ['cargos', 'Cargos'],
       ['admins', 'Admins'],
     ]
@@ -931,6 +1048,7 @@ export default function Admin() {
               </button>
             </div>
             {aba === 'usuarios' && <Usuarios usuarios={usuarios} painel={painel} dono={painel.dono} editar={setEditando} />}
+            {aba === 'cards' && <CardsRegras key={JSON.stringify(painel.config)} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
             {aba === 'molduras' && <Molduras key={JSON.stringify(painel.config)} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
             {aba === 'cargos' && eu.dono && <SelosEquipe key={JSON.stringify(painel.config.selos || {})} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
             {aba === 'cargos' && <Cargos key={JSON.stringify(painel.config.cargos || [])} config={painel.config} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
