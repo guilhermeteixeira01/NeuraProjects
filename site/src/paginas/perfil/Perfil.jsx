@@ -583,7 +583,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   return (
     <>
       <section className="secao pf-pagina">
-        <FundoHero quantidade={10} />
+        <FundoHero quantidade={10} rastros={false} />
         {/* Estilo FACEIT: cartão do jogador na esquerda (a capa pode virar personalizável no futuro) e as informações no meio */}
         <div className="wrap pf-layout">
           <aside className="pf-lado">
@@ -718,7 +718,7 @@ function Aviso({ titulo, texto, children }) {
   const t = useT()
   return (
     <section className="hero pf-hero pf-aviso">
-      <FundoHero quantidade={10} />
+      <FundoHero quantidade={10} rastros={false} />
       <div className="wrap">
         <span className="kicker">{t('PERFIL DO JOGADOR')}</span>
         <h1>{t(titulo)}</h1>

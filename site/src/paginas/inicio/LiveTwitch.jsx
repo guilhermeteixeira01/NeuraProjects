@@ -57,6 +57,8 @@ export default function LiveTwitch() {
   const [canal, setCanal] = useState('') // canal ao vivo agora
   const caixa = useRef(null)
   const player = useRef(null)
+  const secao = useRef(null)
+  const [perto, setPerto] = useState(false) // a área está perto da tela: só então baixa o player da Twitch (centenas de KB)
 
   useEffect(() => {
     lerJson('/assets/data/twitch.json').then((d) => {
@@ -65,10 +67,26 @@ export default function LiveTwitch() {
     })
   }, [])
 
+  useEffect(() => {
+    if (!config?.canais.length) return
+    if (!('IntersectionObserver' in window)) return setPerto(true)
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setPerto(true)
+          obs.disconnect()
+        }
+      },
+      { rootMargin: '500px 0px' },
+    )
+    if (secao.current) obs.observe(secao.current)
+    return () => obs.disconnect()
+  }, [config])
+
   // Player da Twitch: troca de canal até achar um ao vivo
   useEffect(() => {
     const canais = config?.canais
-    if (!canais?.length || !caixa.current) return
+    if (!canais?.length || !caixa.current || !perto) return
     let vivo = true
     let i = 0
     let relogio
@@ -116,7 +134,7 @@ export default function LiveTwitch() {
       vivo = false
       clearTimeout(relogio)
     }
-  }, [config])
+  }, [config, perto])
 
   // Ao vivo e o vídeo aparece na tela: dá o play sozinho, sem som (uma vez por live: se a pessoa pausar, fica pausado).
   // Antes disso (área lá embaixo ou capa por cima) a Twitch recusa o play e só deixa um aviso no console.
@@ -150,7 +168,7 @@ export default function LiveTwitch() {
   const principal = canal || config.canais[0]
 
   return (
-    <section className={`secao live live-${estado}`} id="live" aria-live="polite">
+    <section ref={secao} className={`secao live live-${estado}`} id="live" aria-live="polite">
       <div className="wrap">
         <div className="live-cab">
           <div className="secao-head">

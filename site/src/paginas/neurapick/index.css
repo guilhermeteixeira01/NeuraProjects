@@ -2163,3 +2163,22 @@ body *::-webkit-scrollbar-thumb {
     display: none !important;
   }
 }
+
+/* Celular/tablet: sem o círculo de 110 px de blur animado (pesado para a GPU): vira um degradê parado */
+@media (max-width: 1024px), (pointer: coarse) {
+  *,
+  *::before,
+  *::after {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }  .hero-glow {
+    filter: none;
+    animation: none;
+  }
+  .hero-glow-1 {
+    background: radial-gradient(closest-side, var(--blue), transparent);
+  }
+  .hero-glow-2 {
+    background: radial-gradient(closest-side, var(--accent), transparent);
+  }
+}

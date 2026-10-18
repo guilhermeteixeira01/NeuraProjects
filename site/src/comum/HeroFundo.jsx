@@ -36,7 +36,9 @@ function RastrosGrade({ maximo }) {
     const ctx = canvas.getContext('2d')
 
     // Respeita "Melhorar desempenho", os temas otimizados (sem partículas) e movimento reduzido
+    // celular/tablet (toque): sem os pulsos animados no canvas (gastam bateria e processador sem parar)
     const desligado = () =>
+      window.matchMedia('(pointer: coarse)').matches ||
       html.hasAttribute('data-desempenho') ||
       ['escuro', 'claro'].includes(html.getAttribute('data-tema')) ||
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -227,14 +229,15 @@ function RastrosGrade({ maximo }) {
 // Fundo do topo das páginas: brilhos azul/amarelo, chão de grade em perspectiva andando e pulsos de luz
 // amarelos aleatórios correndo pela grade. Vai como primeiro filho da <section className="hero"> (que já é
 // position: relative + overflow: hidden). `quantidade` agora controla quantos rastros ao mesmo tempo.
-export function FundoHero({ quantidade = 14, chao = true }) {
+// rastros={false}: sem os pulsos de luz correndo pela grade (a página de perfil não usa)
+export function FundoHero({ quantidade = 14, chao = true, rastros = true }) {
   return (
     <>
       <div className="hero-glow hero-glow-1" />
       <div className="hero-glow hero-glow-2" />
       <div className="fx-fundo" aria-hidden="true">
         {chao && <div className="fx-chao" />}
-        <RastrosGrade maximo={Math.max(4, Math.round(quantidade * 1.3))} />
+        {rastros && <RastrosGrade maximo={Math.max(4, Math.round(quantidade * 1.3))} />}
       </div>
     </>
   )

@@ -6,6 +6,7 @@
 // O id de um card é "tema/arquivo.ext" (ex.: "funcoes/awper.avif").
 import arquivos from 'virtual:cards-perfil'
 import minis from 'virtual:cards-mini'
+import meds from 'virtual:cards-med'
 import { desempenhoAtivo } from './desempenho.js'
 
 export const CARDS = arquivos
@@ -29,12 +30,15 @@ const semMovimento = () => {
     return false
   }
 }
+// O card inteiro (avif/png, 200 a 600 KB) só serve de original: o site mostra a versão de 400 px em webp (cards/med/, 2 a 65 KB)
 export const urlCard = (nome) => {
   const id = idCard(nome)
+  const base = id.replace(/\.[^.]+$/, '')
+  if (!/\.svg$/i.test(id) && meds.includes(base + '.webp')) return `/assets/cards/med/${caminho(base)}.webp`
   return /-anim\.svg$/i.test(id) && semMovimento() ? `/assets/cards/parado/${caminho(id)}` : `/assets/cards/${caminho(id)}`
 }
 // Miniatura leve para a grade da janela Personalizar (public/assets/cards/mini/<tema>/<nome>.webp, gerada por
-// scripts/gerar-miniaturas-cards.mjs). Sem ela usa a imagem inteira; SVG animado usa a versão parada (sem gastar processador).
+// scripts/gerar-miniaturas.mjs). Sem ela usa a imagem inteira; SVG animado usa a versão parada (sem gastar processador).
 export const urlMiniCard = (nome) => {
   const id = idCard(nome)
   const base = id.replace(/\.[^.]+$/, '')
