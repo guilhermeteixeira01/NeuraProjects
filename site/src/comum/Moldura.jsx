@@ -451,13 +451,47 @@ function useDesempenho() {
   return ligado
 }
 
+// A moldura animada é um APNG de 1 a 10 MB. Para não pesar: celular/tablet, movimento reduzido e "Economia de dados" usam a
+// imagem parada (a miniatura, uns 18 KB). O mesmo vale no computador até a moldura aparecer na tela: só então carrega a animada.
+function useSemAnimacao() {
+  const [sem, setSem] = useState(false)
+  useEffect(() => {
+    const consultas = ['(max-width: 1024px)', '(prefers-reduced-motion: reduce)'].map((q) => window.matchMedia(q))
+    const ler = () => setSem(consultas.some((c) => c.matches) || !!navigator.connection?.saveData)
+    ler()
+    consultas.forEach((c) => c.addEventListener('change', ler))
+    return () => consultas.forEach((c) => c.removeEventListener('change', ler))
+  }, [])
+  return sem
+}
+
 // Desenho da moldura por cima de um avatar (o pai precisa ter position: relative e o tamanho do avatar)
 export function CamadaMoldura({ id, parada = false }) {
   const desempenho = useDesempenho()
+  const semAnimacao = useSemAnimacao()
+  const ref = useRef(null)
+  const [vista, setVista] = useState(false)
   const m = molduraPorId(id)
+  const podeAnimar = !parada && !desempenho && !semAnimacao
+  useEffect(() => {
+    if (!m || !podeAnimar || vista) return
+    const el = ref.current
+    if (!el || !('IntersectionObserver' in window)) return setVista(true)
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setVista(true)
+          obs.disconnect()
+        }
+      },
+      { rootMargin: '100px' },
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [m, podeAnimar, vista])
   if (!m) return null
-  const url = parada || desempenho ? urlParada(m.id) : urlMoldura(m.id)
-  return <span className="moldura" aria-hidden="true" style={{ backgroundImage: `url("${url}")`, ...(m.escala ? { '--escala': m.escala } : {}) }} />
+  const url = podeAnimar && vista ? urlMoldura(m.id) : urlParada(m.id)
+  return <span ref={ref} className="moldura" aria-hidden="true" style={{ backgroundImage: `url("${url}")`, ...(m.escala ? { '--escala': m.escala } : {}) }} />
 }
 
 // Envolve o avatar e põe a moldura do jogador por cima (sem moldura, devolve o avatar como está).

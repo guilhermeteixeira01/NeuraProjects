@@ -14,6 +14,9 @@ export const INSIGNIAS = [
 ]
 
 export const imagemInsignia = (id) => `/assets/insignia/web/${id}.webp`
+// Miniatura de 128 px (~10 KB) para onde a insígnia aparece pequena (lista de amigos, fileira do perfil); gerada por
+// scripts/gerar-miniaturas.mjs. Se faltar, quem usa cai na imagem grande (onError).
+export const miniaturaInsignia = (id) => `/assets/insignia/mini/${id}.webp`
 export const insigniaPorId = (id) => INSIGNIAS.find((i) => i.id === id) || null
 
 // Insígnias de um jogador, na ordem do catálogo: [{ ...insígnia, desde }]

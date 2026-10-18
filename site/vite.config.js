@@ -61,7 +61,8 @@ function dadosNoDev() {
 //   public/assets/selos-equipe/  -> 'virtual:selos-equipe'  (selo do dono e dos admins, aba Cargos do painel)
 //   public/assets/cards/<tema>/  -> 'virtual:cards-perfil'  (banner do card do perfil, janela Personalizar; cada subpasta é um
 //                                   tema/coleção, como nas molduras: "funcoes/awper.avif")
-//   public/assets/cards/mini/<tema>/<nome>.webp -> 'virtual:cards-mini' (miniaturas leves: node scripts/gerar-miniaturas-cards.mjs)
+//   public/assets/cards/mini/<tema>/<nome>.webp -> 'virtual:cards-mini' (miniaturas leves da grade) e cards/med/ -> 'virtual:cards-med'
+//                                   (versão de 400 px do card no perfil e no pódio): ambas por  node scripts/gerar-miniaturas.mjs
 // recursivo: percorre as subpastas e devolve "tema/arquivo" (ignorando as pastas em "ignorar").
 function imagensDaPasta(id, subpasta, { recursivo = false, ignorar = [] } = {}) {
   const pasta = path.resolve(aqui, 'public/assets', subpasta)
@@ -95,7 +96,7 @@ function imagensDaPasta(id, subpasta, { recursivo = false, ignorar = [] } = {}) 
 }
 
 export default defineConfig({
-  plugins: [react(), dadosNoDev(), imagensDaPasta('virtual:selos-equipe', 'selos-equipe'), imagensDaPasta('virtual:cards-perfil', 'cards', { recursivo: true, ignorar: ['mini', 'parado'] }), imagensDaPasta('virtual:cards-mini', 'cards/mini', { recursivo: true })],
+  plugins: [react(), dadosNoDev(), imagensDaPasta('virtual:selos-equipe', 'selos-equipe'), imagensDaPasta('virtual:cards-perfil', 'cards', { recursivo: true, ignorar: ['mini', 'med', 'parado'] }), imagensDaPasta('virtual:cards-mini', 'cards/mini', { recursivo: true }), imagensDaPasta('virtual:cards-med', 'cards/med', { recursivo: true })],
   build: {
     // Arquivos do React em /static/ (a pasta /assets/ é das imagens e dos dados do site)
     assetsDir: 'static',

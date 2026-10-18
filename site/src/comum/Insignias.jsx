@@ -8,7 +8,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useConta } from './conta.js'
 import { salvarPerfil, usePerfis, usePerfisFrescos } from './Moldura.jsx'
-import { imagemInsignia, insigniasDe } from './insignias.js'
+import { imagemInsignia, insigniasDe, miniaturaInsignia } from './insignias.js'
+
+// miniatura leve; se ela não existir, usa a imagem grande
+const caiNaGrande = (id) => (e) => {
+  e.currentTarget.onerror = null
+  e.currentTarget.src = imagemInsignia(id)
+}
 import { desempenhoAtivo } from './desempenho.js'
 import { localeAtual, useT } from './i18n.js'
 
@@ -30,10 +36,10 @@ function Item({ i }) {
   return (
     <li className="ins-item" ref={ref} onMouseEnter={ajustar} onFocus={ajustar} style={{ '--dx': `${dx}px` }}>
       <button type="button" className="ins-botao" aria-label={t(i.nome)} aria-describedby={`ins-${i.id}`}>
-        <img src={imagemInsignia(i.id)} alt="" loading="lazy" draggable="false" />
+        <img src={miniaturaInsignia(i.id)} alt="" loading="lazy" decoding="async" draggable="false" onError={caiNaGrande(i.id)} />
       </button>
       <span className="ins-dica" role="tooltip" id={`ins-${i.id}`}>
-        <img src={imagemInsignia(i.id)} alt="" aria-hidden="true" />
+        <img src={miniaturaInsignia(i.id)} alt="" aria-hidden="true" loading="lazy" decoding="async" onError={caiNaGrande(i.id)} />
         <span>
           <b>{t(i.nome)}</b>
           <small>{t(i.descricao)}</small>
@@ -64,7 +70,7 @@ export function InsigniasMini({ steamId, max = 4, classe = '' }) {
   return (
     <span className={`ins-mini ${classe}`}>
       {lista.map((i) => (
-        <img key={i.id} src={imagemInsignia(i.id)} alt={t(i.nome)} title={`${t(i.nome)} · ${t(i.descricao)}`} loading="lazy" draggable="false" />
+        <img key={i.id} src={miniaturaInsignia(i.id)} alt={t(i.nome)} title={`${t(i.nome)} · ${t(i.descricao)}`} loading="lazy" decoding="async" draggable="false" onError={caiNaGrande(i.id)} />
       ))}
     </span>
   )

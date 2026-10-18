@@ -10,7 +10,7 @@ const reduzir = () =>
 // O CSS usa isso num radial-gradient. Um ouvinte só para a página inteira.
 export function useLuzCursor() {
   useEffect(() => {
-    if (reduzir()) return
+    if (reduzir() || window.matchMedia('(pointer: coarse)').matches) return // toque não tem cursor: sem a luz que o segue
     let quadro = 0
     let ultimo = null
     const mover = (e) => {

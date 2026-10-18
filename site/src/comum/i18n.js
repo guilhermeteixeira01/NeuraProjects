@@ -7,15 +7,27 @@
 // O HTML gerado no deploy sai em português. No navegador: o script do <head> esconde a página se o idioma
 // guardado não for português, o React assume o HTML (em português), troca para o idioma guardado e mostra.
 import { useEffect, useState } from 'react'
-import en from './idiomas/en.js'
-import es from './idiomas/es.js'
 
 export const IDIOMAS = [
   { id: 'pt', nome: 'Português (Brasil)', html: 'pt-BR', local: 'pt-BR' },
   { id: 'en', nome: 'English', html: 'en', local: 'en-US' },
   { id: 'es', nome: 'Español', html: 'es', local: 'es-ES' },
 ]
-const DICIONARIOS = { en, es }
+// Os dicionários (inglês e espanhol, ~90 KB) só são baixados quando alguém usa esse idioma: quem usa português não paga por eles.
+const DICIONARIOS = {}
+const CARREGADORES = { en: () => import('./idiomas/en.js'), es: () => import('./idiomas/es.js') }
+const carregando = {}
+export function garantirDicionario(id) {
+  if (id === 'pt' || DICIONARIOS[id] || !CARREGADORES[id]) return Promise.resolve()
+  carregando[id] ??= CARREGADORES[id]()
+    .then((m) => {
+      DICIONARIOS[id] = m.default
+    })
+    .catch(() => {
+      carregando[id] = null // sem rede: fica em português e tenta de novo na próxima vez
+    })
+  return carregando[id]
+}
 const CHAVE = 'np_idioma'
 export const EVENTO_IDIOMA = 'np-idioma'
 
@@ -48,7 +60,8 @@ export function aplicarIdioma(id) {
   } catch {
     // sem armazenamento: vale só nesta página
   }
-  window.dispatchEvent(new Event(EVENTO_IDIOMA))
+  // com o dicionário já baixado a troca é na hora; senão espera ele chegar para não mostrar a página meio traduzida
+  garantirDicionario(idioma).then(() => window.dispatchEvent(new Event(EVENTO_IDIOMA)))
 }
 
 function lerGuardado() {
@@ -66,7 +79,7 @@ export function useT() {
   useEffect(() => {
     const ler = () => setIdioma(atual)
     if (atual === 'pt') atual = lerGuardado()
-    ler()
+    garantirDicionario(atual).then(ler)
     window.addEventListener(EVENTO_IDIOMA, ler)
     return () => window.removeEventListener(EVENTO_IDIOMA, ler)
   }, [])
@@ -81,8 +94,8 @@ export function MostrarAposIdioma() {
   useEffect(() => {
     if (atual === 'pt') atual = lerGuardado()
     document.documentElement.lang = IDIOMAS.find((i) => i.id === atual).html
-    // espera o React desenhar com o idioma novo antes de mostrar
-    requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.remove('i18n-trocando')))
+    // espera o dicionário chegar e o React desenhar com o idioma novo antes de mostrar
+    garantirDicionario(atual).then(() => requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.remove('i18n-trocando'))))
   }, [])
   return null
 }

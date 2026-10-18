@@ -2909,3 +2909,32 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
 .icone-equipe { cursor: help; }
 .icone-equipe:focus-visible { outline: 2px solid var(--blue-2); outline-offset: 2px; border-radius: 4px; }
 @keyframes dica-entra { from { opacity: 0; } }
+
+/* ══════════════ Celular e tablet: menos efeitos caros (GPU e bateria) ══════════════
+ * O desfoque de fundo (backdrop-filter) refaz a imagem de trás a cada quadro, e as luzes do topo eram círculos de 480 px com
+ * blur de 110 px animados sem parar. No celular o desfoque sai (os fundos já são quase opacos) e as luzes viram um degradê
+ * parado. As animações decorativas do topo da página inicial também param. */
+@media (max-width: 1024px), (pointer: coarse) {
+  *,
+  *::before,
+  *::after {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .hero-glow {
+    filter: none;
+    animation: none;
+  }
+  .hero-glow-1 {
+    background: radial-gradient(closest-side, var(--blue), transparent);
+  }
+  .hero-glow-2 {
+    background: radial-gradient(closest-side, var(--accent), transparent);
+  }
+  .hx-radar i,
+  .hx-painel,
+  .hx-painel .painel::after,
+  .hx2-diag i {
+    animation: none !important;
+  }
+}
