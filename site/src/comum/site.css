@@ -1592,6 +1592,9 @@ html.i18n-trocando body {
 .nx-config-btn[aria-expanded='true'] svg {
   transform: rotate(60deg);
 }
+.nx-amigos-btn[aria-expanded='true'] svg {
+  transform: none;
+}
 .nx-config-btn svg {
   transition: transform 0.3s;
 }
@@ -2355,11 +2358,12 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
 .am-painel { display: none; }
 @media (min-width: 1025px) {
   .am-painel {
-    position: fixed; top: 0; bottom: 0; right: var(--nx-direita); z-index: 299; width: 280px;
-    display: flex; flex-direction: column; background: var(--bg-soft); border-left: 1px solid var(--border);
+    /* painel solto: flutua ao lado da barra da direita, com folga em volta e cantos arredondados */
+    position: fixed; top: 8px; bottom: 8px; right: calc(var(--nx-direita) + 8px); z-index: 299; width: 300px;
+    display: flex; flex-direction: column; background: var(--bg-soft); border: 1px solid var(--border-2); border-radius: 16px; overflow: hidden;
     font-family: var(--font-body); color: var(--text); animation: am-entra .18s ease;
     /* por cima do site (não empurra a página) */
-    z-index: 320; box-shadow: -18px 0 40px -20px rgba(0, 0, 0, .7);
+    z-index: 320; box-shadow: 0 24px 60px -16px rgba(0, 0, 0, .8);
   }
 }
 @keyframes am-entra { from { opacity: 0; transform: translateX(10px); } }
@@ -2368,6 +2372,17 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
 .am-cab .mono { font-family: var(--font-mono); font-size: 11px; color: var(--dim-2); }
 .am-fechar { margin-left: auto; width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border-2); background: none; color: var(--dim); font-size: 18px; line-height: 1; cursor: pointer; }
 .am-fechar:hover { color: var(--text); border-color: var(--blue-2); }
+.am-busca { flex: none; padding: 10px 12px 4px; }
+.am-busca input {
+  width: 100%; height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border-2); background: var(--panel);
+  color: var(--text); font: 500 13px var(--font-body); outline: none;
+}
+.am-busca input:focus { border-color: var(--accent); }
+.am-achados { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.am-ja { padding-right: 8px; font-size: 11.5px; color: var(--dim-2); white-space: nowrap; }
+.am-adicionar { margin-right: 4px; border-color: var(--accent); color: var(--accent); }
+.am-adicionar:hover { background: var(--accent); color: #1a1400; }
+.am-erro { margin: 6px 2px 0; font-size: 12px; color: var(--red); }
 .am-rolagem { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px 8px 16px; }
 /* barra de rolagem fina da lista de amigos (sem trilho, alça cinza de 4px) */
 .am-rolagem::-webkit-scrollbar { width: 6px; }
