@@ -344,3 +344,8 @@ Definido pelo plugin (classe `PartidaDados` em `RelatorioPagina.cs`, `versao: 1`
 | `jogadores[].util` | utilitários: granadas lançadas por tipo, não usadas, dano de HE/fogo (nos inimigos, recebido, em aliados), inimigos/aliados cegos e o tempo, flash assists (partidas antigas não têm; a aba "Utilitários" só aparece quando tem) |
 | `jogadores[].armas` | por arma, da que mais matou para a que menos: `{ "ak47": { kills, headshots, dano, acertos } }`. Nome = arma do jogo sem `weapon_`; todas as facas = `faca`, molotov/incendiária = `molotov`, HE = `he`. Só inimigos. No dano, o jogo manda a arma base das variantes (USP-S como `hkp2000`, M4A1-S como `m4a1`...): o plugin corrige pela arma na mão |
 | `demo` | link da demo no GitHub (ou `null`) |
+
+## cola no console pra testar
+
+const b=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+localStorage.setItem('np_conta', b(JSON.stringify({id:'76561198000000000',nome:'Dev',avatar:'',exp:Math.floor(Date.now()/1000)+86400}))+'.dev'); location.reload()

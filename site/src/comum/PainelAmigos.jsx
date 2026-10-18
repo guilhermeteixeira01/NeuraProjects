@@ -4,9 +4,10 @@
 // Aberto/fechado fica guardado no navegador. Dados e presença: comum/amigos.js.
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { acaoAmizade, tempoDesde, useAmigos } from './amigos.js'
+import { acaoAmizade, relacaoCom, tempoDesde, useAmigos } from './amigos.js'
 import { useAvatar } from './avatares.js'
 import { linkPerfil } from './conta.js'
+import { lerJson } from './dados.js'
 import { CargosDe, ComMoldura, IconeEquipe } from './Moldura.jsx'
 import { useT } from './i18n.js'
 import { InsigniasMini } from './Insignias.jsx'
@@ -65,6 +66,86 @@ function Grupo({ titulo, n, children, classe = '' }) {
       </h4>
       <ul>{children}</ul>
     </section>
+  )
+}
+
+// SteamID (17 dígitos) ou link do perfil da Steam (steamcommunity.com/profiles/<id>) -> SteamID
+const extrairId = (txt) => /(?<!d)(d{17})(?!d)/.exec(txt)?.[1] || null
+const semAcento = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+
+// Adicionar amigo: por SteamID / link do perfil, ou pelo nome (quem já jogou no servidor, lista do ranking)
+function AdicionarAmigo({ lista, eu }) {
+  const t = useT()
+  const [busca, setBusca] = useState('')
+  const [jogadores, setJogadores] = useState(null)
+  const [ocupado, setOcupado] = useState('')
+  const [erro, setErro] = useState('')
+
+  const carregar = () => {
+    if (jogadores === null) lerJson('/ranking/ranking.json').then((r) => setJogadores(Array.isArray(r?.jogadores) ? r.jogadores : []))
+  }
+  const termo = busca.trim()
+  const id = extrairId(termo)
+  let achados = []
+  if (id) achados = id === eu ? [] : [{ id, nome: (jogadores || []).find((j) => j.steamId === id)?.nome || '', avatar: (jogadores || []).find((j) => j.steamId === id)?.avatar || '' }]
+  else if (termo.length >= 2) {
+    const q = semAcento(termo)
+    achados = (jogadores || [])
+      .filter((j) => j.steamId !== eu && semAcento(j.nome).includes(q))
+      .slice(0, 6)
+      .map((j) => ({ id: j.steamId, nome: j.nome, avatar: j.avatar }))
+  }
+
+  const fazer = async (acao, alvo) => {
+    setOcupado(alvo)
+    setErro('')
+    try {
+      await acaoAmizade(acao, alvo)
+    } catch (e) {
+      setErro(e.message === 'limite' ? t('Você chegou ao limite de amigos.') : t('Não deu certo. Tente de novo.'))
+    } finally {
+      setOcupado('')
+    }
+  }
+
+  return (
+    <div className="am-busca">
+      <input
+        type="search"
+        value={busca}
+        placeholder={t('Adicionar por nome ou SteamID')}
+        aria-label={t('Adicionar amigo por nome ou SteamID')}
+        onFocus={carregar}
+        onChange={(e) => setBusca(e.target.value)}
+        autoComplete="off"
+        spellCheck={false}
+      />
+      {achados.length > 0 && (
+        <ul className="am-achados">
+          {achados.map((a) => {
+            const rel = relacaoCom(lista, a.id)
+            return (
+              <Linha key={a.id} a={a} st="pedido">
+                {rel === 'amigo' && <span className="am-ja">{t('Amigos')} ✓</span>}
+                {rel === 'enviado' && <span className="am-ja">{t('Pedido enviado')}</span>}
+                {rel === 'recebido' && (
+                  <button type="button" className="am-cancelar am-adicionar" disabled={!!ocupado} onClick={() => fazer('aceitar', a.id)}>
+                    {t('Aceitar')}
+                  </button>
+                )}
+                {rel === 'nada' && (
+                  <button type="button" className="am-cancelar am-adicionar" disabled={!!ocupado} onClick={() => fazer('pedir', a.id)}>
+                    {t('Adicionar')}
+                  </button>
+                )}
+              </Linha>
+            )
+          })}
+        </ul>
+      )}
+      {termo.length >= 2 && !id && jogadores !== null && achados.length === 0 && <p className="am-vazio">{t('Ninguém encontrado. Tente o SteamID ou o link do perfil.')}</p>}
+      {erro && <p className="am-erro">{erro}</p>}
+    </div>
   )
 }
 
@@ -160,6 +241,7 @@ export default function PainelAmigos({ celular = false }) {
               ×
             </button>
           </div>
+          <AdicionarAmigo lista={lista} eu={eu} />
           <div className="am-rolagem">
             {lista === null && <p className="am-vazio">{t('Carregando…')}</p>}
             <Grupo titulo={t('PEDIDOS')} n={recebidos.length} classe="am-pedidos">
