@@ -14,8 +14,8 @@
   --dim-2: #6d6e77;
   --blue: #1a73e8;
   --blue-2: #3498db;
-  --green: #3ddc84;
-  --green-2: #2fbf6f;
+  --green: #f5c542; /* era verde: agora amarelo (o nome da variável foi mantido) */
+  --green-2: #e0a800;
   --orange: #ff7a1a;
   --red: #ff4655;
   --yellow: #f5c542;
@@ -435,7 +435,7 @@
 .nx-aviso-acoes button.principal {
   border-color: transparent;
   background: linear-gradient(135deg, var(--green), var(--green-2));
-  color: #06170e;
+  color: #1a1300;
 }
 .nx-aviso-fechar {
   width: 26px;
@@ -768,7 +768,7 @@
   position: relative;
   border-radius: 16px;
   padding: 1px;
-  background: linear-gradient(160deg, rgba(52, 152, 219, 0.75), rgb(var(--borda-rgb) / 0.6) 45%, rgba(61, 220, 132, 0.6));
+  background: linear-gradient(160deg, rgba(52, 152, 219, 0.75), rgb(var(--borda-rgb) / 0.6) 45%, rgba(245, 197, 66, 0.6));
   animation: fx-pulsa 4s ease-in-out infinite;
   box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.9), 0 0 60px -20px rgba(26, 115, 232, 0.45);
 }
@@ -1196,8 +1196,8 @@ html:is([data-tema='claro'], [data-tema='branco']) {
   --dim-2: #7b8494;
   --blue: #1a6fe0;
   --blue-2: #1662c4;
-  --green: #12804c;
-  --green-2: #0e6e40;
+  --green: #9a7100; /* tema claro: amarelo escuro, com contraste no fundo branco */
+  --green-2: #7d5c00;
   --orange: #d0590a;
   --red: #d0283a;
   --yellow: #9a7100;
@@ -1240,7 +1240,7 @@ html:is([data-tema='claro'], [data-tema='branco']) :is(.summary-item, .map-card,
   --dim: #9a9ba3;
   --dim-2: #6d6e77;
   --blue-2: #3498db;
-  --green: #3ddc84;
+  --green: #f5c542;
   --orange: #ff7a1a;
   --red: #ff4655;
   --yellow: #f5c542;
@@ -1679,7 +1679,7 @@ html.i18n-trocando body {
   background: linear-gradient(135deg, #f2f4f8 55%, #1a6fe0);
 }
 .nx-config-tema.tema-branco i {
-  background: linear-gradient(135deg, #ffffff 45%, #1a73e8 75%, #3ddc84);
+  background: linear-gradient(135deg, #ffffff 45%, #1a73e8 75%, #f5c542);
 }
 .nx-config-tema.sel {
   border-color: var(--blue-2);
