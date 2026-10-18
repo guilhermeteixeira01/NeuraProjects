@@ -7,7 +7,7 @@
 //    relidos a cada 30 s e, com o site aberto, o perfil novo chega na hora pela conexão ao vivo (amigos.js).
 import { useEffect, useRef, useState } from 'react'
 import { useConta } from './conta.js'
-import { usePerfis } from './Moldura.jsx'
+import { salvarPerfil, usePerfis, usePerfisFrescos } from './Moldura.jsx'
 import { imagemInsignia, insigniasDe } from './insignias.js'
 import { desempenhoAtivo } from './desempenho.js'
 import { localeAtual, useT } from './i18n.js'
@@ -71,6 +71,8 @@ export function InsigniasMini({ steamId, max = 4, classe = '' }) {
 }
 
 // ── Aviso de insígnia nova ──
+// O que já foi visto fica na conta (perfil no worker, campo vistos.ins): vale em todos os aparelhos. O navegador
+// guarda uma cópia (localStorage) para o caso do worker estar fora do ar.
 const chave = (id) => `np_insignias_${id}`
 const vistas = (id) => {
   try {
@@ -86,6 +88,7 @@ const marcar = (id, marca) => {
   } catch {
     // sem armazenamento: o aviso pode repetir, mas não quebra nada
   }
+  salvarPerfil({ vistos: { ins: [marca] } }).catch(() => {}) // na conta, para os outros aparelhos não avisarem de novo
 }
 // Marca = insígnia + quando ganhou: se o admin tirar e der de novo, avisa de novo
 const marcaDe = (i) => `${i.id}:${i.desde || 0}`
@@ -161,6 +164,8 @@ export default function AvisoInsignia() {
   const [fila, setFila] = useState([])
   const [livre, setLivre] = useState(false) // sem o aviso de nível aberto por cima
   const tocou = useRef(null)
+  const frescos = usePerfisFrescos()
+  const migrado = useRef(false)
 
   // Com login: já deixa o som pronto para liberar no primeiro toque/clique no site
   useEffect(() => {
@@ -178,10 +183,19 @@ export default function AvisoInsignia() {
 
   useEffect(() => {
     if (!conta?.id) return setFila([])
-    const ja = new Set(vistas(conta.id))
+    if (!frescos) return // espera a conta responder: o que já foi visto em outro aparelho vem de lá
+    const doServidor = perfis[conta.id]?.vistos?.ins || []
+    const locais = vistas(conta.id)
+    // avisos vistos só neste navegador (antes de existir o salvo na conta) vão para a conta, uma vez
+    const faltam = locais.filter((m) => !doServidor.includes(m))
+    if (faltam.length && !migrado.current) {
+      migrado.current = true
+      salvarPerfil({ vistos: { ins: faltam } }).catch(() => {})
+    }
+    const ja = new Set([...doServidor, ...locais])
     const novas = insigniasDe(perfis, conta.id).filter((i) => !ja.has(marcaDe(i)))
     setFila((f) => [...f, ...novas.filter((i) => !f.some((x) => marcaDe(x) === marcaDe(i)))])
-  }, [conta?.id, perfis])
+  }, [conta?.id, perfis, frescos])
 
   // O aviso aparece na hora (não espera o som ser liberado)
   const atual = livre ? fila[0] : null
