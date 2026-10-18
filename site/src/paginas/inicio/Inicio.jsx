@@ -106,6 +106,9 @@ const PRINCIPIOS = [
   [IC_RELOGIO, 'Sempre evoluindo', 'Os projetos recebem atualizações frequentes — e o que muda aparece primeiro na comunidade.', 'CONTÍNUO'],
 ]
 
+// Âncoras das seções do índice vertical do topo
+const SECOES = ['projetos', 'sobre', 'principios', 'comunidade']
+
 const FICHA = [
   ['ESTÚDIO', 'Neura Project'],
   ['FORMATO', 'Independente'],
@@ -140,23 +143,51 @@ function useNumeros() {
   return n
 }
 
+// Seção que está na tela (acende o número no índice do topo)
+function useSecaoAtual() {
+  const [atual, setAtual] = useState(null)
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && setAtual(e.target.id)), {
+      rootMargin: '-40% 0px -55% 0px',
+    })
+    SECOES.forEach((id) => {
+      const el = document.getElementById(id)
+      if (el) io.observe(el)
+    })
+    return () => io.disconnect()
+  }, [])
+  return atual
+}
+
 export default function Inicio() {
   const t = useT()
   const painel = useInclinar(7)
   const numeros = useNumeros()
+  const secao = useSecaoAtual()
 
   return (
     <Layout pagina="inicio">
       <main className="inicio">
         {/* TOPO */}
-        <section className="hero hx">
+        <section className="hero hx hx2">
           <FundoHero quantidade={18} />
+          <div className="hx2-diag" aria-hidden="true">
+            <i />
+            <i />
+          </div>
+          <div className="hx2-miras" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+            <i />
+          </div>
 
           <div className="wrap hero-inner">
             <div className="hx-texto">
-              <span className="chip fx-entra" style={{ '--e': 0 }}>
-                <span className="ponto" />
-                {t('ESTÚDIO INDEPENDENTE · BRASIL')}
+              <span className="hx2-eyebrow fx-entra" style={{ '--e': 0 }}>
+                {t('NÓS CRIAMOS')}
+                <i />
               </span>
               <h1 className="hx-titulo">
                 <Palavras texto={t('Jogos e ferramentas feitos por')} />
@@ -167,38 +198,14 @@ export default function Inicio() {
               <p className="lead fx-entra" style={{ '--e': 4 }}>
                 {t('A Neura Project é um pequeno estúdio focado em jogos. Criamos ferramentas para a comunidade competitiva — do Pick & Ban às estatísticas, ranking e níveis das partidas do nosso servidor.')}
               </p>
-              <div className="hero-acoes fx-entra" style={{ '--e': 5 }}>
-                <a className="btn btn-primary btn-lg btn-brilho" href="#projetos">
-                  <Icone tamanho={15} traco={2.4}>
-                    <rect x="3" y="3" width="7" height="7" rx="1" />
-                    <rect x="14" y="3" width="7" height="7" rx="1" />
-                    <rect x="3" y="14" width="7" height="7" rx="1" />
-                    <rect x="14" y="14" width="7" height="7" rx="1" />
-                  </Icone>
+              <div className="hero-acoes hx2-acoes fx-entra" style={{ '--e': 5 }}>
+                <a className="hx2-btn" href="#projetos">
                   {t('Ver projetos')}
                 </a>
-                <LinkComunidade className="btn btn-ghost btn-lg btn-borda">{t('Entrar na comunidade')}</LinkComunidade>
+                <LinkComunidade className="hx2-btn-seta" aria-label={t('Entrar na comunidade')}>
+                  {SETA}
+                </LinkComunidade>
               </div>
-              <dl className="hx-numeros fx-entra" style={{ '--e': 6 }}>
-                <div>
-                  <dt>{t('MAPAS JOGADOS')}</dt>
-                  <dd>
-                    <Contador valor={numeros.mapas} />
-                  </dd>
-                </div>
-                <div>
-                  <dt>{t('JOGADORES')}</dt>
-                  <dd>
-                    <Contador valor={numeros.jogadores} />
-                  </dd>
-                </div>
-                <div>
-                  <dt>KILLS</dt>
-                  <dd>
-                    <Contador valor={numeros.kills} />
-                  </dd>
-                </div>
-              </dl>
             </div>
 
             {/* Painel com inclinação 3D e borda luminosa girando */}
@@ -271,9 +278,57 @@ export default function Inicio() {
             </div>
           </div>
 
-          <a className="hx-rolar" href="#projetos" aria-label={t('Ir para os projetos')}>
-            <span />
-          </a>
+          {/* Índice vertical das seções (acende a que está na tela) */}
+          <ol className="hx2-indice" aria-label={t('Seções')}>
+            {SECOES.map((id, i) => (
+              <li key={id}>
+                <a className={secao === id ? 'ativo' : ''} href={`#${id}`}>
+                  {String(i + 1).padStart(2, '0')}
+                </a>
+              </li>
+            ))}
+          </ol>
+
+          {/* Faixa de baixo: missão, números ao vivo e comunidade */}
+          <div className="wrap hx2-faixa-wrap">
+            <div className="hx2-faixa fx-entra" style={{ '--e': 6 }}>
+              <div className="hx2-cel hx2-missao">
+                <span className="hx2-rot">{t('NOSSA MISSÃO')}</span>
+                <b>{t('Jogue. Compita. Evolua.')}</b>
+              </div>
+              <dl className="hx2-cel hx2-numeros">
+                <div>
+                  <dt>{t('MAPAS JOGADOS')}</dt>
+                  <dd>
+                    <Contador valor={numeros.mapas} />
+                  </dd>
+                </div>
+                <div>
+                  <dt>{t('JOGADORES')}</dt>
+                  <dd>
+                    <Contador valor={numeros.jogadores} />
+                  </dd>
+                </div>
+                <div>
+                  <dt>KILLS</dt>
+                  <dd>
+                    <Contador valor={numeros.kills} />
+                  </dd>
+                </div>
+              </dl>
+              <a
+                className="hx2-cel hx2-comunidade"
+                href={CONFIG.comunidade || '#projetos'}
+                {...(CONFIG.comunidade ? { target: '_blank', rel: 'noopener' } : {})}
+              >
+                <span>
+                  <span className="hx2-rot">{t('COMUNIDADE')}</span>
+                  <b>{t('Entre na comunidade')}</b>
+                </span>
+                <span className="hx2-quadro">{SETA}</span>
+              </a>
+            </div>
+          </div>
         </section>
 
         {/* LETREIRO */}
@@ -414,7 +469,7 @@ export default function Inicio() {
         </section>
 
         {/* COMO TRABALHAMOS */}
-        <section className="secao">
+        <section className="secao" id="principios">
           <div className="wrap">
             <div className="secao-head reveal">
               <span className="kicker">
@@ -442,7 +497,7 @@ export default function Inicio() {
         </section>
 
         {/* COMUNIDADE */}
-        <section className="cta cta-painel">
+        <section className="cta cta-painel" id="comunidade">
           <div className="wrap">
             <div className="cta-x spot reveal">
               <div className="cta-inner">

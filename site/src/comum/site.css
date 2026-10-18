@@ -2369,6 +2369,14 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
 .am-fechar { margin-left: auto; width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border-2); background: none; color: var(--dim); font-size: 18px; line-height: 1; cursor: pointer; }
 .am-fechar:hover { color: var(--text); border-color: var(--blue-2); }
 .am-rolagem { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px 8px 16px; }
+/* barra de rolagem fina da lista de amigos (sem trilho, alça cinza de 4px) */
+.am-rolagem::-webkit-scrollbar { width: 6px; }
+.am-rolagem::-webkit-scrollbar-track { background: transparent; }
+.am-rolagem::-webkit-scrollbar-thumb { border: 1px solid transparent; background: rgb(var(--tinta) / .22) padding-box; border-radius: 999px; }
+.am-rolagem::-webkit-scrollbar-thumb:hover { background: rgb(var(--tinta) / .4) padding-box; }
+@supports not selector(::-webkit-scrollbar) {
+  .am-rolagem { scrollbar-width: thin; scrollbar-color: rgb(var(--tinta) / .3) transparent; }
+}
 .am-grupo { margin-top: 12px; }
 .am-grupo h4, .am-ver-enviados {
   display: flex; align-items: center; gap: 4px; padding: 0 8px 6px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 700;
@@ -2621,14 +2629,14 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
   .nx-direita .nx-conta-btn::after {
     content: '';
     position: absolute;
-    right: 2px;
-    bottom: 2px;
+    right: 3px;
+    bottom: 3px;
     z-index: 2;
-    width: 11px;
-    height: 11px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background: var(--green);
-    box-shadow: 0 0 0 2px rgb(var(--fundo));
+    box-shadow: 0 0 0 1.5px rgb(var(--fundo));
   }
   /* amigos online: selinho verde com o número, no canto do ícone (como na FACEIT) */
   .nx-direita .nx-amigos-on {
