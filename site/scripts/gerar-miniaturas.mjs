@@ -29,6 +29,7 @@ const listar = (dir, ignorar = [], prefixo = '') =>
 const tarefas = []
 const cards = path.join(assets, 'cards')
 for (const nome of listar(cards, ['mini', 'med', 'parado'])) {
+  if (/-anim\.[a-z0-9]+$/i.test(nome)) continue // card animado (-anim) não vira miniatura: ela seria uma imagem parada
   const base = nome.replace(/\.[^.]+$/, '')
   tarefas.push({ origem: path.join(cards, nome), destino: path.join(cards, 'mini', base + '.webp'), largura: 200, qualidade: 0.8 })
   tarefas.push({ origem: path.join(cards, nome), destino: path.join(cards, 'med', base + '.webp'), largura: 400, qualidade: 0.85 })
