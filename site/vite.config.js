@@ -56,14 +56,26 @@ function dadosNoDev() {
   }
 }
 
-// Listas de imagens que o painel e o perfil usam para escolher: é só colocar o arquivo na pasta (png, webp, svg, jpg ou
-// gif). Cada pasta vira um módulo virtual com a lista de nomes de arquivo:
+// Listas de imagens que o painel e o perfil usam para escolher: é só colocar o arquivo na pasta (png, webp, avif, svg, jpg
+// ou gif). Cada pasta vira um módulo virtual com a lista de arquivos:
 //   public/assets/selos-equipe/  -> 'virtual:selos-equipe'  (selo do dono e dos admins, aba Cargos do painel)
-//   public/assets/cards/         -> 'virtual:cards-perfil'  (banner do card do perfil, janela Personalizar)
-//   public/assets/cards/mini/    -> 'virtual:cards-mini'    (miniaturas leves da janela: node scripts/gerar-miniaturas-cards.mjs)
-function imagensDaPasta(id, subpasta) {
+//   public/assets/cards/<tema>/  -> 'virtual:cards-perfil'  (banner do card do perfil, janela Personalizar; cada subpasta é um
+//                                   tema/coleção, como nas molduras: "funcoes/awper.avif")
+//   public/assets/cards/mini/<tema>/<nome>.webp -> 'virtual:cards-mini' (miniaturas leves: node scripts/gerar-miniaturas-cards.mjs)
+// recursivo: percorre as subpastas e devolve "tema/arquivo" (ignorando as pastas em "ignorar").
+function imagensDaPasta(id, subpasta, { recursivo = false, ignorar = [] } = {}) {
   const pasta = path.resolve(aqui, 'public/assets', subpasta)
-  const ler = () => (fs.existsSync(pasta) ? fs.readdirSync(pasta).filter((n) => /\.(png|webp|avif|svg|jpe?g|gif)$/i.test(n)).sort() : [])
+  const imagem = /\.(png|webp|avif|svg|jpe?g|gif)$/i
+  const ler = (dir = pasta, prefixo = '') => {
+    if (!fs.existsSync(dir)) return []
+    const lista = []
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (e.isDirectory()) {
+        if (recursivo && !(prefixo === '' && ignorar.includes(e.name))) lista.push(...ler(path.join(dir, e.name), prefixo + e.name + '/'))
+      } else if (imagem.test(e.name)) lista.push(prefixo + e.name)
+    }
+    return lista.sort()
+  }
   return {
     name: 'neura-' + subpasta.replace('/', '-'),
     resolveId: (origem) => (origem === id ? '\0' + id : null),
@@ -83,7 +95,7 @@ function imagensDaPasta(id, subpasta) {
 }
 
 export default defineConfig({
-  plugins: [react(), dadosNoDev(), imagensDaPasta('virtual:selos-equipe', 'selos-equipe'), imagensDaPasta('virtual:cards-perfil', 'cards'), imagensDaPasta('virtual:cards-mini', 'cards/mini')],
+  plugins: [react(), dadosNoDev(), imagensDaPasta('virtual:selos-equipe', 'selos-equipe'), imagensDaPasta('virtual:cards-perfil', 'cards', { recursivo: true, ignorar: ['mini', 'parado'] }), imagensDaPasta('virtual:cards-mini', 'cards/mini', { recursivo: true })],
   build: {
     // Arquivos do React em /static/ (a pasta /assets/ é das imagens e dos dados do site)
     assetsDir: 'static',

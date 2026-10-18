@@ -15,7 +15,7 @@ import { INSIGNIAS, imagemInsignia } from '../../comum/insignias.js'
 import { useAvatar } from '../../comum/avatares.js'
 import SeletorMoldura from '../perfil/SeletorMoldura.jsx'
 import { IMAGENS_SELO, urlSelo } from '../../comum/selosEquipe.js'
-import { CARDS, ehAnimado, nomeCard, urlCard } from '../../comum/cardsPerfil.js'
+import { CARDS, TEMAS_CARD, ehAnimado, nomeCard, nomeTema, temaCard, urlMiniCard } from '../../comum/cardsPerfil.js'
 
 // Painel de administrador (/admin/). A aba só aparece para admin, mas quem decide é o worker:
 // toda chamada /admin/... confere o login e se a pessoa é admin (o dono, ou quem o dono promoveu).
@@ -403,63 +403,72 @@ function CardsRegras({ config, aoSalvar }) {
       <p className="adm-nota">
         {tr('Exclusivo de: o card só pode ser usado por quem tem o cargo (crie os cargos na aba Cargos). Vale mesmo com a regra de nível desligada; com as duas, o jogador precisa do cargo e do nível. Para ter mais cards, coloque imagens em site/public/assets/cards/.')}
       </p>
-      <div className="adm-colecao-cab">
-        <h3>{tr('Todos os cards')}</h3>
-        {cargos.length > 0 && (
-          <label>
-            {tr('Exclusivo:')}
-            <select value="" onChange={(e) => e.target.value && tornarExclusivo(CARDS, e.target.value === '-' ? '' : e.target.value)}>
-              <option value="">{tr('todos os cards…')}</option>
-              <option value="-">{tr('Todos (sem cargo)')}</option>
-              {cargos.map((cg) => (
-                <option key={cg.id} value={cg.id}>
-                  {cg.nome}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-        <label className={porNivel ? '' : 'desligado'}>
-          {tr('Todos os cards:')}
-          <select value="" onChange={(e) => e.target.value && definir(CARDS, e.target.value)}>
-            <option value="">{tr('nível…')}</option>
-            {NIVEIS_OPCOES.map((n) => (
-              <option key={n} value={n}>
-                {n === 1 ? tr('Livre (1)') : rotuloNivel(tr, n)}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-      <div className="adm-cards-grade">
-        {CARDS.map((c) => (
-          <div key={c} className={`adm-mold adm-card-regra${cargoDe(c) ? ' exclusiva' : ''}`} style={cargoDe(c) ? { '--cg': cargoDe(c).cor } : undefined}>
-            <img src={urlCard(c)} alt="" loading="lazy" />
-            <span>
-              {nomeCard(c)} {ehAnimado(c) && <small className="adm-anim-tag">{tr('ANIMADO')}</small>}
-            </span>
-            {cargos.length > 0 && (
-              <select className="adm-mold-cargo" value={exclusivo[c] || ''} onChange={(e) => tornarExclusivo([c], e.target.value)} aria-label={`${tr('Exclusivo de')} (${nomeCard(c)})`}>
-                <option value="">{tr('Todos')}</option>
-                {cargos.map((cg) => (
-                  <option key={cg.id} value={cg.id}>
-                    {tr('Só {cargo}', { cargo: cg.nome })}
-                  </option>
+      <div className="adm-colecoes">
+        {TEMAS_CARD.map((tema) => {
+          const doTema = CARDS.filter((c) => temaCard(c) === tema)
+          return (
+            <section key={tema} className="adm-colecao">
+              <div className="adm-colecao-cab">
+                <h3>{nomeTema(tema)}</h3>
+                {cargos.length > 0 && (
+                  <label>
+                    {tr('Exclusivo:')}
+                    <select value="" onChange={(e) => e.target.value && tornarExclusivo(doTema, e.target.value === '-' ? '' : e.target.value)}>
+                      <option value="">{tr('tema inteiro…')}</option>
+                      <option value="-">{tr('Todos (sem cargo)')}</option>
+                      {cargos.map((cg) => (
+                        <option key={cg.id} value={cg.id}>
+                          {cg.nome}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+                <label className={porNivel ? '' : 'desligado'}>
+                  {tr('Tema inteiro:')}
+                  <select value="" onChange={(e) => e.target.value && definir(doTema, e.target.value)}>
+                    <option value="">{tr('nível…')}</option>
+                    {NIVEIS_OPCOES.map((n) => (
+                      <option key={n} value={n}>
+                        {n === 1 ? tr('Livre (1)') : rotuloNivel(tr, n)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="adm-cards-grade">
+                {doTema.map((c) => (
+                  <div key={c} className={`adm-mold adm-card-regra${cargoDe(c) ? ' exclusiva' : ''}`} style={cargoDe(c) ? { '--cg': cargoDe(c).cor } : undefined}>
+                    <img src={urlMiniCard(c)} alt="" loading="lazy" decoding="async" />
+                    <span>
+                      {nomeCard(c)} {ehAnimado(c) && <small className="adm-anim-tag">{tr('ANIMADO')}</small>}
+                    </span>
+                    {cargos.length > 0 && (
+                      <select className="adm-mold-cargo" value={exclusivo[c] || ''} onChange={(e) => tornarExclusivo([c], e.target.value)} aria-label={`${tr('Exclusivo de')} (${nomeCard(c)})`}>
+                        <option value="">{tr('Todos')}</option>
+                        {cargos.map((cg) => (
+                          <option key={cg.id} value={cg.id}>
+                            {tr('Só {cargo}', { cargo: cg.nome })}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    <span className={`adm-mold-nivel${porNivel ? '' : ' desligado'}`}>
+                      <SeloNivel nivel={nivelDe1(c)} tamanho={24} />
+                      <select value={nivelDe1(c)} onChange={(e) => definir([c], e.target.value)} aria-label={tr('Nível de {nome}', { nome: nomeCard(c) })}>
+                        {NIVEIS_OPCOES.map((n) => (
+                          <option key={n} value={n}>
+                            {n === 1 ? tr('Livre') : rotuloNivel(tr, n)}
+                          </option>
+                        ))}
+                      </select>
+                    </span>
+                  </div>
                 ))}
-              </select>
-            )}
-            <span className={`adm-mold-nivel${porNivel ? '' : ' desligado'}`}>
-              <SeloNivel nivel={nivelDe1(c)} tamanho={24} />
-              <select value={nivelDe1(c)} onChange={(e) => definir([c], e.target.value)} aria-label={tr('Nível de {nome}', { nome: nomeCard(c) })}>
-                {NIVEIS_OPCOES.map((n) => (
-                  <option key={n} value={n}>
-                    {n === 1 ? tr('Livre') : rotuloNivel(tr, n)}
-                  </option>
-                ))}
-              </select>
-            </span>
-          </div>
-        ))}
+              </div>
+            </section>
+          )
+        })}
         {CARDS.length === 0 && <p className="sm-vazio">{tr('Nenhum card ainda (coloque imagens em site/public/assets/cards/).')}</p>}
       </div>
     </div>

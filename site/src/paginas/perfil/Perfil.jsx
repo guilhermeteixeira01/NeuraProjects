@@ -14,7 +14,7 @@ import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, salvarPerfil, useAdmi
 import Premier from '../../comum/Premier.jsx'
 import { BarraXp, SeloNivel, useNivelDe } from '../../comum/Nivel.jsx'
 import SeletorMoldura from './SeletorMoldura.jsx'
-import { fundoCard } from '../../comum/cardsPerfil.js'
+import { fundoCard, idCard } from '../../comum/cardsPerfil.js'
 import { useT } from '../../comum/i18n.js'
 import { useAvatar } from '../../comum/avatares.js'
 import { BotaoAmizade, StatusAmigo } from './Amizade.jsx'
@@ -559,7 +559,8 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   const timeEscolhido = useTimeDe(j.steamId)
   const nivel = useNivelDe(j)
   // Banner do card (janela Personalizar). Card exclusivo de um cargo que o jogador não tem some na hora (o worker tira do perfil)
-  const cardEscolhido = usePerfis()[j.steamId]?.card
+  const cardSalvo = usePerfis()[j.steamId]?.card
+  const cardEscolhido = cardSalvo ? idCard(cardSalvo) : null
   const configSite = useConfigSite()
   const cargosDoJogador = useCargosIdsDe(j.steamId)
   const exigeCard = configSite.cardCargo?.[cardEscolhido]

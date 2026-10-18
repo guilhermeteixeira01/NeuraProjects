@@ -748,4 +748,7 @@ export default {
   "Exclusivo:": "Exclusive:",
   "todos os cards…": "all cards…",
   "Exclusivo de": "Exclusive to",
+  "Temas": "Themes",
+  "tema inteiro…": "whole theme…",
+  "Tema inteiro:": "Whole theme:",
 }

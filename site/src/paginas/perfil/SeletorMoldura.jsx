@@ -7,7 +7,7 @@ import { IconeCargo } from '../../comum/cargos.jsx'
 import { IconeNenhum } from '../../comum/Icones.jsx'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { corNivel, rotuloNivel } from '../../comum/niveis.js'
-import { CARDS, ehAnimado, fundoCard, nomeCard, urlMiniCard } from '../../comum/cardsPerfil.js'
+import { CARDS, TEMAS_CARD, ehAnimado, fundoCard, idCard, nomeCard, nomeTema, temaCard, urlMiniCard } from '../../comum/cardsPerfil.js'
 
 function CadeadoMini({ tamanho = 12 }) {
   return (
@@ -54,11 +54,12 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   const travadoCard = (c) => (!admin && nivelDoCard(config, c) > nivelEf) || semCargoCard(c)
   const [falta, setFalta] = useState(0) // nível exigido, quando o worker recusa
   const times = useListaTimes()
-  const salvo = { moldura: perfil.moldura || null, time: perfil.time || null, card: perfil.card || null }
+  const salvo = { moldura: perfil.moldura || null, time: perfil.time || null, card: perfil.card ? idCard(perfil.card) : null }
   const [escolha, setEscolha] = useState(salvo)
   const [mexeu, setMexeu] = useState(false)
   const [aba, setAba] = useState('moldura') // 'moldura' | 'time' | 'card'
   const [colecao, setColecao] = useState('todas')
+  const [temaAberto, setTemaAberto] = useState('todas') // tema (pasta) dos cards
   const [busca, setBusca] = useState('')
   const [aviso, setAviso] = useState(null) // moldura bloqueada com o "o que falta" aberto
   // O aviso some sozinho depois de uns segundos
@@ -72,7 +73,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
 
   // O perfil salvo pode chegar depois de abrir: enquanto não mexeu em nada, acompanha ele
   useEffect(() => {
-    if (!mexeu) setEscolha({ moldura: perfil.moldura || null, time: perfil.time || null, card: perfil.card || null })
+    if (!mexeu) setEscolha({ moldura: perfil.moldura || null, time: perfil.time || null, card: perfil.card ? idCard(perfil.card) : null })
   }, [perfil.moldura, perfil.time, perfil.card, mexeu])
 
   const cancelar = useCallback(() => fechar(), [fechar])
@@ -249,7 +250,8 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
       </button>
     )
   }
-  const cardsOrdenados = [...CARDS.filter((c) => !travadoCard(c)), ...CARDS.filter((c) => travadoCard(c))]
+  const doTema = CARDS.filter((c) => temaAberto === 'todas' || temaCard(c) === temaAberto)
+  const cardsOrdenados = [...doTema.filter((c) => !travadoCard(c)), ...doTema.filter((c) => travadoCard(c))]
   const semMoldura = (
     <button key="sem" type="button" className={`sm-item sem${escolha.moldura === null ? ' sel' : ''}`} onClick={() => escolher('moldura', null)} aria-pressed={escolha.moldura === null}>
       <span className="sm-sem-icone">
@@ -395,6 +397,17 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                 </div>
               </>
             ) : aba === 'card' ? (
+              <>
+                <div className="sm-ferramentas">
+                  <div className="sm-colecoes" role="tablist" aria-label={tr('Temas')}>
+                    {['todas', ...TEMAS_CARD].map((tema) => (
+                      <button key={tema} type="button" role="tab" aria-selected={tema === temaAberto} className={tema === temaAberto ? 'active' : ''} onClick={() => setTemaAberto(tema)}>
+                        {tema === 'todas' ? tr('Todas') : nomeTema(tema)}
+                        <small>{tema === 'todas' ? CARDS.length : CARDS.filter((c) => temaCard(c) === tema).length}</small>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               <div className="sm-rolagem">
                 <div className="sm-grade sm-grade-cards">
                   <button type="button" className={`sm-item sem${escolha.card === null ? ' sel' : ''}`} onClick={() => escolher('card', null)} aria-pressed={escolha.card === null}>
@@ -407,6 +420,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                   {CARDS.length === 0 && <p className="sm-vazio">{tr('Nenhum card ainda (coloque imagens em site/public/assets/cards/).')}</p>}
                 </div>
               </div>
+              </>
             ) : (
               <div className="sm-rolagem">
               <div className="sm-grade sm-grade-times">

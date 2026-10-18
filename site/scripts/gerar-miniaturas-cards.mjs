@@ -1,5 +1,5 @@
 // Gera as miniaturas leves (200 px, webp) dos cards que o perfil mostra na janela "Personalizar":
-// public/assets/cards/<nome>.avif  ->  public/assets/cards/mini/<nome>.webp
+// public/assets/cards/<tema>/<nome>.avif  ->  public/assets/cards/mini/<tema>/<nome>.webp
 // Sem a miniatura, a janela carrega a imagem inteira de cada card (pesado no celular). Os SVG não precisam (já são leves).
 //
 // Uso (na pasta site/):   node scripts/gerar-miniaturas-cards.mjs
@@ -29,7 +29,13 @@ if (!achado) {
 const { chromium } = await import(pathToFileURL(path.join(achado, 'index.mjs')).href)
 
 fs.mkdirSync(saida, { recursive: true })
-const imagens = fs.readdirSync(pasta).filter((n) => /\.(png|webp|avif|jpe?g|gif)$/i.test(n))
+// percorre as pastas de tema (menos mini/ e parado/) e devolve "tema/arquivo"
+const listar = (dir, prefixo = '') =>
+  fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+    if (e.isDirectory()) return prefixo === '' && ['mini', 'parado'].includes(e.name) ? [] : listar(path.join(dir, e.name), prefixo + e.name + '/')
+    return /\.(png|webp|avif|jpe?g|gif)$/i.test(e.name) ? [prefixo + e.name] : []
+  })
+const imagens = listar(pasta)
 const pendentes = imagens.filter((n) => {
   const destino = path.join(saida, n.replace(/\.[^.]+$/, '') + '.webp')
   return !fs.existsSync(destino) || fs.statSync(destino).mtimeMs < fs.statSync(path.join(pasta, n)).mtimeMs
@@ -55,6 +61,7 @@ if (!navegador) {
 const pagina = await navegador.newPage()
 for (const nome of pendentes) {
   const base64 = fs.readFileSync(path.join(pasta, nome)).toString('base64')
+  fs.mkdirSync(path.dirname(path.join(saida, nome)), { recursive: true })
   const mime = { avif: 'image/avif', webp: 'image/webp', png: 'image/png', gif: 'image/gif' }[nome.split('.').pop().toLowerCase()] || 'image/jpeg'
   const url = await pagina.evaluate(
     async ({ base64, mime, largura }) => {
