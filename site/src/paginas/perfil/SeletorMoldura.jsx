@@ -6,8 +6,8 @@ import { useT } from '../../comum/i18n.js'
 import { IconeCargo } from '../../comum/cargos.jsx'
 import { IconeNenhum } from '../../comum/Icones.jsx'
 import { SeloNivel } from '../../comum/Nivel.jsx'
-import { corNivel } from '../../comum/niveis.js'
-import { CARDS, ehAnimado, fundoCard, nomeCard, urlCard } from '../../comum/cardsPerfil.js'
+import { corNivel, rotuloNivel } from '../../comum/niveis.js'
+import { CARDS, ehAnimado, fundoCard, nomeCard, urlMiniCard } from '../../comum/cardsPerfil.js'
 
 function CadeadoMini({ tamanho = 12 }) {
   return (
@@ -38,19 +38,20 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   const config = useConfigSite()
   // Trava: nível abaixo do exigido ou moldura exclusiva de um cargo que a pessoa não tem (admin não tem trava)
   const meusCargos = useCargosIdsDe(steamId) // os dados pelo admin + os automáticos (top do ranking)
+  // Admins ignoram a trava dos cargos comuns, mas não a dos da equipe (_dono / _admin): o worker confere igual
   const semCargo = (id) => {
     const cargo = cargoDaMoldura(config, id)
-    return !!cargo && !meusCargos.includes(cargo.id)
+    return !!cargo && !meusCargos.includes(cargo.id) && !(admin && !cargo.id.startsWith('_'))
   }
   // Sem classificação (nível 0, menos de 10 partidas) vale como nível 1: só as livres
   const nivelEf = Math.max(1, Number(nivel) || 0)
-  const travada = (id) => !admin && (nivelDaMoldura(config, id) > nivelEf || semCargo(id))
+  const travada = (id) => (!admin && nivelDaMoldura(config, id) > nivelEf) || semCargo(id)
   // Cards (banners): mesmas travas das molduras, configuradas na aba Cards do painel admin
   const semCargoCard = (c) => {
     const cg = cargoDoCard(config, c)
-    return !!cg && !meusCargos.includes(cg.id)
+    return !!cg && !meusCargos.includes(cg.id) && !(admin && !cg.id.startsWith('_'))
   }
-  const travadoCard = (c) => !admin && (nivelDoCard(config, c) > nivelEf || semCargoCard(c))
+  const travadoCard = (c) => (!admin && nivelDoCard(config, c) > nivelEf) || semCargoCard(c)
   const [falta, setFalta] = useState(0) // nível exigido, quando o worker recusa
   const times = useListaTimes()
   const salvo = { moldura: perfil.moldura || null, time: perfil.time || null, card: perfil.card || null }
@@ -128,12 +129,12 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         {presa && (
           <span className="sm-req" style={{ '--rq': semCargo(m.id) ? cargo.cor : corNivel(nv) }}>
             {semCargo(m.id) ? <IconeCargo icone={cargo.icone} tamanho={11} /> : <SeloNivel nivel={nv} tamanho={14} />}
-            {semCargo(m.id) ? cargo.nome : tr('Nível {n}', { n: nv })}
+            {semCargo(m.id) ? cargo.nome : rotuloNivel(tr, nv)}
           </span>
         )}
         {/* Liberada: nível exigido no canto esquerdo e cargo no direito */}
         {!presa && nv > 1 && aviso !== m.id && (
-          <span className={`sm-nivel-canto${!admin && nv > nivelEf ? ' falta' : ''}`} title={tr('Nível {n}', { n: nv })}>
+          <span className={`sm-nivel-canto${!admin && nv > nivelEf ? ' falta' : ''}`} title={rotuloNivel(tr, nv)}>
             <SeloNivel nivel={nv} tamanho={28} />
           </span>
         )}
@@ -153,12 +154,12 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                 <span className="sm-req-linha">
                   <small>{tr('Necessário')}</small>
                   <SeloNivel nivel={nv} tamanho={20} />
-                  <b>{tr('Nível {n}', { n: nv })}</b>
+                  <b>{rotuloNivel(tr, nv)}</b>
                 </span>
                 <span className="sm-req-linha">
                   <small>{tr('Seu nível')}</small>
                   <SeloNivel nivel={nivel} tamanho={20} />
-                  <b className="sm-req-atual">{nivel > 0 ? tr('Nível {n}', { n: nivel }) : tr('Sem classificação')}</b>
+                  <b className="sm-req-atual">{nivel > 0 ? rotuloNivel(tr, nivel) : tr('Sem classificação')}</b>
                 </span>
               </>
             )}
@@ -193,7 +194,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         title={presa ? undefined : nomeCard(c)}
       >
         <span className="sm-arte sm-arte-card">
-          <img src={urlCard(c)} alt="" loading="lazy" />
+          <img src={urlMiniCard(c)} alt="" loading="lazy" decoding="async" />
           {presa && (
             <span className="sm-vidro sm-vidro-card" aria-hidden="true">
               <CadeadoMini tamanho={18} />
@@ -205,11 +206,11 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         {presa && (
           <span className="sm-req" style={{ '--rq': semC ? cargo.cor : corNivel(nv) }}>
             {semC ? <IconeCargo icone={cargo.icone} tamanho={11} /> : <SeloNivel nivel={nv} tamanho={14} />}
-            {semC ? cargo.nome : tr('Nível {n}', { n: nv })}
+            {semC ? cargo.nome : rotuloNivel(tr, nv)}
           </span>
         )}
         {!presa && nv > 1 && aviso !== chave && (
-          <span className={`sm-nivel-canto${!admin && nv > nivelEf ? ' falta' : ''}`} title={tr('Nível {n}', { n: nv })}>
+          <span className={`sm-nivel-canto${!admin && nv > nivelEf ? ' falta' : ''}`} title={rotuloNivel(tr, nv)}>
             <SeloNivel nivel={nv} tamanho={28} />
           </span>
         )}
@@ -228,12 +229,12 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                 <span className="sm-req-linha">
                   <small>{tr('Necessário')}</small>
                   <SeloNivel nivel={nv} tamanho={20} />
-                  <b>{tr('Nível {n}', { n: nv })}</b>
+                  <b>{rotuloNivel(tr, nv)}</b>
                 </span>
                 <span className="sm-req-linha">
                   <small>{tr('Seu nível')}</small>
                   <SeloNivel nivel={nivel} tamanho={20} />
-                  <b className="sm-req-atual">{nivel > 0 ? tr('Nível {n}', { n: nivel }) : tr('Sem classificação')}</b>
+                  <b className="sm-req-atual">{nivel > 0 ? rotuloNivel(tr, nivel) : tr('Sem classificação')}</b>
                 </span>
               </>
             )}
@@ -297,7 +298,9 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         </div>
 
         <div className="sm-corpo">
-          <div className="sm-previa" style={escolha.card ? { backgroundImage: fundoCard(escolha.card), backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
+          <div className="sm-previa">
+            {/* o card do perfil, na mesma proporção (282 × 395) */}
+            <div className="sm-previa-card" style={escolha.card ? { backgroundImage: fundoCard(escolha.card) } : undefined}>
             <span className={`moldura-box sm-av${classeForma(escolha.moldura)}`}>
               {urlOk(avatar) && !erroAvatar ? (
                 <img src={avatar} alt="" onError={() => setErroAvatar(true)} />
@@ -307,6 +310,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
               <CamadaMoldura id={escolha.moldura} />
             </span>
             <b>{nome}</b>
+            </div>
             <div className="sm-resumo">
               <button type="button" className={`sm-resumo-linha${aba === 'moldura' ? ' ativa' : ''}`} onClick={() => setAba('moldura')}>
                 <span className="sm-resumo-rot">{tr('Moldura')}</span>

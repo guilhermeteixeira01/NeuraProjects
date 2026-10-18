@@ -4,10 +4,10 @@ import Layout from '../../comum/Layout.jsx'
 import { entrar, linkPerfil, loginAtivo, useConta } from '../../comum/conta.js'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
-import { CamadaMoldura, CargosDe, ComMoldura, IconeEquipe, SELOS_PADRAO, SeloCargo, SeloEquipe, chamar, nomeDoCargo, useAdmin } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, CargosDe, ComMoldura, IconeEquipe, SELOS_PADRAO, SeloCargo, SeloEquipe, cargosComEquipe, chamar, nomeDoCargo, useAdmin } from '../../comum/Moldura.jsx'
 import { COLECOES, MOLDURAS, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
-import { nivelDe, textoNivel } from '../../comum/niveis.js'
+import { NIVEL_MAX, nivelDe, rotuloNivel, textoNivel } from '../../comum/niveis.js'
 import { ordenarRanking } from '../../comum/ranking.js'
 import { localeAtual, useT } from '../../comum/i18n.js'
 import { ICONES_CARGO, IconeCargo } from '../../comum/cargos.jsx'
@@ -20,7 +20,7 @@ import { CARDS, ehAnimado, nomeCard, urlCard } from '../../comum/cardsPerfil.js'
 // Painel de administrador (/admin/). A aba só aparece para admin, mas quem decide é o worker:
 // toda chamada /admin/... confere o login e se a pessoa é admin (o dono, ou quem o dono promoveu).
 
-const NIVEIS_OPCOES = Array.from({ length: 10 }, (_, i) => i + 1) // molduras liberam do nível 1 ao 10 (o Elite é só um selo)
+const NIVEIS_OPCOES = Array.from({ length: NIVEL_MAX }, (_, i) => i + 1) // molduras e cards liberam do nível 1 até o Elite (11)
 const fmt = (v) => Number(v || 0).toLocaleString(localeAtual())
 const iniciais = (nome) => String(nome || '?').trim().slice(0, 2).toUpperCase()
 const dataBr = (iso) => {
@@ -363,7 +363,7 @@ function CardsRegras({ config, aoSalvar }) {
   const [niveis, setNiveis] = useState(() => ({ ...config.nivelCard }))
   const [exclusivo, setExclusivo] = useState(() => ({ ...config.cardCargo }))
   const [estado, setEstado] = useState('')
-  const cargos = config.cargos || []
+  const cargos = cargosComEquipe(config) // cargos do painel + Dono e Admin (equipe)
   const nivelDe1 = (nome) => Number(niveis[nome]) || 1
   const cargoDe = (nome) => cargos.find((c) => c.id === exclusivo[nome]) || null
   const mudou = porNivel !== !!config.cardPorNivel || CARDS.some((c) => nivelDe1(c) !== (Number(config.nivelCard?.[c]) || 1) || (exclusivo[c] || '') !== (config.cardCargo?.[c] || ''))
@@ -425,7 +425,7 @@ function CardsRegras({ config, aoSalvar }) {
             <option value="">{tr('nível…')}</option>
             {NIVEIS_OPCOES.map((n) => (
               <option key={n} value={n}>
-                {n === 1 ? tr('Livre (1)') : tr('Nível {n}', { n })}
+                {n === 1 ? tr('Livre (1)') : rotuloNivel(tr, n)}
               </option>
             ))}
           </select>
@@ -453,7 +453,7 @@ function CardsRegras({ config, aoSalvar }) {
               <select value={nivelDe1(c)} onChange={(e) => definir([c], e.target.value)} aria-label={tr('Nível de {nome}', { nome: nomeCard(c) })}>
                 {NIVEIS_OPCOES.map((n) => (
                   <option key={n} value={n}>
-                    {n === 1 ? tr('Livre') : tr('Nível {n}', { n })}
+                    {n === 1 ? tr('Livre') : rotuloNivel(tr, n)}
                   </option>
                 ))}
               </select>
@@ -473,7 +473,7 @@ function Molduras({ config, aoSalvar }) {
   const [niveis, setNiveis] = useState(() => ({ ...config.nivelMoldura }))
   const [exclusiva, setExclusiva] = useState(() => ({ ...config.molduraCargo }))
   const [estado, setEstado] = useState('')
-  const cargos = config.cargos || []
+  const cargos = cargosComEquipe(config) // cargos do painel + Dono e Admin (equipe)
   const nivelDe1 = (id) => Number(niveis[id]) || 1
   const cargoDe = (id) => cargos.find((c) => c.id === exclusiva[id]) || null
   const mudou =
@@ -545,7 +545,7 @@ function Molduras({ config, aoSalvar }) {
                     <option value="">{tr('nível…')}</option>
                     {NIVEIS_OPCOES.map((n) => (
                       <option key={n} value={n}>
-                        {n === 1 ? tr('Livre (1)') : tr('Nível {n}', { n })}
+                        {n === 1 ? tr('Livre (1)') : rotuloNivel(tr, n)}
                       </option>
                     ))}
                   </select>
@@ -571,7 +571,7 @@ function Molduras({ config, aoSalvar }) {
                       <select value={nivelDe1(m.id)} onChange={(e) => definir([m.id], e.target.value)} aria-label={tr('Nível de {nome}', { nome: m.nome })}>
                         {NIVEIS_OPCOES.map((n) => (
                           <option key={n} value={n}>
-                            {n === 1 ? tr('Livre') : tr('Nível {n}', { n })}
+                            {n === 1 ? tr('Livre') : rotuloNivel(tr, n)}
                           </option>
                         ))}
                       </select>

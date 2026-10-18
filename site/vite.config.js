@@ -60,11 +60,12 @@ function dadosNoDev() {
 // gif). Cada pasta vira um módulo virtual com a lista de nomes de arquivo:
 //   public/assets/selos-equipe/  -> 'virtual:selos-equipe'  (selo do dono e dos admins, aba Cargos do painel)
 //   public/assets/cards/         -> 'virtual:cards-perfil'  (banner do card do perfil, janela Personalizar)
+//   public/assets/cards/mini/    -> 'virtual:cards-mini'    (miniaturas leves da janela: node scripts/gerar-miniaturas-cards.mjs)
 function imagensDaPasta(id, subpasta) {
   const pasta = path.resolve(aqui, 'public/assets', subpasta)
   const ler = () => (fs.existsSync(pasta) ? fs.readdirSync(pasta).filter((n) => /\.(png|webp|avif|svg|jpe?g|gif)$/i.test(n)).sort() : [])
   return {
-    name: 'neura-' + subpasta,
+    name: 'neura-' + subpasta.replace('/', '-'),
     resolveId: (origem) => (origem === id ? '\0' + id : null),
     load: (origem) => (origem === '\0' + id ? `export default ${JSON.stringify(ler())}` : null),
     configureServer(server) {
@@ -82,7 +83,7 @@ function imagensDaPasta(id, subpasta) {
 }
 
 export default defineConfig({
-  plugins: [react(), dadosNoDev(), imagensDaPasta('virtual:selos-equipe', 'selos-equipe'), imagensDaPasta('virtual:cards-perfil', 'cards')],
+  plugins: [react(), dadosNoDev(), imagensDaPasta('virtual:selos-equipe', 'selos-equipe'), imagensDaPasta('virtual:cards-perfil', 'cards'), imagensDaPasta('virtual:cards-mini', 'cards/mini')],
   build: {
     // Arquivos do React em /static/ (a pasta /assets/ é das imagens e dos dados do site)
     assetsDir: 'static',

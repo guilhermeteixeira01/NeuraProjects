@@ -11,6 +11,8 @@ export const NIVEL_MAX = NIVEIS.length
 export const NIVEL_ELITE = NIVEL_MAX // 11
 // O que mostrar no lugar do número do nível: o Elite é "10+"
 export const textoNivel = (n) => (n >= NIVEL_ELITE ? '10+' : n)
+// Nome do nível para mostrar em texto: "Nível 5" ou "Elite" (t = função de tradução)
+export const rotuloNivel = (t, n) => (n >= NIVEL_ELITE ? t('Elite') : t('Nível {n}', { n }))
 // Como a FACEIT: só recebe nível depois de jogar esta quantidade de partidas (antes: "Sem classificação", nível 0)
 export const PARTIDAS_CLASSIFICACAO = 10
 
