@@ -2079,14 +2079,14 @@ b.decider {
   }
 }
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg-soft);
 }
 ::-webkit-scrollbar-thumb {
-  border: 2px solid var(--bg-soft);
+  border: 1px solid var(--bg-soft);
   border-radius: 999px;
   background: linear-gradient(180deg, var(--blue), var(--blue-2) 45%, var(--accent));
 }
@@ -2104,8 +2104,8 @@ b.decider {
 }
 /* Rolagens internas (lista de times, etapas do veto): um pouco mais fina */
 body *::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 body *::-webkit-scrollbar-track {
   background: transparent;
@@ -2149,4 +2149,17 @@ body *::-webkit-scrollbar-thumb {
 }
 .pool-item.spot:hover::after {
   opacity: 1;
+}
+
+/* Computador: só a barra fina do Nav (nx-rolagem). O "scrollbar-width: auto !important" acima ganhava do site.css e
+ * deixava a barra nativa aparecendo junto com a nossa (duas barras). */
+@media (min-width: 1025px) {
+  html {
+    scrollbar-width: none !important;
+  }
+  html::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+  }
 }
