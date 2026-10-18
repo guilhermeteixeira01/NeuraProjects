@@ -751,4 +751,6 @@ export default {
   "Temas": "Themes",
   "tema inteiro…": "whole theme…",
   "Tema inteiro:": "Whole theme:",
+  "Dono da Neura Project.": "Owner of Neura Project.",
+  "Faz parte da equipe de administração da Neura Project.": "Part of the Neura Project admin team.",
 }

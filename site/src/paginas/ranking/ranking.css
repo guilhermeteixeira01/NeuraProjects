@@ -327,3 +327,17 @@
 /* Premier e cargos sem brilho dentro do pódio */
 .pod .premier { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pc) 55%, transparent); }
 .pod .selo-cargo { box-shadow: none; }
+
+/* Card (banner) que o jogador escolheu no perfil, só atrás do pódio (top 3: nas linhas da tabela a imagem ficaria esticada).
+ * O :hover do pódio usa "background:" abreviado, que zerava o tamanho da imagem (ela "dava zoom" ao passar o mouse):
+ * aqui o tamanho, a posição e a imagem ficam fixos em qualquer estado. */
+.pod.com-card,
+.pod.com-card:hover,
+.pod.com-card.spot:hover {
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-image: var(--card-fundo) !important;
+}
+.pod.com-card .pod-nome { text-shadow: 0 2px 12px rgba(0, 0, 0, .85); }
+

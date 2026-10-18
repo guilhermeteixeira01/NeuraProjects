@@ -6,7 +6,8 @@ import { Contador } from '../../comum/efeitos.jsx'
 import { useAoVivo } from '../../comum/aoVivo.js'
 import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
 import Premier from '../../comum/Premier.jsx'
-import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, usePerfis } from '../../comum/Moldura.jsx'
+import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, useCardDe, usePerfis } from '../../comum/Moldura.jsx'
+import { fundoCard } from '../../comum/cardsPerfil.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { nivelDe } from '../../comum/niveis.js'
 import { MIN_MAPAS } from '../../comum/ranking.js'
@@ -74,10 +75,11 @@ function Forma({ j }) {
 }
 
 function Podio({ j, pos, m, eu }) {
+  const card = useCardDe(j.steamId) // banner que o jogador escolheu no perfil (só o pódio, top 3, mostra o card)
   const t = useT()
   const [chave, , rotulo, casas, suf] = m
   return (
-    <div className={`pod spot p${pos}${eu ? ' eu' : ''}`} data-pos={pos}>
+    <div className={`pod spot p${pos}${eu ? ' eu' : ''}${card ? ' com-card' : ''}`} data-pos={pos} style={card ? { '--card-fundo': fundoCard(card, true) } : undefined}>
       {eu && <span className="selo-eu">{t('VOCÊ')}</span>}
       {pos === 1 && (
         <svg className="coroa" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

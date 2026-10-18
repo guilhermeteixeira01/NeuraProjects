@@ -47,4 +47,6 @@ export const nomeCard = (nome) => {
   return t.charAt(0).toUpperCase() + t.slice(1)
 }
 // Fundo do card do perfil: a imagem com um escurecido em cima/embaixo para o texto continuar legível
-export const fundoCard = (nome) => `linear-gradient(180deg, rgba(18,18,18,.1), rgba(18,18,18,.35) 55%, rgba(18,18,18,.88)), url("${urlCard(nome)}")`
+// forte: escurece mais (pódio e linhas do ranking, onde tem muito texto por cima)
+export const fundoCard = (nome, forte = false) =>
+  `linear-gradient(180deg, rgba(18,18,18,${forte ? '.45' : '.1'}), rgba(18,18,18,${forte ? '.62' : '.35'}) 55%, rgba(18,18,18,${forte ? '.92' : '.88'})), url("${urlCard(nome)}")`
