@@ -144,7 +144,7 @@ export const SELOS_PADRAO = {
   dono: { nome: 'Dono', cor: '#ff4655', icone: 'coroa', imagem: 'verified.png', mostrar: true },
   admin: { nome: 'Admin', cor: '#3498db', icone: 'escudo', imagem: 'verified.png', mostrar: true },
 }
-const CONFIG_PADRAO = { molduraPorNivel: false, nivelMoldura: {}, cargos: [], molduraCargo: {}, selos: SELOS_PADRAO, equipe: { dono: null, admins: [] } }
+const CONFIG_PADRAO = { molduraPorNivel: false, nivelMoldura: {}, cardPorNivel: false, nivelCard: {}, cardCargo: {}, cargos: [], molduraCargo: {}, selos: SELOS_PADRAO, equipe: { dono: null, admins: [] } }
 let config = null
 let textoConfig = null
 let buscandoConfig = null
@@ -159,6 +159,9 @@ function buscarConfig() {
       config = {
         molduraPorNivel: !!d?.molduraPorNivel,
         nivelMoldura: d?.nivelMoldura || {},
+        cardPorNivel: !!d?.cardPorNivel,
+        nivelCard: d?.nivelCard || {},
+        cardCargo: d?.cardCargo || {},
         cargos: Array.isArray(d?.cargos) ? d.cargos : [],
         molduraCargo: d?.molduraCargo || {},
         selos: { dono: { ...SELOS_PADRAO.dono, ...d?.selos?.dono }, admin: { ...SELOS_PADRAO.admin, ...d?.selos?.admin } },
@@ -184,6 +187,9 @@ export function useConfigSite() {
 // Nível que a moldura exige (1 = livre), conforme a regra do admin
 export const nivelDaMoldura = (config, id) => (config.molduraPorNivel ? Number(config.nivelMoldura?.[id]) || 1 : 1)
 // Cargo de quem pode usar a moldura (exclusiva de Premium, VIP...), ou null
+// Os mesmos ajudantes para os cards (banners) do perfil: o id é o nome do arquivo
+export const nivelDoCard = (config, nome) => (config.cardPorNivel ? Number(config.nivelCard?.[nome]) || 1 : 1)
+export const cargoDoCard = (config, nome) => (config.cargos || []).find((c) => c.id === config.cardCargo?.[nome]) || null
 export const cargoDaMoldura = (config, id) => (config.cargos || []).find((c) => c.id === config.molduraCargo?.[id]) || null
 
 // Nome do cargo no selo. Cargo automático com "numerar" ligado mostra a posição de quem está no top:

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 282 395" width="282" height="395" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="fundo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#17130a"/><stop offset="1" stop-color="#0a0b0e"/></linearGradient>
+<linearGradient id="faixa" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f5c542" stop-opacity=".62"/><stop offset=".6" stop-color="#f5c542" stop-opacity=".08"/><stop offset="1" stop-color="#f5c542" stop-opacity="0"/></linearGradient>
+<linearGradient id="luz" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#ffe9a8" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<pattern id="grade" width="22" height="22" patternUnits="userSpaceOnUse"><path d="M22 0H0V22" fill="none" stroke="#fff" stroke-opacity=".05"/></pattern>
+<clipPath id="faixaCorte"><polygon points="107.16,0 282,0 282,395 -56.400000000000006,395"/></clipPath></defs><style>.luz{animation:luz 4.5s ease-in-out infinite}
+@keyframes luz{0%{transform:translateX(0)}60%,100%{transform:translateX(482px)}}
+.pt{opacity:.5;animation:pt 1.8s ease-in-out infinite}
+@keyframes pt{0%,100%{opacity:.15}50%{opacity:1}}
+.mira{animation:mira 2.4s ease-in-out infinite alternate}
+@keyframes mira{from{stroke-opacity:.3}to{stroke-opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}</style><rect width="282" height="395" fill="url(#fundo)"/><rect width="282" height="395" fill="url(#grade)"/>
+<polygon points="107.16,0 282,0 282,395 -56.400000000000006,395" fill="url(#faixa)"/>
+<g clip-path="url(#faixaCorte)"><g class="luz"><rect x="-60" y="-40" width="60" height="475" fill="url(#luz)" transform="skewX(-22)"/></g></g>
+<polygon points="107.16,0 112.80000000000001,0 -50.76,395 -56.400000000000006,395" fill="#f5c542" opacity=".8"/>
+<g class="mira" stroke="#f5c542" stroke-opacity=".7" fill="none" stroke-width="1.5"><path d="M14 30V14h16"/><path d="M268 365v16H252"/></g>
+<g fill="#f5c542"><circle class="pt" cx="40" cy="60" r="1.8"/><circle class="pt" style="animation-delay:.4s" cx="62" cy="60" r="1.8"/><circle class="pt" style="animation-delay:.8s" cx="84" cy="60" r="1.8"/><circle class="pt" style="animation-delay:1.2s" cx="40" cy="82" r="1.8"/></g></svg>

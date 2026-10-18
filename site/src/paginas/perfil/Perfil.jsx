@@ -10,10 +10,11 @@ import { IconeSteam } from '../../comum/Icones.jsx'
 import { nomeArma, somarArmas, urlArma } from '../../comum/armas.js'
 import { mapIcon, nomeMapa } from '../../comum/mapas.js'
 import { NIVEIS, NIVEL_ELITE, textoNivel } from '../../comum/niveis.js'
-import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, salvarPerfil, useAdmin, usePerfis, useTimeDe } from '../../comum/Moldura.jsx'
+import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, salvarPerfil, useAdmin, useCargosIdsDe, useConfigSite, usePerfis, useTimeDe } from '../../comum/Moldura.jsx'
 import Premier from '../../comum/Premier.jsx'
 import { BarraXp, SeloNivel, useNivelDe } from '../../comum/Nivel.jsx'
 import SeletorMoldura from './SeletorMoldura.jsx'
+import { fundoCard } from '../../comum/cardsPerfil.js'
 import { useT } from '../../comum/i18n.js'
 import { useAvatar } from '../../comum/avatares.js'
 import { BotaoAmizade, StatusAmigo } from './Amizade.jsx'
@@ -557,6 +558,13 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   const t = useT()
   const timeEscolhido = useTimeDe(j.steamId)
   const nivel = useNivelDe(j)
+  // Banner do card (janela Personalizar). Card exclusivo de um cargo que o jogador não tem some na hora (o worker tira do perfil)
+  const cardEscolhido = usePerfis()[j.steamId]?.card
+  const configSite = useConfigSite()
+  const cargosDoJogador = useCargosIdsDe(j.steamId)
+  const exigeCard = configSite.cardCargo?.[cardEscolhido]
+  const daEquipe = j.steamId === configSite.equipe?.dono || !!configSite.equipe?.admins?.includes(j.steamId)
+  const card = cardEscolhido && (!exigeCard || cargosDoJogador.includes(exigeCard) || daEquipe) ? cardEscolhido : null
   // CS Rating do Premier: vem do ranking (deploy); sem ele (jogador sem partidas, ou deploy sem Leetify),
   // busca direto na Leetify (a API pública aceita chamada do navegador)
   const [premierLeetify, setPremierLeetify] = useState(null)
@@ -585,7 +593,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
         {/* Estilo FACEIT: cartão do jogador na esquerda (a capa pode virar personalizável no futuro) e as informações no meio */}
         <div className="wrap pf-layout">
           <aside className="pf-lado">
-            <div className="pf-cartao fx-entra" style={{ '--e': 1 }}>
+            <div className={`pf-cartao fx-entra${card ? ' com-card' : ''}`} style={{ '--e': 1, ...(card ? { backgroundImage: fundoCard(card) } : {}) }}>
               <ComMoldura steamId={j.steamId}>
                 <Avatar id={j.steamId} src={j.avatar} nome={j.nome} classe="pf-av" />
               </ComMoldura>

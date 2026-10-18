@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { CamadaMoldura, SeloCargo, cargoDaMoldura, useCargosIdsDe, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, SeloCargo, cargoDaMoldura, cargoDoCard, nivelDoCard, useCargosIdsDe, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
 import { COLECOES, MOLDURAS, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { urlOk } from '../../comum/dados.js'
 import { useT } from '../../comum/i18n.js'
@@ -7,6 +7,7 @@ import { IconeCargo } from '../../comum/cargos.jsx'
 import { IconeNenhum } from '../../comum/Icones.jsx'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { corNivel } from '../../comum/niveis.js'
+import { CARDS, ehAnimado, fundoCard, nomeCard, urlCard } from '../../comum/cardsPerfil.js'
 
 function CadeadoMini({ tamanho = 12 }) {
   return (
@@ -44,12 +45,18 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   // Sem classificação (nível 0, menos de 10 partidas) vale como nível 1: só as livres
   const nivelEf = Math.max(1, Number(nivel) || 0)
   const travada = (id) => !admin && (nivelDaMoldura(config, id) > nivelEf || semCargo(id))
+  // Cards (banners): mesmas travas das molduras, configuradas na aba Cards do painel admin
+  const semCargoCard = (c) => {
+    const cg = cargoDoCard(config, c)
+    return !!cg && !meusCargos.includes(cg.id)
+  }
+  const travadoCard = (c) => !admin && (nivelDoCard(config, c) > nivelEf || semCargoCard(c))
   const [falta, setFalta] = useState(0) // nível exigido, quando o worker recusa
   const times = useListaTimes()
-  const salvo = { moldura: perfil.moldura || null, time: perfil.time || null }
+  const salvo = { moldura: perfil.moldura || null, time: perfil.time || null, card: perfil.card || null }
   const [escolha, setEscolha] = useState(salvo)
   const [mexeu, setMexeu] = useState(false)
-  const [aba, setAba] = useState('moldura') // 'moldura' | 'time'
+  const [aba, setAba] = useState('moldura') // 'moldura' | 'time' | 'card'
   const [colecao, setColecao] = useState('todas')
   const [busca, setBusca] = useState('')
   const [aviso, setAviso] = useState(null) // moldura bloqueada com o "o que falta" aberto
@@ -64,8 +71,8 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
 
   // O perfil salvo pode chegar depois de abrir: enquanto não mexeu em nada, acompanha ele
   useEffect(() => {
-    if (!mexeu) setEscolha({ moldura: perfil.moldura || null, time: perfil.time || null })
-  }, [perfil.moldura, perfil.time, mexeu])
+    if (!mexeu) setEscolha({ moldura: perfil.moldura || null, time: perfil.time || null, card: perfil.card || null })
+  }, [perfil.moldura, perfil.time, perfil.card, mexeu])
 
   const cancelar = useCallback(() => fechar(), [fechar])
 
@@ -167,6 +174,81 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
       </button>
     )
   }
+  // Card bloqueado (nível ou cargo): mesma cara das molduras — vidro com cadeado, chip do que libera e o "Para usar"
+  const itemCard = (c) => {
+    const presa = travadoCard(c)
+    const cargo = cargoDoCard(config, c)
+    const nv = nivelDoCard(config, c)
+    const semC = semCargoCard(c)
+    const chave = 'c:' + c
+    return (
+      <button
+        key={c}
+        type="button"
+        className={`sm-item sm-item-card${escolha.card === c ? ' sel' : ''}${presa ? ' presa' : ''}${cargo ? ' de-cargo' : ''}`}
+        style={cargo ? { '--cg': cargo.cor } : undefined}
+        onClick={() => (presa ? setAviso((a) => (a === chave ? null : chave)) : escolher('card', c))}
+        aria-pressed={escolha.card === c}
+        aria-expanded={presa ? aviso === chave : undefined}
+        title={presa ? undefined : nomeCard(c)}
+      >
+        <span className="sm-arte sm-arte-card">
+          <img src={urlCard(c)} alt="" loading="lazy" />
+          {presa && (
+            <span className="sm-vidro sm-vidro-card" aria-hidden="true">
+              <CadeadoMini tamanho={18} />
+            </span>
+          )}
+        </span>
+        <span className="sm-nome">{nomeCard(c)}</span>
+        {ehAnimado(c) && <i className="sm-anim">{tr('ANIMADO')}</i>}
+        {presa && (
+          <span className="sm-req" style={{ '--rq': semC ? cargo.cor : corNivel(nv) }}>
+            {semC ? <IconeCargo icone={cargo.icone} tamanho={11} /> : <SeloNivel nivel={nv} tamanho={14} />}
+            {semC ? cargo.nome : tr('Nível {n}', { n: nv })}
+          </span>
+        )}
+        {!presa && nv > 1 && aviso !== chave && (
+          <span className={`sm-nivel-canto${!admin && nv > nivelEf ? ' falta' : ''}`} title={tr('Nível {n}', { n: nv })}>
+            <SeloNivel nivel={nv} tamanho={28} />
+          </span>
+        )}
+        {!presa && cargo && aviso !== chave && (
+          <span className="sm-exige">
+            <IconeCargo icone={cargo.icone} tamanho={12} />
+          </span>
+        )}
+        {presa && aviso === chave && (
+          <span className="sm-requisitos" role="status">
+            <b>
+              <CadeadoMini /> {tr('Para usar')}
+            </b>
+            {nv > nivelEf && (
+              <>
+                <span className="sm-req-linha">
+                  <small>{tr('Necessário')}</small>
+                  <SeloNivel nivel={nv} tamanho={20} />
+                  <b>{tr('Nível {n}', { n: nv })}</b>
+                </span>
+                <span className="sm-req-linha">
+                  <small>{tr('Seu nível')}</small>
+                  <SeloNivel nivel={nivel} tamanho={20} />
+                  <b className="sm-req-atual">{nivel > 0 ? tr('Nível {n}', { n: nivel }) : tr('Sem classificação')}</b>
+                </span>
+              </>
+            )}
+            {semC && (
+              <span className="sm-req-linha">
+                <small>{tr('Cargo')}</small>
+                <SeloCargo cargo={cargo} />
+              </span>
+            )}
+          </span>
+        )}
+      </button>
+    )
+  }
+  const cardsOrdenados = [...CARDS.filter((c) => !travadoCard(c)), ...CARDS.filter((c) => travadoCard(c))]
   const semMoldura = (
     <button key="sem" type="button" className={`sm-item sem${escolha.moldura === null ? ' sel' : ''}`} onClick={() => escolher('moldura', null)} aria-pressed={escolha.moldura === null}>
       <span className="sm-sem-icone">
@@ -183,7 +265,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   const algumaPresa = MOLDURAS.some((m) => travada(m.id))
   const moldura = molduraPorId(escolha.moldura)
   const time = times.find((t) => t.nome === escolha.time) || null
-  const mudou = escolha.moldura !== salvo.moldura || escolha.time !== salvo.time
+  const mudou = escolha.moldura !== salvo.moldura || escolha.time !== salvo.time || escolha.card !== salvo.card
 
   const salvar = async () => {
     if (aoSalvar) {
@@ -193,11 +275,14 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
     }
     setEstado('salvando')
     try {
-      await salvarPerfil(escolha)
+      // só manda o que mudou (o worker confere as travas de cada item novo; o que já estava salvo não é reavaliado)
+      const mudancas = {}
+      for (const k of ['moldura', 'time', 'card']) if (escolha[k] !== salvo[k]) mudancas[k] = escolha[k]
+      await salvarPerfil(mudancas)
       fechar()
     } catch (e) {
       setFalta(e.dados?.precisa || 0)
-      setEstado(['login', 'nivel', 'bloqueado', 'cargo'].includes(e.message) ? e.message : 'erro')
+      setEstado(['login', 'nivel', 'bloqueado', 'cargo', 'cardNivel', 'cardCargo'].includes(e.message) ? e.message : 'erro')
     }
   }
 
@@ -212,7 +297,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         </div>
 
         <div className="sm-corpo">
-          <div className="sm-previa">
+          <div className="sm-previa" style={escolha.card ? { backgroundImage: fundoCard(escolha.card), backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
             <span className={`moldura-box sm-av${classeForma(escolha.moldura)}`}>
               {urlOk(avatar) && !erroAvatar ? (
                 <img src={avatar} alt="" onError={() => setErroAvatar(true)} />
@@ -226,6 +311,10 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
               <button type="button" className={`sm-resumo-linha${aba === 'moldura' ? ' ativa' : ''}`} onClick={() => setAba('moldura')}>
                 <span className="sm-resumo-rot">{tr('Moldura')}</span>
                 <span className="sm-resumo-val">{moldura ? moldura.nome : tr('Sem moldura')}</span>
+              </button>
+              <button type="button" className={`sm-resumo-linha${aba === 'card' ? ' ativa' : ''}`} onClick={() => setAba('card')}>
+                <span className="sm-resumo-rot">{tr('Card')}</span>
+                <span className="sm-resumo-val">{escolha.card ? nomeCard(escolha.card) : tr('Sem card')}</span>
               </button>
               <button type="button" className={`sm-resumo-linha${aba === 'time' ? ' ativa' : ''}`} onClick={() => setAba('time')}>
                 <span className="sm-resumo-rot">{tr('Time')}</span>
@@ -242,6 +331,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
               {[
                 ['moldura', 'Moldura'],
                 ['time', 'Time'],
+                ['card', 'Card'],
               ].map(([id, rotulo]) => (
                 <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'active' : ''} onClick={() => setAba(id)}>
                   {tr(rotulo)}
@@ -300,6 +390,19 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                   )}
                 </div>
               </>
+            ) : aba === 'card' ? (
+              <div className="sm-rolagem">
+                <div className="sm-grade sm-grade-cards">
+                  <button type="button" className={`sm-item sem${escolha.card === null ? ' sel' : ''}`} onClick={() => escolher('card', null)} aria-pressed={escolha.card === null}>
+                    <span className="sm-sem-icone">
+                      <IconeNenhum />
+                    </span>
+                    <span>{tr('Sem card')}</span>
+                  </button>
+                  {cardsOrdenados.map(itemCard)}
+                  {CARDS.length === 0 && <p className="sm-vazio">{tr('Nenhum card ainda (coloque imagens em site/public/assets/cards/).')}</p>}
+                </div>
+              </div>
             ) : (
               <div className="sm-rolagem">
               <div className="sm-grade sm-grade-times">
@@ -327,6 +430,8 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
             {estado === 'erro' && tr('Não deu para salvar. Tente de novo.')}
             {estado === 'login' && tr('Seu login venceu. Entre de novo com a Steam.')}
             {estado === 'nivel' && tr('Essa moldura libera no nível {n}.', { n: falta })}
+            {estado === 'cardNivel' && tr('Esse card libera no nível {n}.', { n: falta })}
+            {estado === 'cardCargo' && tr('Esse card é exclusivo de um cargo que você não tem.')}
             {estado === 'cargo' && tr('Essa moldura é exclusiva de um cargo que você não tem.')}
             {estado === 'bloqueado' && tr('A personalização do seu perfil foi bloqueada por um administrador.')}
           </span>

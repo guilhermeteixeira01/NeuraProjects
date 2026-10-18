@@ -157,13 +157,16 @@ const SELOS_PADRAO = {
   admin: { nome: 'Admin', cor: '#3498db', icone: 'escudo', imagem: 'verified.png', mostrar: true },
 }
 // Imagem do selo: arquivo da pasta public/assets/selos-equipe/ do site (só o nome do arquivo)
-const IMAGEM_SELO = /^[A-Za-z0-9._-]{1,80}\.(png|webp|svg|jpe?g|gif)$/i
+const IMAGEM_SELO = /^[A-Za-z0-9._-]{1,80}\.(png|webp|avif|svg|jpe?g|gif)$/i
 const selosDe = (c) => ({ dono: { ...SELOS_PADRAO.dono, ...c.selos?.dono }, admin: { ...SELOS_PADRAO.admin, ...c.selos?.admin } })
 const configPublica = (c, env = {}) => ({
   selos: selosDe(c),
   equipe: { dono: env.DONO || null, admins: (c.admins || []).filter((id) => id !== env.DONO) }, // quem recebe os selos acima
   molduraPorNivel: !!c.molduraPorNivel,
   nivelMoldura: c.nivelMoldura || {},
+  cardPorNivel: !!c.cardPorNivel, // mesmas regras das molduras, para os cards (banners) do perfil
+  nivelCard: c.nivelCard || {}, // { arquivoDoCard: nível }
+  cardCargo: c.cardCargo || {}, // { arquivoDoCard: idCargo }: card exclusivo de quem tem o cargo
   cargos: c.cargos || [], // [{ id, nome, cor, icone?, top?, numerar?, oculto? (selo não aparece no site) }] (ex.: Premium, VIP). top = automático para o top N do ranking
   molduraCargo: c.molduraCargo || {}, // { idMoldura: idCargo }: moldura exclusiva de quem tem o cargo
 })
@@ -230,6 +233,12 @@ function validarPerfil(corpo, soMoldura) {
     if (t !== null && (typeof t !== 'string' || !NOME_TIME.test(t))) return { erro: 'time' }
     mudar.time = t
   }
+  // Card (banner) do perfil: nome de um arquivo da pasta public/assets/cards/ do site
+  if (!soMoldura && 'card' in corpo) {
+    const c = corpo.card ?? null
+    if (c !== null && (typeof c !== 'string' || !IMAGEM_SELO.test(c))) return { erro: 'card' }
+    mudar.card = c
+  }
   // Preferências do ⚙ Configurações do site. Ficam guardadas mesmo no valor padrão ('padrao', 'pt', 'desligado')
   // para valer nos outros aparelhos em que a pessoa entrar.
   if (!soMoldura && 'tema' in corpo) {
@@ -295,18 +304,24 @@ async function cargosDoJogador(site, id, perfis, config, rankingLido) {
 async function tirarExclusivasSemCargo(env, site, config) {
   const perfis = await ler(env, 'perfis')
   const exclusivas = config.molduraCargo || {}
-  const comExclusiva = Object.entries(perfis).filter(([, p]) => p.moldura && exclusivas[p.moldura])
+  const exclusivosCards = config.cardCargo || {}
+  const comExclusiva = Object.entries(perfis).filter(([, p]) => (p.moldura && exclusivas[p.moldura]) || (p.card && exclusivosCards[p.card]))
   if (!comExclusiva.length) return perfis
   const ranking = (config.cargos || []).some((c) => c.top > 0) ? await lerRanking(site) : null
   let mudou = false
   for (const [id, p] of comExclusiva) {
-    if (ehAdmin(id, env, config)) continue // dono e admins usam qualquer moldura, com ou sem o cargo
+    if (ehAdmin(id, env, config)) continue // dono e admins usam qualquer moldura/card, com ou sem o cargo
     const tem = await cargosDoJogador(site, id, perfis, config, ranking)
-    if (tem.includes(exclusivas[p.moldura])) continue
-    delete p.moldura
-    delete p.molduraLivre
+    if (p.moldura && exclusivas[p.moldura] && !tem.includes(exclusivas[p.moldura])) {
+      delete p.moldura
+      delete p.molduraLivre
+      mudou = true
+    }
+    if (p.card && exclusivosCards[p.card] && !tem.includes(exclusivosCards[p.card])) {
+      delete p.card
+      mudou = true
+    }
     if (!Object.keys(p).length) delete perfis[id]
-    mudou = true
   }
   if (mudou) await gravar(env, 'perfis', perfis)
   return perfis
@@ -325,7 +340,7 @@ async function nivelDoJogador(env, site, id, perfis) {
 }
 
 // ── Jogador salvando o próprio perfil ──
-// POST /perfil { moldura?, time?, tema?, idioma?, desempenho? }  (POST /moldura = rota antiga, só moldura)
+// POST /perfil { moldura?, time?, card?, tema?, idioma?, desempenho? }  (POST /moldura = rota antiga, só moldura)
 async function salvarPerfil(req, env, site, quem, admin, config, cors, rotaAntiga) {
   const corpo = await corpoJson(req)
   if (!corpo) return json({ erro: 'corpo' }, 400, cors)
@@ -348,6 +363,17 @@ async function salvarPerfil(req, env, site, quem, admin, config, cors, rotaAntig
   // Moldura exclusiva de um cargo (Premium, VIP...): só quem tem o cargo; admins não têm trava
   const cargo = mudar.moldura ? config.molduraCargo?.[mudar.moldura] : null
   if (cargo && !admin && !(await cargosDoJogador(site, quem.id, perfis, config)).includes(cargo)) return json({ erro: 'cargo', cargo }, 403, cors)
+
+  // Card (banner) liberado por nível e/ou exclusivo de um cargo, como as molduras; admins não têm trava
+  if (mudar.card) {
+    const precisaCard = config.cardPorNivel ? Number(config.nivelCard?.[mudar.card]) || 1 : 1
+    if (precisaCard > 1 && !admin) {
+      const nivel = await nivelDoJogador(env, site, quem.id, perfis)
+      if (nivel < precisaCard) return json({ erro: 'cardNivel', precisa: precisaCard, nivel }, 403, cors)
+    }
+    const cargoCard = config.cardCargo?.[mudar.card]
+    if (cargoCard && !admin && !(await cargosDoJogador(site, quem.id, perfis, config)).includes(cargoCard)) return json({ erro: 'cardCargo', cargo: cargoCard }, 403, cors)
+  }
 
   // molduraLivre: moldura posta por um admin aparece sempre (as outras exclusivas somem se o cargo sair)
   if ('moldura' in mudar) mudar.molduraLivre = admin && mudar.moldura ? true : null
@@ -461,8 +487,28 @@ async function adminConfig(req, env, site, config, cors) {
     }
     novo.molduraCargo = mapa
   }
+  if ('cardPorNivel' in corpo) novo.cardPorNivel = corpo.cardPorNivel === true
+  if ('nivelCard' in corpo) {
+    const mapa = {}
+    for (const [nome, n] of Object.entries(corpo.nivelCard || {})) {
+      const nivel = Math.round(Number(n))
+      if (!IMAGEM_SELO.test(nome) || !(nivel >= 1 && nivel <= NIVEL_MAX)) return json({ erro: 'nivelCard' }, 400, cors)
+      if (nivel > 1) mapa[nome] = nivel
+    }
+    novo.nivelCard = mapa
+  }
+  if ('cardCargo' in corpo || 'cargos' in corpo) {
+    const existem = new Set((novo.cargos || []).map((c) => c.id))
+    const origem = 'cardCargo' in corpo ? corpo.cardCargo || {} : novo.cardCargo || {}
+    const mapa = {}
+    for (const [nome, cargo] of Object.entries(origem)) {
+      if (!IMAGEM_SELO.test(nome)) return json({ erro: 'cardCargo' }, 400, cors)
+      if (cargo && existem.has(cargo)) mapa[nome] = cargo
+    }
+    novo.cardCargo = mapa
+  }
   await gravar(env, 'config', novo)
-  if ('cargos' in corpo || 'molduraCargo' in corpo) await tirarExclusivasSemCargo(env, site, novo)
+  if ('cargos' in corpo || 'molduraCargo' in corpo || 'cardCargo' in corpo) await tirarExclusivasSemCargo(env, site, novo)
   return json({ ok: true, config: { ...configPublica(novo, env), admins: novo.admins || [] } }, 200, cors)
 }
 
