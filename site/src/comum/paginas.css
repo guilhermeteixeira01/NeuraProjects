@@ -102,7 +102,7 @@ img {
   transform: scale(0.97);
 }
 .btn-primary {
-  background: linear-gradient(135deg, var(--green), var(--green-2));
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
   color: #1a1300;
 }
 .btn-primary:hover {
@@ -161,7 +161,7 @@ img {
   height: 420px;
   bottom: -170px;
   right: -110px;
-  background: var(--green);
+  background: var(--accent);
   opacity: 0.12;
   animation: brilho2 16s ease-in-out infinite;
 }
@@ -192,7 +192,7 @@ img {
   letter-spacing: 1.5px;
   padding: 5px 10px;
   border-radius: 5px;
-  color: var(--green);
+  color: var(--accent);
   border: 1px solid rgba(245, 197, 66, 0.3);
   background: rgba(245, 197, 66, 0.08);
   margin-bottom: 22px;
@@ -227,7 +227,7 @@ img {
   margin-bottom: 18px;
 }
 .hero h1 .destaque {
-  background: linear-gradient(90deg, var(--blue-2), var(--green));
+  background: linear-gradient(90deg, var(--blue-2), var(--accent));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

@@ -14,8 +14,10 @@
   --dim-2: #6d6e77;
   --blue: #1a73e8;
   --blue-2: #3498db;
-  --green: #f5c542; /* era verde: agora amarelo (o nome da variável foi mantido) */
-  --green-2: #e0a800;
+  --green: #3ddc84;
+  --green-2: #2fbf6f;
+  --accent: #f5c542; /* cor de destaque do site (amarelo) */
+  --accent-2: #e0a800;
   --orange: #ff7a1a;
   --red: #ff4655;
   --yellow: #f5c542;
@@ -369,7 +371,7 @@
   transition: opacity 0.25s, transform 0.25s;
 }
 .nx-aviso-pergunta {
-  --ac: var(--green);
+  --ac: var(--accent);
 }
 .nx-aviso.is-saindo {
   opacity: 0;
@@ -434,7 +436,7 @@
 }
 .nx-aviso-acoes button.principal {
   border-color: transparent;
-  background: linear-gradient(135deg, var(--green), var(--green-2));
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
   color: #1a1300;
 }
 .nx-aviso-fechar {
@@ -519,16 +521,16 @@
 ::-webkit-scrollbar-thumb {
   border: 2px solid var(--bg-soft);
   border-radius: 999px;
-  background: linear-gradient(180deg, var(--blue), var(--blue-2) 45%, var(--green));
+  background: linear-gradient(180deg, var(--blue), var(--blue-2) 45%, var(--accent));
 }
 ::-webkit-scrollbar-thumb:horizontal {
-  background: linear-gradient(90deg, var(--blue), var(--blue-2) 45%, var(--green));
+  background: linear-gradient(90deg, var(--blue), var(--blue-2) 45%, var(--accent));
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, var(--blue-2), var(--green));
+  background: linear-gradient(180deg, var(--blue-2), var(--accent));
 }
 ::-webkit-scrollbar-thumb:horizontal:hover {
-  background: linear-gradient(90deg, var(--blue-2), var(--green));
+  background: linear-gradient(90deg, var(--blue-2), var(--accent));
 }
 ::-webkit-scrollbar-corner {
   background: var(--bg-soft);
@@ -586,7 +588,7 @@
   right: 0;
   bottom: -1px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--blue-2), var(--green), transparent);
+  background: linear-gradient(90deg, transparent, var(--blue-2), var(--accent), transparent);
   opacity: 0;
   transition: opacity 0.3s;
   pointer-events: none;
@@ -657,8 +659,8 @@
   animation-delay: var(--d);
 }
 .fx-particulas i:nth-child(3n) {
-  background: var(--green);
-  box-shadow: 0 0 10px var(--green);
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
 }
 @keyframes fx-particula {
   0% {
@@ -703,7 +705,7 @@
 /* Texto com gradiente azul → verde andando */
 .fx-gradiente,
 .fx-gradiente .fx-palavra {
-  background: linear-gradient(90deg, var(--blue-2), var(--green), var(--blue-2), var(--green));
+  background: linear-gradient(90deg, var(--blue-2), var(--accent), var(--blue-2), var(--accent));
   background-size: 300% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -802,8 +804,8 @@
   width: 6px;
   height: 6px;
   border-radius: 1px;
-  background: var(--green);
-  box-shadow: 0 0 10px var(--green);
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
   transform: rotate(45deg);
 }
 .kicker::after {
@@ -843,7 +845,7 @@
   letter-spacing: 0.3px;
 }
 .letreiro .faixa-item svg {
-  color: var(--green);
+  color: var(--accent);
 }
 @keyframes letreiro {
   to {
@@ -1196,8 +1198,10 @@ html:is([data-tema='claro'], [data-tema='branco']) {
   --dim-2: #7b8494;
   --blue: #1a6fe0;
   --blue-2: #1662c4;
-  --green: #9a7100; /* tema claro: amarelo escuro, com contraste no fundo branco */
-  --green-2: #7d5c00;
+  --green: #12804c;
+  --green-2: #0e6e40;
+  --accent: #9a7100; /* tema claro: amarelo escuro, com contraste no fundo branco */
+  --accent-2: #7d5c00;
   --orange: #d0590a;
   --red: #d0283a;
   --yellow: #9a7100;
@@ -1240,7 +1244,8 @@ html:is([data-tema='claro'], [data-tema='branco']) :is(.summary-item, .map-card,
   --dim: #9a9ba3;
   --dim-2: #6d6e77;
   --blue-2: #3498db;
-  --green: #f5c542;
+  --green: #3ddc84;
+  --accent: #f5c542;
   --orange: #ff7a1a;
   --red: #ff4655;
   --yellow: #f5c542;
@@ -1847,7 +1852,7 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
     bottom: 0;
     width: 1px;
     height: auto;
-    background: linear-gradient(180deg, transparent, var(--blue-2), var(--green), transparent);
+    background: linear-gradient(180deg, transparent, var(--blue-2), var(--accent), transparent);
     opacity: 0.35;
   }
   .nx-nav-inner {
@@ -2506,7 +2511,7 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
 .ins-aviso h2 { font-family: var(--font-display); font-size: 22px; line-height: 1.15; text-wrap: balance; }
 .ins-nome {
   font-family: var(--font-display); font-size: 26px; line-height: 1.1;
-  background: linear-gradient(90deg, var(--blue), var(--blue-2), var(--green)); -webkit-background-clip: text; background-clip: text; color: transparent;
+  background: linear-gradient(90deg, var(--blue), var(--blue-2), var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .ins-aviso p { font-size: 14px; color: var(--dim); max-width: 34ch; }
 .ins-onde { font-size: 12px; color: var(--muted, var(--dim)); }
