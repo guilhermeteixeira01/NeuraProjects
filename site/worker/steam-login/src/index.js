@@ -158,6 +158,8 @@ const SELOS_PADRAO = {
 }
 // Imagem do selo: arquivo da pasta public/assets/selos-equipe/ do site (só o nome do arquivo)
 const IMAGEM_SELO = /^[A-Za-z0-9._-]{1,80}\.(png|webp|avif|svg|jpe?g|gif)$/i
+// Id de um card do perfil: "tema/arquivo.ext" (pasta do tema dentro de public/assets/cards/); o nome sem pasta também vale (cards antigos)
+const CARD_ID = /^([A-Za-z0-9_ -]{1,40}\/)?[A-Za-z0-9._ -]{1,80}\.(png|webp|avif|svg|jpe?g|gif)$/i
 const selosDe = (c) => ({ dono: { ...SELOS_PADRAO.dono, ...c.selos?.dono }, admin: { ...SELOS_PADRAO.admin, ...c.selos?.admin } })
 const configPublica = (c, env = {}) => ({
   selos: selosDe(c),
@@ -236,7 +238,7 @@ function validarPerfil(corpo, soMoldura) {
   // Card (banner) do perfil: nome de um arquivo da pasta public/assets/cards/ do site
   if (!soMoldura && 'card' in corpo) {
     const c = corpo.card ?? null
-    if (c !== null && (typeof c !== 'string' || !IMAGEM_SELO.test(c))) return { erro: 'card' }
+    if (c !== null && (typeof c !== 'string' || !CARD_ID.test(c))) return { erro: 'card' }
     mudar.card = c
   }
   // Preferências do ⚙ Configurações do site. Ficam guardadas mesmo no valor padrão ('padrao', 'pt', 'desligado')
@@ -508,7 +510,7 @@ async function adminConfig(req, env, site, config, cors) {
     const mapa = {}
     for (const [nome, n] of Object.entries(corpo.nivelCard || {})) {
       const nivel = Math.round(Number(n))
-      if (!IMAGEM_SELO.test(nome) || !(nivel >= 1 && nivel <= NIVEL_MAX)) return json({ erro: 'nivelCard' }, 400, cors)
+      if (!CARD_ID.test(nome) || !(nivel >= 1 && nivel <= NIVEL_MAX)) return json({ erro: 'nivelCard' }, 400, cors)
       if (nivel > 1) mapa[nome] = nivel
     }
     novo.nivelCard = mapa
@@ -518,7 +520,7 @@ async function adminConfig(req, env, site, config, cors) {
     const origem = 'cardCargo' in corpo ? corpo.cardCargo || {} : novo.cardCargo || {}
     const mapa = {}
     for (const [nome, cargo] of Object.entries(origem)) {
-      if (!IMAGEM_SELO.test(nome)) return json({ erro: 'cardCargo' }, 400, cors)
+      if (!CARD_ID.test(nome)) return json({ erro: 'cardCargo' }, 400, cors)
       if (cargo && existem.has(cargo)) mapa[nome] = cargo
     }
     novo.cardCargo = mapa
