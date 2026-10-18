@@ -10,11 +10,11 @@ import { IconeSteam } from '../../comum/Icones.jsx'
 import { nomeArma, somarArmas, urlArma } from '../../comum/armas.js'
 import { mapIcon, nomeMapa } from '../../comum/mapas.js'
 import { NIVEIS, NIVEL_ELITE, textoNivel } from '../../comum/niveis.js'
-import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, salvarPerfil, useAdmin, useCargosIdsDe, useConfigSite, usePerfis, useTimeDe } from '../../comum/Moldura.jsx'
+import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, salvarPerfil, useAdmin, useCardDe, usePerfis, useTimeDe } from '../../comum/Moldura.jsx'
 import Premier from '../../comum/Premier.jsx'
 import { BarraXp, SeloNivel, useNivelDe } from '../../comum/Nivel.jsx'
 import SeletorMoldura from './SeletorMoldura.jsx'
-import { fundoCard, idCard } from '../../comum/cardsPerfil.js'
+import { fundoCard } from '../../comum/cardsPerfil.js'
 import { useT } from '../../comum/i18n.js'
 import { useAvatar } from '../../comum/avatares.js'
 import { BotaoAmizade, StatusAmigo } from './Amizade.jsx'
@@ -558,14 +558,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   const t = useT()
   const timeEscolhido = useTimeDe(j.steamId)
   const nivel = useNivelDe(j)
-  // Banner do card (janela Personalizar). Card exclusivo de um cargo que o jogador não tem some na hora (o worker tira do perfil)
-  const cardSalvo = usePerfis()[j.steamId]?.card
-  const cardEscolhido = cardSalvo ? idCard(cardSalvo) : null
-  const configSite = useConfigSite()
-  const cargosDoJogador = useCargosIdsDe(j.steamId)
-  const exigeCard = configSite.cardCargo?.[cardEscolhido]
-  const daEquipe = j.steamId === configSite.equipe?.dono || !!configSite.equipe?.admins?.includes(j.steamId)
-  const card = cardEscolhido && (!exigeCard || cargosDoJogador.includes(exigeCard) || (daEquipe && exigeCard !== '_dono')) ? cardEscolhido : null
+  const card = useCardDe(j.steamId) // banner do card (janela Personalizar); some se for exclusivo de cargo que o jogador não tem
   // CS Rating do Premier: vem do ranking (deploy); sem ele (jogador sem partidas, ou deploy sem Leetify),
   // busca direto na Leetify (a API pública aceita chamada do navegador)
   const [premierLeetify, setPremierLeetify] = useState(null)

@@ -751,4 +751,6 @@ export default {
   "Temas": "Temas",
   "tema inteiro…": "tema completo…",
   "Tema inteiro:": "Tema completo:",
+  "Dono da Neura Project.": "Dueño de Neura Project.",
+  "Faz parte da equipe de administração da Neura Project.": "Forma parte del equipo de administración de Neura Project.",
 }

@@ -11,6 +11,7 @@ import { useT } from './i18n.js'
 import { IconeCargo } from './cargos.jsx'
 import { useOrdemRanking } from './ranking.js'
 import { urlSelo } from './selosEquipe.js'
+import { idCard } from './cardsPerfil.js'
 
 const EVENTO = 'np-perfis'
 const CACHE = 'np_perfis' // última lista lida (aparece já na troca de página, sem esperar a rede)
@@ -247,13 +248,48 @@ export function useCargosDe(steamId) {
 
 // Dono e admin: só o ícone, colado na frente do nome do jogador. Nada se não for da equipe.
 // Use dentro do nome: <IconeEquipe steamId={id} />{nome}
+// Passando o mouse (ou focando/tocando) abre a mesma caixinha das insígnias, com a imagem, o nome e o que ele significa.
+// A caixinha vai para o <body> (portal) e fica em position: fixed, porque o nome fica dentro de cartões com overflow: hidden
+// (pódio e tabela do ranking, lista de amigos) que cortariam uma caixinha comum.
 export function IconeEquipe({ steamId }) {
+  const t = useT()
   const selo = useSeloEquipe(steamId)
   const [semImagem, setSemImagem] = useState(false)
+  const [dica, setDica] = useState(null) // { x, y, ax, acima }
   if (!selo) return null
+  const abrir = (e) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    const meio = r.left + r.width / 2
+    const x = Math.min(Math.max(meio, 160), window.innerWidth - 160) // caixinha de até ~300px, sem sair da tela
+    const acima = r.bottom + 130 > window.innerHeight
+    setDica({ x, ax: meio - x, y: acima ? r.top - 10 : r.bottom + 10, acima })
+  }
+  const descricao = selo.id === '_dono' ? t('Dono da Neura Project.') : t('Faz parte da equipe de administração da Neura Project.')
+  const imagem = semImagem ? <IconeCargo icone={selo.icone} tamanho={60} /> : <img src={urlSelo(selo.imagem)} alt="" draggable={false} />
   return (
-    <span className="icone-equipe" style={{ '--cg': selo.cor }} title={selo.nome} role="img" aria-label={selo.nome}>
+    <span
+      className="icone-equipe"
+      style={{ '--cg': selo.cor }}
+      role="img"
+      aria-label={selo.nome}
+      tabIndex={0}
+      onMouseEnter={abrir}
+      onMouseLeave={() => setDica(null)}
+      onFocus={abrir}
+      onBlur={() => setDica(null)}
+    >
       {semImagem ? <IconeCargo icone={selo.icone} tamanho={16} /> : <img src={urlSelo(selo.imagem)} alt="" draggable={false} onError={() => setSemImagem(true)} />}
+      {dica &&
+        createPortal(
+          <span className={`ins-dica ins-dica-fixa${dica.acima ? ' acima' : ''}`} role="tooltip" style={{ left: dica.x, top: dica.y, '--ax': `${dica.ax}px`, '--cg': selo.cor }}>
+            {imagem}
+            <span>
+              <b>{selo.nome}</b>
+              <small>{descricao}</small>
+            </span>
+          </span>,
+          document.body,
+        )}
     </span>
   )
 }
@@ -443,6 +479,19 @@ export function ComMoldura({ steamId, children, cheio = false }) {
       <CamadaMoldura id={id} />
     </span>
   )
+}
+
+// Card (banner) do jogador, como mostram o perfil e o ranking: o id do card escolhido, ou null se não tem. Card exclusivo de um
+// cargo que o jogador não tem some na hora (o worker tira do perfil depois). Dono e admins usam qualquer um, menos os "só do dono".
+export function useCardDe(steamId) {
+  const salvo = usePerfis()[steamId]?.card
+  const config = useConfigSite()
+  const cargos = useCargosIdsDe(steamId)
+  if (!salvo) return null
+  const id = idCard(salvo)
+  const exige = config.cardCargo?.[id]
+  const daEquipe = steamId === config.equipe?.dono || !!config.equipe?.admins?.includes(steamId)
+  return !exige || cargos.includes(exige) || (daEquipe && exige !== '_dono') ? id : null
 }
 
 // Selo do time escolhido (logo + nome), ou nada se o jogador não escolheu. classe: estilo de cada página.

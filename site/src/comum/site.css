@@ -2898,3 +2898,14 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
     margin: 10px 8px;
   }
 }
+
+/* Caixinha do selo de dono/admin (Moldura.jsx → IconeEquipe): a mesma das insígnias, mas fixa na tela (fora do overflow dos cartões) */
+.ins-dica.ins-dica-fixa { position: fixed; z-index: 700; opacity: 1; visibility: visible; transform: translate(-50%, 0); animation: dica-entra .14s ease; }
+.ins-dica.ins-dica-fixa::before { left: calc(50% + var(--ax, 0px)); }
+.ins-dica.ins-dica-fixa.acima { transform: translate(-50%, -100%); }
+.ins-dica.ins-dica-fixa.acima::before { top: auto; bottom: -6px; transform: rotate(225deg); }
+.ins-dica-fixa > img, .ins-dica-fixa > svg { width: auto; height: 60px; flex: none; color: var(--cg); }
+.ins-dica-fixa b { color: var(--text); }
+.icone-equipe { cursor: help; }
+.icone-equipe:focus-visible { outline: 2px solid var(--blue-2); outline-offset: 2px; border-radius: 4px; }
+@keyframes dica-entra { from { opacity: 0; } }
