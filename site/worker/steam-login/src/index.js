@@ -192,7 +192,8 @@ async function mudarPerfil(env, id, mudar) {
   return perfis
 }
 
-const PREFERENCIAS = ['tema', 'idioma', 'desempenho']
+// 'vistos' = avisos que a pessoa já viu ({ ins: ['top3:1700000000000'], nivel: 3 }): vale em todos os aparelhos
+const PREFERENCIAS = ['tema', 'idioma', 'desempenho', 'vistos']
 
 // Insígnias (arte e descrição ficam no site: src/comum/insignias.js). "top3" também vem sozinha (darInsigniaTop3)
 const INSIGNIAS = ['top3', 'staff', 'embaixador', 'designer']
@@ -240,6 +241,21 @@ function validarPerfil(corpo, soMoldura) {
   if (!soMoldura && 'desempenho' in corpo) {
     if (!['ligado', 'desligado'].includes(corpo.desempenho)) return { erro: 'desempenho' }
     mudar.desempenho = corpo.desempenho
+  }
+  // Avisos já vistos (insígnia nova / nível): o site manda só o que acabou de ver e o worker junta com o que já tinha
+  if (!soMoldura && 'vistos' in corpo) {
+    const v = corpo.vistos
+    if (!v || typeof v !== 'object') return { erro: 'vistos' }
+    const vistos = {}
+    if ('ins' in v) {
+      if (!Array.isArray(v.ins) || v.ins.length > 50 || v.ins.some((m) => typeof m !== 'string' || !/^[a-z0-9_-]{1,40}:\d{1,15}$/.test(m))) return { erro: 'vistos' }
+      vistos.ins = v.ins
+    }
+    if ('nivel' in v) {
+      if (!Number.isInteger(v.nivel) || v.nivel < 0 || v.nivel > 99) return { erro: 'vistos' }
+      vistos.nivel = v.nivel
+    }
+    mudar.vistos = vistos
   }
   // "Ocultar do ranking" (só dono e admins: salvarPerfil confere)
   if (!soMoldura && 'ocultoRanking' in corpo) mudar.ocultoRanking = corpo.ocultoRanking === true || null
@@ -333,6 +349,12 @@ async function salvarPerfil(req, env, site, quem, admin, config, cors, rotaAntig
 
   // molduraLivre: moldura posta por um admin aparece sempre (as outras exclusivas somem se o cargo sair)
   if ('moldura' in mudar) mudar.molduraLivre = admin && mudar.moldura ? true : null
+  if (mudar.vistos) {
+    const antes = perfis[quem.id]?.vistos || {}
+    const ins = [...new Set([...(antes.ins || []), ...(mudar.vistos.ins || [])])].slice(-50)
+    mudar.vistos = { ...(ins.length ? { ins } : {}), nivel: mudar.vistos.nivel ?? antes.nivel }
+    if (mudar.vistos.nivel === undefined) delete mudar.vistos.nivel
+  }
   const novos = await mudarPerfil(env, quem.id, mudar)
   return rotaAntiga ? json({ ok: true, molduras: soMolduras(novos) }, 200, cors) : json({ ok: true, perfis: novos }, 200, cors)
 }

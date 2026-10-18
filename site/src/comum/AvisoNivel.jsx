@@ -5,7 +5,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useConta } from './conta.js'
 import { lerJson } from './dados.js'
-import { usePerfis } from './Moldura.jsx'
+import { salvarPerfil, usePerfis, usePerfisFrescos } from './Moldura.jsx'
 import { SeloNivel } from './Nivel.jsx'
 import { corNivel, nivelDe } from './niveis.js'
 import { desempenhoAtivo } from './desempenho.js'
@@ -67,6 +67,7 @@ export default function AvisoNivel() {
   const t = useT()
   const conta = useConta()
   const perfis = usePerfis()
+  const frescos = usePerfisFrescos()
   const [ranking, setRanking] = useState(null)
   const [esperou, setEsperou] = useState(false)
   const [aviso, setAviso] = useState(null) // { tipo: 'revela' | 'sobe' | 'desce', de, para }
@@ -84,13 +85,16 @@ export default function AvisoNivel() {
     }
   }, [conta?.id])
 
-  const prontos = ranking && (esperou || Object.keys(perfis).length > 0)
+  // Espera os perfis chegarem do worker (o último nível visto fica na conta); sem resposta em 3 s, segue com o do navegador
+  const prontos = ranking && (frescos || esperou)
   useEffect(() => {
     if (!conta?.id || !prontos) return
     const j = ranking.jogadores?.find((x) => x.steamId === conta.id)
     const atual = nivelDe((Number(j?.xp) || 0) + (Number(perfis[conta.id]?.xp) || 0), Number(j?.mapas) || 0).nivel
-    const visto = ler(conta.id)
+    const doServidor = perfis[conta.id]?.vistos?.nivel
+    const visto = Number.isInteger(doServidor) ? doServidor : ler(conta.id)
     guardar(conta.id, atual)
+    if (doServidor !== atual) salvarPerfil({ vistos: { nivel: atual } }).catch(() => {}) // na conta: os outros aparelhos não avisam de novo
     if (atual === 0 || visto === atual) return
     if (visto === null || visto === 0) setAviso({ tipo: 'revela', de: 0, para: atual })
     else setAviso({ tipo: atual > visto ? 'sobe' : 'desce', de: visto, para: atual })

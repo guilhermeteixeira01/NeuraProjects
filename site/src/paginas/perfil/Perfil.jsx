@@ -174,7 +174,7 @@ function Historico({ mapas }) {
                 {m.serie && <small>{m.serie}</small>}
               </span>
               <span className={`pf-c-xp pf-xp-mapa${m.xp < 0 ? ' perdeu' : ''}`}>
-                {m.xp !== 0 && <i aria-hidden="true">{m.xp < 0 ? '↓' : '↑'}</i>} {m.xp > 0 ? `+${m.xp}` : m.xp < 0 ? m.xp : '0'}
+                {m.xp !== 0 && <i aria-hidden="true">{m.xp < 0 ? '↓' : '↑'}</i>} {Math.abs(m.xp)}
               </span>
               <span className="pf-c-rating">
                 <span className={`rt rt-${classeRating(m.rating)}`}>

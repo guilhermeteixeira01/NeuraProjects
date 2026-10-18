@@ -30,11 +30,16 @@ function publicar(novo) {
 
 // Lê os perfis do worker; só republica (e a página só redesenha) se mudou desde a última leitura
 let textoPerfis = null
+let lido = false // já leu os perfis do worker nesta página (o que veio do cache da aba pode estar velho)
 function buscar() {
   if (!CONFIG.loginSteam || buscando) return
   buscando = fetch(`${base()}/perfis`, { cache: 'no-store' })
     .then((r) => (r.ok ? r.text() : null))
     .then((texto) => {
+      if (texto && !lido) {
+        lido = true
+        window.dispatchEvent(new Event(EVENTO))
+      }
       if (!texto || texto === textoPerfis) return
       textoPerfis = texto
       const d = JSON.parse(texto)
@@ -91,6 +96,18 @@ export function usePerfis() {
     return () => window.removeEventListener(EVENTO, ler)
   }, [])
   return atual
+}
+
+// true depois que os perfis chegaram do worker (avisos de nível/insígnia esperam isso para saber o que já foi visto)
+export function usePerfisFrescos() {
+  const [ok, setOk] = useState(false)
+  useEffect(() => {
+    const ler = () => setOk(lido)
+    ler()
+    window.addEventListener(EVENTO, ler)
+    return () => window.removeEventListener(EVENTO, ler)
+  }, [])
+  return ok
 }
 
 // Chamada ao worker com o login (GET sem corpo, POST com corpo). Erros: 'login' (login vencido: sai da conta)
