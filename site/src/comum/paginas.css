@@ -192,9 +192,9 @@ img {
   letter-spacing: 1.5px;
   padding: 5px 10px;
   border-radius: 5px;
-  color: var(--accent);
-  border: 1px solid rgba(245, 197, 66, 0.3);
-  background: rgba(245, 197, 66, 0.08);
+  color: var(--green);
+  border: 1px solid rgba(61, 220, 132, 0.3);
+  background: rgba(61, 220, 132, 0.08);
   margin-bottom: 22px;
 }
 .chip .ponto {
@@ -202,7 +202,7 @@ img {
   height: 6px;
   border-radius: 50%;
   background: currentColor;
-  box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.2);
+  box-shadow: 0 0 0 3px rgba(61, 220, 132, 0.2);
   animation: piscar 1.6s ease-in-out infinite;
 }
 .chip.amarelo {
