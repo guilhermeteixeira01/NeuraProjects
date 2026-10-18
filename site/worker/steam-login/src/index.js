@@ -153,9 +153,11 @@ const gravar = (env, chave, valor) => env.MOLDURAS.put(chave, JSON.stringify(val
 const soMolduras = (perfis) => Object.fromEntries(Object.entries(perfis).filter(([, p]) => p.moldura).map(([id, p]) => [id, p.moldura]))
 // Selos da equipe (dono e admins): o dono edita nome, cor, ícone e se aparecem (POST /admin/selos)
 const SELOS_PADRAO = {
-  dono: { nome: 'Dono', cor: '#ff4655', icone: 'coroa', mostrar: true },
-  admin: { nome: 'Admin', cor: '#3498db', icone: 'escudo', mostrar: true },
+  dono: { nome: 'Dono', cor: '#ff4655', icone: 'coroa', imagem: 'verified.png', mostrar: true },
+  admin: { nome: 'Admin', cor: '#3498db', icone: 'escudo', imagem: 'verified.png', mostrar: true },
 }
+// Imagem do selo: arquivo da pasta public/assets/selos-equipe/ do site (só o nome do arquivo)
+const IMAGEM_SELO = /^[A-Za-z0-9._-]{1,80}\.(png|webp|svg|jpe?g|gif)$/i
 const selosDe = (c) => ({ dono: { ...SELOS_PADRAO.dono, ...c.selos?.dono }, admin: { ...SELOS_PADRAO.admin, ...c.selos?.admin } })
 const configPublica = (c, env = {}) => ({
   selos: selosDe(c),
@@ -464,7 +466,7 @@ async function adminConfig(req, env, site, config, cors) {
   return json({ ok: true, config: { ...configPublica(novo, env), admins: novo.admins || [] } }, 200, cors)
 }
 
-// POST /admin/selos { dono?: { nome, cor, icone, mostrar }, admin?: {...} }  (só o DONO)
+// POST /admin/selos { dono?: { nome, cor, icone, imagem, mostrar }, admin?: {...} }  (só o DONO)
 async function adminSelos(req, env, config, cors) {
   const corpo = await corpoJson(req)
   if (!corpo) return json({ erro: 'corpo' }, 400, cors)
@@ -474,7 +476,9 @@ async function adminSelos(req, env, config, cors) {
     const s = corpo[qual] || {}
     const nome = String(s.nome || '').trim()
     if (!NOME_TIME.test(nome) || nome.length > 24 || !COR.test(String(s.cor)) || !ICONES_CARGO.includes(s.icone)) return json({ erro: 'selos' }, 400, cors)
-    selos[qual] = { nome, cor: s.cor, icone: s.icone, mostrar: s.mostrar !== false }
+    const imagem = s.imagem ?? selos[qual].imagem ?? 'verified.png'
+    if (!IMAGEM_SELO.test(String(imagem))) return json({ erro: 'selos' }, 400, cors)
+    selos[qual] = { nome, cor: s.cor, icone: s.icone, imagem, mostrar: s.mostrar !== false }
   }
   const novo = { ...config, selos }
   await gravar(env, 'config', novo)

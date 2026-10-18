@@ -109,14 +109,17 @@ export default function AvisoNivel() {
   }, [aviso])
 
   if (!aviso) return null
-  const titulo =
-    aviso.tipo === 'revela'
+  const elite = aviso.para >= 11
+  const titulo = elite
+    ? t('Você chegou ao Elite!')
+    : aviso.tipo === 'revela'
       ? t('Nível {n} desbloqueado!', { n: aviso.para })
       : aviso.tipo === 'sobe'
         ? t('Você subiu para o nível {n}!', { n: aviso.para })
         : t('Você voltou para o nível {n}', { n: aviso.para })
-  const texto =
-    aviso.tipo === 'revela'
+  const texto = elite
+    ? t('Acima do nível 10: você está entre os melhores do servidor. A gema agora é colorida e animada.')
+    : aviso.tipo === 'revela'
       ? t('Você completou as 10 partidas de classificação. Agora cada partida soma ou tira XP do seu nível.')
       : aviso.tipo === 'sobe'
         ? t('Do nível {de} para o {para}. Continue jogando bem para chegar ao próximo.', { de: aviso.de, para: aviso.para })

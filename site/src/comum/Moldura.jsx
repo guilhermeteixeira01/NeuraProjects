@@ -10,6 +10,7 @@ import { EVENTO_DESEMPENHO, desempenhoAtivo } from './desempenho.js'
 import { useT } from './i18n.js'
 import { IconeCargo } from './cargos.jsx'
 import { useOrdemRanking } from './ranking.js'
+import { urlSelo } from './selosEquipe.js'
 
 const EVENTO = 'np-perfis'
 const CACHE = 'np_perfis' // última lista lida (aparece já na troca de página, sem esperar a rede)
@@ -140,8 +141,8 @@ export const salvarPerfil = (mudar) => chamar('/perfil', mudar)
 const EVENTO_CONFIG = 'np-config'
 // Selos da equipe (dono e admins): o dono edita no painel (aba Cargos). Padrão igual ao do worker.
 export const SELOS_PADRAO = {
-  dono: { nome: 'Dono', cor: '#ff4655', icone: 'coroa', mostrar: true },
-  admin: { nome: 'Admin', cor: '#3498db', icone: 'escudo', mostrar: true },
+  dono: { nome: 'Dono', cor: '#ff4655', icone: 'coroa', imagem: 'verified.png', mostrar: true },
+  admin: { nome: 'Admin', cor: '#3498db', icone: 'escudo', imagem: 'verified.png', mostrar: true },
 }
 const CONFIG_PADRAO = { molduraPorNivel: false, nivelMoldura: {}, cargos: [], molduraCargo: {}, selos: SELOS_PADRAO, equipe: { dono: null, admins: [] } }
 let config = null
@@ -226,9 +227,8 @@ export function useCargosDe(steamId) {
   return [...cargos.filter((c) => ids.includes(c.id) && !c.oculto).map((c) => ({ ...c, nome: nomeDoCargo(c, pos) })), ...(seloEquipe ? [seloEquipe] : [])]
 }
 
-// Imagem do selo de dono/admin: public/assets/logos/verified.png (a pasta public é servida na raiz do site).
+// Imagem do selo de dono/admin: escolhida no painel (aba Cargos), arquivo em public/assets/selos-equipe/ (selosEquipe.js).
 // Se a imagem não carregar, volta o ícone desenhado do cargo.
-const IMAGEM_EQUIPE = '/assets/logos/verified.png'
 
 // Dono e admin: só o ícone, colado na frente do nome do jogador. Nada se não for da equipe.
 // Use dentro do nome: <IconeEquipe steamId={id} />{nome}
@@ -238,7 +238,18 @@ export function IconeEquipe({ steamId }) {
   if (!selo) return null
   return (
     <span className="icone-equipe" style={{ '--cg': selo.cor }} title={selo.nome} role="img" aria-label={selo.nome}>
-      {semImagem ? <IconeCargo icone={selo.icone} tamanho={16} /> : <img src={IMAGEM_EQUIPE} alt="" draggable={false} onError={() => setSemImagem(true)} />}
+      {semImagem ? <IconeCargo icone={selo.icone} tamanho={16} /> : <img src={urlSelo(selo.imagem)} alt="" draggable={false} onError={() => setSemImagem(true)} />}
+    </span>
+  )
+}
+
+// Selo de dono/admin com a imagem escolhida + nome (painel admin)
+export function SeloEquipe({ selo, classe = '' }) {
+  const [semImagem, setSemImagem] = useState(false)
+  return (
+    <span className={`selo-cargo ${classe}`} style={{ '--cg': selo.cor }} title={selo.nome}>
+      {semImagem ? <IconeCargo icone={selo.icone} /> : <img className="selo-img" src={urlSelo(selo.imagem)} alt="" draggable={false} onError={() => setSemImagem(true)} />}
+      {selo.nome}
     </span>
   )
 }
