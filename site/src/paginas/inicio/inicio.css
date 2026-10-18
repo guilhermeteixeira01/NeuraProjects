@@ -108,7 +108,7 @@
   width: 78%;
   aspect-ratio: 1;
   border-style: solid;
-  border-color: rgba(61, 220, 132, 0.1);
+  border-color: rgba(245, 197, 66, 0.1);
   animation: hx-gira 9s linear infinite reverse;
 }
 .hx-radar i:nth-child(3) {
@@ -138,12 +138,12 @@
     0 40px 80px -30px rgba(0, 0, 0, 0.9),
     0 0 60px -20px rgba(26, 115, 232, 0.45);
 }
-/* Borda fixa em gradiente (azul em cima, verde embaixo), com o brilho de fora pulsando devagar */
+/* Borda fixa em gradiente (azul em cima, amarelo embaixo), com o brilho de fora pulsando devagar */
 .hx-painel::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(160deg, rgba(52, 152, 219, 0.75), rgb(var(--borda-rgb) / 0.6) 45%, rgba(61, 220, 132, 0.6));
+  background: linear-gradient(160deg, rgba(52, 152, 219, 0.75), rgb(var(--borda-rgb) / 0.6) 45%, rgba(245, 197, 66, 0.6));
 }
 .hx-painel {
   animation: hx-pulsa 4s ease-in-out infinite;
@@ -184,21 +184,21 @@
   }
 }
 .hx-pisca {
-  color: var(--green);
+  color: var(--yellow);
   animation: piscar 1.1s steps(2, start) infinite;
 }
 .hx-sys {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: var(--green) !important;
+  color: var(--yellow) !important;
 }
 .hx-sys i {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 0 3px rgba(61, 220, 132, 0.2);
+  background: var(--yellow);
+  box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.2);
   animation: piscar 1.6s ease-in-out infinite;
 }
 
@@ -274,7 +274,7 @@
   background: var(--yellow);
 }
 .painel-head .luzes i:nth-child(3) {
-  background: var(--green);
+  background: var(--blue-2);
 }
 .painel-linha {
   position: relative;
@@ -293,7 +293,7 @@
   top: 0;
   bottom: 0;
   width: 2px;
-  background: linear-gradient(var(--blue-2), var(--green));
+  background: linear-gradient(var(--blue-2), var(--yellow));
   transform: scaleY(0);
   transition: transform 0.25s;
 }
@@ -335,9 +335,9 @@
   font-weight: 700;
   padding: 4px 8px;
   border-radius: 5px;
-  color: var(--green);
-  border: 1px solid rgba(61, 220, 132, 0.4);
-  background: rgba(61, 220, 132, 0.07);
+  color: var(--blue-2);
+  border: 1px solid rgba(52, 152, 219, 0.4);
+  background: rgba(52, 152, 219, 0.07);
 }
 .estado.breve {
   color: var(--yellow);
@@ -495,8 +495,8 @@
   right: 0;
   height: 48px;
   top: -48px;
-  background: linear-gradient(180deg, transparent, rgba(61, 220, 132, 0.09), transparent);
-  border-bottom: 1px solid rgba(61, 220, 132, 0.25);
+  background: linear-gradient(180deg, transparent, rgba(245, 197, 66, 0.09), transparent);
+  border-bottom: 1px solid rgba(245, 197, 66, 0.25);
   animation: hx-varre 4.5s ease-in-out infinite;
   pointer-events: none;
 }
@@ -564,8 +564,8 @@
   position: absolute;
   inset: -1px;
   border-radius: 50%;
-  border: 1px solid var(--green);
-  box-shadow: 0 0 18px -2px rgba(61, 220, 132, 0.7), inset 0 0 12px -4px rgba(61, 220, 132, 0.6);
+  border: 1px solid var(--yellow);
+  box-shadow: 0 0 18px -2px rgba(245, 197, 66, 0.7), inset 0 0 12px -4px rgba(245, 197, 66, 0.6);
   opacity: 0;
   animation: trilha-sinal 6s ease-in-out infinite;
   animation-delay: calc(var(--n, 0) * 1.5s);
@@ -583,9 +583,9 @@
   }
 }
 .trilha-item:hover .trilha-no {
-  color: var(--green);
-  border-color: var(--green-2);
-  box-shadow: 0 0 0 6px var(--panel), 0 0 24px -4px rgba(61, 220, 132, 0.6);
+  color: var(--yellow);
+  border-color: var(--yellow);
+  box-shadow: 0 0 0 6px var(--panel), 0 0 24px -4px rgba(245, 197, 66, 0.6);
 }
 .trilha-corpo .mono {
   color: var(--blue-2);
@@ -932,7 +932,7 @@ html:is([data-tema='claro'], [data-tema='branco']) .hx-numeros dd {
 
 /* ══════════════ Times registrados (TimesCarrossel.jsx): cartões com logo passando sem parar ══════════════ */
 .tc-secao { padding-bottom: 40px; }
-.tc-exc { color: var(--green); text-shadow: 0 0 18px rgba(61, 220, 132, .55); }
+.tc-exc { color: var(--yellow); text-shadow: 0 0 18px rgba(245, 197, 66, .55); }
 .tc-faixa {
   /* folga em cima e embaixo para o cartão subir e a sombra do hover caber (o overflow: hidden cortava);
      a margem negativa devolve o espaço, então a seção fica do mesmo tamanho */
