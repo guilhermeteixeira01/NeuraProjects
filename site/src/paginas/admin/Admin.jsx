@@ -4,21 +4,22 @@ import Layout from '../../comum/Layout.jsx'
 import { entrar, linkPerfil, loginAtivo, useConta } from '../../comum/conta.js'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
-import { CamadaMoldura, CargosDe, ComMoldura, IconeEquipe, SELOS_PADRAO, SeloCargo, chamar, nomeDoCargo, useAdmin } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, CargosDe, ComMoldura, IconeEquipe, SELOS_PADRAO, SeloCargo, SeloEquipe, chamar, nomeDoCargo, useAdmin } from '../../comum/Moldura.jsx'
 import { COLECOES, MOLDURAS, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
-import { NIVEL_MAX, nivelDe } from '../../comum/niveis.js'
+import { nivelDe, textoNivel } from '../../comum/niveis.js'
 import { ordenarRanking } from '../../comum/ranking.js'
 import { localeAtual, useT } from '../../comum/i18n.js'
 import { ICONES_CARGO, IconeCargo } from '../../comum/cargos.jsx'
 import { INSIGNIAS, imagemInsignia } from '../../comum/insignias.js'
 import { useAvatar } from '../../comum/avatares.js'
 import SeletorMoldura from '../perfil/SeletorMoldura.jsx'
+import { IMAGENS_SELO, urlSelo } from '../../comum/selosEquipe.js'
 
 // Painel de administrador (/admin/). A aba só aparece para admin, mas quem decide é o worker:
 // toda chamada /admin/... confere o login e se a pessoa é admin (o dono, ou quem o dono promoveu).
 
-const NIVEIS_OPCOES = Array.from({ length: NIVEL_MAX }, (_, i) => i + 1)
+const NIVEIS_OPCOES = Array.from({ length: 10 }, (_, i) => i + 1) // molduras liberam do nível 1 ao 10 (o Elite é só um selo)
 const fmt = (v) => Number(v || 0).toLocaleString(localeAtual())
 const iniciais = (nome) => String(nome || '?').trim().slice(0, 2).toUpperCase()
 const dataBr = (iso) => {
@@ -223,7 +224,7 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
               </a>
               <span className="adm-ed-nivel">
                 <SeloNivel nivel={previa.nivel} tamanho={30} />
-                {tr('Nível {n}', { n: previa.nivel })} · {fmt(previa.xp)} XP
+                {previa.nivel >= 11 ? 'Elite (10+)' : tr('Nível {n}', { n: textoNivel(previa.nivel) })} · {fmt(previa.xp)} XP
               </span>
             </div>
           </div>
@@ -514,7 +515,42 @@ function EscolherIcone({ valor, cor, aoEscolher }) {
   )
 }
 
-// Selos da equipe (dono e admins): nome, cor, ícone e se aparecem no perfil/ranking. Só o dono edita.
+// Botão com a imagem do selo; clicando abre a grade com as imagens da pasta public/assets/selos-equipe/
+function EscolherImagemSelo({ valor, aoEscolher }) {
+  const tr = useT()
+  const [aberto, setAberto] = useState(false)
+  const atual = valor || 'verified.png'
+  return (
+    <span className="adm-icone">
+      <button type="button" className="adm-icone-btn" onClick={() => setAberto((a) => !a)} aria-expanded={aberto} title={tr('Imagem do selo')}>
+        <img src={urlSelo(atual)} alt="" />
+      </button>
+      {aberto && (
+        <span className="adm-icone-grade adm-imagens-grade" role="listbox" aria-label={tr('Imagem do selo')}>
+          {IMAGENS_SELO.map((nome) => (
+            <button
+              key={nome}
+              type="button"
+              role="option"
+              aria-selected={atual === nome}
+              className={atual === nome ? 'sel' : ''}
+              title={nome}
+              onClick={() => {
+                aoEscolher(nome)
+                setAberto(false)
+              }}
+            >
+              <img src={urlSelo(nome)} alt="" />
+            </button>
+          ))}
+          <small className="adm-imagens-dica">{tr('Para ter mais opções, coloque a imagem em site/public/assets/selos-equipe/ e recarregue.')}</small>
+        </span>
+      )}
+    </span>
+  )
+}
+
+// Selos da equipe (dono e admins): nome, cor, imagem e se aparecem no perfil/ranking. Só o dono edita.
 function SelosEquipe({ config, aoSalvar }) {
   const tr = useT()
   const inicial = { dono: { ...SELOS_PADRAO.dono, ...config.selos?.dono }, admin: { ...SELOS_PADRAO.admin, ...config.selos?.admin } }
@@ -556,9 +592,9 @@ function SelosEquipe({ config, aoSalvar }) {
           <li key={qual}>
             <b className="adm-selo-quem">{rotulo}</b>
             <input type="color" value={selos[qual].cor} onChange={(e) => mudar(qual, 'cor', e.target.value)} aria-label={tr('Cor do selo')} />
-            <EscolherIcone valor={selos[qual].icone} cor={selos[qual].cor} aoEscolher={(id) => mudar(qual, 'icone', id)} />
+            <EscolherImagemSelo valor={selos[qual].imagem} aoEscolher={(nome) => mudar(qual, 'imagem', nome)} />
             <input className="adm-cargo-nome" value={selos[qual].nome} maxLength={24} onChange={(e) => mudar(qual, 'nome', e.target.value)} aria-label={tr('Nome do selo')} />
-            <SeloCargo cargo={{ ...selos[qual], nome: selos[qual].nome || '…' }} />
+            <SeloEquipe selo={{ ...selos[qual], nome: selos[qual].nome || '…' }} />
             <label className="adm-check">
               <input type="checkbox" checked={selos[qual].mostrar} onChange={(e) => mudar(qual, 'mostrar', e.target.checked)} />
               <span>{tr('Mostrar no site')}</span>
@@ -714,7 +750,7 @@ function Admins({ config, dono, souDono, usuarios, aoSalvar }) {
               <a className="adm-admin-nome" href={linkPerfil(id)}>
                 <b>{nomeDe(id)}</b>
               </a>
-              <SeloCargo cargo={id === dono ? { ...SELOS_PADRAO.dono, ...config.selos?.dono } : { ...SELOS_PADRAO.admin, ...config.selos?.admin }} />
+              <SeloEquipe selo={id === dono ? { ...SELOS_PADRAO.dono, ...config.selos?.dono } : { ...SELOS_PADRAO.admin, ...config.selos?.admin }} />
               <small className="mono">{id}</small>
             </span>
             {id === dono ? null : (

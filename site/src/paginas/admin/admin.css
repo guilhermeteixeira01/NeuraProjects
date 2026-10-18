@@ -311,3 +311,10 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 /* Tabela de usuários: 1 selo e o "+N" na mesma linha; cargo oculto (não aparece no site) na aba Cargos */
 .adm-cargos-lista { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: 4px; }
 .adm-oculto { color: var(--dim); font-weight: 700; }
+
+/* Escolher a imagem do selo da equipe */
+.adm-icone-btn img { width: 22px; height: 22px; object-fit: contain; }
+.adm-imagens-grade { grid-template-columns: repeat(6, 40px); }
+.adm-imagens-grade button { width: 40px; height: 40px; }
+.adm-imagens-grade button img { width: 26px; height: 26px; object-fit: contain; }
+.adm-imagens-dica { grid-column: 1 / -1; max-width: 270px; padding-top: 4px; font-size: 11px; line-height: 1.35; color: var(--dim-2); }

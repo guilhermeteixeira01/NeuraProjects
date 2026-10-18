@@ -56,8 +56,32 @@ function dadosNoDev() {
   }
 }
 
+// Imagens dos selos da equipe (dono/admins): é só colocar o arquivo em public/assets/selos-equipe/ (png, webp, svg, jpg
+// ou gif). A lista vira o módulo virtual 'virtual:selos-equipe', que o painel admin usa para escolher a imagem.
+function selosEquipe() {
+  const pasta = path.resolve(aqui, 'public/assets/selos-equipe')
+  const id = 'virtual:selos-equipe'
+  const ler = () => (fs.existsSync(pasta) ? fs.readdirSync(pasta).filter((n) => /\.(png|webp|svg|jpe?g|gif)$/i.test(n)).sort() : [])
+  return {
+    name: 'neura-selos-equipe',
+    resolveId: (origem) => (origem === id ? '\0' + id : null),
+    load: (origem) => (origem === '\0' + id ? `export default ${JSON.stringify(ler())}` : null),
+    configureServer(server) {
+      server.watcher.add(pasta)
+      const recarregar = (arq) => {
+        if (!arq.startsWith(pasta)) return
+        const mod = server.moduleGraph.getModuleById('\0' + id)
+        if (mod) server.moduleGraph.invalidateModule(mod)
+        server.ws.send({ type: 'full-reload' })
+      }
+      server.watcher.on('add', recarregar)
+      server.watcher.on('unlink', recarregar)
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react(), dadosNoDev()],
+  plugins: [react(), dadosNoDev(), selosEquipe()],
   build: {
     // Arquivos do React em /static/ (a pasta /assets/ é das imagens e dos dados do site)
     assetsDir: 'static',

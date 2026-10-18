@@ -9,6 +9,7 @@ import { FundoHero } from '../../comum/HeroFundo.jsx'
 import { IconeSteam } from '../../comum/Icones.jsx'
 import { nomeArma, somarArmas, urlArma } from '../../comum/armas.js'
 import { mapIcon, nomeMapa } from '../../comum/mapas.js'
+import { NIVEIS, NIVEL_ELITE, textoNivel } from '../../comum/niveis.js'
 import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, salvarPerfil, useAdmin, usePerfis, useTimeDe } from '../../comum/Moldura.jsx'
 import Premier from '../../comum/Premier.jsx'
 import { BarraXp, SeloNivel, useNivelDe } from '../../comum/Nivel.jsx'
@@ -128,7 +129,12 @@ function quando(iso, local = 'pt-BR') {
   if (isNaN(d)) return ['', '']
   const fuso = { timeZone: 'America/Sao_Paulo' }
   return [
-    d.toLocaleDateString(local, { weekday: 'short', day: '2-digit', month: 'short', ...fuso }),
+    // "sex. 16 out." (sem o "de" e sem vírgula, para caber no celular)
+    new Intl.DateTimeFormat(local, { weekday: 'short', day: '2-digit', month: 'short', ...fuso })
+      .formatToParts(d)
+      .filter((p) => ['weekday', 'day', 'month'].includes(p.type))
+      .map((p) => p.value)
+      .join(' '),
     d.toLocaleTimeString(local, { hour: '2-digit', minute: '2-digit', ...fuso }),
   ]
 }
@@ -398,6 +404,155 @@ function IconePincel() {
   )
 }
 
+// Atividade recente (últimos 91 dias = 13 semanas): um quadradinho por dia, mais forte quanto mais partidas no dia
+const SEMANAS = 13
+function AtividadeRecente({ mapas }) {
+  const t = useT()
+  const fuso = { timeZone: 'America/Sao_Paulo' }
+  const dia = (d) => d.toLocaleDateString('en-CA', fuso) // AAAA-MM-DD no horário de Brasília
+  const contagem = {}
+  for (const m of mapas) {
+    const d = new Date(m.data)
+    if (!isNaN(d)) contagem[dia(d)] = (contagem[dia(d)] || 0) + 1
+  }
+  const [a, mes, d0] = dia(new Date()).split('-').map(Number)
+  const hoje = Date.UTC(a, mes - 1, d0)
+  const UM_DIA = 86400000
+  const dow = (new Date(hoje).getUTCDay() + 6) % 7 // segunda = 0
+  const inicio = hoje - ((SEMANAS - 1) * 7 + dow) * UM_DIA
+  const nome = (ms, op) => new Date(ms).toLocaleDateString(t.local, { ...op, timeZone: 'UTC' })
+  let total = 0
+  const colunas = Array.from({ length: SEMANAS }, (_, c) => {
+    const dias = Array.from({ length: 7 }, (_, r) => {
+      const ms = inicio + (c * 7 + r) * UM_DIA
+      if (ms > hoje) return null
+      const n = contagem[new Date(ms).toISOString().slice(0, 10)] || 0
+      total += n
+      return { ms, n }
+    })
+    return dias
+  })
+  const nivel = (n) => (n >= 4 ? 3 : n >= 2 ? 2 : n >= 1 ? 1 : 0)
+  return (
+    <div className="pf-lado-bloco pf-ativ">
+      <h3>
+        {t('Atividade recente')} <small>{t('Últimos 90 dias')}</small>
+      </h3>
+      <div className="pf-ativ-grade" role="img" aria-label={t('{n} partidas jogadas', { n: total })}>
+        <span />
+        {Array.from({ length: 7 }, (_, r) => (
+          <span key={r} className="pf-ativ-dia">
+            {nome(Date.UTC(2024, 0, 1 + r), { weekday: 'short' })}
+          </span>
+        ))}
+        {colunas.map((dias, c) => {
+          const primeiro = dias.find(Boolean)
+          const antes = c > 0 ? colunas[c - 1].find(Boolean) : null
+          const novoMes = primeiro && (!antes || new Date(primeiro.ms).getUTCMonth() !== new Date(antes.ms).getUTCMonth())
+          return [
+            <span key={`m${c}`} className="pf-ativ-mes">
+              {novoMes ? nome(primeiro.ms, { month: 'short' }) : ''}
+            </span>,
+            ...dias.map((x, r) => (x ? <i key={`${c}-${r}`} className={`pf-cel n${nivel(x.n)}`} title={`${nome(x.ms, { day: '2-digit', month: 'short' })}: ${x.n}`} /> : <i key={`${c}-${r}`} className="pf-cel vazio" />)),
+          ]
+        })}
+      </div>
+      <div className="pf-ativ-rodape">
+        <b>{t('{n} partidas jogadas', { n: total })}</b>
+        <span className="pf-ativ-legenda">
+          <small>{t('1 partida')}</small>
+          <i className="pf-cel n1" />
+          <i className="pf-cel n2" />
+          <i className="pf-cel n3" />
+          <small>{t('+{n} partidas', { n: 4 })}</small>
+        </span>
+      </div>
+    </div>
+  )
+}
+
+// Coluna da esquerda, abaixo dos botões: insígnias, jogando desde, histórico (jogo) e atividade recente
+function InfosLado({ j, mapas }) {
+  const t = useT()
+  const primeira = mapas?.length ? mapas[mapas.length - 1].data : null
+  const desde = primeira ? new Date(primeira).toLocaleDateString(t.local, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'America/Sao_Paulo' }) : ''
+  return (
+    <>
+      <div className="pf-lado-bloco pf-insig-lado">
+        <h3>{t('Insígnias')}</h3>
+        <InsigniasDe steamId={j.steamId} classe="pf-insignias" />
+      </div>
+      {desde && <p className="pf-desde">{t('Jogando no servidor desde {data}', { data: desde })}</p>}
+      {mapas?.length > 0 && (
+        <>
+          <div className="pf-lado-bloco">
+            <h3>{t('Histórico de partidas')}</h3>
+            <div className="pf-jogo-cartao">
+              <span className="pf-jogo-logo">CS2</span>
+              <span>
+                <b>CS2</b>
+                <small>{mapas.length === 1 ? t('1 partida') : t('{n} partidas', { n: mapas.length })}</small>
+              </span>
+            </div>
+          </div>
+          <AtividadeRecente mapas={mapas} />
+        </>
+      )}
+    </>
+  )
+}
+
+// Desempenho recente (estilo FACEIT): mudança de XP, V/D das últimas 30 partidas e a progressão de nível: uma gema por
+// nível (as já alcançadas acesas, a atual em destaque e as próximas apagadas, com o XP de cada uma), e a barra de XP embaixo.
+const RECENTES = 30
+function DesempenhoRecente({ mapas, nivel, eu }) {
+  const t = useT()
+  const recentes = mapas.slice(0, RECENTES)
+  const vitorias = recentes.filter((m) => m.venceu).length
+  const mudanca = recentes.reduce((s, m) => s + (Number(m.xp) || 0), 0)
+  return (
+    <div className="pf-desemp fx-entra" style={{ '--e': 2 }}>
+      <div className="pf-desemp-cab">
+        <h2>{t('Desempenho recente')}</h2>
+        <span>
+          {t('Últimas {n} partidas', { n: recentes.length })}
+        </span>
+      </div>
+      <div className="pf-desemp-linha">
+        <span>
+          {t('Mudança de XP')}{' '}
+          <b className={mudanca > 0 ? 'pos' : mudanca < 0 ? 'neg' : ''}>
+            {mudanca !== 0 && <i aria-hidden="true">{mudanca > 0 ? '↑' : '↓'}</i>}
+            {Math.abs(mudanca)}
+          </b>
+        </span>
+        <span className="pf-vd-placar">
+          <span className="pf-vd-v">{t('V')}</span> <b>{vitorias}</b> / <span className="pf-vd-d">{t('D')}</span> <b>{recentes.length - vitorias}</b>
+        </span>
+      </div>
+      <div className="pf-class">
+        <p className="pf-class-titulo">{t('PROGRESSÃO DE NÍVEL')}</p>
+        <div className="pf-class-trilha">
+          {NIVEIS.map((xp, i) => {
+            const n = i + 1
+            const estado = !nivel.classificado ? 'proximo' : n < nivel.nivel ? 'feito' : n === nivel.nivel ? 'atual' : 'proximo'
+            return (
+              <div key={n} className={`pf-ci pf-nv ${estado}`} title={`${n >= NIVEL_ELITE ? 'Elite' : t('Nível {n}', { n })} · ${xp.toLocaleString(t.local)} XP`}>
+                <span className="pf-ci-rot">{textoNivel(n)}</span>
+                <span className="pf-nv-gema">
+                  <SeloNivel nivel={n} tamanho={40} />
+                </span>
+                <span className="pf-ci-baixo">{xp.toLocaleString(t.local)}</span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+      <BarraXp info={nivel} classe="pf-xp" eu={eu} />
+    </div>
+  )
+}
+
 function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   const t = useT()
   const timeEscolhido = useTimeDe(j.steamId)
@@ -425,66 +580,26 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   const v = (texto) => (sem ? '—' : texto)
   return (
     <>
-      <section className="hero pf-hero">
+      <section className="secao pf-pagina">
         <FundoHero quantidade={10} />
-        {/* Topo organizado em linhas: nome e selos; quadros iguais (nível, time, Premier, ranking); XP; botões */}
-        <div className="wrap pf-topo">
-          <ComMoldura steamId={j.steamId}>
-            <Avatar id={j.steamId} src={j.avatar} nome={j.nome} classe="pf-av fx-entra" />
-          </ComMoldura>
-          <div className="pf-id fx-entra" style={{ '--e': 1 }}>
-            <span className="kicker">
-              {t('PERFIL DO JOGADOR')}{eu && <span className="pf-voce">{t('VOCÊ')}</span>}
-            </span>
-            <h1>
-              {j.nome}
-              <IconeEquipe steamId={j.steamId} />
-            </h1>
-            {!eu && <StatusAmigo id={j.steamId} />}
-            <CargosDe steamId={j.steamId} max={3} classe="pf-cargos" />
-            <InsigniasDe steamId={j.steamId} classe="pf-insignias" />
-          </div>
-          <div className="pf-infos fx-entra" style={{ '--e': 2 }}>
-            <div className="pf-info">
-              <span className="pf-info-rot">{t('NÍVEL')}</span>
-              <span className="pf-info-val pf-nivel">
-                <SeloNivel nivel={nivel.nivel} tamanho={30} />
-                {nivel.classificado ? <b>{nivel.nivel}</b> : <b className="pf-sem-nivel" title={t('Sem classificação')}>—</b>}
-              </span>
-            </div>
-            {(timeEscolhido || j.time) && (
-              <div className="pf-info">
-                <span className="pf-info-rot">{t('TIME')}</span>
-                {/* Time escolhido no "Personalizar"; sem escolha, o da última partida */}
-                <span className="pf-info-val">
-                  <TimeEscolhido steamId={j.steamId} classe="pf-time" />
-                  {!timeEscolhido && (
-                    <span className="pf-time">
-                      {urlOk(j.logoTime) && <img src={j.logoTime} alt="" />}
-                      <span>{j.time}</span>
-                    </span>
-                  )}
-                </span>
+        {/* Estilo FACEIT: cartão do jogador na esquerda (a capa pode virar personalizável no futuro) e as informações no meio */}
+        <div className="wrap pf-layout">
+          <aside className="pf-lado">
+            <div className="pf-cartao fx-entra" style={{ '--e': 1 }}>
+              <ComMoldura steamId={j.steamId}>
+                <Avatar id={j.steamId} src={j.avatar} nome={j.nome} classe="pf-av" />
+              </ComMoldura>
+              <div className="pf-id">
+                {eu && <span className="pf-voce pf-voce-cartao">{t('VOCÊ')}</span>}
+                <h1>
+                  {j.nome}
+                  <IconeEquipe steamId={j.steamId} />
+                </h1>
+                {!eu && <StatusAmigo id={j.steamId} />}
+                <CargosDe steamId={j.steamId} max={3} classe="pf-cargos" />
               </div>
-            )}
-            <div className="pf-info">
-              <span className="pf-info-rot">PREMIER</span>
-              <span className="pf-info-val">
-                <Premier key={premier || 0} j={{ ...j, premier }} />
-              </span>
             </div>
-            {pos > 0 && (
-              <a className="pf-info pf-info-pos" href="/ranking/">
-                <span className="pf-info-rot">RANKING</span>
-                <span className="pf-info-val">
-                  <b>#{pos}</b> <small>{t('de {total}', { total })}</small>
-                </span>
-              </a>
-            )}
-          </div>
-          <div className="pf-baixo fx-entra" style={{ '--e': 3 }}>
-            <BarraXp info={nivel} classe="pf-xp" eu={eu} />
-            <div className="pf-acoes">
+            <div className="pf-acoes pf-acoes-lado fx-entra" style={{ '--e': 2 }}>
               {eu && (
                 <button type="button" className="btn btn-primary" onClick={personalizar}>
                   <IconePincel /> {t('Personalizar')}
@@ -499,34 +614,66 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
               </a>
               {eu && admin && <OcultarRanking steamId={j.steamId} />}
             </div>
-          </div>
-        </div>
-      </section>
+            <InfosLado j={j} mapas={mapas} />
+          </aside>
 
-      <section className="secao pf-secao">
-        <div className="wrap">
-          <div className={`pf-estats${sem ? ' vazio' : ''}`}>
-            <Estat rotulo="RATING" valor={v(fmt(j.rating, 2))} sub={sem ? t('sem partidas') : t('melhor {v}', { v: fmt(j.melhorRating, 2) })} classe={sem ? 'destaque' : `destaque rt-txt-${classeRating(j.rating)}`} />
-            <Estat rotulo="K/D" valor={v(fmt(j.kd, 2))} sub={t('{k} kills · {d} mortes', { k: j.kills, d: j.mortes })} />
-            <Estat rotulo="ADR" valor={v(fmt(j.adr, 1))} sub={t('dano por round')} />
-            <Estat rotulo="KAST" valor={v(`${fmt(j.kast, 1)}%`)} sub={t('rounds com impacto')} />
-            <Estat rotulo="HS%" valor={v(`${fmt(j.hsPct, 1)}%`)} sub={t('kills de headshot')} />
-            <Estat rotulo={t('VITÓRIAS')} valor={v(`${fmt(j.winRate, 0)}%`)} sub={t('{v}V · {d}D em {n} mapas', { v: j.vitorias, d: derrotas, n: j.mapas })} />
-            <Estat rotulo={t('ENTRADAS')} valor={v(`${j.fk} / ${j.fd}`)} sub={t('primeira kill / primeira morte')} />
-            <Estat rotulo="MULTI-KILLS" valor={v(`${j.multi?.k5 || 0} · ${j.multi?.k4 || 0} · ${j.multi?.k3 || 0}`)} sub="5K · 4K · 3K" />
-            <Estat rotulo={t('MVP DA PARTIDA')} valor={v(j.mvpPartida)} sub={t('{n} MVPs de round', { n: j.mvps })} />
-          </div>
+          <div className="pf-centro">
+            <DesempenhoRecente mapas={mapas || []} nivel={nivel} eu={eu} />
 
-          {sem && (
-            <div className="pf-sem spot">
-              <b>{eu ? t('Você ainda não tem partidas no servidor') : t('Ainda sem partidas no servidor')}</b>
-              <span>{eu ? t('Assim que você jogar um mapa, as estatísticas, o gráfico de rating e o histórico aparecem aqui — e cada partida dá XP para subir de nível.') : t('Assim que o jogador jogar um mapa, as estatísticas, o gráfico de rating e o histórico aparecem aqui — e cada partida dá XP para subir de nível.')}</span>
+            <div className="pf-infos fx-entra" style={{ '--e': 3 }}>
+              {(timeEscolhido || j.time) && (
+                <div className="pf-info">
+                  <span className="pf-info-rot">{t('TIME')}</span>
+                  {/* Time escolhido no "Personalizar"; sem escolha, o da última partida */}
+                  <span className="pf-info-val">
+                    <TimeEscolhido steamId={j.steamId} classe="pf-time" />
+                    {!timeEscolhido && (
+                      <span className="pf-time">
+                        {urlOk(j.logoTime) && <img src={j.logoTime} alt="" />}
+                        <span>{j.time}</span>
+                      </span>
+                    )}
+                  </span>
+                </div>
+              )}
+              <div className="pf-info">
+                <span className="pf-info-rot">PREMIER</span>
+                <span className="pf-info-val">
+                  <Premier key={premier || 0} j={{ ...j, premier }} />
+                </span>
+              </div>
+              {pos > 0 && (
+                <a className="pf-info pf-info-pos" href="/ranking/">
+                  <span className="pf-info-rot">RANKING</span>
+                  <span className="pf-info-val">
+                    <b>#{pos}</b> <small>{t('de {total}', { total })}</small>
+                  </span>
+                </a>
+              )}
             </div>
-          )}
+            <div className={`pf-estats${sem ? ' vazio' : ''}`}>
+              <Estat rotulo="RATING" valor={v(fmt(j.rating, 2))} sub={sem ? t('sem partidas') : t('melhor {v}', { v: fmt(j.melhorRating, 2) })} classe={sem ? 'destaque' : `destaque rt-txt-${classeRating(j.rating)}`} />
+              <Estat rotulo="K/D" valor={v(fmt(j.kd, 2))} sub={t('{k} kills · {d} mortes', { k: j.kills, d: j.mortes })} />
+              <Estat rotulo="ADR" valor={v(fmt(j.adr, 1))} sub={t('dano por round')} />
+              <Estat rotulo="KAST" valor={v(`${fmt(j.kast, 1)}%`)} sub={t('rounds com impacto')} />
+              <Estat rotulo="HS%" valor={v(`${fmt(j.hsPct, 1)}%`)} sub={t('kills de headshot')} />
+              <Estat rotulo={t('VITÓRIAS')} valor={v(`${fmt(j.winRate, 0)}%`)} sub={t('{v}V · {d}D em {n} mapas', { v: j.vitorias, d: derrotas, n: j.mapas })} />
+              <Estat rotulo={t('ENTRADAS')} valor={v(`${j.fk} / ${j.fd}`)} sub={t('primeira kill / primeira morte')} />
+              <Estat rotulo="MULTI-KILLS" valor={v(`${j.multi?.k5 || 0} · ${j.multi?.k4 || 0} · ${j.multi?.k3 || 0}`)} sub="5K · 4K · 3K" />
+              <Estat rotulo={t('MVP DA PARTIDA')} valor={v(j.mvpPartida)} sub={t('{n} MVPs de round', { n: j.mvps })} />
+            </div>
 
-          {mapas?.length > 0 && <GraficoRating mapas={mapas} />}
-          {mapas?.length > 0 && <Armas mapas={mapas} />}
-          {mapas?.length > 0 && <Historico mapas={mapas} />}
+            {sem && (
+              <div className="pf-sem spot">
+                <b>{eu ? t('Você ainda não tem partidas no servidor') : t('Ainda sem partidas no servidor')}</b>
+                <span>{eu ? t('Assim que você jogar um mapa, as estatísticas, o gráfico de rating e o histórico aparecem aqui — e cada partida dá XP para subir de nível.') : t('Assim que o jogador jogar um mapa, as estatísticas, o gráfico de rating e o histórico aparecem aqui — e cada partida dá XP para subir de nível.')}</span>
+              </div>
+            )}
+
+            {mapas?.length > 0 && <GraficoRating mapas={mapas} />}
+            {mapas?.length > 0 && <Armas mapas={mapas} />}
+            {mapas?.length > 0 && <Historico mapas={mapas} />}
+          </div>
         </div>
       </section>
     </>

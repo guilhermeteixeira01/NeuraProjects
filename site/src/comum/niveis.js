@@ -3,9 +3,14 @@
 // abaixo de 0 e o nível pode cair. JavaScript puro: usado pelo deploy (scripts/ranking.mjs calcula o XP de cada jogador),
 // pelo site (selo do nível e barra de XP) e pelo worker (confere o nível das molduras liberadas por nível).
 
-// XP mínimo de cada nível (nível 1 = índice 0)
-export const NIVEIS = [0, 300, 650, 1050, 1500, 2000, 2550, 3150, 3800, 4500]
+// XP mínimo de cada nível (nível 1 = índice 0). O último é o Elite (11): acima do nível 10, depois de ELITE_XP de XP.
+// Aparece como "10+" com a gema colorida e animada (Nivel.jsx → SeloElite). Para mudar o XP do Elite, mude só o último número.
+export const ELITE_XP = 6000
+export const NIVEIS = [0, 300, 650, 1050, 1500, 2000, 2550, 3150, 3800, 4500, ELITE_XP]
 export const NIVEL_MAX = NIVEIS.length
+export const NIVEL_ELITE = NIVEL_MAX // 11
+// O que mostrar no lugar do número do nível: o Elite é "10+"
+export const textoNivel = (n) => (n >= NIVEL_ELITE ? '10+' : n)
 // Como a FACEIT: só recebe nível depois de jogar esta quantidade de partidas (antes: "Sem classificação", nível 0)
 export const PARTIDAS_CLASSIFICACAO = 10
 
@@ -53,5 +58,7 @@ export function nivelDe(xp, mapas) {
   }
 }
 
-// Cores da FACEIT: 1 cinza, 2-3 verde, 4-7 amarelo, 8-9 laranja, 10 vermelho
-export const corNivel = (nivel) => (nivel >= 10 ? '#fe1f00' : nivel >= 8 ? '#ff6309' : nivel >= 4 ? '#ffc800' : nivel >= 2 ? '#1ce400' : '#eeeeee')
+// Cada nível tem a sua cor e elas sobem em sequência: 1 cinza, 2-3 verde, 4 lima, 5 amarelo, 6 âmbar, 7 laranja,
+// 8 laranja-vermelho, 9 vermelho e 10 vermelho vivo
+export const CORES_NIVEL = ['#b4bac4', '#6fdc5a', '#1ce400', '#b5e51d', '#ffd400', '#ffae00', '#ff8a00', '#ff6a0d', '#ff4318', '#fe1f00', '#e83cff']
+export const corNivel = (nivel) => CORES_NIVEL[Math.min(NIVEL_MAX, Math.max(1, Math.round(Number(nivel) || 1))) - 1]
