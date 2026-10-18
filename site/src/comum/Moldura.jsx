@@ -189,8 +189,15 @@ export const nivelDaMoldura = (config, id) => (config.molduraPorNivel ? Number(c
 // Cargo de quem pode usar a moldura (exclusiva de Premium, VIP...), ou null
 // Os mesmos ajudantes para os cards (banners) do perfil: o id é o nome do arquivo
 export const nivelDoCard = (config, nome) => (config.cardPorNivel ? Number(config.nivelCard?.[nome]) || 1 : 1)
-export const cargoDoCard = (config, nome) => (config.cargos || []).find((c) => c.id === config.cardCargo?.[nome]) || null
-export const cargoDaMoldura = (config, id) => (config.cargos || []).find((c) => c.id === config.molduraCargo?.[id]) || null
+export const cargoDoCard = (config, nome) => cargosComEquipe(config).find((c) => c.id === config.cardCargo?.[nome]) || null
+// Cargos do painel + os da equipe: "_dono" (só o dono) e "_admin" (dono e admins), com o nome e a cor dos selos da equipe.
+// Moldura/card exclusivo pode ser de qualquer um deles.
+export const cargosComEquipe = (config) => [
+  ...(config.cargos || []),
+  { id: '_dono', nome: config.selos?.dono?.nome || 'Dono', cor: config.selos?.dono?.cor || '#ff4655', icone: config.selos?.dono?.icone || 'coroa' },
+  { id: '_admin', nome: config.selos?.admin?.nome || 'Admin', cor: config.selos?.admin?.cor || '#3498db', icone: config.selos?.admin?.icone || 'escudo' },
+]
+export const cargoDaMoldura = (config, id) => cargosComEquipe(config).find((c) => c.id === config.molduraCargo?.[id]) || null
 
 // Nome do cargo no selo. Cargo automático com "numerar" ligado mostra a posição de quem está no top:
 // "Campeão 1", "Campeão 2", "Campeão 3". pos = posição no ranking (0 = primeiro), -1 = fora.
@@ -208,9 +215,11 @@ function usePosicaoTop(steamId) {
 export function useCargosIdsDe(steamId) {
   const perfis = usePerfis()
   const manuais = perfis[steamId]?.cargos || []
-  const { cargos } = useConfigSite()
+  const { cargos, equipe } = useConfigSite()
   const pos = usePosicaoTop(steamId)
-  return [...new Set([...manuais, ...cargos.filter((c) => c.top > 0 && pos >= 0 && pos < c.top).map((c) => c.id)])]
+  // quem é da equipe também "tem" os cargos _dono/_admin (usados só para molduras e cards exclusivos)
+  const daEquipe = steamId && steamId === equipe?.dono ? ['_dono', '_admin'] : equipe?.admins?.includes(steamId) ? ['_admin'] : []
+  return [...new Set([...manuais, ...daEquipe, ...cargos.filter((c) => c.top > 0 && pos >= 0 && pos < c.top).map((c) => c.id)])]
 }
 
 // Selo da equipe do jogador ({ id: '_dono' | '_admin', nome, cor, icone }), ou null se não for da equipe
@@ -427,7 +436,7 @@ export function ComMoldura({ steamId, children, cheio = false }) {
   const exige = config.molduraCargo?.[id]
   // Dono e admins usam qualquer moldura (exclusiva de cargo também)
   const daEquipe = steamId === config.equipe?.dono || !!config.equipe?.admins?.includes(steamId)
-  if (!molduraPorId(id) || (exige && !cargos.includes(exige) && !daEquipe)) return children
+  if (!molduraPorId(id) || (exige && !cargos.includes(exige) && !(daEquipe && exige !== '_dono'))) return children
   return (
     <span className={`moldura-box${cheio ? ' cheio' : ''}${classeForma(id)}`}>
       {children}

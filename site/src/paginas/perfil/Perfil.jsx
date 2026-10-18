@@ -564,7 +564,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   const cargosDoJogador = useCargosIdsDe(j.steamId)
   const exigeCard = configSite.cardCargo?.[cardEscolhido]
   const daEquipe = j.steamId === configSite.equipe?.dono || !!configSite.equipe?.admins?.includes(j.steamId)
-  const card = cardEscolhido && (!exigeCard || cargosDoJogador.includes(exigeCard) || daEquipe) ? cardEscolhido : null
+  const card = cardEscolhido && (!exigeCard || cargosDoJogador.includes(exigeCard) || (daEquipe && exigeCard !== '_dono')) ? cardEscolhido : null
   // CS Rating do Premier: vem do ranking (deploy); sem ele (jogador sem partidas, ou deploy sem Leetify),
   // busca direto na Leetify (a API pública aceita chamada do navegador)
   const [premierLeetify, setPremierLeetify] = useState(null)

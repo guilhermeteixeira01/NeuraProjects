@@ -110,7 +110,7 @@ export default {
 const ID_STEAM = /^\d{17}$/
 const ID_MOLDURA = /^[a-z0-9-]{1,40}\/[a-z0-9-]{1,60}$/
 const NOME_TIME = /^[^\u0000-\u001f<>]{1,40}$/ // nome da lista de times (o site só mostra se ainda existir na lista)
-const NIVEL_MAX = 10
+const NIVEL_MAX = 11 // 10 níveis + o Elite (src/comum/niveis.js): molduras e cards podem ser liberados até o Elite
 const CARGOS_MAX = 20
 const XP_LIMITE = 1000000 // ajuste de XP do admin: de -1.000.000 a +1.000.000
 
@@ -298,6 +298,15 @@ async function cargosDoJogador(site, id, perfis, config, rankingLido) {
   return [...new Set([...manuais, ...automaticos.filter((c) => pos >= 0 && pos < c.top).map((c) => c.id)])]
 }
 
+// Item (moldura/card) exclusivo de um cargo. Além dos cargos do painel, vale "_dono" (só o dono) e "_admin" (dono e admins).
+// Admins podem usar o que é exclusivo dos cargos comuns, mas não o que é só do dono.
+async function podeUsarCargo(cargo, id, admin, env, site, perfis, config) {
+  if (cargo === '_dono') return id === env.DONO
+  if (cargo === '_admin') return ehAdmin(id, env, config)
+  if (admin) return true
+  return (await cargosDoJogador(site, id, perfis, config)).includes(cargo)
+}
+
 // Moldura exclusiva de um cargo que o jogador não tem mais (admin tirou, cargo automático saiu porque ele caiu no
 // ranking, moldura virou exclusiva...): sai do perfil. Vale também para moldura posta por admin. Dono e admins ficam de
 // fora (usam qualquer moldura). Devolve os perfis.
@@ -310,14 +319,15 @@ async function tirarExclusivasSemCargo(env, site, config) {
   const ranking = (config.cargos || []).some((c) => c.top > 0) ? await lerRanking(site) : null
   let mudou = false
   for (const [id, p] of comExclusiva) {
-    if (ehAdmin(id, env, config)) continue // dono e admins usam qualquer moldura/card, com ou sem o cargo
+    // dono e admins usam o que é exclusivo de cargos comuns; _dono é só do dono e _admin só da equipe
     const tem = await cargosDoJogador(site, id, perfis, config, ranking)
-    if (p.moldura && exclusivas[p.moldura] && !tem.includes(exclusivas[p.moldura])) {
+    const mantem = (cargo) => (cargo === '_dono' ? id === env.DONO : cargo === '_admin' ? ehAdmin(id, env, config) : ehAdmin(id, env, config) || tem.includes(cargo))
+    if (p.moldura && exclusivas[p.moldura] && !mantem(exclusivas[p.moldura])) {
       delete p.moldura
       delete p.molduraLivre
       mudou = true
     }
-    if (p.card && exclusivosCards[p.card] && !tem.includes(exclusivosCards[p.card])) {
+    if (p.card && exclusivosCards[p.card] && !mantem(exclusivosCards[p.card])) {
       delete p.card
       mudou = true
     }
@@ -362,7 +372,7 @@ async function salvarPerfil(req, env, site, quem, admin, config, cors, rotaAntig
 
   // Moldura exclusiva de um cargo (Premium, VIP...): só quem tem o cargo; admins não têm trava
   const cargo = mudar.moldura ? config.molduraCargo?.[mudar.moldura] : null
-  if (cargo && !admin && !(await cargosDoJogador(site, quem.id, perfis, config)).includes(cargo)) return json({ erro: 'cargo', cargo }, 403, cors)
+  if (cargo && !(await podeUsarCargo(cargo, quem.id, admin, env, site, perfis, config))) return json({ erro: 'cargo', cargo }, 403, cors)
 
   // Card (banner) liberado por nível e/ou exclusivo de um cargo, como as molduras; admins não têm trava
   if (mudar.card) {
@@ -372,7 +382,7 @@ async function salvarPerfil(req, env, site, quem, admin, config, cors, rotaAntig
       if (nivel < precisaCard) return json({ erro: 'cardNivel', precisa: precisaCard, nivel }, 403, cors)
     }
     const cargoCard = config.cardCargo?.[mudar.card]
-    if (cargoCard && !admin && !(await cargosDoJogador(site, quem.id, perfis, config)).includes(cargoCard)) return json({ erro: 'cardCargo', cargo: cargoCard }, 403, cors)
+    if (cargoCard && !(await podeUsarCargo(cargoCard, quem.id, admin, env, site, perfis, config))) return json({ erro: 'cardCargo', cargo: cargoCard }, 403, cors)
   }
 
   // molduraLivre: moldura posta por um admin aparece sempre (as outras exclusivas somem se o cargo sair)
@@ -430,12 +440,18 @@ async function adminPerfil(req, env, site, config, cors) {
     const agora = Date.now()
     mudar.insignias = lista.length ? Object.fromEntries(lista.map((i) => [i, Number(antes[i]) || agora])) : null
   }
-  // Moldura exclusiva de cargo: nem o admin dá para quem não tem o cargo (dê o cargo primeiro)
-  const exige = mudar.moldura ? config.molduraCargo?.[mudar.moldura] : null
-  if (exige && !ehAdmin(corpo.id, env, config)) { // dono e admins podem ter qualquer moldura
-    const perfis = await ler(env, 'perfis')
-    const comNovos = { ...perfis, [corpo.id]: { ...perfis[corpo.id], ...('cargos' in mudar ? { cargos: mudar.cargos } : {}) } }
-    if (!(await cargosDoJogador(site, corpo.id, comNovos, config)).includes(exige)) return json({ erro: 'exclusiva', cargo: exige }, 400, cors)
+  // Moldura/card exclusivo de cargo: nem o admin dá para quem não tem o cargo (dê o cargo primeiro)
+  for (const exige of [mudar.moldura ? config.molduraCargo?.[mudar.moldura] : null, mudar.card ? config.cardCargo?.[mudar.card] : null]) {
+    if (!exige) continue
+    if (exige === '_dono') {
+      if (corpo.id !== env.DONO) return json({ erro: 'exclusiva', cargo: exige }, 400, cors)
+    } else if (exige === '_admin') {
+      if (!ehAdmin(corpo.id, env, config)) return json({ erro: 'exclusiva', cargo: exige }, 400, cors)
+    } else if (!ehAdmin(corpo.id, env, config)) { // dono e admins podem ter qualquer um dos exclusivos de cargos comuns
+      const perfis = await ler(env, 'perfis')
+      const comNovos = { ...perfis, [corpo.id]: { ...perfis[corpo.id], ...('cargos' in mudar ? { cargos: mudar.cargos } : {}) } }
+      if (!(await cargosDoJogador(site, corpo.id, comNovos, config)).includes(exige)) return json({ erro: 'exclusiva', cargo: exige }, 400, cors)
+    }
   }
   const gravados = await mudarPerfil(env, corpo.id, mudar)
   // Tirou um cargo: a moldura exclusiva dele sai do perfil na hora
@@ -478,7 +494,7 @@ async function adminConfig(req, env, site, config, cors) {
   }
   if ('molduraCargo' in corpo || 'cargos' in corpo) {
     // Moldura exclusiva só de cargo que existe (cargo apagado libera as molduras dele)
-    const existem = new Set((novo.cargos || []).map((c) => c.id))
+    const existem = new Set([...(novo.cargos || []).map((c) => c.id), '_dono', '_admin'])
     const origem = 'molduraCargo' in corpo ? corpo.molduraCargo || {} : novo.molduraCargo || {}
     const mapa = {}
     for (const [id, cargo] of Object.entries(origem)) {
@@ -498,7 +514,7 @@ async function adminConfig(req, env, site, config, cors) {
     novo.nivelCard = mapa
   }
   if ('cardCargo' in corpo || 'cargos' in corpo) {
-    const existem = new Set((novo.cargos || []).map((c) => c.id))
+    const existem = new Set([...(novo.cargos || []).map((c) => c.id), '_dono', '_admin'])
     const origem = 'cardCargo' in corpo ? corpo.cardCargo || {} : novo.cardCargo || {}
     const mapa = {}
     for (const [nome, cargo] of Object.entries(origem)) {

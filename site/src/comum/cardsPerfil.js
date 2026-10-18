@@ -3,6 +3,7 @@
 // Card animado: nome terminando em "-anim" (ex.: radar-anim.svg). Para os SVG animados, a versão sem animação fica em
 // public/assets/cards/parado/ (mesmo nome) e é usada com "Melhorar desempenho" ou movimento reduzido.
 import arquivos from 'virtual:cards-perfil'
+import minis from 'virtual:cards-mini'
 import { desempenhoAtivo } from './desempenho.js'
 
 export const CARDS = arquivos
@@ -17,6 +18,13 @@ const semMovimento = () => {
 export const urlCard = (nome) => {
   const arquivo = encodeURIComponent(nome)
   return /-anim\.svg$/i.test(nome) && semMovimento() ? `/assets/cards/parado/${arquivo}` : `/assets/cards/${arquivo}`
+}
+// Miniatura leve para a grade da janela Personalizar (public/assets/cards/mini/<nome>.webp, gerada por
+// scripts/gerar-miniaturas-cards.mjs). Sem ela usa a imagem inteira; SVG animado usa a versão parada (sem gastar processador).
+export const urlMiniCard = (nome) => {
+  const base = String(nome).replace(/\.[^.]+$/, '')
+  if (minis.includes(base + '.webp')) return `/assets/cards/mini/${encodeURIComponent(base)}.webp`
+  return /-anim\.svg$/i.test(nome) ? `/assets/cards/parado/${encodeURIComponent(nome)}` : `/assets/cards/${encodeURIComponent(nome)}`
 }
 // "neura-ouro.svg" -> "Neura ouro"; "radar-anim.svg" -> "Radar"
 export const nomeCard = (nome) => {
