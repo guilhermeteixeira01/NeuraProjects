@@ -2701,18 +2701,39 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
   }
 }
 
-/* ══════════════ Barra da esquerda aberta, estilo FACEIT (computador largo, > 1280px) ══════════════
+/* Vindo da página inicial (barra aberta), a barra encolhe até os ícones e o conteúdo acompanha */
+@media (min-width: 1281px) {
+  html.nx-encolhe [data-site-nav] {
+    overflow: hidden;
+    animation: nx-encolhe-barra 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+  html.nx-encolhe body {
+    animation: nx-encolhe-corpo 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+}
+@keyframes nx-encolhe-barra {
+  from {
+    width: 244px;
+  }
+}
+@keyframes nx-encolhe-corpo {
+  from {
+    padding-left: 244px;
+  }
+}
+
+/* ══════════════ Barra da esquerda aberta, estilo FACEIT (computador largo, > 1280px, só na página inicial) ══════════════
  * Ícone + nome de cada página, logo com o nome em cima e o Admin separado por uma linha. Entre 1025px e 1280px
  * continua a barra fina só com ícones (o nome aparece ao passar o mouse) para sobrar espaço ao conteúdo. */
 @media (min-width: 1281px) {
-  :root {
+  html:has(.nx-aberta) {
     --nx-lateral: 244px;
   }
-  .nx-nav-inner {
+  .nx-aberta .nx-nav-inner {
     align-items: stretch;
     padding: 18px 12px 16px;
   }
-  .nx-brand {
+  .nx-aberta .nx-brand {
     width: auto;
     height: auto;
     justify-content: flex-start;
@@ -2721,21 +2742,21 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
     padding: 2px 10px 18px;
     border-bottom: 1px solid var(--border);
   }
-  .nx-brand > span {
+  .nx-aberta .nx-brand > span {
     display: block;
   }
-  .nx-brand img {
+  .nx-aberta .nx-brand img {
     width: 34px;
     height: 34px;
   }
-  .nx-links {
+  .nx-aberta .nx-links {
     align-items: stretch;
     gap: 2px;
     margin: 0 0 auto;
     padding-top: 0;
     border-top: 0;
   }
-  .nx-nav .nx-links .nx-link {
+  .nx-nav.nx-aberta .nx-links .nx-link {
     width: 100%;
     height: 44px;
     padding: 0 14px;
@@ -2745,13 +2766,13 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
     font-size: 15px;
     font-weight: 600;
   }
-  .nx-nav .nx-links .nx-link .nx-icone {
+  .nx-nav.nx-aberta .nx-links .nx-link .nx-icone {
     width: 22px;
     height: 22px;
     flex: none;
   }
   /* o nome deixa de ser "balãozinho" e vira o texto do item */
-  .nx-nav .nx-links .nx-link .nx-dica {
+  .nx-nav.nx-aberta .nx-links .nx-link .nx-dica {
     position: static;
     display: block;
     flex: 1;
@@ -2771,27 +2792,27 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
     transform: none;
     pointer-events: auto;
   }
-  .nx-nav .nx-links .nx-link:hover {
+  .nx-nav.nx-aberta .nx-links .nx-link:hover {
     color: var(--text);
     background: rgb(var(--tinta) / 0.05);
   }
-  .nx-nav .nx-links .nx-link.is-active {
+  .nx-nav.nx-aberta .nx-links .nx-link.is-active {
     color: var(--text);
     background: rgb(var(--tinta) / 0.09);
   }
-  .nx-links .nx-link.is-active::after {
+  .nx-aberta .nx-links .nx-link.is-active::after {
     left: -12px;
     top: 10px;
     bottom: 10px;
   }
-  .nx-nav .nx-selo {
+  .nx-nav.nx-aberta .nx-selo {
     position: static;
     margin-left: auto;
     padding: 2px 6px;
     font-size: 8.5px;
     letter-spacing: 1.2px;
   }
-  .nx-links-sep {
+  .nx-aberta .nx-links-sep {
     align-self: stretch;
     width: auto;
     height: 1px;

@@ -240,6 +240,26 @@ export default function Nav({ pagina }) {
     return () => window.removeEventListener('scroll', ver)
   }, [])
 
+  // Só a página inicial mostra a barra da esquerda aberta (ícone + nome). Quem vem dela para outra página vê a barra
+  // encolher até os ícones (animação em site.css: html.nx-encolhe). O sessionStorage guarda que a última foi a inicial.
+  useEffect(() => {
+    try {
+      if (pagina === 'inicio') {
+        sessionStorage.setItem('np_nav_larga', '1')
+        return
+      }
+      if (sessionStorage.getItem('np_nav_larga') !== '1') return
+      sessionStorage.removeItem('np_nav_larga')
+      if (!window.matchMedia('(min-width: 1281px)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+      const h = document.documentElement
+      h.classList.add('nx-encolhe')
+      const fim = setTimeout(() => h.classList.remove('nx-encolhe'), 650)
+      return () => clearTimeout(fim)
+    } catch {
+      // sem sessionStorage: a barra só aparece fina
+    }
+  }, [pagina])
+
   const conta = useConta()
   const { admin } = useAdmin(conta)
   // Sem login, o menu mostra só Início e Ranking (as outras páginas continuam abrindo pelo link; só não aparecem no menu).
@@ -260,7 +280,7 @@ export default function Nav({ pagina }) {
 
   return (
     <>
-      <header data-site-nav="" className={`nx-nav${rolou ? ' is-scrolled' : ''}`}>
+      <header data-site-nav="" className={`nx-nav${pagina === 'inicio' ? ' nx-aberta' : ''}${rolou ? ' is-scrolled' : ''}`}>
         <div className="nx-nav-inner">
           <a className="nx-brand" href="/">
             <img src="/assets/logos/logo-np-64.png" alt="" width="30" height="30" />
