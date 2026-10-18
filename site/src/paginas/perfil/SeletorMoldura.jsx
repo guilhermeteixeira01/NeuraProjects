@@ -29,9 +29,11 @@ function Logo({ url, nome, classe }) {
 // Janela "Personalizar perfil": aba Moldura (moldura do avatar) e aba Time (time que aparece no ranking e no
 // perfil). A prévia mostra as duas escolhas; Salvar manda as duas juntas e todas as páginas passam a mostrar.
 // nivel: nível de quem está personalizando; admin: sem trava de nível
-export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin = false, fechar }) {
+// Editando outro jogador (painel admin): inicial = { moldura, time } de partida e aoSalvar(escolha) no lugar de salvar no perfil
+export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin = false, inicial = null, aoSalvar = null, fechar }) {
   const tr = useT()
-  const perfil = usePerfis()[steamId] || {}
+  const perfis = usePerfis()
+  const perfil = inicial || perfis[steamId] || {}
   const config = useConfigSite()
   // Trava: nível abaixo do exigido ou moldura exclusiva de um cargo que a pessoa não tem (admin não tem trava)
   const meusCargos = useCargosIdsDe(steamId) // os dados pelo admin + os automáticos (top do ranking)
@@ -184,6 +186,11 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   const mudou = escolha.moldura !== salvo.moldura || escolha.time !== salvo.time
 
   const salvar = async () => {
+    if (aoSalvar) {
+      aoSalvar(escolha)
+      fechar()
+      return
+    }
     setEstado('salvando')
     try {
       await salvarPerfil(escolha)

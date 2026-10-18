@@ -8,7 +8,7 @@ import { ordenarRanking } from '../../comum/ranking.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
 import { IconeSteam } from '../../comum/Icones.jsx'
 import { nomeArma, somarArmas, urlArma } from '../../comum/armas.js'
-import { nomeMapa } from '../../comum/mapas.js'
+import { mapIcon, nomeMapa } from '../../comum/mapas.js'
 import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, salvarPerfil, useAdmin, usePerfis, useTimeDe } from '../../comum/Moldura.jsx'
 import Premier from '../../comum/Premier.jsx'
 import { BarraXp, SeloNivel, useNivelDe } from '../../comum/Nivel.jsx'
@@ -122,6 +122,18 @@ function GraficoRating({ mapas }) {
   )
 }
 
+// Dia da semana + dia e mês, e a hora embaixo (horário de Brasília): "qui. 30 jul." / "21:21"
+function quando(iso, local = 'pt-BR') {
+  const d = new Date(iso)
+  if (isNaN(d)) return ['', '']
+  const fuso = { timeZone: 'America/Sao_Paulo' }
+  return [
+    d.toLocaleDateString(local, { weekday: 'short', day: '2-digit', month: 'short', ...fuso }),
+    d.toLocaleTimeString(local, { hour: '2-digit', minute: '2-digit', ...fuso }),
+  ]
+}
+
+// Histórico de partidas: uma linha por mapa, com a faixa da cor do resultado na esquerda (verde vitória, vermelho derrota)
 function Historico({ mapas }) {
   const t = useT()
   const [qtd, setQtd] = useState(POR_PAGINA)
@@ -131,57 +143,65 @@ function Historico({ mapas }) {
         <h2>{t('Histórico de partidas')}</h2>
         <span className="mono">{t('{n} MAPAS', { n: mapas.length })}</span>
       </div>
-      <div className="tabela">
-        <table>
-          <thead>
-            <tr>
-              <th className="esq">{t('DATA')}</th>
-              <th className="esq">{t('MAPA')}</th>
-              <th className="esq">{t('PARTIDA')}</th>
-              <th>{t('RESULTADO')}</th>
-              <th>K / D / A</th>
-              <th>ADR</th>
-              <th>HS%</th>
-              <th>RATING</th>
-              <th>XP</th>
-            </tr>
-          </thead>
-          <tbody>
-            {mapas.slice(0, qtd).map((m) => (
-              <tr key={m.caminho} onClick={() => (location.href = linkPartida(m.caminho))}>
-                <td className="esq mono">{dataBr(m.data, t.local)}</td>
-                <td className="esq">
-                  <a href={linkPartida(m.caminho)} className="pf-mapa">
-                    {nomeMapa(m.mapa)}
-                  </a>
-                  {m.serie && <span className="pf-serie">{m.serie}</span>}
-                </td>
-                <td className="esq pf-partida">
-                  <span>{m.time}</span> <b>vs</b> <span>{m.adversario}</span>
-                </td>
-                <td>
-                  <span className={`pf-res ${m.venceu ? 'v' : 'd'}`}>
-                    {m.venceu ? t('V') : t('D')} {m.placar[0]}–{m.placar[1]}
+      <div className="pf-hist">
+        <div className="pf-hist-cab" aria-hidden="true">
+          <span>{t('Data')}</span>
+          <span>{t('Pontuação')}</span>
+          <span className="pf-c-partida">{t('Partida')}</span>
+          <span className="pf-c-xp">XP</span>
+          <span>{t('Rating')}</span>
+          <span>K / D / A</span>
+          <span>{t('Mapa')}</span>
+        </div>
+        {mapas.slice(0, qtd).map((m) => {
+          const [dia, hora] = quando(m.data, t.local)
+          return (
+            <a key={m.caminho} className={`pf-hist-linha ${m.venceu ? 'v' : 'd'}`} href={linkPartida(m.caminho)}>
+              <span className="pf-c-data">
+                <b>{dia}</b>
+                <small>{hora}</small>
+              </span>
+              <span className="pf-c-placar">
+                <i className="pf-vd-tag">{m.venceu ? t('V') : t('D')}</i>
+                <span>
+                  <b className={m.venceu ? 'ganhou' : 'perdeu'}>{m.placar[0]}</b> : {m.placar[1]}
+                </span>
+              </span>
+              <span className="pf-c-partida">
+                <span>
+                  {m.time} <em>vs</em> {m.adversario}
+                </span>
+                {m.serie && <small>{m.serie}</small>}
+              </span>
+              <span className={`pf-c-xp pf-xp-mapa${m.xp < 0 ? ' perdeu' : ''}`}>
+                <i aria-hidden="true">{m.xp < 0 ? '↓' : '↑'}</i> {m.xp > 0 ? `+${m.xp}` : m.xp < 0 ? m.xp : '0'}
+              </span>
+              <span className="pf-c-rating">
+                <span className={`rt rt-${classeRating(m.rating)}`}>
+                  {fmt(m.rating, 2)}
+                  <i style={{ width: `${Math.min(100, Math.max(4, (m.rating / 2) * 100))}%` }} />
+                </span>
+                {m.mvp && (
+                  <span className="pf-mvp" title={t('MVP da partida')}>
+                    ★
                   </span>
-                </td>
-                <td className="mono">
+                )}
+              </span>
+              <span className="pf-c-kda">
+                <b>
                   {m.kills} / {m.mortes} / {m.assist}
-                </td>
-                <td className="mono">{fmt(m.adr, 1)}</td>
-                <td className="mono">{m.hs}%</td>
-                <td>
-                  <span className={`rt rt-${classeRating(m.rating)}`}>{fmt(m.rating, 2)}</span>
-                  {m.mvp && (
-                    <span className="pf-mvp" title={t('MVP da partida')}>
-                      ★
-                    </span>
-                  )}
-                </td>
-                <td className={`mono pf-xp-mapa${m.xp < 0 ? ' perdeu' : ''}`}>{m.xp > 0 ? `+${m.xp}` : m.xp < 0 ? m.xp : '0'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </b>
+                <small>
+                  ADR {fmt(m.adr, 1)} · HS {m.hs}%
+                </small>
+              </span>
+              <span className="pf-c-mapa">
+                <img src={mapIcon(m.mapa)} alt="" loading="lazy" onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
+                {nomeMapa(m.mapa)}
+              </span>
+            </a>
+          )
+        })}
       </div>
       {qtd < mapas.length && (
         <button type="button" className="pf-mais" onClick={() => setQtd((q) => q + POR_PAGINA)}>
