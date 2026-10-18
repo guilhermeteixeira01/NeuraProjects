@@ -104,44 +104,51 @@
 .pf-vd .v, .pf-res.v { color: var(--green); }
 .pf-vd .d, .pf-res.d { color: #ff6b6b; }
 
-/* Histórico: tudo centralizado, colunas com largura fixa (rola de lado no celular) */
-.pf-hist-card .tabela { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; }
-.pf-hist-card table { width: 100%; min-width: 860px; table-layout: fixed; border-collapse: separate; border-spacing: 0; }
-.pf-hist-card th, .pf-hist-card td {
-  padding: 14px 6px; text-align: center; vertical-align: middle; white-space: nowrap;
-  overflow: hidden; text-overflow: ellipsis; font-size: 13.5px; font-variant-numeric: tabular-nums;
+/* Histórico: uma linha (cartão) por mapa, faixa verde/vermelha na esquerda; no celular some Partida, XP e K/D/A */
+.pf-hist { --cols: 1.1fr 1.1fr 1.7fr .9fr .9fr 1.3fr 1.2fr; display: flex; flex-direction: column; gap: 6px; }
+.pf-hist-cab, .pf-hist-linha { display: grid; grid-template-columns: var(--cols); align-items: center; gap: 10px; padding: 0 16px; }
+.pf-hist-cab { min-height: 40px; border-radius: 8px; background: var(--bg-soft); font-size: 13px; font-weight: 700; color: var(--text); }
+.pf-hist-linha {
+  min-height: 52px; padding-top: 6px; padding-bottom: 6px; border-radius: 8px; border-left: 4px solid var(--border-2);
+  background: var(--panel); color: var(--text); text-decoration: none; transition: background .15s;
 }
-.pf-hist-card th { padding: 11px 6px; font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 1.5px; color: var(--dim-2); background: var(--bg-soft); }
-.pf-hist-card th:first-child { border-radius: 10px 0 0 10px; }
-.pf-hist-card th:last-child { border-radius: 0 10px 10px 0; }
-.pf-hist-card .esq { text-align: center; }
-/* Larguras: data, mapa, partida, resultado, K/D/A, ADR, HS%, rating, XP */
-.pf-hist-card th:nth-child(1) { width: 11%; }
-.pf-hist-card th:nth-child(2) { width: 14%; }
-.pf-hist-card th:nth-child(3) { width: 25%; }
-.pf-hist-card th:nth-child(4) { width: 11%; }
-.pf-hist-card th:nth-child(5) { width: 12%; }
-.pf-hist-card th:nth-child(6) { width: 7%; }
-.pf-hist-card th:nth-child(7) { width: 6%; }
-.pf-hist-card th:nth-child(8) { width: 8%; }
-.pf-hist-card th:nth-child(9) { width: 6%; }
-.pf-hist-card tbody td { border-top: 1px solid var(--border); }
-.pf-hist-card tbody tr { cursor: pointer; transition: background .15s; }
-.pf-hist-card tbody tr:hover { background: rgba(26,115,232,.07); }
-.pf-hist-card td.mono { font-family: var(--font-mono); font-size: 12.5px; }
-/* Mapa em cima, série (MD3 · mapa 1/3) embaixo, os dois centralizados */
-.pf-mapa { display: block; font-weight: 700; line-height: 1.25; }
-.pf-serie { display: block; margin: 3px 0 0; font-family: var(--font-mono); font-size: 10px; color: var(--dim-2); }
-.pf-partida span { font-weight: 600; }
-.pf-partida b { font-size: 11px; color: var(--dim-2); margin: 0 5px; }
-.pf-res { display: inline-block; min-width: 78px; font-family: var(--font-mono); font-weight: 700; font-size: 12.5px; }
+.pf-hist-linha:hover { background: var(--panel-2); }
+.pf-hist-linha.v { border-left-color: var(--green); }
+.pf-hist-linha.d { border-left-color: var(--red); }
+.pf-hist-linha > span { min-width: 0; }
+.pf-hist-linha small { display: block; font-size: 11.5px; font-weight: 500; color: var(--dim-2); }
+.pf-c-data b { display: block; font-size: 13.5px; }
+.pf-c-placar { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--dim); font-variant-numeric: tabular-nums; }
+.pf-vd-tag { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 4px; font: 800 12px var(--font-body); font-style: normal; color: #fff; }
+.pf-hist-linha.v .pf-vd-tag { background: var(--green-2); color: #04210f; }
+.pf-hist-linha.d .pf-vd-tag { background: var(--red); }
+.pf-c-placar .ganhou { color: var(--green); }
+.pf-c-placar .perdeu { color: var(--red); }
+.pf-c-partida { font-size: 13px; font-weight: 600; }
+.pf-c-partida > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pf-c-partida em { font-style: normal; font-size: 11px; color: var(--dim-2); margin: 0 3px; }
+.pf-hist-linha .pf-xp-mapa { font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--green); }
+.pf-hist-linha .pf-xp-mapa.perdeu { color: var(--red); }
+.pf-xp-mapa i { font-style: normal; font-size: 11px; }
+.pf-c-rating { display: flex; align-items: center; gap: 6px; }
+.pf-c-rating .rt { position: relative; min-width: 54px; overflow: hidden; padding-bottom: 6px; }
+.pf-c-rating .rt i { position: absolute; left: 0; bottom: 0; height: 3px; background: currentColor; opacity: .85; }
+.pf-c-kda b { font-size: 13.5px; font-variant-numeric: tabular-nums; }
+.pf-c-mapa { display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 600; }
+.pf-c-mapa img { flex: none; width: 26px; height: 26px; object-fit: contain; }
+@media (max-width: 760px) {
+  .pf-hist { --cols: 1fr 1fr 1fr 1.2fr; }
+  .pf-hist-cab, .pf-hist-linha { padding: 0 10px; gap: 6px; }
+  .pf-hist-cab .pf-c-partida, .pf-hist-cab .pf-c-xp, .pf-hist-linha .pf-c-partida, .pf-hist-linha .pf-c-xp, .pf-hist-cab > :nth-child(6), .pf-hist-linha .pf-c-kda { display: none; }
+  .pf-c-mapa { font-size: 12.5px; gap: 6px; }
+}
 .rt { display: inline-block; min-width: 52px; text-align: center; font-family: var(--font-mono); font-weight: 700; font-size: 12.5px; padding: 4px 6px; border-radius: 4px; }
 .rt-alto { color: #ffa31a; background: rgba(255,163,26,.16); box-shadow: inset 0 0 0 1px rgba(255,163,26,.5); }
 .rt-bom { color: #6ee86e; background: rgba(92,214,92,.14); box-shadow: inset 0 0 0 1px rgba(92,214,92,.45); }
 .rt-medio { color: #fff; background: rgb(var(--tinta) / .08); box-shadow: inset 0 0 0 1px rgb(var(--tinta) / .25); }
 .rt-baixo { color: #ff6b6b; background: rgba(255,107,107,.12); box-shadow: inset 0 0 0 1px rgba(255,107,107,.4); }
-/* A estrela do MVP não ocupa espaço: o rating fica sempre no centro da coluna */
-.pf-mvp { position: absolute; margin-left: 7px; color: var(--yellow); line-height: 26px; }
+/* A estrela do MVP fica ao lado do rating */
+.pf-mvp { color: var(--yellow); font-size: 14px; line-height: 1; }
 .pf-mais {
   display: block; margin: 14px auto 2px; padding: 9px 18px; border-radius: 8px; cursor: pointer;
   font: inherit; font-size: 13px; font-weight: 700; color: var(--text); background: var(--bg-soft); border: 1px solid var(--border-2);

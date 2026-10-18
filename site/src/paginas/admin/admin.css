@@ -105,6 +105,12 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 .adm-janela .sm-rodape .btn { cursor: pointer; font-family: inherit; }
 /* Galeria de molduras na edição (as miniaturas aparecem antes de escolher) */
 .adm-mold-atual { font-family: var(--font-body); font-size: 12px; letter-spacing: 0; text-transform: none; color: var(--blue-2); }
+.adm-personalizar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; width: 100%; padding: 12px 14px; border-radius: 10px;
+  border: 1px solid var(--border-2); background: var(--panel); color: var(--text); font: 600 13px var(--font-body); text-align: left; cursor: pointer;
+}
+.adm-personalizar:hover { border-color: var(--accent); }
+.adm-personalizar-ir { margin-left: auto; color: var(--accent); }
 .adm-galeria { border: 1px solid var(--border); border-radius: 12px; background: rgb(var(--tinta) / .02); overflow: hidden; }
 .adm-galeria-topo { display: flex; flex-direction: column; border-bottom: 1px solid var(--border); }
 .adm-galeria-topo .sm-colecoes { border-bottom: 0; padding: 12px 12px 8px; }

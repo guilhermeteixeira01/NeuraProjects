@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Layout from '../../comum/Layout.jsx'
 import { entrar, linkPerfil, loginAtivo, useConta } from '../../comum/conta.js'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
-import { CamadaMoldura, CargosDe, ComMoldura, IconeEquipe, SELOS_PADRAO, SeloCargo, chamar, nomeDoCargo, useAdmin, useListaTimes } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, CargosDe, ComMoldura, IconeEquipe, SELOS_PADRAO, SeloCargo, chamar, nomeDoCargo, useAdmin } from '../../comum/Moldura.jsx'
 import { COLECOES, MOLDURAS, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { NIVEL_MAX, nivelDe } from '../../comum/niveis.js'
@@ -12,7 +13,7 @@ import { localeAtual, useT } from '../../comum/i18n.js'
 import { ICONES_CARGO, IconeCargo } from '../../comum/cargos.jsx'
 import { INSIGNIAS, imagemInsignia } from '../../comum/insignias.js'
 import { useAvatar } from '../../comum/avatares.js'
-import { IconeNenhum } from '../../comum/Icones.jsx'
+import SeletorMoldura from '../perfil/SeletorMoldura.jsx'
 
 // Painel de administrador (/admin/). A aba só aparece para admin, mas quem decide é o worker:
 // toda chamada /admin/... confere o login e se a pessoa é admin (o dono, ou quem o dono promoveu).
@@ -165,49 +166,10 @@ function Usuarios({ usuarios, painel, dono, editar }) {
   )
 }
 
-// Galeria de molduras na edição de usuário: abas das coleções, busca pelo nome e as miniaturas (a foto lá em cima
-// mostra a escolhida na hora). Abre na coleção da moldura atual.
-function EscolherMoldura({ valor, escolher }) {
-  const tr = useT()
-  const [colecao, setColecao] = useState(() => molduraPorId(valor)?.colecao || COLECOES[0])
-  const [busca, setBusca] = useState('')
-  const termo = busca.trim().toLowerCase()
-  const lista = termo ? MOLDURAS.filter((m) => m.nome.toLowerCase().includes(termo)) : MOLDURAS.filter((m) => m.colecao === colecao)
-  return (
-    <div className="adm-galeria">
-      <div className="adm-galeria-topo">
-        <div className="sm-colecoes" role="tablist" aria-label={tr('Coleções')}>
-          {COLECOES.map((c) => (
-            <button key={c} type="button" role="tab" aria-selected={!termo && c === colecao} className={!termo && c === colecao ? 'active' : ''} onClick={() => (setColecao(c), setBusca(''))}>
-              {c} <small>{MOLDURAS.filter((m) => m.colecao === c).length}</small>
-            </button>
-          ))}
-        </div>
-        <input type="search" className="adm-galeria-busca" placeholder={tr('Buscar moldura…')} value={busca} onChange={(e) => setBusca(e.target.value)} />
-      </div>
-      <div className="sm-grade adm-galeria-grade">
-        {!termo && (
-          <button type="button" className={`sm-item sem${!valor ? ' sel' : ''}`} onClick={() => escolher('')} aria-pressed={!valor}>
-            <span className="sm-sem-icone"><IconeNenhum /></span>
-            <span>{tr('Sem moldura')}</span>
-          </button>
-        )}
-        {lista.map((m) => (
-          <button key={m.id} type="button" className={`sm-item${valor === m.id ? ' sel' : ''}`} onClick={() => escolher(m.id)} aria-pressed={valor === m.id} title={`${m.nome} · ${m.colecao}`}>
-            <img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" />
-            <span>{m.nome}</span>
-          </button>
-        ))}
-        {termo && !lista.length && <p className="sm-vazio">{tr('Nenhuma moldura com esse nome.')}</p>}
-      </div>
-    </div>
-  )
-}
-
 // Janela de edição de um usuário
 function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
   const tr = useT()
-  const times = useListaTimes()
+  const [personalizando, setPersonalizando] = useState(false)
   const [moldura, setMoldura] = useState(u.perfil.moldura || '')
   const [time, setTime] = useState(u.perfil.time || '')
   const [ajuste, setAjuste] = useState(u.ajuste)
@@ -220,10 +182,11 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
   const previa = nivelDe(u.xpBase + (Number(ajuste) || 0), u.mapas)
 
   useEffect(() => {
-    const tecla = (e) => e.key === 'Escape' && fechar()
+    // com o seletor de moldura/time aberto, o Esc fecha só ele
+    const tecla = (e) => e.key === 'Escape' && !personalizando && fechar()
     document.addEventListener('keydown', tecla)
     return () => document.removeEventListener('keydown', tecla)
-  }, [fechar])
+  }, [fechar, personalizando])
 
   const enviar = async (corpo) => {
     setEstado('salvando')
@@ -282,24 +245,35 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
           </label>
 
           <div className="adm-campo">
-            <span>
-              {tr('Moldura')}: <b className="adm-mold-atual">{molduraPorId(moldura)?.nome || tr('Sem moldura')}</b>
-            </span>
-            <EscolherMoldura valor={moldura} escolher={setMoldura} />
+            <span>{tr('Moldura e time')}</span>
+            <button type="button" className="adm-personalizar" onClick={() => setPersonalizando(true)}>
+              <span>
+                {tr('Moldura')}: <b className="adm-mold-atual">{molduraPorId(moldura)?.nome || tr('Sem moldura')}</b>
+              </span>
+              <span>
+                {tr('Time')}: <b className="adm-mold-atual">{time || tr('Sem time')}</b>
+              </span>
+              <span className="adm-personalizar-ir">{tr('Personalizar')} ›</span>
+            </button>
             <small>{tr('O admin pode dar qualquer moldura, mesmo acima do nível do jogador.')}</small>
           </div>
-
-          <label className="adm-campo">
-            <span>{tr('Time')}</span>
-            <select value={time} onChange={(e) => setTime(e.target.value)}>
-              <option value="">{tr('Sem time')}</option>
-              {times.map((t) => (
-                <option key={t.nome} value={t.nome}>
-                  {t.nome}
-                </option>
-              ))}
-            </select>
-          </label>
+          {personalizando &&
+            createPortal(
+              <SeletorMoldura
+                steamId={u.id}
+                avatar={u.avatar}
+                nome={u.nome || u.id}
+                nivel={previa.nivel}
+                admin
+                inicial={{ moldura: moldura || null, time: time || null }}
+                aoSalvar={(e) => {
+                  setMoldura(e.moldura || '')
+                  setTime(e.time || '')
+                }}
+                fechar={() => setPersonalizando(false)}
+              />,
+              document.body,
+            )}
 
           <div className="adm-campo">
             <span>{tr('Cargos')}</span>
