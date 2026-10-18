@@ -104,26 +104,44 @@
 .pf-vd .v, .pf-res.v { color: var(--green); }
 .pf-vd .d, .pf-res.d { color: #ff6b6b; }
 
-/* Histórico (rola de lado no celular) */
-.pf-hist-card .tabela { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.pf-hist-card table { width: 100%; border-collapse: collapse; min-width: 760px; }
-.pf-hist-card th, .pf-hist-card td { padding: 10px 8px; text-align: center; white-space: nowrap; font-size: 13.5px; }
-.pf-hist-card th { font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 1.5px; color: var(--dim-2); background: var(--bg-soft); }
-.pf-hist-card .esq { text-align: left; }
-.pf-hist-card tbody tr { border-top: 1px solid var(--border); cursor: pointer; transition: background .15s; }
+/* Histórico: tudo centralizado, colunas com largura fixa (rola de lado no celular) */
+.pf-hist-card .tabela { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; }
+.pf-hist-card table { width: 100%; min-width: 860px; table-layout: fixed; border-collapse: separate; border-spacing: 0; }
+.pf-hist-card th, .pf-hist-card td {
+  padding: 14px 6px; text-align: center; vertical-align: middle; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; font-size: 13.5px; font-variant-numeric: tabular-nums;
+}
+.pf-hist-card th { padding: 11px 6px; font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 1.5px; color: var(--dim-2); background: var(--bg-soft); }
+.pf-hist-card th:first-child { border-radius: 10px 0 0 10px; }
+.pf-hist-card th:last-child { border-radius: 0 10px 10px 0; }
+.pf-hist-card .esq { text-align: center; }
+/* Larguras: data, mapa, partida, resultado, K/D/A, ADR, HS%, rating, XP */
+.pf-hist-card th:nth-child(1) { width: 11%; }
+.pf-hist-card th:nth-child(2) { width: 14%; }
+.pf-hist-card th:nth-child(3) { width: 25%; }
+.pf-hist-card th:nth-child(4) { width: 11%; }
+.pf-hist-card th:nth-child(5) { width: 12%; }
+.pf-hist-card th:nth-child(6) { width: 7%; }
+.pf-hist-card th:nth-child(7) { width: 6%; }
+.pf-hist-card th:nth-child(8) { width: 8%; }
+.pf-hist-card th:nth-child(9) { width: 6%; }
+.pf-hist-card tbody td { border-top: 1px solid var(--border); }
+.pf-hist-card tbody tr { cursor: pointer; transition: background .15s; }
 .pf-hist-card tbody tr:hover { background: rgba(26,115,232,.07); }
 .pf-hist-card td.mono { font-family: var(--font-mono); font-size: 12.5px; }
-.pf-mapa { font-weight: 700; }
-.pf-serie { margin-left: 8px; font-family: var(--font-mono); font-size: 10px; color: var(--dim-2); }
+/* Mapa em cima, série (MD3 · mapa 1/3) embaixo, os dois centralizados */
+.pf-mapa { display: block; font-weight: 700; line-height: 1.25; }
+.pf-serie { display: block; margin: 3px 0 0; font-family: var(--font-mono); font-size: 10px; color: var(--dim-2); }
 .pf-partida span { font-weight: 600; }
-.pf-partida b { font-size: 11px; color: var(--dim-2); margin: 0 4px; }
-.pf-res { font-family: var(--font-mono); font-weight: 700; font-size: 12.5px; }
-.rt { display: inline-block; min-width: 46px; font-family: var(--font-mono); font-weight: 700; font-size: 12.5px; padding: 4px 6px; border-radius: 4px; }
+.pf-partida b { font-size: 11px; color: var(--dim-2); margin: 0 5px; }
+.pf-res { display: inline-block; min-width: 78px; font-family: var(--font-mono); font-weight: 700; font-size: 12.5px; }
+.rt { display: inline-block; min-width: 52px; text-align: center; font-family: var(--font-mono); font-weight: 700; font-size: 12.5px; padding: 4px 6px; border-radius: 4px; }
 .rt-alto { color: #ffa31a; background: rgba(255,163,26,.16); box-shadow: inset 0 0 0 1px rgba(255,163,26,.5); }
 .rt-bom { color: #6ee86e; background: rgba(92,214,92,.14); box-shadow: inset 0 0 0 1px rgba(92,214,92,.45); }
 .rt-medio { color: #fff; background: rgb(var(--tinta) / .08); box-shadow: inset 0 0 0 1px rgb(var(--tinta) / .25); }
 .rt-baixo { color: #ff6b6b; background: rgba(255,107,107,.12); box-shadow: inset 0 0 0 1px rgba(255,107,107,.4); }
-.pf-mvp { margin-left: 6px; color: var(--yellow); }
+/* A estrela do MVP não ocupa espaço: o rating fica sempre no centro da coluna */
+.pf-mvp { position: absolute; margin-left: 7px; color: var(--yellow); line-height: 26px; }
 .pf-mais {
   display: block; margin: 14px auto 2px; padding: 9px 18px; border-radius: 8px; cursor: pointer;
   font: inherit; font-size: 13px; font-weight: 700; color: var(--text); background: var(--bg-soft); border: 1px solid var(--border-2);
@@ -370,7 +388,7 @@ html.sm-aberto { overflow: hidden; }
 .pf-armas-lista .pf-arma-nome { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pf-arma-barra { height: 6px; border-radius: 4px; background: rgb(var(--tinta) / .06); overflow: hidden; }
 /* Gradiente do tema (azul → verde, as cores da marca; muda junto com o tema escolhido) */
-.pf-arma-barra i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--blue), var(--blue-2) 55%, var(--green)); box-shadow: 0 0 10px -3px var(--blue-2); }
+.pf-arma-barra i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--blue), var(--blue-2) 55%, var(--accent)); box-shadow: 0 0 10px -3px var(--blue-2); }
 .pf-arma-dest .pf-arma-barra { margin-top: auto; }
 
 /* Detalhe da arma clicada */
