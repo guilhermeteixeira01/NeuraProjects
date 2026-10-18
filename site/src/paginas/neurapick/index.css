@@ -18,6 +18,9 @@
   --orange: #ff7a1a;
   --red: #ff4655;
   --yellow: #f5c542;
+  /* Pick/Ban: o destaque do site (amarelo, --accent) continua verde aqui */
+  --accent: var(--green);
+  --accent-2: var(--green-2);
 
   --team-a: var(--blue-2);
   --team-b: var(--orange);
@@ -27,6 +30,11 @@
   --font-display: 'Chakra Petch', 'Segoe UI', sans-serif;
   --font-body: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
   --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+}
+
+html:is([data-tema='claro'], [data-tema='branco']) {
+  --accent: var(--green);
+  --accent-2: var(--green-2);
 }
 
 *,
