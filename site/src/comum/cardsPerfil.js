@@ -34,16 +34,18 @@ const semMovimento = () => {
 export const urlCard = (nome) => {
   const id = idCard(nome)
   const base = id.replace(/\.[^.]+$/, '')
-  if (!/\.svg$/i.test(id) && meds.includes(base + '.webp')) return `/assets/cards/med/${caminho(base)}.webp`
+  // (card animado em raster, ex. "x-anim.gif", fica como está: a versão webp seria uma imagem parada)
+  if (!/\.svg$/i.test(id) && !ehAnimado(id) && meds.includes(base + '.webp')) return `/assets/cards/med/${caminho(base)}.webp`
   return /-anim\.svg$/i.test(id) && semMovimento() ? `/assets/cards/parado/${caminho(id)}` : `/assets/cards/${caminho(id)}`
 }
 // Miniatura leve para a grade da janela Personalizar (public/assets/cards/mini/<tema>/<nome>.webp, gerada por
-// scripts/gerar-miniaturas.mjs). Sem ela usa a imagem inteira; SVG animado usa a versão parada (sem gastar processador).
+// scripts/gerar-miniaturas.mjs). Sem ela usa a imagem inteira. Card animado (SVG, leve) continua animado também na grade;
+// só para com "Melhorar desempenho" ou movimento reduzido (urlCard).
 export const urlMiniCard = (nome) => {
   const id = idCard(nome)
   const base = id.replace(/\.[^.]+$/, '')
-  if (minis.includes(base + '.webp')) return `/assets/cards/mini/${caminho(base)}.webp`
-  return /-anim\.svg$/i.test(id) ? `/assets/cards/parado/${caminho(id)}` : `/assets/cards/${caminho(id)}`
+  if (!ehAnimado(id) && minis.includes(base + '.webp')) return `/assets/cards/mini/${caminho(base)}.webp`
+  return urlCard(id)
 }
 // "neura/neura-ouro.svg" -> "Neura ouro"; "neura/radar-anim.svg" -> "Radar"
 export const nomeCard = (nome) => {
