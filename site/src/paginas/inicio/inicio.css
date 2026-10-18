@@ -191,14 +191,14 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: var(--yellow) !important;
+  color: var(--green) !important;
 }
 .hx-sys i {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--yellow);
-  box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.2);
+  background: var(--green);
+  box-shadow: 0 0 0 3px rgba(61, 220, 132, 0.2);
   animation: piscar 1.6s ease-in-out infinite;
 }
 
