@@ -45,6 +45,16 @@ const ENTREGA_MS = 90 * 1000 // o plugin pegou a série e não confirmou que car
 const ENCERRADA_MS = 15 * 60 * 1000 // sala com a série encerrada some sozinha depois disso
 const ESTADOS_SERVIDOR = ['carregada', 'jogando', 'encerrada', 'erro']
 const FORMATOS_FILA = ['bo1', 'bo3'] // formatos que o líder pode buscar; só lobbies do mesmo formato se enfrentam
+// Assinatura Premium ativa de quem busca (perfis[id].sub, KV; ver src/comum/assinatura.js): sem data = infinita, vencida não vale.
+// A busca de MD3 é só para o líder assinante; o MD1 é livre.
+async function temSubAtiva(env, id) {
+  try {
+    const sub = ((await env.MOLDURAS.get('perfis', 'json')) || {})[id]?.sub
+    return !!sub && (sub.expira == null || Number(sub.expira) > Date.now())
+  } catch {
+    return false
+  }
+}
 const idsDe = (p) => [...p.times.A.membros, ...p.times.B.membros]
 const partidaDe = (partidas, id) => Object.values(partidas).find((p) => idsDe(p).includes(id)) || null
 const passoDe = (p) => buildSteps(p.formato, p.primeiro)[p.historico.length] || null
@@ -406,6 +416,7 @@ export class Presenca {
         const lb = todos[eu]
         if (!eLider || !lb || 1 + lb.membros.length < LOBBY_MAX) return json({ erro: 'incompleto' }, 400)
         if (!FORMATOS_FILA.includes(valor?.formato) || !FORMATS[valor.formato]) return json({ erro: 'formato' }, 400)
+        if (valor.formato === 'bo3' && !(await temSubAtiva(this.env, eu))) return json({ erro: 'sem-sub' }, 403)
         if (!lb.busca) {
           lb.convites = []
           lb.formato = valor.formato

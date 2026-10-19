@@ -359,3 +359,11 @@ a.sala-entrar { display: inline-flex; align-items: center; justify-content: cent
 .sala-comando button { flex: none; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-2); background: none; color: var(--text); font: 700 11.5px var(--font-body); cursor: pointer; }
 .sala-comando button:hover { border-color: var(--accent); color: var(--accent); }
 @media (prefers-reduced-motion: reduce) { .sala-giro { animation: none; } }
+
+/* MD3 só para o líder com assinatura Premium */
+.lb-modos-caixa { display: flex; flex-direction: column; gap: 12px; }
+.lb-premium {
+  margin-left: 8px; padding: 2px 8px; border-radius: 999px; font: 800 10px var(--font-mono); font-style: normal; letter-spacing: .6px;
+  color: #1a1400; background: var(--accent); vertical-align: middle;
+}
+.lb-dica-premium { margin: 0; text-align: center; font: 600 13px var(--font-body); color: var(--accent); }

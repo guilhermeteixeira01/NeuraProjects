@@ -615,15 +615,16 @@ export function useCardDe(steamId) {
 }
 
 // Selo do time escolhido (logo + nome), ou nada se o jogador não escolheu. classe: estilo de cada página.
-export function TimeEscolhido({ steamId, classe = '' }) {
+// soLogo: só o logo (o nome fica no tooltip), para quando falta espaço (pódio do ranking)
+export function TimeEscolhido({ steamId, classe = '', soLogo = false }) {
   const t = useT()
   const time = useTimeDe(steamId)
   const [erroLogo, setErroLogo] = useState(false)
   if (!time) return null
   return (
-    <span className={`time-escolhido ${classe}`} title={t('Time: {nome}', { nome: time.nome })}>
+    <span className={`time-escolhido${soLogo ? ' so-logo' : ''} ${classe}`} title={t('Time: {nome}', { nome: time.nome })}>
       {/^https?:\/\//.test(time.logo || '') && !erroLogo ? <img src={time.logo} alt="" loading="lazy" onError={() => setErroLogo(true)} /> : <i aria-hidden="true">{time.nome.slice(0, 1)}</i>}
-      <span>{time.nome}</span>
+      {!soLogo && <span>{time.nome}</span>}
     </span>
   )
 }

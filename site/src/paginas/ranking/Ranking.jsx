@@ -100,39 +100,37 @@ function Podio({ j, pos, m, eu }) {
       <span className="pod-linha pod-linha-cargos">
         <CargosDe steamId={j.steamId} classe="pod-cargos" max={1} />
       </span>
-      <span className="selos pod-meta">
-        <SeloNivel nivel={j.nivel} tamanho={28} />
-        <Premier j={j} />
-      </span>
-      <span className="pod-linha pod-linha-time">
-        <TimeEscolhido steamId={j.steamId} classe="pod-time" />
-      </span>
-      <span className="pod-valor">
-        <b>
-          {fmt(j[chave], casas)}
-          {suf}
-        </b>
-        <span className="mono">{t(rotulo)}</span>
-      </span>
-      <div className="pod-mini">
-        <div>
-          <b>{chave === 'rating' ? fmt(j.kd, 2) : fmt(j.rating, 2)}</b>
-          <span>{chave === 'rating' ? 'K/D' : 'RATING'}</span>
+      {/* Tudo o que é número fica junto num painel só (lê bem mesmo sobre o banner do jogador): nível, Premier e time (só o logo, o
+          nome aparece ao passar o mouse), o rating em destaque, as estatísticas principais e a forma recente */}
+      <div className="pod-info">
+        <span className="selos pod-meta">
+          <SeloNivel nivel={j.nivel} tamanho={28} />
+          <Premier j={j} />
+          <TimeEscolhido steamId={j.steamId} classe="pod-time" soLogo />
+        </span>
+        <span className="pod-valor">
+          <b>
+            {fmt(j[chave], casas)}
+            {suf}
+          </b>
+          <span className="mono">{t(rotulo)}</span>
+        </span>
+        <div className="pod-mini">
+          <div>
+            <b>{chave === 'rating' ? fmt(j.kd, 2) : fmt(j.rating, 2)}</b>
+            <span>{chave === 'rating' ? 'K/D' : 'RATING'}</span>
+          </div>
+          <div>
+            <b>{fmt(j.adr, 1)}</b>
+            <span>ADR</span>
+          </div>
+          <div>
+            <b>{j.mapas}</b>
+            <span>{t('MAPAS')}</span>
+          </div>
         </div>
-        <div>
-          <b>{fmt(j.adr, 1)}</b>
-          <span>ADR</span>
-        </div>
-        <div>
-          <b>{j.kills}</b>
-          <span>KILLS</span>
-        </div>
-        <div>
-          <b>{j.mapas}</b>
-          <span>{t('MAPAS')}</span>
-        </div>
+        <Forma j={j} />
       </div>
-      <Forma j={j} />
     </div>
   )
 }

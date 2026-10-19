@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Layout from '../../comum/Layout.jsx'
 import { CONFIG } from '../../comum/config.js'
 import { entrar, linkPerfil, loginAtivo } from '../../comum/conta.js'
 import { lerJson } from '../../comum/dados.js'
 import { IconeSteam } from '../../comum/Icones.jsx'
-import { ComMoldura, IconeEquipe, useCardDe, usePerfis } from '../../comum/Moldura.jsx'
+import { ComMoldura, IconeEquipe, useCardDe, useNivelSub, usePerfis } from '../../comum/Moldura.jsx'
 import { urlCard } from '../../comum/cardsPerfil.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { ALL_MAPS, idMapa, mapImage, nomeMapa } from '../../comum/mapas.js'
@@ -14,6 +14,7 @@ import { useAmigos } from '../../comum/amigos.js'
 import { useAvatar } from '../../comum/avatares.js'
 import { acaoLobby, useLobby, useRelogio } from '../../comum/lobby.js'
 import SalaVeto from './SalaVeto.jsx'
+import { playSound } from '../neurapick/data/sounds.js'
 import { useT } from '../../comum/i18n.js'
 
 // Lobby (estilo FACEIT): nível e temporada em cima, o grupo (5 lugares, você no meio) e o painel de partida embaixo.
@@ -29,6 +30,7 @@ const ERROS = {
   buscando: 'Cancele a busca de partida antes de mexer no grupo.',
   'em-partida': 'Você está numa partida: o grupo fica travado até ela acabar.',
   incompleto: 'O grupo precisa de 5 jogadores para buscar partida.',
+  'sem-sub': 'A busca de MD3 é só para o líder com assinatura Premium.',
   login: 'Seu login venceu. Entre de novo com a Steam.',
 }
 const fmt = (v, t) => Number(v || 0).toLocaleString(t.local)
@@ -304,6 +306,7 @@ const MODOS = [
     id: 'bo3',
     nome: 'Série MD3',
     rotulo: 'MD3',
+    premium: true, // só o líder com assinatura Premium busca (o worker confere também)
     itens: [
       ['Ban, ban, pick, pick, ban, ban e decider', IC_CHECK],
       ['Lados definidos pelo veto', IC_CHECK],
@@ -323,9 +326,29 @@ function TempoBusca({ desde }) {
 function Painel({ dados, fazer, ocupado }) {
   const t = useT()
   const [aba, setAba] = useState('tipo')
+  const nivelSub = useNivelSub(dados.eu) // a assinatura é do líder, que é quem busca
   const [escolhido, setEscolhido] = useState('bo3')
-  const modo = dados.busca && dados.formato ? dados.formato : escolhido // buscando: vale o que o líder mandou para a fila
+  const [dica, setDica] = useState('')
+  const efetivo = escolhido === 'bo3' && !nivelSub ? 'bo1' : escolhido // sem assinatura o MD3 não vale: fica no MD1
+  const modo = dados.busca && dados.formato ? dados.formato : efetivo // buscando: vale o que o líder mandou para a fila
   const trocavel = dados.souLider && !dados.busca
+  const travado = (m) => m.premium && !nivelSub && dados.souLider // MD3 trancado para o líder sem assinatura
+
+  // Som de busca: o líder ouve na hora do clique; o resto do grupo ouve quando a busca começa e quando para
+  const buscando = !!dados.busca
+  const antes = useRef(buscando)
+  useEffect(() => {
+    if (buscando !== antes.current && !dados.souLider) playSound(buscando ? 'pick' : 'lado')
+    antes.current = buscando
+  }, [buscando, dados.souLider])
+  const buscar = () => {
+    playSound('pick')
+    fazer('buscar', undefined, { formato: modo })
+  }
+  const cancelar = () => {
+    playSound('lado')
+    fazer('cancelar-busca')
+  }
   const completo = dados.membros.length >= dados.max
   return (
     <section className="lb-painel" aria-label={t('Partida')}>
@@ -348,12 +371,12 @@ function Painel({ dados, fazer, ocupado }) {
           )}
         </p>
         {dados.busca ? (
-          <button type="button" className="lb-buscar buscando" disabled={!dados.souLider || ocupado} onClick={() => fazer('cancelar-busca')} title={dados.souLider ? t('Cancelar busca') : undefined}>
+          <button type="button" className="lb-buscar buscando" disabled={!dados.souLider || ocupado} onClick={cancelar} title={dados.souLider ? t('Cancelar busca') : undefined}>
             <TempoBusca desde={dados.busca} />
             <small>{MODOS.find((m) => m.id === modo)?.rotulo} · {dados.souLider ? t('clique para cancelar') : t('Buscando partida')}</small>
           </button>
         ) : (
-          <button type="button" className={`lb-buscar${completo && dados.souLider ? ' pronto' : ''}`} disabled={!completo || !dados.souLider || ocupado} onClick={() => fazer('buscar', undefined, { formato: modo })}>
+          <button type="button" className={`lb-buscar${completo && dados.souLider ? ' pronto' : ''}`} disabled={!completo || !dados.souLider || ocupado} onClick={buscar}>
             {t('BUSCAR PARTIDA')}
             <small>{!completo ? `${dados.membros.length}/${dados.max}` : dados.souLider ? MODOS.find((m) => m.id === modo).rotulo : t('Só o líder busca')}</small>
           </button>
@@ -374,11 +397,20 @@ function Painel({ dados, fazer, ocupado }) {
 
       <div className="lb-painel-corpo">
         {aba === 'tipo' && (
+          <div className="lb-modos-caixa">
           <div className="lb-modos">
             {MODOS.map((m) => (
-              <button key={m.id} type="button" className={`lb-modo${modo === m.id ? ' sel' : ''}`} disabled={!trocavel && modo !== m.id} onClick={() => trocavel && setEscolhido(m.id)} aria-pressed={modo === m.id}>
+              <button key={m.id} type="button" className={`lb-modo${modo === m.id ? ' sel' : ''}`} disabled={!trocavel && modo !== m.id} onClick={() => {
+                  if (!trocavel) return
+                  if (travado(m)) return setDica(t('A busca de MD3 é só para o líder com assinatura Premium.'))
+                  setDica('')
+                  setEscolhido(m.id)
+                }}
+                aria-pressed={modo === m.id}
+              >
                 <span className="lb-modo-cab">
                   <b>{t(m.nome)}</b> <small>· 5v5</small>
+                  {travado(m) && <em className="lb-premium">PREMIUM</em>}
                 </span>
                 <span className="lb-modo-itens">
                   {m.itens.map(([texto, icone]) => (
@@ -390,6 +422,12 @@ function Painel({ dados, fazer, ocupado }) {
                 </span>
               </button>
             ))}
+          </div>
+          {dica && (
+            <p className="lb-dica-premium" role="status">
+              {dica}
+            </p>
+          )}
           </div>
         )}
         {aba === 'mapas' && (

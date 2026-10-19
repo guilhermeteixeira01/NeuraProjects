@@ -78,7 +78,18 @@
 .pod-valor { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 4px; }
 .pod-valor b { font-family: var(--font-display); font-size: 44px; font-weight: 700; line-height: 1; color: var(--c); text-shadow: 0 0 26px color-mix(in srgb, var(--c) 45%, transparent); }
 .p1 .pod-valor b { font-size: 54px; }
-.pod-mini { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: 100%; margin-top: 6px; padding-top: 14px; border-top: 1px solid var(--border); }
+.pod-mini { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; margin-top: 2px; padding-top: 12px; border-top: 1px solid rgb(var(--tinta) / .1); }
+/* Painel das informações: nível/Premier/time, rating, estatísticas e forma, juntos e separados do avatar e do nome */
+.pod-info {
+  width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 12px; padding: 14px 14px 14px;
+  border-radius: 14px; border: 1px solid rgb(var(--tinta) / .08); background: rgb(var(--tinta) / .035);
+}
+.pod.com-card .pod-info { background: rgb(8 9 12 / .66); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-color: rgb(255 255 255 / .12); }
+.pod-info .pod-valor { margin-top: 0; }
+.pod-info .pod-meta { margin-top: 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: nowrap; }
+.pod-info .pod-time { flex: none; }
+/* as estatísticas já estão dentro do painel: sem caixa própria, só a linha de cima e as divisórias */
+.pod-info .pod-mini { margin-top: 2px; padding: 12px 0 0; border: 0; border-top: 1px solid rgb(var(--tinta) / .1); border-radius: 0; background: none; }
 .pod-mini div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .pod-mini b { font-family: var(--font-display); font-size: 17px; }
 .pod-mini span { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 1.2px; color: var(--dim-2); }
