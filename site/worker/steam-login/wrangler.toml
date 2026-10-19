@@ -7,6 +7,8 @@ compatibility_date = "2026-10-01"
 SITE = "https://neuraproject.com.br"
 # Dono do site (Te1xe1ra): sempre admin e o único que promove outros admins no painel
 DONO = "76561199151150360"
+# Servidor de CS2 das partidas do lobby (aparece no botão Entrar na partida). A senha é o segredo SERVIDOR_SENHA
+SERVIDOR_CONECTAR = "179.197.67.29:27015"
 # Para testar no `npm run dev`, descomente:
 # ORIGENS_EXTRAS = "http://localhost:5173"
 
