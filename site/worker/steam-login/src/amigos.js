@@ -9,7 +9,7 @@
 // do próprio objeto. Rotas (com login, em index.js): GET /amigos, POST /amigos { acao, id }.
 
 import { DEFAULT_POOL } from '../../../src/paginas/neurapick/data/maps.js'
-import { FORMATS, buildSteps, deriveState } from '../../../src/paginas/neurapick/data/veto.js'
+import { FORMATS, buildSteps, deriveState, other } from '../../../src/paginas/neurapick/data/veto.js'
 
 const ID_STEAM = /^\d{17}$/
 const MAX_AMIGOS = 300
@@ -32,9 +32,18 @@ const ACOES_PARTIDA = ['aceitar', 'recusar-partida', 'veto', 'encerrar']
 //                          formato, pool, primeiro: 'A' | 'B', historico: [{ type, team, map?, side?, auto? }] } }
 // 'aceitar': os 10 têm ACEITE_SEG para aceitar (quem não aceitar derruba a partida; o time que aceitou inteiro volta para a fila).
 // 'veto': só o líder do time da vez age (pick/ban/lado); passou VETO_SEG o servidor joga sozinho. 'pronto': veto acabou.
+// Veto pronto = a partida vai para o servidor de CS2: p.servidor = { estado, desde, ... } com estado
+//   'fila'      esperando o plugin buscar (POST /servidor/proxima, autenticado com SERVIDOR_TOKEN)
+//   'entregue'  o plugin pegou a série e está carregando (volta para 'fila' se não confirmar em ENTREGA_MS)
+//   'carregada' série carregada no servidor: os jogadores já podem entrar   'jogando' mapa em andamento
+//   'encerrada' série terminou (ou foi cancelada)                            'erro' o plugin não conseguiu carregar
+// O plugin avisa cada fase por POST /servidor/estado (ESTADOS_SERVIDOR).
 const ACEITE_SEG = 30
 const VETO_SEG = 30
 const PRONTA_MS = 2 * 60 * 60 * 1000 // sala com veto pronto some sozinha depois disso
+const ENTREGA_MS = 90 * 1000 // o plugin pegou a série e não confirmou que carregou: volta para a fila
+const ENCERRADA_MS = 15 * 60 * 1000 // sala com a série encerrada some sozinha depois disso
+const ESTADOS_SERVIDOR = ['carregada', 'jogando', 'encerrada', 'erro']
 const FORMATOS_FILA = ['bo1', 'bo3'] // formatos que o líder pode buscar; só lobbies do mesmo formato se enfrentam
 const idsDe = (p) => [...p.times.A.membros, ...p.times.B.membros]
 const partidaDe = (partidas, id) => Object.values(partidas).find((p) => idsDe(p).includes(id)) || null
@@ -77,6 +86,28 @@ function registrarPasso(p, h) {
   else {
     p.fase = 'pronto'
     p.prazo = Date.now() + PRONTA_MS
+    p.servidor = { estado: 'fila', desde: Date.now() }
+  }
+}
+
+// Série no formato do css_serie do plugin (BaseComp/Serie.cs): o A/B do site é o A/B da série.
+// Mapas na ordem do veto (picks) e o decider por último, com round faca. Em cada pick o time que NÃO escolheu o mapa escolheu o lado:
+// "ct" é o time que começa de CT.
+function montarSerie(p, nomeDe) {
+  const { picks, remaining } = deriveState(p.pool, p.historico)
+  const mapas = picks.map((k) => ({ mapa: `de_${k.map}`, faca: false, ct: k.side === 'ct' ? k.sideBy : other(k.sideBy) }))
+  mapas.push({ mapa: `de_${remaining[0]}`, faca: true, ct: null })
+  const nomeTime = (t) => `time_${nomeDe(p.times[t].lider)}`
+  const timeA = nomeTime('A')
+  let timeB = nomeTime('B')
+  if (timeB.toLowerCase() === timeA.toLowerCase()) timeB += ' (2)' // o plugin recusa dois times com o mesmo nome
+  return {
+    partidaId: p.id,
+    formato: FORMATS[p.formato]?.label || p.formato.toUpperCase(),
+    timeA,
+    timeB,
+    mapas,
+    elenco: Object.fromEntries(['A', 'B'].flatMap((t) => p.times[t].membros.map((id) => [id, t]))),
   }
 }
 
@@ -201,6 +232,18 @@ export async function rotaLobby(req, env, quem, cors) {
   const corpo = req.method === 'POST' ? await req.text() : undefined
   const r = await presenca(env).fetch('https://presenca/lobby', { method: req.method, headers: { 'X-Id': quem.id, 'Content-Type': 'application/json' }, body: corpo })
   return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
+}
+
+// POST /servidor/proxima e /servidor/estado: só o plugin do servidor de CS2 (Authorization: Bearer <SERVIDOR_TOKEN>)
+export async function rotaServidor(req, env, rota) {
+  const cab = req.headers.get('Authorization') || ''
+  const dado = new TextEncoder().encode(cab.startsWith('Bearer ') ? cab.slice(7).trim() : '')
+  const certo = new TextEncoder().encode(env.SERVIDOR_TOKEN || '')
+  let dif = dado.length ^ certo.length // compara tudo, sem parar no primeiro byte diferente
+  for (let i = 0; i < certo.length; i++) dif |= (dado[i] ?? 0) ^ certo[i]
+  if (!env.SERVIDOR_TOKEN || dif !== 0) return json({ erro: 'token' }, 401)
+  const r = await presenca(env).fetch(new Request(`https://presenca${rota}`, { method: 'POST', body: await req.text() }))
+  return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8' } })
 }
 
 // GET /presenca?t=<token> (WebSocket): o index.js confere o token e manda para o objeto com o SteamID em X-Id
@@ -390,7 +433,8 @@ export class Presenca {
         if (erro) return json({ erro }, 409)
         avisar(idsDe(minha))
       } else if (acao === 'encerrar') {
-        if (minha.fase === 'aceitar' || (minha.times.A.lider !== eu && minha.times.B.lider !== eu)) return json({ erro: 'lider' }, 403)
+        const serieAcabou = minha.servidor?.estado === 'encerrada' || minha.servidor?.estado === 'erro'
+        if (minha.fase === 'aceitar' || (!serieAcabou && minha.times.A.lider !== eu && minha.times.B.lider !== eu)) return json({ erro: 'lider' }, 403)
         delete partidas[minha.id]
         avisar(idsDe(minha))
       }
@@ -431,6 +475,13 @@ export class Presenca {
         id: minhaPartida.id, fase: minhaPartida.fase, prazo: minhaPartida.prazo, agora: Date.now(), formato: minhaPartida.formato,
         pool: minhaPartida.pool, primeiro: minhaPartida.primeiro, historico: minhaPartida.historico, aceitos: minhaPartida.aceitos,
         meuTime: minhaPartida.times.A.membros.includes(eu) ? 'A' : 'B',
+        servidor: minhaPartida.servidor && {
+          estado: minhaPartida.servidor.estado,
+          detalhe: minhaPartida.servidor.detalhe || '',
+          placar: minhaPartida.servidor.placar || '',
+          conectar: this.env.SERVIDOR_CONECTAR || '',
+          senha: ['carregada', 'jogando'].includes(minhaPartida.servidor.estado) ? this.env.SERVIDOR_SENHA || '' : '',
+        },
         times: Object.fromEntries(['A', 'B'].map((t) => [t, { lider: minhaPartida.times[t].lider, membros: minhaPartida.times[t].membros.map(pessoa) }])),
       },
       membros: [lider, ...lb.membros].map(pessoa),
@@ -469,8 +520,54 @@ export class Presenca {
     for (const a of avisados) this.enviar(a, { tipo: 'lobby' })
   }
 
+  // ── Servidor de CS2 (o plugin BaseComp conversa com estas duas rotas; index.js confere o token) ──
+  // POST /servidor/proxima: o plugin está livre e pede a próxima partida; devolve a série pronta ({ nenhuma: true } se não tem).
+  async servidorProxima() {
+    const partidas = (await this.state.storage.get('partidas')) || {}
+    const agora = Date.now()
+    const avisados = new Set()
+    for (const p of Object.values(partidas)) {
+      if (p.servidor?.estado === 'entregue' && agora - p.servidor.entregueEm > ENTREGA_MS) {
+        p.servidor.estado = 'fila' // o plugin sumiu depois de pegar: oferece de novo
+        idsDe(p).forEach((i) => avisados.add(i))
+      }
+    }
+    const p = Object.values(partidas)
+      .filter((x) => x.fase === 'pronto' && x.servidor?.estado === 'fila')
+      .sort((a, b) => a.servidor.desde - b.servidor.desde)[0]
+    let resposta = { nenhuma: true }
+    if (p) {
+      const info = await nomes(this.env, idsDe(p))
+      resposta = montarSerie(p, (id) => info[id]?.nome || id)
+      p.servidor = { ...p.servidor, estado: 'entregue', entregueEm: agora }
+      idsDe(p).forEach((i) => avisados.add(i))
+    }
+    if (avisados.size) {
+      await this.state.storage.put('partidas', partidas)
+      for (const a of avisados) this.enviar(a, { tipo: 'lobby' })
+    }
+    return json(resposta)
+  }
+
+  // POST /servidor/estado { partidaId, estado, detalhe?, placar? }: o plugin conta em que fase a série está
+  async servidorEstado(req) {
+    const { partidaId, estado, detalhe, placar } = (await req.json().catch(() => null)) || {}
+    if (!ESTADOS_SERVIDOR.includes(estado)) return json({ erro: 'estado' }, 400)
+    const partidas = (await this.state.storage.get('partidas')) || {}
+    const p = partidas[String(partidaId)]
+    if (!p?.servidor) return json({ erro: 'sem-partida' }, 404) // sala fechada pelos jogadores: o plugin segue o jogo mesmo assim
+    p.servidor = { ...p.servidor, estado, detalhe: String(detalhe || '').slice(0, 200), placar: String(placar || '').slice(0, 40) }
+    if (estado === 'encerrada' || estado === 'erro') p.prazo = Date.now() + ENCERRADA_MS
+    await this.state.storage.put('partidas', partidas)
+    await this.agendar(partidas)
+    for (const i of idsDe(p)) this.enviar(i, { tipo: 'lobby' })
+    return json({ ok: true })
+  }
+
   async fetch(req) {
     const url = new URL(req.url)
+    if (url.pathname === '/servidor/proxima') return this.servidorProxima()
+    if (url.pathname === '/servidor/estado') return this.servidorEstado(req)
     if (url.pathname === '/lobby') return this.lobby(req)
     if (url.pathname === '/avisar') {
       const { ids = [] } = await req.json().catch(() => ({}))

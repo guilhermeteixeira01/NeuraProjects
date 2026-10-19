@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 282 395" width="282" height="395" preserveAspectRatio="xMidYMid slice"><defs><pattern id="hex" width="42" height="72.7" patternUnits="userSpaceOnUse" patternTransform="scale(1)"><path d="M21 0 42 12.1v24.2L21 48.4 0 36.3V12.1z M21 48.4v24.3 M0 36.3 -21 48.4 M42 36.3 63 48.4" fill="none" stroke="#f5c542" stroke-opacity=".2"/></pattern>
+<pattern id="hexBrilho" width="42" height="72.7" patternUnits="userSpaceOnUse"><path d="M21 0 42 12.1v24.2L21 48.4 0 36.3V12.1z M21 48.4v24.3 M0 36.3 -21 48.4 M42 36.3 63 48.4" fill="none" stroke="#ffe08a" stroke-opacity=".95" stroke-width="1.4"/></pattern>
+<radialGradient id="foco" cx=".7" cy=".25" r=".75"><stop offset="0" stop-color="#f5c542" stop-opacity=".5"/><stop offset="1" stop-color="#f5c542" stop-opacity="0"/></radialGradient>
+<linearGradient id="luz" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity="1"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<mask id="varre"><rect width="282" height="395" fill="#000"/><g class="luz"><rect x="-140" y="-40" width="110" height="475" fill="url(#luz)" transform="skewX(-22)"/></g></mask></defs>
+<style>.luz{animation:luz 5s ease-in-out infinite}
+@keyframes luz{0%{transform:translateX(0)}65%,100%{transform:translateX(520px)}}
+.foco{animation:foco 4s ease-in-out infinite alternate}
+@keyframes foco{from{opacity:.55}to{opacity:1}}
+.hexpisca{animation:hexpisca 3.2s ease-in-out infinite}
+@keyframes hexpisca{0%,100%{opacity:0}50%{opacity:.55}}
+.mira{animation:mira 2.4s ease-in-out infinite alternate}
+@keyframes mira{from{stroke-opacity:.3}to{stroke-opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}</style>
+<rect width="282" height="395" fill="#0c0b08"/><rect width="282" height="395" fill="url(#hex)"/><rect class="foco" width="282" height="395" fill="url(#foco)"/>
+<rect width="282" height="395" fill="url(#hexBrilho)" mask="url(#varre)"/>
+<g fill="#f5c542"><path class="hexpisca" d="M63 109.2l21 12.1v24.2L63 157.6 42 145.5v-24.2z"/><path class="hexpisca" style="animation-delay:1.1s" d="M147 36.4l21 12.1v24.2L147 84.8 126 72.7V48.5z"/><path class="hexpisca" style="animation-delay:2.1s" d="M189 254.4l21 12.1v24.2L189 302.8 168 290.7v-24.2z"/></g>
+<g class="mira" stroke="#f5c542" stroke-opacity=".7" fill="none" stroke-width="1.5"><path d="M14 30V14h16"/><path d="M268 365v16H252"/></g></svg>

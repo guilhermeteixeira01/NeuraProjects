@@ -27,14 +27,17 @@
  * Variáveis (wrangler.toml / painel da Cloudflare):
  *   SITE            endereço do site (padrão https://neuraproject.com.br)
  *   DONO            SteamID64 do dono: sempre admin e o único que muda a lista de admins
+ *   SERVIDOR_CONECTAR  ip:porta do servidor de CS2 (ex.: 177.0.0.1:27015); aparece no botão Entrar na partida
  *   ORIGENS_EXTRAS  outros endereços que podem usar o login, separados por vírgula
  *                   (ex.: http://localhost:5173 para testar no `npm run dev`)
  * Segredos (npx wrangler secret put <NOME>):
  *   SEGREDO         texto aleatório longo que assina os tokens (obrigatório)
+ *   SERVIDOR_TOKEN  senha que o plugin do servidor de CS2 usa em /servidor/* (obrigatório para o botão Entrar na partida)
+ *   SERVIDOR_SENHA  senha do servidor de CS2 (opcional): só os 10 jogadores da partida a recebem
  *   STEAM_API_KEY   chave da Web API da Steam (opcional; sem ela o token vai sem nome/avatar e o site
  *                   usa os do ranking)
  */
-import { Presenca, avisarPerfil, rotaAmigos, rotaLobby, rotaPresenca } from './amigos.js'
+import { Presenca, avisarPerfil, rotaAmigos, rotaLobby, rotaPresenca, rotaServidor } from './amigos.js'
 export { Presenca } // Durable Object da presença (wrangler.toml)
 
 const OPENID = 'https://steamcommunity.com/openid/login'
@@ -70,6 +73,9 @@ export default {
       if (!quemWs) return new Response('login', { status: 401 })
       return rotaPresenca(req, env, quemWs.id)
     }
+
+    // Plugin do servidor de CS2 (BaseComp): pega a próxima partida pronta e avisa em que fase ela está (token próprio, sem login Steam)
+    if ((rota === '/servidor/proxima' || rota === '/servidor/estado') && req.method === 'POST') return rotaServidor(req, env, rota)
 
     // Daqui para baixo: só o próprio site, com login
     const cors = corsDe(req, env, site)

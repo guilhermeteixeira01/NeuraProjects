@@ -93,6 +93,77 @@ function Equipe({ lado, time, nome, naVez }) {
   )
 }
 
+// O que o botão do fim do veto mostra, conforme a fase do servidor de CS2 (o plugin avisa o worker; ver src/amigos.js):
+// fila/entregue = esperando o servidor, carregada/jogando = pode entrar (steam://connect), encerrada/erro = acabou.
+function Conectar({ servidor }) {
+  const t = useT()
+  const [copiado, setCopiado] = useState(false)
+  const estado = servidor?.estado || 'fila'
+  const { conectar = '', senha = '' } = servidor || {}
+  const comando = `connect ${conectar}${senha ? `; password ${senha}` : ''}`
+  const copiar = async () => {
+    try {
+      await navigator.clipboard.writeText(comando)
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2000)
+    } catch {
+      // sem acesso à área de transferência: o comando continua na tela para copiar na mão
+    }
+  }
+
+  if (estado === 'fila' || estado === 'entregue')
+    return (
+      <div className="sala-servidor">
+        <button type="button" className="sala-entrar espera" disabled>
+          <i className="sala-giro" aria-hidden="true" />
+          {estado === 'fila' ? t('AGUARDANDO O SERVIDOR') : t('PREPARANDO O SERVIDOR')}
+        </button>
+        <small>{estado === 'fila' ? t('Sua partida está na fila do servidor. Se ele estiver livre, começa em instantes.') : t('O servidor está carregando os mapas e os times.')}</small>
+      </div>
+    )
+
+  if (estado === 'erro')
+    return (
+      <div className="sala-servidor">
+        <p className="lb-erro" role="alert">
+          {t('O servidor não conseguiu carregar a partida.')} {servidor?.detalhe}
+        </p>
+      </div>
+    )
+
+  if (estado === 'encerrada')
+    return (
+      <div className="sala-servidor">
+        <b className="sala-fim">{t('PARTIDA ENCERRADA')}</b>
+        {servidor?.placar && <small>{t('Placar da série: {p}', { p: servidor.placar })}</small>}
+      </div>
+    )
+
+  // carregada ou jogando
+  return (
+    <div className="sala-servidor">
+      {conectar ? (
+        <a className="sala-entrar" href={`steam://connect/${conectar}${senha ? `/${encodeURIComponent(senha)}` : ''}`}>
+          {t('ENTRAR NA PARTIDA')}
+        </a>
+      ) : (
+        <p className="lb-erro" role="alert">
+          {t('O endereço do servidor ainda não foi configurado.')}
+        </p>
+      )}
+      {estado === 'jogando' && servidor?.placar && <small>{t('Série em andamento · {p}', { p: servidor.placar })}</small>}
+      {conectar && (
+        <span className="sala-comando">
+          <code>{comando}</code>
+          <button type="button" onClick={copiar}>
+            {copiado ? t('Copiado') : t('Copiar')}
+          </button>
+        </span>
+      )}
+    </div>
+  )
+}
+
 export default function SalaVeto({ dados }) {
   const t = useT()
   const { partida, eu } = dados
@@ -173,17 +244,15 @@ export default function SalaVeto({ dados }) {
                   </li>
                 ))}
               </ul>
-              <button type="button" className="sala-entrar" onClick={() => setAviso('A entrada na partida ainda vai ser liberada.')}>
-                {t('ENTRAR NA PARTIDA')}
-              </button>
+              <Conectar servidor={partida.servidor} />
               {aviso && (
                 <p className="lb-erro" role="alert">
                   {t(aviso)}
                 </p>
               )}
-              {souLider && (
+              {(souLider || ['encerrada', 'erro'].includes(partida.servidor?.estado)) && (
                 <button type="button" className="sala-encerrar" disabled={ocupado} onClick={() => agir('encerrar')}>
-                  {t('Encerrar sala')}
+                  {t(partida.servidor?.estado === 'encerrada' ? 'Fechar sala' : 'Encerrar sala')}
                 </button>
               )}
             </div>

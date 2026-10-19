@@ -795,6 +795,11 @@ html.sm-aberto { overflow: hidden; }
 /* Card bloqueado na janela Personalizar (nível / cargo): mesma cara das molduras, com a imagem na proporção do card */
 .sm-arte-card { width: 100%; height: auto; aspect-ratio: 282 / 395; }
 .sm-arte-card > img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+/* "Sem card": mesma caixa na proporção do card (282 × 395) dos outros, com o ícone no meio e o nome embaixo */
+.sm-arte-sem { border-radius: 8px; border: 1px dashed var(--border-2); background: rgb(var(--tinta) / .03); transition: border-color .15s, background .15s; }
+.sm-item.sem:hover .sm-arte-sem { border-color: var(--dim-2); }
+.sm-item.sem.sel .sm-arte-sem { border-color: var(--blue-2); background: rgba(26,115,232,.1); }
+.sm-arte-sem .sm-sem-icone { width: 46%; height: auto; aspect-ratio: 1; }
 .sm-vidro-card { inset: 0; margin: auto; width: 46px; height: 46px; }
 
 /* Prévia do Personalizar: o card do perfil na proporção real (282 × 395), com o banner escolhido */
