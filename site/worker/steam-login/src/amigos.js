@@ -8,6 +8,9 @@
 // quando alguém entra, sai ou fica ausente, avisa só os AMIGOS dessa pessoa. "Visto por último" fica no armazenamento
 // do próprio objeto. Rotas (com login, em index.js): GET /amigos, POST /amigos { acao, id }.
 
+import { DEFAULT_POOL } from '../../../src/paginas/neurapick/data/maps.js'
+import { FORMATS, buildSteps, deriveState } from '../../../src/paginas/neurapick/data/veto.js'
+
 const ID_STEAM = /^\d{17}$/
 const MAX_AMIGOS = 300
 const ACOES = ['pedir', 'aceitar', 'recusar', 'cancelar', 'remover']
@@ -17,9 +20,86 @@ const ACOES = ['pedir', 'aceitar', 'recusar', 'cancelar', 'remover']
 // Só o líder convida, remove e abre o lobby; amigos entram sozinhos se estiver aberto ("público") ou se foram convidados.
 const LOBBY_MAX = 5
 const LOBBY_OFFLINE_MS = 10 * 60 * 1000 // membro offline há mais que isso sai sozinho
-const novoLobby = () => ({ membros: [], convites: [], publico: false })
+const novoLobby = () => ({ membros: [], convites: [], publico: false, busca: null })
 const lobbyVazio = (lb) => !lb.membros.length && !lb.convites.length && !lb.publico
-const ACOES_LOBBY = ['convidar', 'remover', 'entrar', 'recusar', 'sair', 'publico']
+const ACOES_LOBBY = ['convidar', 'remover', 'entrar', 'recusar', 'sair', 'publico', 'buscar', 'cancelar-busca', 'aceitar', 'recusar-partida', 'veto', 'encerrar']
+// Ações que continuam valendo com a partida montada (as outras mexem no grupo, que fica travado)
+const ACOES_PARTIDA = ['aceitar', 'recusar-partida', 'veto', 'encerrar']
+
+// ── Fila e partida ──
+// O líder de um lobby com 5 busca partida (lb.busca = quando começou). Dois lobbies buscando viram uma partida:
+//   partidas = { "<id>": { id, fase: 'aceitar' | 'veto' | 'pronto', prazo, times: { A: { lider, membros }, B }, aceitos: [ids],
+//                          formato, pool, primeiro: 'A' | 'B', historico: [{ type, team, map?, side?, auto? }] } }
+// 'aceitar': os 10 têm ACEITE_SEG para aceitar (quem não aceitar derruba a partida; o time que aceitou inteiro volta para a fila).
+// 'veto': só o líder do time da vez age (pick/ban/lado); passou VETO_SEG o servidor joga sozinho. 'pronto': veto acabou.
+const ACEITE_SEG = 30
+const VETO_SEG = 30
+const PRONTA_MS = 2 * 60 * 60 * 1000 // sala com veto pronto some sozinha depois disso
+const FORMATOS_FILA = ['bo1', 'bo3'] // formatos que o líder pode buscar; só lobbies do mesmo formato se enfrentam
+const idsDe = (p) => [...p.times.A.membros, ...p.times.B.membros]
+const partidaDe = (partidas, id) => Object.values(partidas).find((p) => idsDe(p).includes(id)) || null
+const passoDe = (p) => buildSteps(p.formato, p.primeiro)[p.historico.length] || null
+const sorteio = (lista) => lista[Math.floor(Math.random() * lista.length)]
+
+function criarPartida(todos, partidas, a, b) {
+  const id = crypto.randomUUID()
+  const time = (lider) => ({ lider, membros: [lider, ...todos[lider].membros] })
+  partidas[id] = {
+    id, fase: 'aceitar', prazo: Date.now() + ACEITE_SEG * 1000, times: { A: time(a), B: time(b) }, aceitos: [],
+    formato: todos[a].formato, pool: DEFAULT_POOL, primeiro: Math.random() < 0.5 ? 'A' : 'B', historico: [],
+  }
+  todos[a].busca = null
+  todos[b].busca = null
+  return partidas[id]
+}
+
+// Aceite falhou: a partida some; o time que aceitou inteiro volta para a fila
+function cancelarPartida(todos, partidas, p) {
+  delete partidas[p.id]
+  for (const t of [p.times.A, p.times.B]) {
+    if (todos[t.lider] && t.membros.every((m) => p.aceitos.includes(m))) todos[t.lider].busca = Date.now()
+  }
+}
+
+// Junta os lobbies que estão buscando, dois a dois (o mais antigo primeiro)
+function procurar(todos, partidas) {
+  const novas = []
+  for (const formato of FORMATOS_FILA) {
+    const fila = Object.keys(todos).filter((l) => todos[l].busca && todos[l].formato === formato).sort((x, y) => todos[x].busca - todos[y].busca)
+    for (let i = 0; i + 1 < fila.length; i += 2) novas.push(criarPartida(todos, partidas, fila[i], fila[i + 1]))
+  }
+  return novas
+}
+
+function registrarPasso(p, h) {
+  p.historico.push(h)
+  if (passoDe(p)) p.prazo = Date.now() + VETO_SEG * 1000
+  else {
+    p.fase = 'pronto'
+    p.prazo = Date.now() + PRONTA_MS
+  }
+}
+
+// Ação do líder no veto; devolve o código do erro ou null
+function agirVeto(p, eu, valor) {
+  const passo = passoDe(p)
+  if (p.fase !== 'veto' || !passo) return 'fase'
+  if (p.times[passo.team].lider !== eu) return 'vez'
+  if (passo.type === 'side') {
+    if (valor?.lado !== 'ct' && valor?.lado !== 't') return 'acao'
+    registrarPasso(p, { ...passo, side: valor.lado })
+  } else {
+    if (!deriveState(p.pool, p.historico).remaining.includes(valor?.mapa)) return 'mapa'
+    registrarPasso(p, { ...passo, map: valor.mapa })
+  }
+  return null
+}
+
+function autoVeto(p) {
+  const passo = passoDe(p)
+  if (passo.type === 'side') registrarPasso(p, { ...passo, side: sorteio(['ct', 't']), auto: true })
+  else registrarPasso(p, { ...passo, map: sorteio(deriveState(p.pool, p.historico).remaining), auto: true })
+}
 
 const json = (dados, status = 200, extra = {}) =>
   new Response(JSON.stringify(dados), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...extra } })
@@ -182,6 +262,7 @@ export class Presenca {
     const eu = req.headers.get('X-Id')
     if (!ID_STEAM.test(String(eu))) return json({ erro: 'id' }, 400)
     const todos = (await this.state.storage.get('lobbies')) || {}
+    const partidas = (await this.state.storage.get('partidas')) || {}
     const amigosEu = (await this.listaAmigos())[eu]?.amigos || []
     const achar = (id) => (todos[id] ? id : Object.keys(todos).find((l) => todos[l].membros.includes(id)) || null)
     const publicosAntes = new Set(Object.keys(todos).filter((l) => todos[l].publico)) // abertos antes da ação (se fecharem, os amigos também recarregam)
@@ -201,19 +282,20 @@ export class Presenca {
       if (lider === id) {
         if (lb.membros.length) {
           const [novo, ...resto] = lb.membros
-          todos[novo] = { membros: resto, convites: [], publico: lb.publico }
+          todos[novo] = { membros: resto, convites: [], publico: lb.publico, busca: null }
           lideres.add(novo)
         }
         delete todos[id]
       } else {
         lb.membros = tira(lb.membros, id)
+        lb.busca = null // sem os 5, a busca para
       }
     }
 
     // Membro offline faz tempo sai sozinho (só confere o lobby de quem está perguntando)
     const limpar = async () => {
       const lider = achar(eu)
-      if (!lider) return
+      if (!lider || todos[lider].busca || partidaDe(partidas, eu)) return // buscando ou em partida: o grupo não muda
       for (const m of [...todos[lider].membros]) {
         if (m === eu || this.statusDe(m) !== 'offline') continue
         // "visto" só existe depois que a pessoa fechou a última aba; sem registro, não tira (nunca saiu da conta)
@@ -228,6 +310,10 @@ export class Presenca {
       const meuLider = achar(eu)
       const eLider = !meuLider || meuLider === eu
       const alvoOk = ID_STEAM.test(String(id)) && id !== eu
+      const minha = partidaDe(partidas, eu)
+      if (minha && !ACOES_PARTIDA.includes(acao)) return json({ erro: 'em-partida' }, 409)
+      if (!minha && ACOES_PARTIDA.includes(acao)) return json({ erro: 'sem-partida' }, 404)
+      if (todos[eu]?.busca && (acao === 'convidar' || acao === 'remover')) return json({ erro: 'buscando' }, 409)
       if (acao === 'convidar') {
         if (!eLider) return json({ erro: 'lider' }, 403)
         if (!alvoOk || !amigosEu.includes(id)) return json({ erro: 'amigo' }, 400)
@@ -248,6 +334,7 @@ export class Presenca {
       } else if (acao === 'entrar') {
         const lb = alvoOk ? todos[id] : null
         if (!lb) return json({ erro: 'sem-lobby' }, 404)
+        if (lb.busca) return json({ erro: 'buscando' }, 409)
         if (!lb.membros.includes(eu)) {
           if (!lb.convites.includes(eu) && !(lb.publico && amigosEu.includes(id))) return json({ erro: 'negado' }, 403)
           if (1 + lb.membros.length >= LOBBY_MAX) return json({ erro: 'cheio' }, 400)
@@ -272,7 +359,42 @@ export class Presenca {
         lb.publico = valor === true
         lideres.add(eu)
         avisar(lb.membros)
+      } else if (acao === 'buscar') {
+        const lb = todos[eu]
+        if (!eLider || !lb || 1 + lb.membros.length < LOBBY_MAX) return json({ erro: 'incompleto' }, 400)
+        if (!FORMATOS_FILA.includes(valor?.formato) || !FORMATS[valor.formato]) return json({ erro: 'formato' }, 400)
+        if (!lb.busca) {
+          lb.convites = []
+          lb.formato = valor.formato
+          lb.busca = Date.now()
+        }
+        avisar(lb.membros)
+      } else if (acao === 'cancelar-busca') {
+        if (!eLider || !todos[eu]) return json({ erro: 'lider' }, 403)
+        todos[eu].busca = null
+        avisar(todos[eu].membros)
+      } else if (acao === 'aceitar') {
+        if (minha.fase !== 'aceitar') return json({ erro: 'fase' }, 409)
+        minha.aceitos = poe(minha.aceitos, eu)
+        if (minha.aceitos.length === idsDe(minha).length) {
+          minha.fase = 'veto'
+          minha.prazo = Date.now() + VETO_SEG * 1000
+        }
+        avisar(idsDe(minha))
+      } else if (acao === 'recusar-partida') {
+        if (minha.fase !== 'aceitar') return json({ erro: 'fase' }, 409)
+        cancelarPartida(todos, partidas, minha)
+        avisar(idsDe(minha))
+      } else if (acao === 'veto') {
+        const erro = agirVeto(minha, eu, valor)
+        if (erro) return json({ erro }, 409)
+        avisar(idsDe(minha))
+      } else if (acao === 'encerrar') {
+        if (minha.fase === 'aceitar' || (minha.times.A.lider !== eu && minha.times.B.lider !== eu)) return json({ erro: 'lider' }, 403)
+        delete partidas[minha.id]
+        avisar(idsDe(minha))
       }
+      for (const p of procurar(todos, partidas)) avisar(idsDe(p))
     }
     await limpar()
 
@@ -283,6 +405,8 @@ export class Presenca {
     for (const k of Object.keys(todos)) if (lobbyVazio(todos[k])) delete todos[k]
     if (mudou) {
       await this.state.storage.put('lobbies', todos)
+      await this.state.storage.put('partidas', partidas)
+      await this.agendar(partidas)
       for (const a of avisados) this.enviar(a, { tipo: 'lobby' })
     }
 
@@ -291,7 +415,8 @@ export class Presenca {
     const lb = todos[lider] || novoLobby()
     const convitesRecebidos = Object.keys(todos).filter((l) => l !== lider && todos[l].convites.includes(eu))
     const abertos = amigosEu.filter((a) => a !== lider && todos[a]?.publico && 1 + todos[a].membros.length < LOBBY_MAX && !todos[a].convites.includes(eu))
-    const ids = [...new Set([lider, ...lb.membros, ...lb.convites, ...convitesRecebidos, ...abertos])]
+    const minhaPartida = partidaDe(partidas, eu)
+    const ids = [...new Set([lider, ...lb.membros, ...lb.convites, ...convitesRecebidos, ...abertos, ...(minhaPartida ? idsDe(minhaPartida) : [])])]
     const info = await nomes(this.env, ids)
     const pessoa = (id) => ({ id, ...info[id], st: this.statusDe(id) })
     return json({
@@ -300,11 +425,48 @@ export class Presenca {
       souLider: lider === eu,
       publico: !!lb.publico,
       max: LOBBY_MAX,
+      busca: lb.busca || null,
+      formato: lb.formato || null,
+      partida: minhaPartida && {
+        id: minhaPartida.id, fase: minhaPartida.fase, prazo: minhaPartida.prazo, agora: Date.now(), formato: minhaPartida.formato,
+        pool: minhaPartida.pool, primeiro: minhaPartida.primeiro, historico: minhaPartida.historico, aceitos: minhaPartida.aceitos,
+        meuTime: minhaPartida.times.A.membros.includes(eu) ? 'A' : 'B',
+        times: Object.fromEntries(['A', 'B'].map((t) => [t, { lider: minhaPartida.times[t].lider, membros: minhaPartida.times[t].membros.map(pessoa) }])),
+      },
       membros: [lider, ...lb.membros].map(pessoa),
       convites: lb.convites.map(pessoa),
       convitesRecebidos: convitesRecebidos.map((l) => ({ lider: pessoa(l), membros: 1 + todos[l].membros.length })),
       abertos: abertos.map((l) => ({ lider: pessoa(l), membros: 1 + todos[l].membros.length })),
     })
+  }
+
+  // Um alarme só, no prazo mais próximo entre as partidas (fim do aceite, vez do veto, sala velha)
+  async agendar(partidas) {
+    const prazos = Object.values(partidas).map((p) => p.prazo).filter(Boolean)
+    if (prazos.length) await this.state.storage.setAlarm(Math.min(...prazos) + 50)
+    else await this.state.storage.deleteAlarm()
+  }
+
+  async alarm() {
+    const todos = (await this.state.storage.get('lobbies')) || {}
+    const partidas = (await this.state.storage.get('partidas')) || {}
+    const avisados = new Set()
+    for (const p of Object.values(partidas)) {
+      while (p.prazo && p.prazo <= Date.now()) {
+        idsDe(p).forEach((i) => avisados.add(i))
+        if (p.fase === 'veto') autoVeto(p)
+        else {
+          if (p.fase === 'aceitar') cancelarPartida(todos, partidas, p)
+          else delete partidas[p.id]
+          break
+        }
+      }
+    }
+    for (const p of procurar(todos, partidas)) idsDe(p).forEach((i) => avisados.add(i))
+    await this.state.storage.put('lobbies', todos)
+    await this.state.storage.put('partidas', partidas)
+    await this.agendar(partidas)
+    for (const a of avisados) this.enviar(a, { tipo: 'lobby' })
   }
 
   async fetch(req) {

@@ -51,7 +51,7 @@ body {
   color: var(--text);
   font-family: var(--font-body);
   line-height: 1.5;
-  min-height: 100vh;
+  min-height: calc(100vh / var(--escala, 1));
 }
 
 a {
@@ -95,7 +95,7 @@ button:disabled {
 .app {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: calc(100vh / var(--escala, 1));
 }
 .main {
   flex: 1;

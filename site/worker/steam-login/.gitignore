@@ -1,2 +1,3 @@
 # Dados do "wrangler dev" local (KV, Durable Objects de teste)
 .wrangler/
+.dev.vars

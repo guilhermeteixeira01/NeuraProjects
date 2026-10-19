@@ -3,7 +3,7 @@
 @import '../../comum/paginas.css';
 
 /* Página 404: número gigante vazado, o "0" girando como mira, texto e atalhos */
-.nf-hero { min-height: min(760px, calc(100vh - 40px)); display: flex; align-items: center; padding: 70px 0 80px; }
+.nf-hero { min-height: min(760px, calc(100vh / var(--escala, 1) - 40px)); display: flex; align-items: center; padding: 70px 0 80px; }
 .nf-wrap { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; max-width: 760px; }
 .nf-codigo {
   display: flex; align-items: center; gap: .04em; font-family: var(--font-display); font-weight: 700; line-height: .9;
@@ -34,8 +34,8 @@ html[data-desempenho] .nf-codigo .nf-zero { animation: none; }
 
 /* Sem menu: a tela inteira é o bloco do 404, centralizado (tira o espaço que o site guarda para as barras) */
 body { padding: 0 !important; }
-.nf-tela { min-height: 100vh; display: flex; }
-.nf-tela .nf-hero { flex: 1; min-height: 100vh; justify-content: center; padding: 40px 0; }
+.nf-tela { min-height: calc(100vh / var(--escala, 1)); display: flex; }
+.nf-tela .nf-hero { flex: 1; min-height: calc(100vh / var(--escala, 1)); justify-content: center; padding: 40px 0; }
 .nf-tela .nf-wrap { margin: 0 auto; }
 /* Tudo centralizado (número, textos e botões) */
 .nf-tela .nf-wrap { align-items: center; text-align: center; }

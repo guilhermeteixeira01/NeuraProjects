@@ -2,6 +2,14 @@
  * Visual compartilhado do site Neura: cores, menu do topo e rodapé (montados por /assets/js/site.js).
  * Tudo com prefixo "nx-" para não misturar com o CSS próprio do NeuraPick e das páginas de partidas.
  */
+/* Escala geral do site no computador: tudo (textos, cards, barras, imagens) encolhe junto, como um zoom de 90% do navegador.
+   Para mudar o tamanho do site inteiro, é só trocar o --escala abaixo (1 = tamanho original). Celular e tablet ficam como estão.
+   As alturas de tela (100vh) dividem pela escala para a página ainda preencher a janela. */
+:root { --escala: 1; }
+@media (min-width: 1025px) {
+  :root { --escala: .9; }
+  html { zoom: var(--escala); }
+}
 :root {
   --bg: #0b0c0f;
   --bg-soft: #0e0f13;
@@ -2082,7 +2090,7 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
   }
   /* topo da página inicial ocupa a tela toda (não há mais barra em cima) */
   .hx {
-    min-height: min(880px, 100vh);
+    min-height: min(880px, 100vh / var(--escala, 1));
   }
 }
 @keyframes nx-lado {
@@ -2986,3 +2994,47 @@ a.nt-corpo:hover b { color: var(--accent); }
 @keyframes nx-convite-entra { from { opacity: 0; transform: translateX(24px); } }
 @keyframes nx-convite-tempo { to { transform: scaleX(0); } }
 @media (prefers-reduced-motion: reduce) { .nx-convite { animation: none; } }
+
+/* ══════════════ Partida encontrada (comum/AceitarPartida.jsx): botão de aceitar no centro da tela, só no computador ══════════════ */
+.pt-fundo { display: none; }
+@media (min-width: 1025px) {
+  .pt-fundo {
+    position: fixed; inset: 0; z-index: 900; display: grid; place-items: center; padding: 24px;
+    background: radial-gradient(60% 60% at 50% 45%, rgb(0 0 0 / .72), rgb(0 0 0 / .92)); backdrop-filter: blur(6px);
+    animation: pt-entra .3s ease both; font-family: var(--font-body); color: var(--text);
+  }
+  .pt-caixa { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+  .pt-chip {
+    padding: 5px 16px; border-radius: 999px; font: 700 13px var(--font-body); color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+  }
+  .pt-caixa h2 { margin: 4px 0 18px; font: 800 clamp(28px, 3.4vw, 44px)/1 var(--font-display); letter-spacing: 1.5px; animation: pt-titulo 1.6s ease-in-out infinite; }
+  .pt-aceitar {
+    position: relative; display: grid; place-items: center; width: 230px; height: 230px; border: 0; border-radius: 50%; cursor: pointer;
+    font: 800 28px var(--font-display); letter-spacing: 2px; color: #1a1400;
+    background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--accent) 70%, #fff), var(--accent) 60%);
+    box-shadow: 0 0 60px -6px color-mix(in srgb, var(--accent) 70%, transparent), inset 0 -10px 30px rgb(0 0 0 / .18);
+    animation: pt-pulsa 1.4s ease-in-out infinite; transition: transform .15s, filter .2s;
+  }
+  .pt-aceitar:hover:not(:disabled) { transform: scale(1.05); filter: brightness(1.08); }
+  .pt-aceitar:active:not(:disabled) { transform: scale(.97); }
+  .pt-aceitar > span { position: relative; z-index: 1; }
+  .pt-onda { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--accent); animation: pt-onda 1.8s ease-out infinite; pointer-events: none; }
+  .pt-onda-2 { animation-delay: .9s; }
+  .pt-aceitar.aceito { animation: none; cursor: default; background: #1f9d55; color: #fff; box-shadow: 0 0 50px -8px #1f9d55; }
+  .pt-aceitar.aceito .pt-onda { display: none; }
+  .pt-tempo { margin: 8px 0 0; font: 700 18px var(--font-body); font-variant-numeric: tabular-nums; }
+  /* as 10 bolinhas: acendem conforme cada jogador aceita */
+  .pt-bolinhas { display: flex; gap: 12px; margin-top: 4px; }
+  .pt-bolinhas i { width: 16px; height: 16px; border-radius: 50%; background: rgb(var(--tinta) / .14); border: 1px solid rgb(var(--tinta) / .18); transition: background .25s, box-shadow .25s, transform .25s; }
+  .pt-bolinhas i:nth-child(5) { margin-right: 14px; } /* separa os dois times */
+  .pt-bolinhas i.acesa { background: #3ddc84; border-color: #3ddc84; box-shadow: 0 0 14px #3ddc84; transform: scale(1.15); }
+  .pt-contagem { color: var(--dim); font: 700 13px var(--font-body); }
+  .pt-recusar { margin-top: 10px; padding: 6px 14px; border: 0; background: none; color: var(--dim-2); font: 600 13px var(--font-body); cursor: pointer; text-decoration: underline; }
+  .pt-recusar:hover:not(:disabled) { color: var(--red); }
+}
+@keyframes pt-entra { from { opacity: 0; } }
+@keyframes pt-titulo { 50% { opacity: .7; } }
+@keyframes pt-pulsa { 50% { transform: scale(1.04); } }
+@keyframes pt-onda { from { transform: scale(1); opacity: .7; } to { transform: scale(1.6); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .pt-fundo, .pt-caixa h2, .pt-aceitar, .pt-onda { animation: none; } }

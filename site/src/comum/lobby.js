@@ -26,7 +26,24 @@ async function chamar(metodo, corpo) {
   })
   const d = await r.json().catch(() => null)
   if (!r.ok || d?.erro) throw new Error(d?.erro || 'falhou')
+  if (d.partida) d.partida.desvio = d.partida.agora - Date.now() // relógio do servidor − o desta aba
   return d
+}
+
+//   dados.busca = quando o lobby começou a buscar (ms) ou null
+//   dados.partida = { id, fase: 'aceitar' | 'veto' | 'pronto', prazo, desvio, meuTime: 'A' | 'B', formato, pool, primeiro, historico, aceitos: [ids],
+//                     times: { A: { lider, membros: [pessoa] }, B } } ou null
+// Milissegundos até o prazo da fase atual (pelo relógio do servidor)
+export const msAte = (prazo, desvio = 0) => Math.max(0, prazo - (Date.now() + desvio))
+
+// Faz o componente redesenhar a cada `ms` enquanto `ativo` (contagens regressivas)
+export function useRelogio(ativo, ms = 250) {
+  const [, tic] = useState(0)
+  useEffect(() => {
+    if (!ativo) return
+    const id = setInterval(() => tic((n) => n + 1), ms)
+    return () => clearInterval(id)
+  }, [ativo, ms])
 }
 
 let lendo = null
