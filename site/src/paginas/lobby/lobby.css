@@ -99,6 +99,8 @@
   position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; border: 1px solid var(--border-2);
   background: var(--panel); color: var(--dim); font: 400 20px/1 var(--font-body); cursor: pointer; opacity: 0; transition: opacity .15s, color .15s, border-color .15s;
 }
+.lb-x { padding: 0; line-height: 0; }
+.lb-x svg { display: block; width: 12px; height: 12px; }
 .lb-lugar:hover .lb-x, .lb-x:focus-visible { opacity: 1; }
 .lb-x:hover { color: var(--red); border-color: var(--red); }
 @media (hover: none) { .lb-x { opacity: 1; } }
