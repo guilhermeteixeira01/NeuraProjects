@@ -22,9 +22,9 @@ const LOBBY_MAX = 5
 const LOBBY_OFFLINE_MS = 10 * 60 * 1000 // membro offline há mais que isso sai sozinho
 const novoLobby = () => ({ membros: [], convites: [], publico: false, busca: null })
 const lobbyVazio = (lb) => !lb.membros.length && !lb.convites.length && !lb.publico
-const ACOES_LOBBY = ['convidar', 'remover', 'entrar', 'recusar', 'sair', 'publico', 'buscar', 'cancelar-busca', 'aceitar', 'recusar-partida', 'veto', 'encerrar']
+const ACOES_LOBBY = ['convidar', 'remover', 'entrar', 'recusar', 'sair', 'publico', 'buscar', 'cancelar-busca', 'aceitar', 'recusar-partida', 'veto']
 // Ações que continuam valendo com a partida montada (as outras mexem no grupo, que fica travado)
-const ACOES_PARTIDA = ['aceitar', 'recusar-partida', 'veto', 'encerrar']
+const ACOES_PARTIDA = ['aceitar', 'recusar-partida', 'veto'] // depois do veto não há como cancelar nem encerrar a sala: ela se resolve sozinha (prazos T)
 
 // ── Fila e partida ──
 // O líder de um lobby com 5 busca partida (lb.busca = quando começou). Dois lobbies buscando viram uma partida:
@@ -34,15 +34,19 @@ const ACOES_PARTIDA = ['aceitar', 'recusar-partida', 'veto', 'encerrar']
 // 'veto': só o líder do time da vez age (pick/ban/lado); passou VETO_SEG o servidor joga sozinho. 'pronto': veto acabou.
 // Veto pronto = a partida vai para o servidor de CS2: p.servidor = { estado, desde, ... } com estado
 //   'fila'      esperando o plugin buscar (POST /servidor/proxima, autenticado com SERVIDOR_TOKEN)
-//   'entregue'  o plugin pegou a série e está carregando (volta para 'fila' se não confirmar em ENTREGA_MS)
+//   'entregue'  o plugin pegou a série e está carregando (volta para 'fila' se não confirmar em T.entrega)
 //   'carregada' série carregada no servidor: os jogadores já podem entrar   'jogando' mapa em andamento
-//   'encerrada' série terminou (ou foi cancelada)                            'erro' o plugin não conseguiu carregar
-// O plugin avisa cada fase por POST /servidor/estado (ESTADOS_SERVIDOR).
+//   'encerrada' série terminou (ou foi cancelada)                            'erro' o plugin não conseguiu carregar, ou ninguém pegou a partida
+// O plugin avisa cada fase por POST /servidor/estado (ESTADOS_SERVIDOR). Cada fase tem um prazo (T): a sala se resolve sozinha, sem botão de cancelar.
 const ACEITE_SEG = 30
 const VETO_SEG = 30
-const PRONTA_MS = 2 * 60 * 60 * 1000 // sala com veto pronto some sozinha depois disso
-const ENTREGA_MS = 90 * 1000 // o plugin pegou a série e não confirmou que carregou: volta para a fila
-const ENCERRADA_MS = 15 * 60 * 1000 // sala com a série encerrada some sozinha depois disso
+// Prazos da sala depois do veto. Não existe botão de cancelar nem de encerrar: a sala se resolve sozinha. Só mudam nos testes (TEMPOS_TESTE).
+//   fila      ninguém (o servidor) pegou a partida a tempo: vira "erro" e a sala fecha
+//   entrega   o plugin pegou a série e não confirmou que carregou: volta para a fila
+//   serie     tempo máximo de uma série em andamento (se o plugin sumir sem avisar, a sala fecha depois disso)
+//   encerrada a série acabou (ou deu erro): a sala mostra o resultado por esse tempo e fecha sozinha
+const T = { fila: 10 * 60 * 1000, entrega: 90 * 1000, serie: 6 * 60 * 60 * 1000, encerrada: 2 * 60 * 1000 }
+const ORDEM_SERVIDOR = { fila: 0, entregue: 1, carregada: 2, jogando: 3, encerrada: 4, erro: 4 } // o plugin só avança (aviso atrasado não volta a sala)
 const ESTADOS_SERVIDOR = ['carregada', 'jogando', 'encerrada', 'erro']
 const FORMATOS_FILA = ['bo1', 'bo3'] // formatos que o líder pode buscar; só lobbies do mesmo formato se enfrentam
 // Assinatura Premium ativa de quem busca (perfis[id].sub, KV; ver src/comum/assinatura.js): sem data = infinita, vencida não vale.
@@ -95,9 +99,25 @@ function registrarPasso(p, h) {
   if (passoDe(p)) p.prazo = Date.now() + VETO_SEG * 1000
   else {
     p.fase = 'pronto'
-    p.prazo = Date.now() + PRONTA_MS
     p.servidor = { estado: 'fila', desde: Date.now() }
+    prazoServidor(p)
   }
+}
+
+// Prazo da sala conforme a fase do servidor (o alarme age quando ele vence)
+function prazoServidor(p, agora = Date.now()) {
+  const s = p.servidor?.estado
+  p.prazo = agora + (s === 'fila' ? T.fila : s === 'entregue' ? T.entrega : s === 'encerrada' || s === 'erro' ? T.encerrada : T.serie)
+}
+
+// O prazo da sala venceu: devolve false se a sala deve ser apagada; senão muda a fase do servidor e dá um prazo novo
+function expirarServidor(p, agora = Date.now()) {
+  const s = p.servidor?.estado
+  if (s === 'fila') p.servidor = { ...p.servidor, estado: 'erro', detalhe: 'Nenhum servidor pegou a partida a tempo.' }
+  else if (s === 'entregue') p.servidor = { ...p.servidor, estado: 'fila', desde: agora } // o plugin sumiu depois de pegar: oferece de novo
+  else return false
+  prazoServidor(p, agora)
+  return true
 }
 
 // Série no formato do css_serie do plugin (BaseComp/Serie.cs): o A/B do site é o A/B da série.
@@ -270,6 +290,20 @@ export class Presenca {
     this.amigos = null // cache do KV "amigos" (some quando o objeto hiberna; relê na volta)
     // ping/pong de manutenção respondido sem acordar o objeto
     state.setWebSocketAutoResponse(new WebSocketRequestResponsePair('ping', 'pong'))
+    this.fila = Promise.resolve() // ver exclusivo()
+    // Só o ambiente de teste local define isto (TEMPOS_TESTE="fila=4000,encerrada=3000"): prazos curtos para testar sem esperar minutos
+    for (const par of String(env.TEMPOS_TESTE || '').split(',')) {
+      const [k, v] = par.split('=')
+      if (k in T && Number(v) > 0) T[k] = Number(v)
+    }
+  }
+
+  // Uma coisa de cada vez: lobby, fila, aceite, veto, alarme e o plugin mudam o mesmo estado (lido, mexido e gravado). Sem isto, dois pedidos
+  // juntos (os 10 jogadores clicando em ACEITAR) liam o mesmo estado e o último a gravar apagava o aceite do outro.
+  exclusivo(fn) {
+    const r = this.fila.then(fn)
+    this.fila = r.then(() => {}, () => {})
+    return r
   }
 
   async listaAmigos(recarregar = false) {
@@ -443,11 +477,6 @@ export class Presenca {
         const erro = agirVeto(minha, eu, valor)
         if (erro) return json({ erro }, 409)
         avisar(idsDe(minha))
-      } else if (acao === 'encerrar') {
-        const serieAcabou = minha.servidor?.estado === 'encerrada' || minha.servidor?.estado === 'erro'
-        if (minha.fase === 'aceitar' || (!serieAcabou && minha.times.A.lider !== eu && minha.times.B.lider !== eu)) return json({ erro: 'lider' }, 403)
-        delete partidas[minha.id]
-        avisar(idsDe(minha))
       }
       for (const p of procurar(todos, partidas)) avisar(idsDe(p))
     }
@@ -509,7 +538,11 @@ export class Presenca {
     else await this.state.storage.deleteAlarm()
   }
 
-  async alarm() {
+  alarm() {
+    return this.exclusivo(() => this.tratarAlarme())
+  }
+
+  async tratarAlarme() {
     const todos = (await this.state.storage.get('lobbies')) || {}
     const partidas = (await this.state.storage.get('partidas')) || {}
     const avisados = new Set()
@@ -517,9 +550,11 @@ export class Presenca {
       while (p.prazo && p.prazo <= Date.now()) {
         idsDe(p).forEach((i) => avisados.add(i))
         if (p.fase === 'veto') autoVeto(p)
-        else {
-          if (p.fase === 'aceitar') cancelarPartida(todos, partidas, p)
-          else delete partidas[p.id]
+        else if (p.fase === 'aceitar') {
+          cancelarPartida(todos, partidas, p)
+          break
+        } else if (!expirarServidor(p)) {
+          delete partidas[p.id] // série encerrada/com erro (ou passou do limite): a sala fecha
           break
         }
       }
@@ -538,8 +573,8 @@ export class Presenca {
     const agora = Date.now()
     const avisados = new Set()
     for (const p of Object.values(partidas)) {
-      if (p.servidor?.estado === 'entregue' && agora - p.servidor.entregueEm > ENTREGA_MS) {
-        p.servidor.estado = 'fila' // o plugin sumiu depois de pegar: oferece de novo
+      if (p.servidor?.estado === 'entregue' && agora - p.servidor.entregueEm > T.entrega) {
+        expirarServidor(p, agora) // o plugin sumiu depois de pegar: oferece de novo (o alarme também faz isto)
         idsDe(p).forEach((i) => avisados.add(i))
       }
     }
@@ -551,10 +586,12 @@ export class Presenca {
       const info = await nomes(this.env, idsDe(p))
       resposta = montarSerie(p, (id) => info[id]?.nome || id)
       p.servidor = { ...p.servidor, estado: 'entregue', entregueEm: agora }
+      prazoServidor(p, agora)
       idsDe(p).forEach((i) => avisados.add(i))
     }
     if (avisados.size) {
       await this.state.storage.put('partidas', partidas)
+      await this.agendar(partidas)
       for (const a of avisados) this.enviar(a, { tipo: 'lobby' })
     }
     return json(resposta)
@@ -567,8 +604,10 @@ export class Presenca {
     const partidas = (await this.state.storage.get('partidas')) || {}
     const p = partidas[String(partidaId)]
     if (!p?.servidor) return json({ erro: 'sem-partida' }, 404) // sala fechada pelos jogadores: o plugin segue o jogo mesmo assim
+    // aviso atrasado (tentativa repetida) ou depois do fim não volta a sala para trás
+    if (ORDEM_SERVIDOR[estado] < ORDEM_SERVIDOR[p.servidor.estado] || ORDEM_SERVIDOR[p.servidor.estado] >= 4) return json({ ok: true, ignorado: true })
     p.servidor = { ...p.servidor, estado, detalhe: String(detalhe || '').slice(0, 200), placar: String(placar || '').slice(0, 40) }
-    if (estado === 'encerrada' || estado === 'erro') p.prazo = Date.now() + ENCERRADA_MS
+    prazoServidor(p)
     await this.state.storage.put('partidas', partidas)
     await this.agendar(partidas)
     for (const i of idsDe(p)) this.enviar(i, { tipo: 'lobby' })
@@ -577,9 +616,19 @@ export class Presenca {
 
   async fetch(req) {
     const url = new URL(req.url)
-    if (url.pathname === '/servidor/proxima') return this.servidorProxima()
-    if (url.pathname === '/servidor/estado') return this.servidorEstado(req)
-    if (url.pathname === '/lobby') return this.lobby(req)
+    if (url.pathname === '/servidor/proxima') return this.exclusivo(() => this.servidorProxima())
+    if (url.pathname === '/servidor/estado') return this.exclusivo(() => this.servidorEstado(req))
+    if (url.pathname === '/lobby') return this.exclusivo(() => this.lobby(req))
+    if (url.pathname === '/teste/limpar') {
+      // só o ambiente de teste local liga isto (index.js exige MODO_TESTE): apaga as partidas (e os lobbies, sem { apenasPartidas: true })
+      const { apenasPartidas } = (await req.json().catch(() => null)) || {}
+      return this.exclusivo(async () => {
+        await this.state.storage.delete(apenasPartidas ? ['partidas'] : ['lobbies', 'partidas'])
+        if (!apenasPartidas) await this.state.storage.delete([...(await this.state.storage.list({ prefix: 'visto:' })).keys()]) // "visto offline" antigo expulsaria o jogador de teste do grupo
+        await this.state.storage.deleteAlarm()
+        return json({ ok: true })
+      })
+    }
     if (url.pathname === '/avisar') {
       const { ids = [] } = await req.json().catch(() => ({}))
       await this.listaAmigos(true)
