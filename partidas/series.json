@@ -1,5 +1,24 @@
 [
   {
+    "id": "2026-10-19_22-31_time_senna-x-time_Te1xe1ra",
+    "organizacao": "neura-project",
+    "categoria": "md3",
+    "formato": "MD3",
+    "timeA": "time_senna",
+    "timeB": "time_Te1xe1ra",
+    "logoA": null,
+    "logoB": null,
+    "mapas": [
+      "de_mirage",
+      "de_dust2",
+      "de_cache"
+    ],
+    "status": "iniciando",
+    "mapaAtual": 0,
+    "criada": "2026-10-19 22:31",
+    "atualizada": "2026-10-19 22:31"
+  },
+  {
     "id": "2026-10-19_22-13_time_Te1xe1ra-x-time_senna",
     "organizacao": "neura-project",
     "categoria": "md3",
