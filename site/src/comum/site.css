@@ -926,7 +926,7 @@ img {
 /* Com moldura, a decoração antiga do avatar some (anel em degradê, borda, sombra, padding):
  * fica só a foto redonda e a moldura por cima. !important porque cada página declara o avatar depois daqui. */
 .moldura-box > img,
-.moldura-box > span:not(.moldura) {
+.moldura-box > span:not(.moldura):not(.emblema-sub) {
   border-radius: 50% !important;
   border: 0 !important;
   padding: 0 !important;
@@ -936,13 +936,13 @@ img {
 /* Moldura quadrada (as da Steam, feitas para avatar quadrado): o avatar fica quadrado, com o cantinho levemente
  * arredondado, em todas as páginas. A forma vem da lista (molduras.js: forma: 'quadrada'). */
 .moldura-box.quadrada > img,
-.moldura-box.quadrada > span:not(.moldura) {
+.moldura-box.quadrada > span:not(.moldura):not(.emblema-sub) {
   border-radius: 8% !important;
 }
 .moldura-box > img {
   background: none !important;
 }
-.moldura-box > span:not(.moldura) {
+.moldura-box > span:not(.moldura):not(.emblema-sub) {
   background: var(--panel-2) !important;
 }
 /* Sempre por cima da foto. --escala = tamanho em relação ao avatar (padrão 1.2; as quadradas têm a sua, em
@@ -3071,12 +3071,35 @@ a.nt-corpo:hover b { color: var(--accent); }
 .emblema-sub:focus-visible {
   outline: 0;
 }
+/* O emblema fica dentro de avatares que têm regras genéricas para "toda img" / "todo span" (menu do topo, pódio do ranking, listas:
+   tamanho fixo, círculo, anel em degradê, fundo). !important para nada disso vazar para ele. */
+.emblema-sub {
+  position: absolute !important;
+  top: -6% !important;
+  right: -6% !important;
+  width: max(27%, 12px) !important;
+  height: auto !important;
+  aspect-ratio: 1 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
 .emblema-sub img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  object-fit: contain;
+  display: block !important;
+  position: static !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  object-fit: contain !important;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .65));
 }
 /* Caixinha ao passar o mouse: "Premium Gold" */
