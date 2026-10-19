@@ -76,7 +76,7 @@ function useAvisoCargos(id) {
     }
     if (!Array.isArray(antes)) return
     for (const c of cargos.filter((c) => ids.includes(c.id) && !antes.includes(c.id)))
-      registrarNotificacao(id, { id: `cargo:${c.id}:${Date.now()}`, cargo: c.id, titulo: `Você recebeu o cargo ${c.nome}` })
+      registrarNotificacao(id, { id: `cargo:${c.id}`, cargo: c.id, titulo: `Você recebeu o cargo ${c.nome}` })
   }, [id, frescos, chave, cargos.length]) // eslint-disable-line react-hooks/exhaustive-deps
 }
 
