@@ -34,7 +34,7 @@
  *   STEAM_API_KEY   chave da Web API da Steam (opcional; sem ela o token vai sem nome/avatar e o site
  *                   usa os do ranking)
  */
-import { Presenca, avisarPerfil, rotaAmigos, rotaPresenca } from './amigos.js'
+import { Presenca, avisarPerfil, rotaAmigos, rotaLobby, rotaPresenca } from './amigos.js'
 export { Presenca } // Durable Object da presença (wrangler.toml)
 
 const OPENID = 'https://steamcommunity.com/openid/login'
@@ -86,6 +86,7 @@ export default {
       return json({ id: quem.id, admin, dono: quem.id === env.DONO }, 200, cors)
     }
     if (rota === '/amigos' && (req.method === 'GET' || req.method === 'POST')) return rotaAmigos(req, env, quem, cors)
+    if (rota === '/lobby' && (req.method === 'GET' || req.method === 'POST')) return rotaLobby(req, env, quem, cors)
     if (req.method === 'POST' && (rota === '/perfil' || rota === '/moldura')) return salvarPerfil(req, env, site, quem, admin, config, cors, rota === '/moldura')
 
     if (rota.startsWith('/admin/')) {

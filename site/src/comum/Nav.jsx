@@ -100,7 +100,7 @@ function Conta() {
 }
 
 // Páginas que aparecem no menu sem login
-const SEM_LOGIN = ['inicio', 'ranking']
+const SEM_LOGIN = ['inicio', 'lobby', 'ranking'] // o ▶ Jogar aparece sempre (sem login a página pede para entrar)
 
 // Páginas fora do MENU: só para o título da barra de cima no celular
 const OUTRAS = {
@@ -270,8 +270,8 @@ export default function Nav({ pagina }) {
   const linkAdmin = admin && <LinkMenu item={ITEM_ADMIN} atual={pagina} />
 
   // Barra de baixo (celular): páginas do site; as de fora (Inventário) vão para o "Mais"
-  const abas = menu.filter((m) => !m.externo)
-  const extras = menu.filter((m) => m.externo).map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
+  const abas = menu.filter((m) => !m.externo && !m.soMais)
+  const extras = menu.filter((m) => m.externo || m.soMais).map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
   const atual = [...MENU, ITEM_ADMIN].find((m) => m.id === pagina) || OUTRAS[pagina] || MENU[0]
   const IconeAtual = ICONES_MENU[atual.icone]
   const IconePerfil = ICONES_MENU.perfil
