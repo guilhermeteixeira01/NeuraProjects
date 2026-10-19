@@ -63,6 +63,7 @@ async function temSubAtiva(env, id) {
 const idsDe = (p) => [...p.times.A.membros, ...p.times.B.membros]
 const partidaDe = (partidas, id) => Object.values(partidas).find((p) => idsDe(p).includes(id)) || null
 // Quem do time já esteve no servidor e agora não está (caiu): as vagas que um substituto pode ocupar
+const CHAMADO_MS = 60 * 1000 // tempo para o amigo chamado aceitar a vaga
 const vagasDe = (p, time) => {
   const sv = p.servidor
   if (!sv || !['carregada', 'jogando'].includes(sv.estado)) return []
@@ -436,6 +437,23 @@ export class Presenca {
         lb.convites = tira(lb.convites, id)
         lideres.add(eu)
         avisar(id, lb.membros)
+      } else if (acao === 'entrar' && alvoOk && Object.values(partidas).some((x) => x.chamados?.[eu]?.por === id && x.chamados[eu].ate > Date.now())) {
+        // Aceitou o convite para uma vaga de partida em andamento: entra no lugar de quem caiu
+        const p = Object.values(partidas).find((x) => x.chamados?.[eu]?.por === id && x.chamados[eu].ate > Date.now())
+        const time = p.times.A.membros.includes(id) ? p.times.A : p.times.B
+        const saiu = vagasDe(p, time)[0]
+        if (!saiu) {
+          delete p.chamados[eu]
+          return json({ erro: 'sem-vaga' }, 409)
+        }
+        if (todos[eu]?.membros.length) return json({ erro: 'ocupado' }, 400)
+        sairDe(eu) // sai do grupo em que estava
+        time.membros = time.membros.map((m) => (m === saiu ? eu : m))
+        if (time.lider === saiu) time.lider = eu
+        p.servidor.vistos = (p.servidor.vistos || []).filter((m) => m !== saiu)
+        p.servidor.presentes = (p.servidor.presentes || []).filter((m) => m !== saiu)
+        delete p.chamados[eu]
+        avisar(idsDe(p), saiu)
       } else if (acao === 'entrar') {
         const lb = alvoOk ? todos[id] : null
         if (!lb) return json({ erro: 'sem-lobby' }, 404)
@@ -451,6 +469,8 @@ export class Presenca {
         lideres.add(id)
         avisar(id, lb.membros, lb.convites)
       } else if (acao === 'recusar') {
+        for (const x of Object.values(partidas)) if (x.chamados?.[eu]?.por === id) delete x.chamados[eu]
+        avisar(id)
         if (alvoOk && todos[id]) {
           todos[id].convites = tira(todos[id].convites, eu)
           lideres.add(id)
@@ -503,12 +523,9 @@ export class Presenca {
         const vagas = vagasDe(minha, time)
         const saiu = vagas.includes(valor?.saiu) ? valor.saiu : vagas[0]
         if (!saiu) return json({ erro: 'sem-vaga' }, 409)
-        sairDe(id) // sai do grupo em que estava
-        time.membros = time.membros.map((m) => (m === saiu ? id : m))
-        if (time.lider === saiu) time.lider = id
-        sv.vistos = (sv.vistos || []).filter((m) => m !== saiu)
-        sv.presentes = (sv.presentes || []).filter((m) => m !== saiu)
-        avisar(idsDe(minha), saiu, id)
+        // Só vira substituto se aceitar (o convite aparece para ele como o de lobby; vale por 1 minuto)
+        minha.chamados = { ...(minha.chamados || {}), [id]: { por: eu, ate: Date.now() + CHAMADO_MS } }
+        avisar(id)
       } else if (acao === 'veto') {
         const erro = agirVeto(minha, eu, valor)
         if (erro) return json({ erro }, 409)
@@ -536,7 +553,8 @@ export class Presenca {
     const convitesRecebidos = Object.keys(todos).filter((l) => l !== lider && todos[l].convites.includes(eu))
     const abertos = amigosEu.filter((a) => a !== lider && todos[a]?.publico && 1 + todos[a].membros.length < LOBBY_MAX && !todos[a].convites.includes(eu))
     const minhaPartida = partidaDe(partidas, eu)
-    const ids = [...new Set([lider, ...lb.membros, ...lb.convites, ...convitesRecebidos, ...abertos, ...(minhaPartida ? idsDe(minhaPartida) : [])])]
+    const chamadosPor = minhaPartida ? [] : [...new Set(Object.values(partidas).flatMap((x) => (x.chamados?.[eu] && x.chamados[eu].ate > Date.now() && vagasDe(x, x.times.A.membros.includes(x.chamados[eu].por) ? x.times.A : x.times.B).length ? [x.chamados[eu].por] : [])))]
+    const ids = [...new Set([lider, ...lb.membros, ...lb.convites, ...convitesRecebidos, ...chamadosPor, ...abertos, ...(minhaPartida ? idsDe(minhaPartida) : [])])]
     const info = await nomes(this.env, ids)
     const pessoa = (id) => ({ id, ...info[id], st: this.statusDe(id) })
     return json({
@@ -563,7 +581,10 @@ export class Presenca {
       },
       membros: [lider, ...lb.membros].map(pessoa),
       convites: lb.convites.map(pessoa),
-      convitesRecebidos: convitesRecebidos.map((l) => ({ lider: pessoa(l), membros: 1 + todos[l].membros.length })),
+      convitesRecebidos: [
+        ...convitesRecebidos.map((l) => ({ lider: pessoa(l), membros: 1 + todos[l].membros.length })),
+        ...chamadosPor.map((l) => ({ lider: pessoa(l), membros: 0, vaga: true })),
+      ],
       abertos: abertos.map((l) => ({ lider: pessoa(l), membros: 1 + todos[l].membros.length })),
     })
   }
