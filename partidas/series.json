@@ -11,10 +11,11 @@
     "mapas": [
       "de_mirage"
     ],
-    "status": "iniciando",
+    "status": "cancelada",
     "mapaAtual": 0,
     "criada": "2026-10-19 15:31",
-    "atualizada": "2026-10-19 15:31"
+    "atualizada": "2026-10-19 15:35",
+    "canceladaEm": "2026-10-19T15:35:04+00:00"
   },
   {
     "id": "2026-10-16_19-56_Digital-Gamers-x-Neura-Project",
