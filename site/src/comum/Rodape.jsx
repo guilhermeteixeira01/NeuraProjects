@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { CONFIG } from './config.js'
 import { linkPerfil, useConta } from './conta.js'
 import { IDIOMAS, useT } from './i18n.js'
+import { useAcessoPick } from './Moldura.jsx'
 import { escolherIdioma } from './preferencias.js'
 
 // Rodapé no estilo do Discord: degradê do escuro para o azul do site, logo + seletor de idioma + redes à esquerda,
@@ -20,12 +21,12 @@ const externo = { target: '_blank', rel: 'noopener' }
 // Ano fixo no build: o HTML gerado e o React no navegador mostram o mesmo número
 const ANO = new Date().getFullYear()
 
-function colunas(conta) {
+function colunas(conta, verPick) {
   return [
     {
       titulo: 'Projetos',
       links: [
-        ['Pick & Ban', '/neurapick/'],
+        ...(verPick ? [['Pick & Ban', '/neurapick/']] : []),
         ['Partidas', '/partidas/'],
         ['Ranking', '/ranking/'],
         ['Inventário', 'https://inventory.cstrike.app', true],
@@ -92,6 +93,7 @@ function Coluna({ titulo, links, t }) {
 
 export default function Rodape() {
   const conta = useConta()
+  const verPick = useAcessoPick()
   const t = useT()
   return (
     <footer data-site-footer="" className="nx-footer">
@@ -129,7 +131,7 @@ export default function Rodape() {
           </div>
           <nav className="nx-fcols" aria-label={t('Rodapé')}>
             <span className="nx-frotulo nx-fmenu">{t('Menu')}</span>
-            {colunas(conta).map((c) => (
+            {colunas(conta, verPick).map((c) => (
               <Coluna key={c.titulo} {...c} t={t} />
             ))}
           </nav>

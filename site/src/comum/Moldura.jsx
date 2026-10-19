@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { CONFIG } from './config.js'
-import { sair, tokenConta } from './conta.js'
+import { sair, tokenConta, useConta } from './conta.js'
 import { classeForma, molduraPorId, urlMoldura, urlParada } from './molduras.js'
 import { EVENTO_DESEMPENHO, desempenhoAtivo } from './desempenho.js'
 import { useT } from './i18n.js'
@@ -224,6 +224,15 @@ export function useCargosIdsDe(steamId) {
   // quem é da equipe também "tem" os cargos _dono/_admin (usados só para molduras e cards exclusivos)
   const daEquipe = steamId && steamId === equipe?.dono ? ['_dono', '_admin'] : equipe?.admins?.includes(steamId) ? ['_admin'] : []
   return [...new Set([...manuais, ...daEquipe, ...cargos.filter((c) => c.top > 0 && pos >= 0 && pos < c.top).map((c) => c.id)])]
+}
+
+// Pick & Ban: a página fica escondida de todo mundo; só vê quem é da equipe (dono/admin) ou tem um cargo com "Ver Pick & Ban"
+export function useAcessoPick() {
+  const conta = useConta()
+  const { admin } = useAdmin(conta)
+  const { cargos } = useConfigSite()
+  const ids = useCargosIdsDe(conta?.id)
+  return !!conta && (admin || cargos.some((c) => c.pick && ids.includes(c.id)))
 }
 
 // Selo da equipe do jogador ({ id: '_dono' | '_admin', nome, cor, icone }), ou null se não for da equipe

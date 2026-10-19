@@ -759,7 +759,7 @@ function Cargos({ config, usuarios, aoSalvar }) {
   const salvar = async () => {
     setEstado('salvando')
     try {
-      const d = await chamar('/admin/config', { cargos: lista.map((c) => ({ id: c.id, nome: c.nome.trim(), cor: c.cor, icone: c.icone || 'coroa', top: Number(c.top) || 0, numerar: Number(c.top) > 0 && !!c.numerar, oculto: !!c.oculto })) })
+      const d = await chamar('/admin/config', { cargos: lista.map((c) => ({ id: c.id, nome: c.nome.trim(), cor: c.cor, icone: c.icone || 'coroa', top: Number(c.top) || 0, numerar: Number(c.top) > 0 && !!c.numerar, oculto: !!c.oculto, pick: !!c.pick })) })
       aoSalvar(d.config)
       setEstado('Salvo!')
     } catch (e) {
@@ -807,6 +807,10 @@ function Cargos({ config, usuarios, aoSalvar }) {
             <label className="adm-numerar" title={tr('Desligado: o selo não aparece no perfil, no ranking nem nos amigos, mas o cargo continua liberando as molduras exclusivas dele.')}>
               <input type="checkbox" checked={!c.oculto} onChange={(e) => mudar(i, 'oculto', !e.target.checked)} />
               {tr('Mostrar no site')}
+            </label>
+            <label className="adm-numerar" title={tr('Ligado: quem tem este cargo vê a página Pick & Ban (ela fica escondida de todos os outros; dono e admins sempre veem).')}>
+              <input type="checkbox" checked={!!c.pick} onChange={(e) => mudar(i, 'pick', e.target.checked)} />
+              {tr('Ver Pick & Ban')}
             </label>
             <span className="adm-cargo-info">
               {c.oculto && <b className="adm-oculto">{tr('Oculto no site')} · </b>}
