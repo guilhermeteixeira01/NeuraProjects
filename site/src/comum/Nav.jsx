@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { CONFIG, MENU } from './config.js'
 import { entrar, linkPerfil, loginAtivo, sair, useConta } from './conta.js'
 import { ICONES_MENU, IconeKivo, IconeSteam } from './Icones.jsx'
-import { useAdmin } from './Moldura.jsx'
+import { useAcessoPick, useAdmin } from './Moldura.jsx'
 import Configuracoes from './Configuracoes.jsx'
 import { useT } from './i18n.js'
 
@@ -265,7 +265,8 @@ export default function Nav({ pagina }) {
   const { admin } = useAdmin(conta)
   // Sem login, o menu mostra só Início e Ranking (as outras páginas continuam abrindo pelo link; só não aparecem no menu).
   // Site sem login configurado: mostra tudo.
-  const menu = conta || !loginAtivo() ? MENU : MENU.filter((m) => SEM_LOGIN.includes(m.id))
+  const verPick = useAcessoPick()
+  const menu = (conta || !loginAtivo() ? MENU : MENU.filter((m) => SEM_LOGIN.includes(m.id))).filter((m) => m.id !== 'pick' || verPick)
   // Páginas do site de um lado; Admin (só para admin) separado delas
   const paginas = menu.map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
   const linkAdmin = admin && <LinkMenu item={ITEM_ADMIN} atual={pagina} />

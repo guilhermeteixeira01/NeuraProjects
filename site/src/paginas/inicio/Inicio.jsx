@@ -7,6 +7,7 @@ import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
 import Letreiro from '../../comum/Letreiro.jsx'
 import { Icone, IconeKivo } from '../../comum/Icones.jsx'
 import { useT } from '../../comum/i18n.js'
+import { useAcessoPick } from '../../comum/Moldura.jsx'
 import LiveTwitch from './LiveTwitch.jsx'
 import TimesCarrossel from './TimesCarrossel.jsx'
 
@@ -161,6 +162,7 @@ function useSecaoAtual() {
 }
 
 export default function Inicio() {
+  const verPick = useAcessoPick()
   const t = useT()
   const painel = useInclinar(7)
   const numeros = useNumeros()
@@ -227,6 +229,7 @@ export default function Inicio() {
                       <i />
                     </span>
                   </div>
+                  {verPick && (
                   <a className="painel-linha spot" href="/neurapick/">
                     <span className="ico">
                       <Icone>{IC_PICK}</Icone>
@@ -237,6 +240,7 @@ export default function Inicio() {
                     </span>
                     <span className="estado">ONLINE</span>
                   </a>
+                  )}
                   <a className="painel-linha spot" href="/partidas/">
                     <span className="ico">
                       <Icone>{IC_PARTIDAS}</Icone>
@@ -399,7 +403,9 @@ export default function Inicio() {
                   link: 'Jogar com a gente',
                   grande: true,
                 },
-              ].map((p, i) => {
+              ]
+                .filter((p) => p.href !== '/neurapick/' || verPick)
+                .map((p, i) => {
                 const conteudo = (
                   <>
                     <span className="projeto-num">0{i + 1}</span>
