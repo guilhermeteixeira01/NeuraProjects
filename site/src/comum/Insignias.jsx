@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useConta } from './conta.js'
 import { salvarPerfil, usePerfis, usePerfisFrescos } from './Moldura.jsx'
+import { registrarNotificacao } from './notificacoes.js'
 import { imagemInsignia, insigniasDe, miniaturaInsignia } from './insignias.js'
 
 // miniatura leve; se ela não existir, usa a imagem grande
@@ -200,6 +201,8 @@ export default function AvisoInsignia() {
     }
     const ja = new Set([...doServidor, ...locais])
     const novas = insigniasDe(perfis, conta.id).filter((i) => !ja.has(marcaDe(i)))
+    // fica também no sino (o mesmo id não entra duas vezes)
+    for (const i of novas) registrarNotificacao(conta.id, { id: `ins:${marcaDe(i)}`, insignia: i.id, titulo: `Você ganhou a insígnia ${i.nome}`, texto: i.descricao })
     setFila((f) => [...f, ...novas.filter((i) => !f.some((x) => marcaDe(x) === marcaDe(i)))])
   }, [conta?.id, perfis, frescos])
 

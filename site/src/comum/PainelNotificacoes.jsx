@@ -7,7 +7,10 @@ import { acaoAmizade, tempoDesde, useAmigos } from './amigos.js'
 import { useAvatar } from './avatares.js'
 import { linkPerfil } from './conta.js'
 import { acaoLobby, useLobby } from './lobby.js'
-import { useNotificacoes } from './notificacoes.js'
+import { useNotificacoes, registrarNotificacao } from './notificacoes.js'
+import { SeloNivel } from './Nivel.jsx'
+import { SeloCargo, useCargosIdsDe, useConfigSite, usePerfisFrescos } from './Moldura.jsx'
+import { miniaturaInsignia } from './insignias.js'
 import { useT } from './i18n.js'
 
 export function IconeSino({ tamanho = 20 }) {
@@ -53,11 +56,44 @@ function ComPessoa({ p, texto, ocupado, aceitar, recusar }) {
   )
 }
 
+// Cargo novo (dado pelo admin ou automático do top do ranking): compara com os últimos cargos vistos neste navegador.
+// Na primeira vez só guarda, sem avisar.
+function useAvisoCargos(id) {
+  const ids = useCargosIdsDe(id)
+  const { cargos } = useConfigSite()
+  const frescos = usePerfisFrescos()
+  const chave = ids.join(',')
+  useEffect(() => {
+    if (!id || !frescos || !cargos.length) return
+    const k = `np_cargos_${id}`
+    let antes = null
+    try {
+      antes = JSON.parse(localStorage.getItem(k) || 'null')
+      localStorage.setItem(k, JSON.stringify(ids))
+    } catch {
+      return
+    }
+    if (!Array.isArray(antes)) return
+    for (const c of cargos.filter((c) => ids.includes(c.id) && !antes.includes(c.id)))
+      registrarNotificacao(id, { id: `cargo:${c.id}:${Date.now()}`, cargo: c.id, titulo: `Você recebeu o cargo ${c.nome}` })
+  }, [id, frescos, chave, cargos.length]) // eslint-disable-line react-hooks/exhaustive-deps
+}
+
+// Imagem pequena da notificação: gema do nível, arte da insígnia ou selo do cargo
+function Emblema({ n, cargos }) {
+  if (n.nivel != null) return <SeloNivel nivel={n.nivel} tamanho={34} />
+  if (n.insignia) return <img className="nt-ins" src={miniaturaInsignia(n.insignia)} alt="" width="34" height="34" loading="lazy" draggable="false" />
+  const c = n.cargo && cargos.find((x) => x.id === n.cargo)
+  return c ? <SeloCargo cargo={c} classe="nt-selo" /> : null
+}
+
 export default function PainelNotificacoes({ celular = false }) {
   const t = useT()
   const { lista: amigos, eu } = useAmigos()
   const { dados, conta } = useLobby()
   const { lista, naoLidas, marcarLidas, limpar } = useNotificacoes()
+  const { cargos } = useConfigSite()
+  useAvisoCargos(conta?.id)
   const [aberto, setAberto] = useState(false)
   const [ocupado, setOcupado] = useState(false)
 
@@ -181,9 +217,12 @@ export default function PainelNotificacoes({ celular = false }) {
                       return (
                         <li key={n.id} className="am-linha nt-item">
                           <Corpo className="nt-corpo" {...(n.link ? { href: n.link } : {})}>
-                            <b>{t(n.titulo)}</b>
-                            {n.texto && <small>{n.texto}</small>}
-                            <small className="nt-quando">{tempoDesde(n.quando, t)}</small>
+                            <Emblema n={n} cargos={cargos} />
+                            <span className="nt-txt">
+                              <b>{t(n.titulo)}</b>
+                              {n.texto && <small>{t(n.texto)}</small>}
+                              <small className="nt-quando">{tempoDesde(n.quando, t)}</small>
+                            </span>
                           </Corpo>
                         </li>
                       )

@@ -48,6 +48,8 @@ export default {
   "Ver partida": "Ver partida",
   "Ver Pick & Ban": "Ver Pick & Ban",
   "Ligado: quem tem este cargo vê a página Pick & Ban (ela fica escondida de todos os outros; dono e admins sempre veem).": "Activado: quien tiene este rol ve la página Pick & Ban (oculta para los demás; dueño y admins siempre la ven).",
+  "Posição": "Posición",
+  "Oculto": "Oculto",
   "Notificações": "Notificaciones",
   "CONVITES PARA O LOBBY": "INVITACIONES AL LOBBY",
   "PEDIDOS DE AMIZADE": "SOLICITUDES DE AMISTAD",

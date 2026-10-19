@@ -2541,7 +2541,10 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
 /* Sino de notificações (comum/PainelNotificacoes.jsx): usa o painel de amigos; só muda o que é próprio */
 html.notif-cel-aberto { overflow: hidden; }
 .nt-item { padding: 2px 0; }
-.nt-corpo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; color: inherit; text-decoration: none; }
+.nt-corpo { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 8px 10px; color: inherit; text-decoration: none; }
+.nt-txt { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.nt-ins { flex: none; width: 34px; height: 34px; object-fit: contain; }
+.nt-selo { flex: none; align-self: flex-start; transform: scale(.85); transform-origin: left center; }
 .nt-corpo b { font-size: 13.5px; font-weight: 700; }
 .nt-corpo small { font-size: 12px; color: var(--dim); line-height: 1.4; }
 .nt-corpo .nt-quando { color: var(--dim-2); font-size: 11px; }
