@@ -337,6 +337,8 @@
   background-size: cover !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
   background-image: var(--card-fundo) !important;
 }
 .pod.com-card .pod-nome { text-shadow: 0 2px 12px rgba(0, 0, 0, .85); }

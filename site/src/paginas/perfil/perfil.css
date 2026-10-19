@@ -784,7 +784,7 @@ html.sm-aberto { overflow: hidden; }
 }
 
 /* Banner do card do perfil (escolhido em Personalizar → Card) e a aba Card da janela */
-.pf-cartao.com-card { background-size: cover; background-position: center; background-repeat: no-repeat; border-color: rgb(var(--tinta) / .22); }
+.pf-cartao.com-card { background-size: cover; background-position: center; background-repeat: no-repeat; background-origin: border-box; background-clip: border-box; border-color: rgb(var(--tinta) / .22); }
 .pf-cartao.com-card .pf-id h1 { text-shadow: 0 2px 12px rgba(0, 0, 0, .8); }
 .sm-grade-cards { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
 .sm-item-card { padding: 8px; gap: 8px; }
@@ -801,7 +801,7 @@ html.sm-aberto { overflow: hidden; }
 .sm-previa-card {
   position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
   width: 100%; max-width: 282px; aspect-ratio: 282 / 394.8; padding: 16px; overflow: hidden;
-  border-radius: 16px; border: 1px solid var(--border-2); background: #121212 center / cover no-repeat;
+  border-radius: 16px; border: 1px solid var(--border-2); background: #121212 center / cover no-repeat; background-origin: border-box; background-clip: border-box;
 }
 .sm-previa-card .sm-av { width: 46%; height: auto; aspect-ratio: 1; margin: 0; }
 .sm-previa-card b { max-width: 100%; font-size: 17px; text-align: center; text-shadow: 0 2px 10px rgba(0, 0, 0, .85); }

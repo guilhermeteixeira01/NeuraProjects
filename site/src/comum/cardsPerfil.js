@@ -76,5 +76,7 @@ export const nomeCard = (nome) => {
 }
 // Fundo do card do perfil: a imagem com um escurecido em cima/embaixo para o texto continuar legível
 // forte: escurece mais (pódio e linhas do ranking, onde tem muito texto por cima)
-// Fundo do card: só a imagem, sem escurecer
-export const fundoCard = (nome) => `url("${urlCard(nome)}")`
+// Fundo do card do perfil (perfil, prévia do Personalizar e pódio): a imagem com um degradê que escurece de cima para baixo,
+// como o nome e o nível ficam embaixo, o texto sempre lê bem. O lobby usa só a imagem (urlCard).
+export const fundoCard = (nome, forte = false) =>
+  `linear-gradient(180deg, rgba(18,18,18,${forte ? '.45' : '.1'}), rgba(18,18,18,${forte ? '.62' : '.35'}) 55%, rgba(18,18,18,${forte ? '.92' : '.88'})), url("${urlCard(nome)}")`
