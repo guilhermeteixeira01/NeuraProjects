@@ -10,6 +10,7 @@ import { SeloNivel } from './Nivel.jsx'
 import { corNivel, nivelDe } from './niveis.js'
 import { desempenhoAtivo } from './desempenho.js'
 import { useT } from './i18n.js'
+import { registrarNotificacao } from './notificacoes.js'
 
 const chave = (id) => `np_nivel_${id}`
 const ler = (id) => {
@@ -99,6 +100,11 @@ export default function AvisoNivel() {
 
   useEffect(() => {
     if (!aviso) return
+    // fica no sino (texto em português: o painel traduz na hora de mostrar)
+    registrarNotificacao(conta?.id, {
+      id: `nivel:${aviso.para}:${Date.now()}`,
+      titulo: aviso.para >= 11 ? 'Você chegou ao Elite!' : aviso.tipo === 'desce' ? `Você voltou para o nível ${aviso.para}` : `Você chegou ao nível ${aviso.para}`,
+    })
     if (aviso.tipo !== 'desce') estourar(canvas.current, corNivel(aviso.para), aviso.tipo === 'revela')
     const tecla = (e) => e.key === 'Escape' && setAviso(null)
     document.addEventListener('keydown', tecla)

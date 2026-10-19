@@ -29,12 +29,14 @@ async function chamar(metodo, corpo) {
   return d
 }
 
-export async function carregarLobby() {
-  try {
-    publicar({ dados: await chamar('GET'), erro: '' })
-  } catch (e) {
-    publicar({ erro: e.message })
-  }
+let lendo = null
+export function carregarLobby() {
+  // vários componentes pedem ao mesmo tempo (página, sino e barra): uma leitura só
+  lendo ||= chamar('GET')
+    .then((d) => publicar({ dados: d, erro: '' }))
+    .catch((e) => publicar({ erro: e.message }))
+    .finally(() => (lendo = null))
+  return lendo
 }
 
 // convidar | remover | entrar | recusar | sair | publico   (id = SteamID do alvo ou do líder; valor = true/false no "publico")

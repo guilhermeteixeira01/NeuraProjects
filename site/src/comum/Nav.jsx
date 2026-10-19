@@ -11,6 +11,7 @@ const ITEM_ADMIN = { id: 'admin', rotulo: 'Admin', href: '/admin/', icone: 'escu
 import { ComMoldura } from './Moldura.jsx'
 import { useAvatar } from './avatares.js'
 import PainelAmigos from './PainelAmigos.jsx'
+import PainelNotificacoes from './PainelNotificacoes.jsx'
 
 function LinkMenu({ item, atual }) {
   const t = useT()
@@ -311,6 +312,7 @@ export default function Nav({ pagina }) {
                 <span className="nx-dica">{t('Comunidade')}</span>
               </a>
             )}
+            <PainelNotificacoes celular />
             <PainelAmigos celular />
             <Configuracoes />
             <Conta />
@@ -324,6 +326,7 @@ export default function Nav({ pagina }) {
       <aside className="nx-direita" aria-label={t('Conta e configurações')}>
         <Conta />
         <span className="nx-direita-sep" aria-hidden="true" />
+        <PainelNotificacoes />
         <PainelAmigos />
         <Configuracoes />
         {CONFIG.comunidade && (
