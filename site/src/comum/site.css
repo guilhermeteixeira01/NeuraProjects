@@ -2538,6 +2538,16 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
   .am-celular .am-linha:hover { background: none; }
   .am-celular .am-off .am-pessoa { opacity: .6; }
 }
+/* Sino de notificações (comum/PainelNotificacoes.jsx): usa o painel de amigos; só muda o que é próprio */
+html.notif-cel-aberto { overflow: hidden; }
+.nt-item { padding: 2px 0; }
+.nt-corpo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; color: inherit; text-decoration: none; }
+.nt-corpo b { font-size: 13.5px; font-weight: 700; }
+.nt-corpo small { font-size: 12px; color: var(--dim); line-height: 1.4; }
+.nt-corpo .nt-quando { color: var(--dim-2); font-size: 11px; }
+a.nt-corpo:hover b { color: var(--accent); }
+.nt-limpar { margin-left: auto; border: 0; background: none; color: var(--dim-2); font: 600 11px var(--font-body); letter-spacing: 0; cursor: pointer; }
+.nt-limpar:hover { color: var(--text); }
 @keyframes am-sobe { from { opacity: 0; transform: translateY(14px); } }
 
 /* ── Insígnias (comum/Insignias.jsx): fileira do perfil com caixinha de descrição e aviso de insígnia nova ── */

@@ -79,7 +79,7 @@ function Podio({ j, pos, m, eu }) {
   const t = useT()
   const [chave, , rotulo, casas, suf] = m
   return (
-    <div className={`pod spot p${pos}${eu ? ' eu' : ''}${card ? ' com-card' : ''}`} data-pos={pos} style={card ? { '--card-fundo': fundoCard(card, true) } : undefined}>
+    <div className={`pod spot p${pos}${eu ? ' eu' : ''}${card ? ' com-card' : ''}`} data-pos={pos} style={card ? { '--card-fundo': fundoCard(card) } : undefined}>
       {eu && <span className="selo-eu">{t('VOCÊ')}</span>}
       {pos === 1 && (
         <svg className="coroa" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

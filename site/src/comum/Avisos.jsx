@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { descreverPartida } from './novidades.js'
 import { useT } from './i18n.js'
+import { useConta } from './conta.js'
+import { registrarNotificacao } from './notificacoes.js'
 
 // Avisos de partida:
 // - card no canto da tela (com o site aberto): o histórico é conferido a cada 30s; o cookie guarda a última
@@ -124,7 +126,14 @@ function Aviso({ aviso, onFechar }) {
 
 export default function Avisos() {
   const [avisos, setAvisos] = useState([])
-  const mostrar = (aviso) => setAvisos((a) => [...a.filter((x) => x.id !== aviso.id), aviso])
+  const conta = useConta()
+  const contaId = useRef(null)
+  contaId.current = conta?.id
+  const mostrar = (aviso) => {
+    setAvisos((a) => [...a.filter((x) => x.id !== aviso.id), aviso])
+    // as partidas também ficam no sino (as perguntas de permissão não)
+    if (aviso.tipo === 'partida') registrarNotificacao(contaId.current, { id: 'partida:' + aviso.id, titulo: aviso.titulo, texto: aviso.texto, link: aviso.link })
+  }
 
   // Partida nova com o site aberto: confere o histórico ao abrir e a cada 30s
   useEffect(() => {

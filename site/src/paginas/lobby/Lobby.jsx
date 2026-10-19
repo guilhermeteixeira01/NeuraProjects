@@ -5,7 +5,7 @@ import { entrar, linkPerfil, loginAtivo } from '../../comum/conta.js'
 import { lerJson } from '../../comum/dados.js'
 import { IconeSteam } from '../../comum/Icones.jsx'
 import { ComMoldura, IconeEquipe, useCardDe, usePerfis } from '../../comum/Moldura.jsx'
-import { fundoCard } from '../../comum/cardsPerfil.js'
+import { urlCard } from '../../comum/cardsPerfil.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { ALL_MAPS, mapImage } from '../../comum/mapas.js'
 import { nivelDe } from '../../comum/niveis.js'
@@ -100,7 +100,7 @@ function Pessoa({ pessoa, lider, pendente, centro, souLider, eu, aoRemover, ocup
   const card = useCardDe(pessoa.id)
   const { info } = nivelDoJogador(pessoa.id)
   return (
-    <div className={`lb-lugar lb-pessoa${centro ? ' lb-centro' : ''}${pendente ? ' lb-pendente' : ''}${pessoa.id === eu ? ' lb-eu' : ''}${card ? ' com-card' : ''}`} style={card ? { '--card-fundo': fundoCard(card, true) } : undefined}>
+    <div className={`lb-lugar lb-pessoa${centro ? ' lb-centro' : ''}${pendente ? ' lb-pendente' : ''}${pessoa.id === eu ? ' lb-eu' : ''}${card ? ' com-card' : ''}`} style={card ? { '--card-fundo': `url("${urlCard(card)}")` } : undefined}>
       {lider && <Coroa />}
       <a className="lb-av" href={linkPerfil(pessoa.id)} title={pessoa.nome || pessoa.id}>
         <ComMoldura steamId={pessoa.id}>
@@ -400,13 +400,14 @@ function Conteudo() {
     )
   if (!dados) return <p className="lb-carregando">{erro ? t(ERROS[erro] || 'Não deu para carregar o lobby.') : t('Carregando lobby…')}</p>
 
-  // Você no meio, os outros ao redor (líder primeiro): posições 1, 3, 0, 4; convites pendentes depois dos membros
+  // Líder no meio, os outros ao redor: posições 1, 3, 0, 4; convites pendentes depois dos membros
   const eu = dados.eu
-  const outros = [...dados.membros.filter((m) => m.id !== eu).map((p) => ({ pessoa: p, lider: p.id === dados.lider })), ...dados.convites.map((p) => ({ pessoa: p, pendente: true }))]
-  const meu = dados.membros.find((m) => m.id === eu)
+  // O dono do grupo (líder) fica sempre no meio, seja você ou outra pessoa
+  const outros = [...dados.membros.filter((m) => m.id !== dados.lider).map((p) => ({ pessoa: p })), ...dados.convites.map((p) => ({ pessoa: p, pendente: true }))]
+  const meu = dados.membros.find((m) => m.id === dados.lider) || dados.membros[0]
   // Sempre 5 cartões: o último (direita) é o "Encontrar lobbies" e só vira jogador quando o 5º entra (ou é convidado); se ele sai, volta
   const ORDEM = [1, 3, 0, 4]
-  const lugares = [{ pessoa: null }, { pessoa: null }, { pessoa: meu, lider: dados.lider === eu, centro: true }, { pessoa: null }, { encontrar: true }]
+  const lugares = [{ pessoa: null }, { pessoa: null }, { pessoa: meu, lider: true, centro: true }, { pessoa: null }, { encontrar: true }]
   outros.slice(0, 4).forEach((o, i) => (lugares[ORDEM[i]] = o))
   const livres = dados.max - dados.membros.length - dados.convites.length
 
