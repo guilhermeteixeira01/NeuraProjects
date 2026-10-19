@@ -2,12 +2,12 @@
  * Visual compartilhado do site Neura: cores, menu do topo e rodapé (montados por /assets/js/site.js).
  * Tudo com prefixo "nx-" para não misturar com o CSS próprio do NeuraPick e das páginas de partidas.
  */
-/* Escala geral do site no computador: tudo (textos, cards, barras, imagens) encolhe junto, como um zoom de 90% do navegador.
+/* Escala geral do site no computador: tudo (textos, cards, barras, imagens) encolhe junto, como um zoom de 95% do navegador.
    Para mudar o tamanho do site inteiro, é só trocar o --escala abaixo (1 = tamanho original). Celular e tablet ficam como estão.
    As alturas de tela (100vh) dividem pela escala para a página ainda preencher a janela. */
 :root { --escala: 1; }
 @media (min-width: 1025px) {
-  :root { --escala: .9; }
+  :root { --escala: .95; }
   html { zoom: var(--escala); }
 }
 :root {
