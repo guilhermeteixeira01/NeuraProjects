@@ -23,6 +23,7 @@ import { useT } from '../../comum/i18n.js'
 const ERROS = {
   cheio: 'O lobby está cheio.',
   amigo: 'Só dá para convidar amigos.',
+  offline: 'Só dá para convidar quem está online ou ausente.',
   lider: 'Só o líder do lobby pode fazer isso.',
   negado: 'Você não pode entrar nesse lobby.',
   'sem-lobby': 'Esse lobby não existe mais.',
@@ -185,7 +186,7 @@ function Convidar({ lobby, aoFechar, aoConvidar, ocupado }) {
   const amigos = useMemo(
     () =>
       (lista?.amigos || [])
-        .filter((a) => !dentro.has(a.id) && (a.nome || a.id).toLowerCase().includes(busca.trim().toLowerCase()))
+        .filter((a) => !dentro.has(a.id) && st(a) !== 'offline' && (a.nome || a.id).toLowerCase().includes(busca.trim().toLowerCase()))
         .sort((x, y) => ordem[st(x)] - ordem[st(y)] || (x.nome || '').localeCompare(y.nome || '')),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [lista, status, busca, lobby],
