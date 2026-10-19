@@ -149,7 +149,9 @@ function Pessoa({ pessoa, lider, pendente, centro, souLider, eu, aoRemover, ocup
       )}
       {souLider && !lider && !centro && (
         <button type="button" className="lb-x" disabled={ocupado} onClick={() => aoRemover(pessoa.id)} aria-label={pendente ? t('Cancelar convite') : t('Remover do lobby')} title={pendente ? t('Cancelar convite') : t('Remover do lobby')}>
-          ×
+          <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
+            <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+          </svg>
         </button>
       )}
     </div>
