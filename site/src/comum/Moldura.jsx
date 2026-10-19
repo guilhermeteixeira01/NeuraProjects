@@ -145,8 +145,8 @@ export const salvarPerfil = (mudar) => chamar('/perfil', mudar)
 const EVENTO_CONFIG = 'np-config'
 // Selos da equipe (dono e admins): o dono edita no painel (aba Cargos). Padrão igual ao do worker.
 export const SELOS_PADRAO = {
-  dono: { nome: 'Dono', cor: '#ff4655', icone: 'coroa', imagem: 'verified.png', mostrar: true },
-  admin: { nome: 'Admin', cor: '#3498db', icone: 'escudo', imagem: 'verified.png', mostrar: true },
+  dono: { nome: 'Dono', cor: '#ff4655', icone: 'coroa', imagem: 'verified.png', mostrar: true, pick: false },
+  admin: { nome: 'Admin', cor: '#3498db', icone: 'escudo', imagem: 'verified.png', mostrar: true, pick: false },
 }
 const CONFIG_PADRAO = { molduraPorNivel: false, nivelMoldura: {}, cardPorNivel: false, nivelCard: {}, cardCargo: {}, cargos: [], molduraCargo: {}, selos: SELOS_PADRAO, equipe: { dono: null, admins: [] } }
 let config = null
@@ -226,13 +226,15 @@ export function useCargosIdsDe(steamId) {
   return [...new Set([...manuais, ...daEquipe, ...cargos.filter((c) => c.top > 0 && pos >= 0 && pos < c.top).map((c) => c.id)])]
 }
 
-// Pick & Ban: a página fica escondida de todo mundo; só vê quem é da equipe (dono/admin) ou tem um cargo com "Ver Pick & Ban"
+// Pick & Ban: a página fica escondida de todo mundo. Só vê quem tem um cargo com "Ver Pick & Ban" ligado, ou, sendo o dono ou um
+// admin, o botão "Ver Pick & Ban" ligado no selo de Dono/Admin (painel admin → Cargos → Selos da equipe; desligado por padrão).
 export function useAcessoPick() {
   const conta = useConta()
-  const { admin } = useAdmin(conta)
-  const { cargos } = useConfigSite()
+  const { cargos, selos, equipe } = useConfigSite()
   const ids = useCargosIdsDe(conta?.id)
-  return !!conta && (admin || cargos.some((c) => c.pick && ids.includes(c.id)))
+  const doDono = !!conta && conta.id === equipe?.dono && !!selos?.dono?.pick
+  const doAdmin = !!conta && !!equipe?.admins?.includes(conta.id) && !!selos?.admin?.pick
+  return !!conta && (doDono || doAdmin || cargos.some((c) => c.pick && ids.includes(c.id)))
 }
 
 // Selo da equipe do jogador ({ id: '_dono' | '_admin', nome, cor, icone }), ou null se não for da equipe
@@ -317,11 +319,19 @@ export function SeloEquipe({ selo, classe = '' }) {
   )
 }
 
-// Selo de cargo: coroa + nome, na cor do cargo
+// Ícone do cargo: a imagem escolhida no painel (arquivo de public/assets/selos-equipe/, como o selo do dono e dos admins) ou, sem
+// imagem (ou se ela não carregar), o ícone desenhado.
+export function IconeDoCargo({ cargo, tamanho = 12 }) {
+  const [semImagem, setSemImagem] = useState(false)
+  if (!cargo.imagem || semImagem) return <IconeCargo icone={cargo.icone} tamanho={tamanho} />
+  return <img className="selo-img" src={urlSelo(cargo.imagem)} alt="" width={tamanho} height={tamanho} draggable={false} onError={() => setSemImagem(true)} />
+}
+
+// Selo de cargo: imagem (ou ícone) + nome, na cor do cargo
 export function SeloCargo({ cargo, classe = '' }) {
   return (
     <span className={`selo-cargo ${classe}`} style={{ '--cg': cargo.cor }} title={`Cargo: ${cargo.nome}`}>
-      <IconeCargo icone={cargo.icone} />
+      {cargo.imagem ? <IconeDoCargo cargo={cargo} /> : <IconeCargo icone={cargo.icone} />}
       {cargo.nome}
     </span>
   )

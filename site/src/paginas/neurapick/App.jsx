@@ -4,7 +4,7 @@ import Layout from '../../comum/Layout.jsx'
 import Setup from './components/Setup.jsx'
 import Veto from './components/Veto.jsx'
 
-// A página é escondida: só vê quem é da equipe ou tem um cargo com "Ver Pick & Ban" (painel admin → Cargos).
+// A página é escondida de todos: só vê quem tem um cargo com "Ver Pick & Ban" ligado, ou o dono/admin com esse botão ligado nos Selos da equipe (painel admin → Cargos).
 // Espera um instante a conta e o cargo chegarem antes de mostrar o aviso, para não piscar.
 export default function App() {
   const [match, setMatch] = useState(null)
