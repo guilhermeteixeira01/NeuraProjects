@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { CamadaMoldura, IconeDoCargo, SeloCargo, cargoDaMoldura, cargoDoCard, nivelDoCard, useCargosIdsDe, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, EmblemaDe, IconeDoCargo, SeloCargo, cargoDaMoldura, cargoDoCard, nivelDoCard, useCargosIdsDe, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
 import { COLECOES, MOLDURAS, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { urlOk } from '../../comum/dados.js'
 import { useT } from '../../comum/i18n.js'
@@ -317,6 +317,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                 <span className="sm-ini">{String(nome || '?').slice(0, 2).toUpperCase()}</span>
               )}
               <CamadaMoldura id={escolha.moldura} />
+              <EmblemaDe steamId={steamId} />
             </span>
             <b>{nome}</b>
             </div>

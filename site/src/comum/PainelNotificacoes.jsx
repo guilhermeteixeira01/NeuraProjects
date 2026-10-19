@@ -9,7 +9,7 @@ import { linkPerfil } from './conta.js'
 import { acaoLobby, useLobby } from './lobby.js'
 import { useNotificacoes, registrarNotificacao } from './notificacoes.js'
 import { SeloNivel } from './Nivel.jsx'
-import { SeloCargo, useConfigSite, usePerfis, usePerfisFrescos } from './Moldura.jsx'
+import { ComMoldura, SeloCargo, useConfigSite, usePerfis, usePerfisFrescos } from './Moldura.jsx'
 import { miniaturaInsignia } from './insignias.js'
 import { useT } from './i18n.js'
 
@@ -35,7 +35,9 @@ function ComPessoa({ p, texto, ocupado, aceitar, recusar }) {
     <li className="am-linha nt-item nt-pede">
       <a className="am-pessoa" href={linkPerfil(p.id)}>
         <span className="am-av">
-          <Foto p={p} />
+          <ComMoldura steamId={p.id} soEmblema>
+            <Foto p={p} />
+          </ComMoldura>
         </span>
         <span className="am-txt">
           <span className="am-nome">

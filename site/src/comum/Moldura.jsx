@@ -553,8 +553,9 @@ export function CamadaMoldura({ id, parada = false }) {
 // cheio: o avatar ocupa 100% do pai (ex.: avatar do pódio do ranking, que tem tamanho fixo).
 // Moldura exclusiva de um cargo que o jogador perdeu (ex.: saiu do top 3) some na hora e o worker tira do perfil.
 // Vale também para moldura posta por admin: exclusiva só aparece para quem tem o cargo (o worker ainda tira do perfil).
-// emblema: põe também o emblema da assinatura Premium no canto superior direito (só nos avatares grandes: perfil, lobby, pódio...).
-export function ComMoldura({ steamId, children, cheio = false, emblema = false }) {
+// emblema: põe também o emblema da assinatura Premium no canto superior direito do avatar (ligado em todos os lugares; emblema={false} desliga).
+// soEmblema: avatar sem moldura (listas, avisos) que mesmo assim leva o emblema.
+export function ComMoldura({ steamId, children, cheio = false, emblema = true, soEmblema = false }) {
   const perfil = usePerfis()[steamId] || {}
   const config = useConfigSite()
   const cargos = useCargosIdsDe(steamId)
@@ -567,7 +568,7 @@ export function ComMoldura({ steamId, children, cheio = false, emblema = false }
   // Dono e admins usam qualquer moldura (exclusiva de cargo também)
   const daEquipe = steamId === config.equipe?.dono || !!config.equipe?.admins?.includes(steamId)
   const selo = emblema && nivelSub ? <EmblemaSub nivel={nivelSub} parado={semAnimacao} /> : null
-  if (!molduraPorId(id) || (exige && !cargos.includes(exige) && !(daEquipe && exige !== '_dono')))
+  if (soEmblema || !molduraPorId(id) || (exige && !cargos.includes(exige) && !(daEquipe && exige !== '_dono')))
     return selo ? (
       <span className={`emblema-box${cheio ? ' cheio' : ''}`}>
         {children}
@@ -583,6 +584,14 @@ export function ComMoldura({ steamId, children, cheio = false, emblema = false }
       {selo}
     </span>
   )
+}
+
+// Só o emblema (para quem monta a própria caixa do avatar, como a prévia do Personalizar): nada se o jogador não é assinante
+export function EmblemaDe({ steamId }) {
+  const nivel = useNivelSub(steamId)
+  const desempenho = useDesempenho()
+  const semMovimento = useSemAnimacao()
+  return nivel ? <EmblemaSub nivel={nivel} parado={desempenho || semMovimento} /> : null
 }
 
 // Estado da assinatura Premium do jogador (ver assinatura.js): null sem assinatura ativa, ou { id, nome, meses, ... } do nível dele

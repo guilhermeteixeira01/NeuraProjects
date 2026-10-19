@@ -4,7 +4,7 @@
 // Aberto/fechado fica guardado no navegador. Dados e presença: comum/amigos.js.
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { acaoAmizade, relacaoCom, tempoDesde, useAmigos } from './amigos.js'
+import { acaoAmizade, buscarJogadores, relacaoCom, tempoDesde, useAmigos } from './amigos.js'
 import { useAvatar } from './avatares.js'
 import { linkPerfil } from './conta.js'
 import { lerJson } from './dados.js'
@@ -70,7 +70,7 @@ function Grupo({ titulo, n, children, classe = '' }) {
 }
 
 // SteamID (17 dígitos) ou link do perfil da Steam (steamcommunity.com/profiles/<id>) -> SteamID
-const extrairId = (txt) => /(?<!d)(d{17})(?!d)/.exec(txt)?.[1] || null
+const extrairId = (txt) => /(?<!\d)(\d{17})(?!\d)/.exec(txt)?.[1] || null
 const semAcento = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
 // Adicionar amigo: por SteamID / link do perfil, ou pelo nome (quem já jogou no servidor, lista do ranking)
@@ -86,14 +86,28 @@ function AdicionarAmigo({ lista, eu }) {
   }
   const termo = busca.trim()
   const id = extrairId(termo)
+  // Quem entrou no site mas nunca jogou no servidor não está no ranking: o worker procura nos que já entraram com a Steam
+  const [doSite, setDoSite] = useState([])
+  useEffect(() => {
+    if (id || termo.length < 2) return setDoSite([])
+    let vivo = true
+    const espera = setTimeout(() => {
+      buscarJogadores(termo)
+        .then((l) => vivo && setDoSite(l))
+        .catch(() => vivo && setDoSite([]))
+    }, 250)
+    return () => {
+      vivo = false
+      clearTimeout(espera)
+    }
+  }, [termo, id])
   let achados = []
   if (id) achados = id === eu ? [] : [{ id, nome: (jogadores || []).find((j) => j.steamId === id)?.nome || '', avatar: (jogadores || []).find((j) => j.steamId === id)?.avatar || '' }]
   else if (termo.length >= 2) {
     const q = semAcento(termo)
-    achados = (jogadores || [])
-      .filter((j) => j.steamId !== eu && semAcento(j.nome).includes(q))
-      .slice(0, 6)
-      .map((j) => ({ id: j.steamId, nome: j.nome, avatar: j.avatar }))
+    const doRanking = (jogadores || []).filter((j) => j.steamId !== eu && semAcento(j.nome).includes(q)).map((j) => ({ id: j.steamId, nome: j.nome, avatar: j.avatar }))
+    const vistos = new Set()
+    achados = [...doRanking, ...doSite.filter((j) => j.id !== eu)].filter((a) => !vistos.has(a.id) && vistos.add(a.id)).slice(0, 8)
   }
 
   const fazer = async (acao, alvo) => {

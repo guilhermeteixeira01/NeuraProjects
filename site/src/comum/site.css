@@ -2979,8 +2979,8 @@ a.nt-corpo:hover b { color: var(--accent); }
     animation: nx-convite-entra .35s cubic-bezier(.16, .84, .44, 1) both; transition: opacity .25s, transform .25s;
   }
   .nx-convite.is-saindo { opacity: 0; transform: translateX(16px); pointer-events: none; }
-  .nx-convite-foto { flex: none; width: 48px; height: 48px; border-radius: 50%; overflow: hidden; display: block; }
-  .nx-convite-foto img, .nx-convite-foto .am-ini { width: 48px; height: 48px; object-fit: cover; display: grid; }
+  .nx-convite-foto { flex: none; width: 48px; height: 48px; border-radius: 50%; display: block; } /* sem overflow: hidden: o emblema e a moldura passam da borda */
+  .nx-convite-foto img, .nx-convite-foto .am-ini { width: 48px; height: 48px; object-fit: cover; display: grid; border-radius: 50%; }
   .nx-convite-corpo { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
   .nx-convite-corpo b { font-size: 14.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .nx-convite-corpo > span { font-size: 12.5px; color: var(--dim); }
@@ -3063,15 +3063,12 @@ a.nt-corpo:hover b { color: var(--accent); }
   top: -6%;
   right: -6%;
   z-index: 3; /* acima da moldura (z-index 2) */
-  width: 34%;
+  width: max(27%, 12px); /* proporcional ao avatar; nos bem pequenos não passa de 12 px para ainda dar para ver */
   aspect-ratio: 1;
   cursor: pointer;
-  transition: transform .15s;
   -webkit-tap-highlight-color: transparent;
 }
-.emblema-sub:hover,
 .emblema-sub:focus-visible {
-  transform: scale(1.12);
   outline: 0;
 }
 .emblema-sub img {

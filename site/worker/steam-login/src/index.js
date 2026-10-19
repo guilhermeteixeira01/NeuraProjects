@@ -92,6 +92,7 @@ export default {
       return json({ id: quem.id, admin, dono: quem.id === env.DONO }, 200, cors)
     }
     if (rota === '/amigos' && (req.method === 'GET' || req.method === 'POST')) return rotaAmigos(req, env, quem, cors)
+    if (rota === '/usuarios/buscar' && req.method === 'GET') return buscarUsuarios(url, env, quem, cors)
     if (rota === '/lobby' && (req.method === 'GET' || req.method === 'POST')) return rotaLobby(req, env, quem, cors)
     if (req.method === 'POST' && (rota === '/perfil' || rota === '/moldura')) return salvarPerfil(req, env, site, quem, admin, config, cors, rota === '/moldura')
 
@@ -563,6 +564,22 @@ async function adminConfig(req, env, site, config, cors) {
   await gravar(env, 'config', novo)
   if ('cargos' in corpo || 'molduraCargo' in corpo || 'cardCargo' in corpo) await tirarExclusivasSemCargo(env, site, novo)
   return json({ ok: true, config: { ...configPublica(novo, env), admins: novo.admins || [] } }, 200, cors)
+}
+
+// GET /usuarios/buscar?q=nome (com login): quem já entrou no site com a Steam, pelo nome (para adicionar amigo). No máximo 8.
+// Quem escondeu o perfil do ranking não aparece (o SteamID continua funcionando para quem já o tem). Nunca devolve você mesmo.
+async function buscarUsuarios(url, env, quem, cors) {
+  const semAcento = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  const q = semAcento(url.searchParams.get('q') || '').trim()
+  if (q.length < 2 || q.length > 40) return json({ jogadores: [] }, 200, cors)
+  const [usuarios, perfis] = await Promise.all([ler(env, 'usuarios'), ler(env, 'perfis')])
+  const achados = Object.entries(usuarios)
+    .filter(([id, u]) => id !== quem.id && u?.nome && !perfis[id]?.ocultoRanking && semAcento(u.nome).includes(q))
+    .map(([id, u]) => ({ id, nome: String(u.nome), avatar: String(u.avatar || ''), comeca: semAcento(u.nome).startsWith(q) }))
+    .sort((a, b) => Number(b.comeca) - Number(a.comeca) || a.nome.localeCompare(b.nome))
+    .slice(0, 8)
+    .map(({ id, nome, avatar }) => ({ id, nome, avatar }))
+  return json({ jogadores: achados }, 200, cors)
 }
 
 // POST /admin/selos { dono?: { nome, cor, icone, imagem, mostrar, pick }, admin?: {...} }  (só o DONO)

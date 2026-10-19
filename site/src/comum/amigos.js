@@ -47,6 +47,16 @@ async function carregarLista() {
 }
 
 // pedir | aceitar | recusar | cancelar | remover
+// Busca por nome entre quem o site conhece (quem já entrou com a Steam; o ranking o painel já tem): GET /usuarios/buscar?q=
+export async function buscarJogadores(q) {
+  const token = tokenConta()
+  if (!token) throw new Error('login')
+  const r = await fetch(`${base()}/usuarios/buscar?q=${encodeURIComponent(q)}`, { headers: { Authorization: `Bearer ${token}` } })
+  const d = await r.json().catch(() => null)
+  if (!r.ok || d?.erro) throw new Error(d?.erro || 'falhou')
+  return Array.isArray(d?.jogadores) ? d.jogadores : []
+}
+
 export async function acaoAmizade(acao, id) {
   const lista = await chamar('POST', { acao, id })
   publicar({ lista })
