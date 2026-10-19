@@ -3,12 +3,12 @@
  * Tudo com prefixo "nx-" para não misturar com o CSS próprio do NeuraPick e das páginas de partidas.
  */
 /* Escala geral do site no computador: tudo (textos, cards, barras, imagens) encolhe junto, como um zoom de 95% do navegador.
-   Para mudar o tamanho do site inteiro, é só trocar o --escala abaixo (1 = tamanho original). Celular e tablet ficam como estão.
+   Para mudar o tamanho do site inteiro, é só trocar o --escala-site abaixo (não é o --escala das molduras) (1 = tamanho original). Celular e tablet ficam como estão.
    As alturas de tela (100vh) dividem pela escala para a página ainda preencher a janela. */
-:root { --escala: 1; }
+:root { --escala-site: 1; }
 @media (min-width: 1025px) {
-  :root { --escala: .95; }
-  html { zoom: var(--escala); }
+  :root { --escala-site: .95; }
+  html { zoom: var(--escala-site); }
 }
 :root {
   --bg: #0b0c0f;
@@ -2090,7 +2090,7 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
   }
   /* topo da página inicial ocupa a tela toda (não há mais barra em cima) */
   .hx {
-    min-height: min(880px, 100vh / var(--escala, 1));
+    min-height: min(880px, 100vh / var(--escala-site, 1));
   }
 }
 @keyframes nx-lado {
