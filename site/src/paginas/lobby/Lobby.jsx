@@ -238,7 +238,7 @@ function Encontrar({ dados, aoFechar, fazer, ocupado }) {
     document.addEventListener('keydown', tecla)
     return () => document.removeEventListener('keydown', tecla)
   }, [aoFechar])
-  const linha = (lider, membros, recusar) => (
+  const linha = (lider, membros, recusar, vaga) => (
     <li key={lider.id}>
       <span className="lb-amigo-av">
         <ComMoldura steamId={lider.id} soEmblema>
@@ -248,7 +248,7 @@ function Encontrar({ dados, aoFechar, fazer, ocupado }) {
       </span>
       <span className="lb-amigo-nome">
         <b>{lider.nome || lider.id}</b>
-        <small>{t('{n}/{max} no lobby', { n: membros, max: dados.max })}</small>
+        <small>{vaga ? t('Chamou você para uma partida em andamento') : t('{n}/{max} no lobby', { n: membros, max: dados.max })}</small>
       </span>
       <span className="lb-par">
         <button type="button" className="lb-btn lb-btn-p" disabled={ocupado} onClick={() => fazer('entrar', lider.id)}>
@@ -282,7 +282,7 @@ function Encontrar({ dados, aoFechar, fazer, ocupado }) {
           ))}
         </div>
         <ul className="lb-amigos">
-          {aba === 'convites' && dados.convitesRecebidos.map(({ lider, membros }) => linha(lider, membros, true))}
+          {aba === 'convites' && dados.convitesRecebidos.map(({ lider, membros, vaga }) => linha(lider, membros, true, vaga))}
           {aba === 'abertos' && dados.abertos.map(({ lider, membros }) => linha(lider, membros, false))}
           {aba === 'convites' && !dados.convitesRecebidos.length && <li className="lb-vazio-lista">{t('Ninguém te convidou ainda.')}</li>}
           {aba === 'abertos' && !dados.abertos.length && <li className="lb-vazio-lista">{t('Nenhum amigo com lobby aberto agora.')}</li>}

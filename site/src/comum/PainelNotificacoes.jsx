@@ -170,7 +170,7 @@ export default function PainelNotificacoes({ celular = false }) {
                       <ComPessoa
                         key={c.lider.id}
                         p={c.lider}
-                        texto={t('convidou você para o lobby')}
+                        texto={c.vaga ? t('chamou você para uma partida em andamento') : t('convidou você para o lobby')}
                         ocupado={ocupado}
                         aceitar={() =>
                           rodar(

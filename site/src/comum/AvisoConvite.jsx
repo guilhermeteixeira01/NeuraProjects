@@ -9,7 +9,7 @@ import { ComMoldura } from './Moldura.jsx'
 import { acaoLobby, useLobby } from './lobby.js'
 import { useT } from './i18n.js'
 
-const TEMPO = 30 // segundos para aceitar
+const TEMPO = 30 // segundos para aceitar (convite de vaga numa partida vale 60 s no worker)
 const chave = (lider) => `np_convite_${lider}`
 const jaMostrou = (lider) => {
   try {
@@ -67,7 +67,7 @@ function Convite({ convite, aoSair }) {
       </a>
       <div className="nx-convite-corpo">
         <b>{lider.nome || lider.id}</b>
-        <span>{t('convidou você para o lobby')}</span>
+        <span>{convite.vaga ? t('chamou você para uma partida em andamento') : t('convidou você para o lobby')}</span>
         <div className="nx-convite-botoes">
           <button type="button" className="principal" disabled={ocupado} onClick={() => responder('entrar')}>
             {t('Aceitar')}
