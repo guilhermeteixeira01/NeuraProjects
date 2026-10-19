@@ -161,7 +161,11 @@ function LogoTime({ url, nome, capitao, t }) {
   return (
     <span className={`bn-logo bn-logo-${t}`}>
       <span className="bn-ini">{iniciais(nome)}</span>
-      {urlOk(url) ? !erro && <img className="bn-img" src={url} alt="" onError={() => setErro(true)} /> : capitao && <Avatar e={capitao} classe="bn-img" />}
+      {urlOk(url) ? !erro && <img className="bn-img" src={url} alt="" onError={() => setErro(true)} /> : capitao && (
+          <ComMoldura steamId={capitao.steamId} soEmblema>
+            <Avatar e={capitao} classe="bn-img" />
+          </ComMoldura>
+        )}
     </span>
   )
 }

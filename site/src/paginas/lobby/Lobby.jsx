@@ -202,7 +202,9 @@ function Convidar({ lobby, aoFechar, aoConvidar, ocupado }) {
           {amigos.map((a) => (
             <li key={a.id}>
               <span className="lb-amigo-av">
-                <Foto p={a} />
+                <ComMoldura steamId={a.id} soEmblema>
+                  <Foto p={a} />
+                </ComMoldura>
                 <i className={`lb-bolinha st-${st(a)}`} aria-hidden="true" />
               </span>
               <span className="lb-amigo-nome">
@@ -234,7 +236,9 @@ function Encontrar({ dados, aoFechar, fazer, ocupado }) {
   const linha = (lider, membros, recusar) => (
     <li key={lider.id}>
       <span className="lb-amigo-av">
-        <Foto p={lider} />
+        <ComMoldura steamId={lider.id} soEmblema>
+          <Foto p={lider} />
+        </ComMoldura>
         <i className={`lb-bolinha st-${lider.st || 'offline'}`} aria-hidden="true" />
       </span>
       <span className="lb-amigo-nome">

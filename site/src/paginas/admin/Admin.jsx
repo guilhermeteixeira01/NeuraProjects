@@ -4,7 +4,7 @@ import Layout from '../../comum/Layout.jsx'
 import { entrar, linkPerfil, loginAtivo, useConta } from '../../comum/conta.js'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
-import { CamadaMoldura, CargosDe, ComMoldura, IconeEquipe, SELOS_PADRAO, SeloCargo, SeloEquipe, cargosComEquipe, chamar, nomeDoCargo, useAdmin } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, CargosDe, ComMoldura, EmblemaDe, IconeEquipe, SELOS_PADRAO, SeloCargo, SeloEquipe, cargosComEquipe, chamar, nomeDoCargo, useAdmin } from '../../comum/Moldura.jsx'
 import { COLECOES, MOLDURAS, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { NIVEL_MAX, nivelDe, rotuloNivel, textoNivel } from '../../comum/niveis.js'
@@ -219,6 +219,7 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
             <span className={`moldura-box adm-ed-av${classeForma(moldura)}`}>
               <Avatar id={u.id} src={u.avatar} nome={u.nome} classe="adm-ed-img" />
               <CamadaMoldura id={moldura} />
+              <EmblemaDe steamId={u.id} />
             </span>
             <div>
               <b>{u.nome || tr('Sem nome')}</b>
@@ -844,7 +845,9 @@ function Cargos({ config, usuarios, aoSalvar }) {
                   .slice(0, 8)
                   .map((u) => (
                     <a key={u.id} href={linkPerfil(u.id)} title={u.nome}>
-                      <Avatar id={u.id} src={u.avatar} nome={u.nome} classe="adm-av mini" />
+                      <ComMoldura steamId={u.id} soEmblema>
+                        <Avatar id={u.id} src={u.avatar} nome={u.nome} classe="adm-av mini" />
+                      </ComMoldura>
                     </a>
                   ))}
               </span>
@@ -982,7 +985,9 @@ function Assinaturas({ config, usuarios, aoSalvarConfig, aoSalvarPerfis }) {
           const aberto = editando?.id === u.id
           return (
             <li key={u.id} className={e.ativa ? '' : 'adm-sub-vencida'}>
-              <Avatar id={u.id} src={u.avatar} nome={u.nome} />
+              <ComMoldura steamId={u.id} soEmblema>
+                <Avatar id={u.id} src={u.avatar} nome={u.nome} />
+              </ComMoldura>
               <a className="adm-admin-nome" href={linkPerfil(u.id)}>
                 <b>{u.nome || tr('Sem nome')}</b>
               </a>
@@ -1072,7 +1077,9 @@ function Admins({ config, dono, souDono, usuarios, aoSalvar }) {
       <ul>
         {[dono, ...(config.admins || []).filter((id) => id !== dono)].filter(Boolean).map((id) => (
           <li key={id}>
-            <Avatar id={id} src={avatarDe(id)} nome={nomeDe(id)} />
+            <ComMoldura steamId={id} soEmblema>
+              <Avatar id={id} src={avatarDe(id)} nome={nomeDe(id)} />
+            </ComMoldura>
             {/* Nome, selo (Dono/Admin) e SteamID empilhados; à direita só o botão Remover */}
             <span className="adm-admin-info">
               <a className="adm-admin-nome" href={linkPerfil(id)}>

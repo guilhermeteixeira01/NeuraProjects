@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react'
 import { useAvatar } from './avatares.js'
 import { linkPerfil } from './conta.js'
+import { ComMoldura } from './Moldura.jsx'
 import { acaoLobby, useLobby } from './lobby.js'
 import { useT } from './i18n.js'
 
@@ -60,7 +61,9 @@ function Convite({ convite, aoSair }) {
   return (
     <div className={`nx-convite${saindo ? ' is-saindo' : ''}`} role="alert">
       <a className="nx-convite-foto" href={linkPerfil(lider.id)}>
-        <Foto p={lider} />
+        <ComMoldura steamId={lider.id} soEmblema>
+          <Foto p={lider} />
+        </ComMoldura>
       </a>
       <div className="nx-convite-corpo">
         <b>{lider.nome || lider.id}</b>
