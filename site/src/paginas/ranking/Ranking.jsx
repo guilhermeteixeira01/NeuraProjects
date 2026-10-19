@@ -87,7 +87,7 @@ function Podio({ j, pos, m, eu }) {
         </svg>
       )}
       <a className="pod-av" href={perfil(j)}>
-        <ComMoldura steamId={j.steamId} cheio>
+        <ComMoldura steamId={j.steamId} cheio emblema>
           <Avatar j={j} classe="" />
         </ComMoldura>
         <span className="pod-pos">#{pos}</span>

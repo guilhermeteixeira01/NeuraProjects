@@ -11,6 +11,9 @@ export const CONFIG = {
   // (npm run dev:local usa o worker local: ver worker/steam-login/dev/README.md)
   loginSteam: import.meta.env?.VITE_LOGIN_STEAM || 'https://neura-steam-login.steam-login.workers.dev',
 
+  // Página onde a pessoa vira Premium (botão SEJA PREMIUM da janela do emblema de assinatura). '' = botão desligado ("Em breve")
+  premium: '',
+
   // Redes sociais (deixe '' para esconder)
   // Comunidade (Kivo: plataforma gamer de voz, chat e comunidades). '' esconde os botões e links
   comunidade: 'https://kivogamer.com/invite/bKbyhRATHR',

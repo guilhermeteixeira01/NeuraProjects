@@ -11,6 +11,7 @@ import { NIVEL_MAX, nivelDe, rotuloNivel, textoNivel } from '../../comum/niveis.
 import { ordenarRanking } from '../../comum/ranking.js'
 import { localeAtual, useT } from '../../comum/i18n.js'
 import { ICONES_CARGO, IconeCargo } from '../../comum/cargos.jsx'
+import { NIVEIS_SUB, SUB_MESES_PADRAO, maisUmMes, nivelDaSub, tituloNivel, urlEmblema } from '../../comum/assinatura.js'
 import { INSIGNIAS, imagemInsignia } from '../../comum/insignias.js'
 import { useAvatar } from '../../comum/avatares.js'
 import SeletorMoldura from '../perfil/SeletorMoldura.jsx'
@@ -867,6 +868,182 @@ function Cargos({ config, usuarios, aoSalvar }) {
   )
 }
 
+// ── Aba Assinaturas: emblema Premium (Subscriber → Legend) ──
+// O jogador evolui com o tempo de assinatura (cada período é de 1 mês, com data de vencimento). Sem data = infinita: não vence e o
+// emblema evolui sozinho com o tempo desde o início. Vencida = sem emblema. Depois a API de pagamentos escreve estes mesmos dados.
+const paraInputData = (ms) => (ms ? new Date(ms - new Date(ms).getTimezoneOffset() * 60000).toISOString().slice(0, 10) : '')
+const deInputData = (v) => (v ? new Date(`${v}T23:59:59`).getTime() : null) // vence no fim do dia escolhido
+
+function Assinaturas({ config, usuarios, aoSalvarConfig, aoSalvarPerfis }) {
+  const tr = useT()
+  const [meses, setMeses] = useState(() => ({ ...SUB_MESES_PADRAO, ...config.subMeses }))
+  const [estado, setEstado] = useState('')
+  const [ocupado, setOcupado] = useState(false)
+  const [editando, setEditando] = useState(null) // { id, meses, expira (yyyy-mm-dd), infinita }
+  const [busca, setBusca] = useState('')
+  const [novaInfinita, setNovaInfinita] = useState(false)
+  const ordemOk = NIVEIS_SUB.slice(1).every((n, i, l) => Number(meses[n.id]) >= 1 && (i === 0 || Number(meses[n.id]) > Number(meses[l[i - 1].id])))
+  const mudouMeses = NIVEIS_SUB.slice(1).some((n) => Number(meses[n.id]) !== Number(config.subMeses?.[n.id] ?? SUB_MESES_PADRAO[n.id]))
+  const assinantes = usuarios.filter((u) => u.perfil.sub).sort((a, b) => (a.nome || '').localeCompare(b.nome || ''))
+  const data = (ms) => new Date(ms).toLocaleDateString(tr.local)
+
+  const salvarMeses = async () => {
+    setEstado('salvando')
+    try {
+      const d = await chamar('/admin/config', { subMeses: Object.fromEntries(NIVEIS_SUB.slice(1).map((n) => [n.id, Math.round(Number(meses[n.id]))])) })
+      aoSalvarConfig(d.config)
+      setEstado('Salvo!')
+    } catch (e) {
+      setEstado(mensagemErro(e))
+    }
+  }
+  // sub = { meses, expira } (ou null para remover); o início fica o mesmo (ou é o de hoje, em assinatura nova)
+  const gravar = async (id, sub) => {
+    setOcupado(true)
+    setEstado('')
+    try {
+      const d = await chamar('/admin/perfil', { id, sub })
+      aoSalvarPerfis(d.perfis)
+      setEditando(null)
+      return true
+    } catch (e) {
+      setEstado(mensagemErro(e))
+      return false
+    } finally {
+      setOcupado(false)
+    }
+  }
+  const renovar = (u) => {
+    const s = u.perfil.sub
+    gravar(u.id, { inicio: s.inicio, meses: (Number(s.meses) || 0) + 1, expira: maisUmMes(Math.max(Date.now(), Number(s.expira) || 0)) })
+  }
+  const remover = (u) => window.confirm(tr('Tirar a assinatura de {nome}?', { nome: u.nome || u.id })) && gravar(u.id, null)
+  const salvarEdicao = () =>
+    gravar(editando.id, {
+      inicio: usuarios.find((u) => u.id === editando.id)?.perfil.sub?.inicio,
+      meses: Math.max(0, Math.round(Number(editando.meses) || 0)),
+      expira: editando.infinita ? null : deInputData(editando.expira),
+    })
+  const adicionar = async () => {
+    const termo = busca.trim().toLowerCase()
+    const achado = usuarios.find((u) => u.id === termo || (u.nome || '').toLowerCase() === termo) || (/^\d{17}$/.test(termo) ? { id: termo } : null)
+    if (!achado) return setEstado('Não achei esse jogador: digite o nome exato (escolha na lista) ou o SteamID64.')
+    if (await gravar(achado.id, { meses: 1, expira: novaInfinita ? null : maisUmMes(Date.now()) })) setBusca('')
+  }
+  const estadoSub = (u) => {
+    const s = u.perfil.sub
+    const n = nivelDaSub(s, config.subMeses)
+    if (n) return { ativa: true, n, texto: `${tituloNivel(n)} · ${n.meses} ${tr(n.meses === 1 ? 'mês' : 'meses')} · ${n.infinita ? tr('sem data (infinita)') : tr('vence em {data}', { data: data(n.expira) })}` }
+    return { ativa: false, n: null, texto: `${tr('Vencida em {data}', { data: data(Number(s.expira)) })} · ${s.meses} ${tr(s.meses === 1 ? 'mês' : 'meses')}` }
+  }
+
+  return (
+    <div className="adm-bloco adm-cargos adm-subs">
+      <div className="adm-config-topo">
+        <p className="adm-nota">
+          <b>{tr('Assinatura Premium')}</b> · {tr('O emblema aparece no canto do avatar e evolui com o tempo de assinatura. Cada período é de 1 mês, com data de vencimento; sem data a assinatura é infinita.')}
+        </p>
+        <div className="adm-salvar">
+          <span className="sm-msg" role="status">
+            {estado !== 'salvando' && tr(estado)}
+          </span>
+          <button type="button" className="btn btn-primary" onClick={salvarMeses} disabled={!mudouMeses || !ordemOk || estado === 'salvando'}>
+            {estado === 'salvando' ? tr('Salvando…') : tr('Salvar tempos')}
+          </button>
+        </div>
+      </div>
+
+      <ul className="adm-sub-niveis">
+        {NIVEIS_SUB.map((n, i) => (
+          <li key={n.id}>
+            <img src={urlEmblema(n.id, true)} alt="" />
+            <b>{tr(tituloNivel(n))}</b>
+            {i === 0 ? (
+              <span className="adm-sub-desde">{tr('1º mês (qualquer assinatura ativa)')}</span>
+            ) : (
+              <label className="adm-sub-desde">
+                {tr('a partir de')}
+                <input type="number" min="1" max="600" value={meses[n.id]} onChange={(e) => setMeses((m) => ({ ...m, [n.id]: e.target.value }))} aria-label={tr('Meses para o nível {nivel}', { nivel: n.nome })} />
+                {tr('meses')}
+              </label>
+            )}
+            {n.animado && <i className="adm-anim-tag">{tr('ANIMADO')}</i>}
+          </li>
+        ))}
+      </ul>
+      {!ordemOk && <p className="lb-erro adm-sub-erro">{tr('Cada nível precisa de mais meses que o anterior.')}</p>}
+
+      <h3 className="adm-sub-titulo">
+        {tr('Assinantes')} <small>{assinantes.length}</small>
+      </h3>
+      <ul>
+        {assinantes.map((u) => {
+          const e = estadoSub(u)
+          const aberto = editando?.id === u.id
+          return (
+            <li key={u.id} className={e.ativa ? '' : 'adm-sub-vencida'}>
+              <Avatar id={u.id} src={u.avatar} nome={u.nome} />
+              <a className="adm-admin-nome" href={linkPerfil(u.id)}>
+                <b>{u.nome || tr('Sem nome')}</b>
+              </a>
+              {e.n ? <img className="adm-sub-emblema" src={urlEmblema(e.n.id, true)} alt="" /> : null}
+              <span className="adm-cargo-info">{e.texto}</span>
+              <button type="button" className="btn btn-ghost" disabled={ocupado || u.perfil.sub.expira == null} title={u.perfil.sub.expira == null ? tr('Sem data: não precisa renovar') : tr('Soma 1 mês no vencimento')} onClick={() => renovar(u)}>
+                {tr('Renovar +1 mês')}
+              </button>
+              <button type="button" className="btn btn-ghost" disabled={ocupado} onClick={() => setEditando(aberto ? null : { id: u.id, meses: u.perfil.sub.meses, expira: paraInputData(u.perfil.sub.expira), infinita: u.perfil.sub.expira == null })}>
+                {tr(aberto ? 'Fechar' : 'Editar')}
+              </button>
+              <button type="button" className="btn btn-ghost adm-perigo" disabled={ocupado} onClick={() => remover(u)}>
+                {tr('Remover')}
+              </button>
+              {aberto && (
+                <div className="adm-sub-edicao">
+                  <label>
+                    {tr('Meses acumulados')}
+                    <input type="number" min="0" max="1200" value={editando.meses} onChange={(ev) => setEditando((x) => ({ ...x, meses: ev.target.value }))} />
+                  </label>
+                  <label>
+                    {tr('Vence em')}
+                    <input type="date" value={editando.expira} disabled={editando.infinita} onChange={(ev) => setEditando((x) => ({ ...x, expira: ev.target.value }))} />
+                  </label>
+                  <label className="adm-numerar">
+                    <input type="checkbox" checked={editando.infinita} onChange={(ev) => setEditando((x) => ({ ...x, infinita: ev.target.checked }))} />
+                    {tr('Sem data (infinita)')}
+                  </label>
+                  <button type="button" className="btn btn-primary" disabled={ocupado || (!editando.infinita && !editando.expira)} onClick={salvarEdicao}>
+                    {tr('Salvar')}
+                  </button>
+                </div>
+              )}
+            </li>
+          )
+        })}
+        {assinantes.length === 0 && <li className="adm-vazio">{tr('Nenhum assinante ainda.')}</li>}
+      </ul>
+
+      <div className="adm-novo-admin">
+        <input list="adm-sub-usuarios" placeholder={tr('Nome do jogador ou SteamID64')} value={busca} onChange={(e) => setBusca(e.target.value)} />
+        <datalist id="adm-sub-usuarios">
+          {usuarios
+            .filter((u) => u.nome && !u.perfil.sub)
+            .slice(0, 300)
+            .map((u) => (
+              <option key={u.id} value={u.nome} />
+            ))}
+        </datalist>
+        <label className="adm-numerar">
+          <input type="checkbox" checked={novaInfinita} onChange={(e) => setNovaInfinita(e.target.checked)} />
+          {tr('Sem data (infinita)')}
+        </label>
+        <button type="button" className="btn btn-ghost" disabled={!busca.trim() || ocupado} onClick={adicionar}>
+          {tr('Dar assinatura de 1 mês')}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ── Aba Admins ──
 function Admins({ config, dono, souDono, usuarios, aoSalvar }) {
   const tr = useT()
@@ -1043,6 +1220,7 @@ export default function Admin() {
       ['molduras', 'Molduras'],
       ['cards', 'Cards'],
       ['cargos', 'Cargos'],
+      ['assinaturas', 'Assinaturas'],
       ['admins', 'Admins'],
     ]
     conteudo = (
@@ -1087,6 +1265,7 @@ export default function Admin() {
             {aba === 'molduras' && <Molduras key={JSON.stringify(painel.config)} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
             {aba === 'cargos' && eu.dono && <SelosEquipe key={JSON.stringify(painel.config.selos || {})} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
             {aba === 'cargos' && <Cargos key={JSON.stringify(painel.config.cargos || [])} config={painel.config} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
+            {aba === 'assinaturas' && <Assinaturas key={JSON.stringify(painel.config.subMeses || {})} config={painel.config} usuarios={usuarios} aoSalvarConfig={(config) => setPainel((p) => ({ ...p, config }))} aoSalvarPerfis={(perfis) => setPainel((p) => ({ ...p, perfis }))} />}
             {aba === 'admins' && <Admins config={painel.config} dono={painel.dono} souDono={eu.dono} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
           </div>
         </section>

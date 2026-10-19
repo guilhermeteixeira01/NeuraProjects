@@ -167,6 +167,10 @@ const SELOS_PADRAO = {
 const IMAGEM_SELO = /^[A-Za-z0-9._-]{1,80}\.(png|webp|avif|svg|jpe?g|gif)$/i
 // Id de um card do perfil: "tema/arquivo.ext" (pasta do tema dentro de public/assets/cards/); o nome sem pasta também vale (cards antigos)
 const CARD_ID = /^([A-Za-z0-9_ -]{1,40}\/)?[A-Za-z0-9._ -]{1,80}\.(png|webp|avif|svg|jpe?g|gif)$/i
+// Assinatura Premium (emblema no avatar: Subscriber, Gold, Platinum, Diamond, Elite, Legend). Meses de assinatura que cada nível exige
+// (o Subscriber é o 1º mês); o admin muda no painel (aba Assinaturas). Padrão igual ao do site: src/comum/assinatura.js
+const SUB_MESES_PADRAO = { gold: 3, platinum: 6, diamond: 12, elite: 18, legend: 24 }
+const NIVEIS_SUB = ['gold', 'platinum', 'diamond', 'elite', 'legend']
 const selosDe = (c) => ({ dono: { ...SELOS_PADRAO.dono, ...c.selos?.dono }, admin: { ...SELOS_PADRAO.admin, ...c.selos?.admin } })
 const configPublica = (c, env = {}) => ({
   selos: selosDe(c),
@@ -178,6 +182,7 @@ const configPublica = (c, env = {}) => ({
   cardCargo: c.cardCargo || {}, // { arquivoDoCard: idCargo }: card exclusivo de quem tem o cargo
   cargos: c.cargos || [], // [{ id, nome, cor, icone?, imagem? (arquivo de selos-equipe/, no lugar do ícone), top?, numerar?, oculto? (selo não aparece no site), pick? (vê a página Pick & Ban, escondida de todos; dono e admins têm o mesmo botão em selos.*.pick) }] (ex.: Premium, VIP). top = automático para o top N do ranking
   molduraCargo: c.molduraCargo || {}, // { idMoldura: idCargo }: moldura exclusiva de quem tem o cargo
+  subMeses: { ...SUB_MESES_PADRAO, ...c.subMeses }, // meses de assinatura para cada nível do emblema Premium
 })
 const ID_CARGO = /^[a-z0-9-]{1,24}$/
 const COR = /^#[0-9a-f]{6}$/i
@@ -412,14 +417,14 @@ async function adminDados(env, config, cors) {
   return json({ perfis, usuarios, config: { ...configPublica(config, env), admins: config.admins || [] }, dono: env.DONO || null }, 200, cors)
 }
 
-// POST /admin/perfil { id, moldura?, time?, xp? (ajuste), bloqueado?, cargos? ([idCargo]), insignias? ([id]), limpar? }
+// POST /admin/perfil { id, moldura?, time?, xp? (ajuste), bloqueado?, cargos? ([idCargo]), insignias? ([id]), sub? ({ inicio?, meses, expira } ou null), limpar? }
 async function adminPerfil(req, env, site, config, cors) {
   const corpo = await corpoJson(req)
   if (!corpo || !ID_STEAM.test(String(corpo.id))) return json({ erro: 'id' }, 400, cors)
   if (corpo.limpar) {
     // Limpa moldura, time, XP, cargos e bloqueio; as preferências da pessoa (tema, idioma, desempenho) e as insígnias ficam
     const perfis = await ler(env, 'perfis')
-    const fica = Object.fromEntries([...PREFERENCIAS, 'insignias'].filter((k) => perfis[corpo.id]?.[k] !== undefined).map((k) => [k, perfis[corpo.id][k]]))
+    const fica = Object.fromEntries([...PREFERENCIAS, 'insignias', 'sub'].filter((k) => perfis[corpo.id]?.[k] !== undefined).map((k) => [k, perfis[corpo.id][k]]))
     if (Object.keys(fica).length) perfis[corpo.id] = fica
     else delete perfis[corpo.id]
     await gravar(env, 'perfis', perfis)
@@ -440,6 +445,19 @@ async function adminPerfil(req, env, site, config, cors) {
     const cargos = [...new Set(Array.isArray(corpo.cargos) ? corpo.cargos : [])]
     if (cargos.some((c) => !existem.has(c))) return json({ erro: 'cargo' }, 400, cors)
     mudar.cargos = cargos
+  }
+  // Assinatura Premium: { inicio, meses, expira } ("expira": null = sem data, assinatura infinita; vencida some o emblema) ou null para remover
+  if ('sub' in corpo) {
+    const s = corpo.sub
+    if (s === null) mudar.sub = null
+    else {
+      const meses = Math.round(Number(s?.meses))
+      const expira = s?.expira === null ? null : Math.round(Number(s?.expira))
+      const antes = (await ler(env, 'perfis'))[corpo.id]?.sub
+      const inicio = s?.inicio ? Math.round(Number(s.inicio)) : antes?.inicio || Date.now()
+      if (!(meses >= 0 && meses <= 1200) || (expira !== null && !(expira > 0 && expira < 4e12)) || !(inicio > 0 && inicio < 4e12)) return json({ erro: 'sub' }, 400, cors)
+      mudar.sub = { inicio, meses, expira }
+    }
   }
   // Insígnias: lista das que o jogador fica tendo; as que ele já tinha mantêm a data em que ganhou
   if ('insignias' in corpo) {
@@ -470,7 +488,7 @@ async function adminPerfil(req, env, site, config, cors) {
   return json({ ok: true, perfis }, 200, cors)
 }
 
-// POST /admin/config { molduraPorNivel?, nivelMoldura?, cargos?, molduraCargo? }
+// POST /admin/config { molduraPorNivel?, nivelMoldura?, cargos?, molduraCargo?, subMeses? }
 async function adminConfig(req, env, site, config, cors) {
   const corpo = await corpoJson(req)
   if (!corpo) return json({ erro: 'corpo' }, 400, cors)
@@ -484,6 +502,13 @@ async function adminConfig(req, env, site, config, cors) {
       if (nivel > 1) mapa[id] = nivel // nível 1 = liberada para todos (não precisa guardar)
     }
     novo.nivelMoldura = mapa
+  }
+  // Meses de assinatura de cada nível do emblema Premium: números inteiros de 1 a 600, sempre crescentes (Gold < Platinum < ... < Legend)
+  if ('subMeses' in corpo) {
+    const m = corpo.subMeses || {}
+    const valores = NIVEIS_SUB.map((id) => Math.round(Number(m[id])))
+    if (valores.some((v, i) => !(v >= 1 && v <= 600) || (i > 0 && v <= valores[i - 1]))) return json({ erro: 'subMeses' }, 400, cors)
+    novo.subMeses = Object.fromEntries(NIVEIS_SUB.map((id, i) => [id, valores[i]]))
   }
   if ('cargos' in corpo) {
     const lista = Array.isArray(corpo.cargos) ? corpo.cargos : []

@@ -361,6 +361,10 @@
 .projeto.grande {
   grid-column: span 2;
 }
+/* Sem o card do NeuraPick (página escondida) sobram 3 projetos: 2 em cima e o servidor embaixo, na largura toda */
+.projetos.tres {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
 .projeto {
   position: relative;
   display: flex;
@@ -940,7 +944,8 @@ html:is([data-tema='claro'], [data-tema='branco']) .hx2-btn {
   }
 }
 @media (max-width: 720px) {
-  .projetos {
+  .projetos,
+  .projetos.tres {
     grid-template-columns: 1fr;
   }
   .projeto.grande {

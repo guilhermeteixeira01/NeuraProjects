@@ -588,7 +588,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
         <div className="wrap pf-layout">
           <aside className="pf-lado">
             <div className={`pf-cartao fx-entra${card ? ' com-card' : ''}`} style={{ '--e': 1, ...(card ? { backgroundImage: fundoCard(card) } : {}) }}>
-              <ComMoldura steamId={j.steamId}>
+              <ComMoldura steamId={j.steamId} emblema>
                 <Avatar id={j.steamId} src={j.avatar} nome={j.nome} classe="pf-av" />
               </ComMoldura>
               <div className="pf-id">

@@ -1,0 +1,3 @@
+node_modules/
+# originais pesados (GIFs de 10 MB): ficam só no computador; o site usa os WebP leves de public/assets/sub/
+originais/
