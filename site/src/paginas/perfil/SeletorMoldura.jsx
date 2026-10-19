@@ -250,8 +250,15 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
       </button>
     )
   }
-  const doTema = CARDS.filter((c) => temaAberto === 'todas' || temaCard(c) === temaAberto)
-  const cardsOrdenados = [...doTema.filter((c) => !travadoCard(c)), ...doTema.filter((c) => travadoCard(c))]
+  // Cards separados por tema (pasta), como as molduras por coleção: liberados primeiro, travados depois dentro de cada grupo.
+  // Em "Todas" cada tema vira uma seção com título; cards fora de qualquer tema ficam em "Outros".
+  const temasDosCards = [...TEMAS_CARD, ...(CARDS.some((c) => !temaCard(c)) ? [''] : [])]
+  const gruposCard = (temaAberto === 'todas' ? temasDosCards : [temaAberto])
+    .map((t) => {
+      const lista = CARDS.filter((c) => temaCard(c) === t)
+      return [t, [...lista.filter((c) => !travadoCard(c)), ...lista.filter((c) => travadoCard(c))]]
+    })
+    .filter(([, l]) => l.length)
   const semMoldura = (
     <button key="sem" type="button" className={`sm-item sem${escolha.moldura === null ? ' sel' : ''}`} onClick={() => escolher('moldura', null)} aria-pressed={escolha.moldura === null}>
       <span className="sm-sem-icone">
@@ -409,16 +416,29 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                   </div>
                 </div>
               <div className="sm-rolagem">
-                <div className="sm-grade sm-grade-cards">
-                  <button type="button" className={`sm-item sem${escolha.card === null ? ' sel' : ''}`} onClick={() => escolher('card', null)} aria-pressed={escolha.card === null}>
-                    <span className="sm-sem-icone">
-                      <IconeNenhum />
-                    </span>
-                    <span>{tr('Sem card')}</span>
-                  </button>
-                  {cardsOrdenados.map(itemCard)}
-                  {CARDS.length === 0 && <p className="sm-vazio">{tr('Nenhum card ainda (coloque imagens em site/public/assets/cards/).')}</p>}
-                </div>
+                {CARDS.length === 0 && <p className="sm-vazio">{tr('Nenhum card ainda (coloque imagens em site/public/assets/cards/).')}</p>}
+                {gruposCard.map(([t, itens], k) => (
+                  <section key={t || 'outros'} className="sm-grupo">
+                    {temaAberto === 'todas' && (
+                      <h4 className="sm-grupo-cab">
+                        {t ? nomeTema(t) : tr('Outros')} <small>{itens.length}</small>
+                      </h4>
+                    )}
+                    <div className="sm-grade sm-grade-cards">
+                      {k === 0 && (
+                        <button type="button" className={`sm-item sm-item-card sem${escolha.card === null ? ' sel' : ''}`} onClick={() => escolher('card', null)} aria-pressed={escolha.card === null}>
+                          <span className="sm-arte sm-arte-card sm-arte-sem">
+                            <span className="sm-sem-icone">
+                              <IconeNenhum />
+                            </span>
+                          </span>
+                          <span className="sm-nome">{tr('Sem card')}</span>
+                        </button>
+                      )}
+                      {itens.map(itemCard)}
+                    </div>
+                  </section>
+                ))}
               </div>
               </>
             ) : (
