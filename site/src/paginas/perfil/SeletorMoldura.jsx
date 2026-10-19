@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { CamadaMoldura, EmblemaDe, IconeDoCargo, SeloCargo, cargoDaMoldura, cargoDoCard, nivelDoCard, useCargosIdsDe, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, EmblemaDe, IconeDoCargo, SeloCargo, cargoDaMoldura, cargoDoCard, nivelDoCard, semSubMinima, subDaMoldura, subDoCard, useCargosIdsDe, useNivelSub, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
+import { tituloNivel, urlEmblema } from '../../comum/assinatura.js'
 import { COLECOES, MOLDURAS, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { urlOk } from '../../comum/dados.js'
 import { useT } from '../../comum/i18n.js'
@@ -45,13 +46,17 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   }
   // Sem classificação (nível 0, menos de 10 partidas) vale como nível 1: só as livres
   const nivelEf = Math.max(1, Number(nivel) || 0)
-  const travada = (id) => (!admin && nivelDaMoldura(config, id) > nivelEf) || semCargo(id)
+  // Moldura/card só para assinantes: precisa de assinatura ativa do nível mínimo (admin não tem trava)
+  const meuNivelSub = useNivelSub(steamId)
+  const semSubM = (id) => !admin && semSubMinima(subDaMoldura(config, id), meuNivelSub)
+  const semSubC = (c) => !admin && semSubMinima(subDoCard(config, c), meuNivelSub)
+  const travada = (id) => (!admin && nivelDaMoldura(config, id) > nivelEf) || semCargo(id) || semSubM(id)
   // Cards (banners): mesmas travas das molduras, configuradas na aba Cards do painel admin
   const semCargoCard = (c) => {
     const cg = cargoDoCard(config, c)
     return !!cg && !meusCargos.includes(cg.id) && !(admin && !cg.id.startsWith('_'))
   }
-  const travadoCard = (c) => (!admin && nivelDoCard(config, c) > nivelEf) || semCargoCard(c)
+  const travadoCard = (c) => (!admin && nivelDoCard(config, c) > nivelEf) || semCargoCard(c) || semSubC(c)
   const [falta, setFalta] = useState(0) // nível exigido, quando o worker recusa
   const times = useListaTimes()
   const salvo = { moldura: perfil.moldura || null, time: perfil.time || null, card: perfil.card ? idCard(perfil.card) : null }
@@ -99,6 +104,8 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   // Bloqueada: meio apagada, cadeado no meio; clicar mostra por cima do card o que falta para usar
   const itemMoldura = (m) => {
     const presa = travada(m.id)
+    const subMin = subDaMoldura(config, m.id)
+    const faltaSub = semSubM(m.id)
     const cargo = cargoDaMoldura(config, m.id)
     const nv = nivelDaMoldura(config, m.id)
     const titulo = !presa
@@ -128,9 +135,9 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         <span className="sm-nome">{m.nome}</span>
         {/* Bloqueada: chip com o que libera (cargo na cor dele, ou o nível na cor da faixa) */}
         {presa && (
-          <span className="sm-req" style={{ '--rq': semCargo(m.id) ? cargo.cor : corNivel(nv) }}>
-            {semCargo(m.id) ? <IconeDoCargo cargo={cargo} tamanho={11} /> : <SeloNivel nivel={nv} tamanho={14} />}
-            {semCargo(m.id) ? cargo.nome : rotuloNivel(tr, nv)}
+          <span className="sm-req" style={{ '--rq': semCargo(m.id) ? cargo.cor : faltaSub ? 'var(--accent)' : corNivel(nv) }}>
+            {semCargo(m.id) ? <IconeDoCargo cargo={cargo} tamanho={11} /> : faltaSub ? <img className="sm-req-emb" src={urlEmblema(subMin.id, true)} alt="" /> : <SeloNivel nivel={nv} tamanho={14} />}
+            {semCargo(m.id) ? cargo.nome : faltaSub ? subMin.nome : rotuloNivel(tr, nv)}
           </span>
         )}
         {/* Liberada: nível exigido no canto esquerdo e cargo no direito */}
@@ -142,6 +149,11 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         {!presa && cargo && aviso !== m.id && (
           <span className="sm-exige">
             <IconeDoCargo cargo={cargo} tamanho={12} />
+          </span>
+        )}
+        {!presa && subMin && aviso !== m.id && (
+          <span className="sm-exige sm-exige-sub" title={tituloNivel(subMin)}>
+            <img src={urlEmblema(subMin.id, true)} alt="" />
           </span>
         )}
         {presa && aviso === m.id && (
@@ -171,6 +183,20 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                 <SeloCargo cargo={cargo} />
               </span>
             )}
+            {faltaSub && (
+              <>
+                <span className="sm-req-linha">
+                  <small>{tr('Assinatura')}</small>
+                  <img className="sm-req-emb" src={urlEmblema(subMin.id, true)} alt="" />
+                  <b>{subMin.nome}</b>
+                </span>
+                <span className="sm-req-linha">
+                  <small>{tr('Sua assinatura')}</small>
+                  {meuNivelSub && <img className="sm-req-emb" src={urlEmblema(meuNivelSub.id, true)} alt="" />}
+                  <b className="sm-req-atual">{meuNivelSub ? meuNivelSub.nome : tr('Nenhuma')}</b>
+                </span>
+              </>
+            )}
           </span>
         )}
       </button>
@@ -179,6 +205,8 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   // Card bloqueado (nível ou cargo): mesma cara das molduras — vidro com cadeado, chip do que libera e o "Para usar"
   const itemCard = (c) => {
     const presa = travadoCard(c)
+    const subMin = subDoCard(config, c)
+    const faltaSub = semSubC(c)
     const cargo = cargoDoCard(config, c)
     const nv = nivelDoCard(config, c)
     const semC = semCargoCard(c)
@@ -205,9 +233,9 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         <span className="sm-nome">{nomeCard(c)}</span>
         {ehAnimado(c) && <i className="sm-anim">{tr('ANIMADO')}</i>}
         {presa && (
-          <span className="sm-req" style={{ '--rq': semC ? cargo.cor : corNivel(nv) }}>
-            {semC ? <IconeDoCargo cargo={cargo} tamanho={11} /> : <SeloNivel nivel={nv} tamanho={14} />}
-            {semC ? cargo.nome : rotuloNivel(tr, nv)}
+          <span className="sm-req" style={{ '--rq': semC ? cargo.cor : faltaSub ? 'var(--accent)' : corNivel(nv) }}>
+            {semC ? <IconeDoCargo cargo={cargo} tamanho={11} /> : faltaSub ? <img className="sm-req-emb" src={urlEmblema(subMin.id, true)} alt="" /> : <SeloNivel nivel={nv} tamanho={14} />}
+            {semC ? cargo.nome : faltaSub ? subMin.nome : rotuloNivel(tr, nv)}
           </span>
         )}
         {!presa && nv > 1 && aviso !== chave && (
@@ -218,6 +246,11 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         {!presa && cargo && aviso !== chave && (
           <span className="sm-exige">
             <IconeDoCargo cargo={cargo} tamanho={12} />
+          </span>
+        )}
+        {!presa && subMin && aviso !== chave && (
+          <span className="sm-exige sm-exige-sub" title={tituloNivel(subMin)}>
+            <img src={urlEmblema(subMin.id, true)} alt="" />
           </span>
         )}
         {presa && aviso === chave && (
@@ -244,6 +277,20 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                 <small>{tr('Cargo')}</small>
                 <SeloCargo cargo={cargo} />
               </span>
+            )}
+            {faltaSub && (
+              <>
+                <span className="sm-req-linha">
+                  <small>{tr('Assinatura')}</small>
+                  <img className="sm-req-emb" src={urlEmblema(subMin.id, true)} alt="" />
+                  <b>{subMin.nome}</b>
+                </span>
+                <span className="sm-req-linha">
+                  <small>{tr('Sua assinatura')}</small>
+                  {meuNivelSub && <img className="sm-req-emb" src={urlEmblema(meuNivelSub.id, true)} alt="" />}
+                  <b className="sm-req-atual">{meuNivelSub ? meuNivelSub.nome : tr('Nenhuma')}</b>
+                </span>
+              </>
             )}
           </span>
         )}
@@ -292,7 +339,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
       fechar()
     } catch (e) {
       setFalta(e.dados?.precisa || 0)
-      setEstado(['login', 'nivel', 'bloqueado', 'cargo', 'cardNivel', 'cardCargo'].includes(e.message) ? e.message : 'erro')
+      setEstado(['login', 'nivel', 'bloqueado', 'cargo', 'cardNivel', 'cardCargo', 'sub', 'cardSub'].includes(e.message) ? e.message : 'erro')
     }
   }
 
@@ -471,6 +518,8 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
             {estado === 'nivel' && tr('Essa moldura libera no nível {n}.', { n: falta })}
             {estado === 'cardNivel' && tr('Esse card libera no nível {n}.', { n: falta })}
             {estado === 'cardCargo' && tr('Esse card é exclusivo de um cargo que você não tem.')}
+            {estado === 'sub' && tr('Essa moldura é só para assinantes Premium do nível exigido.')}
+            {estado === 'cardSub' && tr('Esse card é só para assinantes Premium do nível exigido.')}
             {estado === 'cargo' && tr('Essa moldura é exclusiva de um cargo que você não tem.')}
             {estado === 'bloqueado' && tr('A personalização do seu perfil foi bloqueada por um administrador.')}
           </span>
