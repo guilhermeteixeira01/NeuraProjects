@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { CamadaMoldura, SeloCargo, cargoDaMoldura, cargoDoCard, nivelDoCard, useCargosIdsDe, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, IconeDoCargo, SeloCargo, cargoDaMoldura, cargoDoCard, nivelDoCard, useCargosIdsDe, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
 import { COLECOES, MOLDURAS, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { urlOk } from '../../comum/dados.js'
 import { useT } from '../../comum/i18n.js'
@@ -129,7 +129,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         {/* Bloqueada: chip com o que libera (cargo na cor dele, ou o nível na cor da faixa) */}
         {presa && (
           <span className="sm-req" style={{ '--rq': semCargo(m.id) ? cargo.cor : corNivel(nv) }}>
-            {semCargo(m.id) ? <IconeCargo icone={cargo.icone} tamanho={11} /> : <SeloNivel nivel={nv} tamanho={14} />}
+            {semCargo(m.id) ? <IconeDoCargo cargo={cargo} tamanho={11} /> : <SeloNivel nivel={nv} tamanho={14} />}
             {semCargo(m.id) ? cargo.nome : rotuloNivel(tr, nv)}
           </span>
         )}
@@ -141,7 +141,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         )}
         {!presa && cargo && aviso !== m.id && (
           <span className="sm-exige">
-            <IconeCargo icone={cargo.icone} tamanho={12} />
+            <IconeDoCargo cargo={cargo} tamanho={12} />
           </span>
         )}
         {presa && aviso === m.id && (
@@ -206,7 +206,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         {ehAnimado(c) && <i className="sm-anim">{tr('ANIMADO')}</i>}
         {presa && (
           <span className="sm-req" style={{ '--rq': semC ? cargo.cor : corNivel(nv) }}>
-            {semC ? <IconeCargo icone={cargo.icone} tamanho={11} /> : <SeloNivel nivel={nv} tamanho={14} />}
+            {semC ? <IconeDoCargo cargo={cargo} tamanho={11} /> : <SeloNivel nivel={nv} tamanho={14} />}
             {semC ? cargo.nome : rotuloNivel(tr, nv)}
           </span>
         )}
@@ -217,7 +217,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         )}
         {!presa && cargo && aviso !== chave && (
           <span className="sm-exige">
-            <IconeCargo icone={cargo.icone} tamanho={12} />
+            <IconeDoCargo cargo={cargo} tamanho={12} />
           </span>
         )}
         {presa && aviso === chave && (

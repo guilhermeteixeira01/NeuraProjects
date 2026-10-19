@@ -158,10 +158,10 @@ async function ler(env, chave) {
 const gravar = (env, chave, valor) => env.MOLDURAS.put(chave, JSON.stringify(valor))
 
 const soMolduras = (perfis) => Object.fromEntries(Object.entries(perfis).filter(([, p]) => p.moldura).map(([id, p]) => [id, p.moldura]))
-// Selos da equipe (dono e admins): o dono edita nome, cor, ícone e se aparecem (POST /admin/selos)
+// Selos da equipe (dono e admins): o dono edita nome, cor, ícone, imagem, se aparecem e se veem a página Pick & Ban (pick, desligado por padrão) (POST /admin/selos)
 const SELOS_PADRAO = {
-  dono: { nome: 'Dono', cor: '#ff4655', icone: 'coroa', imagem: 'verified.png', mostrar: true },
-  admin: { nome: 'Admin', cor: '#3498db', icone: 'escudo', imagem: 'verified.png', mostrar: true },
+  dono: { nome: 'Dono', cor: '#ff4655', icone: 'coroa', imagem: 'verified.png', mostrar: true, pick: false },
+  admin: { nome: 'Admin', cor: '#3498db', icone: 'escudo', imagem: 'verified.png', mostrar: true, pick: false },
 }
 // Imagem do selo: arquivo da pasta public/assets/selos-equipe/ do site (só o nome do arquivo)
 const IMAGEM_SELO = /^[A-Za-z0-9._-]{1,80}\.(png|webp|avif|svg|jpe?g|gif)$/i
@@ -176,7 +176,7 @@ const configPublica = (c, env = {}) => ({
   cardPorNivel: !!c.cardPorNivel, // mesmas regras das molduras, para os cards (banners) do perfil
   nivelCard: c.nivelCard || {}, // { arquivoDoCard: nível }
   cardCargo: c.cardCargo || {}, // { arquivoDoCard: idCargo }: card exclusivo de quem tem o cargo
-  cargos: c.cargos || [], // [{ id, nome, cor, icone?, top?, numerar?, oculto? (selo não aparece no site), pick? (vê a página Pick & Ban, escondida de todos os outros) }] (ex.: Premium, VIP). top = automático para o top N do ranking
+  cargos: c.cargos || [], // [{ id, nome, cor, icone?, imagem? (arquivo de selos-equipe/, no lugar do ícone), top?, numerar?, oculto? (selo não aparece no site), pick? (vê a página Pick & Ban, escondida de todos; dono e admins têm o mesmo botão em selos.*.pick) }] (ex.: Premium, VIP). top = automático para o top N do ranking
   molduraCargo: c.molduraCargo || {}, // { idMoldura: idCargo }: moldura exclusiva de quem tem o cargo
 })
 const ID_CARGO = /^[a-z0-9-]{1,24}$/
@@ -497,8 +497,11 @@ async function adminConfig(req, env, site, config, cors) {
       const top = Math.round(Number(c.top) || 0)
       if (top < 0 || top > 15) return json({ erro: 'cargos' }, 400, cors)
       const icone = ICONES_CARGO.includes(c.icone) ? c.icone : 'coroa'
+      // imagem do selo (arquivo de public/assets/selos-equipe/, como o dono e os admins); sem imagem, vale o ícone
+      const imagem = c.imagem ? String(c.imagem) : ''
+      if (imagem && !IMAGEM_SELO.test(imagem)) return json({ erro: 'cargos' }, 400, cors)
       // numerar: automático mostra a posição ("Campeão 1", "Campeão 2"...)
-      novo.cargos.push({ id: c.id, nome, cor: c.cor, icone, ...(top > 0 ? { top } : {}), ...(top > 0 && c.numerar === true ? { numerar: true } : {}), ...(c.oculto === true ? { oculto: true } : {}), ...(c.pick === true ? { pick: true } : {}) })
+      novo.cargos.push({ id: c.id, nome, cor: c.cor, icone, ...(imagem ? { imagem } : {}), ...(top > 0 ? { top } : {}), ...(top > 0 && c.numerar === true ? { numerar: true } : {}), ...(c.oculto === true ? { oculto: true } : {}), ...(c.pick === true ? { pick: true } : {}) })
     }
   }
   if ('molduraCargo' in corpo || 'cargos' in corpo) {
@@ -537,7 +540,7 @@ async function adminConfig(req, env, site, config, cors) {
   return json({ ok: true, config: { ...configPublica(novo, env), admins: novo.admins || [] } }, 200, cors)
 }
 
-// POST /admin/selos { dono?: { nome, cor, icone, imagem, mostrar }, admin?: {...} }  (só o DONO)
+// POST /admin/selos { dono?: { nome, cor, icone, imagem, mostrar, pick }, admin?: {...} }  (só o DONO)
 async function adminSelos(req, env, config, cors) {
   const corpo = await corpoJson(req)
   if (!corpo) return json({ erro: 'corpo' }, 400, cors)
@@ -549,7 +552,7 @@ async function adminSelos(req, env, config, cors) {
     if (!NOME_TIME.test(nome) || nome.length > 24 || !COR.test(String(s.cor)) || !ICONES_CARGO.includes(s.icone)) return json({ erro: 'selos' }, 400, cors)
     const imagem = s.imagem ?? selos[qual].imagem ?? 'verified.png'
     if (!IMAGEM_SELO.test(String(imagem))) return json({ erro: 'selos' }, 400, cors)
-    selos[qual] = { nome, cor: s.cor, icone: s.icone, imagem, mostrar: s.mostrar !== false }
+    selos[qual] = { nome, cor: s.cor, icone: s.icone, imagem, mostrar: s.mostrar !== false, pick: s.pick === true }
   }
   const novo = { ...config, selos }
   await gravar(env, 'config', novo)

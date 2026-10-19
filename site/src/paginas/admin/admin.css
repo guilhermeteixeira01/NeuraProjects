@@ -214,6 +214,12 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 .adm-icone-btn[aria-expanded='true'] {
   border-color: var(--blue-2);
 }
+/* Cargo sem imagem: o botão mostra "IMG" (usa o ícone desenhado) */
+.adm-icone-vazio {
+  font: 600 10px var(--font-mono);
+  letter-spacing: .5px;
+  color: var(--dim-2);
+}
 .adm-icone-grade {
   position: absolute;
   top: calc(100% + 6px);

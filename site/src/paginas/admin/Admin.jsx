@@ -641,17 +641,34 @@ function EscolherIcone({ valor, cor, aoEscolher }) {
 }
 
 // Botão com a imagem do selo; clicando abre a grade com as imagens da pasta public/assets/selos-equipe/
-function EscolherImagemSelo({ valor, aoEscolher }) {
+// opcional: dá para ficar sem imagem (o selo usa o ícone), como nos cargos comuns; sem "opcional" sempre tem imagem (dono e admins)
+function EscolherImagemSelo({ valor, aoEscolher, opcional = false }) {
   const tr = useT()
   const [aberto, setAberto] = useState(false)
-  const atual = valor || 'verified.png'
+  const atual = opcional ? valor || '' : valor || 'verified.png'
+  const titulo = opcional ? tr('Imagem do cargo (no lugar do ícone)') : tr('Imagem do selo')
   return (
     <span className="adm-icone">
-      <button type="button" className="adm-icone-btn" onClick={() => setAberto((a) => !a)} aria-expanded={aberto} title={tr('Imagem do selo')}>
-        <img src={urlSelo(atual)} alt="" />
+      <button type="button" className="adm-icone-btn" onClick={() => setAberto((a) => !a)} aria-expanded={aberto} title={titulo}>
+        {atual ? <img src={urlSelo(atual)} alt="" /> : <span className="adm-icone-vazio">IMG</span>}
       </button>
       {aberto && (
-        <span className="adm-icone-grade adm-imagens-grade" role="listbox" aria-label={tr('Imagem do selo')}>
+        <span className="adm-icone-grade adm-imagens-grade" role="listbox" aria-label={titulo}>
+          {opcional && (
+            <button
+              type="button"
+              role="option"
+              aria-selected={!atual}
+              className={!atual ? 'sel' : ''}
+              title={tr('Sem imagem (usa o ícone)')}
+              onClick={() => {
+                aoEscolher('')
+                setAberto(false)
+              }}
+            >
+              <span className="adm-icone-vazio">{tr('Sem')}</span>
+            </button>
+          )}
           {IMAGENS_SELO.map((nome) => (
             <button
               key={nome}
@@ -724,6 +741,10 @@ function SelosEquipe({ config, aoSalvar }) {
               <input type="checkbox" checked={selos[qual].mostrar} onChange={(e) => mudar(qual, 'mostrar', e.target.checked)} />
               <span>{tr('Mostrar no site')}</span>
             </label>
+            <label className="adm-check" title={tr('Ligado: o dono/os admins veem a página Pick & Ban (ela fica escondida de todos, inclusive da equipe, até ligar aqui).')}>
+              <input type="checkbox" checked={!!selos[qual].pick} onChange={(e) => mudar(qual, 'pick', e.target.checked)} />
+              <span>{tr('Ver Pick & Ban')}</span>
+            </label>
           </li>
         ))}
       </ul>
@@ -759,7 +780,7 @@ function Cargos({ config, usuarios, aoSalvar }) {
   const salvar = async () => {
     setEstado('salvando')
     try {
-      const d = await chamar('/admin/config', { cargos: lista.map((c) => ({ id: c.id, nome: c.nome.trim(), cor: c.cor, icone: c.icone || 'coroa', top: Number(c.top) || 0, numerar: Number(c.top) > 0 && !!c.numerar, oculto: !!c.oculto, pick: !!c.pick })) })
+      const d = await chamar('/admin/config', { cargos: lista.map((c) => ({ id: c.id, nome: c.nome.trim(), cor: c.cor, icone: c.icone || 'coroa', imagem: c.imagem || '', top: Number(c.top) || 0, numerar: Number(c.top) > 0 && !!c.numerar, oculto: !!c.oculto, pick: !!c.pick })) })
       aoSalvar(d.config)
       setEstado('Salvo!')
     } catch (e) {
@@ -788,6 +809,7 @@ function Cargos({ config, usuarios, aoSalvar }) {
           <li key={c.id}>
             <input type="color" value={c.cor} onChange={(e) => mudar(i, 'cor', e.target.value)} aria-label={tr('Cor do cargo {nome}', { nome: c.nome })} />
             <EscolherIcone valor={c.icone} cor={c.cor} aoEscolher={(id) => mudar(i, 'icone', id)} />
+            <EscolherImagemSelo opcional valor={c.imagem} aoEscolher={(nome) => mudar(i, 'imagem', nome || undefined)} />
             <input className="adm-cargo-nome" value={c.nome} maxLength={24} onChange={(e) => mudar(i, 'nome', e.target.value)} aria-label={tr('Nome do cargo')} />
             <SeloCargo cargo={{ ...c, nome: c.top > 0 && c.numerar ? `${c.nome || '…'} 1` : c.nome || '…' }} />
             <label className="adm-top" title={tr('0 = só manual. Ex.: 3 = os 3 primeiros do ranking ganham o cargo e perdem ao sair do top 3')}>
@@ -808,7 +830,7 @@ function Cargos({ config, usuarios, aoSalvar }) {
               <input type="checkbox" checked={!c.oculto} onChange={(e) => mudar(i, 'oculto', !e.target.checked)} />
               {tr('Mostrar no site')}
             </label>
-            <label className="adm-numerar" title={tr('Ligado: quem tem este cargo vê a página Pick & Ban (ela fica escondida de todos os outros; dono e admins sempre veem).')}>
+            <label className="adm-numerar" title={tr('Ligado: quem tem este cargo vê a página Pick & Ban (ela fica escondida de todos os outros).')}>
               <input type="checkbox" checked={!!c.pick} onChange={(e) => mudar(i, 'pick', e.target.checked)} />
               {tr('Ver Pick & Ban')}
             </label>
