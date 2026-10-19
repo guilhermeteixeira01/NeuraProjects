@@ -4,7 +4,7 @@
 
 /* ══════════════ Lobby (src/paginas/lobby/Lobby.jsx): grupo + painel de partida, no estilo da FACEIT, com a paleta do site ══════════════ */
 .lb-pagina {
-  position: relative; min-height: calc(100vh - 64px); padding: 22px 0 80px;
+  position: relative; min-height: calc(100vh / var(--escala, 1) - 64px); padding: 22px 0 80px;
   background:
     radial-gradient(70% 38% at 50% 0%, rgb(var(--tinta) / .045), transparent 70%),
     repeating-linear-gradient(135deg, transparent 0 22px, rgb(var(--tinta) / .018) 22px 23px),
@@ -221,3 +221,126 @@
   .lb-bloqueio { display: block; }
   .lb-conteudo { display: none; }
 }
+
+/* ══════════════ Buscar partida ══════════════ */
+.lb-buscar.pronto { cursor: pointer; color: #1a1400; background: var(--accent); }
+.lb-buscar.pronto small { color: rgb(26 20 0 / .65); }
+.lb-buscar.pronto:hover:not(:disabled) { filter: brightness(1.08); }
+.lb-buscar.buscando { cursor: pointer; color: var(--text); background: rgb(var(--tinta) / .12); font-variant-numeric: tabular-nums; position: relative; overflow: hidden; }
+.lb-buscar.buscando:disabled { cursor: default; }
+.lb-buscar.buscando::after { content: ''; position: absolute; left: 0; bottom: 0; height: 3px; width: 40%; background: var(--accent); animation: lb-busca 1.3s ease-in-out infinite; }
+.lb-buscar.buscando small { color: var(--dim); }
+@keyframes lb-busca { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
+@media (prefers-reduced-motion: reduce) { .lb-buscar.buscando::after { animation: none; width: 100%; opacity: .5; } }
+
+/* ══════════════ Sala de Pick & Ban (src/paginas/lobby/SalaVeto.jsx): time A | veto | time B ══════════════ */
+.lb-sala { display: flex; flex-direction: column; gap: 6px; }
+.sala-grade { display: grid; grid-template-columns: minmax(230px, 290px) minmax(0, 1fr) minmax(230px, 290px); gap: 20px; align-items: start; }
+
+/* time: cabeçalho + 5 jogadores */
+.sala-equipe { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.sala-equipe header { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border-2); background: #0e0f12; transition: border-color .2s, box-shadow .2s; }
+.sala-equipe.na-vez header { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 0 26px -8px var(--accent); }
+.sala-rotulo { font: 600 11px var(--font-mono); letter-spacing: 1px; color: var(--dim-2); }
+.sala-nome { font: 800 18px var(--font-display); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sala-vez { position: absolute; top: 12px; right: 12px; padding: 3px 10px; border-radius: 999px; font: 800 11px var(--font-body); letter-spacing: .8px; color: #1a1400; background: var(--accent); }
+
+/* jogador: o card do perfil na proporção real (282 × 395), com o banner escolhido, a foto com moldura e o nome (como no perfil) */
+.sala-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.sala-cards .sala-jog:last-child:nth-child(odd) { grid-column: 1 / -1; width: calc(50% - 5px); justify-self: center; }
+.sala-jog {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-width: 0;
+  aspect-ratio: 282 / 394.8; padding: 12px 8px; overflow: hidden; border-radius: 14px; border: 1px solid var(--border-2);
+  background: #121212 center / cover no-repeat; background-origin: border-box; background-clip: border-box; color: var(--text);
+}
+.sala-jog.com-card { background-image: var(--card-fundo); border-color: rgb(var(--tinta) / .22); }
+.sala-jog.lider { border-color: color-mix(in srgb, var(--accent) 65%, transparent); }
+.sala-jog-lider { position: absolute; top: 8px; left: 8px; padding: 2px 7px; border-radius: 4px; font: 800 9.5px var(--font-mono); letter-spacing: .6px; text-transform: uppercase; color: #1a1400; background: var(--accent); }
+.sala-av { position: relative; display: block; width: 52%; aspect-ratio: 1; flex: none; }
+.sala-av img, .sala-av .lb-ini { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: grid; max-width: none; }
+.sala-jog-nome { display: flex; align-items: center; justify-content: center; gap: 3px; max-width: 100%; font: 700 13px var(--font-body); text-align: center; text-shadow: 0 2px 10px rgba(0, 0, 0, .85); }
+.sala-jog-nome span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* centro */
+.sala-meio { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.sala-topo { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 18px; border-radius: 12px; border: 1px solid var(--border-2); background: #0e0f12; }
+.sala-topo > div { display: flex; align-items: baseline; gap: 14px; }
+.sala-fmt { font: 800 28px var(--font-display); letter-spacing: 1px; }
+.sala-etapa { font: 600 12px var(--font-mono); letter-spacing: .8px; color: var(--dim); }
+.sala-relogio { padding: 4px 14px; border-radius: 8px; font: 800 24px var(--font-mono); font-variant-numeric: tabular-nums; background: rgb(var(--tinta) / .08); }
+.sala-relogio.baixo { color: var(--red); animation: lb-pisca .8s steps(2) infinite; }
+@keyframes lb-pisca { 50% { opacity: .55; } }
+
+.sala-passos { display: grid; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.sala-passos li { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 7px 2px; border-radius: 6px; border: 1px solid var(--border-2); background: #0e0f12; opacity: .5; text-align: center; min-width: 0; }
+.sala-passos li b { font: 800 11px var(--font-mono); letter-spacing: .5px; }
+.sala-passos li span { font: 600 10px var(--font-mono); color: var(--dim); }
+.sala-passos li.ban b { color: var(--red); }
+.sala-passos li.pick b { color: #3ddc84; }
+.sala-passos li.side b, .sala-passos li.decider b { color: var(--accent); }
+.sala-passos li.feito { opacity: .8; }
+.sala-passos li.atual { opacity: 1; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+
+.sala-vez-msg { margin: 0; padding: 13px 18px; border-radius: 10px; font: 700 16px var(--font-body); text-align: center; border: 1px solid var(--border-2); background: #0e0f12; color: var(--dim); }
+.sala-vez-msg.minha { color: #1a1400; background: var(--accent); border-color: var(--accent); animation: lb-pulsa 1.4s ease-in-out infinite; }
+@keyframes lb-pulsa { 50% { filter: brightness(1.12); } }
+
+.sala-lados { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.sala-lado { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 26px 16px; border-radius: 12px; border: 1px solid var(--border-2); background: #0e0f12; color: var(--text); cursor: pointer; transition: border-color .15s, transform .1s; }
+.sala-lado-img { display: inline-block; vertical-align: middle; object-fit: contain; flex: none; }
+.sala-lado .sala-lado-img { margin-bottom: 4px; }
+.sala-lado small { font: 600 11px var(--font-mono); letter-spacing: .8px; color: var(--dim); }
+.sala-lado.ct:hover:not(:disabled) { border-color: #5aa0ff; }
+.sala-lado.t:hover:not(:disabled) { border-color: #f0a030; }
+.sala-lado:active:not(:disabled) { transform: scale(.98); }
+
+/* mapas: 4 por linha, nada cortado (o texto quebra/reticencia dentro do cartão) */
+.sala-mapas { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.sala-mapas li { position: relative; height: 128px; border-radius: 10px; overflow: hidden; border: 2px solid transparent; transition: border-color .2s, filter .25s, transform .15s; }
+.sala-mapas li button {
+  all: unset; box-sizing: border-box; position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; gap: 1px; padding: 10px;
+  background: linear-gradient(0deg, rgba(0, 0, 0, .82), transparent 70%), var(--img) center / cover, linear-gradient(135deg, var(--c1), var(--c2));
+}
+.sala-mapas li b { font: 800 16px var(--font-body); text-shadow: 0 2px 8px rgba(0, 0, 0, .85); }
+.sala-mapas li small { font: 600 11px var(--font-body); color: rgb(255 255 255 / .8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sala-mapas li small.lado { display: flex; align-items: center; gap: 5px; color: var(--accent); }
+.sala-mapas li.clicavel button { cursor: pointer; }
+.sala-mapas li.clicavel:hover { border-color: var(--accent); transform: translateY(-3px); }
+.sala-mapas li.banned { filter: grayscale(1) brightness(.5); }
+.sala-mapas li.picked { border-color: #3ddc84; }
+.sala-mapas .tag { position: absolute; top: 8px; left: 8px; padding: 2px 8px; border-radius: 4px; font: 800 10.5px var(--font-mono); font-style: normal; letter-spacing: .5px; background: rgba(0, 0, 0, .7); }
+.sala-mapas .tag.ban { color: var(--red); }
+.sala-mapas .tag.pick { color: #3ddc84; }
+
+.sala-historico { list-style: none; margin: 0; padding: 4px 14px; max-height: 190px; overflow-y: auto; border-radius: 12px; border: 1px solid var(--border-2); background: #0e0f12; }
+.sala-historico li { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid rgb(var(--tinta) / .06); font-size: 13.5px; }
+.sala-historico li:first-child { border-top: 0; }
+.sala-hist-txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sala-hist-txt em { color: var(--dim-2); font-style: normal; font-size: 12px; }
+.sala-tag { flex: none; min-width: 48px; text-align: center; padding: 2px 8px; border-radius: 4px; font: 800 11px var(--font-mono); background: rgb(var(--tinta) / .08); }
+.sala-tag.ban { color: var(--red); }
+.sala-tag.pick { color: #3ddc84; }
+.sala-tag.side { color: var(--accent); }
+
+/* veto acabou: o centro vira o botão de entrar */
+.sala-final { display: flex; flex-direction: column; align-items: center; gap: 22px; padding: 34px 20px; border-radius: 14px; border: 1px solid var(--border-2); background: #0e0f12; }
+.sala-final .sala-etapa { font-size: 13px; color: var(--accent); }
+.sala-escolhidos { display: grid; gap: 12px; width: 100%; list-style: none; margin: 0; padding: 0; }
+.sala-escolhidos li { display: flex; flex-direction: column; justify-content: flex-end; gap: 2px; height: 116px; padding: 12px; border-radius: 10px; background: linear-gradient(0deg, rgba(0, 0, 0, .82), transparent 70%), var(--img) center / cover; }
+.sala-escolhido-lado { display: flex; align-items: center; gap: 6px; font: 600 11.5px var(--font-body); color: rgb(255 255 255 / .85); overflow: hidden; white-space: nowrap; }
+.sala-historico .sala-lado-img { margin: -2px 0; }
+.sala-escolhidos small { font: 800 10.5px var(--font-mono); letter-spacing: .6px; color: var(--accent); }
+.sala-escolhidos b { font: 800 17px var(--font-body); text-shadow: 0 2px 8px rgba(0, 0, 0, .85); }
+.sala-entrar {
+  min-width: 320px; padding: 20px 40px; border: 0; border-radius: 10px; cursor: pointer; font: 800 24px var(--font-display); letter-spacing: 1.5px; color: #1a1400; background: var(--accent);
+  box-shadow: 0 0 40px -10px var(--accent); animation: lb-pulsa 1.6s ease-in-out infinite; transition: transform .15s;
+}
+.sala-entrar:hover { transform: scale(1.03); }
+.sala-encerrar { border: 0; background: none; color: var(--dim-2); font: 600 13px var(--font-body); text-decoration: underline; cursor: pointer; }
+.sala-encerrar:hover:not(:disabled) { color: var(--red); }
+
+@media (max-width: 1280px) {
+  .sala-grade { grid-template-columns: minmax(200px, 240px) minmax(0, 1fr) minmax(200px, 240px); gap: 14px; }
+    .sala-mapas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) { .sala-relogio.baixo, .sala-vez-msg.minha, .sala-entrar { animation: none; } }

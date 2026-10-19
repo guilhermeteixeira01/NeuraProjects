@@ -8,7 +8,7 @@
 /* ══════════════ TOPO ══════════════ */
 .hx {
   padding: 96px 0 110px;
-  min-height: min(880px, calc(100vh - 64px));
+  min-height: min(880px, calc(100vh / var(--escala, 1) - 64px));
   display: flex;
   align-items: center;
   isolation: isolate;
@@ -608,7 +608,7 @@
   align-items: stretch;
   justify-content: space-between;
   padding: 64px 0 0;
-  min-height: min(900px, calc(100vh - 64px));
+  min-height: min(900px, calc(100vh / var(--escala, 1) - 64px));
 }
 .hx2 > .hero-inner {
   flex: 1;

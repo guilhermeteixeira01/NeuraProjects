@@ -8,7 +8,8 @@ export const CONFIG = {
 
   // Login pela Steam: endereço do worker (site/worker/steam-login). '' = sem botão de login
   // (a página de perfil continua abrindo pelos links do ranking)
-  loginSteam: 'https://neura-steam-login.steam-login.workers.dev',
+  // (npm run dev:local usa o worker local: ver worker/steam-login/dev/README.md)
+  loginSteam: import.meta.env?.VITE_LOGIN_STEAM || 'https://neura-steam-login.steam-login.workers.dev',
 
   // Redes sociais (deixe '' para esconder)
   // Comunidade (Kivo: plataforma gamer de voz, chat e comunidades). '' esconde os botões e links

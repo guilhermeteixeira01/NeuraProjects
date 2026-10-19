@@ -12,7 +12,8 @@ import { nivelDe } from '../../comum/niveis.js'
 import { ordenarRanking } from '../../comum/ranking.js'
 import { useAmigos } from '../../comum/amigos.js'
 import { useAvatar } from '../../comum/avatares.js'
-import { acaoLobby, useLobby } from '../../comum/lobby.js'
+import { acaoLobby, useLobby, useRelogio } from '../../comum/lobby.js'
+import SalaVeto from './SalaVeto.jsx'
 import { useT } from '../../comum/i18n.js'
 
 // Lobby (estilo FACEIT): nível e temporada em cima, o grupo (5 lugares, você no meio) e o painel de partida embaixo.
@@ -25,6 +26,9 @@ const ERROS = {
   negado: 'Você não pode entrar nesse lobby.',
   'sem-lobby': 'Esse lobby não existe mais.',
   ocupado: 'Você é líder de um lobby com gente: saia dele antes.',
+  buscando: 'Cancele a busca de partida antes de mexer no grupo.',
+  'em-partida': 'Você está numa partida: o grupo fica travado até ela acabar.',
+  incompleto: 'O grupo precisa de 5 jogadores para buscar partida.',
   login: 'Seu login venceu. Entre de novo com a Steam.',
 }
 const fmt = (v, t) => Number(v || 0).toLocaleString(t.local)
@@ -279,22 +283,25 @@ function Encontrar({ dados, aoFechar, fazer, ocupado }) {
   )
 }
 
+// O formato escolhido pelo líder é o que vai para a fila (só enfrenta lobby do mesmo formato) e define o veto da sala
 const MODOS = [
   {
-    id: 'padrao',
-    nome: 'Partida padrão',
+    id: 'bo1',
+    nome: 'Partida MD1',
+    rotulo: 'MD1',
     itens: [
-      ['Grupos de 1 a 5 jogadores', IC_PESSOAS],
-      ['Demo gravada de todo mapa', IC_CHECK],
-      ['Rating, ADR e KAST de cada partida', IC_CHECK],
-      ['XP e nível a cada mapa', IC_CHECK],
+      ['1 mapa: 6 bans e sobra o decider', IC_CHECK],
+      ['Veto de mapas pelo NeuraPick', IC_CHECK],
+      ['Demo gravada, rating, ADR e KAST', IC_CHECK],
+      ['XP e nível ao fim do mapa', IC_CHECK],
     ],
   },
   {
-    id: 'serie',
+    id: 'bo3',
     nome: 'Série MD3',
+    rotulo: 'MD3',
     itens: [
-      ['Veto de mapas pelo NeuraPick', IC_CHECK],
+      ['Ban, ban, pick, pick, ban, ban e decider', IC_CHECK],
       ['Lados definidos pelo veto', IC_CHECK],
       ['Round faca e pausa com regra', IC_CHECK],
       ['Placar da série ao vivo', IC_CHECK],
@@ -302,26 +309,51 @@ const MODOS = [
   },
 ]
 
-function Painel({ dados }) {
+// Cronômetro "00:12" de quem está buscando partida
+function TempoBusca({ desde }) {
+  useRelogio(true, 500)
+  const s = Math.max(0, Math.floor((Date.now() - desde) / 1000))
+  return <>{`${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`}</>
+}
+
+function Painel({ dados, fazer, ocupado }) {
   const t = useT()
   const [aba, setAba] = useState('tipo')
-  const [modo, setModo] = useState('padrao')
+  const [escolhido, setEscolhido] = useState('bo3')
+  const modo = dados.busca && dados.formato ? dados.formato : escolhido // buscando: vale o que o líder mandou para a fila
+  const trocavel = dados.souLider && !dados.busca
+  const completo = dados.membros.length >= dados.max
   return (
     <section className="lb-painel" aria-label={t('Partida')}>
       <div className="lb-buscar-faixa">
         <p className="lb-aviso">
           <Marca d={<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />} tamanho={18} />
-          <span>{t('A fila automática ainda não abriu')}</span>
+          <span>
+            {dados.busca
+              ? t('Procurando outro time que também esteja buscando partida…')
+              : completo
+                ? dados.souLider
+                  ? t('Grupo completo: é só buscar partida')
+                  : t('Grupo completo: o líder busca a partida')
+                : t('Complete o grupo com {n} jogadores para buscar partida', { n: dados.max })}
+          </span>
           {CONFIG.comunidade && (
             <a href={CONFIG.comunidade} target="_blank" rel="noopener">
               {t('ENTRAR NA KIVO')}
             </a>
           )}
         </p>
-        <button type="button" className="lb-buscar" disabled title={t('Em breve')}>
-          {t('BUSCAR PARTIDA')}
-          <small>{t('Em breve')}</small>
-        </button>
+        {dados.busca ? (
+          <button type="button" className="lb-buscar buscando" disabled={!dados.souLider || ocupado} onClick={() => fazer('cancelar-busca')} title={dados.souLider ? t('Cancelar busca') : undefined}>
+            <TempoBusca desde={dados.busca} />
+            <small>{MODOS.find((m) => m.id === modo)?.rotulo} · {dados.souLider ? t('clique para cancelar') : t('Buscando partida')}</small>
+          </button>
+        ) : (
+          <button type="button" className={`lb-buscar${completo && dados.souLider ? ' pronto' : ''}`} disabled={!completo || !dados.souLider || ocupado} onClick={() => fazer('buscar', undefined, { formato: modo })}>
+            {t('BUSCAR PARTIDA')}
+            <small>{!completo ? `${dados.membros.length}/${dados.max}` : dados.souLider ? MODOS.find((m) => m.id === modo).rotulo : t('Só o líder busca')}</small>
+          </button>
+        )}
       </div>
 
       <div className="lb-abas-painel" role="tablist">
@@ -340,7 +372,7 @@ function Painel({ dados }) {
         {aba === 'tipo' && (
           <div className="lb-modos">
             {MODOS.map((m) => (
-              <button key={m.id} type="button" className={`lb-modo${modo === m.id ? ' sel' : ''}`} onClick={() => setModo(m.id)} aria-pressed={modo === m.id}>
+              <button key={m.id} type="button" className={`lb-modo${modo === m.id ? ' sel' : ''}`} disabled={!trocavel && modo !== m.id} onClick={() => trocavel && setEscolhido(m.id)} aria-pressed={modo === m.id}>
                 <span className="lb-modo-cab">
                   <b>{t(m.nome)}</b> <small>· 5v5</small>
                 </span>
@@ -420,6 +452,8 @@ function Conteudo() {
       </div>
     )
   if (!dados) return <p className="lb-carregando">{erro ? t(ERROS[erro] || 'Não deu para carregar o lobby.') : t('Carregando lobby…')}</p>
+  // Os 10 aceitaram: a sala de Pick & Ban toma o lugar do lobby (o aceite em si é o botão no centro da tela, em AceitarPartida.jsx)
+  if (dados.partida && dados.partida.fase !== 'aceitar') return <SalaVeto dados={dados} />
 
   // Líder no meio, os outros ao redor: posições 1, 3, 0, 4; convites pendentes depois dos membros
   const eu = dados.eu
@@ -495,7 +529,7 @@ function Conteudo() {
           <span className="lb-chip lb-chip-claro">{dados.souLider ? t('Líder') : t('Membro')}</span>
         </p>
         <div className="lb-ferramentas">
-          {dados.souLider && livres > 0 && (
+          {dados.souLider && livres > 0 && !dados.busca && (
             <button type="button" className="lb-btn lb-btn-g lb-convidar" onClick={() => setConvidando(true)}>
               + {t('Convidar amigo')}
             </button>
@@ -538,14 +572,14 @@ function Conteudo() {
               {dados.convitesRecebidos.length > 0 && <span className="lb-badge">{dados.convitesRecebidos.length}</span>}
             </button>
           ) : l.pessoa ? (
-            <Pessoa key={l.pessoa.id} {...l} eu={eu} souLider={dados.souLider} ocupado={ocupado} nivelDe={nivelDoJogador} aoRemover={(id) => fazer('remover', id)} />
+            <Pessoa key={l.pessoa.id} {...l} eu={eu} souLider={dados.souLider} ocupado={ocupado || !!dados.busca} nivelDe={nivelDoJogador} aoRemover={(id) => fazer('remover', id)} />
           ) : (
-            <Vazio key={i} souLider={dados.souLider} aoConvidar={() => setConvidando(true)} />
+            <Vazio key={i} souLider={dados.souLider && !dados.busca} aoConvidar={() => setConvidando(true)} />
           ),
         )}
       </div>
 
-      <Painel dados={dados} />
+      <Painel dados={dados} fazer={fazer} ocupado={ocupado} />
 
       {convidando && dados.souLider && (
         <Convidar
