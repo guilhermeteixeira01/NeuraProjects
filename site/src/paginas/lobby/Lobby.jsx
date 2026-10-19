@@ -4,7 +4,8 @@ import { CONFIG } from '../../comum/config.js'
 import { entrar, linkPerfil, loginAtivo } from '../../comum/conta.js'
 import { lerJson } from '../../comum/dados.js'
 import { IconeSteam } from '../../comum/Icones.jsx'
-import { ComMoldura, IconeEquipe, usePerfis } from '../../comum/Moldura.jsx'
+import { ComMoldura, IconeEquipe, useCardDe, usePerfis } from '../../comum/Moldura.jsx'
+import { fundoCard } from '../../comum/cardsPerfil.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { ALL_MAPS, mapImage } from '../../comum/mapas.js'
 import { nivelDe } from '../../comum/niveis.js'
@@ -93,22 +94,13 @@ const IC_SAIR = (
 )
 const IC_CHECK = <path d="m4 12.5 5 5L20 6.5" />
 
-// Um lugar do grupo (a pessoa, o convite pendente ou o lugar vazio com o "+")
-function Lugar({ pessoa, lider, pendente, centro, souLider, eu, aoRemover, aoConvidar, ocupado, nivelDe: nivelDoJogador }) {
+// Um lugar do grupo com alguém (ou convite pendente): o fundo é o card que a pessoa escolheu no perfil
+function Pessoa({ pessoa, lider, pendente, centro, souLider, eu, aoRemover, ocupado, nivelDe: nivelDoJogador }) {
   const t = useT()
-  if (!pessoa)
-    return souLider ? (
-      <button type="button" className="lb-lugar lb-vazio" onClick={aoConvidar} aria-label={t('Convidar amigo')}>
-        <span className="lb-mais">+</span>
-      </button>
-    ) : (
-      <div className="lb-lugar lb-vazio lb-inerte" aria-hidden="true">
-        <span className="lb-mais">+</span>
-      </div>
-    )
+  const card = useCardDe(pessoa.id)
   const { info } = nivelDoJogador(pessoa.id)
   return (
-    <div className={`lb-lugar lb-pessoa${centro ? ' lb-centro' : ''}${pendente ? ' lb-pendente' : ''}${pessoa.id === eu ? ' lb-eu' : ''}`}>
+    <div className={`lb-lugar lb-pessoa${centro ? ' lb-centro' : ''}${pendente ? ' lb-pendente' : ''}${pessoa.id === eu ? ' lb-eu' : ''}${card ? ' com-card' : ''}`} style={card ? { '--card-fundo': fundoCard(card, true) } : undefined}>
       {lider && <Coroa />}
       <a className="lb-av" href={linkPerfil(pessoa.id)} title={pessoa.nome || pessoa.id}>
         <ComMoldura steamId={pessoa.id}>
@@ -133,6 +125,20 @@ function Lugar({ pessoa, lider, pendente, centro, souLider, eu, aoRemover, aoCon
           ×
         </button>
       )}
+    </div>
+  )
+}
+
+// Lugar vazio com o "+" (só o líder convida)
+function Vazio({ souLider, aoConvidar }) {
+  const t = useT()
+  return souLider ? (
+    <button type="button" className="lb-lugar lb-vazio" onClick={aoConvidar} aria-label={t('Convidar amigo')}>
+      <span className="lb-mais">+</span>
+    </button>
+  ) : (
+    <div className="lb-lugar lb-vazio lb-inerte" aria-hidden="true">
+      <span className="lb-mais">+</span>
     </div>
   )
 }
@@ -398,10 +404,11 @@ function Conteudo() {
   const eu = dados.eu
   const outros = [...dados.membros.filter((m) => m.id !== eu).map((p) => ({ pessoa: p, lider: p.id === dados.lider })), ...dados.convites.map((p) => ({ pessoa: p, pendente: true }))]
   const meu = dados.membros.find((m) => m.id === eu)
+  // Sempre 5 cartões: o último (direita) é o "Encontrar lobbies" e só vira jogador quando o 5º entra (ou é convidado); se ele sai, volta
   const ORDEM = [1, 3, 0, 4]
-  const lugares = Array.from({ length: dados.max }, () => ({ pessoa: null }))
-  lugares[2] = { pessoa: meu, lider: dados.lider === eu, centro: true }
+  const lugares = [{ pessoa: null }, { pessoa: null }, { pessoa: meu, lider: dados.lider === eu, centro: true }, { pessoa: null }, { encontrar: true }]
   outros.slice(0, 4).forEach((o, i) => (lugares[ORDEM[i]] = o))
+  const livres = dados.max - dados.membros.length - dados.convites.length
 
   const { info: meuNivel, j: meuJogador } = nivelDoJogador(eu)
   const classificado = meuNivel.classificado
@@ -465,6 +472,11 @@ function Conteudo() {
           <span className="lb-chip lb-chip-claro">{dados.souLider ? t('Líder') : t('Membro')}</span>
         </p>
         <div className="lb-ferramentas">
+          {dados.souLider && livres > 0 && (
+            <button type="button" className="lb-btn lb-btn-g lb-convidar" onClick={() => setConvidando(true)}>
+              + {t('Convidar amigo')}
+            </button>
+          )}
           {dados.souLider ? (
             <label className={`lb-toggle${dados.publico ? ' ligado' : ''}`}>
               <Marca d={IC_PESSOAS} tamanho={17} />
@@ -495,14 +507,19 @@ function Conteudo() {
       )}
 
       <div className="lb-palco">
-        {lugares.map((l, i) => (
-          <Lugar key={i} {...l} eu={eu} souLider={dados.souLider} ocupado={ocupado} nivelDe={nivelDoJogador} aoRemover={(id) => fazer('remover', id)} aoConvidar={() => setConvidando(true)} />
-        ))}
-        <button type="button" className="lb-lugar lb-encontrar" onClick={() => setEncontrando(true)}>
-          <Marca d={IC_BUSCA} tamanho={22} />
-          <b>{t('Encontrar lobbies')}</b>
-          {dados.convitesRecebidos.length > 0 && <span className="lb-badge">{dados.convitesRecebidos.length}</span>}
-        </button>
+        {lugares.map((l, i) =>
+          l.encontrar ? (
+            <button key={i} type="button" className="lb-lugar lb-encontrar" onClick={() => setEncontrando(true)}>
+              <Marca d={IC_BUSCA} tamanho={22} />
+              <b>{t('Encontrar lobbies')}</b>
+              {dados.convitesRecebidos.length > 0 && <span className="lb-badge">{dados.convitesRecebidos.length}</span>}
+            </button>
+          ) : l.pessoa ? (
+            <Pessoa key={l.pessoa.id} {...l} eu={eu} souLider={dados.souLider} ocupado={ocupado} nivelDe={nivelDoJogador} aoRemover={(id) => fazer('remover', id)} />
+          ) : (
+            <Vazio key={i} souLider={dados.souLider} aoConvidar={() => setConvidando(true)} />
+          ),
+        )}
       </div>
 
       <Painel dados={dados} />
@@ -522,12 +539,39 @@ function Conteudo() {
   )
 }
 
+// A página só existe no computador (a barra da esquerda, onde fica o ▶ Jogar, só aparece acima de 1024px): no celular e no
+// tablet mostra um aviso e nem carrega o lobby. O CSS esconde o conteúdo antes de o JavaScript chegar, para não piscar.
+function useTelaPequena() {
+  const [pequena, setPequena] = useState(false)
+  useEffect(() => {
+    const q = window.matchMedia('(max-width: 1024px)')
+    const ler = () => setPequena(q.matches)
+    ler()
+    q.addEventListener('change', ler)
+    return () => q.removeEventListener('change', ler)
+  }, [])
+  return pequena
+}
+
 export default function Lobby() {
+  const t = useT()
+  const pequena = useTelaPequena()
   return (
     <Layout pagina="lobby">
       <main className="lb-pagina">
         <div className="wrap lb-wrap">
-          <Conteudo />
+          <div className="lb-bloqueio" role="status">
+            <h1>{t('O lobby é só no computador')}</h1>
+            <p>{t('Para jogar em grupo, abra o site no computador. No celular dá para ver o ranking, as partidas e o seu perfil.')}</p>
+            <a className="lb-btn lb-btn-p" href="/">
+              {t('Voltar para o início')}
+            </a>
+          </div>
+          {!pequena && (
+            <div className="lb-conteudo">
+              <Conteudo />
+            </div>
+          )}
         </div>
       </main>
     </Layout>

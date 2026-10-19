@@ -192,34 +192,28 @@
 .lb-aviso-login h2 { margin: 0 0 8px; font-family: var(--font-display); }
 .lb-aviso-login p { margin: 0 0 18px; color: var(--dim); line-height: 1.55; }
 
-/* telas menores */
+/* card do perfil de cada jogador como fundo do lugar (escurecido para o texto ficar legível) */
+.lb-pessoa.com-card { background-image: var(--card-fundo); background-size: cover; background-position: center; background-repeat: no-repeat; border-color: rgb(var(--tinta) / .2); }
+.lb-pessoa.com-card .lb-nome { text-shadow: 0 2px 10px rgba(0, 0, 0, .85); }
+.lb-pessoa.com-card .lb-pilula { background: rgba(0, 0, 0, .45); }
+.lb-convidar { height: 36px; }
+
+/* computador mais estreito (1025 a 1280px): os 5 cartões dividem a largura */
 @media (max-width: 1280px) {
-  .lb-palco { flex-wrap: wrap; gap: 18px; }
   .lb-topo { grid-template-columns: minmax(0, 1fr); gap: 18px; }
-}
-@media (max-width: 720px) {
-  .lb-pagina { padding-top: 14px; }
-  .lb-nivel { gap: 14px; }
-  .lb-nivel-gema { width: 84px; height: 84px; }
-  .lb-nivel-gema .selo-nivel { width: 70px !important; height: 70px !important; }
-  .lb-nome-linha { align-items: flex-start; flex-direction: column; }
-  .lb-nome-grupo { gap: 12px; }
-  .lb-palco { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 22px; }
-  .lb-lugar, .lb-centro { width: auto; height: 214px; }
-  .lb-centro { order: -1; grid-column: 1 / -1; height: 230px; }
-  .lb-pessoa .lb-av, .lb-centro .lb-av { width: 84px; height: 84px; }
-  .lb-encontrar { grid-column: 1 / -1; height: 86px; flex-direction: row; justify-content: center; }
+  .lb-palco { gap: 12px; }
+  .lb-lugar { width: auto; flex: 1 1 0; min-width: 0; height: 220px; }
+  .lb-centro { flex-grow: 1.12; height: 234px; }
+  .lb-pessoa .lb-av { width: 78px; height: 78px; }
+  .lb-centro .lb-av { width: 90px; height: 90px; }
   .lb-mais { font-size: 60px; }
-  .lb-buscar-faixa { position: static; transform: none; width: auto; padding: 12px; margin: 0; }
-  .lb-aviso { font-size: 13px; flex-wrap: wrap; }
-  .lb-buscar { width: 100%; }
-  .lb-abas-painel { gap: 18px; padding: 0 14px; overflow-x: auto; }
-  .lb-abas-painel button { height: 56px; font-size: 12.5px; white-space: nowrap; }
-  .lb-abas-painel button:last-child { margin-left: 0; }
-  .lb-painel-corpo { padding: 14px; }
-  .lb-modo-itens { grid-template-columns: minmax(0, 1fr); }
 }
-@media (max-width: 720px) {
-  .lb-centro { height: 196px; }
-  .lb-lugar:has(.lb-coroa) { margin-top: 22px; }
+
+/* Só no computador: no celular/tablet (até 1024px, onde a barra da esquerda some) a página mostra só o aviso */
+.lb-bloqueio { display: none; max-width: 480px; margin: 70px auto; padding: 28px; border-radius: 16px; border: 1px solid var(--border-2); background: #101114; text-align: center; }
+.lb-bloqueio h1 { margin: 0 0 10px; font: 800 24px/1.2 var(--font-display); }
+.lb-bloqueio p { margin: 0 0 20px; color: var(--dim); line-height: 1.6; }
+@media (max-width: 1024px) {
+  .lb-bloqueio { display: block; }
+  .lb-conteudo { display: none; }
 }

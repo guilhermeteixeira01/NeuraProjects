@@ -270,8 +270,9 @@ export default function Nav({ pagina }) {
   const linkAdmin = admin && <LinkMenu item={ITEM_ADMIN} atual={pagina} />
 
   // Barra de baixo (celular): páginas do site; as de fora (Inventário) vão para o "Mais"
-  const abas = menu.filter((m) => !m.externo && !m.soMais)
-  const extras = menu.filter((m) => m.externo || m.soMais).map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
+  const menuCel = menu.filter((m) => !m.soComputador) // o que só existe no computador (▶ Jogar) fica fora da barra de baixo e do "Mais"
+  const abas = menuCel.filter((m) => !m.externo)
+  const extras = menuCel.filter((m) => m.externo).map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
   const atual = [...MENU, ITEM_ADMIN].find((m) => m.id === pagina) || OUTRAS[pagina] || MENU[0]
   const IconeAtual = ICONES_MENU[atual.icone]
   const IconePerfil = ICONES_MENU.perfil
