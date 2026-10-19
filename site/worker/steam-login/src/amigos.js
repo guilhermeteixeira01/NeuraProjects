@@ -404,6 +404,7 @@ export class Presenca {
       if (acao === 'convidar') {
         if (!eLider) return json({ erro: 'lider' }, 403)
         if (!alvoOk || !amigosEu.includes(id)) return json({ erro: 'amigo' }, 400)
+        if (this.statusDe(id) === 'offline') return json({ erro: 'offline' }, 409)
         const lb = (todos[eu] ??= novoLobby())
         if (!lb.membros.includes(id) && !lb.convites.includes(id)) {
           if (1 + lb.membros.length + lb.convites.length >= LOBBY_MAX) return json({ erro: 'cheio' }, 400)
