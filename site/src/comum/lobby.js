@@ -63,7 +63,7 @@ export async function acaoLobby(acao, id, valor) {
   return d
 }
 
-// Estado do lobby de quem está logado; atualiza sozinho (aviso ao vivo do worker, ao voltar para a aba e a cada 20 s)
+// Estado do lobby de quem está logado; atualiza sozinho (aviso ao vivo do worker, ao voltar para a aba e a cada 8 s)
 export function useLobby() {
   const conta = useConta()
   const [, atualizar] = useState(0)
@@ -79,7 +79,7 @@ export function useLobby() {
     window.addEventListener('np-lobby', carregarLobby)
     window.addEventListener('focus', recarregar)
     document.addEventListener('visibilitychange', recarregar)
-    const relogio = setInterval(recarregar, 20000)
+    const relogio = setInterval(recarregar, 8000)
     return () => {
       window.removeEventListener('np-lobby', carregarLobby)
       window.removeEventListener('focus', recarregar)

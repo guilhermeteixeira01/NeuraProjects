@@ -19,6 +19,7 @@ const ACOES = ['pedir', 'aceitar', 'recusar', 'cancelar', 'remover']
 // (consistente, sem KV): lobbies = { "<SteamID do líder>": { membros: [ids], convites: [ids], publico: bool } }.
 // Só o líder convida, remove e abre o lobby; amigos entram sozinhos se estiver aberto ("público") ou se foram convidados.
 const LOBBY_MAX = 5
+const SEM_SINAL_MS = 150 * 1000 // o site manda "ping" a cada 20 s; sem nenhum sinal por isso, a conexão é tratada como morta
 const LOBBY_OFFLINE_MS = 10 * 60 * 1000 // membro offline há mais que isso sai sozinho
 const novoLobby = () => ({ membros: [], convites: [], publico: false, busca: null })
 const lobbyVazio = (lb) => !lb.membros.length && !lb.convites.length && !lb.publico
@@ -313,7 +314,12 @@ export class Presenca {
 
   // online > ausente > offline, juntando todas as abas da pessoa
   statusDe(id) {
-    const abas = this.state.getWebSockets(id)
+    // Conexão que não dá sinal há tempo demais (aba que morreu sem avisar, PC que dormiu) não conta como presente
+    const agora = Date.now()
+    const abas = this.state.getWebSockets(id).filter((ws) => {
+      const ultimo = this.state.getWebSocketAutoResponseTimestamp(ws)?.getTime() || ws.deserializeAttachment()?.ts || agora
+      return agora - ultimo < SEM_SINAL_MS
+    })
     if (!abas.length) return 'offline'
     return abas.some((ws) => ws.deserializeAttachment()?.st !== 'ausente') ? 'online' : 'ausente'
   }
@@ -652,7 +658,7 @@ export class Presenca {
     const antes = this.statusDe(id)
     const [cliente, servidor] = Object.values(new WebSocketPair())
     this.state.acceptWebSocket(servidor, [id])
-    servidor.serializeAttachment({ id, st: 'online' })
+    servidor.serializeAttachment({ id, st: 'online', ts: Date.now() })
     servidor.send(JSON.stringify(await this.estadoPara(id)))
     if (antes !== 'online') await this.avisarAmigos(id, 'online')
     return new Response(null, { status: 101, webSocket: cliente })
