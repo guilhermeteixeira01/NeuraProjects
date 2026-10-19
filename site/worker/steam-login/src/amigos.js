@@ -12,6 +12,15 @@ const ID_STEAM = /^\d{17}$/
 const MAX_AMIGOS = 300
 const ACOES = ['pedir', 'aceitar', 'recusar', 'cancelar', 'remover']
 
+// Lobby (grupo para jogar junto, como o da FACEIT): o líder + até 4 membros. Fica no armazenamento do próprio objeto de presença
+// (consistente, sem KV): lobbies = { "<SteamID do líder>": { membros: [ids], convites: [ids], publico: bool } }.
+// Só o líder convida, remove e abre o lobby; amigos entram sozinhos se estiver aberto ("público") ou se foram convidados.
+const LOBBY_MAX = 5
+const LOBBY_OFFLINE_MS = 10 * 60 * 1000 // membro offline há mais que isso sai sozinho
+const novoLobby = () => ({ membros: [], convites: [], publico: false })
+const lobbyVazio = (lb) => !lb.membros.length && !lb.convites.length && !lb.publico
+const ACOES_LOBBY = ['convidar', 'remover', 'entrar', 'recusar', 'sair', 'publico']
+
 const json = (dados, status = 200, extra = {}) =>
   new Response(JSON.stringify(dados), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...extra } })
 
@@ -107,6 +116,13 @@ export async function avisarPerfil(env, id, perfil) {
     .catch(() => {})
 }
 
+// GET /lobby e POST /lobby { acao, id?, valor? }: o objeto de presença guarda e muda os lobbies (index.js confere o login)
+export async function rotaLobby(req, env, quem, cors) {
+  const corpo = req.method === 'POST' ? await req.text() : undefined
+  const r = await presenca(env).fetch('https://presenca/lobby', { method: req.method, headers: { 'X-Id': quem.id, 'Content-Type': 'application/json' }, body: corpo })
+  return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
+}
+
 // GET /presenca?t=<token> (WebSocket): o index.js confere o token e manda para o objeto com o SteamID em X-Id
 export function rotaPresenca(req, env, id) {
   const r = new Request(req)
@@ -160,8 +176,140 @@ export class Presenca {
     for (const a of amigos) this.enviar(a, { tipo: 'mudou', id, st, visto })
   }
 
+  // ── Lobby ──
+  // GET /lobby (X-Id = quem pergunta) devolve o lobby dele; POST { acao, id?, valor? } muda e devolve o lobby novo.
+  async lobby(req) {
+    const eu = req.headers.get('X-Id')
+    if (!ID_STEAM.test(String(eu))) return json({ erro: 'id' }, 400)
+    const todos = (await this.state.storage.get('lobbies')) || {}
+    const amigosEu = (await this.listaAmigos())[eu]?.amigos || []
+    const achar = (id) => (todos[id] ? id : Object.keys(todos).find((l) => todos[l].membros.includes(id)) || null)
+    const publicosAntes = new Set(Object.keys(todos).filter((l) => todos[l].publico)) // abertos antes da ação (se fecharem, os amigos também recarregam)
+    const lideres = new Set() // lobbies mexidos: se forem públicos, os amigos do líder também recarregam a lista de lobbies abertos
+    const avisados = new Set([eu])
+    let mudou = req.method === 'POST' // só grava e avisa se algo mudou (a limpeza de membros offline também conta)
+    const avisar = (...ids) => ids.flat().forEach((i) => i && avisados.add(i))
+
+    // Tira "id" de qualquer lobby em que esteja. Líder que sai passa a liderança para o primeiro membro.
+    const sairDe = (id) => {
+      const lider = achar(id)
+      if (!lider) return
+      mudou = true
+      const lb = todos[lider]
+      lideres.add(lider)
+      avisar(lider, lb.membros, lb.convites)
+      if (lider === id) {
+        if (lb.membros.length) {
+          const [novo, ...resto] = lb.membros
+          todos[novo] = { membros: resto, convites: [], publico: lb.publico }
+          lideres.add(novo)
+        }
+        delete todos[id]
+      } else {
+        lb.membros = tira(lb.membros, id)
+      }
+    }
+
+    // Membro offline faz tempo sai sozinho (só confere o lobby de quem está perguntando)
+    const limpar = async () => {
+      const lider = achar(eu)
+      if (!lider) return
+      for (const m of [...todos[lider].membros]) {
+        if (m === eu || this.statusDe(m) !== 'offline') continue
+        // "visto" só existe depois que a pessoa fechou a última aba; sem registro, não tira (nunca saiu da conta)
+        const visto = await this.state.storage.get(`visto:${m}`)
+        if (visto && Date.now() - visto > LOBBY_OFFLINE_MS) sairDe(m)
+      }
+    }
+
+    if (req.method === 'POST') {
+      const { acao, id, valor } = (await req.json().catch(() => null)) || {}
+      if (!ACOES_LOBBY.includes(acao)) return json({ erro: 'acao' }, 400)
+      const meuLider = achar(eu)
+      const eLider = !meuLider || meuLider === eu
+      const alvoOk = ID_STEAM.test(String(id)) && id !== eu
+      if (acao === 'convidar') {
+        if (!eLider) return json({ erro: 'lider' }, 403)
+        if (!alvoOk || !amigosEu.includes(id)) return json({ erro: 'amigo' }, 400)
+        const lb = (todos[eu] ??= novoLobby())
+        if (!lb.membros.includes(id) && !lb.convites.includes(id)) {
+          if (1 + lb.membros.length + lb.convites.length >= LOBBY_MAX) return json({ erro: 'cheio' }, 400)
+          lb.convites = poe(lb.convites, id)
+        }
+        lideres.add(eu)
+        avisar(id, lb.membros)
+      } else if (acao === 'remover') {
+        if (!alvoOk || !todos[eu] || !eLider) return json({ erro: 'lider' }, 403)
+        const lb = todos[eu]
+        lb.membros = tira(lb.membros, id)
+        lb.convites = tira(lb.convites, id)
+        lideres.add(eu)
+        avisar(id, lb.membros)
+      } else if (acao === 'entrar') {
+        const lb = alvoOk ? todos[id] : null
+        if (!lb) return json({ erro: 'sem-lobby' }, 404)
+        if (!lb.membros.includes(eu)) {
+          if (!lb.convites.includes(eu) && !(lb.publico && amigosEu.includes(id))) return json({ erro: 'negado' }, 403)
+          if (1 + lb.membros.length >= LOBBY_MAX) return json({ erro: 'cheio' }, 400)
+          if (todos[eu]?.membros.length) return json({ erro: 'ocupado' }, 400) // líder com gente: saia/passe a liderança antes
+          sairDe(eu) // sai do lobby em que estava (o próprio, vazio, ou o de outro líder)
+          lb.convites = tira(lb.convites, eu)
+          lb.membros = poe(lb.membros, eu)
+        }
+        lideres.add(id)
+        avisar(id, lb.membros, lb.convites)
+      } else if (acao === 'recusar') {
+        if (alvoOk && todos[id]) {
+          todos[id].convites = tira(todos[id].convites, eu)
+          lideres.add(id)
+          avisar(id)
+        }
+      } else if (acao === 'sair') {
+        sairDe(eu)
+      } else if (acao === 'publico') {
+        if (!eLider) return json({ erro: 'lider' }, 403)
+        const lb = (todos[eu] ??= novoLobby())
+        lb.publico = valor === true
+        lideres.add(eu)
+        avisar(lb.membros)
+      }
+    }
+    await limpar()
+
+    // quem estava num lobby aberto: os amigos dele recarregam a lista de "lobbies abertos"
+    for (const l of lideres) {
+      if (todos[l]?.publico || publicosAntes.has(l)) avisar((await this.listaAmigos())[l]?.amigos || [])
+    }
+    for (const k of Object.keys(todos)) if (lobbyVazio(todos[k])) delete todos[k]
+    if (mudou) {
+      await this.state.storage.put('lobbies', todos)
+      for (const a of avisados) this.enviar(a, { tipo: 'lobby' })
+    }
+
+    // Vista para quem perguntou
+    const lider = achar(eu) || eu
+    const lb = todos[lider] || novoLobby()
+    const convitesRecebidos = Object.keys(todos).filter((l) => l !== lider && todos[l].convites.includes(eu))
+    const abertos = amigosEu.filter((a) => a !== lider && todos[a]?.publico && 1 + todos[a].membros.length < LOBBY_MAX && !todos[a].convites.includes(eu))
+    const ids = [...new Set([lider, ...lb.membros, ...lb.convites, ...convitesRecebidos, ...abertos])]
+    const info = await nomes(this.env, ids)
+    const pessoa = (id) => ({ id, ...info[id], st: this.statusDe(id) })
+    return json({
+      eu,
+      lider,
+      souLider: lider === eu,
+      publico: !!lb.publico,
+      max: LOBBY_MAX,
+      membros: [lider, ...lb.membros].map(pessoa),
+      convites: lb.convites.map(pessoa),
+      convitesRecebidos: convitesRecebidos.map((l) => ({ lider: pessoa(l), membros: 1 + todos[l].membros.length })),
+      abertos: abertos.map((l) => ({ lider: pessoa(l), membros: 1 + todos[l].membros.length })),
+    })
+  }
+
   async fetch(req) {
     const url = new URL(req.url)
+    if (url.pathname === '/lobby') return this.lobby(req)
     if (url.pathname === '/avisar') {
       const { ids = [] } = await req.json().catch(() => ({}))
       await this.listaAmigos(true)

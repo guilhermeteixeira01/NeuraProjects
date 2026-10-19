@@ -69,7 +69,6 @@ export default function AvisoNivel() {
   const perfis = usePerfis()
   const frescos = usePerfisFrescos()
   const [ranking, setRanking] = useState(null)
-  const [esperou, setEsperou] = useState(false)
   const [aviso, setAviso] = useState(null) // { tipo: 'revela' | 'sobe' | 'desce', de, para }
   const canvas = useRef(null)
 
@@ -77,16 +76,14 @@ export default function AvisoNivel() {
     if (!conta?.id) return
     let vivo = true
     lerJson('/ranking/ranking.json').then((r) => vivo && setRanking(r || { jogadores: [] }))
-    // O ajuste de XP do admin vem dos perfis (worker): espera eles um pouco para não avisar um nível errado
-    const t = setTimeout(() => vivo && setEsperou(true), 3000)
     return () => {
       vivo = false
-      clearTimeout(t)
     }
   }, [conta?.id])
 
-  // Espera os perfis chegarem do worker (o último nível visto fica na conta); sem resposta em 3 s, segue com o do navegador
-  const prontos = ranking && (frescos || esperou)
+  // Só confere o nível depois que os perfis chegaram do worker: o XP dado pelo admin e o último nível visto (guardado na conta)
+  // vêm de lá. Sem eles o nível sai errado e o aviso "subiu/desceu" aparecia (e era gravado) toda vez.
+  const prontos = ranking && frescos
   useEffect(() => {
     if (!conta?.id || !prontos) return
     const j = ranking.jogadores?.find((x) => x.steamId === conta.id)

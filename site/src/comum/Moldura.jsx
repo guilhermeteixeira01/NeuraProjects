@@ -38,14 +38,17 @@ function buscar() {
   buscando = fetch(`${base()}/perfis`, { cache: 'no-store' })
     .then((r) => (r.ok ? r.text() : null))
     .then((texto) => {
-      if (texto && !lido) {
+      if (!texto) return
+      if (texto !== textoPerfis) {
+        textoPerfis = texto
+        const d = JSON.parse(texto)
+        if (d && typeof d === 'object') publicar(d)
+      }
+      // "frescos" só depois de publicar: quem espera (avisos de nível/insígnia) precisa já ver os perfis novos (XP do admin, o que já foi visto)
+      if (!lido) {
         lido = true
         window.dispatchEvent(new Event(EVENTO))
       }
-      if (!texto || texto === textoPerfis) return
-      textoPerfis = texto
-      const d = JSON.parse(texto)
-      if (d && typeof d === 'object') publicar(d)
     })
     .catch(() => {})
     .finally(() => (buscando = null))

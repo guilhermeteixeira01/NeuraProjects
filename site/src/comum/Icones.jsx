@@ -89,6 +89,21 @@ export const IconeTrofeu = () => (
   </IconeMenu>
 )
 
+export const IconePlay = () => (
+  <IconeMenu>
+    <path d="M7 4.5v15a.8.8 0 0 0 1.2.7l12-7.5a.8.8 0 0 0 0-1.4l-12-7.5A.8.8 0 0 0 7 4.5Z" />
+  </IconeMenu>
+)
+
+export const IconeGrupo = () => (
+  <IconeMenu>
+    <circle cx="9" cy="8" r="3.5" />
+    <path d="M2.5 20a6.5 6.5 0 0 1 13 0" />
+    <path d="M16 4.6a3.5 3.5 0 0 1 0 6.8" />
+    <path d="M18.5 14.2A6.5 6.5 0 0 1 21.5 20" />
+  </IconeMenu>
+)
+
 export const IconePerfil = () => (
   <IconeMenu>
     <circle cx="12" cy="8" r="4" />
@@ -103,4 +118,4 @@ export const IconeMais = () => (
   </IconeMenu>
 )
 
-export const ICONES_MENU = { casa: IconeCasa, mapa: IconeMapa, partidas: IconePartidas, trofeu: IconeTrofeu, perfil: IconePerfil, mais: IconeMais, mochila: IconeMochila, escudo: IconeEscudo }
+export const ICONES_MENU = { casa: IconeCasa, mapa: IconeMapa, partidas: IconePartidas, trofeu: IconeTrofeu, grupo: IconeGrupo, play: IconePlay, perfil: IconePerfil, mais: IconeMais, mochila: IconeMochila, escudo: IconeEscudo }

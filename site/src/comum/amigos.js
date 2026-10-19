@@ -90,6 +90,8 @@ function conectar(id) {
     if (m.tipo === 'estado') publicar({ status: m.status || {} })
     else if (m.tipo === 'mudou') publicar({ status: { ...estado.status, [m.id]: { st: m.st, visto: m.visto ?? estado.status[m.id]?.visto ?? null } } })
     else if (m.tipo === 'lista') carregarLista()
+    // Algo mudou no meu lobby (convite, alguém entrou/saiu, lobby aberto): a página do Lobby recarrega
+    else if (m.tipo === 'lobby') window.dispatchEvent(new Event('np-lobby'))
     // O admin mudou o meu perfil (ex.: deu uma insígnia): Moldura.jsx atualiza na hora e o aviso aparece
     else if (m.tipo === 'perfil' && m.id) window.dispatchEvent(new CustomEvent('np-perfil-ao-vivo', { detail: { id: m.id, perfil: m.perfil } }))
   }

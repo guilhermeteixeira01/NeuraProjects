@@ -14,6 +14,7 @@ const PAGINAS = {
   partidas: 'partidas/index.html',
   partida: 'partidas/partida.html',
   ranking: 'ranking/index.html',
+  lobby: 'lobby/index.html',
   perfil: 'perfil/index.html',
   admin: 'admin/index.html',
   times: 'times/index.html',
