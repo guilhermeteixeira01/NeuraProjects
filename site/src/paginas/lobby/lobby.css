@@ -367,3 +367,8 @@ a.sala-entrar { display: inline-flex; align-items: center; justify-content: cent
   color: #1a1400; background: var(--accent); vertical-align: middle;
 }
 .lb-dica-premium { margin: 0; text-align: center; font: 600 13px var(--font-body); color: var(--accent); }
+
+/* Sala: vaga de quem caiu da partida + chamar um substituto */
+.sala-vaga { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.sala-vaga small { color: var(--red); font-weight: 600; }
+.sala-sub-vaga { margin: 0 0 10px; color: var(--dim); font-size: 13px; }
