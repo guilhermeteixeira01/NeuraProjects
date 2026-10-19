@@ -25,8 +25,8 @@ export const CONFIG = {
 // Itens do menu do topo (o "id" marca a página atual)
 export const MENU = [
   { id: 'inicio', rotulo: 'Início', href: '/', icone: 'casa' },
-  // Botão ▶ "Jogar": abre o Lobby (grupo para jogar junto). No celular fica no "Mais" da barra de baixo (soMais)
-  { id: 'lobby', rotulo: 'Jogar', href: '/lobby/', icone: 'play', soMais: true },
+  // Botão ▶ "Jogar": abre o Lobby (grupo para jogar junto). Só no computador: no celular/tablet o botão não aparece (soComputador)
+  { id: 'lobby', rotulo: 'Jogar', href: '/lobby/', icone: 'play', soComputador: true },
   { id: 'pick', rotulo: 'Pick & Ban', href: '/neurapick/', icone: 'mapa' },
   { id: 'partidas', rotulo: 'Partidas', href: '/partidas/', icone: 'partidas' },
   { id: 'ranking', rotulo: 'Ranking', href: '/ranking/', icone: 'trofeu' },
