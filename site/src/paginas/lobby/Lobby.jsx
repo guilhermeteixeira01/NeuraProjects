@@ -158,10 +158,10 @@ function Pessoa({ pessoa, lider, pendente, centro, souLider, eu, aoRemover, ocup
   )
 }
 
-// Lugar vazio com o "+" (só o líder convida)
-function Vazio({ souLider, aoConvidar }) {
+// Lugar vazio com o "+" (líder e membros convidam)
+function Vazio({ podeConvidar, aoConvidar }) {
   const t = useT()
-  return souLider ? (
+  return podeConvidar ? (
     <button type="button" className="lb-lugar lb-vazio" onClick={aoConvidar} aria-label={t('Convidar amigo')}>
       <span className="lb-mais">+</span>
     </button>
@@ -574,7 +574,7 @@ function Conteudo() {
           <span className="lb-chip lb-chip-claro">{dados.souLider ? t('Líder') : t('Membro')}</span>
         </p>
         <div className="lb-ferramentas">
-          {dados.souLider && livres > 0 && !dados.busca && (
+          {livres > 0 && !dados.busca && (
             <button type="button" className="lb-btn lb-btn-g lb-convidar" onClick={() => setConvidando(true)}>
               + {t('Convidar amigo')}
             </button>
@@ -619,14 +619,14 @@ function Conteudo() {
           ) : l.pessoa ? (
             <Pessoa key={l.pessoa.id} {...l} eu={eu} souLider={dados.souLider} ocupado={ocupado || !!dados.busca} nivelDe={nivelDoJogador} aoRemover={(id) => fazer('remover', id)} />
           ) : (
-            <Vazio key={i} souLider={dados.souLider && !dados.busca} aoConvidar={() => setConvidando(true)} />
+            <Vazio key={i} podeConvidar={!dados.busca} aoConvidar={() => setConvidando(true)} />
           ),
         )}
       </div>
 
       <Painel dados={dados} fazer={fazer} ocupado={ocupado} />
 
-      {convidando && dados.souLider && (
+      {convidando && (
         <Convidar
           lobby={dados}
           ocupado={ocupado}

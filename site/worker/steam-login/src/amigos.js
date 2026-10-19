@@ -406,17 +406,20 @@ export class Presenca {
       const minha = partidaDe(partidas, eu)
       if (minha && !ACOES_PARTIDA.includes(acao)) return json({ erro: 'em-partida' }, 409)
       if (!minha && ACOES_PARTIDA.includes(acao)) return json({ erro: 'sem-partida' }, 404)
-      if (todos[eu]?.busca && (acao === 'convidar' || acao === 'remover')) return json({ erro: 'buscando' }, 409)
+      if (todos[meuLider || eu]?.busca && (acao === 'convidar' || acao === 'remover')) return json({ erro: 'buscando' }, 409)
       if (acao === 'convidar') {
-        if (!eLider) return json({ erro: 'lider' }, 403)
+        // qualquer membro do lobby convida (o convite entra no lobby do líder); só o líder remove
         if (!alvoOk || !amigosEu.includes(id)) return json({ erro: 'amigo' }, 400)
         if (this.statusDe(id) === 'offline') return json({ erro: 'offline' }, 409)
-        const lb = (todos[eu] ??= novoLobby())
+        const dono = meuLider || eu
+        if (dono === id) return json({ erro: 'amigo' }, 400)
+        const lb = (todos[dono] ??= novoLobby())
         if (!lb.membros.includes(id) && !lb.convites.includes(id)) {
           if (1 + lb.membros.length + lb.convites.length >= LOBBY_MAX) return json({ erro: 'cheio' }, 400)
           lb.convites = poe(lb.convites, id)
         }
-        lideres.add(eu)
+        lideres.add(dono)
+        avisar(dono)
         avisar(id, lb.membros)
       } else if (acao === 'remover') {
         if (!alvoOk || !todos[eu] || !eLider) return json({ erro: 'lider' }, 403)
