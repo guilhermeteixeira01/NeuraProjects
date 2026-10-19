@@ -194,8 +194,8 @@
   color: #9fd0ff;
   background: rgba(52, 152, 219, 0.1);
 }
-/* Emblema da Kivo nos botões/links da comunidade */
-.ic-kivo {
+/* Emblema do Discord nos botões/links da comunidade */
+.ic-discord {
   flex: none;
   border-radius: 50%;
   object-fit: contain;

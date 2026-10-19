@@ -369,7 +369,7 @@ function Painel({ dados, fazer, ocupado }) {
           </span>
           {CONFIG.comunidade && (
             <a href={CONFIG.comunidade} target="_blank" rel="noopener">
-              {t('ENTRAR NA KIVO')}
+              {t('ENTRAR NO DISCORD')}
             </a>
           )}
         </p>

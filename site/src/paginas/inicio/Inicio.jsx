@@ -5,7 +5,7 @@ import { lerJson } from '../../comum/dados.js'
 import { Contador, useInclinar } from '../../comum/efeitos.jsx'
 import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
 import Letreiro from '../../comum/Letreiro.jsx'
-import { Icone, IconeKivo } from '../../comum/Icones.jsx'
+import { Icone, IconeDiscord } from '../../comum/Icones.jsx'
 import { useT } from '../../comum/i18n.js'
 import { useAcessoPick } from '../../comum/Moldura.jsx'
 import LiveTwitch from './LiveTwitch.jsx'
@@ -89,7 +89,7 @@ const PRINCIPIOS = [
   [
     <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z" />,
     'A comunidade decide junto',
-    'Sugestões e problemas chegam pela comunidade na Kivo e viram prioridade. A gente constrói o que os jogadores realmente usam.',
+    'Sugestões e problemas chegam pela comunidade no Discord e viram prioridade. A gente constrói o que os jogadores realmente usam.',
     'COMUNIDADE',
   ],
   [
@@ -115,10 +115,10 @@ const FICHA = [
   ['FORMATO', 'Independente'],
   ['FOCO', 'Jogos e competitivo'],
   ['BASE', 'Brasil'],
-  ['COMUNIDADE', 'Kivo'],
+  ['COMUNIDADE', 'Discord'],
 ]
 
-// Link da comunidade na Kivo (some se não tiver comunidade configurada)
+// Link da comunidade no Discord (some se não tiver comunidade configurada)
 function LinkComunidade({ className, children }) {
   if (!CONFIG.comunidade) return null
   return (
@@ -457,7 +457,7 @@ export default function Inicio() {
                 <h2>{t('Um estúdio pequeno, feito por jogadores')}</h2>
               </div>
               <p>{t('A Neura Project nasceu da vontade de ter ferramentas melhores para jogar: veto de mapas sem planilha, servidor com estatística de verdade e os jogos organizados num só lugar. Então começamos a construir as ferramentas que a gente queria usar.')}</p>
-              <p>{t('Hoje somos um estúdio independente focado em jogos — pequeno de propósito. Isso deixa a gente perto de quem usa: ideia que chega na comunidade da Kivo vira recurso, bug reportado vira correção.')}</p>
+              <p>{t('Hoje somos um estúdio independente focado em jogos — pequeno de propósito. Isso deixa a gente perto de quem usa: ideia que chega na comunidade do Discord vira recurso, bug reportado vira correção.')}</p>
               <p>{t('O objetivo é simples: tornar o competitivo mais organizado, justo e divertido, para campeonatos de amigos e para a comunidade inteira.')}</p>
             </div>
             <div className="hud-frame reveal" style={{ '--d': '.1s' }}>
@@ -511,10 +511,10 @@ export default function Inicio() {
                   <b>04</b> {t('COMUNIDADE')}
                 </span>
                 <h2>{t('Joga com a gente?')}</h2>
-                <p className="lead">{t('Entre na nossa comunidade na Kivo para jogar no servidor, participar dos campeonatos e acompanhar o que estamos criando.')}</p>
+                <p className="lead">{t('Entre na nossa comunidade no Discord para jogar no servidor, participar dos campeonatos e acompanhar o que estamos criando.')}</p>
                 <div className="cta-acoes">
                   <LinkComunidade className="btn btn-comunidade btn-lg btn-brilho">
-                    <IconeKivo tamanho={20} /> {t('Entrar na Kivo')}
+                    <IconeDiscord tamanho={20} /> {t('Entrar no Discord')}
                   </LinkComunidade>
                   <a className="btn btn-ghost btn-lg btn-borda" href="/partidas/">
                     {t('Ver últimas partidas')}
