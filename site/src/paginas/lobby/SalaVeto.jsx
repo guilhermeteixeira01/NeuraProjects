@@ -263,6 +263,7 @@ export default function SalaVeto({ dados }) {
   const { status, picks, remaining } = deriveState(pool, historico)
   const decider = pronto ? remaining[0] : null
   const nome = (tm) => `time_${times[tm].membros.find((m) => m.id === times[tm].lider)?.nome || times[tm].lider}`
+  const lider = (tm) => times[tm].membros.find((m) => m.id === times[tm].lider)
   const minhaVez = !pronto && times[passo.team].lider === eu
   const formato = FORMATS[partida.formato]?.label || partida.formato
   const segundos = Math.ceil(msAte(partida.prazo, partida.desvio) / 1000)
@@ -301,7 +302,7 @@ export default function SalaVeto({ dados }) {
     }
   }
 
-  const escolhidos = picks.map((p) => ({ id: p.map, lado: p.side, quem: p.sideBy })).concat(decider ? [{ id: decider }] : [])
+  const escolhidos = picks.map((p) => ({ id: p.map, lado: p.side, quem: p.sideBy, por: p.pickedBy })).concat(decider ? [{ id: decider }] : [])
 
   return (
     <section className="lb-sala" aria-label={t('Pick & Ban')}>
@@ -320,6 +321,11 @@ export default function SalaVeto({ dados }) {
                 {escolhidos.map((e, i) => (
                   <li key={e.id} style={{ '--img': `url('${mapImage(e.id)}')` }}>
                     <small>{i === escolhidos.length - 1 ? 'DECIDER' : `MAPA ${i + 1}`}</small>
+                    {e.por && lider(e.por) && (
+                      <span className="sala-pickador" title={nome(e.por)}>
+                        <FotoJogador p={lider(e.por)} />
+                      </span>
+                    )}
                     <b>{getMap(e.id)?.name}</b>
                     {e.lado && (
                       <span className="sala-escolhido-lado">
