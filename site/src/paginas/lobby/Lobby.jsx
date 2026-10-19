@@ -7,7 +7,7 @@ import { IconeSteam } from '../../comum/Icones.jsx'
 import { ComMoldura, IconeEquipe, useCardDe, usePerfis } from '../../comum/Moldura.jsx'
 import { urlCard } from '../../comum/cardsPerfil.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
-import { ALL_MAPS, mapImage } from '../../comum/mapas.js'
+import { ALL_MAPS, idMapa, mapImage, nomeMapa } from '../../comum/mapas.js'
 import { nivelDe } from '../../comum/niveis.js'
 import { ordenarRanking } from '../../comum/ranking.js'
 import { useAmigos } from '../../comum/amigos.js'
@@ -54,6 +54,26 @@ function useInfoNivel() {
     const j = ranking?.jogadores?.find((x) => x.steamId === id)
     return { j, info: nivelDe((Number(j?.xp) || 0) + (Number(perfis[id]?.xp) || 0), Number(j?.mapas) || 0) }
   }
+}
+
+// Mapa que a pessoa mais jogou (empate: o jogado por último), lido do histórico do perfil; null enquanto não chega
+function useMapaMaisJogado(id) {
+  const [mapa, setMapa] = useState(null)
+  useEffect(() => {
+    if (!id) return
+    let vivo = true
+    lerJson(`/perfil/historico/${id}.json`).then((h) => {
+      if (!vivo || !Array.isArray(h) || !h.length) return
+      const n = {}
+      for (const m of h) n[idMapa(m.mapa)] = (n[idMapa(m.mapa)] || 0) + 1 // histórico: mais recente primeiro
+      const [id1, vezes] = Object.entries(n).sort((a, b) => b[1] - a[1])[0]
+      setMapa({ id: id1, vezes })
+    })
+    return () => {
+      vivo = false
+    }
+  }, [id])
+  return mapa
 }
 
 function Foto({ p }) {
@@ -372,6 +392,7 @@ function Conteudo() {
   const nivelDoJogador = useInfoNivel()
   const ranking = useRanking()
   const perfis = usePerfis()
+  const maisJogado = useMapaMaisJogado(conta?.id)
 
   const fazer = async (acao, id, valor) => {
     setOcupado(true)
@@ -415,7 +436,7 @@ function Conteudo() {
   const classificado = meuNivel.classificado
   const cheios = classificado ? Math.round(meuNivel.progresso * 10) : meuNivel.partidas
   const ordem = ordenarRanking(ranking?.jogadores || [], perfis)
-  const posicao = meuJogador ? ordem.indexOf(meuJogador) + 1 : 0
+  const posicao = meuJogador ? ordem.findIndex((j) => j.steamId === meuJogador.steamId) + 1 : 0 // pelo SteamID: o ranking pode ter sido lido duas vezes (objetos diferentes)
   const sozinho = dados.membros.length === 1 && !dados.convites.length
   const lider = dados.membros.find((m) => m.id === dados.lider)
 
@@ -448,28 +469,17 @@ function Conteudo() {
           </div>
         </div>
 
-        <a className="lb-temporada" href={linkPerfil(eu)} style={{ '--img': `url('${mapImage('mirage')}')` }}>
+        <a className="lb-temporada" href={linkPerfil(eu)} style={{ '--img': `url('${mapImage(maisJogado?.id || 'mirage')}')` }}>
           <span className="lb-temporada-txt">
             <b>{t('Sua temporada')}</b>
             {meuJogador ? (
               <>
-                <dl className="lb-estats">
-                  {[
-                    [t('Posição'), perfis[eu]?.ocultoRanking ? t('Oculto') : posicao > 0 ? `#${posicao}` : '—'],
-                    ['Rating', Number(meuJogador.rating || 0).toFixed(2)],
-                    ['K/D', Number(meuJogador.kd || 0).toFixed(2)],
-                    ['ADR', Number(meuJogador.adr || 0).toFixed(1)],
-                    ['KAST', `${Number(meuJogador.kast || 0).toFixed(1)}%`],
-                    ['HS%', `${Number(meuJogador.hsPct || 0).toFixed(1)}%`],
-                  ].map(([r, v]) => (
-                    <div key={r}>
-                      <dt>{r}</dt>
-                      <dd>{v}</dd>
-                    </div>
-                  ))}
-                </dl>
+                <span className="lb-temporada-linha">
+                  <em>{perfis[eu]?.ocultoRanking ? t('Oculto') : posicao > 0 ? `#${posicao}` : '—'}</em> {t('no ranking')} · {t('rating')} <em>{Number(meuJogador.rating || 0).toFixed(2)}</em>
+                </span>
                 <small>
-                  {t('{n} mapas jogados', { n: meuJogador.mapas })} · {meuJogador.vitorias}V {meuJogador.mapas - meuJogador.vitorias}D ({Number(meuJogador.winRate || 0).toFixed(0)}%) · {meuJogador.kills}/{meuJogador.mortes}/{meuJogador.assist}
+                  {t('{n} mapas jogados', { n: meuJogador.mapas })} · K/D {Number(meuJogador.kd || 0).toFixed(2)}
+                  {maisJogado && ` · ${t('mais jogado')}: ${nomeMapa(maisJogado.id)} (${maisJogado.vezes}×)`}
                 </small>
               </>
             ) : (
