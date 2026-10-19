@@ -26,6 +26,9 @@
 .pf-info-pos b { font-family: var(--font-display); font-size: 22px; color: var(--blue-2); line-height: 1; }
 .pf-info-pos small { font-size: 12px; font-weight: 600; color: var(--dim); }
 .pf-cargos { margin-top: 2px; }
+/* Cargos no cartão do perfil (centralizado): ocupam a largura toda e cada linha fica centralizada, com espaço entre os selos e entre as linhas
+   (antes, quando não cabiam numa linha, o grupo todo ficava alinhado à esquerda dentro do bloco) */
+.pf-cartao .pf-cargos { width: 100%; justify-content: center; gap: 6px 14px; }
 .pf-av {
   width: 132px; height: 132px; border-radius: 22px; object-fit: cover; flex: none; max-width: none;
   border: 1px solid var(--border-2); box-shadow: 0 0 0 4px rgba(26,115,232,.12), 0 24px 50px -24px rgba(26,115,232,.8);
@@ -823,5 +826,15 @@ html.sm-aberto { overflow: hidden; }
 /* Moldura/card só para assinantes (emblema do nível mínimo): no chip do bloqueio, no "Para usar" e no canto do item liberado */
 .sm-item .sm-req-emb { width: 16px; height: 16px; object-fit: contain; flex: none; vertical-align: middle; } /* mais forte que ".sm-item img" (72 px) */
 .sm-item .sm-req-linha .sm-req-emb, .sm-req-linha .sm-req-emb { width: 22px; height: 22px; }
-.sm-exige-sub { right: 32px; padding: 0; border: 0; background: none; }
-.sm-exige-sub img { width: 20px; height: 20px; object-fit: contain; display: block; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .7)); }
+/* Item que exige assinatura (liberado para quem tem): círculo com o emblema no canto de cima à esquerda, igual ao do nível; se o item
+   também tem nível, o círculo do nível passa para o lado */
+.sm-sub-canto { position: absolute; top: 4px; left: 4px; z-index: 2; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: rgb(var(--fundo) / .8); }
+.sm-item .sm-sub-canto img { width: 22px; height: 22px; max-width: none; object-fit: contain; display: block; border-radius: 0; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .6)); }
+.sm-item.com-sub .sm-nivel-canto { left: 36px; }
+
+/* Imagem do cargo (GIF/PNG escolhido no painel) dentro dos itens: do tamanho do ícone do cargo, nunca os 72 px de ".sm-item img" */
+.sm-item img.selo-img { width: 14px; height: 14px; max-width: none; object-fit: contain; border-radius: 0; }
+.sm-item .sm-exige img.selo-img { width: 12px; height: 12px; }
+.sm-item .sm-req img.selo-img { width: 14px; height: 14px; }
+/* Card animado de cargo: o selo "ANIMADO" desce um pouco para não ficar embaixo do marcador do cargo (canto de cima à direita) */
+.sm-item.de-cargo .sm-anim { top: 34px; right: 8px; }
