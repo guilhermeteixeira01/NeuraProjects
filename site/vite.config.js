@@ -64,7 +64,27 @@ function dadosNoDev() {
 //   public/assets/cards/mini/<tema>/<nome>.webp -> 'virtual:cards-mini' (miniaturas leves da grade) e cards/med/ -> 'virtual:cards-med'
 //                                   (versão de 400 px do card no perfil e no pódio): ambas por  node scripts/gerar-miniaturas.mjs
 // recursivo: percorre as subpastas e devolve "tema/arquivo" (ignorando as pastas em "ignorar").
-function imagensDaPasta(id, subpasta, { recursivo = false, ignorar = [] } = {}) {
+// Imagem animada de verdade? Olha o começo do arquivo: AVIF em sequência (marca "avis"), WebP animado (chunk "ANIM"), APNG (chunk
+// "acTL") ou GIF com mais de um quadro.
+function ehAnimada(arquivo) {
+  try {
+    const fd = fs.openSync(arquivo, 'r')
+    const buf = Buffer.alloc(4096)
+    const n = fs.readSync(fd, buf, 0, 4096, 0)
+    fs.closeSync(fd)
+    const topo = buf.subarray(0, n)
+    const txt = topo.toString('latin1')
+    if (/\.avif$/i.test(arquivo)) return txt.slice(0, 64).includes('avis')
+    if (/\.webp$/i.test(arquivo)) return txt.slice(0, 64).includes('ANIM') || txt.includes('ANIM')
+    if (/\.png$/i.test(arquivo)) return txt.includes('acTL')
+    if (/\.gif$/i.test(arquivo)) return fs.readFileSync(arquivo).toString('latin1').split('\x00\x21\xf9\x04').length > 2
+  } catch {
+    // ilegível: trata como imagem parada
+  }
+  return false
+}
+
+function imagensDaPasta(id, subpasta, { recursivo = false, ignorar = [], animadas = false } = {}) {
   const pasta = path.resolve(aqui, 'public/assets', subpasta)
   const imagem = /\.(png|webp|avif|svg|jpe?g|gif)$/i
   const ler = (dir = pasta, prefixo = '') => {
@@ -80,7 +100,13 @@ function imagensDaPasta(id, subpasta, { recursivo = false, ignorar = [] } = {}) 
   return {
     name: 'neura-' + subpasta.replace('/', '-'),
     resolveId: (origem) => (origem === id ? '\0' + id : null),
-    load: (origem) => (origem === '\0' + id ? `export default ${JSON.stringify(ler())}` : null),
+    // animadas: além da lista, exporta "animados" (as que são animadas de verdade)
+    load: (origem) => {
+      if (origem !== '\0' + id) return null
+      const lista = ler()
+      const extra = animadas ? `\nexport const animados = ${JSON.stringify(lista.filter((n) => ehAnimada(path.join(pasta, n))))}` : ''
+      return `export default ${JSON.stringify(lista)}${extra}`
+    },
     configureServer(server) {
       server.watcher.add(pasta)
       const recarregar = (arq) => {
@@ -96,7 +122,7 @@ function imagensDaPasta(id, subpasta, { recursivo = false, ignorar = [] } = {}) 
 }
 
 export default defineConfig({
-  plugins: [react(), dadosNoDev(), imagensDaPasta('virtual:selos-equipe', 'selos-equipe'), imagensDaPasta('virtual:cards-perfil', 'cards', { recursivo: true, ignorar: ['mini', 'med', 'parado'] }), imagensDaPasta('virtual:cards-mini', 'cards/mini', { recursivo: true }), imagensDaPasta('virtual:cards-med', 'cards/med', { recursivo: true })],
+  plugins: [react(), dadosNoDev(), imagensDaPasta('virtual:selos-equipe', 'selos-equipe'), imagensDaPasta('virtual:cards-perfil', 'cards', { recursivo: true, ignorar: ['mini', 'med', 'parado'], animadas: true }), imagensDaPasta('virtual:cards-mini', 'cards/mini', { recursivo: true }), imagensDaPasta('virtual:cards-med', 'cards/med', { recursivo: true })],
   build: {
     // Arquivos do React em /static/ (a pasta /assets/ é das imagens e dos dados do site)
     assetsDir: 'static',

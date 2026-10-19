@@ -25,6 +25,15 @@ const listar = (dir, ignorar = [], prefixo = '') =>
       })
     : []
 
+// imagem animada de verdade? (AVIF em sequência "avis", WebP "ANIM", APNG "acTL")
+const animada = (arquivo) => {
+  const txt = fs.readFileSync(arquivo).subarray(0, 4096).toString('latin1')
+  if (/\.avif$/i.test(arquivo)) return txt.slice(0, 64).includes('avis')
+  if (/\.webp$/i.test(arquivo)) return txt.includes('ANIM')
+  if (/\.png$/i.test(arquivo)) return txt.includes('acTL')
+  return false
+}
+
 // tarefas: de onde vem, para onde vai, largura e qualidade
 const tarefas = []
 const cards = path.join(assets, 'cards')
@@ -32,7 +41,8 @@ for (const nome of listar(cards, ['mini', 'med', 'parado'])) {
   if (/-anim\.[a-z0-9]+$/i.test(nome)) continue // card animado (-anim) não vira miniatura: ela seria uma imagem parada
   const base = nome.replace(/\.[^.]+$/, '')
   tarefas.push({ origem: path.join(cards, nome), destino: path.join(cards, 'mini', base + '.webp'), largura: 200, qualidade: 0.8 })
-  tarefas.push({ origem: path.join(cards, nome), destino: path.join(cards, 'med', base + '.webp'), largura: 400, qualidade: 0.85 })
+  // animado de verdade (AVIF em sequência etc.): o site usa o original, então a versão média (parada) não é gerada
+  if (!animada(path.join(cards, nome))) tarefas.push({ origem: path.join(cards, nome), destino: path.join(cards, 'med', base + '.webp'), largura: 400, qualidade: 0.85 })
 }
 const insignias = path.join(assets, 'insignia')
 for (const nome of listar(path.join(insignias, 'web'))) {
