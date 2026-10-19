@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useAmigos } from '../../comum/amigos.js'
 import { linkPerfil } from '../../comum/conta.js'
 import { ComMoldura, IconeEquipe, useCardDe } from '../../comum/Moldura.jsx'
 import { urlCard } from '../../comum/cardsPerfil.js'
@@ -20,6 +21,11 @@ const ERROS = {
   fase: 'O veto já mudou de etapa.',
   lider: 'Só o líder do time pode fazer isso.',
   login: 'Seu login venceu. Entre de novo com a Steam.',
+  amigo: 'Só dá para chamar amigos.',
+  offline: 'Só dá para chamar quem está online ou ausente.',
+  'em-partida': 'Esse jogador já está em uma partida.',
+  ocupado: 'Esse jogador está liderando um grupo com gente.',
+  'sem-vaga': 'Ninguém do seu time caiu (ou a vaga já foi preenchida).',
 }
 const VERBO = { ban: 'banir', pick: 'escolher' }
 const ROTULO = { ban: 'BAN', pick: 'PICK', side: 'LADO' }
@@ -96,7 +102,70 @@ function Equipe({ lado, time, nome, naVez }) {
 // O que o botão do fim do veto mostra, conforme a fase do servidor de CS2 (o plugin avisa o worker; ver src/amigos.js):
 // fila/entregue = esperando o servidor, carregada/jogando = pode entrar (steam://connect), encerrada/erro = acabou.
 // fechaEm/desvio: a sala não tem botão de cancelar nem de encerrar; quando a série acaba (ou dá erro) ela fecha sozinha e mostra o tempo que falta
-function Conectar({ servidor, fechaEm, desvio }) {
+// Janela: chamar um amigo para o lugar de quem caiu da partida
+function ChamarSubstituto({ vagas, aoFechar, aoChamar, ocupado }) {
+  const t = useT()
+  const { lista, status } = useAmigos()
+  const [busca, setBusca] = useState('')
+  useEffect(() => {
+    const tecla = (e) => e.key === 'Escape' && aoFechar()
+    document.addEventListener('keydown', tecla)
+    return () => document.removeEventListener('keydown', tecla)
+  }, [aoFechar])
+  const st = (a) => status[a.id]?.st || 'offline'
+  const ordem = { online: 0, ausente: 1 }
+  const amigos = useMemo(
+    () =>
+      (lista?.amigos || [])
+        .filter((a) => st(a) !== 'offline' && (a.nome || a.id).toLowerCase().includes(busca.trim().toLowerCase()))
+        .sort((x, y) => ordem[st(x)] - ordem[st(y)] || (x.nome || '').localeCompare(y.nome || '')),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [lista, status, busca],
+  )
+  return (
+    <div className="lb-fundo" onClick={aoFechar}>
+      <div className="lb-janela" role="dialog" aria-modal="true" aria-labelledby="sala-sub-titulo" onClick={(e) => e.stopPropagation()}>
+        <div className="lb-janela-cab">
+          <h2 id="sala-sub-titulo">{t('Chamar substituto')}</h2>
+          <button type="button" className="lb-fechar" onClick={aoFechar} aria-label={t('Fechar')}>
+            ×
+          </button>
+        </div>
+        <p className="sala-sub-vaga">{t('Vaga de {nome}', { nome: vagas.map((v) => v.nome || v.id).join(', ') })}</p>
+        <input type="search" className="lb-busca" placeholder={t('Pesquisar amigo')} value={busca} onChange={(e) => setBusca(e.target.value)} autoFocus />
+        <ul className="lb-amigos">
+          {amigos.map((a) => (
+            <li key={a.id}>
+              <span className="lb-amigo-av">
+                <ComMoldura steamId={a.id} soEmblema>
+                  <FotoJogador p={a} />
+                </ComMoldura>
+                <i className={`lb-bolinha st-${st(a)}`} aria-hidden="true" />
+              </span>
+              <span className="lb-amigo-nome">
+                <b>{a.nome || a.id}</b>
+                <small>{st(a) === 'online' ? t('Online') : t('Ausente')}</small>
+              </span>
+              <button type="button" className="lb-btn lb-btn-p" disabled={ocupado} onClick={() => aoChamar(a.id)}>
+                {t('Chamar')}
+              </button>
+            </li>
+          ))}
+          {lista && !amigos.length && <li className="lb-vazio-lista">{t('Nenhum amigo online para chamar.')}</li>}
+          {!lista && <li className="lb-vazio-lista">{t('Carregando…')}</li>}
+        </ul>
+      </div>
+    </div>
+  )
+}
+
+function FotoJogador({ p }) {
+  const src = useAvatar(p.id, p.avatar)
+  const [erro, setErro] = useState('')
+  return src && erro !== src ? <img src={src} alt="" onError={() => setErro(src)} /> : <span className="lb-ini">{(p.nome || '?').slice(0, 2).toUpperCase()}</span>
+}
+
+function Conectar({ servidor, fechaEm, desvio, aoChamarSubstituto }) {
   const t = useT()
   const [copiado, setCopiado] = useState(false)
   const estado = servidor?.estado || 'fila'
@@ -146,6 +215,7 @@ function Conectar({ servidor, fechaEm, desvio }) {
     )
 
   // carregada ou jogando
+  const vagas = servidor?.vagas || []
   return (
     <div className="sala-servidor">
       {conectar ? (
@@ -158,6 +228,14 @@ function Conectar({ servidor, fechaEm, desvio }) {
         </p>
       )}
       {estado === 'jogando' && servidor?.placar && <small>{t('Série em andamento · {p}', { p: servidor.placar })}</small>}
+      {vagas.length > 0 && (
+        <span className="sala-vaga">
+          <small>{t('Caiu do seu time: {nome}', { nome: vagas.map((v) => v.nome || v.id).join(', ') })}</small>
+          <button type="button" className="lb-btn lb-btn-g" onClick={aoChamarSubstituto}>
+            + {t('Chamar substituto')}
+          </button>
+        </span>
+      )}
       {conectar && (
         <span className="sala-comando">
           <code>{comando}</code>
@@ -176,6 +254,7 @@ export default function SalaVeto({ dados }) {
   const { fase, times, pool, historico, meuTime } = partida
   const [aviso, setAviso] = useState('')
   const [ocupado, setOcupado] = useState(false)
+  const [chamando, setChamando] = useState(false)
   useRelogio(fase === 'veto')
 
   const passos = buildSteps(partida.formato, partida.primeiro)
@@ -209,11 +288,12 @@ export default function SalaVeto({ dados }) {
     if (fase === 'veto' && segundos > 0 && segundos <= BIPE_ATE) playSound('timer')
   }, [segundos, fase])
 
-  const agir = async (acao, valor) => {
+  const agir = async (acao, valor, alvo) => {
     setOcupado(true)
     setAviso('')
     try {
-      await acaoLobby(acao, undefined, valor)
+      await acaoLobby(acao, alvo, valor)
+      if (acao === 'substituir') setChamando(false)
     } catch (e) {
       setAviso(ERROS[e.message] || 'Não deu certo. Tente de novo.')
     } finally {
@@ -249,7 +329,7 @@ export default function SalaVeto({ dados }) {
                   </li>
                 ))}
               </ul>
-              <Conectar servidor={partida.servidor} fechaEm={partida.prazo} desvio={partida.desvio} />
+              <Conectar servidor={partida.servidor} fechaEm={partida.prazo} desvio={partida.desvio} aoChamarSubstituto={() => setChamando(true)} />
               {aviso && (
                 <p className="lb-erro" role="alert">
                   {t(aviso)}
@@ -350,6 +430,8 @@ export default function SalaVeto({ dados }) {
 
         <Equipe lado="B" time={times.B} nome={nome('B')} naVez={!pronto && passo.team === 'B'} />
       </div>
+
+      {chamando && <ChamarSubstituto vagas={partida.servidor?.vagas || []} ocupado={ocupado} aoFechar={() => setChamando(false)} aoChamar={(id) => agir('substituir', undefined, id)} />}
     </section>
   )
 }

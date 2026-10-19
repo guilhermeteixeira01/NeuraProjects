@@ -75,7 +75,7 @@ export default {
     }
 
     // Plugin do servidor de CS2 (BaseComp): pega a próxima partida pronta e avisa em que fase ela está (token próprio, sem login Steam)
-    if ((rota === '/servidor/proxima' || rota === '/servidor/estado' || (rota === '/teste/limpar' && env.MODO_TESTE === '1')) && req.method === 'POST') return rotaServidor(req, env, rota)
+    if ((rota === '/servidor/proxima' || rota === '/servidor/estado' || rota === '/servidor/elenco' || (rota === '/teste/limpar' && env.MODO_TESTE === '1')) && req.method === 'POST') return rotaServidor(req, env, rota)
 
     // Daqui para baixo: só o próprio site, com login
     const cors = corsDe(req, env, site)

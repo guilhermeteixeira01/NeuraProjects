@@ -23,9 +23,9 @@ const SEM_SINAL_MS = 150 * 1000 // o site manda "ping" a cada 20 s; sem nenhum s
 const LOBBY_OFFLINE_MS = 10 * 60 * 1000 // membro offline há mais que isso sai sozinho
 const novoLobby = () => ({ membros: [], convites: [], publico: false, busca: null })
 const lobbyVazio = (lb) => !lb.membros.length && !lb.convites.length && !lb.publico
-const ACOES_LOBBY = ['convidar', 'remover', 'entrar', 'recusar', 'sair', 'publico', 'buscar', 'cancelar-busca', 'aceitar', 'recusar-partida', 'veto']
+const ACOES_LOBBY = ['convidar', 'remover', 'entrar', 'recusar', 'sair', 'publico', 'buscar', 'cancelar-busca', 'aceitar', 'recusar-partida', 'veto', 'substituir']
 // Ações que continuam valendo com a partida montada (as outras mexem no grupo, que fica travado)
-const ACOES_PARTIDA = ['aceitar', 'recusar-partida', 'veto'] // depois do veto não há como cancelar nem encerrar a sala: ela se resolve sozinha (prazos T)
+const ACOES_PARTIDA = ['aceitar', 'recusar-partida', 'veto', 'substituir'] // depois do veto não há como cancelar nem encerrar a sala: ela se resolve sozinha (prazos T)
 
 // ── Fila e partida ──
 // O líder de um lobby com 5 busca partida (lb.busca = quando começou). Dois lobbies buscando viram uma partida:
@@ -62,6 +62,12 @@ async function temSubAtiva(env, id) {
 }
 const idsDe = (p) => [...p.times.A.membros, ...p.times.B.membros]
 const partidaDe = (partidas, id) => Object.values(partidas).find((p) => idsDe(p).includes(id)) || null
+// Quem do time já esteve no servidor e agora não está (caiu): as vagas que um substituto pode ocupar
+const vagasDe = (p, time) => {
+  const sv = p.servidor
+  if (!sv || !['carregada', 'jogando'].includes(sv.estado)) return []
+  return time.membros.filter((m) => (sv.vistos || []).includes(m) && !(sv.presentes || []).includes(m))
+}
 const passoDe = (p) => buildSteps(p.formato, p.primeiro)[p.historico.length] || null
 const sorteio = (lista) => lista[Math.floor(Math.random() * lista.length)]
 
@@ -483,6 +489,24 @@ export class Presenca {
         if (minha.fase !== 'aceitar') return json({ erro: 'fase' }, 409)
         cancelarPartida(todos, partidas, minha)
         avisar(idsDe(minha))
+      } else if (acao === 'substituir') {
+        // Alguém do time caiu no meio da partida: um membro chama um amigo (online/ausente) para o lugar dele
+        const sv = minha.servidor
+        if (minha.fase !== 'pronto' || !['carregada', 'jogando'].includes(sv?.estado)) return json({ erro: 'fase' }, 409)
+        if (!alvoOk || !amigosEu.includes(id)) return json({ erro: 'amigo' }, 400)
+        if (this.statusDe(id) === 'offline') return json({ erro: 'offline' }, 409)
+        if (partidaDe(partidas, id)) return json({ erro: 'em-partida' }, 409)
+        if (todos[id]?.membros.length) return json({ erro: 'ocupado' }, 400) // líder de grupo com gente: ele precisa desfazer o grupo antes
+        const time = minha.times.A.membros.includes(eu) ? minha.times.A : minha.times.B
+        const vagas = vagasDe(minha, time)
+        const saiu = vagas.includes(valor?.saiu) ? valor.saiu : vagas[0]
+        if (!saiu) return json({ erro: 'sem-vaga' }, 409)
+        sairDe(id) // sai do grupo em que estava
+        time.membros = time.membros.map((m) => (m === saiu ? id : m))
+        if (time.lider === saiu) time.lider = id
+        sv.vistos = (sv.vistos || []).filter((m) => m !== saiu)
+        sv.presentes = (sv.presentes || []).filter((m) => m !== saiu)
+        avisar(idsDe(minha), saiu, id)
       } else if (acao === 'veto') {
         const erro = agirVeto(minha, eu, valor)
         if (erro) return json({ erro }, 409)
@@ -531,6 +555,7 @@ export class Presenca {
           placar: minhaPartida.servidor.placar || '',
           conectar: this.env.SERVIDOR_CONECTAR || '',
           senha: ['carregada', 'jogando'].includes(minhaPartida.servidor.estado) ? this.env.SERVIDOR_SENHA || '' : '',
+          vagas: vagasDe(minhaPartida, minhaPartida.times.A.membros.includes(eu) ? minhaPartida.times.A : minhaPartida.times.B).map(pessoa),
         },
         times: Object.fromEntries(['A', 'B'].map((t) => [t, { lider: minhaPartida.times[t].lider, membros: minhaPartida.times[t].membros.map(pessoa) }])),
       },
@@ -588,6 +613,14 @@ export class Presenca {
         idsDe(p).forEach((i) => avisados.add(i))
       }
     }
+    // O plugin só pergunta quando está sem série. Partida que ainda consta carregada/jogando é série que acabou sem avisar (cancelada, plugin recarregado)
+    for (const x of Object.values(partidas)) {
+      if ((x.servidor?.estado === 'carregada' || x.servidor?.estado === 'jogando') && agora - (x.servidor.entregueEm || 0) > 30000) {
+        x.servidor = { ...x.servidor, estado: 'encerrada', detalhe: x.servidor.detalhe || 'cancelada' }
+        prazoServidor(x, agora)
+        idsDe(x).forEach((i) => avisados.add(i))
+      }
+    }
     const p = Object.values(partidas)
       .filter((x) => x.fase === 'pronto' && x.servidor?.estado === 'fila')
       .sort((a, b) => a.servidor.desde - b.servidor.desde)[0]
@@ -624,8 +657,30 @@ export class Presenca {
     return json({ ok: true })
   }
 
+  // POST /servidor/elenco { partidaId, presentes }: o plugin diz quem do elenco está no servidor e recebe o elenco atual
+  // (muda quando um membro chama um substituto). Sem partida (já fechada): { erro }.
+  async servidorElenco(req) {
+    const { partidaId, presentes } = (await req.json().catch(() => null)) || {}
+    const partidas = (await this.state.storage.get('partidas')) || {}
+    const p = partidas[String(partidaId)]
+    if (!p?.servidor) return json({ erro: 'sem-partida' }, 404)
+    const elenco = Object.fromEntries(['A', 'B'].flatMap((t) => p.times[t].membros.map((id) => [id, t])))
+    if (['carregada', 'jogando'].includes(p.servidor.estado) && Array.isArray(presentes)) {
+      const agora = presentes.map(String).filter((id) => elenco[id])
+      const vistos = [...new Set([...(p.servidor.vistos || []), ...agora])]
+      const mudou = JSON.stringify([...agora].sort()) !== JSON.stringify([...(p.servidor.presentes || [])].sort()) || vistos.length !== (p.servidor.vistos || []).length
+      if (mudou) {
+        p.servidor = { ...p.servidor, presentes: agora, vistos }
+        await this.state.storage.put('partidas', partidas)
+        for (const i of idsDe(p)) this.enviar(i, { tipo: 'lobby' })
+      }
+    }
+    return json({ elenco })
+  }
+
   async fetch(req) {
     const url = new URL(req.url)
+    if (url.pathname === '/servidor/elenco') return this.exclusivo(() => this.servidorElenco(req))
     if (url.pathname === '/servidor/proxima') return this.exclusivo(() => this.servidorProxima())
     if (url.pathname === '/servidor/estado') return this.exclusivo(() => this.servidorEstado(req))
     if (url.pathname === '/lobby') return this.exclusivo(() => this.lobby(req))
