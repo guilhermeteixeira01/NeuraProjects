@@ -117,7 +117,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
       <button
         key={m.id}
         type="button"
-        className={`sm-item${escolha.moldura === m.id ? ' sel' : ''}${presa ? ' presa' : ''}${cargo ? ' de-cargo' : ''}`}
+        className={`sm-item${escolha.moldura === m.id ? ' sel' : ''}${presa ? ' presa' : ''}${cargo ? ' de-cargo' : ''}${subMin ? ' com-sub' : ''}`}
         style={cargo ? { '--cg': cargo.cor } : undefined}
         onClick={() => (presa ? setAviso((a) => (a === m.id ? null : m.id)) : escolher('moldura', m.id))}
         aria-pressed={escolha.moldura === m.id}
@@ -152,7 +152,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
           </span>
         )}
         {!presa && subMin && aviso !== m.id && (
-          <span className="sm-exige sm-exige-sub" title={tituloNivel(subMin)}>
+          <span className="sm-sub-canto" title={tituloNivel(subMin)}>
             <img src={urlEmblema(subMin.id, true)} alt="" />
           </span>
         )}
@@ -215,7 +215,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
       <button
         key={c}
         type="button"
-        className={`sm-item sm-item-card${escolha.card === c ? ' sel' : ''}${presa ? ' presa' : ''}${cargo ? ' de-cargo' : ''}`}
+        className={`sm-item sm-item-card${escolha.card === c ? ' sel' : ''}${presa ? ' presa' : ''}${cargo ? ' de-cargo' : ''}${subMin ? ' com-sub' : ''}`}
         style={cargo ? { '--cg': cargo.cor } : undefined}
         onClick={() => (presa ? setAviso((a) => (a === chave ? null : chave)) : escolher('card', c))}
         aria-pressed={escolha.card === c}
@@ -249,7 +249,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
           </span>
         )}
         {!presa && subMin && aviso !== chave && (
-          <span className="sm-exige sm-exige-sub" title={tituloNivel(subMin)}>
+          <span className="sm-sub-canto" title={tituloNivel(subMin)}>
             <img src={urlEmblema(subMin.id, true)} alt="" />
           </span>
         )}
