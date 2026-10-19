@@ -1,25 +1,5 @@
 [
   {
-    "id": "2026-10-19_22-31_time_senna-x-time_Te1xe1ra",
-    "organizacao": "neura-project",
-    "categoria": "md3",
-    "formato": "MD3",
-    "timeA": "time_senna",
-    "timeB": "time_Te1xe1ra",
-    "logoA": null,
-    "logoB": null,
-    "mapas": [
-      "de_mirage",
-      "de_dust2",
-      "de_cache"
-    ],
-    "status": "cancelada",
-    "mapaAtual": 1,
-    "criada": "2026-10-19 22:31",
-    "atualizada": "2026-10-19 23:30",
-    "canceladaEm": "2026-10-19T23:30:06+00:00"
-  },
-  {
     "id": "2026-10-16_19-56_Digital-Gamers-x-Neura-Project",
     "organizacao": "dga",
     "categoria": "md3",
