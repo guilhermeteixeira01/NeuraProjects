@@ -49,6 +49,7 @@ export default {
   "Ver Pick & Ban": "See Pick & Ban",
   "Ligado: quem tem este cargo vê a página Pick & Ban (ela fica escondida de todos os outros; dono e admins sempre veem).": "On: people with this role can see the Pick & Ban page (hidden from everyone else; owner and admins always see it).",
   "Posição": "Rank",
+  "mais jogado": "most played",
   "Oculto": "Hidden",
   "Notificações": "Notifications",
   "CONVITES PARA O LOBBY": "LOBBY INVITES",

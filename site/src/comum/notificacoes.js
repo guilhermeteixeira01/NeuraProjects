@@ -39,7 +39,8 @@ export function useNotificacoes() {
   const [lista, setLista] = useState([])
   useEffect(() => {
     if (!id) return setLista([])
-    const atualizar = () => setLista(ler(id))
+    // tira repetidas (cargo igual) que já tinham ficado guardadas
+    const atualizar = () => setLista(ler(id).filter((n, i, l) => !n.cargo || l.findIndex((x) => x.cargo === n.cargo) === i))
     atualizar()
     window.addEventListener(EVENTO, atualizar)
     window.addEventListener('storage', atualizar)

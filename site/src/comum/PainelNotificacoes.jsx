@@ -9,7 +9,7 @@ import { linkPerfil } from './conta.js'
 import { acaoLobby, useLobby } from './lobby.js'
 import { useNotificacoes, registrarNotificacao } from './notificacoes.js'
 import { SeloNivel } from './Nivel.jsx'
-import { SeloCargo, useCargosIdsDe, useConfigSite, usePerfisFrescos } from './Moldura.jsx'
+import { SeloCargo, useConfigSite, usePerfis, usePerfisFrescos } from './Moldura.jsx'
 import { miniaturaInsignia } from './insignias.js'
 import { useT } from './i18n.js'
 
@@ -59,7 +59,8 @@ function ComPessoa({ p, texto, ocupado, aceitar, recusar }) {
 // Cargo novo (dado pelo admin ou automático do top do ranking): compara com os últimos cargos vistos neste navegador.
 // Na primeira vez só guarda, sem avisar.
 function useAvisoCargos(id) {
-  const ids = useCargosIdsDe(id)
+  // só os cargos dados pelo admin (os automáticos do top mudam com o ranking e repetiam o aviso a cada carregada)
+  const ids = usePerfis()[id]?.cargos || []
   const { cargos } = useConfigSite()
   const frescos = usePerfisFrescos()
   const chave = ids.join(',')
