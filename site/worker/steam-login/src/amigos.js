@@ -66,7 +66,9 @@ const partidaDe = (partidas, id) => Object.values(partidas).find((p) => idsDe(p)
 const vagasDe = (p, time) => {
   const sv = p.servidor
   if (!sv || !['carregada', 'jogando'].includes(sv.estado)) return []
-  return time.membros.filter((m) => (sv.vistos || []).includes(m) && !(sv.presentes || []).includes(m))
+  if (!Array.isArray(sv.presentes)) return [] // o plugin ainda não contou quem está no servidor
+  // Com a partida valendo, quem não está no servidor caiu (mesmo que o plugin tenha sido recarregado e nunca o tenha visto); antes disso só quem já tinha entrado
+  return time.membros.filter((m) => !sv.presentes.includes(m) && (sv.estado === 'jogando' || (sv.vistos || []).includes(m)))
 }
 const passoDe = (p) => buildSteps(p.formato, p.primeiro)[p.historico.length] || null
 const sorteio = (lista) => lista[Math.floor(Math.random() * lista.length)]
@@ -668,7 +670,7 @@ export class Presenca {
     if (['carregada', 'jogando'].includes(p.servidor.estado) && Array.isArray(presentes)) {
       const agora = presentes.map(String).filter((id) => elenco[id])
       const vistos = [...new Set([...(p.servidor.vistos || []), ...agora])]
-      const mudou = JSON.stringify([...agora].sort()) !== JSON.stringify([...(p.servidor.presentes || [])].sort()) || vistos.length !== (p.servidor.vistos || []).length
+      const mudou = !Array.isArray(p.servidor.presentes) || JSON.stringify([...agora].sort()) !== JSON.stringify([...(p.servidor.presentes || [])].sort()) || vistos.length !== (p.servidor.vistos || []).length
       if (mudou) {
         p.servidor = { ...p.servidor, presentes: agora, vistos }
         await this.state.storage.put('partidas', partidas)
