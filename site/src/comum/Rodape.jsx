@@ -10,7 +10,7 @@ import { escolherIdioma } from './preferencias.js'
 // Cores próprias (iguais em qualquer tema), como um bloco da marca. Tema e desempenho ficam no ⚙ do topo.
 
 const REDES = [
-  [CONFIG.comunidadeNome, CONFIG.comunidade, 'kivo'],
+  [CONFIG.comunidadeNome, CONFIG.comunidade, 'discord'],
   ['YouTube', CONFIG.youtube, 'youtube'],
   ['Instagram', CONFIG.instagram, 'instagram'],
   ['Twitch', CONFIG.twitch, 'twitch'],

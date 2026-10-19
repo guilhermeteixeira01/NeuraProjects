@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { CONFIG, MENU } from './config.js'
 import { entrar, linkPerfil, loginAtivo, sair, useConta } from './conta.js'
-import { ICONES_MENU, IconeKivo, IconeSteam } from './Icones.jsx'
+import { ICONES_MENU, IconeDiscord, IconeSteam } from './Icones.jsx'
 import { useAcessoPick, useAdmin } from './Moldura.jsx'
 import Configuracoes from './Configuracoes.jsx'
 import { useT } from './i18n.js'
@@ -129,8 +129,8 @@ function PainelMais({ itens, admin, fechar }) {
       {itens}
       {admin}
       {CONFIG.comunidade && (
-        <a className="nx-link nx-link-kivo" role="menuitem" href={CONFIG.comunidade} target="_blank" rel="noopener">
-          <IconeKivo /> <span className="nx-dica">{t('Comunidade na {nome}', { nome: CONFIG.comunidadeNome })}</span>
+        <a className="nx-link nx-link-discord" role="menuitem" href={CONFIG.comunidade} target="_blank" rel="noopener">
+          <IconeDiscord /> <span className="nx-dica">{t('Comunidade na {nome}', { nome: CONFIG.comunidadeNome })}</span>
         </a>
       )}
     </div>
@@ -309,7 +309,7 @@ export default function Nav({ pagina }) {
           <div className="nx-acoes">
             {CONFIG.comunidade && (
               <a className="nx-btn nx-btn-ghost nx-comunidade" href={CONFIG.comunidade} target="_blank" rel="noopener" aria-label={t('Comunidade na {nome}', { nome: CONFIG.comunidadeNome })}>
-                <IconeKivo />
+                <IconeDiscord />
                 <span className="nx-dica">{t('Comunidade')}</span>
               </a>
             )}
@@ -332,7 +332,7 @@ export default function Nav({ pagina }) {
         <Configuracoes />
         {CONFIG.comunidade && (
           <a className="nx-btn nx-btn-ghost nx-comunidade" href={CONFIG.comunidade} target="_blank" rel="noopener" aria-label={t('Comunidade na {nome}', { nome: CONFIG.comunidadeNome })}>
-            <IconeKivo />
+            <IconeDiscord />
             <span className="nx-dica">{t('Comunidade')}</span>
           </a>
         )}

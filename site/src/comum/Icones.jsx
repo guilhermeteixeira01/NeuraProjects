@@ -1,8 +1,8 @@
 // Ícones usados em mais de uma página (traço na cor do texto)
 
-// Emblema da Kivo (comunidade), cópia local de kivogamer.com/brand
-export function IconeKivo({ tamanho = 18 }) {
-  return <img className="ic-kivo" src="/assets/logos/kivo.png" alt="" width={tamanho} height={tamanho} aria-hidden="true" />
+// Emblema do Discord (comunidade)
+export function IconeDiscord({ tamanho = 18 }) {
+  return <img className="ic-discord" src="/assets/logos/discord.png" alt="" width={tamanho} height={tamanho} aria-hidden="true" />
 }
 
 export function IconeMochila() {
