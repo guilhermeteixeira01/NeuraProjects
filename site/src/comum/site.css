@@ -968,6 +968,12 @@ img {
   font-weight: 700;
   color: var(--dim);
 }
+/* só o logo: um pouco maior, já que não tem o nome ao lado */
+.time-escolhido.so-logo img,
+.time-escolhido.so-logo i {
+  width: 24px;
+  height: 24px;
+}
 .time-escolhido img,
 .time-escolhido i {
   width: 18px;

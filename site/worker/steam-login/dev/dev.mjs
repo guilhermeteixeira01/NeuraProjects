@@ -65,8 +65,10 @@ const comandos = {
     // Todo mundo é amigo de todo mundo; nomes para aparecerem no lugar do SteamID
     const amigos = Object.fromEntries(gente.map(([id]) => [id, { amigos: gente.map(([x]) => x).filter((x) => x !== id), recebidos: [], enviados: [] }]))
     const usuarios = Object.fromEntries(gente.map(([id, nome]) => [id, { nome, avatar: '' }]))
+    // Os 2 jogadores reais de teste são assinantes sem data (infinita): só quem assina busca MD3. Os bots não precisam.
+    const perfis = Object.fromEntries([J1, J2].map(([id]) => [id, { sub: { inicio: Date.now(), meses: 0, expira: null } }]))
     const tmp = fs.mkdtempSync(path.join(process.env.TEMP || '.', 'np-dev-'))
-    for (const [chave, dados] of [['amigos', amigos], ['usuarios', usuarios]]) {
+    for (const [chave, dados] of [['amigos', amigos], ['usuarios', usuarios], ['perfis', perfis]]) {
       const arq = path.join(tmp, `${chave}.json`)
       fs.writeFileSync(arq, JSON.stringify(dados))
       execFileSync('npx', ['wrangler', 'kv', 'key', 'put', chave, '--path', arq, '--binding', 'MOLDURAS', '--local'], { cwd: worker, stdio: 'inherit', shell: true })
