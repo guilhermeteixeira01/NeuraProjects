@@ -12,6 +12,8 @@ import { IconeCargo } from './cargos.jsx'
 import { useOrdemRanking } from './ranking.js'
 import { urlSelo } from './selosEquipe.js'
 import { idCard } from './cardsPerfil.js'
+import EmblemaSub from './EmblemaSub.jsx'
+import { SUB_MESES_PADRAO, nivelDaSub } from './assinatura.js'
 
 const EVENTO = 'np-perfis'
 const CACHE = 'np_perfis' // última lista lida (aparece já na troca de página, sem esperar a rede)
@@ -148,7 +150,7 @@ export const SELOS_PADRAO = {
   dono: { nome: 'Dono', cor: '#ff4655', icone: 'coroa', imagem: 'verified.png', mostrar: true, pick: false },
   admin: { nome: 'Admin', cor: '#3498db', icone: 'escudo', imagem: 'verified.png', mostrar: true, pick: false },
 }
-const CONFIG_PADRAO = { molduraPorNivel: false, nivelMoldura: {}, cardPorNivel: false, nivelCard: {}, cardCargo: {}, cargos: [], molduraCargo: {}, selos: SELOS_PADRAO, equipe: { dono: null, admins: [] } }
+const CONFIG_PADRAO = { molduraPorNivel: false, nivelMoldura: {}, cardPorNivel: false, nivelCard: {}, cardCargo: {}, cargos: [], molduraCargo: {}, selos: SELOS_PADRAO, equipe: { dono: null, admins: [] }, subMeses: SUB_MESES_PADRAO }
 let config = null
 let textoConfig = null
 let buscandoConfig = null
@@ -170,6 +172,7 @@ function buscarConfig() {
         molduraCargo: d?.molduraCargo || {},
         selos: { dono: { ...SELOS_PADRAO.dono, ...d?.selos?.dono }, admin: { ...SELOS_PADRAO.admin, ...d?.selos?.admin } },
         equipe: { dono: d?.equipe?.dono || null, admins: Array.isArray(d?.equipe?.admins) ? d.equipe.admins : [] },
+        subMeses: { ...SUB_MESES_PADRAO, ...d?.subMeses },
       }
       window.dispatchEvent(new Event(EVENTO_CONFIG))
     })
@@ -260,6 +263,36 @@ export function useCargosDe(steamId) {
 // Imagem do selo de dono/admin: escolhida no painel (aba Cargos), arquivo em public/assets/selos-equipe/ (selosEquipe.js).
 // Se a imagem não carregar, volta o ícone desenhado do cargo.
 
+// Imagem de selo (arquivo de public/assets/selos-equipe/). GIF animado: com "Melhorar desempenho" ou movimento reduzido
+// mostra só o primeiro quadro (como os cards animados), desenhado num canvas.
+function ImgSelo({ nome, className, onError, tamanho }) {
+  const desempenho = useDesempenho()
+  const semAnimacao = useSemAnimacao()
+  const parar = (desempenho || semAnimacao) && /\.gif$/i.test(String(nome))
+  const [parado, setParado] = useState(null)
+  useEffect(() => {
+    if (!parar) return setParado(null)
+    let vivo = true
+    const img = new Image()
+    img.onload = () => {
+      try {
+        const c = document.createElement('canvas')
+        c.width = img.naturalWidth
+        c.height = img.naturalHeight
+        c.getContext('2d').drawImage(img, 0, 0)
+        if (vivo) setParado(c.toDataURL('image/png'))
+      } catch {
+        // sem canvas: segue animado
+      }
+    }
+    img.src = urlSelo(nome)
+    return () => {
+      vivo = false
+    }
+  }, [parar, nome])
+  return <img className={className} src={parar && parado ? parado : urlSelo(nome)} alt="" width={tamanho} height={tamanho} draggable={false} onError={onError} />
+}
+
 // Dono e admin: só o ícone, colado na frente do nome do jogador. Nada se não for da equipe.
 // Use dentro do nome: <IconeEquipe steamId={id} />{nome}
 // Passando o mouse (ou focando/tocando) abre a mesma caixinha das insígnias, com a imagem, o nome e o que ele significa.
@@ -279,7 +312,7 @@ export function IconeEquipe({ steamId }) {
     setDica({ x, ax: meio - x, y: acima ? r.top - 10 : r.bottom + 10, acima })
   }
   const descricao = selo.id === '_dono' ? t('Dono da Neura Project.') : t('Faz parte da equipe de administração da Neura Project.')
-  const imagem = semImagem ? <IconeCargo icone={selo.icone} tamanho={60} /> : <img src={urlSelo(selo.imagem)} alt="" draggable={false} />
+  const imagem = semImagem ? <IconeCargo icone={selo.icone} tamanho={60} /> : <ImgSelo nome={selo.imagem} />
   return (
     <span
       className="icone-equipe"
@@ -292,7 +325,7 @@ export function IconeEquipe({ steamId }) {
       onFocus={abrir}
       onBlur={() => setDica(null)}
     >
-      {semImagem ? <IconeCargo icone={selo.icone} tamanho={16} /> : <img src={urlSelo(selo.imagem)} alt="" draggable={false} onError={() => setSemImagem(true)} />}
+      {semImagem ? <IconeCargo icone={selo.icone} tamanho={16} /> : <ImgSelo nome={selo.imagem} onError={() => setSemImagem(true)} />}
       {dica &&
         createPortal(
           <span className={`ins-dica ins-dica-fixa${dica.acima ? ' acima' : ''}`} role="tooltip" style={{ left: dica.x, top: dica.y, '--ax': `${dica.ax}px`, '--cg': selo.cor }}>
@@ -313,7 +346,7 @@ export function SeloEquipe({ selo, classe = '' }) {
   const [semImagem, setSemImagem] = useState(false)
   return (
     <span className={`selo-cargo ${classe}`} style={{ '--cg': selo.cor }} title={selo.nome}>
-      {semImagem ? <IconeCargo icone={selo.icone} /> : <img className="selo-img" src={urlSelo(selo.imagem)} alt="" draggable={false} onError={() => setSemImagem(true)} />}
+      {semImagem ? <IconeCargo icone={selo.icone} /> : <ImgSelo className="selo-img" nome={selo.imagem} onError={() => setSemImagem(true)} />}
       {selo.nome}
     </span>
   )
@@ -324,7 +357,7 @@ export function SeloEquipe({ selo, classe = '' }) {
 export function IconeDoCargo({ cargo, tamanho = 12 }) {
   const [semImagem, setSemImagem] = useState(false)
   if (!cargo.imagem || semImagem) return <IconeCargo icone={cargo.icone} tamanho={tamanho} />
-  return <img className="selo-img" src={urlSelo(cargo.imagem)} alt="" width={tamanho} height={tamanho} draggable={false} onError={() => setSemImagem(true)} />
+  return <ImgSelo className="selo-img" nome={cargo.imagem} tamanho={tamanho} onError={() => setSemImagem(true)} />
 }
 
 // Selo de cargo: imagem (ou ícone) + nome, na cor do cargo
@@ -520,21 +553,43 @@ export function CamadaMoldura({ id, parada = false }) {
 // cheio: o avatar ocupa 100% do pai (ex.: avatar do pódio do ranking, que tem tamanho fixo).
 // Moldura exclusiva de um cargo que o jogador perdeu (ex.: saiu do top 3) some na hora e o worker tira do perfil.
 // Vale também para moldura posta por admin: exclusiva só aparece para quem tem o cargo (o worker ainda tira do perfil).
-export function ComMoldura({ steamId, children, cheio = false }) {
+// emblema: põe também o emblema da assinatura Premium no canto superior direito (só nos avatares grandes: perfil, lobby, pódio...).
+export function ComMoldura({ steamId, children, cheio = false, emblema = false }) {
   const perfil = usePerfis()[steamId] || {}
   const config = useConfigSite()
   const cargos = useCargosIdsDe(steamId)
+  const nivelSub = useNivelSub(steamId)
+  const desempenho = useDesempenho()
+  const semMovimento = useSemAnimacao()
+  const semAnimacao = desempenho || semMovimento // Diamond/Elite/Legend viram a imagem parada (os dois hooks sempre rodam)
   const id = perfil.moldura
   const exige = config.molduraCargo?.[id]
   // Dono e admins usam qualquer moldura (exclusiva de cargo também)
   const daEquipe = steamId === config.equipe?.dono || !!config.equipe?.admins?.includes(steamId)
-  if (!molduraPorId(id) || (exige && !cargos.includes(exige) && !(daEquipe && exige !== '_dono'))) return children
+  const selo = emblema && nivelSub ? <EmblemaSub nivel={nivelSub} parado={semAnimacao} /> : null
+  if (!molduraPorId(id) || (exige && !cargos.includes(exige) && !(daEquipe && exige !== '_dono')))
+    return selo ? (
+      <span className={`emblema-box${cheio ? ' cheio' : ''}`}>
+        {children}
+        {selo}
+      </span>
+    ) : (
+      children
+    )
   return (
     <span className={`moldura-box${cheio ? ' cheio' : ''}${classeForma(id)}`}>
       {children}
       <CamadaMoldura id={id} />
+      {selo}
     </span>
   )
+}
+
+// Estado da assinatura Premium do jogador (ver assinatura.js): null sem assinatura ativa, ou { id, nome, meses, ... } do nível dele
+export function useNivelSub(steamId) {
+  const sub = usePerfis()[steamId]?.sub
+  const { subMeses } = useConfigSite()
+  return nivelDaSub(sub, subMeses)
 }
 
 // Card (banner) do jogador, como mostram o perfil e o ranking: o id do card escolhido, ou null se não tem. Card exclusivo de um

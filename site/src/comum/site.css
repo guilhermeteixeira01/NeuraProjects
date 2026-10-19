@@ -1187,10 +1187,15 @@ html[data-desempenho] .selo-elite .elite-faisca {
   vertical-align: middle;
   color: var(--cg);
 }
+/* Imagem do selo (PNG, GIF animado...): um pouco maior que o ícone desenhado, para o detalhe aparecer */
 .selo-cargo .selo-img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+.am-cargos .selo-cargo .selo-img {
   width: 12px;
   height: 12px;
-  object-fit: contain;
 }
 .icone-equipe svg,
 .icone-equipe img {
@@ -3038,3 +3043,214 @@ a.nt-corpo:hover b { color: var(--accent); }
 @keyframes pt-pulsa { 50% { transform: scale(1.04); } }
 @keyframes pt-onda { from { transform: scale(1); opacity: .7; } to { transform: scale(1.6); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .pt-fundo, .pt-caixa h2, .pt-aceitar, .pt-onda { animation: none; } }
+
+/* ══════════════ Emblema da assinatura Premium (comum/EmblemaSub.jsx): canto superior direito do avatar ══════════════ */
+/* Avatar sem moldura que ganhou o emblema: só uma caixa para o emblema se prender ao avatar (com moldura, ele vai dentro da .moldura-box) */
+.emblema-box {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  vertical-align: middle;
+  overflow: visible !important;
+  max-width: none !important;
+}
+.emblema-box.cheio {
+  width: 100%;
+  height: 100%;
+}
+.emblema-sub {
+  position: absolute;
+  top: -6%;
+  right: -6%;
+  z-index: 3; /* acima da moldura (z-index 2) */
+  width: 34%;
+  aspect-ratio: 1;
+  cursor: pointer;
+  transition: transform .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.emblema-sub:hover,
+.emblema-sub:focus-visible {
+  transform: scale(1.12);
+  outline: 0;
+}
+.emblema-sub img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .65));
+}
+/* Caixinha ao passar o mouse: "Premium Gold" */
+.emblema-dica {
+  position: fixed;
+  z-index: 10000;
+  transform: translate(-50%, calc(-100% - 10px));
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1px solid rgb(var(--tinta) / .14);
+  background: #0c0d10;
+  color: var(--text);
+  font: 600 13px var(--font-body);
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 14px 34px -10px rgba(0, 0, 0, .85);
+}
+
+/* Janela dos níveis (clicando no emblema) */
+.pm-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, .72);
+  backdrop-filter: blur(3px);
+  animation: pm-entra .2s ease both;
+}
+.pm-janela {
+  width: min(560px, 100%);
+  border-radius: 14px;
+  border: 1px solid rgb(var(--tinta) / .1);
+  background: #121316;
+  color: var(--text);
+  font-family: var(--font-body);
+  box-shadow: 0 40px 90px -30px rgba(0, 0, 0, .9);
+  overflow: hidden;
+}
+.pm-cab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 56px 18px;
+}
+.pm-cab h2 {
+  margin: 0;
+  font: 800 22px var(--font-display);
+  text-align: center;
+}
+.pm-x {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: rgb(var(--tinta) / .08);
+  color: var(--dim);
+  font: 400 24px/1 var(--font-body);
+  cursor: pointer;
+}
+.pm-x:hover {
+  color: var(--text);
+  background: rgb(var(--tinta) / .14);
+}
+.pm-niveis {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0 24px;
+  padding: 22px 10px 16px;
+  border-radius: 12px;
+  background: #1a1b1f;
+}
+.pm-niveis figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 2px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+}
+.pm-niveis figure.atual {
+  border-color: rgb(var(--tinta) / .22);
+  background: rgb(var(--tinta) / .05);
+}
+.pm-niveis img {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .55));
+}
+.pm-niveis figcaption {
+  font: 600 11px var(--font-body);
+  color: var(--dim);
+}
+.pm-niveis figure.atual figcaption {
+  color: var(--text);
+}
+.pm-atual {
+  margin: 14px 24px 0;
+  text-align: center;
+  font: 700 13px var(--font-body);
+  color: var(--accent);
+}
+.pm-texto {
+  margin: 10px 28px 22px;
+  text-align: center;
+  font: 500 16px/1.55 var(--font-body);
+}
+.pm-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding: 18px 24px 22px;
+  border-top: 1px solid rgb(var(--tinta) / .07);
+}
+.pm-fechar {
+  border: 0;
+  background: none;
+  color: var(--dim);
+  font: 800 13px var(--font-body);
+  letter-spacing: .6px;
+  cursor: pointer;
+}
+.pm-fechar:hover {
+  color: var(--text);
+}
+.pm-premium {
+  display: inline-flex;
+  align-items: center;
+  padding: 11px 26px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #1a1400;
+  font: 800 13px var(--font-body);
+  letter-spacing: .6px;
+  text-decoration: none;
+}
+.pm-premium:hover {
+  filter: brightness(1.08);
+}
+.pm-premium.desligado {
+  opacity: .45;
+  cursor: default;
+}
+.pm-premium.desligado:hover {
+  filter: none;
+}
+@media (max-width: 520px) {
+  .pm-niveis {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    row-gap: 10px;
+  }
+}
+@keyframes pm-entra {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pm-fundo {
+    animation: none;
+  }
+}

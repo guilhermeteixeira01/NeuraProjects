@@ -355,7 +355,7 @@ export default function Inicio() {
               <p>{t('Cada projeto nasce de um problema real de quem joga: montar o veto de um campeonato, jogar uma partida justa, entender o que aconteceu nela e ver a sua evolução.')}</p>
             </div>
 
-            <div className="projetos">
+            <div className={`projetos${verPick ? '' : ' tres'}`}>
               {[
                 {
                   href: '/neurapick/',
