@@ -819,3 +819,9 @@ html.sm-aberto { overflow: hidden; }
   .sm-previa > .sm-resumo { grid-column: 2; grid-row: 1; flex-direction: column; gap: 5px; margin: 0; }
   .sm-resumo-linha { flex: none; padding: 6px 9px; }
 }
+
+/* Moldura/card só para assinantes (emblema do nível mínimo): no chip do bloqueio, no "Para usar" e no canto do item liberado */
+.sm-item .sm-req-emb { width: 16px; height: 16px; object-fit: contain; flex: none; vertical-align: middle; } /* mais forte que ".sm-item img" (72 px) */
+.sm-item .sm-req-linha .sm-req-emb, .sm-req-linha .sm-req-emb { width: 22px; height: 22px; }
+.sm-exige-sub { right: 32px; padding: 0; border: 0; background: none; }
+.sm-exige-sub img { width: 20px; height: 20px; object-fit: contain; display: block; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .7)); }

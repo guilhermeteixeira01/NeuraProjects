@@ -346,3 +346,6 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 .adm-sub-edicao input[type=number], .adm-sub-edicao input[type=date], .adm-novo-admin input[list] { font: inherit; font-size: 13px; color: var(--text); background: var(--bg-soft); border: 1px solid var(--border-2); border-radius: 8px; padding: 7px 10px; }
 .adm-sub-edicao input[type=number] { width: 96px; }
 .adm-sub-edicao input:disabled { opacity: .5; }
+
+/* Moldura/card só para assinantes (escolha do nível mínimo de assinatura) */
+.adm-mold-sub { margin-top: 2px; }

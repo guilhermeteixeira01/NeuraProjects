@@ -13,7 +13,7 @@ import { useOrdemRanking } from './ranking.js'
 import { urlSelo } from './selosEquipe.js'
 import { idCard } from './cardsPerfil.js'
 import EmblemaSub from './EmblemaSub.jsx'
-import { SUB_MESES_PADRAO, nivelDaSub } from './assinatura.js'
+import { NIVEIS_SUB, SUB_MESES_PADRAO, nivelDaSub } from './assinatura.js'
 
 const EVENTO = 'np-perfis'
 const CACHE = 'np_perfis' // última lista lida (aparece já na troca de página, sem esperar a rede)
@@ -150,7 +150,7 @@ export const SELOS_PADRAO = {
   dono: { nome: 'Dono', cor: '#ff4655', icone: 'coroa', imagem: 'verified.png', mostrar: true, pick: false },
   admin: { nome: 'Admin', cor: '#3498db', icone: 'escudo', imagem: 'verified.png', mostrar: true, pick: false },
 }
-const CONFIG_PADRAO = { molduraPorNivel: false, nivelMoldura: {}, cardPorNivel: false, nivelCard: {}, cardCargo: {}, cargos: [], molduraCargo: {}, selos: SELOS_PADRAO, equipe: { dono: null, admins: [] }, subMeses: SUB_MESES_PADRAO }
+const CONFIG_PADRAO = { molduraPorNivel: false, nivelMoldura: {}, cardPorNivel: false, nivelCard: {}, cardCargo: {}, cargos: [], molduraCargo: {}, selos: SELOS_PADRAO, equipe: { dono: null, admins: [] }, subMeses: SUB_MESES_PADRAO, molduraSub: {}, cardSub: {} }
 let config = null
 let textoConfig = null
 let buscandoConfig = null
@@ -173,6 +173,8 @@ function buscarConfig() {
         selos: { dono: { ...SELOS_PADRAO.dono, ...d?.selos?.dono }, admin: { ...SELOS_PADRAO.admin, ...d?.selos?.admin } },
         equipe: { dono: d?.equipe?.dono || null, admins: Array.isArray(d?.equipe?.admins) ? d.equipe.admins : [] },
         subMeses: { ...SUB_MESES_PADRAO, ...d?.subMeses },
+        molduraSub: d?.molduraSub || {},
+        cardSub: d?.cardSub || {},
       }
       window.dispatchEvent(new Event(EVENTO_CONFIG))
     })
@@ -205,6 +207,11 @@ export const cargosComEquipe = (config) => [
   { id: '_admin', nome: config.selos?.admin?.nome || 'Admin', cor: config.selos?.admin?.cor || '#3498db', icone: config.selos?.admin?.icone || 'escudo' },
 ]
 export const cargoDaMoldura = (config, id) => cargosComEquipe(config).find((c) => c.id === config.molduraCargo?.[id]) || null
+// Moldura / card só para assinantes: o nível mínimo de assinatura que exige (um item de NIVEIS_SUB) ou null. O Subscriber é "qualquer assinante".
+export const subDaMoldura = (config, id) => NIVEIS_SUB.find((n) => n.id === config.molduraSub?.[id]) || null
+export const subDoCard = (config, id) => NIVEIS_SUB.find((n) => n.id === config.cardSub?.[id]) || null
+// true se o jogador (nivel = resultado de useNivelSub: null sem assinatura ativa) NÃO tem o nível mínimo exigido
+export const semSubMinima = (minimo, nivel) => !!minimo && (nivel ? NIVEIS_SUB.findIndex((n) => n.id === nivel.id) : -1) < NIVEIS_SUB.findIndex((n) => n.id === minimo.id)
 
 // Nome do cargo no selo. Cargo automático com "numerar" ligado mostra a posição de quem está no top:
 // "Campeão 1", "Campeão 2", "Campeão 3". pos = posição no ranking (0 = primeiro), -1 = fora.
@@ -568,7 +575,8 @@ export function ComMoldura({ steamId, children, cheio = false, emblema = true, s
   // Dono e admins usam qualquer moldura (exclusiva de cargo também)
   const daEquipe = steamId === config.equipe?.dono || !!config.equipe?.admins?.includes(steamId)
   const selo = emblema && nivelSub ? <EmblemaSub nivel={nivelSub} parado={semAnimacao} /> : null
-  if (soEmblema || !molduraPorId(id) || (exige && !cargos.includes(exige) && !(daEquipe && exige !== '_dono')))
+  const faltaSub = !daEquipe && semSubMinima(subDaMoldura(config, id), nivelSub) // moldura só de assinantes e o jogador não tem o nível
+  if (soEmblema || !molduraPorId(id) || faltaSub || (exige && !cargos.includes(exige) && !(daEquipe && exige !== '_dono')))
     return selo ? (
       <span className={`emblema-box${cheio ? ' cheio' : ''}`}>
         {children}
@@ -607,10 +615,12 @@ export function useCardDe(steamId) {
   const salvo = usePerfis()[steamId]?.card
   const config = useConfigSite()
   const cargos = useCargosIdsDe(steamId)
+  const nivelSub = useNivelSub(steamId)
   if (!salvo) return null
   const id = idCard(salvo)
   const exige = config.cardCargo?.[id]
   const daEquipe = steamId === config.equipe?.dono || !!config.equipe?.admins?.includes(steamId)
+  if (!daEquipe && semSubMinima(subDoCard(config, id), nivelSub)) return null // card só de assinantes e o jogador não tem o nível
   return !exige || cargos.includes(exige) || (daEquipe && exige !== '_dono') ? id : null
 }
 

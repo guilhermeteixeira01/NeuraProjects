@@ -172,6 +172,29 @@ const CARD_ID = /^([A-Za-z0-9_ -]{1,40}\/)?[A-Za-z0-9._ -]{1,80}\.(png|webp|avif
 // (o Subscriber é o 1º mês); o admin muda no painel (aba Assinaturas). Padrão igual ao do site: src/comum/assinatura.js
 const SUB_MESES_PADRAO = { gold: 3, platinum: 6, diamond: 12, elite: 18, legend: 24 }
 const NIVEIS_SUB = ['gold', 'platinum', 'diamond', 'elite', 'legend']
+// Nível da assinatura de um jogador (0 = Subscriber ... 5 = Legend; -1 = sem assinatura ativa), igual a nivelDaSub() do site
+// (src/comum/assinatura.js): sem data (infinita) o tempo corre sozinho desde o início; vencida não vale.
+const SUB_IDS = ['subscriber', ...NIVEIS_SUB]
+const subMesesDe = (c) => ({ ...SUB_MESES_PADRAO, ...c.subMeses })
+function indiceSub(sub, config, agora = Date.now()) {
+  if (!sub || typeof sub !== 'object') return -1
+  const infinita = sub.expira == null
+  if (!infinita && !(Number(sub.expira) > agora)) return -1
+  const base = Math.max(0, Math.floor(Number(sub.meses) || 0))
+  const desdeInicio = Number(sub.inicio) > 0 ? Math.max(0, Math.floor((agora - Number(sub.inicio)) / (30.4375 * 24 * 3600 * 1000))) : 0
+  const meses = infinita ? Math.max(base, desdeInicio) : base
+  const m = subMesesDe(config)
+  let i = 0
+  SUB_IDS.forEach((id, k) => {
+    if (k > 0 && meses >= m[id]) i = k
+  })
+  return i
+}
+// A moldura/card exige assinatura? (config.molduraSub / cardSub: { id: nível mínimo }). Dono e admins não têm trava.
+const faltaSub = (config, tabela, id, perfil, admin) => {
+  const minimo = SUB_IDS.indexOf(config[tabela]?.[id])
+  return minimo >= 0 && !admin && indiceSub(perfil?.sub, config) < minimo ? SUB_IDS[minimo] : null
+}
 const selosDe = (c) => ({ dono: { ...SELOS_PADRAO.dono, ...c.selos?.dono }, admin: { ...SELOS_PADRAO.admin, ...c.selos?.admin } })
 const configPublica = (c, env = {}) => ({
   selos: selosDe(c),
@@ -184,6 +207,8 @@ const configPublica = (c, env = {}) => ({
   cargos: c.cargos || [], // [{ id, nome, cor, icone?, imagem? (arquivo de selos-equipe/, no lugar do ícone), top?, numerar?, oculto? (selo não aparece no site), pick? (vê a página Pick & Ban, escondida de todos; dono e admins têm o mesmo botão em selos.*.pick) }] (ex.: Premium, VIP). top = automático para o top N do ranking
   molduraCargo: c.molduraCargo || {}, // { idMoldura: idCargo }: moldura exclusiva de quem tem o cargo
   subMeses: { ...SUB_MESES_PADRAO, ...c.subMeses }, // meses de assinatura para cada nível do emblema Premium
+  molduraSub: c.molduraSub || {}, // { idMoldura: nível mínimo de assinatura (subscriber ... legend) }: moldura só para assinantes
+  cardSub: c.cardSub || {}, // { idCard: nível mínimo de assinatura }: card só para assinantes
 })
 const ID_CARGO = /^[a-z0-9-]{1,24}$/
 const COR = /^#[0-9a-f]{6}$/i
@@ -329,7 +354,7 @@ async function tirarExclusivasSemCargo(env, site, config) {
   const perfis = await ler(env, 'perfis')
   const exclusivas = config.molduraCargo || {}
   const exclusivosCards = config.cardCargo || {}
-  const comExclusiva = Object.entries(perfis).filter(([, p]) => (p.moldura && exclusivas[p.moldura]) || (p.card && exclusivosCards[p.card]))
+  const comExclusiva = Object.entries(perfis).filter(([, p]) => (p.moldura && (exclusivas[p.moldura] || config.molduraSub?.[p.moldura])) || (p.card && (exclusivosCards[p.card] || config.cardSub?.[p.card])))
   if (!comExclusiva.length) return perfis
   const ranking = (config.cargos || []).some((c) => c.top > 0) ? await lerRanking(site) : null
   let mudou = false
@@ -343,6 +368,16 @@ async function tirarExclusivasSemCargo(env, site, config) {
       mudou = true
     }
     if (p.card && exclusivosCards[p.card] && !mantem(exclusivosCards[p.card])) {
+      delete p.card
+      mudou = true
+    }
+    // Moldura/card só para assinantes: some do perfil quando a assinatura vence ou o nível fica abaixo do exigido
+    if (p.moldura && faltaSub(config, 'molduraSub', p.moldura, p, ehAdmin(id, env, config))) {
+      delete p.moldura
+      delete p.molduraLivre
+      mudou = true
+    }
+    if (p.card && faltaSub(config, 'cardSub', p.card, p, ehAdmin(id, env, config))) {
       delete p.card
       mudou = true
     }
@@ -389,8 +424,14 @@ async function salvarPerfil(req, env, site, quem, admin, config, cors, rotaAntig
   const cargo = mudar.moldura ? config.molduraCargo?.[mudar.moldura] : null
   if (cargo && !(await podeUsarCargo(cargo, quem.id, admin, env, site, perfis, config))) return json({ erro: 'cargo', cargo }, 403, cors)
 
+  // Moldura só para assinantes (nível mínimo de assinatura); admins não têm trava
+  const precisaSub = mudar.moldura ? faltaSub(config, 'molduraSub', mudar.moldura, perfis[quem.id], admin) : null
+  if (precisaSub) return json({ erro: 'sub', precisa: precisaSub }, 403, cors)
+
   // Card (banner) liberado por nível e/ou exclusivo de um cargo, como as molduras; admins não têm trava
   if (mudar.card) {
+    const precisaCardSub = faltaSub(config, 'cardSub', mudar.card, perfis[quem.id], admin)
+    if (precisaCardSub) return json({ erro: 'cardSub', precisa: precisaCardSub }, 403, cors)
     const precisaCard = config.cardPorNivel ? Number(config.nivelCard?.[mudar.card]) || 1 : 1
     if (precisaCard > 1 && !admin) {
       const nivel = await nivelDoJogador(env, site, quem.id, perfis)
@@ -481,9 +522,16 @@ async function adminPerfil(req, env, site, config, cors) {
       if (!(await cargosDoJogador(site, corpo.id, comNovos, config)).includes(exige)) return json({ erro: 'exclusiva', cargo: exige }, 400, cors)
     }
   }
+  // Moldura/card só para assinantes: nem o admin dá para quem não assina o nível exigido (dê a assinatura primeiro)
+  {
+    const alvo = { ...(await ler(env, 'perfis'))[corpo.id], ...('sub' in mudar ? { sub: mudar.sub } : {}) }
+    const paraAdmin = ehAdmin(corpo.id, env, config)
+    const precisa = (mudar.moldura && faltaSub(config, 'molduraSub', mudar.moldura, alvo, paraAdmin)) || (mudar.card && faltaSub(config, 'cardSub', mudar.card, alvo, paraAdmin))
+    if (precisa) return json({ erro: 'exclusiva-sub', precisa }, 400, cors)
+  }
   const gravados = await mudarPerfil(env, corpo.id, mudar)
-  // Tirou um cargo: a moldura exclusiva dele sai do perfil na hora
-  const perfis = 'cargos' in mudar ? await tirarExclusivasSemCargo(env, site, config) : gravados
+  // Tirou um cargo ou a assinatura: a moldura/card exclusivos dele saem do perfil na hora
+  const perfis = 'cargos' in mudar || 'sub' in mudar ? await tirarExclusivasSemCargo(env, site, config) : gravados
   // A pessoa vê a mudança na hora se estiver com o site aberto (insígnia nova: aviso com som)
   await avisarPerfil(env, corpo.id, perfis[corpo.id])
   return json({ ok: true, perfis }, 200, cors)
@@ -503,6 +551,16 @@ async function adminConfig(req, env, site, config, cors) {
       if (nivel > 1) mapa[id] = nivel // nível 1 = liberada para todos (não precisa guardar)
     }
     novo.nivelMoldura = mapa
+  }
+  // Moldura / card só para assinantes: { id: nível mínimo da assinatura }, o nível é um de SUB_IDS (subscriber = qualquer assinante)
+  for (const [campo, formato] of [['molduraSub', ID_MOLDURA], ['cardSub', CARD_ID]]) {
+    if (!(campo in corpo)) continue
+    const mapa = {}
+    for (const [id, nivel] of Object.entries(corpo[campo] || {})) {
+      if (!formato.test(id) || !SUB_IDS.includes(nivel)) return json({ erro: campo }, 400, cors)
+      mapa[id] = nivel
+    }
+    novo[campo] = mapa
   }
   // Meses de assinatura de cada nível do emblema Premium: números inteiros de 1 a 600, sempre crescentes (Gold < Platinum < ... < Legend)
   if ('subMeses' in corpo) {
@@ -562,7 +620,7 @@ async function adminConfig(req, env, site, config, cors) {
     novo.cardCargo = mapa
   }
   await gravar(env, 'config', novo)
-  if ('cargos' in corpo || 'molduraCargo' in corpo || 'cardCargo' in corpo) await tirarExclusivasSemCargo(env, site, novo)
+  if ('cargos' in corpo || 'molduraCargo' in corpo || 'cardCargo' in corpo || 'molduraSub' in corpo || 'cardSub' in corpo || 'subMeses' in corpo) await tirarExclusivasSemCargo(env, site, novo)
   return json({ ok: true, config: { ...configPublica(novo, env), admins: novo.admins || [] } }, 200, cors)
 }
 

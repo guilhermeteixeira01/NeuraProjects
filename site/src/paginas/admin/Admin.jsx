@@ -359,24 +359,43 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
 }
 
 // ── Aba Cards: liberar por nível e exclusivos de cargo (as mesmas regras das molduras) ──
+// Escolha do nível mínimo de assinatura (moldura/card só para assinantes). '' = sem trava de assinatura.
+function SelecionarSub({ valor, aoMudar, aria, vazio, limpar = '', classe = 'adm-mold-cargo adm-mold-sub' }) {
+  const tr = useT()
+  return (
+    <select className={classe} value={valor} onChange={(e) => aoMudar(e.target.value)} aria-label={aria}>
+      <option value="">{vazio}</option>
+      {limpar && <option value="-">{limpar}</option>}
+      {NIVEIS_SUB.map((n) => (
+        <option key={n.id} value={n.id}>
+          {n.id === 'subscriber' ? tr('Qualquer assinante') : tr('{nome} ou mais', { nome: n.nome })}
+        </option>
+      ))}
+    </select>
+  )
+}
+
 function CardsRegras({ config, aoSalvar }) {
   const tr = useT()
   const [porNivel, setPorNivel] = useState(!!config.cardPorNivel)
   const [niveis, setNiveis] = useState(() => ({ ...config.nivelCard }))
   const [exclusivo, setExclusivo] = useState(() => ({ ...config.cardCargo }))
+  const [subs, setSubs] = useState(() => ({ ...config.cardSub })) // { idCard: nível mínimo de assinatura }
   const [estado, setEstado] = useState('')
   const cargos = cargosComEquipe(config) // cargos do painel + Dono e Admin (equipe)
   const nivelDe1 = (nome) => Number(niveis[nome]) || 1
   const cargoDe = (nome) => cargos.find((c) => c.id === exclusivo[nome]) || null
-  const mudou = porNivel !== !!config.cardPorNivel || CARDS.some((c) => nivelDe1(c) !== (Number(config.nivelCard?.[c]) || 1) || (exclusivo[c] || '') !== (config.cardCargo?.[c] || ''))
+  const mudou = porNivel !== !!config.cardPorNivel || CARDS.some((c) => nivelDe1(c) !== (Number(config.nivelCard?.[c]) || 1) || (exclusivo[c] || '') !== (config.cardCargo?.[c] || '') || (subs[c] || '') !== (config.cardSub?.[c] || ''))
   const definir = (nomes, n) => setNiveis((v) => ({ ...v, ...Object.fromEntries(nomes.map((c) => [c, Number(n)])) }))
   const tornarExclusivo = (nomes, cargo) => setExclusivo((v) => ({ ...v, ...Object.fromEntries(nomes.map((c) => [c, cargo])) }))
+  const exigirSub = (nomes, nivel) => setSubs((v) => ({ ...v, ...Object.fromEntries(nomes.map((c) => [c, nivel])) }))
   const salvar = async () => {
     setEstado('salvando')
     try {
       const nivelCard = Object.fromEntries(CARDS.filter((c) => nivelDe1(c) > 1).map((c) => [c, nivelDe1(c)]))
       const cardCargo = Object.fromEntries(CARDS.filter((c) => cargoDe(c)).map((c) => [c, exclusivo[c]]))
-      const d = await chamar('/admin/config', { cardPorNivel: porNivel, nivelCard, cardCargo })
+      const cardSub = Object.fromEntries(CARDS.filter((c) => subs[c]).map((c) => [c, subs[c]]))
+      const d = await chamar('/admin/config', { cardPorNivel: porNivel, nivelCard, cardCargo, cardSub })
       aoSalvar(d.config)
       setEstado('Salvo!')
     } catch (e) {
@@ -405,6 +424,9 @@ function CardsRegras({ config, aoSalvar }) {
       <p className="adm-nota">
         {tr('Exclusivo de: o card só pode ser usado por quem tem o cargo (crie os cargos na aba Cargos). Vale mesmo com a regra de nível desligada; com as duas, o jogador precisa do cargo e do nível. Para ter mais cards, coloque imagens em site/public/assets/cards/.')}
       </p>
+      <p className="adm-nota">
+        {tr('Assinatura: o card só pode ser usado por assinantes Premium a partir do nível escolhido (Subscriber = qualquer assinante). Quem perde a assinatura, ou cai de nível, perde o card. Dono e admins não têm trava.')}
+      </p>
       <div className="adm-colecoes">
         {TEMAS_CARD.map((tema) => {
           const doTema = CARDS.filter((c) => temaCard(c) === tema)
@@ -426,6 +448,10 @@ function CardsRegras({ config, aoSalvar }) {
                     </select>
                   </label>
                 )}
+                <label>
+                  {tr('Assinatura:')}
+                  <SelecionarSub valor="" classe="" aoMudar={(v) => v && exigirSub(doTema, v === '-' ? '' : v)} aria={tr('Assinatura do tema inteiro')} vazio={tr('tema inteiro…')} limpar={tr('Sem assinatura')} />
+                </label>
                 <label className={porNivel ? '' : 'desligado'}>
                   {tr('Tema inteiro:')}
                   <select value="" onChange={(e) => e.target.value && definir(doTema, e.target.value)}>
@@ -455,6 +481,7 @@ function CardsRegras({ config, aoSalvar }) {
                         ))}
                       </select>
                     )}
+                    <SelecionarSub valor={subs[c] || ''} aoMudar={(v) => exigirSub([c], v)} aria={`${tr('Assinatura')} (${nomeCard(c)})`} vazio={tr('Sem assinatura')} />
                     <span className={`adm-mold-nivel${porNivel ? '' : ' desligado'}`}>
                       <SeloNivel nivel={nivelDe1(c)} tamanho={24} />
                       <select value={nivelDe1(c)} onChange={(e) => definir([c], e.target.value)} aria-label={tr('Nível de {nome}', { nome: nomeCard(c) })}>
@@ -483,14 +510,16 @@ function Molduras({ config, aoSalvar }) {
   const [porNivel, setPorNivel] = useState(!!config.molduraPorNivel)
   const [niveis, setNiveis] = useState(() => ({ ...config.nivelMoldura }))
   const [exclusiva, setExclusiva] = useState(() => ({ ...config.molduraCargo }))
+  const [subs, setSubs] = useState(() => ({ ...config.molduraSub })) // { idMoldura: nível mínimo de assinatura }
   const [estado, setEstado] = useState('')
   const cargos = cargosComEquipe(config) // cargos do painel + Dono e Admin (equipe)
   const nivelDe1 = (id) => Number(niveis[id]) || 1
   const cargoDe = (id) => cargos.find((c) => c.id === exclusiva[id]) || null
   const mudou =
     porNivel !== !!config.molduraPorNivel ||
-    MOLDURAS.some((m) => nivelDe1(m.id) !== (Number(config.nivelMoldura?.[m.id]) || 1) || (exclusiva[m.id] || '') !== (config.molduraCargo?.[m.id] || ''))
+    MOLDURAS.some((m) => nivelDe1(m.id) !== (Number(config.nivelMoldura?.[m.id]) || 1) || (exclusiva[m.id] || '') !== (config.molduraCargo?.[m.id] || '') || (subs[m.id] || '') !== (config.molduraSub?.[m.id] || ''))
   const tornarExclusiva = (ids, cargo) => setExclusiva((v) => ({ ...v, ...Object.fromEntries(ids.map((id) => [id, cargo])) }))
+  const exigirSub = (ids, nivel) => setSubs((v) => ({ ...v, ...Object.fromEntries(ids.map((id) => [id, nivel])) }))
 
   const definir = (ids, n) => setNiveis((v) => ({ ...v, ...Object.fromEntries(ids.map((id) => [id, Number(n)])) }))
   const salvar = async () => {
@@ -498,7 +527,8 @@ function Molduras({ config, aoSalvar }) {
     try {
       const nivelMoldura = Object.fromEntries(MOLDURAS.filter((m) => nivelDe1(m.id) > 1).map((m) => [m.id, nivelDe1(m.id)]))
       const molduraCargo = Object.fromEntries(MOLDURAS.filter((m) => cargoDe(m.id)).map((m) => [m.id, exclusiva[m.id]]))
-      const d = await chamar('/admin/config', { molduraPorNivel: porNivel, nivelMoldura, molduraCargo })
+      const molduraSub = Object.fromEntries(MOLDURAS.filter((m) => subs[m.id]).map((m) => [m.id, subs[m.id]]))
+      const d = await chamar('/admin/config', { molduraPorNivel: porNivel, nivelMoldura, molduraCargo, molduraSub })
       aoSalvar(d.config)
       setEstado('Salvo!')
     } catch (e) {
@@ -529,6 +559,9 @@ function Molduras({ config, aoSalvar }) {
       <p className="adm-nota">
         {tr('Exclusiva de: a moldura só pode ser usada por quem tem o cargo (crie os cargos na aba Cargos). Vale mesmo com a regra de nível desligada; com as duas, o jogador precisa do cargo e do nível.')}
       </p>
+      <p className="adm-nota">
+        {tr('Assinatura: a moldura só pode ser usada por assinantes Premium a partir do nível escolhido (Subscriber = qualquer assinante). Quem perde a assinatura, ou cai de nível, perde a moldura. Dono e admins não têm trava.')}
+      </p>
       <div className="adm-colecoes">
         {COLECOES.map((c) => {
           const daColecao = MOLDURAS.filter((m) => m.colecao === c)
@@ -550,6 +583,10 @@ function Molduras({ config, aoSalvar }) {
                     </select>
                   </label>
                 )}
+                <label>
+                  {tr('Assinatura:')}
+                  <SelecionarSub valor="" classe="" aoMudar={(v) => v && exigirSub(daColecao.map((m) => m.id), v === '-' ? '' : v)} aria={tr('Assinatura da coleção inteira')} vazio={tr('coleção inteira…')} limpar={tr('Sem assinatura')} />
+                </label>
                 <label className={porNivel ? '' : 'desligado'}>
                   {tr('Coleção inteira:')}
                   <select value="" onChange={(e) => e.target.value && definir(daColecao.map((m) => m.id), e.target.value)}>
@@ -577,6 +614,7 @@ function Molduras({ config, aoSalvar }) {
                         ))}
                       </select>
                     )}
+                    <SelecionarSub valor={subs[m.id] || ''} aoMudar={(v) => exigirSub([m.id], v)} aria={`${tr('Assinatura')} (${m.nome})`} vazio={tr('Sem assinatura')} />
                     <span className={`adm-mold-nivel${porNivel ? '' : ' desligado'}`}>
                       <SeloNivel nivel={nivelDe1(m.id)} tamanho={24} />
                       <select value={nivelDe1(m.id)} onChange={(e) => definir([m.id], e.target.value)} aria-label={tr('Nível de {nome}', { nome: m.nome })}>
