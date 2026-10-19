@@ -453,11 +453,23 @@ function Conteudo() {
             <b>{t('Sua temporada')}</b>
             {meuJogador ? (
               <>
-                <span className="lb-temporada-linha">
-                  <em>{posicao > 0 ? `#${posicao}` : '—'}</em> {t('no ranking')} · {t('rating')} <em>{Number(meuJogador.rating || 0).toFixed(2)}</em>
-                </span>
+                <dl className="lb-estats">
+                  {[
+                    [t('Posição'), perfis[eu]?.ocultoRanking ? t('Oculto') : posicao > 0 ? `#${posicao}` : '—'],
+                    ['Rating', Number(meuJogador.rating || 0).toFixed(2)],
+                    ['K/D', Number(meuJogador.kd || 0).toFixed(2)],
+                    ['ADR', Number(meuJogador.adr || 0).toFixed(1)],
+                    ['KAST', `${Number(meuJogador.kast || 0).toFixed(1)}%`],
+                    ['HS%', `${Number(meuJogador.hsPct || 0).toFixed(1)}%`],
+                  ].map(([r, v]) => (
+                    <div key={r}>
+                      <dt>{r}</dt>
+                      <dd>{v}</dd>
+                    </div>
+                  ))}
+                </dl>
                 <small>
-                  {t('{n} mapas jogados', { n: meuJogador.mapas })} · K/D {Number(meuJogador.kd || 0).toFixed(2)}
+                  {t('{n} mapas jogados', { n: meuJogador.mapas })} · {meuJogador.vitorias}V {meuJogador.mapas - meuJogador.vitorias}D ({Number(meuJogador.winRate || 0).toFixed(0)}%) · {meuJogador.kills}/{meuJogador.mortes}/{meuJogador.assist}
                 </small>
               </>
             ) : (

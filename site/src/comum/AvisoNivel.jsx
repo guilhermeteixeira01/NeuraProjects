@@ -103,7 +103,9 @@ export default function AvisoNivel() {
     // fica no sino (texto em português: o painel traduz na hora de mostrar)
     registrarNotificacao(conta?.id, {
       id: `nivel:${aviso.para}:${Date.now()}`,
-      titulo: aviso.para >= 11 ? 'Você chegou ao Elite!' : aviso.tipo === 'desce' ? `Você voltou para o nível ${aviso.para}` : `Você chegou ao nível ${aviso.para}`,
+      nivel: aviso.para,
+      titulo: aviso.para >= 11 ? 'Você chegou ao Elite!' : aviso.tipo === 'desce' ? `Você caiu para o nível ${aviso.para}` : aviso.tipo === 'revela' ? `Nível ${aviso.para} desbloqueado` : `Você subiu para o nível ${aviso.para}`,
+      texto: aviso.tipo === 'revela' ? '' : `Do nível ${aviso.de >= 11 ? 'Elite' : aviso.de} para o ${aviso.para >= 11 ? 'Elite' : aviso.para}`,
     })
     if (aviso.tipo !== 'desce') estourar(canvas.current, corNivel(aviso.para), aviso.tipo === 'revela')
     const tecla = (e) => e.key === 'Escape' && setAviso(null)
