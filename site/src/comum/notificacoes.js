@@ -25,11 +25,29 @@ function gravar(id, lista) {
   window.dispatchEvent(new Event(EVENTO))
 }
 
-// { id, titulo, texto, link?, rotulo? } -> guarda como não lida (o mesmo id não entra duas vezes)
+// Ids que já viraram notificação alguma vez (separado da lista: "Limpar" não zera isto), para a mesma notificação
+// nunca entrar de novo, nem ao recarregar a página nem ao trocar de página.
+const chaveVistos = (id) => `np_notifs_vistos_${id}`
+function lerVistos(id) {
+  try {
+    const v = JSON.parse(localStorage.getItem(chaveVistos(id)) || '[]')
+    return Array.isArray(v) ? v : []
+  } catch {
+    return []
+  }
+}
+
+// { id, titulo, texto, link?, cargo?... } -> guarda como não lida. O mesmo id (ou o mesmo cargo) nunca entra duas vezes.
 export function registrarNotificacao(steamId, n) {
   if (!steamId || !n?.id) return
   const lista = ler(steamId)
-  if (lista.some((x) => x.id === n.id)) return
+  const vistos = lerVistos(steamId)
+  if (vistos.includes(n.id) || lista.some((x) => x.id === n.id || (n.cargo && x.cargo === n.cargo))) return
+  try {
+    localStorage.setItem(chaveVistos(steamId), JSON.stringify([...vistos, n.id].slice(-300)))
+  } catch {
+    // sem armazenamento: ainda dedupa pela lista
+  }
   gravar(steamId, [{ ...n, quando: Date.now(), lida: false }, ...lista])
 }
 

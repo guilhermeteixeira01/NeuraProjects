@@ -6,15 +6,10 @@ import { registrarNotificacao } from './notificacoes.js'
 
 // Avisos de partida:
 // - card no canto da tela (com o site aberto): o histórico é conferido a cada 30s; o cookie guarda a última
-//   partida já vista (1 ano), e na primeira visita só grava, sem avisar;
-// - notificação do sistema (push), mesmo com o site fechado: quem permitir fica inscrito no OneSignal, e o
-//   deploy do site manda o push quando entra partida nova (scripts/notificar.mjs + .github/workflows/deploy.yml).
+//   partida já vista (1 ano), e na primeira visita só grava, sem avisar.
 const COOKIE_PARTIDA = 'np_partida'
-const CHAVE_PERGUNTA = 'np_notif_pergunta' // "nao" = não perguntar mais
 const INTERVALO = 30000
 const DURACAO = 15000
-const ONESIGNAL_APP_ID = 'e2d061b1-3a8e-41fb-9b5c-6e0e8751ab96'
-const SITE = 'neuraproject.com.br' // o app do OneSignal só aceita este endereço
 
 function lerCookie(nome) {
   const m = document.cookie.match(new RegExp('(?:^|; )' + nome + '=([^;]*)'))
@@ -23,54 +18,6 @@ function lerCookie(nome) {
 function gravarCookie(nome, valor) {
   document.cookie = `${nome}=${encodeURIComponent(valor)}; max-age=31536000; path=/; SameSite=Lax`
 }
-const lerLocal = (k) => {
-  try {
-    return localStorage.getItem(k)
-  } catch {
-    return null
-  }
-}
-const gravarLocal = (k, v) => {
-  try {
-    localStorage.setItem(k, v)
-  } catch {
-    /* sem localStorage */
-  }
-}
-const temNotificacao = () => typeof window !== 'undefined' && 'Notification' in window
-
-// SDK do OneSignal (carregado uma vez por página, depois que ela abre). Service worker: /OneSignalSDKWorker.js
-let oneSignal = null
-function carregarOneSignal() {
-  if (oneSignal) return oneSignal
-  if (location.hostname !== SITE) return (oneSignal = Promise.resolve(null)) // npm run dev / outro endereço: sem push
-  oneSignal = new Promise((pronto) => {
-    window.OneSignalDeferred = window.OneSignalDeferred || []
-    window.OneSignalDeferred.push(async (OneSignal) => {
-      try {
-        await OneSignal.init({ appId: ONESIGNAL_APP_ID })
-        pronto(OneSignal)
-      } catch {
-        pronto(null)
-      }
-    })
-    const script = document.createElement('script')
-    script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js'
-    script.defer = true
-    script.onerror = () => pronto(null)
-    document.head.appendChild(script)
-  })
-  return oneSignal
-}
-
-// Pede a permissão: pelo OneSignal (inscreve no push) ou, sem ele, só pelo navegador
-async function pedirPermissao() {
-  const os = await carregarOneSignal()
-  if (os) await os.Notifications.requestPermission().catch(() => {})
-  else await Notification.requestPermission().catch(() => {})
-  return Notification.permission
-}
-
 function Aviso({ aviso, onFechar }) {
   const t = useT()
   const [saindo, setSaindo] = useState(false)
@@ -159,72 +106,6 @@ export default function Avisos() {
     return () => {
       vivo = false
       clearInterval(id)
-    }
-  }, [])
-
-  // Notificações (push): carrega o OneSignal e, na primeira visita, pede a permissão na hora.
-  // Chrome/Edge mostram o pedido do navegador direto; Firefox e Safari só aceitam depois de um clique,
-  // então se o pedido não sair aparece o card com o botão. Depois que a pessoa responde, não pergunta mais.
-  useEffect(() => {
-    if (!temNotificacao()) return
-    carregarOneSignal()
-    if (Notification.permission !== 'default' || lerLocal(CHAVE_PERGUNTA) === 'nao') return
-
-    let vivo = true
-    const respondeu = (r) => {
-      if (r === 'default') return false // fechou sem responder ou o navegador não mostrou
-      gravarLocal(CHAVE_PERGUNTA, 'nao')
-      setAvisos((lista) => lista.filter((x) => x.id !== 'pergunta')) // o card (se apareceu) some
-      if (r === 'granted')
-        mostrar({
-          id: 'ativadas',
-          tipo: 'pergunta',
-          titulo: 'Notificações ativadas',
-          texto: 'Você vai ser avisado quando uma partida terminar, mesmo com o site fechado.',
-        })
-      return true
-    }
-    const card = () =>
-      vivo &&
-      Notification.permission === 'default' &&
-      mostrar({
-        id: 'pergunta',
-        tipo: 'pergunta',
-        fixo: true,
-        titulo: 'Avisar quando uma partida terminar?',
-        texto: 'Receba uma notificação com o resultado de cada mapa e o status da série, mesmo com o site fechado.',
-        acoes: [
-          [
-            'Ativar notificações',
-            () => {
-              const inicio = Date.now()
-              pedirPermissao().then((r) => {
-                if (respondeu(r)) return
-                // Voltou sem resposta em menos de 1s: o navegador descartou o pedido sem mostrar a janela
-                // (pedidos "silenciosos" ou bloqueio temporário depois de o site pedir várias vezes)
-                if (Date.now() - inicio < 1000)
-                  mostrar({
-                    id: 'bloqueado',
-                    tipo: 'pergunta',
-                    fixo: true,
-                    titulo: 'O navegador não mostrou o pedido',
-                    texto:
-                      'Clique no cadeado ao lado do endereço do site → Notificações → Permitir, e recarregue a página.',
-                  })
-              })
-            },
-            true,
-          ],
-          ['Agora não', () => gravarLocal(CHAVE_PERGUNTA, 'nao')],
-        ],
-      })
-
-    pedirPermissao().then((r) => !respondeu(r) && card())
-    // Navegador que segura o pedido sem mostrar nada (sem clique): o card aparece logo
-    const id = setTimeout(card, 2500)
-    return () => {
-      vivo = false
-      clearTimeout(id)
     }
   }, [])
 

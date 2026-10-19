@@ -1,5 +1,5 @@
-// Texto dos avisos de partida. Usado pelo site (card no canto da tela) e pelo deploy (push do OneSignal),
-// então o aviso é igual nos dois. Só JavaScript puro (o deploy roda isto no Node).
+// Texto dos avisos de partida (card no canto da tela e histórico do sino),
+// para o aviso ser igual nos dois. Só JavaScript puro.
 import { nomeMapa } from './mapas.js'
 
 const NOMES_CAT = { md1: 'MD1', md3: 'MD3', md5: 'MD5' }
