@@ -1,15 +1,21 @@
 import { useEffect, useMemo, useState } from 'react'
 import Layout from '../../comum/Layout.jsx'
+import { CONFIG } from '../../comum/config.js'
 import { entrar, linkPerfil, loginAtivo } from '../../comum/conta.js'
-import { FundoHero } from '../../comum/HeroFundo.jsx'
+import { lerJson } from '../../comum/dados.js'
 import { IconeSteam } from '../../comum/Icones.jsx'
-import { ComMoldura, IconeEquipe } from '../../comum/Moldura.jsx'
+import { ComMoldura, IconeEquipe, usePerfis } from '../../comum/Moldura.jsx'
+import { SeloNivel } from '../../comum/Nivel.jsx'
+import { ALL_MAPS, mapImage } from '../../comum/mapas.js'
+import { nivelDe } from '../../comum/niveis.js'
+import { ordenarRanking } from '../../comum/ranking.js'
 import { useAmigos } from '../../comum/amigos.js'
 import { useAvatar } from '../../comum/avatares.js'
 import { acaoLobby, useLobby } from '../../comum/lobby.js'
 import { useT } from '../../comum/i18n.js'
 
-// Lobby: o líder e até 4 amigos. O líder convida, remove e deixa o lobby aberto ("Grupo público": amigos entram sozinhos).
+// Lobby (estilo FACEIT): nível e temporada em cima, o grupo (5 lugares, você no meio) e o painel de partida embaixo.
+// O líder convida, remove e deixa o grupo aberto ("Grupo público": amigos entram sozinhos).
 
 const ERROS = {
   cheio: 'O lobby está cheio.',
@@ -19,6 +25,34 @@ const ERROS = {
   'sem-lobby': 'Esse lobby não existe mais.',
   ocupado: 'Você é líder de um lobby com gente: saia dele antes.',
   login: 'Seu login venceu. Entre de novo com a Steam.',
+}
+const fmt = (v, t) => Number(v || 0).toLocaleString(t.local)
+
+// ── ranking.json (nível e números de cada jogador), lido uma vez por página ──
+let rankingLido = null
+function useRanking() {
+  const [r, setR] = useState(rankingLido)
+  useEffect(() => {
+    if (rankingLido) return
+    let vivo = true
+    lerJson('/ranking/ranking.json').then((d) => {
+      rankingLido = d || { jogadores: [] }
+      vivo && setR(rankingLido)
+    })
+    return () => {
+      vivo = false
+    }
+  }, [])
+  return r
+}
+// Nível de qualquer jogador (XP das partidas + ajuste do admin), como no resto do site
+function useInfoNivel() {
+  const ranking = useRanking()
+  const perfis = usePerfis()
+  return (id) => {
+    const j = ranking?.jogadores?.find((x) => x.steamId === id)
+    return { j, info: nivelDe((Number(j?.xp) || 0) + (Number(perfis[id]?.xp) || 0), Number(j?.mapas) || 0) }
+  }
 }
 
 function Foto({ p }) {
@@ -32,38 +66,69 @@ const Coroa = () => (
     <path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 12H5L3 7z" />
   </svg>
 )
+const Marca = ({ d, tamanho = 16 }) => (
+  <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    {d}
+  </svg>
+)
+const IC_PESSOAS = (
+  <>
+    <circle cx="9" cy="8" r="3.5" />
+    <path d="M2.5 20a6.5 6.5 0 0 1 13 0" />
+    <path d="M16 4.6a3.5 3.5 0 0 1 0 6.8" />
+    <path d="M18.5 14.2A6.5 6.5 0 0 1 21.5 20" />
+  </>
+)
+const IC_BUSCA = (
+  <>
+    <circle cx="11" cy="11" r="7" />
+    <path d="m20 20-3.5-3.5" />
+  </>
+)
+const IC_SAIR = (
+  <>
+    <path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4" />
+    <path d="m16 8 4 4-4 4M20 12H9" />
+  </>
+)
+const IC_CHECK = <path d="m4 12.5 5 5L20 6.5" />
 
-// Um lugar do lobby: membro, convite pendente ou vazio (com o "+" para o líder convidar)
-function Lugar({ pessoa, lider, pendente, souLider, eu, aoRemover, aoConvidar, ocupado }) {
+// Um lugar do grupo (a pessoa, o convite pendente ou o lugar vazio com o "+")
+function Lugar({ pessoa, lider, pendente, centro, souLider, eu, aoRemover, aoConvidar, ocupado, nivelDe: nivelDoJogador }) {
   const t = useT()
   if (!pessoa)
     return souLider ? (
       <button type="button" className="lb-lugar lb-vazio" onClick={aoConvidar} aria-label={t('Convidar amigo')}>
         <span className="lb-mais">+</span>
-        <small>{t('Convidar amigo')}</small>
       </button>
     ) : (
       <div className="lb-lugar lb-vazio lb-inerte" aria-hidden="true">
         <span className="lb-mais">+</span>
       </div>
     )
+  const { info } = nivelDoJogador(pessoa.id)
   return (
-    <div className={`lb-lugar${lider ? ' lb-lider' : ''}${pendente ? ' lb-pendente' : ''}${pessoa.id === eu ? ' lb-eu' : ''}`}>
+    <div className={`lb-lugar lb-pessoa${centro ? ' lb-centro' : ''}${pendente ? ' lb-pendente' : ''}${pessoa.id === eu ? ' lb-eu' : ''}`}>
       {lider && <Coroa />}
       <a className="lb-av" href={linkPerfil(pessoa.id)} title={pessoa.nome || pessoa.id}>
         <ComMoldura steamId={pessoa.id}>
           <Foto p={pessoa} />
         </ComMoldura>
-        <i className={`lb-bolinha st-${pessoa.st || 'offline'}`} aria-hidden="true" />
+        {!pendente && <i className={`lb-bolinha st-${pessoa.st || 'offline'}`} aria-hidden="true" />}
       </a>
       <b className="lb-nome">
         <span>{pessoa.nome || pessoa.id}</span>
         <IconeEquipe steamId={pessoa.id} />
       </b>
-      <small className="lb-info">
-        {pendente ? t('Convite enviado…') : lider ? t('Líder') : pessoa.st === 'online' ? t('Online') : pessoa.st === 'ausente' ? t('Ausente') : t('Offline')}
-      </small>
-      {souLider && !lider && (
+      {pendente ? (
+        <span className="lb-pilula lb-pilula-espera">{t('Convite enviado…')}</span>
+      ) : (
+        <span className="lb-pilula">
+          <SeloNivel nivel={info.nivel} tamanho={22} />
+          {info.classificado ? t('Nível {n}', { n: info.nivel >= 11 ? 'Elite' : info.nivel }) : t('Sem classificação')}
+        </span>
+      )}
+      {souLider && !lider && !centro && (
         <button type="button" className="lb-x" disabled={ocupado} onClick={() => aoRemover(pessoa.id)} aria-label={pendente ? t('Cancelar convite') : t('Remover do lobby')} title={pendente ? t('Cancelar convite') : t('Remover do lobby')}>
           ×
         </button>
@@ -72,7 +137,7 @@ function Lugar({ pessoa, lider, pendente, souLider, eu, aoRemover, aoConvidar, o
   )
 }
 
-// Janela com os amigos que ainda dá para convidar (online primeiro)
+// Janela: convidar um amigo (online primeiro)
 function Convidar({ lobby, aoFechar, aoConvidar, ocupado }) {
   const t = useT()
   const { lista, status } = useAmigos()
@@ -114,7 +179,7 @@ function Convidar({ lobby, aoFechar, aoConvidar, ocupado }) {
                 <b>{a.nome || a.id}</b>
                 <small>{st(a) === 'online' ? t('Online') : st(a) === 'ausente' ? t('Ausente') : t('Offline')}</small>
               </span>
-              <button type="button" className="btn btn-primary lb-btn-p" disabled={ocupado} onClick={() => aoConvidar(a.id)}>
+              <button type="button" className="lb-btn lb-btn-p" disabled={ocupado} onClick={() => aoConvidar(a.id)}>
                 {t('Convidar')}
               </button>
             </li>
@@ -127,18 +192,187 @@ function Convidar({ lobby, aoFechar, aoConvidar, ocupado }) {
   )
 }
 
+// Janela: encontrar lobbies (convites recebidos e lobbies abertos de amigos)
+function Encontrar({ dados, aoFechar, fazer, ocupado }) {
+  const t = useT()
+  const [aba, setAba] = useState(dados.convitesRecebidos.length ? 'convites' : 'abertos')
+  useEffect(() => {
+    const tecla = (e) => e.key === 'Escape' && aoFechar()
+    document.addEventListener('keydown', tecla)
+    return () => document.removeEventListener('keydown', tecla)
+  }, [aoFechar])
+  const linha = (lider, membros, recusar) => (
+    <li key={lider.id}>
+      <span className="lb-amigo-av">
+        <Foto p={lider} />
+        <i className={`lb-bolinha st-${lider.st || 'offline'}`} aria-hidden="true" />
+      </span>
+      <span className="lb-amigo-nome">
+        <b>{lider.nome || lider.id}</b>
+        <small>{t('{n}/{max} no lobby', { n: membros, max: dados.max })}</small>
+      </span>
+      <span className="lb-par">
+        <button type="button" className="lb-btn lb-btn-p" disabled={ocupado} onClick={() => fazer('entrar', lider.id)}>
+          {t('Entrar')}
+        </button>
+        {recusar && (
+          <button type="button" className="lb-btn lb-btn-g" disabled={ocupado} onClick={() => fazer('recusar', lider.id)}>
+            {t('Recusar')}
+          </button>
+        )}
+      </span>
+    </li>
+  )
+  return (
+    <div className="lb-fundo" onClick={aoFechar}>
+      <div className="lb-janela" role="dialog" aria-modal="true" aria-labelledby="lb-enc-titulo" onClick={(e) => e.stopPropagation()}>
+        <div className="lb-janela-cab">
+          <h2 id="lb-enc-titulo">{t('Encontrar lobbies')}</h2>
+          <button type="button" className="lb-fechar" onClick={aoFechar} aria-label={t('Fechar')}>
+            ×
+          </button>
+        </div>
+        <div className="lb-abas" role="tablist">
+          {[
+            ['convites', t('Convites'), dados.convitesRecebidos.length],
+            ['abertos', t('Lobbies de amigos'), dados.abertos.length],
+          ].map(([id, rotulo, n]) => (
+            <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'ativa' : ''} onClick={() => setAba(id)}>
+              {rotulo} <small>{n}</small>
+            </button>
+          ))}
+        </div>
+        <ul className="lb-amigos">
+          {aba === 'convites' && dados.convitesRecebidos.map(({ lider, membros }) => linha(lider, membros, true))}
+          {aba === 'abertos' && dados.abertos.map(({ lider, membros }) => linha(lider, membros, false))}
+          {aba === 'convites' && !dados.convitesRecebidos.length && <li className="lb-vazio-lista">{t('Ninguém te convidou ainda.')}</li>}
+          {aba === 'abertos' && !dados.abertos.length && <li className="lb-vazio-lista">{t('Nenhum amigo com lobby aberto agora.')}</li>}
+        </ul>
+      </div>
+    </div>
+  )
+}
+
+const MODOS = [
+  {
+    id: 'padrao',
+    nome: 'Partida padrão',
+    itens: [
+      ['Grupos de 1 a 5 jogadores', IC_PESSOAS],
+      ['Demo gravada de todo mapa', IC_CHECK],
+      ['Rating, ADR e KAST de cada partida', IC_CHECK],
+      ['XP e nível a cada mapa', IC_CHECK],
+    ],
+  },
+  {
+    id: 'serie',
+    nome: 'Série MD3',
+    itens: [
+      ['Veto de mapas pelo NeuraPick', IC_CHECK],
+      ['Lados definidos pelo veto', IC_CHECK],
+      ['Round faca e pausa com regra', IC_CHECK],
+      ['Placar da série ao vivo', IC_CHECK],
+    ],
+  },
+]
+
+function Painel({ dados }) {
+  const t = useT()
+  const [aba, setAba] = useState('tipo')
+  const [modo, setModo] = useState('padrao')
+  return (
+    <section className="lb-painel" aria-label={t('Partida')}>
+      <div className="lb-buscar-faixa">
+        <p className="lb-aviso">
+          <Marca d={<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />} tamanho={18} />
+          <span>{t('A fila automática ainda não abriu')}</span>
+          {CONFIG.comunidade && (
+            <a href={CONFIG.comunidade} target="_blank" rel="noopener">
+              {t('ENTRAR NA KIVO')}
+            </a>
+          )}
+        </p>
+        <button type="button" className="lb-buscar" disabled title={t('Em breve')}>
+          {t('BUSCAR PARTIDA')}
+          <small>{t('Em breve')}</small>
+        </button>
+      </div>
+
+      <div className="lb-abas-painel" role="tablist">
+        {[
+          ['tipo', t('TIPO DE PARTIDA'), null],
+          ['mapas', t('MAPAS'), `${ALL_MAPS.length}/${ALL_MAPS.length}`],
+          ['servidor', t('SERVIDOR'), '1/1'],
+        ].map(([id, rotulo, n]) => (
+          <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'ativa' : ''} onClick={() => setAba(id)}>
+            {rotulo} {n && <small>{n}</small>}
+          </button>
+        ))}
+      </div>
+
+      <div className="lb-painel-corpo">
+        {aba === 'tipo' && (
+          <div className="lb-modos">
+            {MODOS.map((m) => (
+              <button key={m.id} type="button" className={`lb-modo${modo === m.id ? ' sel' : ''}`} onClick={() => setModo(m.id)} aria-pressed={modo === m.id}>
+                <span className="lb-modo-cab">
+                  <b>{t(m.nome)}</b> <small>· 5v5</small>
+                </span>
+                <span className="lb-modo-itens">
+                  {m.itens.map(([texto, icone]) => (
+                    <span key={texto}>
+                      <Marca d={icone} tamanho={16} />
+                      {t(texto)}
+                    </span>
+                  ))}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+        {aba === 'mapas' && (
+          <ul className="lb-mapas">
+            {ALL_MAPS.map((m) => (
+              <li key={m.id} style={{ '--img': `url('${mapImage(m.id)}')`, '--c1': m.colors[0], '--c2': m.colors[1] }}>
+                <b>{m.name}</b>
+              </li>
+            ))}
+          </ul>
+        )}
+        {aba === 'servidor' && (
+          <div className="lb-servidor">
+            <b>{t('Servidor competitivo')}</b>
+            <p>{t('CS2 com espera 5x5, round faca, séries do NeuraPick, pausa com regra e demos gravadas automaticamente. Chat com cargos.')}</p>
+            {CONFIG.comunidade && (
+              <a className="lb-btn lb-btn-p" href={CONFIG.comunidade} target="_blank" rel="noopener">
+                {t('Jogar com a gente')}
+              </a>
+            )}
+            <small>{t('{n} no seu grupo agora', { n: dados.membros.length })}</small>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
 function Conteudo() {
   const t = useT()
   const { dados, erro, conta } = useLobby()
   const [convidando, setConvidando] = useState(false)
+  const [encontrando, setEncontrando] = useState(false)
   const [ocupado, setOcupado] = useState(false)
   const [aviso, setAviso] = useState('')
+  const nivelDoJogador = useInfoNivel()
+  const ranking = useRanking()
+  const perfis = usePerfis()
 
   const fazer = async (acao, id, valor) => {
     setOcupado(true)
     setAviso('')
     try {
       await acaoLobby(acao, id, valor)
+      if (acao === 'entrar') setEncontrando(false)
     } catch (e) {
       setAviso(ERROS[e.message] || 'Não deu certo. Tente de novo.')
     } finally {
@@ -152,7 +386,7 @@ function Conteudo() {
         <h2>{t('Entre para usar o lobby')}</h2>
         <p>{t('Monte um grupo com seus amigos, convide quem quiser e deixe o lobby aberto para eles entrarem.')}</p>
         {loginAtivo() && (
-          <button type="button" className="btn btn-primary" onClick={entrar}>
+          <button type="button" className="lb-btn lb-btn-p" onClick={entrar}>
             <IconeSteam /> {t('Entrar com Steam')}
           </button>
         )}
@@ -160,39 +394,95 @@ function Conteudo() {
     )
   if (!dados) return <p className="lb-carregando">{erro ? t(ERROS[erro] || 'Não deu para carregar o lobby.') : t('Carregando lobby…')}</p>
 
-  const lugares = Array.from({ length: dados.max }, (_, i) => {
-    const membros = dados.membros
-    if (i < membros.length) return { pessoa: membros[i], lider: i === 0 }
-    const c = dados.convites[i - membros.length]
-    return c ? { pessoa: c, pendente: true } : { pessoa: null }
-  })
+  // Você no meio, os outros ao redor (líder primeiro): posições 1, 3, 0, 4; convites pendentes depois dos membros
+  const eu = dados.eu
+  const outros = [...dados.membros.filter((m) => m.id !== eu).map((p) => ({ pessoa: p, lider: p.id === dados.lider })), ...dados.convites.map((p) => ({ pessoa: p, pendente: true }))]
+  const meu = dados.membros.find((m) => m.id === eu)
+  const ORDEM = [1, 3, 0, 4]
+  const lugares = Array.from({ length: dados.max }, () => ({ pessoa: null }))
+  lugares[2] = { pessoa: meu, lider: dados.lider === eu, centro: true }
+  outros.slice(0, 4).forEach((o, i) => (lugares[ORDEM[i]] = o))
+
+  const { info: meuNivel, j: meuJogador } = nivelDoJogador(eu)
+  const classificado = meuNivel.classificado
+  const cheios = classificado ? Math.round(meuNivel.progresso * 10) : meuNivel.partidas
+  const ordem = ordenarRanking(ranking?.jogadores || [], perfis)
+  const posicao = meuJogador ? ordem.indexOf(meuJogador) + 1 : 0
   const sozinho = dados.membros.length === 1 && !dados.convites.length
+  const lider = dados.membros.find((m) => m.id === dados.lider)
 
   return (
     <>
-      <div className="lb-barra">
-        {dados.souLider ? (
-          <label className={`lb-toggle${dados.publico ? ' ligado' : ''}`}>
-            <input type="checkbox" role="switch" checked={dados.publico} disabled={ocupado} onChange={(e) => fazer('publico', undefined, e.target.checked)} />
-            <i aria-hidden="true" />
-            <span>
-              <b>{t('Grupo público')}</b>
-              <small>{dados.publico ? t('Seus amigos podem entrar sem convite.') : t('Só entra quem você convidar.')}</small>
-            </span>
-          </label>
-        ) : (
-          <p className="lb-quem">
-            {t('Lobby de {nome}', { nome: dados.membros[0]?.nome || dados.lider })}
-            <small>{dados.publico ? t('Grupo público') : t('Só por convite')}</small>
-          </p>
-        )}
-        <div className="lb-acoes">
-          <span className="lb-contagem">
-            {dados.membros.length}/{dados.max}
+      <div className="lb-fila">
+        <span>{t('Fila Brasil 5v5 · CS2')}</span>
+      </div>
+
+      <header className="lb-topo">
+        <div className="lb-nivel">
+          <span className="lb-nivel-gema">
+            <SeloNivel nivel={meuNivel.nivel} tamanho={92} />
           </span>
+          <div className="lb-nivel-info">
+            <span className="lb-chip">{t('Temporada atual')}</span>
+            <h1>{classificado ? (meuNivel.nivel >= 11 ? 'Elite' : t('Nível {n}', { n: meuNivel.nivel })) : t('Sem classificação')}</h1>
+            <div className="lb-segmentos" role="progressbar" aria-valuemin={0} aria-valuemax={10} aria-valuenow={cheios}>
+              {Array.from({ length: 10 }, (_, i) => (
+                <i key={i} className={i < cheios ? 'cheio' : ''} />
+              ))}
+            </div>
+            <small className="lb-nivel-texto">
+              {classificado
+                ? meuNivel.proximo === null
+                  ? t('{xp} XP · nível máximo', { xp: fmt(meuNivel.xp, t) })
+                  : t('{xp} XP · faltam {falta} para o nível {n}', { xp: fmt(meuNivel.xp, t), falta: fmt(meuNivel.falta, t), n: meuNivel.nivel + 1 >= 11 ? 'Elite' : meuNivel.nivel + 1 })
+                : t('Faltam {n} partidas para obter seu nível', { n: meuNivel.faltamPartidas })}
+            </small>
+          </div>
+        </div>
+
+        <a className="lb-temporada" href={linkPerfil(eu)} style={{ '--img': `url('${mapImage('mirage')}')` }}>
+          <span className="lb-temporada-txt">
+            <b>{t('Sua temporada')}</b>
+            {meuJogador ? (
+              <>
+                <span className="lb-temporada-linha">
+                  <em>{posicao > 0 ? `#${posicao}` : '—'}</em> {t('no ranking')} · {t('rating')} <em>{Number(meuJogador.rating || 0).toFixed(2)}</em>
+                </span>
+                <small>
+                  {t('{n} mapas jogados', { n: meuJogador.mapas })} · K/D {Number(meuJogador.kd || 0).toFixed(2)}
+                </small>
+              </>
+            ) : (
+              <small>{t('Jogue um mapa no servidor para aparecer aqui.')}</small>
+            )}
+          </span>
+        </a>
+      </header>
+
+      <div className="lb-nome-linha">
+        <p className="lb-nome-grupo">
+          <b>time_{lider?.nome || dados.lider}</b>
+          <span className="lb-chip lb-chip-claro">{dados.souLider ? t('Líder') : t('Membro')}</span>
+        </p>
+        <div className="lb-ferramentas">
+          {dados.souLider ? (
+            <label className={`lb-toggle${dados.publico ? ' ligado' : ''}`}>
+              <Marca d={IC_PESSOAS} tamanho={17} />
+              <span className="lb-contagem">{dados.membros.length}</span>
+              <b>{t('Grupo público')}</b>
+              <input type="checkbox" role="switch" checked={dados.publico} disabled={ocupado} onChange={(e) => fazer('publico', undefined, e.target.checked)} />
+              <i aria-hidden="true" />
+            </label>
+          ) : (
+            <span className="lb-toggle lb-toggle-fixo">
+              <Marca d={IC_PESSOAS} tamanho={17} />
+              <span className="lb-contagem">{dados.membros.length}</span>
+              <b>{dados.publico ? t('Grupo público') : t('Só por convite')}</b>
+            </span>
+          )}
           {!sozinho && (
-            <button type="button" className="btn btn-ghost" disabled={ocupado} onClick={() => fazer('sair')}>
-              {dados.souLider ? t('Desfazer lobby') : t('Sair do lobby')}
+            <button type="button" className="lb-sair" disabled={ocupado} onClick={() => fazer('sair')} aria-label={dados.souLider ? t('Desfazer lobby') : t('Sair do lobby')} title={dados.souLider ? t('Desfazer lobby') : t('Sair do lobby')}>
+              <Marca d={IC_SAIR} tamanho={20} />
             </button>
           )}
         </div>
@@ -204,71 +494,18 @@ function Conteudo() {
         </p>
       )}
 
-      <div className="lb-lugares">
+      <div className="lb-palco">
         {lugares.map((l, i) => (
-          <Lugar key={i} {...l} eu={dados.eu} souLider={dados.souLider} ocupado={ocupado} aoRemover={(id) => fazer('remover', id)} aoConvidar={() => setConvidando(true)} />
+          <Lugar key={i} {...l} eu={eu} souLider={dados.souLider} ocupado={ocupado} nivelDe={nivelDoJogador} aoRemover={(id) => fazer('remover', id)} aoConvidar={() => setConvidando(true)} />
         ))}
+        <button type="button" className="lb-lugar lb-encontrar" onClick={() => setEncontrando(true)}>
+          <Marca d={IC_BUSCA} tamanho={22} />
+          <b>{t('Encontrar lobbies')}</b>
+          {dados.convitesRecebidos.length > 0 && <span className="lb-badge">{dados.convitesRecebidos.length}</span>}
+        </button>
       </div>
 
-      <div className="lb-colunas">
-        <section className="lb-caixa">
-          <h3>
-            {t('Convites recebidos')} <small>{dados.convitesRecebidos.length}</small>
-          </h3>
-          {dados.convitesRecebidos.length ? (
-            <ul className="lb-lista">
-              {dados.convitesRecebidos.map(({ lider, membros }) => (
-                <li key={lider.id}>
-                  <span className="lb-amigo-av">
-                    <Foto p={lider} />
-                  </span>
-                  <span className="lb-amigo-nome">
-                    <b>{lider.nome || lider.id}</b>
-                    <small>{t('{n}/{max} no lobby', { n: membros, max: dados.max })}</small>
-                  </span>
-                  <span className="lb-par">
-                    <button type="button" className="btn btn-primary lb-btn-p" disabled={ocupado} onClick={() => fazer('entrar', lider.id)}>
-                      {t('Entrar')}
-                    </button>
-                    <button type="button" className="btn btn-ghost lb-btn-p" disabled={ocupado} onClick={() => fazer('recusar', lider.id)}>
-                      {t('Recusar')}
-                    </button>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="lb-nada">{t('Ninguém te convidou ainda.')}</p>
-          )}
-        </section>
-
-        <section className="lb-caixa">
-          <h3>
-            {t('Lobbies abertos de amigos')} <small>{dados.abertos.length}</small>
-          </h3>
-          {dados.abertos.length ? (
-            <ul className="lb-lista">
-              {dados.abertos.map(({ lider, membros }) => (
-                <li key={lider.id}>
-                  <span className="lb-amigo-av">
-                    <Foto p={lider} />
-                    <i className={`lb-bolinha st-${lider.st || 'offline'}`} aria-hidden="true" />
-                  </span>
-                  <span className="lb-amigo-nome">
-                    <b>{lider.nome || lider.id}</b>
-                    <small>{t('{n}/{max} no lobby', { n: membros, max: dados.max })}</small>
-                  </span>
-                  <button type="button" className="btn btn-primary lb-btn-p" disabled={ocupado} onClick={() => fazer('entrar', lider.id)}>
-                    {t('Entrar')}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="lb-nada">{t('Nenhum amigo com lobby aberto agora.')}</p>
-          )}
-        </section>
-      </div>
+      <Painel dados={dados} />
 
       {convidando && dados.souLider && (
         <Convidar
@@ -280,24 +517,16 @@ function Conteudo() {
           }}
         />
       )}
+      {encontrando && <Encontrar dados={dados} fazer={fazer} ocupado={ocupado} aoFechar={() => setEncontrando(false)} />}
     </>
   )
 }
 
 export default function Lobby() {
-  const t = useT()
   return (
     <Layout pagina="lobby">
       <main className="lb-pagina">
-        <FundoHero quantidade={8} rastros={false} />
         <div className="wrap lb-wrap">
-          <header className="lb-cab">
-            <span className="kicker">
-              <b>●</b> {t('JOGAR EM GRUPO')}
-            </span>
-            <h1>{t('Lobby')}</h1>
-            <p>{t('Chame amigos para o seu grupo, tire quem quiser e deixe o lobby aberto para eles entrarem sozinhos.')}</p>
-          </header>
           <Conteudo />
         </div>
       </main>
