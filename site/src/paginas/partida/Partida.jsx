@@ -155,17 +155,14 @@ function useRevelarSecoes(ativo) {
   }, [ativo])
 }
 
-// Logo do time: o da série (NeuraPick) ou, sem logo, a foto do melhor jogador do time (como o capitão na FACEIT)
+// Logo do time: o da série (NeuraPick) ou, sem logo, a foto do líder do time (o nome do time da fila do site é time_<líder>); sem achar o líder, a do melhor jogador.
+// Sem emblema de assinatura: é só a foto de perfil.
 function LogoTime({ url, nome, capitao, t }) {
   const [erro, setErro] = useState(false)
   return (
     <span className={`bn-logo bn-logo-${t}`}>
       <span className="bn-ini">{iniciais(nome)}</span>
-      {urlOk(url) ? !erro && <img className="bn-img" src={url} alt="" onError={() => setErro(true)} /> : capitao && (
-          <ComMoldura steamId={capitao.steamId} soEmblema>
-            <Avatar e={capitao} classe="bn-img" />
-          </ComMoldura>
-        )}
+      {urlOk(url) ? !erro && <img className="bn-img" src={url} alt="" onError={() => setErro(true)} /> : capitao && <Avatar e={capitao} classe="bn-img" />}
     </span>
   )
 }
@@ -184,8 +181,13 @@ function Banner({ d, nomeTime, vencedor, porRating, comecou }) {
   const tr = useT()
   const serie = d.serie
   const trilhaFim = serie ? tr('Mapa {n} de {total}', { n: serie.atual + 1, total: serie.mapas.length }) : tr('Partida encerrada')
+  const liderDe = (t) => {
+    const doTime = porRating.filter((e) => e.time === t)
+    const nomeLider = String(nomeTime(t) || '').replace(/^time_/i, '').replace(/\s*\(\d+\)$/, '').trim().toLowerCase()
+    return doTime.find((e) => String(e.nome || '').trim().toLowerCase() === nomeLider) || doTime[0]
+  }
   const logo = (t) => (
-    <LogoTime t={t} url={t === 'A' ? d.logoA : d.logoB} nome={nomeTime(t)} capitao={porRating.find((e) => e.time === t)} />
+    <LogoTime t={t} url={t === 'A' ? d.logoA : d.logoB} nome={nomeTime(t)} capitao={liderDe(t)} />
   )
   const nome = (t) => <NomeTime t={t} nome={nomeTime(t)} venceu={vencedor === t} />
 
