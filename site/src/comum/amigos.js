@@ -17,6 +17,7 @@ let dono = null // SteamID da conexão atual
 let tentativas = 0
 let religar = null
 let pingar = null
+let ultimoSinal = 0 // última vez que o worker respondeu (pong ou mensagem)
 let ocioso = null
 let meuStatus = 'online'
 
@@ -76,6 +77,45 @@ const atividade = () => {
 }
 const visibilidade = () => (document.visibilityState === 'visible' ? atividade() : mandarStatus('ausente'))
 
+// Conexão que parou de responder (PC dormiu, rede trocou) não dispara "close" na hora: derruba e liga de novo sem esperar
+function verificar() {
+  if (ws?.readyState !== 1) return
+  if (Date.now() - ultimoSinal > 50000) return reconectar()
+  ws.send('ping')
+}
+function reconectar() {
+  if (!dono) return
+  const id = dono
+  clearTimeout(religar)
+  clearInterval(pingar)
+  const velha = ws
+  ws = null
+  if (velha) {
+    velha.onclose = velha.onmessage = velha.onopen = null
+    try {
+      velha.close()
+    } catch {
+      // já fechada
+    }
+  }
+  tentativas = 0
+  publicar({ conectado: false })
+  conectar(id)
+}
+// Voltou para a aba / a internet voltou: se a conexão não está aberta liga já; se está, confere com um ping
+function acordou() {
+  if (!dono || document.visibilityState === 'hidden') return
+  if (!ws || ws.readyState > 1) return reconectar()
+  if (Date.now() - ultimoSinal > 25000) {
+    ultimoSinal = Math.min(ultimoSinal, Date.now() - 40000) // se não vier pong em ~10 s, o próximo verificar() derruba
+    try {
+      ws.send('ping')
+    } catch {
+      reconectar()
+    }
+  }
+}
+
 function conectar(id) {
   const token = tokenConta()
   if (!token || !CONFIG.loginSteam) return
@@ -87,9 +127,11 @@ function conectar(id) {
     meuStatus = 'online'
     if (document.visibilityState !== 'visible') mandarStatus('ausente')
     clearInterval(pingar)
-    pingar = setInterval(() => ws?.readyState === 1 && ws.send('ping'), 30000) // mantém a conexão viva
+    ultimoSinal = Date.now()
+    pingar = setInterval(verificar, 20000) // mantém a conexão viva e percebe quando ela morreu sem avisar
   }
   ws.onmessage = (e) => {
+    ultimoSinal = Date.now()
     if (e.data === 'pong') return
     let m
     try {
@@ -141,6 +183,7 @@ function ligar(id) {
     window.__npAmigosEventos = true
     for (const ev of ['mousemove', 'keydown', 'pointerdown', 'scroll', 'focus']) window.addEventListener(ev, atividade, { passive: true })
     document.addEventListener('visibilitychange', visibilidade)
+    for (const ev of ['visibilitychange', 'focus', 'online']) (ev === 'visibilitychange' ? document : window).addEventListener(ev, acordou)
     atividade()
   }
 }
