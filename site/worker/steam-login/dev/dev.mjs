@@ -33,7 +33,7 @@ const tokenServidor = () => /^SERVIDOR_TOKEN="?([^"\r\n]+)/m.exec(fs.readFileSyn
 // Servidor de CS2 de mentira para o teste (o plugin de verdade usa o token do worker de produção)
 function garantirVarsServidor() {
   let vars = fs.readFileSync(VARS, 'utf8')
-  for (const [k, v] of [['SERVIDOR_TOKEN', 'token-de-teste-local'], ['SERVIDOR_CONECTAR', '127.0.0.1:27015'], ['SERVIDOR_SENHA', 'senha123']])
+  for (const [k, v] of [['SERVIDOR_TOKEN', 'token-de-teste-local'], ['SERVIDOR_CONECTAR', '127.0.0.1:27015'], ['SERVIDOR_SENHA', 'senha123'], ['MODO_TESTE', '1']])
     if (!vars.includes(k + '=')) vars += (vars.endsWith('\n') ? '' : '\n') + k + '="' + v + '"\n'
   fs.writeFileSync(VARS, vars)
 }

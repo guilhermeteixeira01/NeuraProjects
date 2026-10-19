@@ -336,8 +336,6 @@
   box-shadow: 0 0 40px -10px var(--accent); animation: lb-pulsa 1.6s ease-in-out infinite; transition: transform .15s;
 }
 .sala-entrar:hover { transform: scale(1.03); }
-.sala-encerrar { border: 0; background: none; color: var(--dim-2); font: 600 13px var(--font-body); text-decoration: underline; cursor: pointer; }
-.sala-encerrar:hover:not(:disabled) { color: var(--red); }
 
 @media (max-width: 1280px) {
   .sala-grade { grid-template-columns: minmax(200px, 240px) minmax(0, 1fr) minmax(200px, 240px); gap: 14px; }

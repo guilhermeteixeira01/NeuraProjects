@@ -95,10 +95,14 @@ function Equipe({ lado, time, nome, naVez }) {
 
 // O que o botão do fim do veto mostra, conforme a fase do servidor de CS2 (o plugin avisa o worker; ver src/amigos.js):
 // fila/entregue = esperando o servidor, carregada/jogando = pode entrar (steam://connect), encerrada/erro = acabou.
-function Conectar({ servidor }) {
+// fechaEm/desvio: a sala não tem botão de cancelar nem de encerrar; quando a série acaba (ou dá erro) ela fecha sozinha e mostra o tempo que falta
+function Conectar({ servidor, fechaEm, desvio }) {
   const t = useT()
   const [copiado, setCopiado] = useState(false)
   const estado = servidor?.estado || 'fila'
+  useRelogio(estado === 'encerrada' || estado === 'erro', 1000)
+  const restante = Math.ceil(msAte(fechaEm, desvio) / 1000)
+  const fecha = <small>{t('Voltando ao lobby em {tempo}', { tempo: `${Math.floor(restante / 60)}:${String(restante % 60).padStart(2, '0')}` })}</small>
   const { conectar = '', senha = '' } = servidor || {}
   const comando = `connect ${conectar}${senha ? `; password ${senha}` : ''}`
   const copiar = async () => {
@@ -128,6 +132,7 @@ function Conectar({ servidor }) {
         <p className="lb-erro" role="alert">
           {t('O servidor não conseguiu carregar a partida.')} {servidor?.detalhe}
         </p>
+        {fecha}
       </div>
     )
 
@@ -136,6 +141,7 @@ function Conectar({ servidor }) {
       <div className="sala-servidor">
         <b className="sala-fim">{t('PARTIDA ENCERRADA')}</b>
         {servidor?.placar && <small>{t('Placar da série: {p}', { p: servidor.placar })}</small>}
+        {fecha}
       </div>
     )
 
@@ -179,7 +185,6 @@ export default function SalaVeto({ dados }) {
   const decider = pronto ? remaining[0] : null
   const nome = (tm) => `time_${times[tm].membros.find((m) => m.id === times[tm].lider)?.nome || times[tm].lider}`
   const minhaVez = !pronto && times[passo.team].lider === eu
-  const souLider = times[meuTime].lider === eu
   const formato = FORMATS[partida.formato]?.label || partida.formato
   const segundos = Math.ceil(msAte(partida.prazo, partida.desvio) / 1000)
 
@@ -244,16 +249,11 @@ export default function SalaVeto({ dados }) {
                   </li>
                 ))}
               </ul>
-              <Conectar servidor={partida.servidor} />
+              <Conectar servidor={partida.servidor} fechaEm={partida.prazo} desvio={partida.desvio} />
               {aviso && (
                 <p className="lb-erro" role="alert">
                   {t(aviso)}
                 </p>
-              )}
-              {(souLider || ['encerrada', 'erro'].includes(partida.servidor?.estado)) && (
-                <button type="button" className="sala-encerrar" disabled={ocupado} onClick={() => agir('encerrar')}>
-                  {t(partida.servidor?.estado === 'encerrada' ? 'Fechar sala' : 'Encerrar sala')}
-                </button>
               )}
             </div>
           ) : (
