@@ -1,23 +1,5 @@
 [
   {
-    "id": "2026-10-19_15-31_Digital-Gamers-x-Kivo",
-    "organizacao": "neura-project",
-    "categoria": "md1",
-    "formato": "MD1",
-    "timeA": "Digital Gamers",
-    "timeB": "Kivo",
-    "logoA": "https://i.imgur.com/EgmqWQi.jpg",
-    "logoB": "https://i.imgur.com/qOKC9BF.png",
-    "mapas": [
-      "de_mirage"
-    ],
-    "status": "cancelada",
-    "mapaAtual": 0,
-    "criada": "2026-10-19 15:31",
-    "atualizada": "2026-10-19 15:35",
-    "canceladaEm": "2026-10-19T15:35:04+00:00"
-  },
-  {
     "id": "2026-10-16_19-56_Digital-Gamers-x-Neura-Project",
     "organizacao": "dga",
     "categoria": "md3",
