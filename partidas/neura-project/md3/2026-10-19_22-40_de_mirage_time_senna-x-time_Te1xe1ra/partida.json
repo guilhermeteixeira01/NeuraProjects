@@ -1,0 +1,1041 @@
+{
+  "versao": 1,
+  "nome": "2026-10-19_22-40_de_mirage_time_senna-x-time_Te1xe1ra",
+  "caminho": "neura-project/md3/2026-10-19_22-40_de_mirage_time_senna-x-time_Te1xe1ra",
+  "organizacao": "neura-project",
+  "categoria": "md3",
+  "mapa": "de_mirage",
+  "inicio": "2026-10-19 22:40",
+  "duracaoMin": 29,
+  "maxRounds": 24,
+  "roundsProrrogacao": 4,
+  "placarA": 13,
+  "placarB": 6,
+  "timeA": "time_senna",
+  "timeB": "time_Te1xe1ra",
+  "logoA": null,
+  "logoB": null,
+  "serie": {
+    "id": "2026-10-19_22-31_time_senna-x-time_Te1xe1ra",
+    "formato": "MD3",
+    "atual": 0,
+    "vitoriasA": 1,
+    "vitoriasB": 0,
+    "mapas": [
+      {
+        "mapa": "de_mirage",
+        "faca": false,
+        "ct": "B",
+        "vencedor": "A",
+        "placar": "13-6"
+      },
+      {
+        "mapa": "de_dust2",
+        "faca": false,
+        "ct": "B",
+        "vencedor": null,
+        "placar": null
+      },
+      {
+        "mapa": "de_cache",
+        "faca": true,
+        "ct": null,
+        "vencedor": null,
+        "placar": null
+      }
+    ]
+  },
+  "rounds": [
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 1
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 1
+    },
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 1
+    },
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 7
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 7
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 7
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "B",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 7
+    }
+  ],
+  "jogadores": [
+    {
+      "steamId": "76561199888031735",
+      "nome": "Nighthawk",
+      "avatar": "https://avatars.fastly.steamstatic.com/a29d16b164bb9c78321c32b02e4767d2e8258b10_full.jpg",
+      "time": "B",
+      "rounds": 19,
+      "kills": 8,
+      "mortes": 15,
+      "assistencias": 3,
+      "headshots": 2,
+      "dano": 944,
+      "mvps": 0,
+      "primeirasKills": 3,
+      "primeirasMortes": 1,
+      "kast": 11,
+      "k2": 1,
+      "k3": 0,
+      "k4": 0,
+      "k5": 0,
+      "rating": 0.5545,
+      "util": {
+        "flash": 9,
+        "he": 0,
+        "smoke": 4,
+        "molotov": 2,
+        "decoy": 0,
+        "naoUsadosTipo": {
+          "flash": 18,
+          "he": 0,
+          "smoke": 6,
+          "molotov": 7,
+          "decoy": 0
+        },
+        "naoUsados": 31,
+        "dano": 16,
+        "danoAliados": 0,
+        "danoRecebido": 167,
+        "inimigosCegos": 3,
+        "tempoCegoInimigos": 5.2,
+        "flashAssists": 0,
+        "aliadosCegos": 4,
+        "tempoCegoAliados": 5.6
+      },
+      "armas": {
+        "famas": {
+          "kills": 2,
+          "headshots": 1,
+          "dano": 274,
+          "acertos": 10
+        },
+        "ak47": {
+          "kills": 2,
+          "headshots": 1,
+          "dano": 222,
+          "acertos": 6
+        },
+        "m4a1_silencer": {
+          "kills": 2,
+          "headshots": 0,
+          "dano": 175,
+          "acertos": 8
+        },
+        "galilar": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 179,
+          "acertos": 5
+        },
+        "glock": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 17,
+          "acertos": 2
+        },
+        "usp_silencer": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 61,
+          "acertos": 4
+        },
+        "molotov": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 16,
+          "acertos": 2
+        }
+      }
+    },
+    {
+      "steamId": "76561199151150360",
+      "nome": "Te1xe1ra",
+      "avatar": "https://avatars.fastly.steamstatic.com/6e6b1f19593abf460f6247ecdb2c10dcda7d77a2_full.jpg",
+      "time": "B",
+      "rounds": 19,
+      "kills": 17,
+      "mortes": 12,
+      "assistencias": 5,
+      "headshots": 5,
+      "dano": 1704,
+      "mvps": 3,
+      "primeirasKills": 2,
+      "primeirasMortes": 4,
+      "kast": 13,
+      "k2": 4,
+      "k3": 0,
+      "k4": 1,
+      "k5": 0,
+      "rating": 1.3542,
+      "util": {
+        "flash": 11,
+        "he": 9,
+        "smoke": 8,
+        "molotov": 10,
+        "decoy": 1,
+        "naoUsadosTipo": {
+          "flash": 2,
+          "he": 0,
+          "smoke": 0,
+          "molotov": 0,
+          "decoy": 0
+        },
+        "naoUsados": 2,
+        "dano": 42,
+        "danoAliados": 8,
+        "danoRecebido": 12,
+        "inimigosCegos": 11,
+        "tempoCegoInimigos": 23.2,
+        "flashAssists": 0,
+        "aliadosCegos": 7,
+        "tempoCegoAliados": 14.6
+      },
+      "armas": {
+        "awp": {
+          "kills": 7,
+          "headshots": 2,
+          "dano": 656,
+          "acertos": 8
+        },
+        "m4a1_silencer": {
+          "kills": 5,
+          "headshots": 1,
+          "dano": 384,
+          "acertos": 16
+        },
+        "ak47": {
+          "kills": 3,
+          "headshots": 1,
+          "dano": 356,
+          "acertos": 16
+        },
+        "usp_silencer": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 181,
+          "acertos": 4
+        },
+        "m4a1": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 83,
+          "acertos": 4
+        },
+        "molotov": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 32,
+          "acertos": 4
+        },
+        "he": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 10,
+          "acertos": 2
+        },
+        "smokegrenade": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 1,
+          "acertos": 1
+        },
+        "flashbang": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 1,
+          "acertos": 1
+        }
+      }
+    },
+    {
+      "steamId": "76561199869966304",
+      "nome": "Kz",
+      "avatar": "https://avatars.fastly.steamstatic.com/cbc623a8f64d5feef25ca3e8c60236137918b220_full.jpg",
+      "time": "A",
+      "rounds": 19,
+      "kills": 10,
+      "mortes": 12,
+      "assistencias": 7,
+      "headshots": 6,
+      "dano": 1397,
+      "mvps": 3,
+      "primeirasKills": 2,
+      "primeirasMortes": 3,
+      "kast": 15,
+      "k2": 0,
+      "k3": 0,
+      "k4": 0,
+      "k5": 0,
+      "rating": 0.741,
+      "util": {
+        "flash": 21,
+        "he": 5,
+        "smoke": 13,
+        "molotov": 11,
+        "decoy": 0,
+        "naoUsadosTipo": {
+          "flash": 2,
+          "he": 2,
+          "smoke": 1,
+          "molotov": 3,
+          "decoy": 0
+        },
+        "naoUsados": 8,
+        "dano": 109,
+        "danoAliados": 24,
+        "danoRecebido": 44,
+        "inimigosCegos": 11,
+        "tempoCegoInimigos": 29.3,
+        "flashAssists": 0,
+        "aliadosCegos": 8,
+        "tempoCegoAliados": 13.2
+      },
+      "armas": {
+        "ak47": {
+          "kills": 5,
+          "headshots": 2,
+          "dano": 727,
+          "acertos": 24
+        },
+        "usp_silencer": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 218,
+          "acertos": 7
+        },
+        "m4a1": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 144,
+          "acertos": 4
+        },
+        "glock": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 74,
+          "acertos": 4
+        },
+        "m4a1_silencer": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 60,
+          "acertos": 2
+        },
+        "he": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 36,
+          "acertos": 2
+        },
+        "molotov": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 73,
+          "acertos": 13
+        },
+        "mp9": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 65,
+          "acertos": 2
+        }
+      }
+    },
+    {
+      "steamId": "76561199054634150",
+      "nome": "rkzada",
+      "avatar": "https://avatars.fastly.steamstatic.com/a010df5690c38643149635a8a456584d09ddd33b_full.jpg",
+      "time": "B",
+      "rounds": 19,
+      "kills": 19,
+      "mortes": 13,
+      "assistencias": 3,
+      "headshots": 6,
+      "dano": 1572,
+      "mvps": 1,
+      "primeirasKills": 1,
+      "primeirasMortes": 1,
+      "kast": 12,
+      "k2": 2,
+      "k3": 3,
+      "k4": 0,
+      "k5": 0,
+      "rating": 1.4296,
+      "util": {
+        "flash": 22,
+        "he": 3,
+        "smoke": 8,
+        "molotov": 6,
+        "decoy": 0,
+        "naoUsadosTipo": {
+          "flash": 2,
+          "he": 2,
+          "smoke": 3,
+          "molotov": 0,
+          "decoy": 0
+        },
+        "naoUsados": 7,
+        "dano": 0,
+        "danoAliados": 0,
+        "danoRecebido": 0,
+        "inimigosCegos": 11,
+        "tempoCegoInimigos": 26.7,
+        "flashAssists": 1,
+        "aliadosCegos": 9,
+        "tempoCegoAliados": 25.1
+      },
+      "armas": {
+        "m4a1_silencer": {
+          "kills": 11,
+          "headshots": 2,
+          "dano": 724,
+          "acertos": 29
+        },
+        "ak47": {
+          "kills": 3,
+          "headshots": 0,
+          "dano": 292,
+          "acertos": 11
+        },
+        "usp_silencer": {
+          "kills": 2,
+          "headshots": 2,
+          "dano": 154,
+          "acertos": 3
+        },
+        "galilar": {
+          "kills": 2,
+          "headshots": 1,
+          "dano": 129,
+          "acertos": 8
+        },
+        "deagle": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 144,
+          "acertos": 2
+        },
+        "glock": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 93,
+          "acertos": 7
+        },
+        "m4a1": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 27,
+          "acertos": 1
+        },
+        "mp9": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 9,
+          "acertos": 2
+        }
+      }
+    },
+    {
+      "steamId": "76561198357752259",
+      "nome": "aka.carlin",
+      "avatar": "https://avatars.fastly.steamstatic.com/4284c4ee7d9dbb07fe5d23ffe39c8f2d0e44b470_full.jpg",
+      "time": "B",
+      "rounds": 19,
+      "kills": 9,
+      "mortes": 17,
+      "assistencias": 8,
+      "headshots": 6,
+      "dano": 1403,
+      "mvps": 2,
+      "primeirasKills": 1,
+      "primeirasMortes": 3,
+      "kast": 13,
+      "k2": 1,
+      "k3": 1,
+      "k4": 0,
+      "k5": 0,
+      "rating": 0.604,
+      "util": {
+        "flash": 7,
+        "he": 5,
+        "smoke": 2,
+        "molotov": 10,
+        "decoy": 0,
+        "naoUsadosTipo": {
+          "flash": 7,
+          "he": 2,
+          "smoke": 4,
+          "molotov": 1,
+          "decoy": 0
+        },
+        "naoUsados": 14,
+        "dano": 135,
+        "danoAliados": 0,
+        "danoRecebido": 1,
+        "inimigosCegos": 3,
+        "tempoCegoInimigos": 10.6,
+        "flashAssists": 0,
+        "aliadosCegos": 2,
+        "tempoCegoAliados": 8
+      },
+      "armas": {
+        "m4a1": {
+          "kills": 4,
+          "headshots": 3,
+          "dano": 468,
+          "acertos": 10
+        },
+        "ak47": {
+          "kills": 2,
+          "headshots": 1,
+          "dano": 319,
+          "acertos": 12
+        },
+        "usp_silencer": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 167,
+          "acertos": 3
+        },
+        "m4a1_silencer": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 126,
+          "acertos": 6
+        },
+        "deagle": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 100,
+          "acertos": 2
+        },
+        "he": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 133,
+          "acertos": 5
+        },
+        "glock": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 66,
+          "acertos": 2
+        },
+        "fiveseven": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 22,
+          "acertos": 1
+        },
+        "molotov": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 2,
+          "acertos": 2
+        }
+      }
+    },
+    {
+      "steamId": "76561198126107307",
+      "nome": "Caféfps",
+      "avatar": "https://avatars.fastly.steamstatic.com/7ac33b9f5721ee042fa7a46a64183851662d4f84_full.jpg",
+      "time": "A",
+      "rounds": 19,
+      "kills": 25,
+      "mortes": 11,
+      "assistencias": 4,
+      "headshots": 11,
+      "dano": 2371,
+      "mvps": 3,
+      "primeirasKills": 3,
+      "primeirasMortes": 0,
+      "kast": 16,
+      "k2": 6,
+      "k3": 2,
+      "k4": 1,
+      "k5": 0,
+      "rating": 1.9932,
+      "util": {
+        "flash": 16,
+        "he": 4,
+        "smoke": 12,
+        "molotov": 13,
+        "decoy": 0,
+        "naoUsadosTipo": {
+          "flash": 2,
+          "he": 0,
+          "smoke": 0,
+          "molotov": 0,
+          "decoy": 0
+        },
+        "naoUsados": 2,
+        "dano": 0,
+        "danoAliados": 0,
+        "danoRecebido": 161,
+        "inimigosCegos": 3,
+        "tempoCegoInimigos": 9.6,
+        "flashAssists": 0,
+        "aliadosCegos": 1,
+        "tempoCegoAliados": 1
+      },
+      "armas": {
+        "ak47": {
+          "kills": 16,
+          "headshots": 10,
+          "dano": 1610,
+          "acertos": 41
+        },
+        "awp": {
+          "kills": 7,
+          "headshots": 0,
+          "dano": 490,
+          "acertos": 7
+        },
+        "m4a1_silencer": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 33,
+          "acertos": 1
+        },
+        "faca": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 31,
+          "acertos": 1
+        },
+        "glock": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 82,
+          "acertos": 2
+        },
+        "m4a1": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 68,
+          "acertos": 3
+        },
+        "deagle": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 36,
+          "acertos": 1
+        },
+        "usp_silencer": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 21,
+          "acertos": 1
+        }
+      }
+    },
+    {
+      "steamId": "76561198780628109",
+      "nome": "senna",
+      "avatar": "https://avatars.fastly.steamstatic.com/ad2b5343690d0c32cf3efc6d194b82446bc885ec_full.jpg",
+      "time": "A",
+      "rounds": 19,
+      "kills": 13,
+      "mortes": 15,
+      "assistencias": 4,
+      "headshots": 3,
+      "dano": 1447,
+      "mvps": 2,
+      "primeirasKills": 2,
+      "primeirasMortes": 2,
+      "kast": 14,
+      "k2": 2,
+      "k3": 1,
+      "k4": 0,
+      "k5": 0,
+      "rating": 0.8965,
+      "util": {
+        "flash": 12,
+        "he": 5,
+        "smoke": 11,
+        "molotov": 6,
+        "decoy": 0,
+        "naoUsadosTipo": {
+          "flash": 11,
+          "he": 1,
+          "smoke": 6,
+          "molotov": 6,
+          "decoy": 0
+        },
+        "naoUsados": 24,
+        "dano": 63,
+        "danoAliados": 0,
+        "danoRecebido": 0,
+        "inimigosCegos": 11,
+        "tempoCegoInimigos": 36.7,
+        "flashAssists": 0,
+        "aliadosCegos": 4,
+        "tempoCegoAliados": 9.9
+      },
+      "armas": {
+        "ak47": {
+          "kills": 5,
+          "headshots": 0,
+          "dano": 570,
+          "acertos": 21
+        },
+        "usp_silencer": {
+          "kills": 3,
+          "headshots": 1,
+          "dano": 158,
+          "acertos": 5
+        },
+        "ssg08": {
+          "kills": 2,
+          "headshots": 0,
+          "dano": 146,
+          "acertos": 3
+        },
+        "m4a1_silencer": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 159,
+          "acertos": 7
+        },
+        "glock": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 140,
+          "acertos": 6
+        },
+        "m4a1": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 112,
+          "acertos": 3
+        },
+        "galilar": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 97,
+          "acertos": 4
+        },
+        "he": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 63,
+          "acertos": 2
+        },
+        "smokegrenade": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 2,
+          "acertos": 2
+        }
+      }
+    },
+    {
+      "steamId": "76561199850349499",
+      "nome": "JzinZZ",
+      "avatar": "https://avatars.fastly.steamstatic.com/3ad5f14e42393048cb459c9c91eaed7d305df6fd_full.jpg",
+      "time": "A",
+      "rounds": 19,
+      "kills": 14,
+      "mortes": 10,
+      "assistencias": 3,
+      "headshots": 10,
+      "dano": 1325,
+      "mvps": 4,
+      "primeirasKills": 2,
+      "primeirasMortes": 3,
+      "kast": 15,
+      "k2": 2,
+      "k3": 1,
+      "k4": 0,
+      "k5": 0,
+      "rating": 1.1557,
+      "util": {
+        "flash": 10,
+        "he": 6,
+        "smoke": 12,
+        "molotov": 2,
+        "decoy": 0,
+        "naoUsadosTipo": {
+          "flash": 3,
+          "he": 6,
+          "smoke": 2,
+          "molotov": 6,
+          "decoy": 1
+        },
+        "naoUsados": 18,
+        "dano": 145,
+        "danoAliados": 0,
+        "danoRecebido": 32,
+        "inimigosCegos": 3,
+        "tempoCegoInimigos": 10.8,
+        "flashAssists": 0,
+        "aliadosCegos": 2,
+        "tempoCegoAliados": 5.5
+      },
+      "armas": {
+        "m4a1": {
+          "kills": 7,
+          "headshots": 5,
+          "dano": 624,
+          "acertos": 20
+        },
+        "ak47": {
+          "kills": 5,
+          "headshots": 4,
+          "dano": 414,
+          "acertos": 6
+        },
+        "glock": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 108,
+          "acertos": 5
+        },
+        "awp": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 34,
+          "acertos": 1
+        },
+        "he": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 145,
+          "acertos": 7
+        }
+      }
+    },
+    {
+      "steamId": "76561199802548645",
+      "nome": "floz",
+      "avatar": "https://avatars.fastly.steamstatic.com/ebf05bad43230773d7f36841fe0452b217274b56_full.jpg",
+      "time": "A",
+      "rounds": 19,
+      "kills": 8,
+      "mortes": 12,
+      "assistencias": 4,
+      "headshots": 3,
+      "dano": 988,
+      "mvps": 1,
+      "primeirasKills": 1,
+      "primeirasMortes": 1,
+      "kast": 14,
+      "k2": 1,
+      "k3": 0,
+      "k4": 0,
+      "k5": 0,
+      "rating": 0.6836,
+      "util": {
+        "flash": 0,
+        "he": 1,
+        "smoke": 3,
+        "molotov": 0,
+        "decoy": 0,
+        "naoUsadosTipo": {
+          "flash": 13,
+          "he": 5,
+          "smoke": 8,
+          "molotov": 3,
+          "decoy": 0
+        },
+        "naoUsados": 29,
+        "dano": 0,
+        "danoAliados": 0,
+        "danoRecebido": 0,
+        "inimigosCegos": 0,
+        "tempoCegoInimigos": 0,
+        "flashAssists": 0,
+        "aliadosCegos": 0,
+        "tempoCegoAliados": 0
+      },
+      "armas": {
+        "m4a1_silencer": {
+          "kills": 4,
+          "headshots": 0,
+          "dano": 516,
+          "acertos": 19
+        },
+        "ak47": {
+          "kills": 3,
+          "headshots": 3,
+          "dano": 372,
+          "acertos": 12
+        },
+        "famas": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 99,
+          "acertos": 3
+        },
+        "smokegrenade": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 1,
+          "acertos": 1
+        }
+      }
+    },
+    {
+      "steamId": "76561198711226712",
+      "nome": "PastorBatata",
+      "avatar": "https://avatars.fastly.steamstatic.com/48a921906ddeafb2cb3da29410dbcb51d6326f4e_full.jpg",
+      "time": "B",
+      "rounds": 19,
+      "kills": 7,
+      "mortes": 14,
+      "assistencias": 5,
+      "headshots": 2,
+      "dano": 785,
+      "mvps": 0,
+      "primeirasKills": 2,
+      "primeirasMortes": 1,
+      "kast": 12,
+      "k2": 2,
+      "k3": 0,
+      "k4": 0,
+      "k5": 0,
+      "rating": 0.5841,
+      "util": {
+        "flash": 4,
+        "he": 2,
+        "smoke": 4,
+        "molotov": 4,
+        "decoy": 0,
+        "naoUsadosTipo": {
+          "flash": 11,
+          "he": 4,
+          "smoke": 3,
+          "molotov": 1,
+          "decoy": 0
+        },
+        "naoUsados": 19,
+        "dano": 44,
+        "danoAliados": 0,
+        "danoRecebido": 137,
+        "inimigosCegos": 0,
+        "tempoCegoInimigos": 0,
+        "flashAssists": 0,
+        "aliadosCegos": 2,
+        "tempoCegoAliados": 5.6
+      },
+      "armas": {
+        "m4a1": {
+          "kills": 3,
+          "headshots": 0,
+          "dano": 420,
+          "acertos": 20
+        },
+        "ak47": {
+          "kills": 3,
+          "headshots": 1,
+          "dano": 191,
+          "acertos": 6
+        },
+        "usp_silencer": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 100,
+          "acertos": 1
+        },
+        "he": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 44,
+          "acertos": 1
+        },
+        "m4a1_silencer": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 30,
+          "acertos": 1
+        }
+      }
+    }
+  ],
+  "demo": "https://github.com/guilhermeteixeira01/NeuraProjects/releases/download/demo-2026-10-19_22-40_de_mirage_time_senna-x-time_Te1xe1ra/2026-10-19_22-40_de_mirage_time_senna-x-time_Te1xe1ra.zip",
+  "gerado": "2026-10-19 23:09"
+}
