@@ -393,17 +393,13 @@ export default function Nav({ pagina }) {
           )
         })}
         {loginAtivo() &&
-          (conta ? (
-            <a className={`nx-aba${pagina === 'perfil' ? ' is-active' : ''}`} href={linkPerfil(conta.id)}>
-              <i><IconePerfil /></i>
-              <span>{t('Perfil')}</span>
-            </a>
-          ) : (
+          !conta && (
+            // logado: o perfil abre pelo cartão da conta (barra de cima); a barra de baixo só tem o botão de entrar
             <button type="button" className="nx-aba" onClick={entrar}>
               <i><IconePerfil /></i>
-              <span>{t('Perfil')}</span>
+              <span>{t('Entrar')}</span>
             </button>
-          ))}
+          )}
         <button type="button" className={`nx-aba nx-baixo-mais${mais || maisAtivo ? ' is-active' : ''}`} aria-expanded={mais} aria-haspopup="menu" onClick={() => setMais((m) => !m)}>
           <i><IconeMais /></i>
           <span>{t('Mais')}</span>

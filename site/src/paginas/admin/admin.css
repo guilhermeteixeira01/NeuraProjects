@@ -432,3 +432,35 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 .adm-cx-lista li button { background: none; border: 0; color: var(--red); font-size: 18px; cursor: pointer; }
 .adm-cx-peso { width: 84px; }
 .adm-cx-barra { display: flex; gap: 10px; justify-content: space-between; }
+
+/* celular: aba Skins/Caixas cabem na tela (nada de rolar para o lado) */
+.adm-dar, .adm-dar > *, .adm-cx, .adm-cx > * { min-width: 0; }
+.adm-dar-tipos { flex-wrap: wrap; }
+@media (max-width: 700px) {
+  .adm-dar { overflow-x: hidden; }
+  .adm-dar .adm-sub-add { gap: 8px; }
+  .adm-dar .adm-sub-add input, .adm-dar-busca { width: 100%; }
+  .adm-dar-tipos button { flex: 1 1 calc(33% - 6px); padding: 8px 6px; }
+  .adm-dar-corpo aside { padding: 8px; }
+  .adm-dar-corpo aside ul { display: flex; gap: 4px; max-height: none; overflow-x: auto; overflow-y: hidden; padding-bottom: 4px; }
+  .adm-dar-corpo aside li { flex: none; }
+  .adm-dar-corpo aside li button { white-space: nowrap; background: var(--panel); }
+  .adm-dar-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: 58vh; }
+  .adm-dar-grade button { grid-template-rows: 64px auto; padding: 6px; }
+  .adm-dar-grade img { height: 64px; }
+  .adm-dar-grade-emb { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .adm-dar-sel ul { max-height: 160px; }
+  .adm-dar-extra { flex-direction: column; align-items: stretch; }
+  .adm-dar-extra .btn { width: 100%; }
+  .adm-dar-itens .inv-itens { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 8px; }
+  .adm-dar-guardados { grid-template-columns: 1fr; }
+  .adm-cx-bloco { padding: 10px; }
+  .adm-cx-caixa summary { flex-wrap: wrap; }
+  .adm-cx-caixa summary em { margin-left: 0; width: 100%; }
+  .adm-cx-campos, .adm-cx-taxas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .adm-cx-add select, .adm-cx-add input, .adm-cx-add .btn { flex: 1 1 100%; }
+  .adm-cx-lista li { flex-wrap: wrap; }
+  .adm-cx-barra { flex-direction: column; }
+}
+@media (max-width: 800px) { .adm-dar-corpo { grid-template-columns: minmax(0, 1fr); } }
+.adm-dar-corpo > * { min-width: 0; }
