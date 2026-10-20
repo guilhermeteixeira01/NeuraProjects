@@ -260,3 +260,11 @@
 
 /* caixa fechada: botão Abrir embaixo do cartão */
 .inv-abrir-caixa { display: block; margin-top: 6px; text-align: center; text-decoration: none; }
+
+/* excluir item */
+.inv-menu-perigo { color: #f07a85 !important; }
+.inv-excluir-guardado { display: block; margin-top: 6px; width: 100%; text-align: center; }
+.inv-excluir-texto { margin: 0; line-height: 1.5; }
+.inv-excluir-erro { margin: 10px 0 0; color: var(--red); font-size: 13px; }
+.inv-btn-excluir { background: #d7263d; border-color: #d7263d; color: #fff; }
+.inv-btn-excluir:hover:not(:disabled) { background: #f0364d; }

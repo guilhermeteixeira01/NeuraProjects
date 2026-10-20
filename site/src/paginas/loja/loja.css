@@ -247,3 +247,25 @@ html.lj-travado .nx-rolagem { display: none !important; }
 .lj-som input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #f5c518; border: 0; cursor: pointer; }
 .lj-som input[type='range']::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #f5c518; border: 0; cursor: pointer; }
 .lj-especial b { font-size: 11px; line-height: 1.2; padding: 0 4px; white-space: normal; text-wrap: balance; }
+
+.lj-outra { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.lj-qtd-p button { width: 34px; height: 36px; }
+/* celular: a abertura ocupa exatamente a tela (barra do navegador não corta) e o resultado cabe sem rolar */
+.lj-abertura { height: 100vh; height: 100dvh; }
+@media (max-width: 700px) {
+  .lj-resultado { overflow: hidden; align-content: center; gap: 10px; padding: 0 14px 12px; scrollbar-width: none; }
+  .lj-resultado::-webkit-scrollbar { display: none; }
+  .lj-revelacao { min-height: 0; width: 100%; }
+  .lj-rev-cartao { padding: 12px 14px 14px; gap: 4px; width: 100%; }
+  .lj-rev-cartao img { max-width: 78%; max-height: 24dvh; }
+  .lj-rev-cartao b { font-size: 18px; }
+  .lj-rev-skin { font-size: 16px; }
+  .lj-botoes { width: 100%; gap: 8px; }
+  .lj-botoes .lj-btn { padding: 10px 14px; }
+  .lj-outra { width: 100%; justify-content: center; }
+  .lj-outra .lj-btn { flex: 1 1 100%; }
+  .lj-minis { gap: 8px; }
+  .lj-mini { width: calc(50% - 6px); padding: 8px 6px; }
+  .lj-resultado h2 { font-size: 22px; }
+}
+@media (max-width: 700px) { .lj-resultado:has(.lj-minis) { overflow-y: auto; } }

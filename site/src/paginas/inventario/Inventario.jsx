@@ -7,6 +7,7 @@ import {
   chaveEquip,
   descrever,
   indicar,
+  excluirItem,
   inventarioNovo,
   lerInventario,
   novoIdItem,
@@ -781,7 +782,7 @@ function Inspecionar({ item, idx, adesivos, chaveiros, mapa, aoFechar }) {
 
 // ── Menu do botão direito ──
 // Só aparece o time em que o item existe no jogo (AK-47 e Glock só no TR; M4 e USP-S só no CT; agente do CT só no CT...)
-function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoDesequipar, aoEditar, aoInspecionar, podeEditar, aoFechar }) {
+function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoDesequipar, aoEditar, aoInspecionar, aoExcluir, podeEditar, aoFechar }) {
   const t = useT()
   const ref = useRef(null)
   const [pos, setPos] = useState({ x, y })
@@ -843,6 +844,12 @@ function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoD
       <li>
         <button type="button" role="menuitem" onClick={aoInspecionar}>
           {t('Inspecionar')}
+        </button>
+      </li>
+      <li className="inv-menu-sep" />
+      <li>
+        <button type="button" role="menuitem" className="inv-menu-perigo" onClick={aoExcluir}>
+          {t('Excluir item')}
         </button>
       </li>
     </ul>
@@ -1018,6 +1025,33 @@ function Conteudo() {
       return { ...i, equip: { ...i.equip, [lado]: novo } }
     })
   }
+  // Excluir: pergunta antes (não tem volta). apagar = { id, nome } enquanto a pergunta está aberta
+  const [apagar, setApagar] = useState(null)
+  const [apagando, setApagando] = useState(false)
+  const [erroApagar, setErroApagar] = useState('')
+  const pedirExclusao = (id, nome) => {
+    setErroApagar('')
+    setApagar({ id, nome })
+  }
+  const nomeDoItem = (it) => {
+    const d = descrever(it, idx)
+    return `${d.titulo}${d.subtitulo ? ` | ${d.subtitulo}` : ''}`
+  }
+  const confirmarExclusao = async () => {
+    setApagando(true)
+    try {
+      const d = await excluirItem(apagar.id)
+      const novo = { ...inventarioNovo(), ...d }
+      salvo.current = JSON.stringify(novo)
+      setInv(novo)
+      tocar('fechar')
+      setApagar(null)
+    } catch {
+      setErroApagar(t('Não deu para excluir agora. Tente de novo.'))
+    } finally {
+      setApagando(false)
+    }
+  }
   const abrirMenu = (e, item) => {
     e.stopPropagation()
     setMenu({ x: e.clientX, y: e.clientY, id: item.__id })
@@ -1062,6 +1096,9 @@ function Conteudo() {
           {t('Abrir')}
         </a>
       )}
+      <button type="button" className="inv-btn inv-btn-perigo inv-excluir-guardado" onClick={() => pedirExclusao(Object.keys(inv.itens).find((k) => inv.itens[k].t === g.tipo && inv.itens[k].d === g.def), `${g.linha?.[1] || `#${g.def}`} (1)`)}>
+        {g.n > 1 ? t('Excluir 1') : t('Excluir')}
+      </button>
     </li>
   )
   return (
@@ -1134,6 +1171,7 @@ function Conteudo() {
           podeEditar={!pequena}
           aoEditar={() => { setJanela({ tipo: 'editar', id: menu.id }); fecharMenu() }}
           aoInspecionar={() => { setJanela({ tipo: 'inspecionar', id: menu.id }); fecharMenu() }}
+          aoExcluir={() => { pedirExclusao(menu.id, nomeDoItem(itemMenu)); fecharMenu() }}
         />
       )}
       {janela?.tipo === 'editar' && itemJanela && !pequena && (
@@ -1153,6 +1191,28 @@ function Conteudo() {
           }}
           aoFechar={() => setJanela(null)}
         />
+      )}
+      {apagar && (
+        <Janela
+          titulo={t('Excluir item')}
+          aoFechar={() => !apagando && setApagar(null)}
+          largura="media"
+          rodape={
+            <>
+              <button type="button" className="inv-btn" disabled={apagando} onClick={() => setApagar(null)}>
+                {t('Cancelar')}
+              </button>
+              <button type="button" className="inv-btn inv-btn-perigo inv-btn-excluir" disabled={apagando} onClick={confirmarExclusao}>
+                {apagando ? t('Excluindo…') : t('Sim, excluir')}
+              </button>
+            </>
+          }
+        >
+          <p className="inv-excluir-texto">
+            {t('Tem certeza que quer excluir')} <b>{apagar.nome}</b>? {t('Isso não pode ser desfeito: o item (e os adesivos e o chaveiro colados nele) é perdido para sempre.')}
+          </p>
+          {erroApagar && <p className="inv-excluir-erro">{erroApagar}</p>}
+        </Janela>
       )}
       {janela?.tipo === 'inspecionar' && itemJanela && <Inspecionar item={itemJanela} idx={idx} adesivos={adesivos} chaveiros={chaveiros} mapa={mapa3d.dados} aoFechar={() => setJanela(null)} />}
     </>

@@ -230,7 +230,7 @@ const MENSAGENS = {
 }
 
 // props: caixa (completa, de GET /loja), qtd, origem ('direto' | 'inventario'), aoFechar(), aoOutra()
-export default function Abertura({ caixa, qtd, origem, aoFechar, aoOutra }) {
+export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoOutra }) {
   const t = useT()
   const achar = useAcharItem()
   const [fase, setFase] = useState('carregando') // carregando | roleta | facas | resultado | erro
@@ -241,6 +241,7 @@ export default function Abertura({ caixa, qtd, origem, aoFechar, aoOutra }) {
   const [pref, setPref] = useState(preferenciaAtual())
   const pular = useRef(false)
   const [tremer, setTremer] = useState(false)
+  const [qtdOutra, setQtdOutra] = useState(1) // quantas caixas "Abrir outra" abre de uma vez
 
   // avisa o resto do site que a roleta começou/acabou: a insígnia nova só aparece depois (Insignias.jsx)
   useEffect(() => {
@@ -419,9 +420,18 @@ export default function Abertura({ caixa, qtd, origem, aoFechar, aoOutra }) {
             </>
           )}
           <div className="lj-botoes">
-            <button type="button" className="lj-btn lj-btn-p" onClick={aoOutra}>
-              {t('Abrir outra')}
-            </button>
+            <div className="lj-outra">
+              <div className="lj-qtd lj-qtd-p" role="group" aria-label={t('Quantidade')}>
+                {Array.from({ length: maxQtd }, (_, k) => k + 1).map((n) => (
+                  <button key={n} type="button" className={qtdOutra === n ? 'is-ativo' : ''} aria-pressed={qtdOutra === n} onClick={() => setQtdOutra(n)}>
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <button type="button" className="lj-btn lj-btn-p" disabled={caixa.preco * qtdOutra > (dados?.saldo ?? 0)} onClick={() => aoOutra(qtdOutra)} title={caixa.preco * qtdOutra > (dados?.saldo ?? 0) ? t('Você não tem Neura Pontos suficientes.') : undefined}>
+                {qtdOutra > 1 ? t('Abrir outras {n} ({p} NP)', { n: qtdOutra, p: (caixa.preco * qtdOutra).toLocaleString('pt-BR') }) : t('Abrir outra')}
+              </button>
+            </div>
             <a className="lj-btn" href="/inventario/">
               {t('Ver no inventário')}
             </a>

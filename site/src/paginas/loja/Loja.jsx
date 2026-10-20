@@ -389,7 +389,7 @@ function Conteudo() {
       )}
 
       {sel && <PaginaCaixa c={sel} saldo={dados.saldo} tem={dados.fechadas[sel.id] || 0} maxQtd={dados.cfg.maxQtd} aoFechar={() => setAberta(null)} aoComprar={comprar} aoAbrir={abrirCaixa} ocupado={ocupado} achar={achar} />}
-      {abertura && <Abertura key={abertura.chave} caixa={abertura.caixa} qtd={abertura.qtd} origem={abertura.origem} aoFechar={fecharAbertura} aoOutra={() => setAbertura({ caixa: abertura.caixa, qtd: 1, origem: 'direto', chave: Date.now() })} />}
+      {abertura && <Abertura key={abertura.chave} caixa={abertura.caixa} qtd={abertura.qtd} origem={abertura.origem} maxQtd={dados.cfg.maxQtd} aoFechar={fecharAbertura} aoOutra={(n) => setAbertura({ caixa: abertura.caixa, qtd: n || 1, origem: 'direto', chave: Date.now() })} />}
     </>
   )
 }
