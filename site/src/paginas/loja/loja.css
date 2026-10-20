@@ -237,3 +237,13 @@ html[data-desempenho='1'] .lj-brilho, html[data-desempenho='1'] .lj-raios, html[
   .lj-ins-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .lj-ins > img { width: 96px; height: 96px; }
 }
+
+/* abertura: a página de trás não rola e as barras do site (rolagem, menus) ficam por baixo */
+html.lj-travado, html.lj-travado body { overflow: hidden !important; }
+html.lj-travado .nx-rolagem { display: none !important; }
+.lj-abertura { z-index: 5000; overscroll-behavior: contain; touch-action: none; }
+.lj-resultado { touch-action: pan-y; }
+.lj-som input[type='range'] { -webkit-appearance: none; appearance: none; height: 5px; border-radius: 3px; background: rgb(255 255 255 / .25); outline: none; }
+.lj-som input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #f5c518; border: 0; cursor: pointer; }
+.lj-som input[type='range']::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #f5c518; border: 0; cursor: pointer; }
+.lj-especial b { font-size: 11px; line-height: 1.2; padding: 0 4px; white-space: normal; text-wrap: balance; }

@@ -162,7 +162,7 @@ export class Loja {
         this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), -Math.round(num(p.valor, -1e7, 1e7, 0)), 'ajuste do dono')
         return { saldo: pontos - this.gastos() }
       case 'retro':
-        return { novas: await this.conferirInsignias(id, caixas, await this.fechadas(id)) }
+        return await this.conferirInsignias(id, caixas, await this.fechadas(id))
       default:
         throw new Error('acao')
     }
@@ -175,19 +175,18 @@ export class Loja {
     return por
   }
 
-  // Dá as insígnias que o histórico já cumpre e o jogador ainda não tem (idempotente). Devolve os ids novos.
+  // Insígnias que o histórico já cumpre e o jogador ainda não ganhou (idempotente: o objeto lembra o que já deu, com a data de quando deu, e nunca dá de novo).
+  // Devolve { ids, ts }: a rota grava no perfil (rotaLoja → aplicarInsignias) e o site só mostra o aviso depois que a roleta termina.
   async conferirInsignias(id, caixas, fechadasPor) {
     const stats = calcularStats(this.linhas(), Object.values(fechadasPor).reduce((a, b) => a + b, 0))
     const progresso = progressoInsignias(stats, caixas)
-    const perfis = (await this.env.MOLDURAS.get('perfis', 'json').catch(() => null)) || {}
-    const tem = perfis[id]?.insignias || {}
+    const ganhas = (await this.ctx.storage.get('ganhas')) || {}
+    const novas = insigniasNovas(progresso, ganhas)
+    if (!novas.length) return { ids: [], ts: {} }
     const agora = Date.now()
-    const novas = insigniasNovas(progresso, tem)
-    if (!novas.length) return []
-    perfis[id] = { ...perfis[id], insignias: { ...tem, ...Object.fromEntries(novas.map((n) => [n, agora])) } }
-    await this.env.MOLDURAS.put('perfis', JSON.stringify(perfis))
-    await avisarPerfil(this.env, id, perfis[id]) // o site só mostra o aviso depois da roleta terminar
-    return novas
+    const ts = Object.fromEntries(novas.map((n) => [n, agora]))
+    await this.ctx.storage.put('ganhas', { ...ganhas, ...ts })
+    return { ids: novas, ts }
   }
 
   async estado(id, caixas, cfg, pontos) {
@@ -246,7 +245,7 @@ export class Loja {
     }
     await this.gravarTudo(id, inv, () => this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', agora, custo, `compra ${qtd}x ${caixa.slug}`))
     const novas = await this.conferirInsignias(id, caixas, await this.fechadas(id))
-    return { saldo: pontos - this.gastos(), ids, insignias: novas }
+    return { saldo: pontos - this.gastos(), ids, insignias: novas.ids, insigniasTs: novas.ts }
   }
 
   async abrir(id, caixas, cfg, pontos, p) {
@@ -300,7 +299,7 @@ export class Loja {
     const lista = (await this.env.MOLDURAS.get('loja-jogadores', 'json').catch(() => null)) || []
     if (!lista.includes(id)) await this.env.MOLDURAS.put('loja-jogadores', JSON.stringify([...lista, id].slice(-5000))).catch(() => {})
     const novas = await this.conferirInsignias(id, caixas, await this.fechadas(id))
-    return { saldo: pontos - this.gastos(), resultados, insignias: novas }
+    return { saldo: pontos - this.gastos(), resultados, insignias: novas.ids, insigniasTs: novas.ts }
   }
 }
 
@@ -311,6 +310,23 @@ const chamar = (env, id, corpo) => objeto(env, id).fetch('https://loja/', { meth
 export async function rotaLojaPublica(env, cors) {
   const caixas = (await lerCaixas(env)).filter((c) => c.ativa).map(publicaDaCaixa)
   return json(caixas, 200, { ...cors, 'Cache-Control': 'public, max-age=60' })
+}
+
+// Grava as insígnias no perfil (perfis[id].insignias) sem mexer em mais nada e sem repetir as que o perfil já tem (a data de quem já tinha fica).
+// Roda na rota (mesma região do jogador): é de lá que ele grava o resto do perfil, então a leitura aqui não vem velha.
+async function aplicarInsignias(env, porJogador) {
+  const perfis = (await env.MOLDURAS.get('perfis', 'json').catch(() => null)) || {}
+  const mudou = []
+  for (const [id, ts] of Object.entries(porJogador)) {
+    const tem = perfis[id]?.insignias || {}
+    const novas = Object.fromEntries(Object.entries(ts).filter(([k]) => !tem[k]))
+    if (!Object.keys(novas).length) continue
+    perfis[id] = { ...perfis[id], insignias: { ...tem, ...novas } }
+    mudou.push(id)
+  }
+  if (!mudou.length) return
+  await env.MOLDURAS.put('perfis', JSON.stringify(perfis))
+  for (const id of mudou) await avisarPerfil(env, id, perfis[id])
 }
 
 export async function rotaLoja(req, env, quem, cors, rota) {
@@ -325,7 +341,10 @@ export async function rotaLoja(req, env, quem, cors, rota) {
   else return json({ erro: 'rota' }, 404, cors)
   if (req.method === 'POST') corpo = await req.json().catch(() => ({}))
   const r = await chamar(env, quem.id, { acao, caixas, cfg, pontos, caixa: corpo.caixa, qtd: corpo.qtd, origem: corpo.origem })
-  return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
+  const dados = await r.json().catch(() => ({ erro: 'falhou' }))
+  if (dados.insigniasTs && Object.keys(dados.insigniasTs).length) await aplicarInsignias(env, { [quem.id]: dados.insigniasTs })
+  delete dados.insigniasTs
+  return json(dados, r.status, cors)
 }
 
 export async function rotaAdminLoja(req, env, rota, cors) {
@@ -355,10 +374,15 @@ export async function rotaAdminLoja(req, env, rota, cors) {
   if (rota === '/admin/loja-retro') {
     const [caixas, ids] = await Promise.all([lerCaixas(env), env.MOLDURAS.get('loja-jogadores', 'json').then((l) => l || [])])
     const feito = {}
+    const ts = {}
     for (const id of ids) {
       const r = await (await chamar(env, id, { acao: 'retro', caixas })).json().catch(() => null)
-      if (r?.novas?.length) feito[id] = r.novas
+      if (r?.ids?.length) {
+        feito[id] = r.ids
+        ts[id] = r.ts
+      }
     }
+    await aplicarInsignias(env, ts)
     return json({ jogadores: ids.length, novas: feito }, 200, cors)
   }
   return json({ erro: 'rota' }, 404, cors)
