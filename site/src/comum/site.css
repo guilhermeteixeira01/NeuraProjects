@@ -3410,3 +3410,8 @@ html:is([data-tema='claro'], [data-tema='branco']) .cp-caixa b { color: #111; }
 /* Emblema da assinatura: maior e no canto superior direito do avatar, passando um pouco da borda (como no exemplo) */
 .emblema-sub { width: max(36%, 18px) !important; top: -10% !important; right: -12% !important; }
 .nx-direita .emblema-sub, .nx-nav .emblema-sub { width: max(40%, 20px) !important; }
+
+/* aviso de adesivo/chaveiro: imagem quadrada, menor, sem passar por cima dos textos */
+.skin-palco-emb { aspect-ratio: auto; height: 190px; overflow: hidden; }
+.skin-palco-emb img { width: auto; height: 100%; max-width: 100%; }
+.skin-palco img { min-width: 0; min-height: 0; }
