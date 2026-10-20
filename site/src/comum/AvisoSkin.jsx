@@ -113,7 +113,7 @@ export default function AvisoSkin() {
     <div className="skin-fundo" onClick={() => fechar()}>
       <div
         key={atual.id}
-        className={`skin-aviso${desempenhoAtivo() ? ' parado' : ''}`}
+        className={`skin-aviso${d.embalagem ? ' skin-aviso-emb' : ''}${desempenhoAtivo() ? ' parado' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="skin-aviso-titulo"
