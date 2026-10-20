@@ -1099,8 +1099,7 @@ function DarSkin({ usuarios }) {
   const [categoria, setCategoria] = useState('rifles')
   const [def, setDef] = useState(7)
   const [filtro, setFiltro] = useState('')
-  const [skin, setSkin] = useState(null)
-  const [desgaste, setDesgaste] = useState('')
+  const [sel, setSel] = useState([]) // skins marcadas para entregar de uma vez (de qualquer arma)
   const [st, setSt] = useState(false)
   const [estado, setEstado] = useState('')
   const [ocupado, setOcupado] = useState(false)
@@ -1136,18 +1135,24 @@ function DarSkin({ usuarios }) {
     return `${a?.n || `#${it.d}`}${s ? ` | ${s[1]}` : ''}`
   }
 
+  const chaveDe = (t, d, p) => `${t}:${d}:${p}`
+  const marcada = (p) => sel.some((x) => x.chave === chaveDe(tipo, peca?.d, p))
+  const alternar = (s) => {
+    const chave = chaveDe(tipo, peca.d, s[0])
+    setSel((l) => (l.some((x) => x.chave === chave) ? l.filter((x) => x.chave !== chave) : [...l, { chave, t: tipo, d: peca.d, arma: peca.n, skin: s }]))
+  }
   const dar = async () => {
-    if (!alvo || !skin || !peca) return
-    const [min, max] = [skin[3], skin[4]]
-    const f = Math.min(max, Math.max(min, Number(desgaste) || min))
+    if (!alvo || !sel.length) return
     setOcupado(true)
     setEstado('')
     try {
-      const d = await chamar('/admin/skin', { id: alvo.id, item: { t: tipo, d: peca.d, p: skin[0], f, s: 0, st: st && skin[5] === 1 ? 1 : 0, l: skin[7] ? 1 : 0, n: '', a: [null, null, null, null, null], k: null } })
-      setItens(d.itens)
-      setEstado(tr('Skin entregue! O jogador recebe o aviso na hora (ou na próxima vez que abrir o site).'))
+      const itensDar = sel.map(({ t, d, skin: s }) => ({ t, d, p: s[0], f: Math.max(s[3], 0.0001), s: 0, st: st && s[5] === 1 ? 1 : 0, l: s[7] ? 1 : 0, n: '', a: [null, null, null, null, null], k: null }))
+      const r = await chamar('/admin/skin', { id: alvo.id, itens: itensDar })
+      setItens(r.itens)
+      setEstado(tr('{n} skin(s) entregue(s)! O jogador recebe o aviso na hora (ou na próxima vez que abrir o site).', { n: itensDar.length }))
+      setSel([])
     } catch (e) {
-      setEstado(e.message === 'cheio' ? tr('O inventário dele está cheio.') : mensagemErro(e))
+      setEstado(e.message === 'cheio' ? tr('O inventário dele não comporta tantas skins.') : mensagemErro(e))
     } finally {
       setOcupado(false)
     }
@@ -1187,7 +1192,7 @@ function DarSkin({ usuarios }) {
           ['faca', 'Facas'],
           ['luva', 'Luvas'],
         ].map(([id, nome]) => (
-          <button key={id} type="button" role="tab" aria-selected={tipo === id} className={tipo === id ? 'active' : ''} onClick={() => { setTipo(id); setDef(null); setSkin(null) }}>
+          <button key={id} type="button" role="tab" aria-selected={tipo === id} className={tipo === id ? 'active' : ''} onClick={() => { setTipo(id); setDef(null) }}>
             {tr(nome)}
           </button>
         ))}
@@ -1203,7 +1208,7 @@ function DarSkin({ usuarios }) {
             {tipo === 'arma' && (
               <div className="adm-dar-cats">
                 {CATEGORIAS.map(([id, nome]) => (
-                  <button key={id} type="button" className={categoria === id ? 'active' : ''} onClick={() => { setCategoria(id); setDef(null); setSkin(null) }}>
+                  <button key={id} type="button" className={categoria === id ? 'active' : ''} onClick={() => { setCategoria(id); setDef(null) }}>
                     {tr(nome)}
                   </button>
                 ))}
@@ -1212,7 +1217,7 @@ function DarSkin({ usuarios }) {
             <ul>
               {lista.map((a) => (
                 <li key={a.d}>
-                  <button type="button" className={a.d === peca?.d ? 'active' : ''} onClick={() => { setDef(a.d); setSkin(null) }}>
+                  <button type="button" className={a.d === peca?.d ? 'active' : ''} onClick={() => { setDef(a.d) }}>
                     {a.n}
                   </button>
                 </li>
@@ -1224,7 +1229,7 @@ function DarSkin({ usuarios }) {
             <ul className="adm-dar-grade">
               {skins.map((s) => (
                 <li key={s[0]}>
-                  <button type="button" className={skin?.[0] === s[0] ? 'active' : ''} style={{ '--cor': s[2] || 'var(--border-2)' }} onClick={() => { setSkin(s); setDesgaste(String(Math.max(s[3], 0.0001))); setSt(false) }} title={s[1]}>
+                  <button type="button" className={marcada(s[0]) ? 'active' : ''} aria-pressed={marcada(s[0])} style={{ '--cor': s[2] || 'var(--border-2)' }} onClick={() => alternar(s)} title={s[1]}>
                     <img src={urlImgArma(s[6], 256)} alt="" loading="lazy" />
                     <b>{s[1]}</b>
                   </button>
@@ -1235,24 +1240,39 @@ function DarSkin({ usuarios }) {
         </div>
       )}
 
-      {skin && (
-        <div className="adm-dar-extra">
-          <b>
-            {peca.n} | {skin[1]}
-          </b>
-          <label>
-            {tr('Desgaste')}
-            <input type="number" min={skin[3]} max={skin[4]} step="0.0001" value={desgaste} onChange={(e) => setDesgaste(e.target.value)} />
-          </label>
-          {skin[5] === 1 && (
-            <label className="adm-numerar">
-              <input type="checkbox" checked={st} onChange={(e) => setSt(e.target.checked)} />
-              StatTrak™
-            </label>
-          )}
-          <button type="button" className="btn btn-primary" disabled={!alvo || ocupado} onClick={dar}>
-            {alvo ? tr('Dar skin para {nome}', { nome: alvo.nome || alvo.id }) : tr('Escolha o jogador')}
-          </button>
+      {sel.length > 0 && (
+        <div className="adm-dar-sel">
+          <div className="adm-dar-sel-cab">
+            <b>{tr('Selecionadas')} ({sel.length})</b>
+            <button type="button" className="btn btn-ghost" onClick={() => setSel([])}>
+              {tr('Limpar seleção')}
+            </button>
+          </div>
+          <ul>
+            {sel.map((x) => (
+              <li key={x.chave} style={{ '--cor': x.skin[2] || 'var(--border-2)' }}>
+                <img src={urlImgArma(x.skin[6], 128)} alt="" />
+                <span>
+                  {x.arma} | {x.skin[1]}
+                </span>
+                <button type="button" aria-label={tr('Tirar da seleção')} onClick={() => setSel((l) => l.filter((y) => y.chave !== x.chave))}>
+                  ×
+                </button>
+              </li>
+            ))}
+          </ul>
+          <div className="adm-dar-extra">
+            {sel.some((x) => x.skin[5] === 1) && (
+              <label className="adm-numerar">
+                <input type="checkbox" checked={st} onChange={(e) => setSt(e.target.checked)} />
+                {tr('StatTrak™ nas que aceitam')}
+              </label>
+            )}
+            <span className="adm-dar-dica">{tr('Chegam com o desgaste mínimo; o jogador ajusta depois.')}</span>
+            <button type="button" className="btn btn-primary" disabled={!alvo || ocupado} onClick={dar}>
+              {alvo ? tr('Dar {n} skin(s) para {nome}', { n: sel.length, nome: alvo.nome || alvo.id }) : tr('Escolha o jogador')}
+            </button>
+          </div>
         </div>
       )}
       {estado && <p className="adm-dar-estado">{estado}</p>}
