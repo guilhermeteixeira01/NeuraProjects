@@ -2,10 +2,11 @@
 // Roda só quando você quer atualizar o catálogo (ex.: skin nova do jogo):  node ferramentas/skins/gerar-catalogo.mjs
 // Os arquivos gerados vão para o repositório, então o build do site não depende da internet.
 //
-//   armas.json    armas de fogo e facas/luvas:  { armas: [{ d, k, n, c, s: [[paint, nome, cor, minFloat, maxFloat, stattrak, imagem, modeloAntigo]] }] }
+//   armas.json    armas de fogo e facas/luvas:  { armas: [{ d, k, n, c, e (ct|tr|both: em que time a arma existe), s: [[paint, nome, cor, minFloat, maxFloat, stattrak, imagem, modeloAntigo]] }] }
 //                 modeloAntigo (1/0): o plugin precisa dele para mostrar a pintura certa (bodygroup do modelo)
 //   agentes.json  agentes de CT e TR:           [{ d, n, t, m, c, i }]
 //   adesivos.json adesivos:                     [[defIndex, nome, imagem]]
+//   chaveiros.json chaveiros (charms):          [[defIndex, nome, imagem, cor]]
 // "imagem" é o final do endereço da Steam: o site junta com IMG_BASE (ver src/comum/skins.js).
 import fs from 'node:fs'
 import path from 'node:path'
@@ -31,7 +32,8 @@ for (const x of skins) {
   const c = CATEGORIAS[x.category?.name]
   if (!c || !x.weapon?.weapon_id || x.paint_index == null || x.souvenir) continue
   let arma = porArma.get(x.weapon.weapon_id)
-  if (!arma) porArma.set(x.weapon.weapon_id, (arma = { d: x.weapon.weapon_id, k: x.weapon.id, n: x.weapon.name, c, s: new Map() }))
+  if (!arma) porArma.set(x.weapon.weapon_id, (arma = { d: x.weapon.weapon_id, k: x.weapon.id, n: x.weapon.name, c, times: new Set(), s: new Map() }))
+  arma.times.add(x.team?.id === 'terrorists' ? 'tr' : x.team?.id === 'counter-terrorists' ? 'ct' : 'both')
   const p = String(x.paint_index)
   const atual = arma.s.get(p)
   const imagem = img(x.image)
@@ -55,6 +57,7 @@ const armas = [...porArma.values()]
     k: a.k,
     n: a.n,
     c: a.c,
+    e: a.times.size === 1 ? [...a.times][0] : 'both',
     s: [...a.s.values()]
       .sort((x, y) => x.nome.localeCompare(y.nome))
       .map((s) => [s.paint, s.nome, s.cor, Number(s.min.toFixed(4)), Number(s.max.toFixed(4)), s.st ? 1 : 0, s.img, s.legado ? 1 : 0]),
@@ -80,6 +83,12 @@ const adesivos = (await baixar('stickers'))
   .map((s) => [Number(s.def_index), String(s.name).replace(/^Sticker \| /, ''), img(s.image)])
   .sort((a, b) => a[1].localeCompare(b[1]))
 
+console.log('Baixando chaveiros...')
+const chaveiros = (await baixar('keychains'))
+  .filter((k) => k.def_index && img(k.image))
+  .map((k) => [Number(k.def_index), String(k.name).replace(/^.*Charm \| /, ''), img(k.image), k.rarity?.color || ''])
+  .sort((a, b) => a[1].localeCompare(b[1]))
+
 fs.mkdirSync(saida, { recursive: true })
 const gravar = (nome, v) => {
   fs.writeFileSync(path.join(saida, nome), JSON.stringify(v))
@@ -88,4 +97,35 @@ const gravar = (nome, v) => {
 gravar('armas.json', { gerado: new Date().toISOString().slice(0, 10), armas })
 gravar('agentes.json', agentes)
 gravar('adesivos.json', adesivos)
+gravar('chaveiros.json', chaveiros)
 console.log(`${armas.length} armas/facas/luvas, ${armas.reduce((n, a) => n + a.s.length, 0)} skins, ${agentes.length} agentes, ${adesivos.length} adesivos`)
+
+// ── Mapa para o visualizador 3D (3d.cstrike.app) ──
+// O visualizador identifica cada item pelo id da biblioteca MIT @ianlucas/cs2-lib; o plugin e o catálogo usam o defIndex/paint do jogo.
+// mapa3d.json liga os dois: { skins: { "def:paint": id }, base: { def: id }, adesivos: [[def, id]], chaveiros: [[def, id]], agentes: [[def, id]] }
+console.log('Baixando a biblioteca de itens do visualizador 3D...')
+const VERSAO_LIB = '9.8.0'
+const codigoLib = await (await fetch(`https://unpkg.com/@ianlucas/cs2-lib@${VERSAO_LIB}/dist/items.mjs`)).text()
+const { CS2_ITEMS } = await import(`data:text/javascript;base64,${Buffer.from(codigoLib).toString('base64')}`)
+const mapa3d = { versao: VERSAO_LIB, skins: {}, base: {}, adesivos: [], chaveiros: [], agentes: [] }
+const vistos = { adesivos: new Set(), chaveiros: new Set(), agentes: new Set() }
+for (const it of CS2_ITEMS) {
+  if (it.type === 'weapon' || it.type === 'melee' || it.type === 'glove') {
+    if (it.isBase) mapa3d.base[it.definitionIndex] ??= it.id
+    else if (it.variantIndex != null) mapa3d.skins[`${it.definitionIndex}:${it.variantIndex}`] ??= it.id
+  } else if (it.type === 'sticker' && it.variantIndex != null && !vistos.adesivos.has(it.variantIndex)) {
+    // adesivo e chaveiro: todos têm o mesmo definitionIndex; o que os distingue é o variantIndex (= id do adesivo/chaveiro no jogo)
+    vistos.adesivos.add(it.variantIndex)
+    mapa3d.adesivos.push([it.variantIndex, it.id])
+  } else if (it.type === 'keychain' && it.variantIndex != null && !vistos.chaveiros.has(it.variantIndex)) {
+    vistos.chaveiros.add(it.variantIndex)
+    mapa3d.chaveiros.push([it.variantIndex, it.id])
+  } else if (it.type === 'agent' && !vistos.agentes.has(it.definitionIndex)) {
+    vistos.agentes.add(it.definitionIndex)
+    mapa3d.agentes.push([it.definitionIndex, it.id])
+  }
+}
+gravar('mapa3d.json', mapa3d)
+const semSkin = armas.flatMap((a) => a.s.filter((s) => !mapa3d.skins[`${a.d}:${s[0]}`]).map(() => 1)).length
+const totalSkins = armas.reduce((n, a) => n + a.s.length, 0)
+console.log(`3D: ${totalSkins - semSkin}/${totalSkins} skins, ${adesivos.filter((a) => vistos.adesivos.has(a[0])).length}/${adesivos.length} adesivos, ${chaveiros.filter((k) => vistos.chaveiros.has(k[0])).length}/${chaveiros.length} chaveiros, ${agentes.filter((a) => vistos.agentes.has(a.d)).length}/${agentes.length} agentes com modelo 3D`)
