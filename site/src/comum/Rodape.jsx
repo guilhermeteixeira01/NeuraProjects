@@ -29,7 +29,7 @@ function colunas(conta, verPick) {
         ...(verPick ? [['Pick & Ban', '/neurapick/']] : []),
         ['Partidas', '/partidas/'],
         ['Ranking', '/ranking/'],
-        ['Inventário', 'https://inventory.cstrike.app', true],
+        ['Inventário', '/inventario/'],
       ],
     },
     {
