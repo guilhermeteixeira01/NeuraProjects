@@ -823,7 +823,7 @@ function Inspecionar({ item, idx, adesivos, chaveiros, mapa, aoFechar }) {
 
 // ── Menu do botão direito ──
 // Só aparece o time em que o item existe no jogo (AK-47 e Glock só no TR; M4 e USP-S só no CT; agente do CT só no CT...)
-function MenuContexto({ x, y, item, times, equip, aoEquipar, aoDesequipar, aoEditar, aoInspecionar, aoDuplicar, aoExcluir, aoFechar }) {
+function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoDesequipar, aoEditar, aoInspecionar, aoDuplicar, aoExcluir, aoFechar }) {
   const t = useT()
   const ref = useRef(null)
   const [pos, setPos] = useState({ x, y })
@@ -847,6 +847,17 @@ function MenuContexto({ x, y, item, times, equip, aoEquipar, aoDesequipar, aoEdi
   const chave = chaveEquip(item)
   return (
     <ul className="inv-menu" ref={ref} style={{ left: pos.x, top: pos.y }} role="menu">
+      {times.length === 2 && !(equip.ct?.[chave] === item.__id && equip.tr?.[chave] === item.__id) && (
+        <li>
+          <button type="button" role="menuitem" onClick={aoEquiparAmbos}>
+            <span className="inv-marcas-duas">
+              <Marca lado="ct" />
+              <Marca lado="tr" />
+            </span>
+            {t('Equipar nos dois times')}
+          </button>
+        </li>
+      )}
       {LADOS_TIME.filter(([lado]) => times.includes(lado)).map(([lado, nome]) => {
         const equipado = equip[lado]?.[chave] === item.__id
         return (
@@ -905,7 +916,17 @@ function Cartao({ item, idx, adesivos, chaveiros, equip, aoAbrirMenu }) {
         onClick={(e) => aoAbrirMenu(e, item)}
       >
         <span className="inv-cartao-arte">
-          <ArmaComEnfeites item={item} d={d} adesivos={adesivos} chaveiros={chaveiros} />
+          <span className="inv-arma-box">
+            <Imagem src={d.img} classe="inv-arma-img" />
+          </span>
+          {item.t === 'arma' && (item.k?.i > 0 || item.a?.some(Boolean)) && (
+            <span className="inv-enfeites">
+              {item.k?.i > 0 && <Imagem src={urlImg(chaveiros.get(item.k.i)?.[2], 64)} classe="inv-enfeite-chaveiro" />}
+              <span className="inv-enfeites-fileira">
+                {(item.a || []).map((s, k) => (s?.i ? <Imagem key={k} src={urlImg(adesivos.get(s.i)?.[2], 64)} /> : null))}
+              </span>
+            </span>
+          )}
           <span className="inv-marcas">
             {lados.map(([l]) => (
               <Marca key={l} lado={l} />
@@ -1128,6 +1149,7 @@ function Conteudo() {
           equip={inv.equip}
           aoFechar={fecharMenu}
           aoEquipar={(l) => { equipar(menu.id, l); fecharMenu() }}
+          aoEquiparAmbos={() => { equipar(menu.id, 'ct'); equipar(menu.id, 'tr'); fecharMenu() }}
           aoDesequipar={(l) => { desequipar(menu.id, l); fecharMenu() }}
           aoEditar={() => { setJanela({ tipo: 'editar', id: menu.id }); fecharMenu() }}
           aoInspecionar={() => { setJanela({ tipo: 'inspecionar', id: menu.id }); fecharMenu() }}
