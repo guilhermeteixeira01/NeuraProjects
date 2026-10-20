@@ -39,7 +39,7 @@
  *                   usa os do ranking)
  */
 import { Presenca, avisarPerfil, avisarSkin, rotaAmigos, rotaLobby, rotaPresenca, rotaServidor } from './amigos.js'
-import { rotaAdminSkin, rotaAdminSkins, rotaServidorSkins, rotaSkins, rotaSkinsPresentes } from './skins.js'
+import { rotaAdminSkin, rotaAdminSkins, rotaServidorSkins, rotaSkins, rotaSkinsPresentes, rotaSkinsPublico } from './skins.js'
 export { Presenca } // Durable Object da presença (wrangler.toml)
 
 const OPENID = 'https://steamcommunity.com/openid/login'
@@ -79,6 +79,7 @@ export default {
     // Plugin do servidor de CS2 (BaseComp): pega a próxima partida pronta e avisa em que fase ela está (token próprio, sem login Steam)
     if ((rota === '/servidor/proxima' || rota === '/servidor/estado' || rota === '/servidor/elenco' || (rota === '/teste/limpar' && env.MODO_TESTE === '1')) && req.method === 'POST') return rotaServidor(req, env, rota)
 
+    if (rota === '/skins/publico' && req.method === 'GET') return rotaSkinsPublico(url, env) // skins equipadas de um jogador (perfil)
     if (rota === '/servidor/skins' && req.method === 'POST') return rotaServidorSkins(req, env) // plugin: inventário de skins de quem está no servidor
 
     // Daqui para baixo: só o próprio site, com login

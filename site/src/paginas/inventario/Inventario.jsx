@@ -17,6 +17,7 @@ import {
 } from '../../comum/skins.js'
 import { useT } from '../../comum/i18n.js'
 import { tocar } from '../../comum/somInventario.js'
+import Cartao from '../../comum/CartaoSkin.jsx'
 
 // Inventário de skins, no estilo do inventário do jogo: o jogador CRIA itens (arma/faca/luva/agente com a skin que quiser), ajusta
 // cada um (desgaste, seed, StatTrak, nome, adesivos com posição) e EQUIPA no CT, no TR ou nos dois (botão direito no item).
@@ -811,57 +812,6 @@ function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoD
         </button>
       </li>
     </ul>
-  )
-}
-
-// ── Cartão de um item (igual ao do inventário do jogo): arma sobre fundo transparente, com o desgaste, os adesivos e o chaveiro ──
-function Cartao({ item, idx, adesivos, chaveiros, equip, aoAbrirMenu }) {
-  const t = useT()
-  const d = descrever(item, idx)
-  const chave = chaveEquip(item)
-  const lados = LADOS_TIME.filter(([l]) => equip[l]?.[chave] === item.__id)
-  return (
-    <li>
-      <button
-        type="button"
-        className="inv-cartao"
-        style={{ '--cor': d.cor || '#6b6f76' }}
-        onContextMenu={(e) => {
-          e.preventDefault()
-          aoAbrirMenu(e, item)
-        }}
-        onClick={(e) => aoAbrirMenu(e, item)}
-      >
-        <span className="inv-cartao-arte">
-          <span className="inv-arma-box">
-            <Imagem src={d.img} classe="inv-arma-img" />
-          </span>
-          {item.t === 'arma' && (item.k?.i > 0 || item.a?.some(Boolean)) && (
-            <span className="inv-enfeites">
-              {item.k?.i > 0 && <Imagem src={urlImg(chaveiros.get(item.k.i)?.[2], 64)} classe="inv-enfeite-chaveiro" />}
-              <span className="inv-enfeites-fileira">
-                {(item.a || []).map((s, k) => (s?.i ? <Imagem key={k} src={urlImg(adesivos.get(s.i)?.[2], 64)} /> : null))}
-              </span>
-            </span>
-          )}
-          <span className="inv-marcas">
-            {lados.map(([l]) => (
-              <Marca key={l} lado={l} />
-            ))}
-          </span>
-          {item.st ? <span className="inv-st">StatTrak™</span> : null}
-        </span>
-        <span className="inv-cartao-nome">
-          <b>{item.n ? `${d.titulo} «${item.n}»` : d.titulo}</b>
-          <small>{d.subtitulo}</small>
-          {d.skin && (
-            <em>
-              {t(nomeDoDesgaste(Number(item.f)))} · {Number(item.f).toFixed(3)}
-            </em>
-          )}
-        </span>
-      </button>
-    </li>
   )
 }
 
