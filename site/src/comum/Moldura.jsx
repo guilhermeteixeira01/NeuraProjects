@@ -513,12 +513,12 @@ function useDesempenho() {
   return ligado
 }
 
-// A moldura animada é um APNG de 1 a 10 MB. Para não pesar: celular/tablet, movimento reduzido e "Economia de dados" usam a
+// A moldura animada é um APNG de 1 a 10 MB. Para não pesar: movimento reduzido e "Economia de dados" usam a
 // imagem parada (a miniatura, uns 18 KB). O mesmo vale no computador até a moldura aparecer na tela: só então carrega a animada.
 function useSemAnimacao() {
   const [sem, setSem] = useState(false)
   useEffect(() => {
-    const consultas = ['(max-width: 1024px)', '(prefers-reduced-motion: reduce)'].map((q) => window.matchMedia(q))
+    const consultas = ['(prefers-reduced-motion: reduce)'].map((q) => window.matchMedia(q))
     const ler = () => setSem(consultas.some((c) => c.matches) || !!navigator.connection?.saveData)
     ler()
     consultas.forEach((c) => c.addEventListener('change', ler))
