@@ -1,0 +1,78 @@
+// Cartão de um item do inventário de skins (o mesmo do /inventario/ e da aba Skins do painel admin): arma sobre fundo transparente com a barra
+// da raridade, bolinhas dos times em que está equipada, StatTrak, chaveiro e adesivos no canto de baixo, nome, skin e desgaste.
+// item: { t, d, p, f, st, n, a, k, __id }   equip: { ct: {chave: id}, tr: {...} }   adesivos/chaveiros: Map(id do jogo -> linha do catálogo)
+// aoAbrirMenu: o que fazer ao clicar (menu do botão direito no inventário); sem ele o cartão é só para olhar. extra: algo embaixo (ex.: botão "Tirar").
+import { useState } from 'react'
+import { LADOS_TIME, chaveEquip, descrever, urlImg } from './skins.js'
+import { useT } from './i18n.js'
+
+function Imagem({ src, classe = '' }) {
+  const [erro, setErro] = useState(false)
+  return src && !erro ? <img className={classe} src={src} alt="" loading="lazy" onError={() => setErro(true)} /> : <span className={`inv-sem-img ${classe}`} aria-hidden="true" />
+}
+
+const Marca = ({ lado }) => <i className={`inv-marca inv-marca-${lado}`} title={lado === 'ct' ? 'CT' : 'TR'} aria-label={lado === 'ct' ? 'CT' : 'TR'} />
+
+export const nomeDoDesgaste = (f) => (f < 0.07 ? 'Factory New' : f < 0.15 ? 'Minimal Wear' : f < 0.38 ? 'Field-Tested' : f < 0.45 ? 'Well-Worn' : 'Battle-Scarred')
+
+export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAbrirMenu, extra }) {
+  const t = useT()
+  const d = descrever(item, idx)
+  const chave = chaveEquip(item)
+  const lados = LADOS_TIME.filter(([l]) => equip?.[l]?.[chave] === item.__id)
+  const corpo = (
+    <>
+      <span className="inv-cartao-arte">
+        <span className="inv-arma-box">
+          <Imagem src={d.img} classe="inv-arma-img" />
+        </span>
+        {item.t === 'arma' && (item.k?.i > 0 || item.a?.some(Boolean)) && (
+          <span className="inv-enfeites">
+            {item.k?.i > 0 && <Imagem src={urlImg(chaveiros?.get(item.k.i)?.[2], 64)} classe="inv-enfeite-chaveiro" />}
+            <span className="inv-enfeites-fileira">
+              {(item.a || []).map((s, k) => (s?.i ? <Imagem key={k} src={urlImg(adesivos?.get(s.i)?.[2], 64)} /> : null))}
+            </span>
+          </span>
+        )}
+        <span className="inv-marcas">
+          {lados.map(([l]) => (
+            <Marca key={l} lado={l} />
+          ))}
+        </span>
+        {item.st ? <span className="inv-st">StatTrak™</span> : null}
+      </span>
+      <span className="inv-cartao-nome">
+        <b>{item.n ? `${d.titulo} «${item.n}»` : d.titulo}</b>
+        <small>{d.subtitulo}</small>
+        {d.skin && (
+          <em>
+            {t(nomeDoDesgaste(Number(item.f)))} · {Number(item.f).toFixed(3)}
+          </em>
+        )}
+      </span>
+    </>
+  )
+  return (
+    <li>
+      {aoAbrirMenu ? (
+        <button
+          type="button"
+          className="inv-cartao"
+          style={{ '--cor': d.cor || '#6b6f76' }}
+          onContextMenu={(e) => {
+            e.preventDefault()
+            aoAbrirMenu(e, item)
+          }}
+          onClick={(e) => aoAbrirMenu(e, item)}
+        >
+          {corpo}
+        </button>
+      ) : (
+        <div className="inv-cartao inv-cartao-fixo" style={{ '--cor': d.cor || '#6b6f76' }}>
+          {corpo}
+        </div>
+      )}
+      {extra}
+    </li>
+  )
+}

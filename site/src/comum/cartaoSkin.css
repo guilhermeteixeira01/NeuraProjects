@@ -1,0 +1,33 @@
+/* Cartão de skin (comum/CartaoSkin.jsx): usado no inventário e no painel admin */
+.inv-cartao { width: 100%; display: grid; gap: 6px; background: none; border: 0; padding: 0; text-align: left; cursor: pointer; color: var(--text); }
+.inv-cartao-arte { position: relative; display: block; aspect-ratio: 4 / 3; border-bottom: 3px solid var(--cor); border-radius: 4px; background: transparent; transition: transform .15s, background .15s; }
+.inv-cartao:hover .inv-cartao-arte, .inv-cartao:focus-visible .inv-cartao-arte { transform: translateY(-2px); background: radial-gradient(ellipse at 50% 60%, rgb(255 255 255 / .14) 0%, rgb(255 255 255 / .04) 70%, transparent 100%); }
+.inv-cartao-nome { display: grid; gap: 1px; padding: 0 2px; }
+.inv-cartao-nome b { font: 700 12.5px var(--font-body); }
+.inv-cartao-nome small { color: rgb(255 255 255 / .8); font-size: 12px; }
+.inv-cartao-nome em { font-style: normal; color: var(--dim); font-size: 11px; }
+.inv-marcas { position: absolute; top: 7px; right: 7px; display: flex; gap: 5px; }
+.inv-marca { width: 15px; height: 15px; border-radius: 50%; display: inline-block; flex: none; box-sizing: border-box; }
+.inv-marca-ct { border: 3px solid #6ec1ff; background: rgb(110 193 255 / .25); }
+.inv-marca-tr { border: 3px solid #f0b400; background: #f0b400; }
+.inv-st { position: absolute; left: 6px; top: 6px; font: 700 10px var(--font-body); color: #ff9d2e; text-shadow: 0 1px 2px #000; }
+.inv-sem-img { display: block; width: 60%; height: 60%; background: rgb(255 255 255 / .08); border-radius: 6px; }
+.inv-skin-img img, .inv-skin-img .inv-sem-img { width: 100%; height: 100%; max-width: 100%; object-fit: contain; }
+/* a arma e tudo que vai preso nela ocupam o mesmo quadro 4:3 (assim adesivo e chaveiro ficam no lugar certo) */
+.inv-arma-box { position: absolute; inset: 0; display: block; }
+.inv-arma-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 8px rgb(0 0 0 / .4)); }
+.inv-arma-box .inv-sem-img { width: 50%; height: 50%; inset: auto; left: 25%; top: 25%; }
+.inv-st { z-index: 2; }
+.inv-marcas { z-index: 2; }
+.inv-st-txt { color: var(--text); font-size: 13px; }
+/* cartão: chaveiro e adesivos fora da arma, no canto de baixo à esquerda (como no inventário do jogo) */
+.inv-enfeites { position: absolute; left: 6px; bottom: 6px; display: grid; gap: 3px; z-index: 2; }
+.inv-enfeites-fileira { display: flex; gap: 2px; }
+.inv-enfeites img { width: 30px; height: 30px; object-fit: contain; filter: drop-shadow(0 1px 2px rgb(0 0 0 / .6)); }
+.inv-marcas-duas { display: inline-flex; gap: 3px; }
+.inv-cartao-nome b { font-size: 12px; }
+.inv-cartao-nome small, .inv-cartao-nome em { font-size: 11px; }
+.inv-enfeites img { width: 22px; height: 22px; }
+.inv-marca { width: 13px; height: 13px; }
+.inv-cartao-fixo { cursor: default; }
+.inv-itens { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 16px 14px; }

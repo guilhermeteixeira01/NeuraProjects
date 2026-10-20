@@ -196,6 +196,25 @@ export async function rotaSkins(req, env, quem, cors) {
   return json(limpo, 200, cors)
 }
 
+// GET /skins/publico?id= (sem login): só o que está equipado, para o perfil mostrar a arma com a skin do jogador
+// { armas: { ct|tr: { "<defIndex>": paint } }, facas: { ct|tr: { d, p } } }
+export async function rotaSkinsPublico(url, env) {
+  const id = url.searchParams.get('id') || ''
+  const cab = { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=30' }
+  if (!ID_STEAM.test(id)) return json({ erro: 'id' }, 400, cab)
+  const inv = await lerSkins(env, id)
+  const r = { armas: { ct: {}, tr: {} }, facas: {} }
+  for (const lado of LADOS) {
+    for (const itemId of Object.values(inv?.equip?.[lado] || {})) {
+      const it = inv.itens[itemId]
+      if (!it) continue
+      if (it.t === 'arma') r.armas[lado][it.d] = it.p
+      else if (it.t === 'faca' && it.p) r.facas[lado] = { d: it.d, p: it.p }
+    }
+  }
+  return json(r, 200, cab)
+}
+
 // POST /skins/presentes { vistos: [id] }: o jogador já viu o aviso das skins novas
 export async function rotaSkinsPresentes(req, env, quem, cors) {
   const { vistos } = (await req.json().catch(() => null)) || {}

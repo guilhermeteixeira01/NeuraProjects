@@ -13,7 +13,8 @@ import { localeAtual, useT } from '../../comum/i18n.js'
 import { ICONES_CARGO, IconeCargo } from '../../comum/cargos.jsx'
 import { NIVEIS_SUB, SUB_MESES_PADRAO, maisUmMes, nivelDaSub, tituloNivel, urlEmblema } from '../../comum/assinatura.js'
 import { INSIGNIAS, imagemInsignia } from '../../comum/insignias.js'
-import { CATEGORIAS, urlImgArma, useCatalogo } from '../../comum/skins.js'
+import { CATEGORIAS, indicar, urlImgArma, useCatalogo } from '../../comum/skins.js'
+import CartaoSkin from '../../comum/CartaoSkin.jsx'
 import { useAvatar } from '../../comum/avatares.js'
 import SeletorMoldura from '../perfil/SeletorMoldura.jsx'
 import { IMAGENS_SELO, urlSelo } from '../../comum/selosEquipe.js'
@@ -1104,6 +1105,7 @@ function DarSkin({ usuarios }) {
   const [estado, setEstado] = useState('')
   const [ocupado, setOcupado] = useState(false)
   const [itens, setItens] = useState(null)
+  const [equipJog, setEquipJog] = useState({ ct: {}, tr: {} }) // o que o jogador tem equipado (bolinhas CT/TR nos cartões)
 
   const termo = busca.trim().toLowerCase()
   const alvo = usuarios.find((u) => u.id === termo || (u.nome || '').toLowerCase() === termo) || (/^\d{17}$/.test(termo) ? { id: termo, nome: '' } : null)
@@ -1111,7 +1113,9 @@ function DarSkin({ usuarios }) {
   // itens que o jogador já tem (para tirar um, se precisar)
   const carregarItens = useCallback(async (id) => {
     try {
-      setItens((await chamar(`/admin/skins?id=${id}`)).itens || {})
+      const r = await chamar(`/admin/skins?id=${id}`)
+      setItens(r.itens || {})
+      setEquipJog(r.equip || { ct: {}, tr: {} })
     } catch {
       setItens(null)
     }
@@ -1122,6 +1126,13 @@ function DarSkin({ usuarios }) {
   }, [alvo?.id, carregarItens])
 
   const armas = catalogo.dados?.armas || []
+  // catálogos para desenhar os cartões (adesivos e chaveiros só carregam se alguma skin tiver)
+  const temEnfeite = !!itens && Object.values(itens).some((it) => it.a?.some(Boolean) || it.k?.i)
+  const adesivosCat = useCatalogo('adesivos', temEnfeite)
+  const chaveirosCat = useCatalogo('chaveiros', temEnfeite)
+  const idxCartao = useMemo(() => indicar(armas, []), [armas])
+  const adesivosMap = useMemo(() => new Map((adesivosCat.dados || []).map((s) => [s[0], s])), [adesivosCat.dados])
+  const chaveirosMap = useMemo(() => new Map((chaveirosCat.dados || []).map((s) => [s[0], s])), [chaveirosCat.dados])
   const grupo = tipo === 'arma' ? armas.filter((a) => CATEGORIAS.some(([c]) => c === a.c)) : armas.filter((a) => a.c === (tipo === 'faca' ? 'facas' : 'luvas'))
   const lista = tipo === 'arma' ? grupo.filter((a) => a.c === categoria) : grupo
   const peca = lista.find((a) => a.d === def) || lista[0]
@@ -1280,14 +1291,21 @@ function DarSkin({ usuarios }) {
       {alvo && itens && Object.keys(itens).length > 0 && (
         <div className="adm-dar-itens">
           <h3>{tr('Skins que ele tem')}</h3>
-          <ul>
+          <ul className="inv-itens adm-dar-cartoes">
             {Object.entries(itens).map(([id, it]) => (
-              <li key={id}>
-                <span>{nomeItem(it)}</span>
-                <button type="button" className="btn btn-ghost adm-perigo" disabled={ocupado} onClick={() => tirar(id)}>
-                  {tr('Tirar')}
-                </button>
-              </li>
+              <CartaoSkin
+                key={id}
+                item={{ ...it, __id: id }}
+                idx={idxCartao}
+                adesivos={adesivosMap}
+                chaveiros={chaveirosMap}
+                equip={equipJog}
+                extra={
+                  <button type="button" className="btn btn-ghost adm-perigo adm-tirar" disabled={ocupado} onClick={() => tirar(id)}>
+                    {tr('Tirar')}
+                  </button>
+                }
+              />
             ))}
           </ul>
         </div>

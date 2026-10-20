@@ -8,6 +8,7 @@ import { ordenarRanking } from '../../comum/ranking.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
 import { IconeSteam } from '../../comum/Icones.jsx'
 import { nomeArma, somarArmas, urlArma } from '../../comum/armas.js'
+import { SkinsDoJogador, useSkinDaArma, useSkinsEquipadas } from '../../comum/skinsPerfil.js'
 import { mapIcon, nomeMapa } from '../../comum/mapas.js'
 import { NIVEIS, NIVEL_ELITE, textoNivel } from '../../comum/niveis.js'
 import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, salvarPerfil, useAdmin, useCardDe, usePerfis, useTimeDe } from '../../comum/Moldura.jsx'
@@ -225,7 +226,8 @@ const ARMAS_NA_LISTA = 5
 const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0)
 function ImagemArma({ id }) {
   const [erro, setErro] = useState(false)
-  const url = urlArma(id)
+  const skins = useSkinDaArma() // skin que o jogador tem equipada nesta arma (se tiver)
+  const url = skins?.imagem(id) || urlArma(id)
   if (!url || erro) return <span className="pf-arma-sem">{nomeArma(id)}</span>
   return <img src={url} alt="" loading="lazy" onError={() => setErro(true)} />
 }
@@ -269,8 +271,9 @@ function DetalheArma({ a, kills, dano, fechar }) {
     </div>
   )
 }
-function Armas({ mapas }) {
+function Armas({ mapas, steamId }) {
   const t = useT()
+  const skins = useSkinsEquipadas(steamId)
   const [todas, setTodas] = useState(false)
   const [aberta, setAberta] = useState(null) // arma com o detalhe aberto
   const { lista, mapas: n, kills } = somarArmas(mapas)
@@ -284,6 +287,7 @@ function Armas({ mapas }) {
   const fechar = () => setAberta(null)
   const abertaTop = destaque.find((a) => a.id === aberta)
   return (
+    <SkinsDoJogador.Provider value={skins}>
     <div className="pf-armas-card spot">
       <div className="pf-card-cab">
         <h2>{t('Armas mais usadas')}</h2>
@@ -351,6 +355,7 @@ function Armas({ mapas }) {
         </button>
       )}
     </div>
+    </SkinsDoJogador.Provider>
   )
 }
 
@@ -673,7 +678,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
             )}
 
             {mapas?.length > 0 && <GraficoRating mapas={mapas} />}
-            {mapas?.length > 0 && <Armas mapas={mapas} />}
+            {mapas?.length > 0 && <Armas mapas={mapas} steamId={j.steamId} />}
             {mapas?.length > 0 && <Historico mapas={mapas} />}
           </div>
         </div>

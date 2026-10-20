@@ -10,6 +10,13 @@ export const NOMES_ARMA = {
   smokegrenade: 'Smoke', decoy: 'Decoy',
 }
 
+// defIndex do jogo de cada arma (o "<nome>" do partida.json -> o item do catálogo de skins). Facas: ver skinDeArma.
+export const DEF_ARMA = {
+  ak47: 7, m4a1: 16, m4a1_silencer: 60, awp: 9, famas: 10, galilar: 13, aug: 8, sg556: 39, ssg08: 40, scar20: 38, g3sg1: 11,
+  deagle: 1, glock: 4, usp_silencer: 61, hkp2000: 32, p250: 36, elite: 2, fiveseven: 3, tec9: 30, cz75a: 63, revolver: 64,
+  mac10: 17, mp9: 34, mp7: 33, mp5sd: 23, ump45: 24, p90: 19, bizon: 26, nova: 35, xm1014: 25, mag7: 27, sawedoff: 29, m249: 14, negev: 28,
+}
+
 export const nomeArma = (id) => NOMES_ARMA[id] || String(id || '').toUpperCase()
 export const urlArma = (id) => (NOMES_ARMA[id] ? `/assets/armas/${id}.webp` : null)
 

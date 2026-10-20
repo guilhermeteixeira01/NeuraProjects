@@ -1,6 +1,8 @@
 /* Painel de administrador. Importa o CSS do perfil (que já traz a base do site, nesta ordem) para
    reaproveitar a janela do "Personalizar" (sm-fundo, sm-cab, sm-rodape...). */
 @import '../perfil/perfil.css';
+/* cartão de skin igual ao do inventário */
+@import '../../comum/cartaoSkin.css';
 
 .adm-hero { padding: 48px 0 34px; }
 .adm-hero h1 { font-family: var(--font-display); font-size: clamp(30px, 5vw, 46px); margin: 8px 0 18px; }
@@ -390,3 +392,6 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 .adm-dar-sel li button:hover { color: var(--red); }
 .adm-dar-dica { color: var(--dim); font-size: 12.5px; }
 .adm-dar-grade button[aria-pressed='true'] { outline: 2px solid var(--accent, #3498db); background: var(--panel); }
+
+.adm-dar-cartoes li { display: grid; gap: 8px; align-content: start; }
+.adm-tirar { justify-self: start; padding: 6px 14px; }
