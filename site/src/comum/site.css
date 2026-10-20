@@ -2824,12 +2824,12 @@ a.nt-corpo:hover b { color: var(--accent); }
 }
 @keyframes nx-encolhe-barra {
   from {
-    width: 244px;
+    width: 300px;
   }
 }
 @keyframes nx-encolhe-corpo {
   from {
-    padding-left: 244px;
+    padding-left: 300px;
   }
 }
 
@@ -2838,7 +2838,7 @@ a.nt-corpo:hover b { color: var(--accent); }
  * continua a barra fina só com ícones (o nome aparece ao passar o mouse) para sobrar espaço ao conteúdo. */
 @media (min-width: 1281px) {
   html:has(.nx-aberta) {
-    --nx-lateral: 244px;
+    --nx-lateral: 300px;
   }
   .nx-aberta .nx-nav-inner {
     align-items: stretch;
@@ -3330,15 +3330,15 @@ html:is([data-tema='claro'], [data-tema='branco']) .nx-conta-menu.cp-card { back
 .cp-fechar { align-self: flex-start; margin-left: auto; background: none; border: 0; color: #9a9aa2; font-size: 28px; line-height: 1; cursor: pointer; padding: 0 4px; }
 .cp-fechar:hover { color: #fff; }
 .cp-caixas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.cp-caixa { display: grid; justify-items: center; gap: 3px; padding: 14px 8px 12px; border-radius: 10px; background: #26262a; color: #ff5500; }
+.cp-caixa { display: grid; justify-items: center; gap: 3px; padding: 14px 8px 12px; border-radius: 10px; background: #26262a; color: var(--blue-2); }
 html:is([data-tema='claro'], [data-tema='branco']) .cp-caixa { background: #f0f0f2; }
 .cp-caixa svg { margin-bottom: 4px; }
 .cp-caixa b { font: 700 21px var(--font-body); color: #fff; letter-spacing: .01em; }
 html:is([data-tema='claro'], [data-tema='branco']) .cp-caixa b { color: #111; }
 .cp-caixa small { font: 600 12px var(--font-body); letter-spacing: .06em; color: #9a9aa2; }
 .cp-loja b { font-size: 15px; line-height: 27px; }
-.cp-perfil { display: block; text-align: center; padding: 13px 10px; border-radius: 4px; border: 1px solid #ff5500; color: #ff5500; font: 700 15px var(--font-body); letter-spacing: .04em; text-decoration: none; transition: background .15s, color .15s; }
-.cp-perfil:hover { background: #ff5500; color: #fff; }
+.cp-perfil { display: block; text-align: center; padding: 13px 10px; border-radius: 4px; border: 1px solid var(--blue-2); color: var(--blue-2); font: 700 15px var(--font-body); letter-spacing: .04em; text-decoration: none; transition: background .15s, color .15s; }
+.cp-perfil:hover { background: var(--blue); color: #fff; }
 .cp-links { display: flex; justify-content: space-between; }
 .nx-conta-menu.cp-card .cp-links a, .nx-conta-menu.cp-card .cp-links button { width: auto; padding: 4px 2px; background: none; color: #9a9aa2; font: 600 13px var(--font-body); }
 .nx-conta-menu.cp-card .cp-links a:hover, .nx-conta-menu.cp-card .cp-links button:hover { color: #fff; background: none; }
@@ -3388,5 +3388,25 @@ html:is([data-tema='claro'], [data-tema='branco']) .cp-caixa b { color: #111; }
   .am-painel { width: 340px; }
   .nx-dica { font-size: 14px; }
 }
-.nx-conta-menu.cp-card .cp-perfil { display: block; width: auto; text-align: center; padding: 13px 10px; border-radius: 4px; border: 1px solid #ff5500; background: none; color: #ff5500; font: 700 15px var(--font-body); letter-spacing: .04em; }
-.nx-conta-menu.cp-card .cp-perfil:hover { background: #ff5500; color: #fff; }
+.nx-conta-menu.cp-card .cp-perfil { display: block; width: auto; text-align: center; padding: 13px 10px; border-radius: 4px; border: 1px solid var(--blue-2); background: none; color: var(--blue-2); font: 700 15px var(--font-body); letter-spacing: .04em; }
+.nx-conta-menu.cp-card .cp-perfil:hover { background: var(--blue); color: #fff; }
+
+/* Barra da esquerda aberta (página inicial) e ícone do Discord: maiores no computador */
+@media (min-width: 1281px) {
+  .nx-aberta .nx-nav-inner { padding: 22px 16px 18px; }
+  .nx-aberta .nx-brand { gap: 14px; padding: 2px 12px 22px; margin-bottom: 14px; }
+  .nx-aberta .nx-brand img { width: 46px; height: 46px; }
+  .nx-aberta .nx-brand > span { font-size: 18px; }
+  .nx-nav.nx-aberta .nx-links .nx-link { height: 58px; padding: 0 18px; gap: 16px; font-size: 18px; border-radius: 12px; }
+  .nx-nav.nx-aberta .nx-links .nx-link .nx-icone { width: 28px; height: 28px; }
+  .nx-aberta .nx-links { gap: 4px; }
+}
+@media (min-width: 1025px) {
+  .nx-direita .ic-discord, .nx-direita .nx-comunidade img { width: 34px !important; height: 34px !important; }
+  .nx-direita .nx-steam svg { width: 32px; height: 32px; }
+}
+
+.cp-logo { width: 26px; height: 26px; object-fit: contain; margin-bottom: 4px; }
+/* Emblema da assinatura: maior e no canto superior direito do avatar, passando um pouco da borda (como no exemplo) */
+.emblema-sub { width: max(36%, 18px) !important; top: -10% !important; right: -12% !important; }
+.nx-direita .emblema-sub, .nx-nav .emblema-sub { width: max(40%, 20px) !important; }
