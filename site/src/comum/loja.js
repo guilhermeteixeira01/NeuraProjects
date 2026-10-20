@@ -22,6 +22,10 @@ export const lerLoja = () => chamar('/loja')
 export const lerSaldo = () => chamar('/loja/saldo')
 export const comprarCaixa = (caixa, qtd) => chamar('/loja/comprar', { caixa, qtd })
 export const abrirCaixa = (caixa, qtd, origem) => chamar('/loja/abrir', { caixa, qtd, origem })
+// Valor de venda de cada item do inventário: { <id do item>: { r: raridade 0..6, v: NP } } (o servidor calcula)
+export const lerValores = async () => (await chamar('/loja/valores')).valores || {}
+// Vende itens (skin, faca ou luva) por NP: { saldo, total, vendidos, inv }
+export const venderItens = (ids) => chamar('/loja/vender', { ids })
 
 // Caixas (nome, imagem, preço) sem a lista de itens: público, serve para dar nome às caixas fechadas do inventário
 let publicas = null

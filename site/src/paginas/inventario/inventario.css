@@ -4,7 +4,7 @@
 
 /* ══════════════ Inventário de skins (src/paginas/inventario/Inventario.jsx), no estilo do inventário do jogo ══════════════ */
 .inv-pagina { padding: 26px 0 80px; }
-.inv-wrap { max-width: 1240px; }
+.inv-wrap { max-width: 1480px; }
 .inv-bloqueio { max-width: 520px; margin: 80px auto; text-align: center; display: grid; gap: 14px; justify-items: center; }
 .inv-bloqueio h1 { margin: 0; }
 .inv-bloqueio p { margin: 0; color: var(--dim); }
@@ -268,3 +268,30 @@
 .inv-excluir-erro { margin: 10px 0 0; color: var(--red); font-size: 13px; }
 .inv-btn-excluir { background: #d7263d; border-color: #d7263d; color: #fff; }
 .inv-btn-excluir:hover:not(:disabled) { background: #f0364d; }
+
+/* filtro de raridade, seleção de vários itens e venda */
+.inv-rar { display: flex; flex-wrap: wrap; gap: 6px; margin: -4px 0 16px; }
+.inv-rar button { display: inline-flex; align-items: center; gap: 6px; background: rgb(255 255 255 / .05); border: 1px solid rgb(255 255 255 / .12); color: var(--dim); border-radius: 999px; padding: 5px 12px; font: 600 12.5px var(--font-body); cursor: pointer; }
+.inv-rar button:hover { color: #fff; }
+.inv-rar button i { width: 9px; height: 9px; border-radius: 50%; background: var(--cor); box-shadow: 0 0 8px var(--cor); }
+.inv-rar button em { font-style: normal; font-size: 11px; opacity: .7; }
+.inv-rar button.is-ativo { color: #fff; border-color: var(--cor, #2bb3d6); background: color-mix(in srgb, var(--cor, #2bb3d6) 22%, transparent); }
+.inv-btn-sel.is-ativo { background: #2bb3d6; border-color: #2bb3d6; color: #06222b; }
+.inv-cartao-sel .inv-cartao-arte { background: radial-gradient(ellipse at 50% 60%, rgb(43 179 214 / .28), transparent 75%); outline: 2px solid #2bb3d6; outline-offset: 2px; border-radius: 6px; }
+.inv-check { position: absolute; top: 6px; left: 6px; z-index: 3; width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgb(255 255 255 / .55); background: rgb(0 0 0 / .45); }
+.inv-check.on { background: #2bb3d6; border-color: #2bb3d6; }
+.inv-check.on::after { content: '✓'; position: absolute; inset: 0; display: grid; place-items: center; color: #06222b; font: 700 14px var(--font-body); }
+.inv-selbar { position: sticky; bottom: 12px; z-index: 40; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 18px; padding: 12px 16px; border-radius: 12px; background: rgb(18 20 26 / .94); border: 1px solid rgb(43 179 214 / .5); box-shadow: 0 16px 40px -12px rgb(0 0 0 / .8); backdrop-filter: blur(8px); }
+.inv-selbar > span { margin-right: auto; font-size: 14px; }
+.inv-selbar em { font-style: normal; color: var(--dim); }
+.inv-selbar em b { color: #f5c518; }
+.inv-menu-vender b { color: #f5c518; margin-left: 4px; }
+.inv-aviso-venda { margin: 0 0 14px; padding: 10px 14px; border-radius: 8px; background: rgb(61 220 132 / .12); border: 1px solid rgb(61 220 132 / .35); font-size: 14px; }
+.inv-venda-lista { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 4px; }
+.inv-venda-lista li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 10px; border-radius: 6px; background: rgb(255 255 255 / .05); font-size: 13px; }
+.inv-venda-lista li span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inv-venda-lista li b { color: #f5c518; white-space: nowrap; }
+.inv-venda-mais { color: var(--dim); justify-content: center !important; }
+.inv-venda-total { margin: 12px 0 0; font-size: 15px; }
+.inv-venda-total b { color: #f5c518; }
+@media (max-width: 700px) { .inv-selbar { bottom: 76px; } .inv-selbar .inv-btn { flex: 1 1 auto; } }

@@ -18,7 +18,8 @@ import {
 } from '../../comum/skins.js'
 import { useT } from '../../comum/i18n.js'
 import { tocar } from '../../comum/somInventario.js'
-import { lerCaixasPublicas } from '../../comum/loja.js'
+import { avisarSaldo, lerCaixasPublicas, lerValores, venderItens } from '../../comum/loja.js'
+import { RARIDADES_CS, raridadeCsDaCor } from '../../../worker/steam-login/src/loja-core.js'
 import Cartao from '../../comum/CartaoSkin.jsx'
 
 // Inventário de skins, no estilo do inventário do jogo: o jogador CRIA itens (arma/faca/luva/agente com a skin que quiser), ajusta
@@ -782,7 +783,7 @@ function Inspecionar({ item, idx, adesivos, chaveiros, mapa, aoFechar }) {
 
 // ── Menu do botão direito ──
 // Só aparece o time em que o item existe no jogo (AK-47 e Glock só no TR; M4 e USP-S só no CT; agente do CT só no CT...)
-function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoDesequipar, aoEditar, aoInspecionar, aoExcluir, podeEditar, aoFechar }) {
+function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoDesequipar, aoEditar, aoInspecionar, aoVender, valor, podeEditar, aoFechar }) {
   const t = useT()
   const ref = useRef(null)
   const [pos, setPos] = useState({ x, y })
@@ -848,8 +849,9 @@ function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoD
       </li>
       <li className="inv-menu-sep" />
       <li>
-        <button type="button" role="menuitem" className="inv-menu-perigo" onClick={aoExcluir}>
-          {t('Excluir item')}
+        <button type="button" role="menuitem" className="inv-menu-vender" onClick={aoVender}>
+          {t('Vender')}
+          {valor ? <b> +{valor.toLocaleString('pt-BR')} NP</b> : null}
         </button>
       </li>
     </ul>
@@ -877,6 +879,14 @@ function Conteudo() {
   const [aba, setAba] = useState('tudo')
   const [busca, setBusca] = useState('')
   const [ordem, setOrdem] = useState('equipado')
+  const [rar, setRar] = useState('todas') // filtro de raridade (0..6 como no jogo) ou 'todas'
+  const [modoSel, setModoSel] = useState(false) // selecionar vários itens (para vender)
+  const [sel, setSel] = useState(() => new Set())
+  const [valores, setValores] = useState({}) // { <id do item>: { r, v } } (vem do servidor)
+  const [venda, setVenda] = useState(null) // { ids } enquanto a pergunta de venda está aberta
+  const [vendendo, setVendendo] = useState(false)
+  const [erroVenda, setErroVenda] = useState('')
+  const [avisoVenda, setAvisoVenda] = useState('')
   const [estado, setEstado] = useState('') // '' | 'salvando' | 'salvo' | 'erro'
   const [erroCarga, setErroCarga] = useState(false)
   const [menu, setMenu] = useState(null) // { x, y, id }
@@ -962,7 +972,20 @@ function Conteudo() {
     return () => clearTimeout(id)
   }, [inv])
 
+  const conjunto = inv ? Object.keys(inv.itens).join(',') : ''
+  useEffect(() => {
+    if (!inv) return
+    let vivo = true
+    const id = setTimeout(() => lerValores().then((v) => vivo && setValores(v), () => {}), 300)
+    return () => {
+      vivo = false
+      clearTimeout(id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conjunto])
   const idx = useMemo(() => indicar(catalogo.dados?.armas, agentes.dados), [catalogo.dados, agentes.dados])
+  // raridade de um item como no jogo (facas e luvas são sempre Extraordinary)
+  const rarDe = (it) => (it.t === 'faca' || it.t === 'luva' ? 6 : raridadeCsDaCor(descrever(it, idx).cor))
   const adesivosPorId = useMemo(() => new Map((adesivos.dados || []).map((s) => [s[0], s])), [adesivos.dados])
   const chaveirosPorId = useMemo(() => new Map((chaveiros.dados || []).map((s) => [s[0], s])), [chaveiros.dados])
 
@@ -992,6 +1015,7 @@ function Conteudo() {
       .map(([id, it]) => ({ ...it, __id: id }))
       .filter((it) => it.t !== 'agente' && !GUARDADO(it.t)) // agentes: bloqueados no servidor; adesivos, chaveiros e caixas têm abas próprias
       .filter((it) => aba === 'tudo' || it.t === aba)
+      .filter((it) => rar === 'todas' || rarDe(it) === rar)
       .filter((it) => {
         if (!q) return true
         const d = descrever(it, idx)
@@ -1005,7 +1029,15 @@ function Conteudo() {
       return nome(a).localeCompare(nome(b))
     })
     return lista
-  }, [inv, aba, busca, ordem, idx])
+  }, [inv, aba, busca, ordem, idx, rar])
+
+  // quantos itens de cada raridade (na aba atual) para os botões do filtro
+  const contagemRar = useMemo(() => {
+    const c = Array(7).fill(0)
+    for (const it of Object.values(inv?.itens || {})) if ((it.t === 'arma' || it.t === 'faca' || it.t === 'luva') && (aba === 'tudo' || it.t === aba)) c[rarDe(it)]++
+    return c
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inv, aba, idx])
 
   const mudar = useCallback((f) => setInv((i) => f(i)), [])
   const mudarItem = (id, parte) => mudar((i) => ({ ...i, itens: { ...i.itens, [id]: { ...i.itens[id], ...parte } } }))
@@ -1050,6 +1082,43 @@ function Conteudo() {
       setErroApagar(t('Não deu para excluir agora. Tente de novo.'))
     } finally {
       setApagando(false)
+    }
+  }
+  const alternarSel = (e, item) => {
+    e.stopPropagation()
+    setSel((s) => {
+      const n = new Set(s)
+      if (n.has(item.__id)) n.delete(item.__id)
+      else n.add(item.__id)
+      return n
+    })
+  }
+  const sairDaSelecao = () => {
+    setModoSel(false)
+    setSel(new Set())
+  }
+  const valorTotal = (ids) => ids.reduce((a, k) => a + (valores[k]?.v || 0), 0)
+  const pedirVenda = (ids) => {
+    setErroVenda('')
+    setVenda({ ids })
+  }
+  const confirmarVenda = async () => {
+    setVendendo(true)
+    try {
+      const r = await venderItens(venda.ids)
+      const novo = { ...inventarioNovo(), ...r.inv }
+      salvo.current = JSON.stringify(novo)
+      setInv(novo)
+      avisarSaldo(r.saldo)
+      tocar('criado')
+      setAvisoVenda(t('Vendido! +{n} NP na sua conta.', { n: r.total.toLocaleString('pt-BR') }))
+      setTimeout(() => setAvisoVenda(''), 6000)
+      setVenda(null)
+      setSel(new Set())
+    } catch {
+      setErroVenda(t('Não deu para vender agora. Tente de novo.'))
+    } finally {
+      setVendendo(false)
     }
   }
   const abrirMenu = (e, item) => {
@@ -1129,6 +1198,11 @@ function Conteudo() {
           {estado === 'erro' && <b className="inv-erro">{t('Não deu para salvar. Tentando de novo ao mudar algo.')}</b>}
         </span>
         <span className="inv-total">{t('{n} itens', { n: total })}</span>
+        {['tudo', 'arma', 'faca', 'luva'].includes(aba) && (
+          <button type="button" className={`inv-btn inv-btn-sel${modoSel ? ' is-ativo' : ''}`} onClick={() => (modoSel ? sairDaSelecao() : setModoSel(true))}>
+            {modoSel ? t('Cancelar seleção') : t('Selecionar')}
+          </button>
+        )}
         <select className="inv-ordem" value={ordem} onChange={(e) => setOrdem(e.target.value)} aria-label={t('Ordenar')}>
           {ORDENS.map(([id, nome]) => (
             <option key={id} value={id}>
@@ -1137,6 +1211,22 @@ function Conteudo() {
           ))}
         </select>
       </div>
+
+      {['tudo', 'arma', 'faca', 'luva'].includes(aba) && total > 0 && (
+        <div className="inv-rar" role="group" aria-label={t('Filtrar por raridade')}>
+          <button type="button" className={rar === 'todas' ? 'is-ativo' : ''} onClick={() => setRar('todas')}>
+            {t('Todas')}
+          </button>
+          {RARIDADES_CS.map((r) =>
+            contagemRar[r.id] ? (
+              <button key={r.id} type="button" className={rar === r.id ? 'is-ativo' : ''} style={{ '--cor': r.cor }} onClick={() => setRar(rar === r.id ? 'todas' : r.id)}>
+                <i /> {r.curto} <em>{contagemRar[r.id]}</em>
+              </button>
+            ) : null,
+          )}
+        </div>
+      )}
+      {avisoVenda && <p className="inv-aviso-venda" role="status">{avisoVenda}</p>}
 
       {total === 0 ? (
         <div className="inv-vazio">
@@ -1150,7 +1240,7 @@ function Conteudo() {
       ) : (
         <ul className="inv-itens">
           {itens.map((it) => (
-            <Cartao key={it.__id} item={it} idx={idx} adesivos={adesivosPorId} chaveiros={chaveirosPorId} equip={inv.equip} aoAbrirMenu={abrirMenu} />
+            <Cartao key={it.__id} item={it} idx={idx} adesivos={adesivosPorId} chaveiros={chaveirosPorId} equip={inv.equip} aoAbrirMenu={modoSel ? alternarSel : abrirMenu} selecionado={modoSel ? sel.has(it.__id) : undefined} />
           ))}
           {guardados.map(cartaoGuardado)}
           {!itens.length && !guardados.length && <li className="inv-nada">{t('Nenhum item encontrado.')}</li>}
@@ -1171,7 +1261,8 @@ function Conteudo() {
           podeEditar={!pequena}
           aoEditar={() => { setJanela({ tipo: 'editar', id: menu.id }); fecharMenu() }}
           aoInspecionar={() => { setJanela({ tipo: 'inspecionar', id: menu.id }); fecharMenu() }}
-          aoExcluir={() => { pedirExclusao(menu.id, nomeDoItem(itemMenu)); fecharMenu() }}
+          valor={valores[menu.id]?.v}
+          aoVender={() => { pedirVenda([menu.id]); fecharMenu() }}
         />
       )}
       {janela?.tipo === 'editar' && itemJanela && !pequena && (
@@ -1191,6 +1282,64 @@ function Conteudo() {
           }}
           aoFechar={() => setJanela(null)}
         />
+      )}
+      {modoSel && (
+        <div className="inv-selbar" role="region" aria-label={t('Itens selecionados')}>
+          <span>
+            <b>{sel.size}</b> {t('selecionado(s)')}
+            {sel.size > 0 && (
+              <em>
+                {' '}
+                · {t('valem')} <b>{valorTotal([...sel]).toLocaleString('pt-BR')} NP</b>
+              </em>
+            )}
+          </span>
+          <button type="button" className="inv-btn" onClick={() => setSel(new Set(itens.map((i) => i.__id)))}>
+            {t('Selecionar todos ({n})', { n: itens.length })}
+          </button>
+          {sel.size > 0 && (
+            <button type="button" className="inv-btn" onClick={() => setSel(new Set())}>
+              {t('Limpar')}
+            </button>
+          )}
+          <button type="button" className="inv-btn inv-btn-p" disabled={!sel.size} onClick={() => pedirVenda([...sel])}>
+            {t('Vender selecionados')}
+          </button>
+        </div>
+      )}
+      {venda && (
+        <Janela
+          titulo={t('Vender')}
+          aoFechar={() => !vendendo && setVenda(null)}
+          largura="media"
+          rodape={
+            <>
+              <button type="button" className="inv-btn" disabled={vendendo} onClick={() => setVenda(null)}>
+                {t('Cancelar')}
+              </button>
+              <button type="button" className="inv-btn inv-btn-p" disabled={vendendo} onClick={confirmarVenda}>
+                {vendendo ? t('Vendendo…') : t('Sim, vender por {n} NP', { n: valorTotal(venda.ids).toLocaleString('pt-BR') })}
+              </button>
+            </>
+          }
+        >
+          <p className="inv-excluir-texto">
+            {venda.ids.length === 1 ? t('Vender este item?') : t('Vender estes {n} itens?', { n: venda.ids.length })} {t('Você recebe o valor em Neura Pontos (NP), calculado pela raridade e pelo desgaste. Não tem volta: o item (e os adesivos e o chaveiro colados nele) sai do seu inventário.')}
+          </p>
+          <ul className="inv-venda-lista">
+            {venda.ids.slice(0, 8).map((k) => (
+              <li key={k}>
+                <span>{inv.itens[k] ? nomeDoItem(inv.itens[k]) : k}</span>
+                <b>+{(valores[k]?.v || 0).toLocaleString('pt-BR')} NP</b>
+              </li>
+            ))}
+            {venda.ids.length > 8 && <li className="inv-venda-mais">{t('e mais {n}…', { n: venda.ids.length - 8 })}</li>}
+          </ul>
+          <p className="inv-venda-total">
+            {t('Total')}: <b>+{valorTotal(venda.ids).toLocaleString('pt-BR')} NP</b>
+          </p>
+          {erroVenda && <p className="inv-excluir-erro">{erroVenda}</p>}
+        </Janela>
       )}
       {apagar && (
         <Janela
