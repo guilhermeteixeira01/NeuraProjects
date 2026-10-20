@@ -12,6 +12,10 @@ import { ComMoldura } from './Moldura.jsx'
 import { useAvatar } from './avatares.js'
 import PainelAmigos from './PainelAmigos.jsx'
 import PainelNotificacoes from './PainelNotificacoes.jsx'
+import PainelPartidas from './PainelPartidas.jsx'
+import { useAmigos } from './amigos.js'
+import { usePontos } from './pontos.js'
+import { localeAtual } from './i18n.js'
 
 function LinkMenu({ item, atual }) {
   const t = useT()
@@ -40,6 +44,8 @@ function Conta() {
   // A foto do token é a do dia do login (vale 30 dias): troca pela atual da Steam
   const fotoAtual = useAvatar(conta?.id)
   const caixa = useRef(null)
+  const pontos = usePontos(conta?.id)
+  const { conectado } = useAmigos()
 
   useEffect(() => {
     if (!aberto) return
@@ -77,23 +83,59 @@ function Conta() {
         <span className="nx-conta-nome nx-dica">{nome}</span>
       </button>
       {aberto && (
-        <div className="nx-conta-menu" role="menu">
-          <a role="menuitem" href={linkPerfil(conta.id)}>
-            {t('Meu perfil')}
+        <div className="nx-conta-menu cp-card" role="dialog" aria-label={t('Minha conta')}>
+          <div className="cp-topo">
+            <span className="cp-av">
+              <ComMoldura steamId={conta.id}>
+                {avatar && erroAvatar !== avatar ? <img src={avatar} alt="" width="56" height="56" onError={() => setErroAvatar(avatar)} /> : <span className="cp-ini">{nome.slice(0, 2).toUpperCase()}</span>}
+              </ComMoldura>
+            </span>
+            <div className="cp-quem">
+              <b title={nome}>{nome}</b>
+              <span className={`cp-status${conectado ? ' on' : ''}`}>
+                <i aria-hidden="true" />
+                {conectado ? t('Online') : t('Offline')}
+              </span>
+            </div>
+            <button type="button" className="cp-fechar" onClick={() => setAberto(false)} aria-label={t('Fechar')}>
+              ×
+            </button>
+          </div>
+          <div className="cp-caixas">
+            <div className="cp-caixa" title={t('Pontos: 100 por mapa vencido e 50 por mapa perdido')}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 3l7.5 4.3v9.4L12 21l-7.5-4.3V7.3z" />
+                <circle cx="12" cy="12" r="2.6" />
+              </svg>
+              <b>{Number(pontos).toLocaleString(localeAtual())}</b>
+              <small>{t('PONTOS')}</small>
+            </div>
+            <div className="cp-caixa cp-loja" title={t('A loja de pontos abre em breve')}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 8v8M8 12h8" />
+              </svg>
+              <b>{t('EM BREVE')}</b>
+              <small>{t('LOJA')}</small>
+            </div>
+          </div>
+          <a className="cp-perfil" href={linkPerfil(conta.id)}>
+            {t('VER PERFIL')}
           </a>
-          <a role="menuitem" href={`https://steamcommunity.com/profiles/${conta.id}`} target="_blank" rel="noopener">
-            {t('Perfil na Steam')}
-          </a>
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => {
-              setAberto(false)
-              sair({ irParaInicio: true })
-            }}
-          >
-            {t('Sair')}
-          </button>
+          <div className="cp-links">
+            <a href={`https://steamcommunity.com/profiles/${conta.id}`} target="_blank" rel="noopener">
+              {t('Perfil na Steam')}
+            </a>
+            <button
+              type="button"
+              onClick={() => {
+                setAberto(false)
+                sair({ irParaInicio: true })
+              }}
+            >
+              {t('Sair')}
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -326,6 +368,7 @@ export default function Nav({ pagina }) {
       {/* Computador (estilo FACEIT): barra fina à direita com a conta, ⚙ e Comunidade */}
       <aside className="nx-direita" aria-label={t('Conta e configurações')}>
         <Conta />
+        <PainelPartidas />
         <span className="nx-direita-sep" aria-hidden="true" />
         <PainelNotificacoes />
         <PainelAmigos />
