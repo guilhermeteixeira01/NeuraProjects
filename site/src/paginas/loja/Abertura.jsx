@@ -54,7 +54,7 @@ export function CartaoItem({ r, d, p, achar, classe = '', children }) {
 
 // ── roleta (horizontal ou vertical): anima até o item sorteado ──
 // itens: lista de { r, i } (i = índice na lista `lista` da caixa); o vencedor está em `alvo`
-function Roleta({ vertical = false, itens, alvo, lista, achar, rodando, pular, duracao, aoParar }) {
+function Roleta({ vertical = false, itens, alvo, lista, achar, rodando, pular, duracao, aoParar, sonora = true }) {
   const caixa = useRef(null)
   const trilho = useRef(null)
   const [parou, setParou] = useState(false)
@@ -90,7 +90,7 @@ function Roleta({ vertical = false, itens, alvo, lista, achar, rodando, pular, d
       const i = Math.floor((V / 2 - x) / passo)
       if (i !== ultimo) {
         ultimo = i
-        if (agora - ultimoTick > 24 && p < 1) {
+        if (sonora && agora - ultimoTick > 24 && p < 1) {
           ultimoTick = agora
           som('tick', 1 - p) // o ritmo acompanha a desaceleração (cada cartão que passa pelo marcador)
         }
@@ -98,7 +98,6 @@ function Roleta({ vertical = false, itens, alvo, lista, achar, rodando, pular, d
       if (p < 1) quadro = requestAnimationFrame(passoAnim)
       else {
         setParou(true)
-        som('parar')
         aoParar()
       }
     }
@@ -245,6 +244,11 @@ export default function Abertura({ caixa, qtd, origem, aoFechar, aoOutra }) {
 
   // avisa o resto do site que a roleta começou/acabou: a insígnia nova só aparece depois (Insignias.jsx)
   useEffect(() => {
+    // trava a rolagem da página de trás (barras de rolagem do site não aparecem por cima da roleta)
+    document.documentElement.classList.add('lj-travado')
+    return () => document.documentElement.classList.remove('lj-travado')
+  }, [])
+  useEffect(() => {
     window.dispatchEvent(new Event('np-loja-inicio'))
     return () => {
       // espera o React tirar o elemento da página antes de avisar
@@ -285,6 +289,11 @@ export default function Abertura({ caixa, qtd, origem, aoFechar, aoOutra }) {
   const comFaca = useMemo(() => resultados.map((r, k) => (r.facas ? k : -1)).filter((k) => k >= 0), [resultados])
 
   // todas as roletas pararam: vai para a das facas (se alguma caiu no card dourado) ou para o resultado
+  // o som de "parou" toca uma vez só, quando a última roleta termina (e o tick só vem da primeira, senão soaria em dobro)
+  useEffect(() => {
+    if (fase === 'roleta' && resultados.length && paradas === resultados.length) som('parar')
+  }, [fase, paradas, resultados.length])
+
   useEffect(() => {
     if (fase !== 'roleta' || !resultados.length || paradas < resultados.length) return
     const id = setTimeout(() => setFase(comFaca.length && !pular.current ? 'facas' : 'resultado'), 700)
@@ -363,7 +372,7 @@ export default function Abertura({ caixa, qtd, origem, aoFechar, aoOutra }) {
       {fase === 'roleta' && (
         <div className="lj-faixas" data-n={resultados.length}>
           {resultados.map((r, k) => (
-            <Roleta key={r.id} itens={r.faixa} alvo={r.alvo} lista={caixa.itens} achar={achar} rodando duracao={DURACAO + k * 250} pular={pular} aoParar={() => setParadas((n) => n + 1)} />
+            <Roleta key={r.id} itens={r.faixa} alvo={r.alvo} lista={caixa.itens} achar={achar} rodando sonora={k === 0} duracao={DURACAO + k * 250} pular={pular} aoParar={() => setParadas((n) => n + 1)} />
           ))}
         </div>
       )}
@@ -382,7 +391,10 @@ export default function Abertura({ caixa, qtd, origem, aoFechar, aoOutra }) {
             rodando
             duracao={DURACAO_FACAS}
             pular={pular}
-            aoParar={() => setTimeout(proximaFaca, 1100)}
+            aoParar={() => {
+              som('parar')
+              setTimeout(proximaFaca, 1100)
+            }}
           />
         </div>
       )}

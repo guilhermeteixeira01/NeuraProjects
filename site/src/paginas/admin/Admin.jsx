@@ -16,6 +16,7 @@ import { INSIGNIAS, imagemInsignia } from '../../comum/insignias.js'
 import { CATEGORIAS, indicar, urlImg, urlImgArma, useCatalogo } from '../../comum/skins.js'
 import CartaoSkin from '../../comum/CartaoSkin.jsx'
 import AdminCaixas from './AdminCaixas.jsx'
+import { lerCaixasPublicas } from '../../comum/loja.js'
 import { useAvatar } from '../../comum/avatares.js'
 import SeletorMoldura from '../perfil/SeletorMoldura.jsx'
 import { IMAGENS_SELO, urlSelo } from '../../comum/selosEquipe.js'
@@ -1147,8 +1148,13 @@ function DarSkin({ usuarios }) {
 
   const armas = catalogo.dados?.armas || []
   // catálogos para desenhar os cartões (adesivos e chaveiros só carregam se alguma skin tiver)
+  const [caixasLoja, setCaixasLoja] = useState([])
+  useEffect(() => {
+    lerCaixasPublicas().then(setCaixasLoja)
+  }, [])
   const emb = tipo === 'adesivo' || tipo === 'chaveiro' // abas de adesivos e chaveiros (itens que o jogador guarda e cola nas armas)
   const temEnfeite = !!itens && Object.values(itens).some((it) => it.a?.some(Boolean) || it.k?.i || it.t === 'adesivo' || it.t === 'chaveiro')
+  const guardado = (t) => t === 'adesivo' || t === 'chaveiro' || t === 'caixa' // fora dos cartões de skin
   const adesivosCat = useCatalogo('adesivos', temEnfeite || tipo === 'adesivo')
   const chaveirosCat = useCatalogo('chaveiros', temEnfeite || tipo === 'chaveiro')
   const idxCartao = useMemo(() => indicar(armas, []), [armas])
@@ -1166,13 +1172,14 @@ function DarSkin({ usuarios }) {
   const embGuardados = useMemo(() => {
     const g = {}
     for (const [id, it] of Object.entries(itens || {})) {
-      if (it.t !== 'adesivo' && it.t !== 'chaveiro') continue
+      if (!guardado(it.t)) continue
       const chave = it.t + it.d
-      const linha = (it.t === 'adesivo' ? adesivosMap : chaveirosMap).get(it.d)
-      ;(g[chave] ??= { chave, img: linha?.[2], nome: linha?.[1] || `${it.t} #${it.d}`, ids: [] }).ids.push(id)
+      const caixa = it.t === 'caixa' ? caixasLoja.find((c) => c.id === it.d) : null
+      const linha = it.t === 'caixa' ? null : (it.t === 'adesivo' ? adesivosMap : chaveirosMap).get(it.d)
+      ;(g[chave] ??= { chave, caixa: it.t === 'caixa', src: caixa?.img, img: linha?.[2], nome: caixa ? `${caixa.nome} (caixa fechada)` : linha?.[1] || `${it.t} #${it.d}`, ids: [] }).ids.push(id)
     }
     return Object.values(g)
-  }, [itens, adesivosMap, chaveirosMap])
+  }, [itens, adesivosMap, chaveirosMap, caixasLoja])
   const nomeItem = (it) => {
     const a = armas.find((x) => x.d === it.d)
     const s = a?.s.find((x) => x[0] === it.p)
@@ -1360,7 +1367,7 @@ function DarSkin({ usuarios }) {
         <div className="adm-dar-itens">
           <h3>{tr('Skins que ele tem')}</h3>
           <ul className="inv-itens adm-dar-cartoes">
-            {Object.entries(itens).filter(([, it]) => it.t !== 'adesivo' && it.t !== 'chaveiro').map(([id, it]) => (
+            {Object.entries(itens).filter(([, it]) => !guardado(it.t)).map(([id, it]) => (
               <CartaoSkin
                 key={id}
                 item={{ ...it, __id: id }}
@@ -1378,11 +1385,11 @@ function DarSkin({ usuarios }) {
           </ul>
           {embGuardados.length > 0 && (
             <>
-              <h3>{tr('Adesivos e chaveiros guardados')}</h3>
+              <h3>{tr('Adesivos, chaveiros e caixas guardados')}</h3>
               <ul className="adm-dar-guardados">
                 {embGuardados.map((g) => (
                   <li key={g.chave}>
-                    <img src={urlImg(g.img, 64)} alt="" loading="lazy" />
+                    <img src={g.caixa ? g.src : urlImg(g.img, 64)} alt="" loading="lazy" />
                     <span>{g.nome}</span>
                     <b>×{g.ids.length}</b>
                     <button type="button" className="btn btn-ghost adm-perigo adm-tirar" disabled={ocupado} onClick={() => tirar(g.ids[0])}>
