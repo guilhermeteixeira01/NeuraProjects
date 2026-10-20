@@ -129,15 +129,13 @@ function EditorCaixa({ c, armas, achar, mudar, remover }) {
   )
 }
 
-export default function AdminCaixas({ usuarios }) {
+export default function AdminCaixas() {
   const t = useT()
   const catalogo = useCatalogo('armas')
   const [caixas, setCaixas] = useState(null)
   const [cfg, setCfg] = useState(null)
   const [estado, setEstado] = useState('')
   const [ocupado, setOcupado] = useState(false)
-  const [credito, setCredito] = useState({ id: '', valor: 1000 })
-  const [todos, setTodos] = useState({ valor: 1000, motivo: '' })
 
   useEffect(() => {
     chamar('/admin/caixas-lista', {}).then(setCaixas, (e) => setEstado(erroTexto(e)))
@@ -235,67 +233,6 @@ export default function AdminCaixas({ usuarios }) {
         </div>
       </section>
 
-      <section className="adm-cx-bloco">
-        <h3>{t('Dar (ou tirar) Neura Pontos')}</h3>
-        <div className="adm-sub-add">
-          <input list="adm-cx-usuarios" type="text" placeholder={t('SteamID64 ou nome exato')} value={credito.id} onChange={(e) => setCredito({ ...credito, id: e.target.value })} />
-          <datalist id="adm-cx-usuarios">
-            {usuarios
-              .filter((u) => u.nome)
-              .slice(0, 400)
-              .map((u) => (
-                <option key={u.id} value={u.nome} />
-              ))}
-          </datalist>
-          <input type="number" value={credito.valor} onChange={(e) => setCredito({ ...credito, valor: Number(e.target.value) })} aria-label={t('Valor')} />
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={ocupado}
-            onClick={() => {
-              const termo = credito.id.trim().toLowerCase()
-              const alvo = /^\d{17}$/.test(termo) ? termo : usuarios.find((u) => (u.nome || '').toLowerCase() === termo)?.id
-              if (!alvo) return setEstado(t('Jogador não encontrado.'))
-              rodar(async () => {
-                const r = await chamar('/admin/loja-creditar', { id: alvo, valor: credito.valor })
-                setEstado(t('Pronto: o saldo dele agora é {n} NP.', { n: r.saldo }))
-              }, '')
-            }}
-          >
-            {t('Aplicar')}
-          </button>
-        </div>
-      </section>
-
-      <section className="adm-cx-bloco">
-        <h3>{t('Dar Neura Pontos para todos')}</h3>
-        <p className="adm-dar-dica">{t('Cada jogador recebe uma vez, na próxima vez que abrir a loja ou o menu da conta (inclusive quem ainda não abriu nenhuma caixa). Valor negativo tira.')}</p>
-        <div className="adm-sub-add">
-          <input type="number" value={todos.valor} onChange={(e) => setTodos({ ...todos, valor: Number(e.target.value) })} aria-label={t('Valor')} />
-          <input type="text" maxLength={60} placeholder={t('Motivo (opcional)')} value={todos.motivo} onChange={(e) => setTodos({ ...todos, motivo: e.target.value })} />
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={ocupado || !todos.valor}
-            onClick={() => {
-              if (!window.confirm(t('Dar {n} NP para TODOS os jogadores? Não dá para desfazer (só dando um valor negativo depois).', { n: todos.valor }))) return
-              rodar(async () => {
-                await chamar('/admin/loja-bonus', todos)
-              }, t('Pronto: {n} NP para todos. Cada um recebe ao abrir a loja ou o menu da conta.', { n: todos.valor }))
-            }}
-          >
-            {t('Dar para todos')}
-          </button>
-        </div>
-      </section>
-
-      <section className="adm-cx-bloco">
-        <h3>{t('Insígnias das caixas')}</h3>
-        <p className="adm-dar-dica">{t('As insígnias saem sozinhas depois de cada compra/abertura. Este botão reconfere quem já abriu caixas (útil depois de mudar uma caixa: "Mestre da Caixa").')}</p>
-        <button type="button" className="btn btn-ghost" disabled={ocupado} onClick={() => rodar(async () => { const r = await chamar('/admin/loja-retro', {}); setEstado(t('{n} jogador(es) conferidos, {m} com insígnia nova.', { n: r.jogadores, m: Object.keys(r.novas).length })) }, '')}>
-          {t('Reconferir insígnias de todos')}
-        </button>
-      </section>
       {estado && <p className="adm-dar-estado">{estado}</p>}
     </div>
   )

@@ -16,6 +16,7 @@ import { INSIGNIAS, imagemInsignia } from '../../comum/insignias.js'
 import { CATEGORIAS, indicar, urlImg, urlImgArma, useCatalogo } from '../../comum/skins.js'
 import CartaoSkin from '../../comum/CartaoSkin.jsx'
 import AdminCaixas from './AdminCaixas.jsx'
+import AdminPontos from './AdminPontos.jsx'
 import { lerCaixasPublicas } from '../../comum/loja.js'
 import { useAvatar } from '../../comum/avatares.js'
 import SeletorMoldura from '../perfil/SeletorMoldura.jsx'
@@ -1588,7 +1589,7 @@ export default function Admin() {
       ['cards', 'Cards'],
       ['cargos', 'Cargos'],
       ['assinaturas', 'Assinaturas'],
-      ...(eu.dono ? [['skins', 'Skins'], ['caixas', 'Caixas']] : []), // só o dono entrega skins e mexe na loja
+      ...(eu.dono ? [['skins', 'Skins'], ['caixas', 'Caixas'], ['pontos', 'Pontos']] : []), // só o dono entrega skins e mexe na loja
       ['admins', 'Admins'],
     ]
     conteudo = (
@@ -1635,7 +1636,8 @@ export default function Admin() {
             {aba === 'cargos' && <Cargos key={JSON.stringify(painel.config.cargos || [])} config={painel.config} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
             {aba === 'assinaturas' && <Assinaturas key={JSON.stringify(painel.config.subMeses || {})} config={painel.config} usuarios={usuarios} aoSalvarConfig={(config) => setPainel((p) => ({ ...p, config }))} aoSalvarPerfis={(perfis) => setPainel((p) => ({ ...p, perfis }))} />}
             {aba === 'skins' && eu.dono && <DarSkin usuarios={usuarios} />}
-            {aba === 'caixas' && eu.dono && <AdminCaixas usuarios={usuarios} />}
+            {aba === 'caixas' && eu.dono && <AdminCaixas />}
+            {aba === 'pontos' && eu.dono && <AdminPontos usuarios={usuarios} />}
             {aba === 'admins' && <Admins config={painel.config} dono={painel.dono} souDono={eu.dono} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
           </div>
         </section>

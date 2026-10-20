@@ -21,9 +21,8 @@
  *   GET  /loja/historico         (login)    -> últimas 100 aberturas
  *   POST /admin/caixas {caixas}  (dono)     -> troca a lista de caixas
  *   POST /admin/loja-config {taxas?, desgaste?, maxQtd?} (dono)
- *   POST /admin/loja-creditar {id, valor} (dono)  -> dá (ou tira, valor negativo) NP de um jogador
- *   POST /admin/loja-bonus {valor, motivo?} (dono) -> dá NP para TODOS (cada um recebe uma vez, ao abrir a loja ou o menu da conta)
- *   POST /admin/loja-retro       (dono)     -> reconfere as insígnias de todos que já abriram caixa
+ *   POST /admin/loja-pontos {alvo: 'todos'|<SteamID64>, acao: 'adicionar'|'remover'|'definir', valor, motivo?} (dono)
+ *   GET  /admin/loja-saldo?id= (dono)  -> { saldo, ganhos, gastos, movimentos } de um jogador
  */
 import { avisarPerfil } from './amigos.js'
 import { CONFIG_PADRAO, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
@@ -120,6 +119,11 @@ export class Loja {
     return ver
   }
 
+  // últimas movimentações do saldo (delta > 0 = recebeu, < 0 = gastou)
+  movimentos() {
+    return this.sql.exec('SELECT ts, valor, motivo FROM movimentos ORDER BY id DESC LIMIT 8').toArray().map((m) => ({ ts: m.ts, delta: -m.valor, motivo: m.motivo }))
+  }
+
   gastos() {
     return Number(this.sql.exec('SELECT COALESCE(SUM(valor),0) AS s FROM movimentos').one().s) || 0
   }
@@ -152,7 +156,7 @@ export class Loja {
   }
 
   async acao({ acao, id, caixas, cfg, pontos, bonus, ...p }) {
-    if (['saldo', 'estado', 'comprar', 'abrir'].includes(acao)) await this.aplicarBonus(bonus)
+    if (['saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir'].includes(acao)) await this.aplicarBonus(bonus)
     switch (acao) {
       case 'inv-ler':
         return this.invLer(id)
@@ -163,7 +167,7 @@ export class Loja {
         return { ok: true }
       }
       case 'saldo':
-        return { saldo: pontos - this.gastos() }
+        return { saldo: pontos - this.gastos(), ganhos: pontos, gastos: this.gastos(), movimentos: p.movimentos ? this.movimentos() : undefined }
       case 'estado':
         return this.estado(id, caixas, cfg, pontos)
       case 'comprar':
@@ -172,11 +176,15 @@ export class Loja {
         return this.abrir(id, caixas, cfg, pontos, p)
       case 'historico':
         return { aberturas: this.sql.exec('SELECT ts, caixa, t, d, p, r, f FROM aberturas ORDER BY id DESC LIMIT 100').toArray() }
-      case 'creditar':
-        this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), -Math.round(num(p.valor, -1e7, 1e7, 0)), 'ajuste do dono')
+      case 'creditar': // valor > 0 dá NP, valor < 0 tira
+        this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), -Math.round(num(p.valor, -1e7, 1e7, 0)), String(p.motivo || 'ajuste do dono').slice(0, 60))
         return { saldo: pontos - this.gastos() }
-      case 'retro':
-        return await this.conferirInsignias(id, caixas, await this.fechadas(id))
+      case 'definir': { // deixa o saldo exatamente em "valor"
+        const atual = pontos - this.gastos()
+        const alvo = Math.round(num(p.valor, -1e7, 1e7, 0))
+        if (alvo !== atual) this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), atual - alvo, String(p.motivo || 'saldo definido pelo dono').slice(0, 60))
+        return { saldo: alvo }
+      }
       default:
         throw new Error('acao')
     }
@@ -207,10 +215,12 @@ export class Loja {
     const fechadasPor = await this.fechadas(id)
     const linhas = this.linhas()
     const stats = calcularStats(linhas, Object.values(fechadasPor).reduce((a, b) => a + b, 0))
-    const perfis = (await this.env.MOLDURAS.get('perfis', 'json').catch(() => null)) || {}
-    const ganhas = perfis[id]?.insignias || {}
+    // confere agora (cura insígnia que ficou sem gravar por falha antes) e devolve as ganhas; a rota grava no perfil o que faltar
+    await this.conferirInsignias(id, caixas, fechadasPor)
+    const ganhas = (await this.ctx.storage.get('ganhas')) || {}
     const ativas = caixas.filter((c) => c.ativa)
     return {
+      ganhas,
       saldo: pontos - this.gastos(),
       pontos,
       cfg,
@@ -358,8 +368,11 @@ export async function rotaLoja(req, env, quem, cors, rota) {
   const bonus = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
   const r = await chamar(env, quem.id, { acao, caixas, cfg, pontos, bonus, caixa: corpo.caixa, qtd: corpo.qtd, origem: corpo.origem === 'inventario' || corpo.origem === 'auto' ? corpo.origem : 'direto' })
   const dados = await r.json().catch(() => ({ erro: 'falhou' }))
-  if (dados.insigniasTs && Object.keys(dados.insigniasTs).length) await aplicarInsignias(env, { [quem.id]: dados.insigniasTs })
+  // insígnias novas + as que o perfil ainda não tem (cura sozinha: nada de botão "reconferir"); aplicarInsignias só grava se faltar algo
+  const dar = { ...(dados.ganhas || {}), ...(dados.insigniasTs || {}) }
+  if (Object.keys(dar).length) await aplicarInsignias(env, { [quem.id]: dar })
   delete dados.insigniasTs
+  delete dados.ganhas
   return json(dados, r.status, cors)
 }
 
@@ -381,33 +394,32 @@ export async function rotaAdminLoja(req, env, rota, cors) {
     await env.MOLDURAS.put('loja-config', JSON.stringify(nova))
     return json(nova, 200, cors)
   }
-  if (rota === '/admin/loja-creditar') {
-    if (!ID_STEAM.test(corpo.id || '')) return json({ erro: 'id' }, 400, cors)
-    const pontos = await pontosGanhos(env, corpo.id)
-    const r = await chamar(env, corpo.id, { acao: 'creditar', pontos, valor: corpo.valor })
+  // Pontos: uma rota só. alvo = 'todos' ou SteamID64; acao = 'adicionar' | 'remover' | 'definir' (definir só para um jogador)
+  if (rota === '/admin/loja-pontos') {
+    const valor = Math.round(num(corpo.valor, 0, 1e7, -1))
+    if (valor < 0 || !['adicionar', 'remover', 'definir'].includes(corpo.acao)) return json({ erro: 'valor' }, 400, cors)
+    const motivo = String(corpo.motivo || '').slice(0, 60)
+    if (corpo.alvo === 'todos') {
+      if (corpo.acao === 'definir' || !valor) return json({ erro: 'valor' }, 400, cors)
+      const lista = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
+      const nova = { id: Math.max(0, ...lista.map((b) => b.id)) + 1, ts: Date.now(), valor: corpo.acao === 'remover' ? -valor : valor, motivo }
+      await env.MOLDURAS.put('loja-bonus', JSON.stringify([...lista, nova].slice(-200)))
+      return json({ ok: true, todos: true }, 200, cors)
+    }
+    if (!ID_STEAM.test(corpo.alvo || '')) return json({ erro: 'id' }, 400, cors)
+    const pontos = await pontosGanhos(env, corpo.alvo)
+    const bonus = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
+    const r = await chamar(env, corpo.alvo, { acao: corpo.acao === 'definir' ? 'definir' : 'creditar', pontos, bonus, valor: corpo.acao === 'remover' ? -valor : valor, motivo })
     return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
   }
-  if (rota === '/admin/loja-bonus') {
-    const valor = Math.round(num(corpo.valor, -1e7, 1e7, 0))
-    if (!valor) return json({ erro: 'valor' }, 400, cors)
-    const lista = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
-    const nova = { id: Math.max(0, ...lista.map((b) => b.id)) + 1, ts: Date.now(), valor, motivo: String(corpo.motivo || '').slice(0, 60) }
-    await env.MOLDURAS.put('loja-bonus', JSON.stringify([...lista, nova].slice(-200)))
-    return json({ ok: true, bonus: nova }, 200, cors)
-  }
-  if (rota === '/admin/loja-retro') {
-    const [caixas, ids] = await Promise.all([lerCaixas(env), env.MOLDURAS.get('loja-jogadores', 'json').then((l) => l || [])])
-    const feito = {}
-    const ts = {}
-    for (const id of ids) {
-      const r = await (await chamar(env, id, { acao: 'retro', caixas })).json().catch(() => null)
-      if (r?.ids?.length) {
-        feito[id] = r.ids
-        ts[id] = r.ts
-      }
-    }
-    await aplicarInsignias(env, ts)
-    return json({ jogadores: ids.length, novas: feito }, 200, cors)
+  // Saldo de um jogador (o painel consulta de poucos em poucos segundos: "tempo real")
+  if (rota === '/admin/loja-saldo') {
+    const id = new URL(req.url).searchParams.get('id') || ''
+    if (!ID_STEAM.test(id)) return json({ erro: 'id' }, 400, cors)
+    const pontos = await pontosGanhos(env, id)
+    const bonus = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
+    const r = await chamar(env, id, { acao: 'saldo', pontos, bonus, movimentos: true })
+    return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
   }
   return json({ erro: 'rota' }, 404, cors)
 }

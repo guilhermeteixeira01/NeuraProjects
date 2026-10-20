@@ -296,3 +296,16 @@ html.lj-travado .nx-rolagem { display: none !important; }
 .lj-resultado:has(.lj-minis) { align-content: start; padding-top: 6px; }
 @media (min-width: 701px) { .lj-resultado:has(.lj-minis) { align-content: center; } }
 @media (max-width: 700px) { .lj-mini img { aspect-ratio: 16 / 9; } .lj-mini small { font-size: 10px; } }
+
+/* celular: a roleta vertical da faca usa a largura toda do quadro (a regra das roletas horizontais a deixava estreita) */
+@media (max-width: 1024px) {
+  .lj-facas .lj-roleta { width: min(360px, 92vw); }
+  .lj-vertical .lj-trilho .lj-cartao, .lj-faixas .lj-vertical .lj-trilho .lj-cartao { width: 100% !important; }
+  .lj-facas { padding: 8px 12px; }
+  .lj-facas h2 { font-size: 26px; }
+}
+/* níveis das insígnias: quebram de linha em vez de sair do cartão */
+.lj-ins { min-width: 0; }
+.lj-niveis { flex-wrap: wrap; justify-content: center; max-width: 100%; }
+.lj-niveis img { flex: none; }
+@media (max-width: 700px) { .lj-niveis img { width: 34px; height: 34px; } .lj-ins { padding: 14px 10px; } }
