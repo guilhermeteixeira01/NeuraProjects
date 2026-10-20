@@ -3486,3 +3486,10 @@ html.ins-estante-aberta #root { filter: blur(10px) brightness(.5) saturate(.9); 
   .ins-hex:nth-child(1) .ins-hex-info { left: -6px; transform: translate(0, 6px); }
   .ins-hex:nth-child(1):hover .ins-hex-info, .ins-hex:nth-child(1):focus-visible .ins-hex-info { transform: translate(0, 0); }
 }
+
+/* insígnias do perfil: sempre uma linha só (4 + "+N"), dividindo a largura do cartão em partes iguais (sem quebra no computador, sem sobra no celular) */
+.ins-lista.pf-insignias { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; align-items: center; justify-items: center; }
+.ins-lista.pf-insignias .ins-item { width: 100%; display: grid; justify-items: center; }
+.ins-lista.pf-insignias .ins-botao { width: 100%; --ins-h: auto; }
+.ins-lista.pf-insignias .ins-botao img { width: 100%; height: auto; max-height: 72px; }
+.ins-lista.pf-insignias .ins-mais { width: 100%; max-width: 64px; height: auto; aspect-ratio: 1; }
