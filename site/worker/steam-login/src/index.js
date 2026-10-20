@@ -39,7 +39,7 @@
  *                   usa os do ranking)
  */
 import { Presenca, avisarPerfil, avisarSkin, rotaAmigos, rotaLobby, rotaPresenca, rotaServidor } from './amigos.js'
-import { rotaAdminSkin, rotaAdminSkins, rotaServidorSkins, rotaSkins, rotaSkinsPresentes, rotaSkinsPublico } from './skins.js'
+import { rotaAdminSkin, rotaAdminSkins, rotaServidorSkins, rotaSkins, rotaSkinsExcluir, rotaSkinsPresentes, rotaSkinsPublico } from './skins.js'
 import { Loja, rotaAdminLoja, rotaLoja, rotaLojaPublica } from './loja.js'
 import { ehInsigniaLoja, ID_MESTRE } from './loja-core.js'
 export { Presenca } // Durable Object da presença (wrangler.toml)
@@ -105,6 +105,7 @@ export default {
     if (rota === '/lobby' && (req.method === 'GET' || req.method === 'POST')) return rotaLobby(req, env, quem, cors)
     if (rota === '/skins' && (req.method === 'GET' || req.method === 'POST')) return rotaSkins(req, env, quem, cors)
     if (rota === '/skins/presentes' && req.method === 'POST') return rotaSkinsPresentes(req, env, quem, cors)
+    if (rota === '/skins/excluir' && req.method === 'POST') return rotaSkinsExcluir(req, env, quem, cors)
     if (rota === '/loja' || rota.startsWith('/loja/')) return rotaLoja(req, env, quem, cors, rota)
     if (req.method === 'POST' && (rota === '/perfil' || rota === '/moldura')) return salvarPerfil(req, env, site, quem, admin, config, cors, rota === '/moldura')
 

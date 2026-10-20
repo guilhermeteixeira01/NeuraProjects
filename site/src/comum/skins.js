@@ -67,6 +67,16 @@ async function chamar(metodo, corpo) {
 export const lerInventario = () => chamar('GET')
 export const salvarInventario = (inv) => chamar('POST', inv)
 
+// Exclui um item do inventário (o worker devolve o inventário já sem ele)
+export async function excluirItem(id) {
+  const token = tokenConta()
+  if (!token) throw new Error('login')
+  const r = await fetch(`${base()}/skins/excluir`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+  const d = await r.json().catch(() => null)
+  if (!r.ok || d?.erro) throw new Error(d?.erro || 'falhou')
+  return d
+}
+
 // ── Inventário (modelo igual ao do jogo: itens criados + o que está equipado em cada time) ──
 export const inventarioNovo = () => ({ v: 2, itens: {}, equip: { ct: {}, tr: {} }, criado: {} })
 export const novoIdItem = () => (Math.random().toString(36).slice(2, 10) + 'aaaa').slice(0, 8)

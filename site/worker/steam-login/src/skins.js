@@ -290,6 +290,22 @@ export async function rotaSkinsPresentes(req, env, quem, cors) {
   return json({ ok: true }, 200, cors)
 }
 
+// POST /skins/excluir { id }: o jogador exclui um item do próprio inventário (skin, adesivo, chaveiro ou caixa). Não tem volta: o site pergunta antes.
+export async function rotaSkinsExcluir(req, env, quem, cors) {
+  const { id } = (await req.json().catch(() => null)) || {}
+  if (!ID_ITEM.test(String(id))) return json({ erro: 'item' }, 400, cors)
+  const r = await mudarSkins(env, quem.id, (inv) => {
+    if (!inv.itens[id]) return { erro: 'item', status: 404 }
+    delete inv.itens[id]
+    delete inv.criado[id]
+    for (const lado of LADOS) inv.equip[lado] = Object.fromEntries(Object.entries(inv.equip[lado]).filter(([, v]) => v !== id))
+    inv.presentes = inv.presentes.filter((p) => p.i !== id)
+    return { inv: limparSkins(inv) }
+  })
+  if (r.erro) return json({ erro: r.erro }, r.status || 503, cors)
+  return json(r.inv, 200, cors)
+}
+
 // POST /admin/skin (só o dono): { id, item } dá uma skin ao jogador; { id, remover: "<id do item>" } tira
 export async function rotaAdminSkin(req, env, cors, avisar) {
   const corpo = await req.json().catch(() => null)
