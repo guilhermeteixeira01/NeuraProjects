@@ -30,7 +30,8 @@
 const ID_STEAM = /^\d{17}$/
 const FACAS = new Set([500, 503, 505, 506, 507, 508, 509, 512, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 525, 526]) // defIndex das facas do jogo
 const LUVAS = new Set([4725, 5027, 5030, 5031, 5032, 5033, 5034, 5035])
-const ITENS_MAX = 400
+const ITENS_MAX = 2000 // inclui os adesivos e chaveiros guardados (cada um é um item)
+const CONSUMIVEIS = new Set(['adesivo', 'chaveiro'])
 const ID_MAX = 100000 // paint kit / adesivo / agente: limite folgado só para barrar lixo
 const ID_ITEM = /^[a-z0-9]{4,16}$/
 const MODELO_AGENTE = /^agents\/models\/[a-z0-9_/]{1,120}\.vmdl$/
@@ -125,6 +126,9 @@ export function limparSkins(entrada) {
     } else if (it.t === 'agente') {
       if (!MODELO_AGENTE.test(String(it.m))) continue
       saida.itens[id] = { t: 'agente', d, p: 0, m: String(it.m) }
+    } else if (CONSUMIVEIS.has(it.t)) {
+      // adesivo/chaveiro guardado no inventário: só vale para colar numa arma (e some quando é colado)
+      saida.itens[id] = { t: it.t, d, p: 0 }
     } else continue
     saida.criado[id] = inteiro(e.criado?.[id], 0, 9007199254740991)
   }
@@ -132,7 +136,7 @@ export function limparSkins(entrada) {
   for (const lado of LADOS) {
     for (const [chave, id] of Object.entries(e.equip?.[lado] && typeof e.equip[lado] === 'object' ? e.equip[lado] : {})) {
       const it = saida.itens[id]
-      if (!it || !timesDoItem(it).includes(lado)) continue // item que não existe nesse time (AK no CT, M4 no TR...) não fica equipado
+      if (!it || CONSUMIVEIS.has(it.t) || !timesDoItem(it).includes(lado)) continue // item que não existe nesse time (AK no CT, M4 no TR...) não fica equipado
       // a chave diz onde o item entra: a arma pelo defIndex, o resto pelo tipo
       const certa = it.t === 'arma' ? String(it.d) : it.t
       if (chave === certa) saida.equip[lado][chave] = id
@@ -140,7 +144,7 @@ export function limparSkins(entrada) {
   }
   saida.presentes = (Array.isArray(e.presentes) ? e.presentes : [])
     .filter((p) => p && ID_ITEM.test(String(p.i)) && saida.itens[p.i])
-    .map((p) => ({ i: String(p.i), q: inteiro(p.q, 0, 9007199254740991), v: p.v ? 1 : 0 }))
+    .map((p) => ({ i: String(p.i), q: inteiro(p.q, 0, 9007199254740991), v: p.v ? 1 : 0, n: inteiro(p.n, 1, 99, 1) }))
     .slice(-50)
   return saida
 }
@@ -174,6 +178,42 @@ const gravarSkins = (env, id, inv) =>
 
 const novoId = () => (crypto.randomUUID().replace(/-/g, '').slice(0, 10))
 
+// Quantos adesivos e chaveiros estão colados nas armas: { adesivos: { def: n }, chaveiros: { def: n } }
+function contarColados(itens) {
+  const adesivos = {}
+  const chaveiros = {}
+  for (const it of Object.values(itens)) {
+    if (it.t !== 'arma') continue
+    for (const a of it.a || []) if (a?.i) adesivos[a.i] = (adesivos[a.i] || 0) + 1
+    if (it.k?.i) chaveiros[it.k.i] = (chaveiros[it.k.i] || 0) + 1
+  }
+  return { adesivos, chaveiros }
+}
+
+// Colar adesivo/chaveiro numa arma GASTA um do inventário (só dá para colar o que se tem); adesivo tirado da arma se perde (como raspar no CS)
+// e o chaveiro tirado (ou trocado) volta para o inventário. Devolve o erro ou null; muda "itens" (gasta e devolve).
+function aplicarConsumo(antes, itens) {
+  const a = contarColados(antes)
+  const d = contarColados(itens)
+  const dono = (tipo, def) => Object.entries(itens).filter(([, it]) => it.t === tipo && it.d === Number(def))
+  for (const [tipo, chave, nome] of [['adesivo', 'adesivos', 'sem-adesivo'], ['chaveiro', 'chaveiros', 'sem-chaveiro']]) {
+    for (const def of new Set([...Object.keys(a[chave]), ...Object.keys(d[chave])])) {
+      const precisa = (d[chave][def] || 0) - (a[chave][def] || 0)
+      if (precisa > 0) {
+        const guardados = dono(tipo, def)
+        if (guardados.length < precisa) return nome
+        for (const [id] of guardados.slice(0, precisa)) delete itens[id]
+      }
+    }
+  }
+  // chaveiro que saiu da arma volta para o inventário
+  for (const def of Object.keys(a.chaveiros)) {
+    const volta = (a.chaveiros[def] || 0) - (d.chaveiros[def] || 0)
+    for (let i = 0; i < volta; i++) itens[novoId()] = { t: 'chaveiro', d: Number(def), p: 0 }
+  }
+  return null
+}
+
 // GET/POST /skins (o próprio jogador logado)
 export async function rotaSkins(req, env, quem, cors) {
   const atual = (await lerSkins(env, quem.id)) || vazio()
@@ -191,7 +231,11 @@ export async function rotaSkins(req, env, quem, cors) {
   }
   // Item que o jogador não mandou de volta continua com ele: só o dono tira skin (POST /admin/skin { remover })
   for (const [id, orig] of Object.entries(atual.itens)) if (!itens[id]) itens[id] = orig
-  const limpo = limparSkins({ v: 2, itens, equip: proposta.equip, criado: atual.criado, presentes: atual.presentes })
+  const erro = aplicarConsumo(atual.itens, itens)
+  if (erro) return json({ erro }, 400, cors)
+  const criado = { ...atual.criado }
+  for (const id of Object.keys(itens)) criado[id] ??= Date.now()
+  const limpo = limparSkins({ v: 2, itens, equip: proposta.equip, criado, presentes: atual.presentes })
   await gravarSkins(env, quem.id, limpo)
   return json(limpo, 200, cors)
 }
@@ -244,19 +288,24 @@ export async function rotaAdminSkin(req, env, cors, avisar) {
   }
 
   // { item } ou { itens: [..] }: dá uma ou várias de uma vez (até 40); o jogador recebe um aviso para cada skin
-  const lista = Array.isArray(corpo.itens) ? corpo.itens.slice(0, 40) : corpo.item ? [corpo.item] : []
-  if (!lista.length || lista.some((it) => !it || !['arma', 'faca', 'luva'].includes(it.t))) return json({ erro: 'item' }, 400, cors) // agente não: bloqueado no servidor
-  if (Object.keys(inv.itens).length + lista.length > ITENS_MAX) return json({ erro: 'cheio' }, 400, cors)
+  const lista = Array.isArray(corpo.itens) ? corpo.itens.slice(0, 60) : corpo.item ? [corpo.item] : []
+  if (!lista.length || lista.some((it) => !it || !['arma', 'faca', 'luva', 'adesivo', 'chaveiro'].includes(it.t))) return json({ erro: 'item' }, 400, cors) // agente não: bloqueado no servidor
+  // cada item pode vir com q (quantidade, até 50: adesivo/chaveiro repetido); o aviso é um só por tipo de item, com "×n"
+  const total = lista.reduce((n, it) => n + (CONSUMIVEIS.has(it.t) ? inteiro(it.q, 1, 50, 1) : 1), 0)
+  if (Object.keys(inv.itens).length + total > ITENS_MAX) return json({ erro: 'cheio' }, 400, cors)
   const ids = []
   const agora = Date.now()
   for (const [n, it] of lista.entries()) {
-    const id = novoId()
-    const teste = limparSkins({ v: 2, itens: { [id]: it } })
-    if (!teste.itens[id]) return json({ erro: 'item' }, 400, cors)
-    inv.itens[id] = teste.itens[id]
-    inv.criado[id] = agora + n
-    inv.presentes = [...inv.presentes, { i: id, q: agora + n, v: 0 }]
-    ids.push(id)
+    const qtd = CONSUMIVEIS.has(it.t) ? inteiro(it.q, 1, 50, 1) : 1
+    for (let k = 0; k < qtd; k++) {
+      const id = novoId()
+      const teste = limparSkins({ v: 2, itens: { [id]: it } })
+      if (!teste.itens[id]) return json({ erro: 'item' }, 400, cors)
+      inv.itens[id] = teste.itens[id]
+      inv.criado[id] = agora + n
+      if (k === 0) inv.presentes = [...inv.presentes, { i: id, q: agora + n, v: 0, n: qtd }]
+      ids.push(id)
+    }
   }
   const limpo = limparSkins(inv)
   await gravarSkins(env, alvo, limpo)

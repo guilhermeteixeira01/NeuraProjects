@@ -28,7 +28,30 @@ const ABAS = [
   ['arma', 'ARMAS'],
   ['faca', 'FACAS'],
   ['luva', 'LUVAS'],
+  ['adesivo', 'ADESIVOS'],
+  ['chaveiro', 'CHAVEIROS'],
 ]
+const EMBALAGEM = (t) => t === 'adesivo' || t === 'chaveiro' // itens guardados que se gastam ao colar numa arma
+
+// Quantos de cada adesivo/chaveiro o jogador ainda pode usar na arma que está editando:
+// o que tem guardado + o que a arma já tinha (salvo) - o que está colado agora na edição
+function livresParaColar(estoque, tipo, original, atual) {
+  const uso = (it) => {
+    const m = new Map()
+    const somar = (def) => def && m.set(def, (m.get(def) || 0) + 1)
+    if (tipo === 'adesivo') (it?.a || []).forEach((s) => somar(s?.i))
+    else somar(it?.k?.i)
+    return m
+  }
+  const antes = uso(original)
+  const agora = uso(atual)
+  const r = new Map()
+  for (const def of new Set([...estoque.keys(), ...antes.keys()])) {
+    const n = (estoque.get(def) || 0) + (antes.get(def) || 0) - (agora.get(def) || 0)
+    if (n > 0) r.set(def, n)
+  }
+  return r
+}
 const ORDENS = [
   ['equipado', 'Equipado'],
   ['recente', 'Mais recentes'],
@@ -111,15 +134,16 @@ function GradeSkins({ skins, paint, aoEscolher, rotuloVazio }) {
 }
 
 // Escolher um adesivo (10 mil: filtra pelo nome e mostra os primeiros)
-function SeletorAdesivo({ aoEscolher, aoFechar, catalogo = 'adesivos' }) {
+function SeletorAdesivo({ aoEscolher, aoFechar, catalogo = 'adesivos', livres }) {
   const t = useT()
   const { dados, erro } = useCatalogo(catalogo)
   const [busca, setBusca] = useState('')
   const lista = useMemo(() => {
     if (!dados) return []
     const q = busca.trim().toLowerCase()
-    return (q ? dados.filter((s) => s[1].toLowerCase().includes(q)) : dados).slice(0, 90)
-  }, [dados, busca])
+    const meus = livres ? dados.filter((s) => livres.has(s[0])) : dados // só dá para usar o que está no inventário
+    return (q ? meus.filter((s) => s[1].toLowerCase().includes(q)) : meus).slice(0, 90)
+  }, [dados, busca, livres])
   return (
     <Janela titulo={catalogo === 'chaveiros' ? t('Escolher chaveiro') : t('Escolher adesivo')} aoFechar={aoFechar} largura="media">
       <input type="search" className="inv-busca" placeholder={catalogo === 'chaveiros' ? t('Pesquisar chaveiro') : t('Pesquisar adesivo (ex.: Katowice, holo, Navi)')} value={busca} onChange={(e) => setBusca(e.target.value)} autoFocus />
@@ -128,13 +152,13 @@ function SeletorAdesivo({ aoEscolher, aoFechar, catalogo = 'adesivos' }) {
           <li key={s[0]}>
             <button type="button" onClick={() => aoEscolher(s[0])} title={s[1]}>
               <Imagem src={urlImg(s[2], 128)} />
-              <small>{s[1]}</small>
+              <small>{livres ? `${s[1]} ×${livres.get(s[0])}` : s[1]}</small>
             </button>
           </li>
         ))}
         {erro && <li className="inv-nada">{t('Não consegui carregar os adesivos.')}</li>}
         {!dados && !erro && <li className="inv-nada">{t('Carregando…')}</li>}
-        {dados && !lista.length && <li className="inv-nada">{t('Nenhum adesivo encontrado.')}</li>}
+        {dados && !lista.length && <li className="inv-nada">{livres && !livres.size ? t(catalogo === 'chaveiros' ? 'Você não tem chaveiros disponíveis no inventário.' : 'Você não tem adesivos disponíveis no inventário.') : t('Nenhum adesivo encontrado.')}</li>}
       </ul>
     </Janela>
   )
@@ -328,7 +352,7 @@ function TelaInteira({ titulo, subtitulo, aviso, aoFechar, confirmar, rotuloConf
 }
 
 // ── Colar adesivo ──
-function TelaAdesivos({ item, d, m, adesivos, aoColar, aoFechar }) {
+function TelaAdesivos({ item, d, m, adesivos, estoque, original, aoColar, aoFechar }) {
   const t = useT()
   const controle = useRef(null)
   const [loc, setLoc] = useState({ a: item.a || [null, null, null, null, null], k: item.k || null })
@@ -368,7 +392,7 @@ function TelaAdesivos({ item, d, m, adesivos, aoColar, aoFechar }) {
           {d.subtitulo ? <b> | {d.subtitulo}</b> : null}
         </>
       }
-      aviso={t('Arraste o adesivo na arma, gire com o botão direito do mouse e use a roda para aproximar.')}
+      aviso={t('Arraste o adesivo na arma, gire com o botão direito do mouse e use a roda para aproximar. Cada adesivo colado é gasto do seu inventário.')}
       aoFechar={aoFechar}
       confirmar={() => aoColar({ a: loc.a, k: loc.k })}
       rotuloConfirmar={t('COLAR ADESIVO')}
@@ -431,6 +455,7 @@ function TelaAdesivos({ item, d, m, adesivos, aoColar, aoFechar }) {
       )}
       {escolhendo && (
         <SeletorAdesivo
+          livres={livresParaColar(estoque, 'adesivo', original, loc)}
           aoFechar={() => setEscolhendo(false)}
           aoEscolher={(def) => {
             adicionar(def)
@@ -443,7 +468,7 @@ function TelaAdesivos({ item, d, m, adesivos, aoColar, aoFechar }) {
 }
 
 // ── Prender chaveiro ──
-function TelaChaveiro({ item, d, m, chaveiros, aoPrender, aoFechar }) {
+function TelaChaveiro({ item, d, m, chaveiros, estoque, original, aoPrender, aoFechar }) {
   const t = useT()
   const controle = useRef(null)
   const [loc, setLoc] = useState({ a: item.a || [null, null, null, null, null], k: item.k || null })
@@ -471,7 +496,7 @@ function TelaChaveiro({ item, d, m, chaveiros, aoPrender, aoFechar }) {
           {d.subtitulo ? <b> | {d.subtitulo}</b> : null}
         </>
       }
-      aviso={t('Arraste o chaveiro na arma para escolher onde ele fica.')}
+      aviso={t('Arraste o chaveiro na arma para escolher onde ele fica. O chaveiro prendido é gasto do seu inventário; ao tirar, ele volta.')}
       aoFechar={aoFechar}
       confirmar={() => aoPrender({ a: loc.a, k: loc.k })}
       rotuloConfirmar={t('PRENDER CHAVEIRO')}
@@ -535,6 +560,7 @@ function TelaChaveiro({ item, d, m, chaveiros, aoPrender, aoFechar }) {
       {escolhendo && (
         <SeletorAdesivo
           catalogo="chaveiros"
+          livres={livresParaColar(estoque, 'chaveiro', original, loc)}
           aoFechar={() => setEscolhendo(false)}
           aoEscolher={(def) => {
             trocar(def)
@@ -548,7 +574,7 @@ function TelaChaveiro({ item, d, m, chaveiros, aoPrender, aoFechar }) {
 
 // ── Confirmar criação / Editar item (compacto, igual ao do inventário do jogo): o 3D à esquerda e os ajustes à direita ──
 // Trabalha numa cópia: CANCELAR descarta e CRIAR/SALVAR grava no inventário.
-function DialogoItem({ inicial, modo, idx, adesivos, chaveiros, mapa, aoConfirmar, aoFechar }) {
+function DialogoItem({ inicial, modo, idx, adesivos, chaveiros, estoque, mapa, aoConfirmar, aoFechar }) {
   const t = useT()
   const [rasc, setRasc] = useState(inicial)
   const [tela, setTela] = useState('') // '' | 'adesivos' | 'chaveiro'
@@ -675,6 +701,8 @@ function DialogoItem({ inicial, modo, idx, adesivos, chaveiros, mapa, aoConfirma
           d={d}
           m={m}
           adesivos={adesivos}
+          estoque={estoque.adesivo}
+          original={inicial}
           aoFechar={() => setTela('')}
           aoColar={(p) => {
             tocar('criado')
@@ -690,6 +718,8 @@ function DialogoItem({ inicial, modo, idx, adesivos, chaveiros, mapa, aoConfirma
           d={d}
           m={m}
           chaveiros={chaveiros}
+          estoque={estoque.chaveiro}
+          original={inicial}
           aoFechar={() => setTela('')}
           aoPrender={(p) => {
             tocar('criado')
@@ -863,7 +893,7 @@ function Conteudo() {
       document.removeEventListener('pointerover', sobre)
     }
   }, [])
-  const precisaAdesivos = janela?.tipo === 'editar' || janela?.tipo === 'confirmar' || janela?.tipo === 'inspecionar' || (!!inv && Object.values(inv.itens).some((it) => it.a?.some(Boolean) || it.k?.i))
+  const precisaAdesivos = janela?.tipo === 'editar' || janela?.tipo === 'confirmar' || janela?.tipo === 'inspecionar' || aba === 'adesivo' || aba === 'chaveiro' || (!!inv && Object.values(inv.itens).some((it) => it.a?.some(Boolean) || it.k?.i || EMBALAGEM(it.t)))
   const adesivos = useCatalogo('adesivos', precisaAdesivos)
   const chaveiros = useCatalogo('chaveiros', precisaAdesivos)
   const mapa3d = useCatalogo('mapa3d', janela?.tipo === 'editar' || janela?.tipo === 'inspecionar' || janela?.tipo === 'confirmar')
@@ -894,8 +924,11 @@ function Conteudo() {
     const id = setTimeout(async () => {
       try {
         const d = await salvarInventario(inv)
-        salvo.current = JSON.stringify({ ...inventarioNovo(), ...d })
-        setEstado(JSON.stringify(inv) === salvo.current ? 'salvo' : 'salvando')
+        const novo = { ...inventarioNovo(), ...d }
+        salvo.current = JSON.stringify(novo)
+        // o servidor gasta os adesivos/chaveiros colados (e devolve o chaveiro tirado): adota o que ele guardou
+        setInv((cur) => (JSON.stringify(cur) === atual ? novo : cur))
+        setEstado(atual === salvo.current || JSON.stringify(inv) === salvo.current ? 'salvo' : 'salvando')
       } catch {
         setEstado('erro')
       }
@@ -907,12 +940,28 @@ function Conteudo() {
   const adesivosPorId = useMemo(() => new Map((adesivos.dados || []).map((s) => [s[0], s])), [adesivos.dados])
   const chaveirosPorId = useMemo(() => new Map((chaveiros.dados || []).map((s) => [s[0], s])), [chaveiros.dados])
 
+  // adesivos e chaveiros guardados: def -> quantidade
+  const estoque = useMemo(() => {
+    const r = { adesivo: new Map(), chaveiro: new Map() }
+    for (const it of Object.values(inv?.itens || {})) if (EMBALAGEM(it.t)) r[it.t].set(it.d, (r[it.t].get(it.d) || 0) + 1)
+    return r
+  }, [inv])
+  const guardados = useMemo(() => {
+    if (aba !== 'adesivo' && aba !== 'chaveiro') return []
+    const q = busca.trim().toLowerCase()
+    const cat = aba === 'adesivo' ? adesivosPorId : chaveirosPorId
+    return [...estoque[aba].entries()]
+      .map(([def, n]) => ({ def, n, linha: cat.get(def) }))
+      .filter((g) => !q || (g.linha?.[1] || '').toLowerCase().includes(q))
+      .sort((a, b) => (a.linha?.[1] || '').localeCompare(b.linha?.[1] || ''))
+  }, [aba, busca, estoque, adesivosPorId, chaveirosPorId])
+
   const itens = useMemo(() => {
     if (!inv) return []
     const q = busca.trim().toLowerCase()
     const lista = Object.entries(inv.itens)
       .map(([id, it]) => ({ ...it, __id: id }))
-      .filter((it) => it.t !== 'agente') // agentes: bloqueados no servidor
+      .filter((it) => it.t !== 'agente' && !EMBALAGEM(it.t)) // agentes: bloqueados no servidor; adesivos/chaveiros têm abas próprias
       .filter((it) => aba === 'tudo' || it.t === aba)
       .filter((it) => {
         if (!q) return true
@@ -971,6 +1020,7 @@ function Conteudo() {
   const itemMenu = menu ? { ...inv.itens[menu.id], __id: menu.id } : null
   const itemJanela = janela?.id && inv.itens[janela.id] ? { ...inv.itens[janela.id], __id: janela.id } : null
   const total = Object.values(inv.itens).filter((it) => it.t !== 'agente').length
+  const emEmbalagem = aba === 'adesivo' || aba === 'chaveiro'
   return (
     <>
       <div className="inv-topo">
@@ -1012,6 +1062,26 @@ function Conteudo() {
         <div className="inv-vazio">
           <p>{t('Seu inventário está vazio. As skins são entregues pelo dono do servidor: quando você receber uma, ela aparece aqui e um aviso no meio da tela.')}</p>
         </div>
+      ) : emEmbalagem ? (
+        <ul className="inv-itens">
+          {guardados.map((g) => (
+            <li key={g.def}>
+              <div className="inv-cartao inv-cartao-fixo" style={{ '--cor': g.linha?.[3] || '#6b6f76' }}>
+                <span className="inv-cartao-arte">
+                  <span className="inv-arma-box">
+                    <Imagem src={urlImg(g.linha?.[2], 256)} classe="inv-arma-img" />
+                  </span>
+                  <span className="inv-st">×{g.n}</span>
+                </span>
+                <span className="inv-cartao-nome">
+                  <b>{g.linha?.[1] || `#${g.def}`}</b>
+                  <small>{aba === 'adesivo' ? t('Adesivo') : t('Chaveiro')}</small>
+                </span>
+              </div>
+            </li>
+          ))}
+          {!guardados.length && <li className="inv-nada">{t(aba === 'adesivo' ? 'Você não tem adesivos. Eles são entregues pelo dono do servidor; use-os ao editar uma arma.' : 'Você não tem chaveiros. Eles são entregues pelo dono do servidor; use-os ao editar uma arma.')}</li>}
+        </ul>
       ) : (
         <ul className="inv-itens">
           {itens.map((it) => (
@@ -1044,6 +1114,7 @@ function Conteudo() {
           idx={idx}
           adesivos={adesivos}
           chaveiros={chaveiros}
+          estoque={estoque}
           mapa={mapa3d.dados}
           aoConfirmar={(r) => {
             tocar('criado')
