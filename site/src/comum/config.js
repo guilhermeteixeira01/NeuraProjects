@@ -34,6 +34,6 @@ export const MENU = [
   { id: 'pick', rotulo: 'Pick & Ban', href: '/neurapick/', icone: 'mapa' },
   { id: 'partidas', rotulo: 'Partidas', href: '/partidas/', icone: 'partidas' },
   { id: 'ranking', rotulo: 'Ranking', href: '/ranking/', icone: 'trofeu' },
-  // Site de fora: abre em outra aba
-  { id: 'inventario', rotulo: 'Inventário', href: 'https://inventory.cstrike.app', externo: true, icone: 'mochila' },
+  // Skins do jogador (o plugin aplica no servidor)
+  { id: 'inventario', rotulo: 'Inventário', href: '/inventario/', icone: 'mochila' },
 ]

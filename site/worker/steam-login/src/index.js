@@ -12,6 +12,7 @@
  *   /avatares?ids=a,b,...  -> foto atual da Steam de até 100 jogadores { id: url } (as das partidas ficam velhas)
  *   /premier               -> CS Rating do Premier (Leetify) dos jogadores do ranking, atualizado de hora em hora
  *   /eu                    -> quem é o dono do token e se é admin
+ *   /skins                 -> inventário de skins do jogador (src/skins.js); o plugin lê em /servidor/skins
  *   /admin/...             -> painel de administrador (só admins; conferido aqui em toda chamada)
  *
  * Token: base64url(JSON { id, nome, avatar, exp }) + "." + base64url(HMAC-SHA256 com o SEGREDO).
@@ -38,6 +39,7 @@
  *                   usa os do ranking)
  */
 import { Presenca, avisarPerfil, rotaAmigos, rotaLobby, rotaPresenca, rotaServidor } from './amigos.js'
+import { rotaServidorSkins, rotaSkins } from './skins.js'
 export { Presenca } // Durable Object da presença (wrangler.toml)
 
 const OPENID = 'https://steamcommunity.com/openid/login'
@@ -77,6 +79,8 @@ export default {
     // Plugin do servidor de CS2 (BaseComp): pega a próxima partida pronta e avisa em que fase ela está (token próprio, sem login Steam)
     if ((rota === '/servidor/proxima' || rota === '/servidor/estado' || rota === '/servidor/elenco' || (rota === '/teste/limpar' && env.MODO_TESTE === '1')) && req.method === 'POST') return rotaServidor(req, env, rota)
 
+    if (rota === '/servidor/skins' && req.method === 'POST') return rotaServidorSkins(req, env) // plugin: inventário de skins de quem está no servidor
+
     // Daqui para baixo: só o próprio site, com login
     const cors = corsDe(req, env, site)
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors })
@@ -94,6 +98,7 @@ export default {
     if (rota === '/amigos' && (req.method === 'GET' || req.method === 'POST')) return rotaAmigos(req, env, quem, cors)
     if (rota === '/usuarios/buscar' && req.method === 'GET') return buscarUsuarios(url, env, quem, cors)
     if (rota === '/lobby' && (req.method === 'GET' || req.method === 'POST')) return rotaLobby(req, env, quem, cors)
+    if (rota === '/skins' && (req.method === 'GET' || req.method === 'POST')) return rotaSkins(req, env, quem, cors)
     if (req.method === 'POST' && (rota === '/perfil' || rota === '/moldura')) return salvarPerfil(req, env, site, quem, admin, config, cors, rota === '/moldura')
 
     if (rota.startsWith('/admin/')) {

@@ -101,7 +101,7 @@ function Conta() {
 }
 
 // Páginas que aparecem no menu sem login
-const SEM_LOGIN = ['inicio', 'lobby', 'ranking'] // o ▶ Jogar aparece sempre (sem login a página pede para entrar)
+const SEM_LOGIN = ['inicio', 'lobby', 'ranking', 'inventario'] // o ▶ Jogar aparece sempre (sem login a página pede para entrar)
 
 // Páginas fora do MENU: só para o título da barra de cima no celular
 const OUTRAS = {
