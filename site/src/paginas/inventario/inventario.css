@@ -232,3 +232,14 @@
 
 .inv-menu-aviso { display: block; padding: 9px 10px; color: var(--dim); font: 500 12px var(--font-body); max-width: 230px; }
 .inv-aviso-mobile { margin: 10px 2px 0; padding: 10px 12px; border-radius: 8px; background: rgb(245 197 24 / .1); border: 1px solid rgb(245 197 24 / .3); color: var(--text); font-size: 13px; }
+
+/* celular: 2 itens por linha */
+@media (max-width: 700px) {
+  .inv-itens { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 10px; }
+  .inv-cartao-nome b { font-size: 12px; }
+  .inv-cartao-nome small, .inv-cartao-nome em { font-size: 11px; }
+  .inv-enfeites img { width: 22px; height: 22px; }
+  .inv-marca { width: 13px; height: 13px; }
+  .inv-topo { padding: 8px 10px; }
+  .inv-abas button { padding: 7px 10px; font-size: 12px; }
+}

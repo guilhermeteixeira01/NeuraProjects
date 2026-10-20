@@ -224,19 +224,25 @@ export async function rotaAdminSkin(req, env, cors, avisar) {
     return json({ ok: true, itens: limpo.itens }, 200, cors)
   }
 
-  const it = corpo.item
-  if (!it || !['arma', 'faca', 'luva'].includes(it.t)) return json({ erro: 'item' }, 400, cors) // agente não: bloqueado no servidor
-  const id = novoId()
-  const teste = limparSkins({ v: 2, itens: { [id]: it } })
-  if (!teste.itens[id]) return json({ erro: 'item' }, 400, cors)
-  if (Object.keys(inv.itens).length >= ITENS_MAX) return json({ erro: 'cheio' }, 400, cors)
-  inv.itens[id] = teste.itens[id]
-  inv.criado[id] = Date.now()
-  inv.presentes = [...inv.presentes, { i: id, q: Date.now(), v: 0 }]
+  // { item } ou { itens: [..] }: dá uma ou várias de uma vez (até 40); o jogador recebe um aviso para cada skin
+  const lista = Array.isArray(corpo.itens) ? corpo.itens.slice(0, 40) : corpo.item ? [corpo.item] : []
+  if (!lista.length || lista.some((it) => !it || !['arma', 'faca', 'luva'].includes(it.t))) return json({ erro: 'item' }, 400, cors) // agente não: bloqueado no servidor
+  if (Object.keys(inv.itens).length + lista.length > ITENS_MAX) return json({ erro: 'cheio' }, 400, cors)
+  const ids = []
+  const agora = Date.now()
+  for (const [n, it] of lista.entries()) {
+    const id = novoId()
+    const teste = limparSkins({ v: 2, itens: { [id]: it } })
+    if (!teste.itens[id]) return json({ erro: 'item' }, 400, cors)
+    inv.itens[id] = teste.itens[id]
+    inv.criado[id] = agora + n
+    inv.presentes = [...inv.presentes, { i: id, q: agora + n, v: 0 }]
+    ids.push(id)
+  }
   const limpo = limparSkins(inv)
   await gravarSkins(env, alvo, limpo)
   await avisar?.(env, alvo) // quem está com o site aberto vê o aviso na hora
-  return json({ ok: true, id, itens: limpo.itens }, 200, cors)
+  return json({ ok: true, id: ids[0], ids, itens: limpo.itens }, 200, cors)
 }
 
 // GET /admin/skins?id= (só o dono): o que o jogador tem
