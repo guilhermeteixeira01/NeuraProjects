@@ -217,3 +217,9 @@
   .inv-dialogo, .inv-tela-corpo { grid-template-columns: 1fr; }
   .inv-tela-lateral { margin-top: 0; }
 }
+
+/* cartão: chaveiro e adesivos fora da arma, no canto de baixo à esquerda (como no inventário do jogo) */
+.inv-enfeites { position: absolute; left: 6px; bottom: 6px; display: grid; gap: 3px; z-index: 2; }
+.inv-enfeites-fileira { display: flex; gap: 2px; }
+.inv-enfeites img { width: 30px; height: 30px; object-fit: contain; filter: drop-shadow(0 1px 2px rgb(0 0 0 / .6)); }
+.inv-marcas-duas { display: inline-flex; gap: 3px; }
