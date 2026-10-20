@@ -261,6 +261,13 @@ export async function rotaAmigos(req, env, quem, cors) {
 
 // Perfil mudou (admin deu insígnia, moldura...): manda o perfil novo para as abas abertas da pessoa, na hora
 // (o site mostra o aviso de insígnia nova sem esperar a releitura dos perfis). Sem aba aberta, não faz nada.
+// Skin nova no inventário de alguém (o dono deu): quem está com o site aberto mostra o aviso na hora
+export async function avisarSkin(env, id) {
+  await presenca(env)
+    .fetch('https://presenca/mandar', { method: 'POST', body: JSON.stringify({ ids: [id], msg: { tipo: 'skin' } }) })
+    .catch(() => {})
+}
+
 export async function avisarPerfil(env, id, perfil) {
   await presenca(env)
     .fetch('https://presenca/mandar', { method: 'POST', body: JSON.stringify({ ids: [id], msg: { tipo: 'perfil', id, perfil: perfil || null } }) })

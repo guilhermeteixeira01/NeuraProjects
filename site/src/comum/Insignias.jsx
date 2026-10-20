@@ -117,7 +117,7 @@ function contexto() {
 }
 const GESTOS = ['pointerup', 'touchend', 'click', 'keydown']
 let preparado = false
-function prepararSom() {
+export function prepararSom() {
   if (preparado || typeof window === 'undefined') return
   preparado = true
   const liberar = () => {
@@ -135,6 +135,8 @@ function prepararSom() {
   const parar = () => GESTOS.forEach((g) => window.removeEventListener(g, liberar, true))
   GESTOS.forEach((g) => window.addEventListener(g, liberar, true))
 }
+// Som de conquista (também usado pelo aviso de skin nova)
+export const tocarConquista = () => tocar()
 function tocar() {
   const ctx = contexto()
   if (!ctx || ctx.state !== 'running') {

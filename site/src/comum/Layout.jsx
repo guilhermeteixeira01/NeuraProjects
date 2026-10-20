@@ -4,6 +4,7 @@ import AvisoConvite from './AvisoConvite.jsx'
 import AceitarPartida from './AceitarPartida.jsx'
 import AvisoNivel from './AvisoNivel.jsx'
 import AvisoInsignia from './Insignias.jsx'
+import AvisoSkin from './AvisoSkin.jsx'
 import { useLuzCursor } from './efeitos.jsx'
 import Nav from './Nav.jsx'
 import Rodape from './Rodape.jsx'
@@ -63,6 +64,7 @@ export default function Layout({ pagina, children }) {
       <AceitarPartida />
       <AvisoNivel />
       <AvisoInsignia />
+      <AvisoSkin />
       <SincronizarPreferencias />
       <MostrarAposIdioma />
     </>

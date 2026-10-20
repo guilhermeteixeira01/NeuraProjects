@@ -229,3 +229,6 @@
 .inv-dicas b { color: #fff; font-weight: 600; }
 .inv-som { background: none; border: 0; font-size: 17px; cursor: pointer; padding: 2px 6px; opacity: .85; }
 .inv-som:hover { opacity: 1; }
+
+.inv-menu-aviso { display: block; padding: 9px 10px; color: var(--dim); font: 500 12px var(--font-body); max-width: 230px; }
+.inv-aviso-mobile { margin: 10px 2px 0; padding: 10px 12px; border-radius: 8px; background: rgb(245 197 24 / .1); border: 1px solid rgb(245 197 24 / .3); color: var(--text); font-size: 13px; }

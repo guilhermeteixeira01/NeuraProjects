@@ -11,8 +11,16 @@
  *     equip: { ct|tr: { "<defIndex da arma>" | "faca" | "luva" | "agente": "<id do item>" } },
  *     criado: { "<id>": ms } }   (ordem de criação, para ordenar)
  *
+ *     presentes: [ { i: id do item, q: quando recebeu (ms), v: 1 se já viu o aviso } ]   (skins que o dono deu; o jogador não cria itens)
+ *
+ *   Quem cria os itens é só o DONO (POST /admin/skin). O jogador só personaliza e equipa o que recebeu:
+ *   tipo, arma e skin de cada item não mudam; item novo mandado pelo jogador é ignorado. Agentes não são aplicados no servidor.
+ *
  *   GET  /skins            (login)  -> o inventário do próprio jogador
- *   POST /skins            (login)  -> salva (o corpo é o inventário inteiro; o worker limpa e confere os números)
+ *   POST /skins            (login)  -> salva a personalização e o que está equipado
+ *   POST /skins/presentes  (login)  -> { vistos: [id do item] } marca os avisos de skin nova como vistos
+ *   POST /admin/skin       (dono)   -> { id, item } dá uma skin; { id, remover } tira uma
+ *   GET  /admin/skins?id=  (dono)   -> itens de um jogador
  *   POST /servidor/skins   (token do servidor) { ids: ["<SteamID64>", ...] } -> { "<SteamID64>": equipado } só de quem tem algo equipado:
  *       { armas: { ct|tr: { "<defIndex>": { p, f, s, st, n, l, a: [{i,x,y,r,w}] } } },
  *         facas: { ct|tr: { d, p, f, s, st, n, l } }, luvas: { ct|tr: { d, p, f, s, l } }, agentes: { ct|tr: { d, m } } }
@@ -50,7 +58,7 @@ const real = (v, min, max, padrao = 0) => {
 }
 const desgaste = (v) => real(v, 0, 1, 0.0001)
 
-const vazio = () => ({ v: 2, itens: {}, equip: { ct: {}, tr: {} }, criado: {} })
+const vazio = () => ({ v: 2, itens: {}, equip: { ct: {}, tr: {} }, criado: {}, presentes: [] })
 
 // Formato antigo (um item por arma, igual nos dois times) -> inventário novo
 function converterV1(e) {
@@ -130,6 +138,10 @@ export function limparSkins(entrada) {
       if (chave === certa) saida.equip[lado][chave] = id
     }
   }
+  saida.presentes = (Array.isArray(e.presentes) ? e.presentes : [])
+    .filter((p) => p && ID_ITEM.test(String(p.i)) && saida.itens[p.i])
+    .map((p) => ({ i: String(p.i), q: inteiro(p.q, 0, 9007199254740991), v: p.v ? 1 : 0 }))
+    .slice(-50)
   return saida
 }
 
@@ -145,7 +157,7 @@ export function resolverEquipado(inv) {
       if (it.t === 'arma') r.armas[lado][chave] = { p: it.p, f: it.f, s: it.s, st: it.st, n: it.n || '', l: it.l, a: it.a || [], k: it.k || null }
       else if (it.t === 'faca') r.facas[lado] = { d: it.d, p: it.p, f: it.f, s: it.s, st: it.st, n: it.n || '', l: it.l }
       else if (it.t === 'luva') r.luvas[lado] = { d: it.d, p: it.p, f: it.f, s: it.s, l: it.l }
-      else if (it.t === 'agente') r.agentes[lado] = { d: it.d, m: it.m }
+      // agentes não são aplicados no servidor (bloqueado): o item pode existir no inventário, mas não vai para o plugin
     }
   }
   return algo ? r : null
@@ -157,15 +169,80 @@ const lerSkins = async (env, id) => {
   return bruto ? limparSkins(bruto) : null
 }
 
+const gravarSkins = (env, id, inv) =>
+  Object.keys(inv.itens).length ? env.MOLDURAS.put(chave(id), JSON.stringify(inv)) : env.MOLDURAS.delete(chave(id))
+
+const novoId = () => (crypto.randomUUID().replace(/-/g, '').slice(0, 10))
+
 // GET/POST /skins (o próprio jogador logado)
 export async function rotaSkins(req, env, quem, cors) {
-  if (req.method === 'GET') return json((await lerSkins(env, quem.id)) || vazio(), 200, cors)
+  const atual = (await lerSkins(env, quem.id)) || vazio()
+  if (req.method === 'GET') return json(atual, 200, cors)
   const corpo = await req.json().catch(() => null)
   if (!corpo || typeof corpo !== 'object') return json({ erro: 'corpo' }, 400, cors)
-  const limpo = limparSkins(corpo)
-  if (!Object.keys(limpo.itens).length) await env.MOLDURAS.delete(chave(quem.id))
-  else await env.MOLDURAS.put(chave(quem.id), JSON.stringify(limpo))
+
+  // O jogador só mexe no que já tem: cria item novo não pode, e tipo/arma/skin de cada item são os de antes
+  const proposta = limparSkins(corpo)
+  const itens = {}
+  for (const [id, it] of Object.entries(proposta.itens)) {
+    const orig = atual.itens[id]
+    if (!orig) continue
+    itens[id] = { ...it, t: orig.t, d: orig.d, p: orig.p, ...(orig.m ? { m: orig.m } : {}) }
+  }
+  const limpo = limparSkins({ v: 2, itens, equip: proposta.equip, criado: atual.criado, presentes: atual.presentes })
+  await gravarSkins(env, quem.id, limpo)
   return json(limpo, 200, cors)
+}
+
+// POST /skins/presentes { vistos: [id] }: o jogador já viu o aviso das skins novas
+export async function rotaSkinsPresentes(req, env, quem, cors) {
+  const { vistos } = (await req.json().catch(() => null)) || {}
+  const lista = new Set(Array.isArray(vistos) ? vistos.map(String) : [])
+  const inv = (await lerSkins(env, quem.id)) || vazio()
+  inv.presentes = inv.presentes.map((p) => (lista.has(p.i) ? { ...p, v: 1 } : p))
+  await gravarSkins(env, quem.id, inv)
+  return json({ ok: true }, 200, cors)
+}
+
+// POST /admin/skin (só o dono): { id, item } dá uma skin ao jogador; { id, remover: "<id do item>" } tira
+export async function rotaAdminSkin(req, env, cors, avisar) {
+  const corpo = await req.json().catch(() => null)
+  if (!corpo || !ID_STEAM.test(String(corpo.id))) return json({ erro: 'id' }, 400, cors)
+  const alvo = String(corpo.id)
+  const inv = (await lerSkins(env, alvo)) || vazio()
+
+  if (corpo.remover) {
+    const id = String(corpo.remover)
+    if (!inv.itens[id]) return json({ erro: 'item' }, 404, cors)
+    delete inv.itens[id]
+    delete inv.criado[id]
+    for (const lado of LADOS) inv.equip[lado] = Object.fromEntries(Object.entries(inv.equip[lado]).filter(([, v]) => v !== id))
+    const limpo = limparSkins(inv)
+    await gravarSkins(env, alvo, limpo)
+    return json({ ok: true, itens: limpo.itens }, 200, cors)
+  }
+
+  const it = corpo.item
+  if (!it || !['arma', 'faca', 'luva'].includes(it.t)) return json({ erro: 'item' }, 400, cors) // agente não: bloqueado no servidor
+  const id = novoId()
+  const teste = limparSkins({ v: 2, itens: { [id]: it } })
+  if (!teste.itens[id]) return json({ erro: 'item' }, 400, cors)
+  if (Object.keys(inv.itens).length >= ITENS_MAX) return json({ erro: 'cheio' }, 400, cors)
+  inv.itens[id] = teste.itens[id]
+  inv.criado[id] = Date.now()
+  inv.presentes = [...inv.presentes, { i: id, q: Date.now(), v: 0 }]
+  const limpo = limparSkins(inv)
+  await gravarSkins(env, alvo, limpo)
+  await avisar?.(env, alvo) // quem está com o site aberto vê o aviso na hora
+  return json({ ok: true, id, itens: limpo.itens }, 200, cors)
+}
+
+// GET /admin/skins?id= (só o dono): o que o jogador tem
+export async function rotaAdminSkins(url, env, cors) {
+  const id = url.searchParams.get('id') || ''
+  if (!ID_STEAM.test(id)) return json({ erro: 'id' }, 400, cors)
+  const inv = (await lerSkins(env, id)) || vazio()
+  return json({ itens: inv.itens, equip: inv.equip }, 200, cors)
 }
 
 // POST /servidor/skins: o plugin pede o que está equipado de quem está no servidor

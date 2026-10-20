@@ -85,6 +85,7 @@ function useAvisoCargos(id) {
 // Imagem pequena da notificação: gema do nível, arte da insígnia ou selo do cargo
 function Emblema({ n, cargos }) {
   if (n.nivel != null) return <SeloNivel nivel={n.nivel} tamanho={34} />
+  if (n.imagem) return <img className="nt-ins nt-skin" src={n.imagem} alt="" width="34" height="34" loading="lazy" draggable="false" />
   if (n.insignia) return <img className="nt-ins" src={miniaturaInsignia(n.insignia)} alt="" width="34" height="34" loading="lazy" draggable="false" />
   const c = n.cargo && cargos.find((x) => x.id === n.cargo)
   return c ? <SeloCargo cargo={c} classe="nt-selo" /> : null
