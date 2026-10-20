@@ -97,24 +97,29 @@ export default function AvisoSkin() {
   if (!atual || !d) return null
   const resto = pendentes.length - 1
   return (
-    <div className="ins-fundo" onClick={() => fechar()}>
-      <div className={`ins-aviso${desempenhoAtivo() ? ' parado' : ''}`} role="dialog" aria-modal="true" aria-labelledby="skin-aviso-titulo" onClick={(e) => e.stopPropagation()}>
-        <span className="ins-kicker">{t('NOVA SKIN')}</span>
-        <div className="ins-palco skin-palco" aria-hidden="true" style={{ '--cor-skin': d.cor || '#8aa0c0' }}>
-          <span className="ins-raios" />
-          <img key={atual.id} src={d.img || urlImgArma(d.skin?.[6], 512)} alt="" />
+    <div className="skin-fundo" onClick={() => fechar()}>
+      <div
+        key={atual.id}
+        className={`skin-aviso${desempenhoAtivo() ? ' parado' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="skin-aviso-titulo"
+        style={{ '--cor-skin': d.cor || '#8aa0c0' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <span className="skin-kicker">{t('NOVA SKIN')}</span>
+        <div className="skin-palco" aria-hidden="true">
+          <img src={d.img || urlImgArma(d.skin?.[6], 512)} alt="" />
         </div>
         <h2 id="skin-aviso-titulo">{t('Você recebeu uma nova skin!')}</h2>
-        <b className="ins-nome" style={{ color: d.cor || undefined }}>
-          {d.titulo}
-          {d.subtitulo ? ` | ${d.subtitulo}` : ''}
-        </b>
+        <b className="skin-nome">{d.titulo}</b>
+        {d.subtitulo && <span className="skin-sub">{d.subtitulo}</span>}
         <p>{t('Ela já está no seu inventário: dá para ajustar o desgaste, colocar adesivos e equipar no CT ou no TR.')}</p>
         <div className="skin-botoes">
-          <button type="button" className="ins-ok" onClick={() => fechar(true)} autoFocus>
+          <button type="button" className="skin-ok" onClick={() => fechar(true)} autoFocus>
             {t('Ver no inventário')}
           </button>
-          <button type="button" className="ins-ok ins-ok-sec" onClick={() => fechar()}>
+          <button type="button" className="skin-ok skin-ok-sec" onClick={() => fechar()}>
             {resto > 0 ? t('Próxima ({n})', { n: resto }) : t('Continuar')}
           </button>
         </div>
