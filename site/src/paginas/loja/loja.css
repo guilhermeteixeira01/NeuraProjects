@@ -4,7 +4,7 @@
 
 /* ══════════════ Loja de caixas (src/paginas/loja/Loja.jsx e Abertura.jsx) ══════════════ */
 .lj-pagina { padding: 26px 0 80px; }
-.lj-wrap { max-width: 1240px; }
+.lj-wrap { max-width: 1480px; }
 .lj-dica { color: var(--dim); font-size: 14px; margin: 14px 0; }
 .lj-bloqueio { max-width: 520px; margin: 80px auto; text-align: center; display: grid; gap: 14px; justify-items: center; }
 .lj-bloqueio h1 { margin: 0; }

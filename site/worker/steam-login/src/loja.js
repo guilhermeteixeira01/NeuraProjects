@@ -14,6 +14,8 @@
  * KV MOLDURAS:  caixas (lista de caixas; vazia = caixas-iniciais.json), loja-config ({ taxas, desgaste, maxQtd } ou o padrão), loja-jogadores ([ids que já abriram])
  *
  *   GET  /loja/caixas            (público)  -> caixas ativas, sem a lista de itens (nome, imagem, preço)
+ *   GET  /loja/valores           (login)    -> { valores: { <id do item>: { r: raridade 0..6, v: valor de venda em NP } } }
+ *   POST /loja/vender {ids}      (login)    -> vende itens (skin/faca/luva) por NP: { saldo, total, vendidos, inv }
  *   GET  /loja/saldo             (login)    -> { saldo } (menu da conta)
  *   GET  /loja                   (login)    -> saldo, caixas com itens e chances, caixas fechadas, insígnias e últimas aberturas
  *   POST /loja/comprar {caixa, qtd}         -> desconta e põe as caixas fechadas no inventário
@@ -25,9 +27,10 @@
  *   GET  /admin/loja-saldo?id= (dono)  -> { saldo, ganhos, gastos, movimentos } de um jogador
  */
 import { avisarPerfil } from './amigos.js'
-import { CONFIG_PADRAO, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
+import { CONFIG_PADRAO, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
 import { gravarSkinsKv, lerSkinsKv, limparSkins, novoIdItem } from './skins.js'
 import CAIXAS_INICIAIS from './caixas-iniciais.json'
+import RARIDADE_SKIN from './skins-raridade.json'
 
 const ID_STEAM = /^\d{17}$/
 const ITENS_MAX = 2000
@@ -156,7 +159,7 @@ export class Loja {
   }
 
   async acao({ acao, id, caixas, cfg, pontos, bonus, ...p }) {
-    if (['saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir'].includes(acao)) await this.aplicarBonus(bonus)
+    if (['saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir', 'vender'].includes(acao)) await this.aplicarBonus(bonus)
     switch (acao) {
       case 'inv-ler':
         return this.invLer(id)
@@ -166,6 +169,10 @@ export class Loja {
         await this.invGravar(id, limparSkins(p.inv))
         return { ok: true }
       }
+      case 'valores':
+        return this.valores(id)
+      case 'vender':
+        return this.vender(id, pontos, p)
       case 'saldo':
         return { saldo: pontos - this.gastos(), ganhos: pontos, gastos: this.gastos(), movimentos: p.movimentos ? this.movimentos() : undefined }
       case 'estado':
@@ -272,6 +279,45 @@ export class Loja {
     return { saldo: pontos - this.gastos(), ids, insignias: novas.ids, insigniasTs: novas.ts }
   }
 
+  // Raridade (0..6) e valor de venda (NP) de um item do inventário; null se não pode vender (adesivo, chaveiro, caixa, agente)
+  valorDe(it) {
+    if (!['arma', 'faca', 'luva'].includes(it.t)) return null
+    const r = it.t === 'arma' ? RARIDADE_SKIN[`${it.d}:${it.p}`] ?? 2 : 6
+    return { r, v: valorDoItem(it, r) }
+  }
+
+  async valores(id) {
+    const { inv } = await this.invLer(id)
+    const m = {}
+    for (const [k, it] of Object.entries(inv?.itens || {})) {
+      const x = this.valorDe(it)
+      if (x) m[k] = x
+    }
+    return { valores: m }
+  }
+
+  // Vende itens do inventário: tira os itens (e do equipamento) e credita o valor em NP, tudo junto (se o inventário não gravar, nada muda)
+  async vender(id, pontos, p) {
+    const ids = [...new Set(Array.isArray(p.ids) ? p.ids.map(String) : [])].slice(0, 100)
+    if (!ids.length) throw new Error('item')
+    const { inv } = await this.invLer(id)
+    if (!inv) throw new Error('item')
+    let total = 0
+    for (const k of ids) {
+      const it = inv.itens[k]
+      const x = it && this.valorDe(it)
+      if (!x) throw new Error('item')
+      total += x.v
+      delete inv.itens[k]
+      delete inv.criado[k]
+      for (const lado of ['ct', 'tr']) inv.equip[lado] = Object.fromEntries(Object.entries(inv.equip[lado]).filter(([, v]) => v !== k))
+      inv.presentes = inv.presentes.filter((q) => q.i !== k)
+    }
+    const limpo = limparSkins(inv)
+    await this.gravarTudo(id, limpo, () => this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), -total, `venda de ${ids.length} item(ns)`))
+    return { saldo: pontos - this.gastos(), total, vendidos: ids.length, inv: limpo }
+  }
+
   async abrir(id, caixas, cfg, pontos, p) {
     const caixa = caixas.find((c) => c.id === Number(p.caixa) && c.ativa)
     if (!caixa) throw new Error('caixa')
@@ -360,13 +406,15 @@ export async function rotaLoja(req, env, quem, cors, rota) {
   let acao
   if (rota === '/loja' && req.method === 'GET') acao = 'estado'
   else if (rota === '/loja/saldo' && req.method === 'GET') acao = 'saldo'
+  else if (rota === '/loja/valores' && req.method === 'GET') acao = 'valores'
+  else if (rota === '/loja/vender' && req.method === 'POST') acao = 'vender'
   else if (rota === '/loja/historico' && req.method === 'GET') acao = 'historico'
   else if (rota === '/loja/comprar' && req.method === 'POST') acao = 'comprar'
   else if (rota === '/loja/abrir' && req.method === 'POST') acao = 'abrir'
   else return json({ erro: 'rota' }, 404, cors)
   if (req.method === 'POST') corpo = await req.json().catch(() => ({}))
   const bonus = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
-  const r = await chamar(env, quem.id, { acao, caixas, cfg, pontos, bonus, caixa: corpo.caixa, qtd: corpo.qtd, origem: corpo.origem === 'inventario' || corpo.origem === 'auto' ? corpo.origem : 'direto' })
+  const r = await chamar(env, quem.id, { acao, caixas, cfg, pontos, bonus, caixa: corpo.caixa, qtd: corpo.qtd, ids: corpo.ids, origem: corpo.origem === 'inventario' || corpo.origem === 'auto' ? corpo.origem : 'direto' })
   const dados = await r.json().catch(() => ({ erro: 'falhou' }))
   // insígnias novas + as que o perfil ainda não tem (cura sozinha: nada de botão "reconferir"); aplicarInsignias só grava se faltar algo
   const dar = { ...(dados.ganhas || {}), ...(dados.insigniasTs || {}) }

@@ -223,3 +223,27 @@ test('sortearPeso ignora pesos zerados', () => {
   for (let i = 0; i < 1000; i++) assert.equal(sortearPeso([0, 5, 0], rndSeguro), 1)
   assert.equal(sortearPeso([0, 0], rndSeguro), -1)
 })
+
+// ── venda ──
+import { VALOR_BASE, multiplicadorDoDesgaste, valorDoItem } from '../src/loja-core.js'
+test('valor de venda: maior com raridade maior e desgaste melhor; StatTrak vale mais', () => {
+  for (let r = 1; r <= 6; r++) assert.ok(valorDoItem({ f: 0.1 }, r) > valorDoItem({ f: 0.1 }, r - 1), 'raridade ' + r)
+  for (const f of [0, 0.05, 0.1, 0.2, 0.4, 0.6, 0.9]) assert.ok(valorDoItem({ f }, 3) >= valorDoItem({ f: f + 0.05 }, 3), 'desgaste ' + f)
+  assert.ok(valorDoItem({ f: 0.1, st: 1 }, 3) > valorDoItem({ f: 0.1 }, 3))
+  assert.ok(multiplicadorDoDesgaste(0) > multiplicadorDoDesgaste(0.07) && multiplicadorDoDesgaste(1) > 0)
+  assert.equal(valorDoItem({ f: 0.0701 }, 0) >= 1, true)
+})
+test('vender não paga a caixa de volta (valor esperado de uma abertura fica bem abaixo do preço)', () => {
+  const cfg2 = CONFIG_PADRAO
+  const raridadeSkin = JSON.parse(fs.readFileSync(new URL('../src/skins-raridade.json', import.meta.url), 'utf8'))
+  for (const c of CAIXAS) {
+    let soma = 0
+    const N = 4000
+    for (let i = 0; i < N; i++) {
+      const a = sortearAbertura(c, cfg2, rndSeguro)
+      const r = a.item.t === 'faca' ? 6 : raridadeSkin[`${a.item.d}:${a.item.p}`] ?? 2
+      soma += valorDoItem({ f: a.item.f }, r)
+    }
+    assert.ok(soma / N < c.preco * 0.6, `${c.slug}: valor médio ${(soma / N).toFixed(0)} vs preço ${c.preco}`)
+  }
+})

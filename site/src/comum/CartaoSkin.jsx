@@ -15,7 +15,7 @@ const Marca = ({ lado }) => <i className={`inv-marca inv-marca-${lado}`} title={
 
 export const nomeDoDesgaste = (f) => (f < 0.07 ? 'Factory New' : f < 0.15 ? 'Minimal Wear' : f < 0.38 ? 'Field-Tested' : f < 0.45 ? 'Well-Worn' : 'Battle-Scarred')
 
-export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAbrirMenu, extra }) {
+export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAbrirMenu, extra, selecionado }) {
   const t = useT()
   const d = descrever(item, idx)
   const chave = chaveEquip(item)
@@ -40,6 +40,7 @@ export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
           ))}
         </span>
         {item.st ? <span className="inv-st">StatTrak™</span> : null}
+        {selecionado !== undefined && <i className={`inv-check${selecionado ? ' on' : ''}`} aria-hidden="true" />}
       </span>
       <span className="inv-cartao-nome">
         <b>{item.n ? `${d.titulo} «${item.n}»` : d.titulo}</b>
@@ -57,7 +58,8 @@ export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
       {aoAbrirMenu ? (
         <button
           type="button"
-          className="inv-cartao"
+          className={`inv-cartao${selecionado ? ' inv-cartao-sel' : ''}`}
+          aria-pressed={selecionado === undefined ? undefined : selecionado}
           style={{ '--cor': d.cor || '#6b6f76' }}
           onContextMenu={(e) => {
             e.preventDefault()

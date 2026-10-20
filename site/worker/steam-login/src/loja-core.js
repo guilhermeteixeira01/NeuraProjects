@@ -248,3 +248,35 @@ export const insigniaMestreDoId = (id) => {
   const nome = nomeDaCaixa(slug)
   return { id, nome: `Mestre da ${nome}`, descricao: `Conseguiu todas as skins da ${nome}.`, cor: '#e4ae39', loja: true }
 }
+
+// ───────────────────────── Venda de itens ─────────────────────────
+// Raridades como no jogo (para o filtro do inventário e o valor de venda). Facas e luvas são sempre "Extraordinário".
+export const RARIDADES_CS = [
+  { id: 0, nome: 'Consumer Grade', curto: 'Consumer', cor: '#b0c3d9' },
+  { id: 1, nome: 'Industrial Grade', curto: 'Industrial', cor: '#5e98d9' },
+  { id: 2, nome: 'Mil-Spec', curto: 'Mil-Spec', cor: '#4b69ff' },
+  { id: 3, nome: 'Restricted', curto: 'Restricted', cor: '#8847ff' },
+  { id: 4, nome: 'Classified', curto: 'Classified', cor: '#d32ce6' },
+  { id: 5, nome: 'Covert', curto: 'Covert', cor: '#eb4b4b' },
+  { id: 6, nome: 'Extraordinary', curto: 'Extraordinary', cor: '#e4ae39' },
+]
+// Cor da skin no catálogo (Steam) -> raridade 0..5 (a mesma do worker/steam-login/src/skins-raridade.json)
+export const raridadeCsDaCor = (cor) => ({ '#b0c3d9': 0, '#5e98d9': 1, '#4b69ff': 2, '#8847ff': 3, '#d32ce6': 4, '#eb4b4b': 5 })[String(cor || '').toLowerCase()] ?? 2
+
+// Valor base em NP de cada raridade, com o desgaste Factory New. Fica bem abaixo do preço das caixas (vender não paga a caixa de volta).
+export const VALOR_BASE = [12, 25, 60, 150, 380, 1000, 4000]
+// Quanto do valor sobra conforme o desgaste (float): interpolado entre os pontos
+const CURVA_DESGASTE = [[0, 1.15], [0.07, 1], [0.15, 0.78], [0.38, 0.52], [0.45, 0.4], [1, 0.28]]
+export function multiplicadorDoDesgaste(f) {
+  const x = Math.min(1, Math.max(0, Number(f) || 0))
+  for (let i = 1; i < CURVA_DESGASTE.length; i++) {
+    const [x1, y1] = CURVA_DESGASTE[i]
+    if (x <= x1) {
+      const [x0, y0] = CURVA_DESGASTE[i - 1]
+      return y0 + ((y1 - y0) * (x - x0)) / (x1 - x0)
+    }
+  }
+  return CURVA_DESGASTE[CURVA_DESGASTE.length - 1][1]
+}
+// Valor de venda (NP) de um item { f (float), st (StatTrak) } da raridade dada (0..6)
+export const valorDoItem = (item, raridade) => Math.max(1, Math.round(VALOR_BASE[raridade] * multiplicadorDoDesgaste(item.f) * (item.st ? 1.35 : 1)))
