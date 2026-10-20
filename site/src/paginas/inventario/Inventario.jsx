@@ -17,6 +17,7 @@ import {
 } from '../../comum/skins.js'
 import { useT } from '../../comum/i18n.js'
 import { tocar } from '../../comum/somInventario.js'
+import { lerCaixasPublicas } from '../../comum/loja.js'
 import Cartao from '../../comum/CartaoSkin.jsx'
 
 // Inventário de skins, no estilo do inventário do jogo: o jogador CRIA itens (arma/faca/luva/agente com a skin que quiser), ajusta
@@ -30,8 +31,10 @@ const ABAS = [
   ['luva', 'LUVAS'],
   ['adesivo', 'ADESIVOS'],
   ['chaveiro', 'CHAVEIROS'],
+  ['caixa', 'CAIXAS'],
 ]
 const EMBALAGEM = (t) => t === 'adesivo' || t === 'chaveiro' // itens guardados que se gastam ao colar numa arma
+const GUARDADO = (t) => EMBALAGEM(t) || t === 'caixa' // + caixas fechadas da loja (o botão Abrir leva para a roleta)
 
 // Quantos de cada adesivo/chaveiro o jogador ainda pode usar na arma que está editando:
 // o que tem guardado + o que a arma já tinha (salvo) - o que está colado agora na edição
@@ -905,6 +908,11 @@ function Conteudo() {
     }
   }, [])
   const precisaAdesivos = janela?.tipo === 'editar' || janela?.tipo === 'confirmar' || janela?.tipo === 'inspecionar' || aba === 'adesivo' || aba === 'chaveiro' || (!!inv && Object.values(inv.itens).some((it) => it.a?.some(Boolean) || it.k?.i || EMBALAGEM(it.t)))
+  const [caixasLoja, setCaixasLoja] = useState([])
+  const temCaixa = (!!inv && Object.values(inv.itens).some((it) => it.t === 'caixa')) || aba === 'caixa'
+  useEffect(() => {
+    if (temCaixa) lerCaixasPublicas().then(setCaixasLoja)
+  }, [temCaixa])
   const adesivos = useCatalogo('adesivos', precisaAdesivos)
   const chaveiros = useCatalogo('chaveiros', precisaAdesivos)
   const mapa3d = useCatalogo('mapa3d', janela?.tipo === 'editar' || janela?.tipo === 'inspecionar' || janela?.tipo === 'confirmar')
@@ -953,25 +961,29 @@ function Conteudo() {
 
   // adesivos e chaveiros guardados: def -> quantidade
   const estoque = useMemo(() => {
-    const r = { adesivo: new Map(), chaveiro: new Map() }
-    for (const it of Object.values(inv?.itens || {})) if (EMBALAGEM(it.t)) r[it.t].set(it.d, (r[it.t].get(it.d) || 0) + 1)
+    const r = { adesivo: new Map(), chaveiro: new Map(), caixa: new Map() }
+    for (const it of Object.values(inv?.itens || {})) if (GUARDADO(it.t)) r[it.t].set(it.d, (r[it.t].get(it.d) || 0) + 1)
     return r
   }, [inv])
   const guardados = useMemo(() => {
-    if (aba !== 'adesivo' && aba !== 'chaveiro' && aba !== 'tudo') return []
+    if (!GUARDADO(aba) && aba !== 'tudo') return []
     const q = busca.trim().toLowerCase()
-    return (aba === 'tudo' ? ['adesivo', 'chaveiro'] : [aba])
-      .flatMap((tipo) => [...estoque[tipo].entries()].map(([def, n]) => ({ tipo, def, n, linha: (tipo === 'adesivo' ? adesivosPorId : chaveirosPorId).get(def) })))
+    const caixaPor = (def) => {
+      const c = caixasLoja.find((x) => x.id === def)
+      return c ? [def, c.nome, c.img, c.cor] : undefined // mesmo formato das linhas dos catálogos: [id, nome, imagem, cor]
+    }
+    return (aba === 'tudo' ? ['adesivo', 'chaveiro', 'caixa'] : [aba])
+      .flatMap((tipo) => [...estoque[tipo].entries()].map(([def, n]) => ({ tipo, def, n, linha: tipo === 'caixa' ? caixaPor(def) : (tipo === 'adesivo' ? adesivosPorId : chaveirosPorId).get(def) })))
       .filter((g) => !q || (g.linha?.[1] || '').toLowerCase().includes(q))
       .sort((a, b) => (a.linha?.[1] || '').localeCompare(b.linha?.[1] || ''))
-  }, [aba, busca, estoque, adesivosPorId, chaveirosPorId])
+  }, [aba, busca, estoque, adesivosPorId, chaveirosPorId, caixasLoja])
 
   const itens = useMemo(() => {
     if (!inv) return []
     const q = busca.trim().toLowerCase()
     const lista = Object.entries(inv.itens)
       .map(([id, it]) => ({ ...it, __id: id }))
-      .filter((it) => it.t !== 'agente' && !EMBALAGEM(it.t)) // agentes: bloqueados no servidor; adesivos/chaveiros têm abas próprias
+      .filter((it) => it.t !== 'agente' && !GUARDADO(it.t)) // agentes: bloqueados no servidor; adesivos, chaveiros e caixas têm abas próprias
       .filter((it) => aba === 'tudo' || it.t === aba)
       .filter((it) => {
         if (!q) return true
@@ -1030,21 +1042,26 @@ function Conteudo() {
   const itemMenu = menu ? { ...inv.itens[menu.id], __id: menu.id } : null
   const itemJanela = janela?.id && inv.itens[janela.id] ? { ...inv.itens[janela.id], __id: janela.id } : null
   const total = Object.values(inv.itens).filter((it) => it.t !== 'agente').length
-  const emEmbalagem = aba === 'adesivo' || aba === 'chaveiro'
+  const emEmbalagem = GUARDADO(aba)
   const cartaoGuardado = (g) => (
     <li key={g.tipo + g.def}>
       <div className="inv-cartao inv-cartao-fixo" style={{ '--cor': g.linha?.[3] || '#6b6f76' }}>
         <span className="inv-cartao-arte">
           <span className="inv-arma-box">
-            <Imagem src={urlImg(g.linha?.[2], 256)} classe="inv-arma-img" />
+            <Imagem src={g.tipo === 'caixa' ? g.linha?.[2] : urlImg(g.linha?.[2], 256)} classe="inv-arma-img" />
           </span>
           <span className="inv-st">×{g.n}</span>
         </span>
         <span className="inv-cartao-nome">
           <b>{g.linha?.[1] || `#${g.def}`}</b>
-          <small>{g.tipo === 'adesivo' ? t('Adesivo') : t('Chaveiro')}</small>
+          <small>{g.tipo === 'adesivo' ? t('Adesivo') : g.tipo === 'chaveiro' ? t('Chaveiro') : t('Caixa fechada')}</small>
         </span>
       </div>
+      {g.tipo === 'caixa' && (
+        <a className="inv-btn inv-btn-p inv-abrir-caixa" href={`/loja/?abrir=${g.def}`}>
+          {t('Abrir')}
+        </a>
+      )}
     </li>
   )
   return (
@@ -1091,7 +1108,7 @@ function Conteudo() {
       ) : emEmbalagem ? (
         <ul className="inv-itens">
           {guardados.map(cartaoGuardado)}
-          {!guardados.length && <li className="inv-nada">{t(aba === 'adesivo' ? 'Você não tem adesivos. Eles são entregues pelo dono do servidor; use-os ao editar uma arma.' : 'Você não tem chaveiros. Eles são entregues pelo dono do servidor; use-os ao editar uma arma.')}</li>}
+          {!guardados.length && <li className="inv-nada">{t(aba === 'adesivo' ? 'Você não tem adesivos. Eles são entregues pelo dono do servidor; use-os ao editar uma arma.' : aba === 'caixa' ? 'Você não tem caixas fechadas. Compre na loja e abra aqui ou na roleta.' : 'Você não tem chaveiros. Eles são entregues pelo dono do servidor; use-os ao editar uma arma.')}</li>}
         </ul>
       ) : (
         <ul className="inv-itens">

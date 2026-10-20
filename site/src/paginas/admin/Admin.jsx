@@ -15,6 +15,7 @@ import { NIVEIS_SUB, SUB_MESES_PADRAO, maisUmMes, nivelDaSub, tituloNivel, urlEm
 import { INSIGNIAS, imagemInsignia } from '../../comum/insignias.js'
 import { CATEGORIAS, indicar, urlImg, urlImgArma, useCatalogo } from '../../comum/skins.js'
 import CartaoSkin from '../../comum/CartaoSkin.jsx'
+import AdminCaixas from './AdminCaixas.jsx'
 import { useAvatar } from '../../comum/avatares.js'
 import SeletorMoldura from '../perfil/SeletorMoldura.jsx'
 import { IMAGENS_SELO, urlSelo } from '../../comum/selosEquipe.js'
@@ -1577,7 +1578,7 @@ export default function Admin() {
       ['cards', 'Cards'],
       ['cargos', 'Cargos'],
       ['assinaturas', 'Assinaturas'],
-      ...(eu.dono ? [['skins', 'Skins']] : []), // só o dono entrega skins
+      ...(eu.dono ? [['skins', 'Skins'], ['caixas', 'Caixas']] : []), // só o dono entrega skins e mexe na loja
       ['admins', 'Admins'],
     ]
     conteudo = (
@@ -1624,6 +1625,7 @@ export default function Admin() {
             {aba === 'cargos' && <Cargos key={JSON.stringify(painel.config.cargos || [])} config={painel.config} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
             {aba === 'assinaturas' && <Assinaturas key={JSON.stringify(painel.config.subMeses || {})} config={painel.config} usuarios={usuarios} aoSalvarConfig={(config) => setPainel((p) => ({ ...p, config }))} aoSalvarPerfis={(perfis) => setPainel((p) => ({ ...p, perfis }))} />}
             {aba === 'skins' && eu.dono && <DarSkin usuarios={usuarios} />}
+            {aba === 'caixas' && eu.dono && <AdminCaixas usuarios={usuarios} />}
             {aba === 'admins' && <Admins config={painel.config} dono={painel.dono} souDono={eu.dono} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
           </div>
         </section>

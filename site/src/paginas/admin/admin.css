@@ -406,3 +406,29 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 .adm-dar-guardados img { width: 40px; height: 40px; object-fit: contain; }
 .adm-dar-guardados span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .adm-dar-itens .adm-dar-cartoes li { background: none; padding: 0; border-radius: 0; display: grid; justify-content: stretch; gap: 8px; align-content: start; min-width: 0; }
+
+/* aba Caixas (AdminCaixas.jsx) */
+.adm-cx { display: grid; gap: 16px; }
+.adm-cx-bloco { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel); }
+.adm-cx-bloco h3 { margin: 0; font-size: 16px; }
+.adm-cx-taxas { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.adm-cx-taxas label, .adm-cx-campos label { display: grid; gap: 4px; font-size: 12.5px; color: var(--dim); }
+.adm-cx-taxas label[style] { border-left: 3px solid var(--cor); padding-left: 8px; }
+.adm-cx input[type='number'], .adm-cx input[type='text'], .adm-cx input[type='search'], .adm-cx select { background: var(--panel-2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 7px 10px; font: 13px var(--font-body); min-width: 0; }
+.adm-cx-caixa { border: 1px solid var(--border); border-radius: 10px; background: var(--panel-2); }
+.adm-cx-caixa summary { display: flex; align-items: center; gap: 12px; padding: 8px 12px; cursor: pointer; list-style: none; border-left: 4px solid var(--cor); border-radius: 10px; }
+.adm-cx-caixa summary::-webkit-details-marker { display: none; }
+.adm-cx-caixa summary img { object-fit: contain; }
+.adm-cx-caixa summary em { margin-left: auto; font-style: normal; font-size: 12px; color: var(--dim); }
+.adm-cx-corpo { display: grid; gap: 10px; padding: 8px 14px 16px; }
+.adm-cx-corpo h4 { margin: 8px 0 0; font-size: 14px; }
+.adm-cx-campos { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; align-items: end; }
+.adm-cx-ativa { display: flex !important; flex-direction: row; align-items: center; gap: 8px !important; }
+.adm-cx-add { display: flex; flex-wrap: wrap; gap: 8px; }
+.adm-cx-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 360px; overflow-y: auto; }
+.adm-cx-lista li { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 6px; background: var(--panel); border-left: 3px solid var(--cor); font-size: 13px; }
+.adm-cx-lista li i { display: none; }
+.adm-cx-lista li span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adm-cx-lista li button { background: none; border: 0; color: var(--red); font-size: 18px; cursor: pointer; }
+.adm-cx-peso { width: 84px; }
+.adm-cx-barra { display: flex; gap: 10px; justify-content: space-between; }

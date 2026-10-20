@@ -31,7 +31,7 @@ const ID_STEAM = /^\d{17}$/
 const FACAS = new Set([500, 503, 505, 506, 507, 508, 509, 512, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 525, 526]) // defIndex das facas do jogo
 const LUVAS = new Set([4725, 5027, 5030, 5031, 5032, 5033, 5034, 5035])
 const ITENS_MAX = 2000 // inclui os adesivos e chaveiros guardados (cada um é um item)
-const CONSUMIVEIS = new Set(['adesivo', 'chaveiro'])
+const CONSUMIVEIS = new Set(['adesivo', 'chaveiro', 'caixa']) // guardados no inventário; caixa fechada vira skin ao abrir (loja.js)
 const ID_MAX = 100000 // paint kit / adesivo / agente: limite folgado só para barrar lixo
 const ID_ITEM = /^[a-z0-9]{4,16}$/
 const MODELO_AGENTE = /^agents\/models\/[a-z0-9_/]{1,120}\.vmdl$/
@@ -168,15 +168,16 @@ export function resolverEquipado(inv) {
 }
 
 const chave = (id) => `skins:${id}`
-const lerSkins = async (env, id) => {
+export const lerSkins = async (env, id) => {
   const bruto = await env.MOLDURAS.get(chave(id), 'json').catch(() => null)
   return bruto ? limparSkins(bruto) : null
 }
 
-const gravarSkins = (env, id, inv) =>
+export const gravarSkins = (env, id, inv) =>
   Object.keys(inv.itens).length ? env.MOLDURAS.put(chave(id), JSON.stringify(inv)) : env.MOLDURAS.delete(chave(id))
 
 const novoId = () => (crypto.randomUUID().replace(/-/g, '').slice(0, 10))
+export const novoIdItem = novoId
 
 // Quantos adesivos e chaveiros estão colados nas armas: { adesivos: { def: n }, chaveiros: { def: n } }
 function contarColados(itens) {
@@ -289,7 +290,7 @@ export async function rotaAdminSkin(req, env, cors, avisar) {
 
   // { item } ou { itens: [..] }: dá uma ou várias de uma vez (até 40); o jogador recebe um aviso para cada skin
   const lista = Array.isArray(corpo.itens) ? corpo.itens.slice(0, 60) : corpo.item ? [corpo.item] : []
-  if (!lista.length || lista.some((it) => !it || !['arma', 'faca', 'luva', 'adesivo', 'chaveiro'].includes(it.t))) return json({ erro: 'item' }, 400, cors) // agente não: bloqueado no servidor
+  if (!lista.length || lista.some((it) => !it || !['arma', 'faca', 'luva', 'adesivo', 'chaveiro', 'caixa'].includes(it.t))) return json({ erro: 'item' }, 400, cors) // agente não: bloqueado no servidor
   // cada item pode vir com q (quantidade, até 50: adesivo/chaveiro repetido); o aviso é um só por tipo de item, com "×n"
   const total = lista.reduce((n, it) => n + (CONSUMIVEIS.has(it.t) ? inteiro(it.q, 1, 50, 1) : 1), 0)
   if (Object.keys(inv.itens).length + total > ITENS_MAX) return json({ erro: 'cheio' }, 400, cors)

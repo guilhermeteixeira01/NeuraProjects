@@ -36,4 +36,6 @@ export const MENU = [
   { id: 'ranking', rotulo: 'Ranking', href: '/ranking/', icone: 'trofeu' },
   // Skins do jogador (o plugin aplica no servidor)
   { id: 'inventario', rotulo: 'Inventário', href: '/inventario/', icone: 'mochila' },
+  // Loja de caixas (gasta os Neura Pontos)
+  { id: 'loja', rotulo: 'Loja', href: '/loja/', icone: 'caixa' },
 ]

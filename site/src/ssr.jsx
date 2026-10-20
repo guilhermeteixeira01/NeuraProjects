@@ -5,6 +5,7 @@ import Admin from './paginas/admin/Admin.jsx'
 import Inicio from './paginas/inicio/Inicio.jsx'
 import Lobby from './paginas/lobby/Lobby.jsx'
 import Inventario from './paginas/inventario/Inventario.jsx'
+import Loja from './paginas/loja/Loja.jsx'
 import NeuraPick from './paginas/neurapick/App.jsx'
 import Partida from './paginas/partida/Partida.jsx'
 import Partidas from './paginas/partidas/Partidas.jsx'
@@ -13,7 +14,7 @@ import Ranking from './paginas/ranking/Ranking.jsx'
 import Times from './paginas/times/Times.jsx'
 import NaoEncontrada from './paginas/naoencontrada/NaoEncontrada.jsx'
 
-const PAGINAS = { admin: Admin, inicio: Inicio, inventario: Inventario, lobby: Lobby, neurapick: NeuraPick, partida: Partida, partidas: Partidas, perfil: Perfil, ranking: Ranking, times: Times, naoencontrada: NaoEncontrada }
+const PAGINAS = { admin: Admin, inicio: Inicio, inventario: Inventario, loja: Loja, lobby: Lobby, neurapick: NeuraPick, partida: Partida, partidas: Partidas, perfil: Perfil, ranking: Ranking, times: Times, naoencontrada: NaoEncontrada }
 
 export function renderizar(pagina, dados) {
   const Pagina = PAGINAS[pagina]

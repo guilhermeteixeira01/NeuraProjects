@@ -34,6 +34,15 @@ crons = ["*/10 * * * *"]
 name = "PRESENCA"
 class_name = "Presenca"
 
+# Loja de caixas: um objeto por jogador (src/loja.js): saldo gasto, histórico de aberturas e transação de compra/abertura
+[[durable_objects.bindings]]
+name = "LOJA"
+class_name = "Loja"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["Presenca"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["Loja"]

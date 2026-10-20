@@ -184,15 +184,28 @@ export default function AvisoInsignia() {
   // Espera o aviso de nível fechar (os dois juntos ficariam um por cima do outro)
   useEffect(() => {
     if (!fila.length) return
-    const ver = () => setLivre(!document.querySelector('.nx-nivel-fundo'))
+    const ver = () => setLivre(!document.querySelector('.nx-nivel-fundo, .lj-abertura'))
     ver()
     const t = setInterval(ver, 500)
     return () => clearInterval(t)
   }, [fila.length])
 
+  // A roleta da loja (.lj-abertura) ainda rodando: a insígnia que ela deu só aparece (e vai para o sino) depois que ela acaba, para não estragar a surpresa
+  const [roleta, setRoleta] = useState(false)
+  useEffect(() => {
+    const ver = () => setRoleta(!!document.querySelector('.lj-abertura'))
+    window.addEventListener('np-loja-fim', ver)
+    window.addEventListener('np-loja-inicio', ver)
+    return () => {
+      window.removeEventListener('np-loja-fim', ver)
+      window.removeEventListener('np-loja-inicio', ver)
+    }
+  }, [])
+
   useEffect(() => {
     if (!conta?.id) return setFila([])
     if (!frescos) return // espera a conta responder: o que já foi visto em outro aparelho vem de lá
+    if (roleta) return // só depois da roleta da loja
     const doServidor = perfis[conta.id]?.vistos?.ins || []
     const locais = vistas(conta.id)
     // avisos vistos só neste navegador (antes de existir o salvo na conta) vão para a conta, uma vez
@@ -206,7 +219,7 @@ export default function AvisoInsignia() {
     // fica também no sino (o mesmo id não entra duas vezes)
     for (const i of novas) registrarNotificacao(conta.id, { id: `ins:${marcaDe(i)}`, insignia: i.id, titulo: `Você ganhou a insígnia ${i.nome}`, texto: i.descricao })
     setFila((f) => [...f, ...novas.filter((i) => !f.some((x) => marcaDe(x) === marcaDe(i)))])
-  }, [conta?.id, perfis, frescos])
+  }, [conta?.id, perfis, frescos, roleta])
 
   // O aviso aparece na hora (não espera o som ser liberado)
   const atual = livre ? fila[0] : null

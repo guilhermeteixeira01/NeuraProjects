@@ -40,7 +40,10 @@
  */
 import { Presenca, avisarPerfil, avisarSkin, rotaAmigos, rotaLobby, rotaPresenca, rotaServidor } from './amigos.js'
 import { rotaAdminSkin, rotaAdminSkins, rotaServidorSkins, rotaSkins, rotaSkinsPresentes, rotaSkinsPublico } from './skins.js'
+import { Loja, rotaAdminLoja, rotaLoja, rotaLojaPublica } from './loja.js'
+import { ehInsigniaLoja, ID_MESTRE } from './loja-core.js'
 export { Presenca } // Durable Object da presença (wrangler.toml)
+export { Loja } // Durable Object da loja de caixas (wrangler.toml)
 
 const OPENID = 'https://steamcommunity.com/openid/login'
 const NS = 'http://specs.openid.net/auth/2.0'
@@ -80,6 +83,7 @@ export default {
     if ((rota === '/servidor/proxima' || rota === '/servidor/estado' || rota === '/servidor/elenco' || (rota === '/teste/limpar' && env.MODO_TESTE === '1')) && req.method === 'POST') return rotaServidor(req, env, rota)
 
     if (rota === '/skins/publico' && req.method === 'GET') return rotaSkinsPublico(url, env) // skins equipadas de um jogador (perfil)
+    if (rota === '/loja/caixas' && req.method === 'GET') return rotaLojaPublica(env, publico) // caixas da loja (nome, imagem, preço): o site usa para nomear as insígnias "Mestre da ..."
     if (rota === '/servidor/skins' && req.method === 'POST') return rotaServidorSkins(req, env) // plugin: inventário de skins de quem está no servidor
 
     // Daqui para baixo: só o próprio site, com login
@@ -101,6 +105,7 @@ export default {
     if (rota === '/lobby' && (req.method === 'GET' || req.method === 'POST')) return rotaLobby(req, env, quem, cors)
     if (rota === '/skins' && (req.method === 'GET' || req.method === 'POST')) return rotaSkins(req, env, quem, cors)
     if (rota === '/skins/presentes' && req.method === 'POST') return rotaSkinsPresentes(req, env, quem, cors)
+    if (rota === '/loja' || rota.startsWith('/loja/')) return rotaLoja(req, env, quem, cors, rota)
     if (req.method === 'POST' && (rota === '/perfil' || rota === '/moldura')) return salvarPerfil(req, env, site, quem, admin, config, cors, rota === '/moldura')
 
     if (rota.startsWith('/admin/')) {
@@ -116,6 +121,11 @@ export default {
       if (rota === '/admin/skins' && req.method === 'GET') {
         if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
         return rotaAdminSkins(url, env, cors)
+      }
+      // Loja de caixas: só o dono
+      if ((rota === '/admin/caixas' || rota === '/admin/caixas-lista' || rota === '/admin/loja-config' || rota === '/admin/loja-creditar' || rota === '/admin/loja-retro') && req.method === 'POST') {
+        if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
+        return rotaAdminLoja(req, env, rota, cors)
       }
       if (rota === '/admin/selos' && req.method === 'POST') {
         if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
@@ -520,8 +530,9 @@ async function adminPerfil(req, env, site, config, cors) {
   // Insígnias: lista das que o jogador fica tendo; as que ele já tinha mantêm a data em que ganhou
   if ('insignias' in corpo) {
     const lista = [...new Set(Array.isArray(corpo.insignias) ? corpo.insignias : [])]
-    if (lista.some((i) => !INSIGNIAS.includes(i))) return json({ erro: 'insignia' }, 400, cors)
+    if (lista.some((i) => !INSIGNIAS.includes(i) && !ehInsigniaLoja(i))) return json({ erro: 'insignia' }, 400, cors)
     const antes = (await ler(env, 'perfis'))[corpo.id]?.insignias || {}
+    for (const k of Object.keys(antes)) if (ID_MESTRE.test(k) && !lista.includes(k)) lista.push(k) // "Mestre da [Caixa]" não tem caixinha no painel: o que o jogador já ganhou fica
     const agora = Date.now()
     mudar.insignias = lista.length ? Object.fromEntries(lista.map((i) => [i, Number(antes[i]) || agora])) : null
   }

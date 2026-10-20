@@ -3419,3 +3419,7 @@ html:is([data-tema='claro'], [data-tema='branco']) .cp-caixa b { color: #111; }
 .skin-aviso-emb { width: min(380px, 100%); }
 .skin-aviso-emb .skin-palco-emb { height: 150px; }
 .skin-aviso-emb p { max-width: 32ch; }
+
+a.cp-loja { text-decoration: none; transition: background .15s, transform .15s; }
+a.cp-loja:hover { background: #303036; transform: translateY(-1px); }
+html:is([data-tema='claro'], [data-tema='branco']) a.cp-loja:hover { background: #e4e4e8; }
