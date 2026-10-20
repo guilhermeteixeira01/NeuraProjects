@@ -121,7 +121,7 @@ export default function AvisoSkin() {
         onClick={(e) => e.stopPropagation()}
       >
         <span className="skin-kicker">{d.embalagem ? t('NOVO ITEM') : t('NOVA SKIN')}</span>
-        <div className="skin-palco" aria-hidden="true">
+        <div className={`skin-palco${d.embalagem ? ' skin-palco-emb' : ''}`} aria-hidden="true">
           <img src={d.img || urlImgArma(d.skin?.[6], 512)} alt="" />
         </div>
         <h2 id="skin-aviso-titulo">{d.embalagem ? t('Você recebeu um novo item!') : t('Você recebeu uma nova skin!')}</h2>

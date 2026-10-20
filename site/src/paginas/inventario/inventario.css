@@ -243,3 +243,17 @@
   .inv-topo { padding: 8px 10px; }
   .inv-abas button { padding: 7px 10px; font-size: 12px; }
 }
+
+/* celular: inspecionar cabe na tela e o dedo gira a arma (sem rolar a janela) */
+.inv-itens > li { min-width: 0; }
+.inv-cartao-nome { min-width: 0; }
+.inv-cartao-nome b, .inv-cartao-nome small, .inv-cartao-nome em { overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+  .inv-fundo { padding: 8px; }
+  .inv-janela { max-height: calc(100dvh - 16px); }
+  .inv-janela-insp .inv-janela-corpo { overflow: hidden; padding: 8px; }
+  .inv-inspecao { gap: 8px; padding: 0; touch-action: none; }
+  .inv-inspecao-arma { width: 100%; }
+  .inv-inspecao-3d, .inv-inspecao-3d .inv-3d { touch-action: none; }
+  .inv-inspecao-info b { font-size: 16px; }
+}

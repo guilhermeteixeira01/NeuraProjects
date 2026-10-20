@@ -68,7 +68,7 @@ function Marca({ lado }) {
   return <i className={`inv-marca inv-marca-${lado}`} title={lado === 'ct' ? 'CT' : 'TR'} aria-label={lado === 'ct' ? 'CT' : 'TR'} />
 }
 
-function Janela({ titulo, aoFechar, largura = 'media', children, rodape }) {
+function Janela({ titulo, aoFechar, largura = 'media', classe = '', children, rodape }) {
   const t = useT()
   useEffect(() => {
     tocar('abrir')
@@ -81,7 +81,7 @@ function Janela({ titulo, aoFechar, largura = 'media', children, rodape }) {
   }, [aoFechar])
   return (
     <div className="inv-fundo" onClick={aoFechar}>
-      <div className={`inv-janela inv-janela-${largura}`} role="dialog" aria-modal="true" aria-label={titulo} onClick={(e) => e.stopPropagation()}>
+      <div className={`inv-janela inv-janela-${largura} ${classe}`} role="dialog" aria-modal="true" aria-label={titulo} onClick={(e) => e.stopPropagation()}>
         <div className="inv-janela-cab">
           <h2>{titulo}</h2>
           <button type="button" className="inv-fechar" onClick={aoFechar} aria-label={t('Fechar')}>
@@ -747,12 +747,13 @@ function Inspecionar({ item, idx, adesivos, chaveiros, mapa, aoFechar }) {
     setGiro({ x: ((e.clientY - r.top) / r.height - 0.5) * -14, y: ((e.clientX - r.left) / r.width - 0.5) * 22 })
   }
   const [falhou3d, setFalhou3d] = useState(false)
+  const pequena = useTelaPequena()
   return (
-    <Janela titulo={t('Inspecionar')} aoFechar={aoFechar} largura="grande">
+    <Janela titulo={t('Inspecionar')} aoFechar={aoFechar} largura="grande" classe="inv-janela-insp">
       <div className="inv-inspecao" onPointerMove={tem3d && !falhou3d ? undefined : mover} onPointerLeave={() => setGiro({ x: 0, y: 0 })}>
         {tem3d && !falhou3d ? (
           <div className="inv-inspecao-3d">
-            <Visualizador3D item={item} m={m} aoMudar={() => {}} aoFalhar={() => setFalhou3d(true)} altura={520} />
+            <Visualizador3D item={item} m={m} aoMudar={() => {}} aoFalhar={() => setFalhou3d(true)} altura={pequena ? 'min(52dvh, 400px)' : 520} />
           </div>
         ) : (
           <div className="inv-inspecao-arma" style={{ '--cor': d.cor || 'var(--border-2)', transform: `perspective(900px) rotateX(${giro.x}deg) rotateY(${giro.y}deg)` }}>
@@ -882,14 +883,24 @@ function Conteudo() {
       else if (alvo.tagName === 'SELECT') tocar('selecionar')
       else if (!alvo.closest('.inv-menu') && !alvo.closest('.inv-fechar')) tocar('botao')
     }
+    // mouse: toca ao apertar; toque na tela: só quando o toque vira clique (rolar a lista com o dedo não faz barulho)
+    let tipo = 'mouse'
+    const apertou = (e) => {
+      tipo = e.pointerType || 'mouse'
+      if (tipo === 'mouse') clique(e)
+    }
+    const tocou = (e) => tipo !== 'mouse' && clique(e)
     const sobre = (e) => {
+      if (e.pointerType && e.pointerType !== 'mouse') return // sem "hover" no celular
       const c = e.target.closest?.('.inv-cartao')
       if (c && !c.contains(e.relatedTarget)) tocar('hover')
     }
-    document.addEventListener('pointerdown', clique)
+    document.addEventListener('pointerdown', apertou)
+    document.addEventListener('click', tocou)
     document.addEventListener('pointerover', sobre)
     return () => {
-      document.removeEventListener('pointerdown', clique)
+      document.removeEventListener('pointerdown', apertou)
+      document.removeEventListener('click', tocou)
       document.removeEventListener('pointerover', sobre)
     }
   }, [])
