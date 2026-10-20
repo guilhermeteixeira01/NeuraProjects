@@ -251,7 +251,7 @@ html.lj-travado .nx-rolagem { display: none !important; }
 .lj-outra { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
 .lj-qtd-p button { width: 34px; height: 36px; }
 /* celular: a abertura ocupa exatamente a tela (barra do navegador não corta) e o resultado cabe sem rolar */
-.lj-abertura { height: 100vh; height: 100dvh; }
+@media (max-width: 1024px) { .lj-abertura { height: 100vh; height: 100dvh; } } /* só no celular/tablet: no computador o html tem zoom e a altura em vh ficaria curta */
 @media (max-width: 700px) {
   .lj-resultado { overflow: hidden; align-content: center; gap: 10px; padding: 0 14px 12px; scrollbar-width: none; }
   .lj-resultado::-webkit-scrollbar { display: none; }

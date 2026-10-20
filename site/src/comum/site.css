@@ -3428,3 +3428,7 @@ html:is([data-tema='claro'], [data-tema='branco']) a.cp-loja:hover { background:
 .nx-conta-menu.cp-card a.cp-caixa:hover { background: #303036; }
 html:is([data-tema='claro'], [data-tema='branco']) .nx-conta-menu.cp-card a.cp-caixa { background: #f0f0f2; }
 html:is([data-tema='claro'], [data-tema='branco']) .nx-conta-menu.cp-card a.cp-caixa:hover { background: #e4e4e8; }
+
+/* botão fechar do cartão da conta: as regras genéricas de botão do menu da conta (largura total, fundo no hover) não valem aqui */
+.nx-conta-menu.cp-card .cp-fechar { display: block; width: auto; padding: 0 4px; background: none; color: #9a9aa2; font-size: 28px; line-height: 1; }
+.nx-conta-menu.cp-card .cp-fechar:hover { background: none; color: #fff; }
