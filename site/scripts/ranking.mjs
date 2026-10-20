@@ -7,6 +7,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { NIVEIS, XP, nivelDe, xpDaPartida } from '../src/comum/niveis.js'
+import { pontosDaPartida } from '../src/comum/pontos.js'
 
 const ULTIMOS = 5 // forma recente: últimos mapas de cada jogador
 
@@ -38,7 +39,7 @@ export async function gerarRanking(pasta) {
       const j = jogadores.get(e.steamId) || {
         steamId: e.steamId, nome: '', avatar: '', time: '', logoTime: '',
         mapas: 0, vitorias: 0, rounds: 0, kills: 0, mortes: 0, assist: 0, hs: 0, dano: 0, kastRounds: 0,
-        fk: 0, fd: 0, k5: 0, k4: 0, k3: 0, k2: 0, mvps: 0, mvpPartida: 0, ratingSoma: 0, melhorRating: 0, xp: 0, ultimos: [], historico: [],
+        fk: 0, fd: 0, k5: 0, k4: 0, k3: 0, k2: 0, mvps: 0, mvpPartida: 0, ratingSoma: 0, melhorRating: 0, xp: 0, pontos: 0, ultimos: [], historico: [],
       }
       const venceu = vencedor === e.time
       j.nome = e.nome || j.nome
@@ -70,6 +71,9 @@ export async function gerarRanking(pasta) {
       // XP como o Elo da FACEIT: em ordem de data, vitória soma e derrota tira (nunca abaixo de 0)
       const xpMapa = xpDaPartida({ venceu, empate: !vencedor, rating: e.rating, mvp: e === mvp })
       j.xp = Math.max(0, j.xp + xpMapa)
+      // Pontos da loja: quem ganha o mapa leva 100, quem perde (ou empata) leva 50 (comum/pontos.js)
+      const pontosMapa = pontosDaPartida(venceu)
+      j.pontos += pontosMapa
       const meu = e.time === 'A' ? 'A' : 'B'
       j.historico.push({
         caminho: p.caminho || p.nome,
@@ -88,6 +92,7 @@ export async function gerarRanking(pasta) {
         adr: Math.round((10 * e.dano) / rounds) / 10,
         hs: e.kills ? Math.round((100 * e.headshots) / e.kills) : 0,
         xp: xpMapa, // ganho (+) ou perda (-) nesta partida
+        pontos: pontosMapa, // pontos da loja ganhos nesta partida
         xpTotal: j.xp, // XP total depois dela
         mapasAte: j.mapas, // partidas jogadas até esta (nível só depois de 10)
         ...(e.armas ? { armas: e.armas } : {}), // por arma (partidas do plugin novo): { ak47: { kills, headshots, dano, acertos } }
@@ -128,6 +133,7 @@ export async function gerarRanking(pasta) {
       kr: arred(j.kills / j.rounds),
       winRate: arred((100 * j.vitorias) / j.mapas, 1),
       xp: j.xp, // XP das partidas (o site soma o ajuste do admin, se houver)
+      pontos: j.pontos, // pontos da loja (100 por vitória, 50 por derrota)
       nivel: nivelDe(j.xp, j.mapas).nivel, // 0 = sem classificação (menos de 10 partidas)
       ultimos: j.ultimos.reverse(), // mais recente primeiro
     }))

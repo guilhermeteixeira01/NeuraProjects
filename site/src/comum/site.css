@@ -3312,3 +3312,81 @@ a.nt-corpo:hover b { color: var(--accent); }
 .skin-aviso.parado .skin-palco img { animation: none; }
 @media (prefers-reduced-motion: reduce) { .skin-fundo, .skin-aviso, .skin-palco img { animation: none !important; } }
 .nt-skin { object-fit: contain; width: 46px; height: 34px; }
+
+/* ══════════════ Cartão da conta (Nav.jsx → Conta): avatar, status, pontos, loja e "Ver perfil" ══════════════ */
+.nx-conta-menu.cp-card {
+  width: 340px; min-width: 0; padding: 18px; gap: 14px; border-radius: 14px; background: #1a1a1d; border: 1px solid rgb(255 255 255 / .08);
+  box-shadow: 0 24px 60px -16px rgba(0, 0, 0, .9); color: #fff;
+}
+html:is([data-tema='claro'], [data-tema='branco']) .nx-conta-menu.cp-card { background: #fff; color: #111; border-color: rgb(0 0 0 / .12); }
+.cp-topo { display: flex; align-items: center; gap: 14px; }
+.cp-av { position: relative; display: inline-flex; flex: none; width: 56px; height: 56px; }
+.cp-av img, .cp-ini { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; display: grid; place-items: center; background: #2a2a2f; font: 700 18px var(--font-body); }
+.cp-quem { display: grid; gap: 8px; min-width: 0; flex: 1; justify-items: start; }
+.cp-quem b { font: 700 20px var(--font-body); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cp-status { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 10px; border-radius: 999px; background: #2a2a2f; font: 600 15px var(--font-body); }
+.cp-status i { width: 13px; height: 13px; border-radius: 50%; background: #6b6f76; box-shadow: 0 0 0 2px #2a2a2f; }
+.cp-status.on i { background: #3ddc5f; }
+.cp-fechar { align-self: flex-start; margin-left: auto; background: none; border: 0; color: #9a9aa2; font-size: 28px; line-height: 1; cursor: pointer; padding: 0 4px; }
+.cp-fechar:hover { color: #fff; }
+.cp-caixas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cp-caixa { display: grid; justify-items: center; gap: 3px; padding: 14px 8px 12px; border-radius: 10px; background: #26262a; color: #ff5500; }
+html:is([data-tema='claro'], [data-tema='branco']) .cp-caixa { background: #f0f0f2; }
+.cp-caixa svg { margin-bottom: 4px; }
+.cp-caixa b { font: 700 21px var(--font-body); color: #fff; letter-spacing: .01em; }
+html:is([data-tema='claro'], [data-tema='branco']) .cp-caixa b { color: #111; }
+.cp-caixa small { font: 600 12px var(--font-body); letter-spacing: .06em; color: #9a9aa2; }
+.cp-loja b { font-size: 15px; line-height: 27px; }
+.cp-perfil { display: block; text-align: center; padding: 13px 10px; border-radius: 4px; border: 1px solid #ff5500; color: #ff5500; font: 700 15px var(--font-body); letter-spacing: .04em; text-decoration: none; transition: background .15s, color .15s; }
+.cp-perfil:hover { background: #ff5500; color: #fff; }
+.cp-links { display: flex; justify-content: space-between; }
+.nx-conta-menu.cp-card .cp-links a, .nx-conta-menu.cp-card .cp-links button { width: auto; padding: 4px 2px; background: none; color: #9a9aa2; font: 600 13px var(--font-body); }
+.nx-conta-menu.cp-card .cp-links a:hover, .nx-conta-menu.cp-card .cp-links button:hover { color: #fff; background: none; }
+
+/* ══════════════ Painel "Partidas" (PainelPartidas.jsx): botão VS na barra da direita + lista dos mapas jogados ══════════════ */
+.nx-vs { font: 800 15px var(--font-display, var(--font-body)); letter-spacing: .02em; }
+.pp-painel { width: 340px; }
+.pp-corpo { flex: 1; overflow-y: auto; padding: 6px 14px 16px; display: grid; gap: 10px; align-content: start; }
+.pp-grupo { margin: 14px 0 2px; font: 500 13px var(--font-body); color: var(--dim); }
+.pp-vazio { color: var(--dim); font-size: 14px; padding: 16px 4px; }
+.pp-card {
+  position: relative; display: grid; gap: 3px; padding: 14px 16px 14px 18px; border-radius: 6px; overflow: hidden; color: #fff; text-decoration: none;
+  border-left: 4px solid var(--cor-resultado, #d9d9d9); background-color: #17181b;
+  background-image: linear-gradient(90deg, rgb(12 12 14 / .96) 0%, rgb(12 12 14 / .72) 45%, rgb(12 12 14 / .25) 100%), var(--mapa);
+  background-size: cover; background-position: center; transition: filter .15s, transform .15s;
+}
+.pp-card:hover { filter: brightness(1.15); transform: translateX(-2px); }
+.pp-card.v { --cor-resultado: #2fe03d; }
+.pp-card.d { --cor-resultado: #ff2a2a; }
+.pp-data { font: 500 11.5px var(--font-body); letter-spacing: .06em; color: #b4b4ba; }
+.pp-time { font: 700 17px var(--font-body); }
+.pp-mapa { font: 400 13.5px var(--font-body); color: #c8c8ce; }
+.pp-placar { display: flex; align-items: center; gap: 12px; margin-top: 10px; font: 500 20px var(--font-body); color: #d7d7dc; }
+.pp-selo { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 3px; background: var(--cor-resultado); color: #0c0c0e; font: 800 15px var(--font-body); font-style: normal; }
+.pp-placar b { font-weight: 700; }
+.pp-placar b.v { color: #2fe03d; }
+.pp-placar b.d { color: #ff3b3b; }
+
+/* ══════════════ Barras laterais maiores no computador (esquerda e direita) ══════════════ */
+@media (min-width: 1025px) {
+  :root { --nx-lateral: 92px; --nx-direita: 84px; }
+  .nx-brand { width: 60px; height: 60px; margin-bottom: 14px; }
+  .nx-brand img { width: 46px; height: 46px; }
+  .nx-links { gap: 8px; }
+  .nx-links-sep { width: 32px; }
+  .nx-acoes { gap: 12px; }
+  .nx-link, .nx-acoes .nx-btn, .nx-config-btn, .nx-conta-btn,
+  .nx-direita .nx-btn, .nx-direita .nx-config-btn, .nx-direita .nx-conta-btn { width: 60px; height: 60px; border-radius: 15px; }
+  .nx-link .nx-icone, .nx-config-btn svg, .nx-direita .nx-btn svg, .nx-direita .nx-config-btn svg { width: 29px; height: 29px; }
+  .nx-conta-btn img, .nx-conta-ini, .nx-direita .nx-conta-btn img, .nx-direita .nx-conta-ini { width: 46px; height: 46px; }
+  .nx-links .nx-link.is-active::after { left: -16px; height: auto; top: 12px; bottom: 12px; }
+  .nx-direita { gap: 8px; padding: 16px 0; }
+  .nx-direita .nx-config-btn[aria-expanded='true']::before, .nx-direita .nx-conta-btn[aria-expanded='true']::before, .nx-direita .nx-amigos-btn.ativo::before { left: -12px; top: 12px; bottom: 12px; }
+  .nx-direita-sep { width: 34px; }
+  .nx-vs { font-size: 18px; }
+  .nx-direita .nx-amigos-on, .nx-direita .nx-amigos-pedidos { transform: scale(1.1); }
+  .am-painel { width: 340px; }
+  .nx-dica { font-size: 14px; }
+}
+.nx-conta-menu.cp-card .cp-perfil { display: block; width: auto; text-align: center; padding: 13px 10px; border-radius: 4px; border: 1px solid #ff5500; background: none; color: #ff5500; font: 700 15px var(--font-body); letter-spacing: .04em; }
+.nx-conta-menu.cp-card .cp-perfil:hover { background: #ff5500; color: #fff; }
