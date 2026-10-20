@@ -958,11 +958,10 @@ function Conteudo() {
     return r
   }, [inv])
   const guardados = useMemo(() => {
-    if (aba !== 'adesivo' && aba !== 'chaveiro') return []
+    if (aba !== 'adesivo' && aba !== 'chaveiro' && aba !== 'tudo') return []
     const q = busca.trim().toLowerCase()
-    const cat = aba === 'adesivo' ? adesivosPorId : chaveirosPorId
-    return [...estoque[aba].entries()]
-      .map(([def, n]) => ({ def, n, linha: cat.get(def) }))
+    return (aba === 'tudo' ? ['adesivo', 'chaveiro'] : [aba])
+      .flatMap((tipo) => [...estoque[tipo].entries()].map(([def, n]) => ({ tipo, def, n, linha: (tipo === 'adesivo' ? adesivosPorId : chaveirosPorId).get(def) })))
       .filter((g) => !q || (g.linha?.[1] || '').toLowerCase().includes(q))
       .sort((a, b) => (a.linha?.[1] || '').localeCompare(b.linha?.[1] || ''))
   }, [aba, busca, estoque, adesivosPorId, chaveirosPorId])
@@ -1032,6 +1031,22 @@ function Conteudo() {
   const itemJanela = janela?.id && inv.itens[janela.id] ? { ...inv.itens[janela.id], __id: janela.id } : null
   const total = Object.values(inv.itens).filter((it) => it.t !== 'agente').length
   const emEmbalagem = aba === 'adesivo' || aba === 'chaveiro'
+  const cartaoGuardado = (g) => (
+    <li key={g.tipo + g.def}>
+      <div className="inv-cartao inv-cartao-fixo" style={{ '--cor': g.linha?.[3] || '#6b6f76' }}>
+        <span className="inv-cartao-arte">
+          <span className="inv-arma-box">
+            <Imagem src={urlImg(g.linha?.[2], 256)} classe="inv-arma-img" />
+          </span>
+          <span className="inv-st">×{g.n}</span>
+        </span>
+        <span className="inv-cartao-nome">
+          <b>{g.linha?.[1] || `#${g.def}`}</b>
+          <small>{g.tipo === 'adesivo' ? t('Adesivo') : t('Chaveiro')}</small>
+        </span>
+      </div>
+    </li>
+  )
   return (
     <>
       <div className="inv-topo">
@@ -1075,22 +1090,7 @@ function Conteudo() {
         </div>
       ) : emEmbalagem ? (
         <ul className="inv-itens">
-          {guardados.map((g) => (
-            <li key={g.def}>
-              <div className="inv-cartao inv-cartao-fixo" style={{ '--cor': g.linha?.[3] || '#6b6f76' }}>
-                <span className="inv-cartao-arte">
-                  <span className="inv-arma-box">
-                    <Imagem src={urlImg(g.linha?.[2], 256)} classe="inv-arma-img" />
-                  </span>
-                  <span className="inv-st">×{g.n}</span>
-                </span>
-                <span className="inv-cartao-nome">
-                  <b>{g.linha?.[1] || `#${g.def}`}</b>
-                  <small>{aba === 'adesivo' ? t('Adesivo') : t('Chaveiro')}</small>
-                </span>
-              </div>
-            </li>
-          ))}
+          {guardados.map(cartaoGuardado)}
           {!guardados.length && <li className="inv-nada">{t(aba === 'adesivo' ? 'Você não tem adesivos. Eles são entregues pelo dono do servidor; use-os ao editar uma arma.' : 'Você não tem chaveiros. Eles são entregues pelo dono do servidor; use-os ao editar uma arma.')}</li>}
         </ul>
       ) : (
@@ -1098,7 +1098,8 @@ function Conteudo() {
           {itens.map((it) => (
             <Cartao key={it.__id} item={it} idx={idx} adesivos={adesivosPorId} chaveiros={chaveirosPorId} equip={inv.equip} aoAbrirMenu={abrirMenu} />
           ))}
-          {!itens.length && <li className="inv-nada">{t('Nenhum item encontrado.')}</li>}
+          {guardados.map(cartaoGuardado)}
+          {!itens.length && !guardados.length && <li className="inv-nada">{t('Nenhum item encontrado.')}</li>}
         </ul>
       )}
 
