@@ -606,28 +606,8 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
                 <CargosDe steamId={j.steamId} max={3} classe="pf-cargos" />
               </div>
             </div>
-            <div className="pf-acoes pf-acoes-lado fx-entra" style={{ '--e': 2 }}>
-              {eu && (
-                <button type="button" className="btn btn-primary" onClick={personalizar}>
-                  <IconePincel /> {t('Personalizar')}
-                </button>
-              )}
-              {!eu && <BotaoAmizade id={j.steamId} />}
-              <a className="btn btn-ghost" href={steam(j.steamId)} target="_blank" rel="noopener">
-                <IconeSteam /> {t('Perfil na Steam')}
-              </a>
-              <a className="btn btn-ghost" href="/ranking/">
-                {t('Ver ranking')}
-              </a>
-              {eu && admin && <OcultarRanking steamId={j.steamId} />}
-            </div>
-            <InfosLado j={j} mapas={mapas} />
-          </aside>
-
-          <div className="pf-centro">
-            <DesempenhoRecente mapas={mapas || []} nivel={nivel} eu={eu} />
-
-            <div className="pf-infos fx-entra" style={{ '--e': 3 }}>
+            {/* Time e Premier ficam logo abaixo do cartão do jogador */}
+            <div className="pf-infos pf-infos-lado fx-entra" style={{ '--e': 2 }}>
               {(timeEscolhido || j.time) && (
                 <div className="pf-info">
                   <span className="pf-info-rot">{t('TIME')}</span>
@@ -649,6 +629,30 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
                   <Premier key={premier || 0} j={{ ...j, premier }} />
                 </span>
               </div>
+            </div>
+            <div className="pf-acoes pf-acoes-lado fx-entra" style={{ '--e': 2 }}>
+              {eu && (
+                <button type="button" className="btn btn-primary" onClick={personalizar}>
+                  <IconePincel /> {t('Personalizar')}
+                </button>
+              )}
+              {!eu && <BotaoAmizade id={j.steamId} />}
+              <a className="btn btn-ghost" href={steam(j.steamId)} target="_blank" rel="noopener">
+                <IconeSteam /> {t('Perfil na Steam')}
+              </a>
+              <a className="btn btn-ghost" href="/ranking/">
+                {t('Ver ranking')}
+              </a>
+              {eu && admin && <OcultarRanking steamId={j.steamId} />}
+            </div>
+            <InfosLado j={j} mapas={mapas} />
+          </aside>
+
+          <div className="pf-centro">
+            <DesempenhoRecente mapas={mapas || []} nivel={nivel} eu={eu} />
+
+            {pos > 0 && (
+              <div className="pf-infos fx-entra" style={{ '--e': 3 }}>
               {pos > 0 && (
                 <a className="pf-info pf-info-pos" href="/ranking/">
                   <span className="pf-info-rot">RANKING</span>
@@ -657,7 +661,8 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
                   </span>
                 </a>
               )}
-            </div>
+              </div>
+            )}
             <div className={`pf-estats${sem ? ' vazio' : ''}`}>
               <Estat rotulo="RATING" valor={v(fmt(j.rating, 2))} sub={sem ? t('sem partidas') : t('melhor {v}', { v: fmt(j.melhorRating, 2) })} classe={sem ? 'destaque' : `destaque rt-txt-${classeRating(j.rating)}`} />
               <Estat rotulo="K/D" valor={v(fmt(j.kd, 2))} sub={t('{k} kills · {d} mortes', { k: j.kills, d: j.mortes })} />

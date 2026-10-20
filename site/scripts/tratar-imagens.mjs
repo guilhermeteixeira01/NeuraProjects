@@ -25,6 +25,11 @@ const MARGEM = 0.05 // folga em volta (fração do quadrado)
 // fundo: 'preto' | 'xadrez' | 'azul' | 'nenhum' (já transparente) | 'cinza'
 // de: arquivo (dentro da pasta, ou em originais/ se já foi guardado)
 export const INSIGNIAS = [
+  // as quatro primeiras (já em PNG transparente) passam pelo mesmo corte e margem das outras: todas ficam com o mesmo tamanho visual
+  { id: 'top3', de: 'top3.png', fundo: 'nenhum' },
+  { id: 'staff', de: 'staff.png', fundo: 'nenhum' },
+  { id: 'embaixador', de: 'embaixador.png', fundo: 'nenhum' },
+  { id: 'designer', de: 'designer.png', fundo: 'nenhum' },
   { id: 'primeira-chave', de: 'Emblema Futurista Primeira Chave.png', fundo: 'nenhum', secreta: false },
   { id: 'fabrica-perfeita', de: 'Gemini_Generated_Image_2o7qqi2o7qqi2o7q.jfif', fundo: 'preto' },
   { id: 'cicatriz-de-guerra', de: 'Gemini_Generated_Image_4988x94988x94988.jfif', fundo: 'preto' },
