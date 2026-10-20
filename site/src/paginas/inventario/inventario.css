@@ -158,3 +158,62 @@
 .inv-link:hover { color: var(--text); }
 .inv-slots-5 { grid-template-columns: repeat(5, 1fr); }
 .inv-inspecao-3d { width: min(900px, 100%); }
+
+/* ── Confirmar criação / Editar (compacto) ── */
+.inv-dialogo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 18px; align-items: start; }
+.inv-dialogo-previa { display: grid; gap: 8px; }
+.inv-dialogo-nome { text-align: center; display: grid; gap: 1px; }
+.inv-dialogo-nome small { color: var(--dim); font-size: 13px; }
+.inv-dialogo-nome b { font-size: 13px; font-weight: 700; }
+.inv-dialogo-form { display: grid; gap: 8px; }
+.inv-bloco { background: rgb(255 255 255 / .05); border-radius: 6px; padding: 10px 12px; display: grid; gap: 8px; }
+.inv-bloco > b { font: 700 12px var(--font-body); letter-spacing: .04em; color: var(--dim); }
+.inv-linha { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 10px; background: rgb(255 255 255 / .05); border-radius: 6px; padding: 8px 12px; }
+.inv-linha > b { font: 700 12px var(--font-body); letter-spacing: .04em; color: var(--dim); }
+.inv-linha input[type='text'] { grid-column: 2 / -1; background: rgb(255 255 255 / .05); border: 1px solid rgb(255 255 255 / .08); border-radius: 4px; color: var(--text); padding: 7px 10px; font: 400 13px var(--font-body); width: 100%; box-sizing: border-box; }
+.inv-linha input[type='number'] { width: 96px; background: rgb(0 0 0 / .35); border: 0; border-radius: 4px; color: var(--text); padding: 7px 8px; font: 400 13px var(--font-body); }
+.inv-linha input[type='range'] { width: 70px; }
+.inv-dado { background: rgb(255 255 255 / .1); border: 0; border-radius: 4px; color: var(--text); width: 30px; height: 30px; cursor: pointer; font-size: 16px; }
+.inv-dado:hover { background: rgb(255 255 255 / .2); }
+.inv-reset { justify-self: end; background: none; border: 0; color: var(--dim); font-size: 20px; cursor: pointer; padding: 2px 6px; }
+.inv-reset:hover { color: var(--text); }
+.inv-dialogo-rodape { display: flex; justify-content: center; align-items: center; gap: 22px; padding: 18px 0 4px; }
+.inv-btn-verde { background: #1fb36b; border: 0; color: #fff; font: 700 14px var(--font-body); letter-spacing: .03em; padding: 10px 22px; border-radius: 3px; cursor: pointer; }
+.inv-btn-verde:hover { background: #26c97b; }
+.inv-btn-fechar { background: none; border: 0; color: var(--text); font: 600 14px var(--font-body); letter-spacing: .03em; padding: 10px 12px; cursor: pointer; }
+.inv-btn-fechar:hover { color: #fff; text-decoration: underline; }
+.inv-nd { color: rgb(255 255 255 / .25); font: 600 11px var(--font-body); }
+.inv-linha-st { grid-template-columns: 1fr auto auto; }
+.inv-st-txt { color: var(--text); font-size: 13px; }
+.inv-chave { width: 40px; height: 20px; border-radius: 10px; border: 0; background: rgb(255 255 255 / .2); position: relative; cursor: pointer; padding: 0; }
+.inv-chave::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .15s; }
+.inv-chave.is-on { background: #1fb36b; }
+.inv-chave.is-on::after { transform: translateX(20px); }
+
+/* ── Tela cheia: Colar adesivo / Prender chaveiro ── */
+.inv-tela { position: fixed; inset: 0; z-index: 5; display: grid; grid-template-rows: auto 1fr auto; background: rgb(8 10 14 / .94); backdrop-filter: blur(10px); }
+.inv-tela-cab { text-align: center; padding: 18px 20px 6px; }
+.inv-tela-cab h2 { margin: 0; font-size: 34px; font-weight: 600; letter-spacing: .01em; }
+.inv-tela-cab p { margin: 6px 0 0; color: rgb(255 255 255 / .85); font-size: 16px; }
+.inv-tela-aviso { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px !important; color: rgb(255 255 255 / .75) !important; }
+.inv-tela-aviso i { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #fff; color: #111; font: 700 12px var(--font-body); font-style: normal; }
+.inv-tela-corpo { position: relative; min-height: 0; display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 10px; padding: 0 18px; }
+.inv-tela-centro { position: relative; min-height: 0; }
+.inv-tela-centro .inv-3d { height: 100% !important; background: transparent; }
+.inv-tela-lateral { align-self: start; margin-top: 30px; }
+.inv-painel { background: rgb(0 0 0 / .5); border-radius: 6px; padding: 10px; display: grid; gap: 10px; max-height: calc(100vh - 260px); overflow: auto; }
+.inv-painel-titulo { font: 700 12px var(--font-body); letter-spacing: .06em; color: var(--dim); }
+.inv-painel ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.inv-painel li { display: flex; align-items: center; gap: 6px; border-radius: 4px; }
+.inv-painel li.is-ativo { background: rgb(255 255 255 / .1); }
+.inv-painel-item { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; background: none; border: 0; color: var(--text); cursor: pointer; padding: 4px; text-align: left; font: 500 13px var(--font-body); }
+.inv-painel-item img, .inv-painel-item .inv-nd { width: 54px; height: 54px; object-fit: contain; flex: none; display: grid; place-items: center; background: rgb(255 255 255 / .05); border-radius: 4px; }
+.inv-painel-item span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inv-lixo { background: none; border: 0; color: var(--dim); cursor: pointer; padding: 8px; }
+.inv-lixo:hover { color: var(--red); }
+.inv-tela-rodape { display: flex; justify-content: center; align-items: center; gap: 22px; padding: 14px 0 22px; border-top: 1px solid rgb(255 255 255 / .1); margin: 0 18px; }
+.inv-previa-grande { height: 100%; }
+@media (max-width: 900px) {
+  .inv-dialogo, .inv-tela-corpo { grid-template-columns: 1fr; }
+  .inv-tela-lateral { margin-top: 0; }
+}

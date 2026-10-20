@@ -365,206 +365,413 @@ function Visualizador3D({ item, m, aoMudar, aoEstado, aoFalhar, controle, altura
     <div className="inv-3d" style={{ height: altura }}>
       <iframe ref={ref} title={t('Visualização 3D')} src={inicial.current} allow="fullscreen" />
       {estado === 'carregando' && <span className="inv-3d-carregando">{t('Carregando o 3D…')}</span>}
-      <small className="inv-3d-credito">{t('Visualização 3D: 3d.cstrike.app')}</small>
     </div>
   )
 }
 
-// ── Editar item: desgaste, seed, StatTrak, nome, adesivos e chaveiro (com o 3D ao lado) ──
-function EditarItem({ item, idx, aoMudar, aoFechar, adesivos, chaveiros, mapa }) {
+// ── Tela cheia (igual a "Colar adesivo" / "Prender chaveiro" do inventário do jogo): o 3D grande no meio ──
+function TelaInteira({ titulo, subtitulo, aviso, aoFechar, confirmar, rotuloConfirmar, lateral, children }) {
   const t = useT()
-  const d = descrever(item, idx)
-  const skin = d.skin
-  const m = useMapas3d(mapa)
-  const controle = useRef(null)
-  const [viewer, setViewer] = useState({ activeSticker: null, schemaCount: 4, selection: null, keychainDefault: null })
-  const [escolhendo, setEscolhendo] = useState('') // '' | 'adesivo' | 'chaveiro'
-  const [sem3d, setSem3d] = useState(false)
-  const tem3d = !!m && idNo3d(item, m) !== undefined && !sem3d
-  const porId = useMemo(() => new Map((adesivos.dados || []).map((s) => [s[0], s])), [adesivos.dados])
-  const chaveirosPorId = useMemo(() => new Map((chaveiros.dados || []).map((s) => [s[0], s])), [chaveiros.dados])
-  const temSkin = item.t !== 'agente' && skin
-  const [min, max] = skin ? [skin[3], skin[4]] : [0, 1]
-  const f = Math.min(max, Math.max(min, item.f ?? min))
-  const comEnfeites = item.t === 'arma'
-  const enviar = (tipo, dados) => controle.current?.enviar(tipo, dados)
-  const slotAtivo = viewer.activeSticker ?? [0, 1, 2, 3, 4].find((k) => item.a?.[k]) ?? null
-  const ad = slotAtivo != null ? item.a?.[slotAtivo] : null
-  const livres = Array.from({ length: viewer.schemaCount || 4 }, (_, k) => k).filter((k) => !(item.a || []).some((s) => s && s.s === k))
+  useEffect(() => {
+    const tecla = (e) => e.key === 'Escape' && aoFechar()
+    document.addEventListener('keydown', tecla)
+    return () => document.removeEventListener('keydown', tecla)
+  }, [aoFechar])
+  return (
+    <div className="inv-tela" role="dialog" aria-modal="true" aria-label={titulo}>
+      <header className="inv-tela-cab">
+        <h2>{titulo}</h2>
+        <p>{subtitulo}</p>
+        {aviso && (
+          <p className="inv-tela-aviso">
+            <i aria-hidden="true">i</i>
+            {aviso}
+          </p>
+        )}
+      </header>
+      <div className="inv-tela-corpo">
+        {lateral && <aside className="inv-tela-lateral">{lateral}</aside>}
+        <div className="inv-tela-centro">{children}</div>
+      </div>
+      <footer className="inv-tela-rodape">
+        <button type="button" className="inv-btn-verde" onClick={confirmar}>
+          {rotuloConfirmar}
+        </button>
+        <button type="button" className="inv-btn-fechar" onClick={aoFechar}>
+          {t('FECHAR')}
+        </button>
+      </footer>
+    </div>
+  )
+}
 
-  // Sem o 3D, as mudanças vão direto para o item (com o 3D, quem manda é o visualizador e o resultado volta pelo evento "change")
-  const mudarAdesivo2D = (k, parte) => aoMudar({ a: [0, 1, 2, 3, 4].map((j) => (j === k ? { i: 0, s: 0, r: 0, w: 0, ...(item.a?.[j] || {}), ...parte } : item.a?.[j] || null)) })
-  const colocarAdesivo = (def) => {
+// ── Colar adesivo ──
+function TelaAdesivos({ item, d, m, adesivos, aoColar, aoFechar }) {
+  const t = useT()
+  const controle = useRef(null)
+  const [loc, setLoc] = useState({ a: item.a || [null, null, null, null, null], k: item.k || null })
+  const [viewer, setViewer] = useState({ activeSticker: null, schemaCount: 4 })
+  const [escolhendo, setEscolhendo] = useState(false)
+  const [sem3d, setSem3d] = useState(false)
+  const porId = useMemo(() => new Map((adesivos.dados || []).map((s) => [s[0], s])), [adesivos.dados])
+  const tem3d = !!m && idNo3d(item, m) !== undefined && !sem3d
+  const enviar = (tipo, dados) => controle.current?.enviar(tipo, dados)
+  const slotAtivo = viewer.activeSticker ?? [0, 1, 2, 3, 4].find((k) => loc.a[k]) ?? null
+  const ad = slotAtivo != null ? loc.a[slotAtivo] : null
+  const usados = loc.a.filter(Boolean).length
+  const livres = Array.from({ length: viewer.schemaCount || 4 }, (_, k) => k).filter((k) => !loc.a.some((s) => s && s.s === k))
+  const mudar2D = (k, parte) => setLoc((l) => ({ ...l, a: l.a.map((s, j) => (j === k ? { i: 0, s: 0, r: 0, w: 0, ...(s || {}), ...parte } : s)) }))
+
+  const adicionar = (def) => {
     if (tem3d) enviar('addSticker', { id: m.adesivos.paraLib.get(def), schema: livres[0] ?? 0 })
     else {
-      const k = [0, 1, 2, 3, 4].find((j) => !item.a?.[j]) ?? 0
-      mudarAdesivo2D(k, { i: def, s: k })
+      const k = loc.a.findIndex((s) => !s)
+      if (k >= 0) mudar2D(k, { i: def, s: k })
     }
   }
-  const tirarAdesivo = (k) => (tem3d ? enviar('removeSticker', { index: k }) : aoMudar({ a: [0, 1, 2, 3, 4].map((j) => (j === k ? null : item.a?.[j] || null)) }))
-  const mexerAdesivo = (k, campo, valor) => {
-    if (tem3d) {
-      if (campo === 'x' || campo === 'y') enviar('setStickerOffset', { index: k, x: campo === 'x' ? valor : item.a[k].x ?? 0, y: campo === 'y' ? valor : item.a[k].y ?? 0 })
-      else if (campo === 'r') enviar('setStickerRotation', { index: k, rotation: valor })
-      else enviar('setStickerWear', { index: k, wear: valor })
-    } else mudarAdesivo2D(k, { [campo]: valor })
-  }
-  const colocarChaveiro = (def) => (tem3d ? enviar('setKeychain', { index: 0, id: m.chaveiros.paraLib.get(def) }) : aoMudar({ k: { i: def, s: 0 } }))
-  const tirarChaveiro = () => (tem3d ? enviar('removeKeychain', { index: 0 }) : aoMudar({ k: null }))
-  const mexerChaveiro = (parte) => {
-    const novo = { x: item.k?.x ?? viewer.keychainDefault?.x ?? 0, y: item.k?.y ?? viewer.keychainDefault?.y ?? 0, z: item.k?.z ?? viewer.keychainDefault?.z ?? 0, ...parte }
-    if (tem3d && ('x' in parte || 'y' in parte || 'z' in parte)) enviar('setKeychainPosition', { index: 0, x: novo.x, y: novo.y, z: novo.z })
-    else if (tem3d && 's' in parte) enviar('setKeychainSeed', { index: 0, seed: parte.s })
-    else aoMudar({ k: { ...(item.k || {}), ...parte } })
-  }
-  const mudarSeed = (s) => {
-    aoMudar({ s })
-    if (tem3d) enviar('setSeed', { seed: s })
-  }
-  const mudarDesgaste = (w) => {
-    aoMudar({ f: w })
-    if (tem3d) enviar('setWear', { wear: w })
+  const remover = (k) => (tem3d ? enviar('removeSticker', { index: k }) : setLoc((l) => ({ ...l, a: l.a.map((s, j) => (j === k ? null : s)) })))
+  const mexer = (k, campo, valor) => {
+    if (!tem3d) return mudar2D(k, { [campo]: valor })
+    if (campo === 'x' || campo === 'y') enviar('setStickerOffset', { index: k, x: campo === 'x' ? valor : loc.a[k].x ?? 0, y: campo === 'y' ? valor : loc.a[k].y ?? 0 })
+    else if (campo === 'r') enviar('setStickerRotation', { index: k, rotation: valor })
+    else enviar('setStickerWear', { index: k, wear: valor })
   }
 
   return (
-    <Janela titulo={`${t('Editar item')} · ${d.titulo}${d.subtitulo ? ` | ${d.subtitulo}` : ''}`} aoFechar={aoFechar} largura="grande">
-      <div className="inv-editor-grade">
-        <div className="inv-editor-previa">
-          {tem3d ? (
-            <Visualizador3D item={item} m={m} aoMudar={aoMudar} aoEstado={setViewer} aoFalhar={() => setSem3d(true)} controle={controle} altura={420} />
-          ) : null}
-          {!tem3d && (
-            <div className="inv-previa-img" style={{ '--cor': d.cor || 'var(--border-2)' }}>
-              <ArmaComEnfeites item={item} d={d} adesivos={porId} chaveiros={chaveirosPorId} />
-            </div>
-          )}
-          {!tem3d && comEnfeites && <small className="inv-previa-aviso">{t('Pré-visualização aproximada (o 3D não está disponível agora).')}</small>}
-          {tem3d && comEnfeites && <small className="inv-previa-aviso">{t('Gire a arma com o mouse e arraste o adesivo ou o chaveiro direto na arma.')}</small>}
-          {tem3d && (
-            <button type="button" className="inv-link" onClick={() => setSem3d(true)}>
-              {t('Usar a visão 2D')}
+    <TelaInteira
+      titulo={t('Colar adesivo')}
+      subtitulo={
+        <>
+          {t('Usar em')} <b>{d.titulo}</b>
+          {d.subtitulo ? <b> | {d.subtitulo}</b> : null}
+        </>
+      }
+      aviso={t('Arraste o adesivo na arma, gire com o botão direito do mouse e use a roda para aproximar.')}
+      aoFechar={aoFechar}
+      confirmar={() => aoColar({ a: loc.a, k: loc.k })}
+      rotuloConfirmar={t('COLAR ADESIVO')}
+      lateral={
+        <div className="inv-painel">
+          <b className="inv-painel-titulo">{t('Adesivos')}</b>
+          <ul>
+            {loc.a.map((s, k) => {
+              const st = s?.i ? porId.get(s.i) : null
+              if (!st) return null
+              return (
+                <li key={k} className={k === slotAtivo ? 'is-ativo' : ''}>
+                  <button type="button" className="inv-painel-item" onClick={() => tem3d && enviar('setActiveSticker', { index: k })}>
+                    <Imagem src={urlImg(st[2], 128)} />
+                    <span>{st[1]}</span>
+                  </button>
+                  <button type="button" className="inv-lixo" onClick={() => remover(k)} aria-label={t('Tirar adesivo')} title={t('Tirar adesivo')}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5" />
+                    </svg>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+          {usados < (viewer.schemaCount || 5) && (
+            <button type="button" className="inv-btn" onClick={() => setEscolhendo(true)}>
+              + {t('Adicionar adesivo')}
             </button>
           )}
+          {ad?.i > 0 && (
+            <div className="inv-posicao">
+              <label className="inv-campo">
+                <span>{t('Posição horizontal')}</span>
+                <input type="range" min="-0.8" max="0.8" step="0.005" value={ad.x ?? 0} onChange={(e) => mexer(slotAtivo, 'x', Number(e.target.value))} />
+              </label>
+              <label className="inv-campo">
+                <span>{t('Posição vertical')}</span>
+                <input type="range" min="-0.4" max="0.4" step="0.005" value={ad.y ?? 0} onChange={(e) => mexer(slotAtivo, 'y', Number(e.target.value))} />
+              </label>
+              <label className="inv-campo">
+                <span>{t('Rotação')}</span>
+                <input type="range" min="0" max="360" step="1" value={ad.r ?? 0} onChange={(e) => mexer(slotAtivo, 'r', Number(e.target.value))} />
+              </label>
+              <label className="inv-campo">
+                <span>{t('Desgaste do adesivo')}</span>
+                <input type="range" min="0" max="1" step="0.01" value={ad.w ?? 0} onChange={(e) => mexer(slotAtivo, 'w', Number(e.target.value))} />
+              </label>
+            </div>
+          )}
+        </div>
+      }
+    >
+      {tem3d ? (
+        <Visualizador3D item={{ ...item, a: loc.a, k: loc.k }} m={m} aoMudar={(p) => setLoc((l) => ({ ...l, a: p.a, k: p.k }))} aoEstado={setViewer} aoFalhar={() => setSem3d(true)} controle={controle} altura="100%" />
+      ) : (
+        <div className="inv-previa-img inv-previa-grande">
+          <ArmaComEnfeites item={{ ...item, a: loc.a, k: loc.k }} d={d} adesivos={porId} chaveiros={new Map()} />
+        </div>
+      )}
+      {escolhendo && (
+        <SeletorAdesivo
+          aoFechar={() => setEscolhendo(false)}
+          aoEscolher={(def) => {
+            adicionar(def)
+            setEscolhendo(false)
+          }}
+        />
+      )}
+    </TelaInteira>
+  )
+}
+
+// ── Prender chaveiro ──
+function TelaChaveiro({ item, d, m, chaveiros, aoPrender, aoFechar }) {
+  const t = useT()
+  const controle = useRef(null)
+  const [loc, setLoc] = useState({ a: item.a || [null, null, null, null, null], k: item.k || null })
+  const [viewer, setViewer] = useState({ keychainDefault: null })
+  const [escolhendo, setEscolhendo] = useState(false)
+  const [sem3d, setSem3d] = useState(false)
+  const porId = useMemo(() => new Map((chaveiros.dados || []).map((s) => [s[0], s])), [chaveiros.dados])
+  const tem3d = !!m && idNo3d(item, m) !== undefined && !sem3d
+  const enviar = (tipo, dados) => controle.current?.enviar(tipo, dados)
+  const ch = loc.k?.i ? porId.get(loc.k.i) : null
+  const pos = (eixo) => loc.k?.[eixo] ?? viewer.keychainDefault?.[eixo] ?? 0
+  const trocar = (def) => (tem3d ? enviar('setKeychain', { index: 0, id: m.chaveiros.paraLib.get(def) }) : setLoc((l) => ({ ...l, k: { i: def, s: 0 } })))
+  const tirar = () => (tem3d ? enviar('removeKeychain', { index: 0 }) : setLoc((l) => ({ ...l, k: null })))
+  const mover = (parte) => {
+    const novo = { x: pos('x'), y: pos('y'), z: pos('z'), ...parte }
+    if (tem3d) enviar('setKeychainPosition', { index: 0, ...novo })
+    else setLoc((l) => ({ ...l, k: { ...(l.k || {}), ...parte } }))
+  }
+  return (
+    <TelaInteira
+      titulo={t('Prender chaveiro')}
+      subtitulo={
+        <>
+          {t('Usar em')} <b>{d.titulo}</b>
+          {d.subtitulo ? <b> | {d.subtitulo}</b> : null}
+        </>
+      }
+      aviso={t('Arraste o chaveiro na arma para escolher onde ele fica.')}
+      aoFechar={aoFechar}
+      confirmar={() => aoPrender({ a: loc.a, k: loc.k })}
+      rotuloConfirmar={t('PRENDER CHAVEIRO')}
+      lateral={
+        <div className="inv-painel">
+          <b className="inv-painel-titulo">{t('Chaveiros')}</b>
+          <ul>
+            <li>
+              <button type="button" className="inv-painel-item" onClick={() => setEscolhendo(true)}>
+                {ch ? <Imagem src={urlImg(ch[2], 128)} /> : <span className="inv-nd">N/D</span>}
+                <span>{ch ? ch[1] : t('Escolher chaveiro')}</span>
+              </button>
+              {ch && (
+                <button type="button" className="inv-lixo" onClick={tirar} aria-label={t('Tirar chaveiro')} title={t('Tirar chaveiro')}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5" />
+                  </svg>
+                </button>
+              )}
+            </li>
+          </ul>
+          {ch && (
+            <div className="inv-posicao">
+              {[
+                ['x', 'Posição horizontal', -2, 10],
+                ['y', 'Posição vertical', -1, 21],
+                ['z', 'Profundidade', -2, 5],
+              ].map(([eixo, rotulo, mn, mx]) => (
+                <label key={eixo} className="inv-campo">
+                  <span>{t(rotulo)}</span>
+                  <input type="range" min={mn} max={mx} step="0.05" value={pos(eixo)} onChange={(e) => mover({ [eixo]: Number(e.target.value) })} />
+                </label>
+              ))}
+              <label className="inv-campo">
+                <span>{t('Padrão do chaveiro (seed)')}</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="100000"
+                  step="1"
+                  value={loc.k?.s ?? 0}
+                  onChange={(e) => {
+                    const s = Math.min(100000, Math.max(0, Math.trunc(Number(e.target.value) || 0)))
+                    if (tem3d) enviar('setKeychainSeed', { index: 0, seed: s })
+                    else setLoc((l) => ({ ...l, k: { ...(l.k || {}), s } }))
+                  }}
+                />
+              </label>
+            </div>
+          )}
+        </div>
+      }
+    >
+      {tem3d ? (
+        <Visualizador3D item={{ ...item, a: loc.a, k: loc.k }} m={m} aoMudar={(p) => setLoc((l) => ({ ...l, a: p.a, k: p.k }))} aoEstado={setViewer} aoFalhar={() => setSem3d(true)} controle={controle} altura="100%" />
+      ) : (
+        <div className="inv-previa-img inv-previa-grande">
+          <ArmaComEnfeites item={{ ...item, a: loc.a, k: loc.k }} d={d} adesivos={new Map()} chaveiros={porId} />
+        </div>
+      )}
+      {escolhendo && (
+        <SeletorAdesivo
+          catalogo="chaveiros"
+          aoFechar={() => setEscolhendo(false)}
+          aoEscolher={(def) => {
+            trocar(def)
+            setEscolhendo(false)
+          }}
+        />
+      )}
+    </TelaInteira>
+  )
+}
+
+// ── Confirmar criação / Editar item (compacto, igual ao do inventário do jogo): o 3D à esquerda e os ajustes à direita ──
+// Trabalha numa cópia: CANCELAR descarta e CRIAR/SALVAR grava no inventário.
+function DialogoItem({ inicial, modo, idx, adesivos, chaveiros, mapa, aoConfirmar, aoFechar }) {
+  const t = useT()
+  const [rasc, setRasc] = useState(inicial)
+  const [tela, setTela] = useState('') // '' | 'adesivos' | 'chaveiro'
+  const [versao, setVersao] = useState(0) // muda quando volta de uma tela cheia: o 3D recarrega com o que foi colado
+  const controle = useRef(null)
+  const m = useMapas3d(mapa)
+  const d = descrever(rasc, idx)
+  const skin = d.skin
+  const porId = useMemo(() => new Map((adesivos.dados || []).map((s) => [s[0], s])), [adesivos.dados])
+  const chaveirosPorId = useMemo(() => new Map((chaveiros.dados || []).map((s) => [s[0], s])), [chaveiros.dados])
+  const tem3d = !!m && idNo3d(rasc, m) !== undefined
+  const [sem3d, setSem3d] = useState(false)
+  const temSkin = rasc.t !== 'agente' && skin
+  const [min, max] = skin ? [skin[3], skin[4]] : [0, 1]
+  const f = Math.min(max, Math.max(min, rasc.f ?? min))
+  const mudar = (p) => setRasc((r) => ({ ...r, ...p }))
+  const enviar = (tipo, dados) => controle.current?.enviar(tipo, dados)
+  const comEnfeites = rasc.t === 'arma'
+  const mudarSeed = (s) => {
+    mudar({ s })
+    enviar('setSeed', { seed: s })
+  }
+  const mudarDesgaste = (w) => {
+    mudar({ f: w })
+    enviar('setWear', { wear: w })
+  }
+  const aleatorio = (a, b) => a + Math.random() * (b - a)
+  const slider = (valor, mn, mx, passo) => ({ min: mn, max: mx, step: passo, value: valor })
+
+  return (
+    <Janela titulo={modo === 'criar' ? t('Confirmar criação') : t('Editar item')} aoFechar={aoFechar} largura="media">
+      <div className="inv-dialogo">
+        <div className="inv-dialogo-previa">
+          {tem3d && !sem3d ? (
+            <Visualizador3D key={versao} item={rasc} m={m} aoMudar={() => {}} aoFalhar={() => setSem3d(true)} controle={controle} altura={230} />
+          ) : (
+            <div className="inv-previa-img" style={{ '--cor': d.cor || 'var(--border-2)' }}>
+              <ArmaComEnfeites item={rasc} d={d} adesivos={porId} chaveiros={chaveirosPorId} />
+            </div>
+          )}
+          <div className="inv-dialogo-nome">
+            <small>{d.titulo}</small>
+            <b style={{ color: d.cor || 'inherit' }}>{d.subtitulo}</b>
+          </div>
         </div>
 
-        <div className="inv-editor-controles">
+        <div className="inv-dialogo-form">
+          {comEnfeites && (
+            <>
+              <div className="inv-bloco">
+                <b>{t('Adesivos')}</b>
+                <div className="inv-slots inv-slots-5">
+                  {[0, 1, 2, 3, 4].map((k) => {
+                    const s = rasc.a?.[k]
+                    const st = s?.i ? porId.get(s.i) : null
+                    return (
+                      <button key={k} type="button" className="inv-slot" onClick={() => setTela('adesivos')} title={st ? st[1] : t('Colar adesivo')}>
+                        {st ? <Imagem src={urlImg(st[2], 128)} /> : <span className="inv-nd">N/D</span>}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+              <div className="inv-bloco">
+                <b>{t('Chaveiros')}</b>
+                <div className="inv-slots">
+                  <button type="button" className="inv-slot inv-slot-chaveiro" onClick={() => setTela('chaveiro')} title={t('Prender chaveiro')}>
+                    {rasc.k?.i ? <Imagem src={urlImg(chaveirosPorId.get(rasc.k.i)?.[2], 128)} /> : <span className="inv-nd">N/D</span>}
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+          {(rasc.t === 'arma' || rasc.t === 'faca') && (
+            <label className="inv-linha">
+              <b>{t('Etiqueta de Nome')}</b>
+              <input type="text" maxLength={20} placeholder={t('Digite um nome...')} value={rasc.n || ''} onChange={(e) => mudar({ n: e.target.value })} />
+            </label>
+          )}
           {temSkin && (
             <>
-              <label className="inv-campo">
-                <span>
-                  {t('Desgaste (float)')} · <b>{t(nomeDoDesgaste(f))}</b>
-                </span>
-                <input type="range" min={min} max={max} step="0.0001" value={f} onChange={(e) => mudarDesgaste(Number(e.target.value))} />
-                <input type="number" min={min} max={max} step="0.0001" value={f} onChange={(e) => mudarDesgaste(Math.min(max, Math.max(min, Number(e.target.value) || min)))} />
-              </label>
-              <label className="inv-campo">
-                <span>{t('Padrão (seed)')}</span>
-                <input type="number" min="0" max="1000" step="1" value={item.s ?? 0} onChange={(e) => mudarSeed(Math.min(1000, Math.max(0, Math.trunc(Number(e.target.value) || 0))))} />
-              </label>
+              <div className="inv-linha">
+                <b>{t('Padrão')}</b>
+                <input type="number" min="0" max="1000" step="1" value={rasc.s ?? 0} onChange={(e) => mudarSeed(Math.min(1000, Math.max(0, Math.trunc(Number(e.target.value) || 0))))} />
+                <input type="range" {...slider(rasc.s ?? 0, 0, 1000, 1)} onChange={(e) => mudarSeed(Number(e.target.value))} aria-label={t('Padrão')} />
+                <button type="button" className="inv-dado" onClick={() => mudarSeed(Math.floor(aleatorio(0, 1000)))} title={t('Aleatório')} aria-label={t('Aleatório')}>
+                  ⤮
+                </button>
+              </div>
+              <div className="inv-linha">
+                <b>{t('Desgaste')}</b>
+                <input type="number" min={min} max={max} step="0.0001" value={Number(f.toFixed(6))} onChange={(e) => mudarDesgaste(Math.min(max, Math.max(min, Number(e.target.value) || min)))} />
+                <input type="range" {...slider(f, min, max, 0.0001)} onChange={(e) => mudarDesgaste(Number(e.target.value))} aria-label={t('Desgaste')} />
+                <button type="button" className="inv-dado" onClick={() => mudarDesgaste(Number(aleatorio(min, max).toFixed(6)))} title={t('Aleatório')} aria-label={t('Aleatório')}>
+                  ⤮
+                </button>
+              </div>
               {skin[5] === 1 && (
-                <label className="inv-check">
-                  <input type="checkbox" checked={!!item.st} onChange={(e) => aoMudar({ st: e.target.checked ? 1 : 0 })} />
-                  <span>StatTrak™</span>
+                <label className="inv-linha inv-linha-st">
+                  <b>StatTrak™</b>
+                  <span className="inv-st-txt">{rasc.st ? t('Sim') : t('Não')}</span>
+                  <button type="button" role="switch" aria-checked={!!rasc.st} className={`inv-chave${rasc.st ? ' is-on' : ''}`} onClick={() => mudar({ st: rasc.st ? 0 : 1 })} />
                 </label>
               )}
             </>
           )}
-          {(item.t === 'arma' || item.t === 'faca') && (
-            <label className="inv-campo">
-              <span>{t('Etiqueta de nome')}</span>
-              <input type="text" maxLength={20} placeholder={t('Sem nome')} value={item.n || ''} onChange={(e) => aoMudar({ n: e.target.value })} />
-            </label>
-          )}
-
-          {comEnfeites && (
-            <div className="inv-adesivos-editor">
-              <span className="inv-sub">{t('Adesivos')}</span>
-              <div className="inv-slots inv-slots-5">
-                {[0, 1, 2, 3, 4].map((k) => {
-                  const s = item.a?.[k]
-                  const st = s?.i ? porId.get(s.i) : null
-                  return (
-                    <button
-                      key={k}
-                      type="button"
-                      className={`inv-slot${k === slotAtivo ? ' is-ativo' : ''}`}
-                      onClick={() => (st ? (tem3d ? enviar('setActiveSticker', { index: k }) : null) : setEscolhendo('adesivo'))}
-                      title={st ? st[1] : t('Colocar adesivo')}
-                    >
-                      {st ? <Imagem src={urlImg(st[2], 128)} /> : <span className="inv-mais">+</span>}
-                    </button>
-                  )
-                })}
-              </div>
-              {ad?.i > 0 && (
-                <>
-                  <div className="inv-slot-acoes">
-                    <button type="button" className="inv-btn inv-btn-perigo" onClick={() => tirarAdesivo(slotAtivo)}>
-                      {t('Tirar este adesivo')}
-                    </button>
-                  </div>
-                  <div className="inv-posicao">
-                    <label className="inv-campo">
-                      <span>{t('Posição horizontal')}</span>
-                      <input type="range" min="-0.8" max="0.8" step="0.005" value={ad.x ?? 0} onChange={(e) => mexerAdesivo(slotAtivo, 'x', Number(e.target.value))} />
-                    </label>
-                    <label className="inv-campo">
-                      <span>{t('Posição vertical')}</span>
-                      <input type="range" min="-0.4" max="0.4" step="0.005" value={ad.y ?? 0} onChange={(e) => mexerAdesivo(slotAtivo, 'y', Number(e.target.value))} />
-                    </label>
-                    <label className="inv-campo">
-                      <span>{t('Rotação')}</span>
-                      <input type="range" min="0" max="360" step="1" value={ad.r ?? 0} onChange={(e) => mexerAdesivo(slotAtivo, 'r', Number(e.target.value))} />
-                    </label>
-                    <label className="inv-campo">
-                      <span>{t('Desgaste do adesivo')}</span>
-                      <input type="range" min="0" max="1" step="0.01" value={ad.w ?? 0} onChange={(e) => mexerAdesivo(slotAtivo, 'w', Number(e.target.value))} />
-                    </label>
-                  </div>
-                </>
-              )}
-
-              <span className="inv-sub">{t('Chaveiro')}</span>
-              <div className="inv-slot-acoes">
-                <button type="button" className="inv-slot inv-slot-chaveiro" onClick={() => setEscolhendo('chaveiro')} title={t('Escolher chaveiro')}>
-                  {item.k?.i ? <Imagem src={urlImg(chaveirosPorId.get(item.k.i)?.[2], 128)} /> : <span className="inv-mais">+</span>}
-                </button>
-                {item.k?.i > 0 && (
-                  <button type="button" className="inv-btn inv-btn-perigo" onClick={tirarChaveiro}>
-                    {t('Tirar')}
-                  </button>
-                )}
-              </div>
-              {item.k?.i > 0 && (
-                <div className="inv-posicao">
-                  {[
-                    ['x', 'Posição horizontal', -2, 10],
-                    ['y', 'Posição vertical', -1, 21],
-                    ['z', 'Profundidade', -2, 5],
-                  ].map(([eixo, rotulo, mn, mx]) => (
-                    <label key={eixo} className="inv-campo">
-                      <span>{t(rotulo)}</span>
-                      <input type="range" min={mn} max={mx} step="0.05" value={item.k[eixo] ?? viewer.keychainDefault?.[eixo] ?? 0} onChange={(e) => mexerChaveiro({ [eixo]: Number(e.target.value) })} />
-                    </label>
-                  ))}
-                  <label className="inv-campo">
-                    <span>{t('Padrão do chaveiro (seed)')}</span>
-                    <input type="number" min="0" max="100000" step="1" value={item.k.s ?? 0} onChange={(e) => mexerChaveiro({ s: Math.min(100000, Math.max(0, Math.trunc(Number(e.target.value) || 0))) })} />
-                  </label>
-                </div>
-              )}
-            </div>
-          )}
+          <button type="button" className="inv-reset" onClick={() => { setRasc(inicial); setVersao((v) => v + 1) }} title={t('Voltar ao original')} aria-label={t('Voltar ao original')}>
+            ↺
+          </button>
         </div>
       </div>
-      {escolhendo && (
-        <SeletorAdesivo
-          catalogo={escolhendo === 'chaveiro' ? 'chaveiros' : 'adesivos'}
-          aoFechar={() => setEscolhendo('')}
-          aoEscolher={(def) => {
-            if (escolhendo === 'chaveiro') colocarChaveiro(def)
-            else colocarAdesivo(def)
-            setEscolhendo('')
+      <div className="inv-dialogo-rodape">
+        <button type="button" className="inv-btn-fechar" onClick={aoFechar}>
+          {t('CANCELAR')}
+        </button>
+        <button type="button" className="inv-btn-verde" onClick={() => aoConfirmar(rasc)}>
+          {modo === 'criar' ? t('CRIAR') : t('SALVAR')}
+        </button>
+      </div>
+
+      {tela === 'adesivos' && (
+        <TelaAdesivos
+          item={rasc}
+          d={d}
+          m={m}
+          adesivos={adesivos}
+          aoFechar={() => setTela('')}
+          aoColar={(p) => {
+            mudar(p)
+            setTela('')
+            setVersao((v) => v + 1)
+          }}
+        />
+      )}
+      {tela === 'chaveiro' && (
+        <TelaChaveiro
+          item={rasc}
+          d={d}
+          m={m}
+          chaveiros={chaveiros}
+          aoFechar={() => setTela('')}
+          aoPrender={(p) => {
+            mudar(p)
+            setTela('')
+            setVersao((v) => v + 1)
           }}
         />
       )}
@@ -734,10 +941,10 @@ function Conteudo() {
   const [janela, setJanela] = useState(null) // { tipo: 'criar'|'editar'|'inspecionar', id? }
   const catalogo = useCatalogo('armas')
   const agentes = useCatalogo('agentes')
-  const precisaAdesivos = janela?.tipo === 'editar' || janela?.tipo === 'inspecionar' || (!!inv && Object.values(inv.itens).some((it) => it.a?.some(Boolean) || it.k?.i))
+  const precisaAdesivos = janela?.tipo === 'editar' || janela?.tipo === 'confirmar' || janela?.tipo === 'inspecionar' || (!!inv && Object.values(inv.itens).some((it) => it.a?.some(Boolean) || it.k?.i))
   const adesivos = useCatalogo('adesivos', precisaAdesivos)
   const chaveiros = useCatalogo('chaveiros', precisaAdesivos)
-  const mapa3d = useCatalogo('mapa3d', janela?.tipo === 'editar' || janela?.tipo === 'inspecionar')
+  const mapa3d = useCatalogo('mapa3d', janela?.tipo === 'editar' || janela?.tipo === 'inspecionar' || janela?.tipo === 'confirmar')
 
   useEffect(() => {
     if (!conta?.id) return
@@ -822,13 +1029,14 @@ function Conteudo() {
       const limpar = (m) => Object.fromEntries(Object.entries(m).filter(([, v]) => v !== id))
       return { ...i, itens: itensNovos, criado, equip: { ct: limpar(i.equip.ct), tr: limpar(i.equip.tr) } }
     })
-  const criar = (dados) => {
+  const gravarNovo = (dados) => {
     const id = novoIdItem()
     const { __id, ...limpo } = dados
     mudar((i) => ({ ...i, itens: { ...i.itens, [id]: limpo }, criado: { ...i.criado, [id]: Date.now() } }))
-    // item novo já abre o editor (armas/facas/luvas); o agente só vai para o inventário
-    setJanela(dados.t === 'agente' ? null : { tipo: 'editar', id })
+    setJanela(null)
   }
+  // Arma, faca e luva passam por "Confirmar criação" (3D, adesivos, desgaste...); o agente vai direto
+  const criar = (dados) => (dados.t === 'agente' ? gravarNovo(dados) : setJanela({ tipo: 'confirmar', rascunho: dados }))
   const duplicar = (id) => {
     const novo = novoIdItem()
     mudar((i) => ({ ...i, itens: { ...i.itens, [novo]: JSON.parse(JSON.stringify(i.itens[id])) }, criado: { ...i.criado, [novo]: Date.now() } }))
@@ -928,7 +1136,25 @@ function Conteudo() {
         />
       )}
       {janela?.tipo === 'criar' && <CriarItem catalogo={catalogo.dados.armas} agentes={agentes.dados} aoCriar={criar} aoFechar={() => setJanela(null)} />}
-      {janela?.tipo === 'editar' && itemJanela && <EditarItem item={itemJanela} idx={idx} adesivos={adesivos} chaveiros={chaveiros} mapa={mapa3d.dados} aoMudar={(p) => mudarItem(janela.id, p)} aoFechar={() => setJanela(null)} />}
+      {janela?.tipo === 'confirmar' && (
+        <DialogoItem inicial={janela.rascunho} modo="criar" idx={idx} adesivos={adesivos} chaveiros={chaveiros} mapa={mapa3d.dados} aoConfirmar={gravarNovo} aoFechar={() => setJanela(null)} />
+      )}
+      {janela?.tipo === 'editar' && itemJanela && (
+        <DialogoItem
+          inicial={itemJanela}
+          modo="editar"
+          idx={idx}
+          adesivos={adesivos}
+          chaveiros={chaveiros}
+          mapa={mapa3d.dados}
+          aoConfirmar={(r) => {
+            const { __id, ...limpo } = r
+            mudar((i) => ({ ...i, itens: { ...i.itens, [janela.id]: limpo } }))
+            setJanela(null)
+          }}
+          aoFechar={() => setJanela(null)}
+        />
+      )}
       {janela?.tipo === 'inspecionar' && itemJanela && <Inspecionar item={itemJanela} idx={idx} adesivos={adesivos} chaveiros={chaveiros} mapa={mapa3d.dados} aoFechar={() => setJanela(null)} />}
     </>
   )
