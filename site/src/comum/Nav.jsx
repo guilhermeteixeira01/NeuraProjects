@@ -15,6 +15,7 @@ import PainelNotificacoes from './PainelNotificacoes.jsx'
 import PainelPartidas from './PainelPartidas.jsx'
 import { useAmigos } from './amigos.js'
 import { usePontos } from './pontos.js'
+import { useSaldo } from './loja.js'
 import { localeAtual } from './i18n.js'
 
 function LinkMenu({ item, atual }) {
@@ -44,7 +45,9 @@ function Conta() {
   // A foto do token é a do dia do login (vale 30 dias): troca pela atual da Steam
   const fotoAtual = useAvatar(conta?.id)
   const caixa = useRef(null)
-  const pontos = usePontos(conta?.id)
+  const ganhos = usePontos(conta?.id)
+  const saldo = useSaldo(conta?.id, aberto) // o que sobra depois de gastar na loja (sem resposta do worker, mostra o total ganho)
+  const pontos = saldo ?? ganhos
   const { conectado } = useAmigos()
 
   useEffect(() => {
@@ -107,14 +110,14 @@ function Conta() {
               <b>{Number(pontos).toLocaleString(localeAtual())}</b>
               <small>{t('PONTOS')}</small>
             </div>
-            <div className="cp-caixa cp-loja" title={t('A loja de pontos abre em breve')}>
+            <a className="cp-caixa cp-loja" href="/loja/" title={t('Gaste seus pontos em caixas de skins')}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" />
                 <path d="M12 8v8M8 12h8" />
               </svg>
-              <b>{t('EM BREVE')}</b>
+              <b>{t('ABRIR')}</b>
               <small>{t('LOJA')}</small>
-            </div>
+            </a>
           </div>
           <a className="cp-perfil" href={linkPerfil(conta.id)}>
             {t('VER PERFIL')}
@@ -140,7 +143,7 @@ function Conta() {
 }
 
 // Páginas que aparecem no menu sem login
-const SEM_LOGIN = ['inicio', 'lobby', 'ranking', 'inventario'] // o ▶ Jogar aparece sempre (sem login a página pede para entrar)
+const SEM_LOGIN = ['inicio', 'lobby', 'ranking', 'inventario', 'loja'] // o ▶ Jogar aparece sempre (sem login a página pede para entrar)
 
 // Páginas fora do MENU: só para o título da barra de cima no celular
 const OUTRAS = {

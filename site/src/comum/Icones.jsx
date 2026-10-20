@@ -17,6 +17,16 @@ export function IconeMochila() {
   )
 }
 
+export function IconeCaixa() {
+  return (
+    <svg className="nx-icone" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M21 8 12 3 3 8v8l9 5 9-5Z" />
+      <path d="m3 8 9 5 9-5" />
+      <path d="M12 13v8" />
+    </svg>
+  )
+}
+
 export function IconeSteam({ tamanho = 16 }) {
   return (
     <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -118,4 +128,4 @@ export const IconeMais = () => (
   </IconeMenu>
 )
 
-export const ICONES_MENU = { casa: IconeCasa, mapa: IconeMapa, partidas: IconePartidas, trofeu: IconeTrofeu, grupo: IconeGrupo, play: IconePlay, perfil: IconePerfil, mais: IconeMais, mochila: IconeMochila, escudo: IconeEscudo }
+export const ICONES_MENU = { casa: IconeCasa, mapa: IconeMapa, partidas: IconePartidas, trofeu: IconeTrofeu, grupo: IconeGrupo, play: IconePlay, perfil: IconePerfil, mais: IconeMais, mochila: IconeMochila, caixa: IconeCaixa, escudo: IconeEscudo }

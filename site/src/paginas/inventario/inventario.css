@@ -257,3 +257,6 @@
   .inv-inspecao-3d, .inv-inspecao-3d .inv-3d { touch-action: none; }
   .inv-inspecao-info b { font-size: 16px; }
 }
+
+/* caixa fechada: botão Abrir embaixo do cartão */
+.inv-abrir-caixa { display: block; margin-top: 6px; text-align: center; text-decoration: none; }

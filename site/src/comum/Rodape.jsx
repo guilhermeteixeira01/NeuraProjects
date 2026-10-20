@@ -30,6 +30,7 @@ function colunas(conta, verPick) {
         ['Partidas', '/partidas/'],
         ['Ranking', '/ranking/'],
         ['Inventário', '/inventario/'],
+        ['Loja', '/loja/'],
       ],
     },
     {
