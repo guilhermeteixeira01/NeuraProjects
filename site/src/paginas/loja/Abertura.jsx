@@ -383,7 +383,7 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
       )}
 
       {fase === 'roleta' && (
-        <div className="lj-faixas" data-n={resultados.length}>
+        <div className="lj-faixas" data-n={resultados.length} style={{ "--n": resultados.length }}>
           {resultados.map((r, k) => (
             <Roleta key={r.id} itens={r.faixa} alvo={r.alvo} lista={caixa.itens} achar={achar} rodando sonora={k === 0} duracao={DURACAO + k * 250} pular={pular} aoParar={() => setParadas((n) => n + 1)} />
           ))}

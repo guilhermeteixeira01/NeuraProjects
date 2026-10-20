@@ -269,3 +269,30 @@ html.lj-travado .nx-rolagem { display: none !important; }
   .lj-resultado h2 { font-size: 22px; }
 }
 @media (max-width: 700px) { .lj-resultado:has(.lj-minis) { overflow-y: auto; } }
+
+/* ── resultado: nada que cresça para fora cria barra de rolagem (o pulso do brilho usava scale e estourava a área) ── */
+.lj-resultado { overflow: hidden; }
+.lj-resultado:has(.lj-minis) { overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
+.lj-resultado:has(.lj-minis)::-webkit-scrollbar { display: none; }
+.lj-rev-fundo { animation: lj-pulso-suave 2.4s ease-in-out infinite; }
+@keyframes lj-pulso-suave { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
+.lj-revelacao { max-width: 100%; }
+
+/* ── celular/tablet: várias roletas (até 5) cabem juntas na altura da tela ── */
+@media (max-width: 1024px) {
+  .lj-faixas { --altura: calc((100dvh - 96px) / var(--n, 1)); gap: 6px; padding: 0 0 8px; align-content: center; }
+  .lj-faixas[data-n] .lj-roleta { padding: 5px 0; }
+  .lj-faixas[data-n='2'] .lj-trilho .lj-cartao,
+  .lj-faixas[data-n='3'] .lj-trilho .lj-cartao,
+  .lj-faixas[data-n='4'] .lj-trilho .lj-cartao,
+  .lj-faixas[data-n='5'] .lj-trilho .lj-cartao { width: min(130px, calc((var(--altura) - 20px) * .95)) !important; padding: 4px 4px 5px; gap: 1px; }
+  .lj-faixas[data-n='3'] .lj-cartao small, .lj-faixas[data-n='4'] .lj-cartao small, .lj-faixas[data-n='5'] .lj-cartao small { display: none; }
+  .lj-faixas[data-n='3'] .lj-cartao b, .lj-faixas[data-n='4'] .lj-cartao b, .lj-faixas[data-n='5'] .lj-cartao b { font-size: 9.5px; }
+  .lj-faixas[data-n='4'] .lj-especial b, .lj-faixas[data-n='5'] .lj-especial b { font-size: 8.5px; }
+  .lj-faixas[data-n='4'] .lj-interroga, .lj-faixas[data-n='5'] .lj-interroga { font-size: 26px; }
+  .lj-faixas[data-n='5'] .lj-marcador::before, .lj-faixas[data-n='5'] .lj-marcador::after { border-width: 5px; margin-left: -5px; }
+}
+/* vários itens: começa do topo (centralizar cortava o começo da lista quando ela rola) */
+.lj-resultado:has(.lj-minis) { align-content: start; padding-top: 6px; }
+@media (min-width: 701px) { .lj-resultado:has(.lj-minis) { align-content: center; } }
+@media (max-width: 700px) { .lj-mini img { aspect-ratio: 16 / 9; } .lj-mini small { font-size: 10px; } }
