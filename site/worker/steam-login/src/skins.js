@@ -1,23 +1,32 @@
 /*
- * Skins (inventário do jogador no site; o plugin BaseComp aplica no servidor de CS2).
+ * Skins: inventário do jogador no site (como o inventário do jogo) e o que ele equipa em cada time.
+ * O plugin BaseComp lê o inventário já "resolvido" em /servidor/skins e aplica no servidor de CS2.
  *
  * KV MOLDURAS, uma chave por jogador:  skins:<SteamID64>
- *   { armas:   { "<defIndex>": { p: paint, f: desgaste 0..1, s: seed 0..1000, st: 0|1 (StatTrak), a: [adesivo x4, 0 = vazio], l: 0|1 (modelo antigo) } },
- *     facas:   { ct|tr: { d: defIndex da faca, p: paint (0 = faca lisa), f, s, st, l } },
- *     luvas:   { ct|tr: { d: defIndex da luva, p: paint, f, s, l } },
- *     agentes: { ct|tr: { d: defIndex do agente, m: "agents/models/.../x.vmdl" } } }
+ *   { v: 2,
+ *     itens: { "<id>": { t: 'arma'|'faca'|'luva'|'agente', d: defIndex, p: paint (0 = sem pintura: faca lisa, agente), f: desgaste 0..1,
+ *                        s: seed 0..1000, st: 0|1 (StatTrak), n: nome (name tag), l: 0|1 (modelo antigo), m: modelo do agente,
+ *                        a: [ { i: adesivo, x, y: posição, r: rotação, w: desgaste } | null x4 ] } },
+ *     equip: { ct|tr: { "<defIndex da arma>" | "faca" | "luva" | "agente": "<id do item>" } },
+ *     criado: { "<id>": ms } }   (ordem de criação, para ordenar)
  *
  *   GET  /skins            (login)  -> o inventário do próprio jogador
  *   POST /skins            (login)  -> salva (o corpo é o inventário inteiro; o worker limpa e confere os números)
- *   POST /servidor/skins   (token do servidor) { ids: ["<SteamID64>", ...] } -> { "<SteamID64>": inventário } (só quem tem algo salvo)
+ *   POST /servidor/skins   (token do servidor) { ids: ["<SteamID64>", ...] } -> { "<SteamID64>": equipado } só de quem tem algo equipado:
+ *       { armas: { ct|tr: { "<defIndex>": { p, f, s, st, n, l, a: [{i,x,y,r,w}] } } },
+ *         facas: { ct|tr: { d, p, f, s, st, n, l } }, luvas: { ct|tr: { d, p, f, s, l } }, agentes: { ct|tr: { d, m } } }
+ *   Inventário no formato antigo (v1: armas/facas/luvas/agentes soltos) é convertido ao ler.
  */
 
 const ID_STEAM = /^\d{17}$/
 const FACAS = new Set([500, 503, 505, 506, 507, 508, 509, 512, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 525, 526]) // defIndex das facas do jogo
 const LUVAS = new Set([4725, 5027, 5030, 5031, 5032, 5033, 5034, 5035])
-const ARMAS_MAX = 80
-const MODELO_AGENTE = /^agents\/models\/[a-z0-9_/]{1,120}\.vmdl$/
+const ITENS_MAX = 400
 const ID_MAX = 100000 // paint kit / adesivo / agente: limite folgado só para barrar lixo
+const ID_ITEM = /^[a-z0-9]{4,16}$/
+const MODELO_AGENTE = /^agents\/models\/[a-z0-9_/]{1,120}\.vmdl$/
+const NOME_ITEM = /[\u0000-\u001f<>]/g
+const LADOS = ['ct', 'tr']
 
 const json = (dados, status = 200, extra = {}) =>
   new Response(JSON.stringify(dados), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...extra } })
@@ -26,52 +35,120 @@ const inteiro = (v, min, max, padrao = 0) => {
   const n = Math.trunc(Number(v))
   return Number.isFinite(n) && n >= min && n <= max ? n : padrao
 }
-const desgaste = (v) => {
+const real = (v, min, max, padrao = 0) => {
   const n = Number(v)
-  return Number.isFinite(n) ? Math.round(Math.min(1, Math.max(0, n)) * 10000) / 10000 : 0.0001
+  return Number.isFinite(n) ? Math.round(Math.min(max, Math.max(min, n)) * 10000) / 10000 : padrao
+}
+const desgaste = (v) => real(v, 0, 1, 0.0001)
+
+const vazio = () => ({ v: 2, itens: {}, equip: { ct: {}, tr: {} }, criado: {} })
+
+// Formato antigo (um item por arma, igual nos dois times) -> inventário novo
+function converterV1(e) {
+  const novo = vazio()
+  let n = 0
+  const criar = (item, equipar) => {
+    const id = `m${(n++).toString(36).padStart(3, '0')}`
+    novo.itens[id] = item
+    novo.criado[id] = n
+    for (const lado of equipar) novo.equip[lado][item.t === 'arma' ? String(item.d) : item.t] = id
+  }
+  for (const [def, a] of Object.entries(e.armas || {}))
+    criar({ t: 'arma', d: Number(def), p: a.p, f: a.f, s: a.s, st: a.st, l: a.l, a: (a.a || []).map((i) => (i ? { i, x: 0, y: 0, r: 0, w: 0 } : null)) }, LADOS)
+  for (const lado of LADOS) {
+    if (e.facas?.[lado]) criar({ t: 'faca', ...e.facas[lado] }, [lado])
+    if (e.luvas?.[lado]) criar({ t: 'luva', ...e.luvas[lado] }, [lado])
+    if (e.agentes?.[lado]) criar({ t: 'agente', d: e.agentes[lado].d, p: 0, m: e.agentes[lado].m }, [lado])
+  }
+  return novo
+}
+
+function limparAdesivos(lista) {
+  const a = Array.isArray(lista) ? lista.slice(0, 4) : []
+  while (a.length < 4) a.push(null)
+  return a.map((s) => {
+    const id = typeof s === 'number' ? s : s?.i
+    if (!inteiro(id, 1, ID_MAX)) return null
+    return { i: inteiro(id, 1, ID_MAX), x: real(s?.x, -1, 1), y: real(s?.y, -1, 1), r: real(s?.r, 0, 360), w: real(s?.w, 0, 1) }
+  })
 }
 
 // Deixa só o que o plugin entende, com os números dentro dos limites
 export function limparSkins(entrada) {
-  const e = entrada && typeof entrada === 'object' ? entrada : {}
-  const saida = { armas: {}, facas: {}, luvas: {}, agentes: {} }
+  let e = entrada && typeof entrada === 'object' ? entrada : {}
+  if (e.v !== 2 && (e.armas || e.facas || e.luvas || e.agentes)) e = converterV1(e)
+  const saida = vazio()
 
-  for (const [def, a] of Object.entries(e.armas && typeof e.armas === 'object' ? e.armas : {}).slice(0, ARMAS_MAX)) {
-    if (!/^\d{1,4}$/.test(def) || !a || typeof a !== 'object') continue
-    const paint = inteiro(a.p, 0, ID_MAX)
-    if (!paint) continue // sem skin: não precisa guardar
-    const adesivos = Array.isArray(a.a) ? a.a.slice(0, 4).map((x) => inteiro(x, 0, ID_MAX)) : []
-    while (adesivos.length < 4) adesivos.push(0)
-    saida.armas[def] = { p: paint, f: desgaste(a.f), s: inteiro(a.s, 0, 1000), st: a.st ? 1 : 0, a: adesivos, l: a.l ? 1 : 0 }
+  for (const [id, it] of Object.entries(e.itens && typeof e.itens === 'object' ? e.itens : {}).slice(0, ITENS_MAX)) {
+    if (!ID_ITEM.test(id) || !it || typeof it !== 'object') continue
+    const d = inteiro(it.d, 1, ID_MAX)
+    if (!d) continue
+    const base = { t: it.t, d, p: inteiro(it.p, 0, ID_MAX), f: desgaste(it.f), s: inteiro(it.s, 0, 1000), st: it.st ? 1 : 0, l: it.l ? 1 : 0 }
+    const nome = typeof it.n === 'string' ? it.n.replace(NOME_ITEM, '').trim().slice(0, 20) : ''
+    if (it.t === 'arma') {
+      if (!base.p) continue // arma sem skin não precisa existir
+      saida.itens[id] = { ...base, n: nome, a: limparAdesivos(it.a) }
+    } else if (it.t === 'faca') {
+      if (!FACAS.has(d)) continue
+      saida.itens[id] = { ...base, n: nome }
+    } else if (it.t === 'luva') {
+      if (!LUVAS.has(d) || !base.p) continue
+      saida.itens[id] = base
+    } else if (it.t === 'agente') {
+      if (!MODELO_AGENTE.test(String(it.m))) continue
+      saida.itens[id] = { t: 'agente', d, p: 0, m: String(it.m) }
+    } else continue
+    saida.criado[id] = inteiro(e.criado?.[id], 0, 9007199254740991)
   }
 
-  for (const lado of ['ct', 'tr']) {
-    const f = e.facas?.[lado]
-    if (f && FACAS.has(Number(f.d))) saida.facas[lado] = { d: Number(f.d), p: inteiro(f.p, 0, ID_MAX), f: desgaste(f.f), s: inteiro(f.s, 0, 1000), st: f.st ? 1 : 0, l: f.l ? 1 : 0 }
-    const l = e.luvas?.[lado]
-    if (l && LUVAS.has(Number(l.d)) && inteiro(l.p, 0, ID_MAX)) saida.luvas[lado] = { d: Number(l.d), p: inteiro(l.p, 0, ID_MAX), f: desgaste(l.f), s: inteiro(l.s, 0, 1000), l: l.l ? 1 : 0 }
-    const ag = e.agentes?.[lado]
-    if (ag && inteiro(ag.d, 1, ID_MAX) && MODELO_AGENTE.test(String(ag.m))) saida.agentes[lado] = { d: inteiro(ag.d, 1, ID_MAX), m: String(ag.m) }
+  for (const lado of LADOS) {
+    for (const [chave, id] of Object.entries(e.equip?.[lado] && typeof e.equip[lado] === 'object' ? e.equip[lado] : {})) {
+      const it = saida.itens[id]
+      if (!it) continue
+      // a chave diz onde o item entra: a arma pelo defIndex, o resto pelo tipo
+      const certa = it.t === 'arma' ? String(it.d) : it.t
+      if (chave === certa) saida.equip[lado][chave] = id
+    }
   }
   return saida
 }
 
+// O que o plugin precisa: só o que está equipado, por time
+export function resolverEquipado(inv) {
+  const r = { armas: { ct: {}, tr: {} }, facas: {}, luvas: {}, agentes: {} }
+  let algo = false
+  for (const lado of LADOS) {
+    for (const [chave, id] of Object.entries(inv.equip?.[lado] || {})) {
+      const it = inv.itens?.[id]
+      if (!it) continue
+      algo = true
+      if (it.t === 'arma') r.armas[lado][chave] = { p: it.p, f: it.f, s: it.s, st: it.st, n: it.n || '', l: it.l, a: it.a || [] }
+      else if (it.t === 'faca') r.facas[lado] = { d: it.d, p: it.p, f: it.f, s: it.s, st: it.st, n: it.n || '', l: it.l }
+      else if (it.t === 'luva') r.luvas[lado] = { d: it.d, p: it.p, f: it.f, s: it.s, l: it.l }
+      else if (it.t === 'agente') r.agentes[lado] = { d: it.d, m: it.m }
+    }
+  }
+  return algo ? r : null
+}
+
 const chave = (id) => `skins:${id}`
-const lerSkins = async (env, id) => (await env.MOLDURAS.get(chave(id), 'json').catch(() => null)) || null
+const lerSkins = async (env, id) => {
+  const bruto = await env.MOLDURAS.get(chave(id), 'json').catch(() => null)
+  return bruto ? limparSkins(bruto) : null
+}
 
 // GET/POST /skins (o próprio jogador logado)
 export async function rotaSkins(req, env, quem, cors) {
-  if (req.method === 'GET') return json((await lerSkins(env, quem.id)) || limparSkins({}), 200, cors)
+  if (req.method === 'GET') return json((await lerSkins(env, quem.id)) || vazio(), 200, cors)
   const corpo = await req.json().catch(() => null)
   if (!corpo || typeof corpo !== 'object') return json({ erro: 'corpo' }, 400, cors)
   const limpo = limparSkins(corpo)
-  const vazio = !Object.keys(limpo.armas).length && !Object.keys(limpo.facas).length && !Object.keys(limpo.luvas).length && !Object.keys(limpo.agentes).length
-  if (vazio) await env.MOLDURAS.delete(chave(quem.id))
+  if (!Object.keys(limpo.itens).length) await env.MOLDURAS.delete(chave(quem.id))
   else await env.MOLDURAS.put(chave(quem.id), JSON.stringify(limpo))
   return json(limpo, 200, cors)
 }
 
-// POST /servidor/skins: o plugin pede o inventário de quem está no servidor
+// POST /servidor/skins: o plugin pede o que está equipado de quem está no servidor
 export async function rotaServidorSkins(req, env) {
   const cab = req.headers.get('Authorization') || ''
   const dado = new TextEncoder().encode(cab.startsWith('Bearer ') ? cab.slice(7).trim() : '')
@@ -85,8 +162,9 @@ export async function rotaServidorSkins(req, env) {
   const resposta = {}
   await Promise.all(
     lista.map(async (id) => {
-      const s = await lerSkins(env, id)
-      if (s) resposta[id] = s
+      const inv = await lerSkins(env, id)
+      const r = inv && resolverEquipado(inv)
+      if (r) resposta[id] = r
     }),
   )
   return json(resposta)

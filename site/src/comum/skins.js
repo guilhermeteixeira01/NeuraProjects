@@ -64,3 +64,37 @@ async function chamar(metodo, corpo) {
 
 export const lerInventario = () => chamar('GET')
 export const salvarInventario = (inv) => chamar('POST', inv)
+
+// ── Inventário (modelo igual ao do jogo: itens criados + o que está equipado em cada time) ──
+export const inventarioNovo = () => ({ v: 2, itens: {}, equip: { ct: {}, tr: {} }, criado: {} })
+export const novoIdItem = () => (Math.random().toString(36).slice(2, 10) + 'aaaa').slice(0, 8)
+// Onde o item entra no time: a arma pelo defIndex, o resto pelo tipo (faca, luva, agente)
+export const chaveEquip = (item) => (item.t === 'arma' ? String(item.d) : item.t)
+export const LADOS_TIME = [
+  ['ct', 'CT'],
+  ['tr', 'TR'],
+]
+
+// Índices do catálogo: defIndex -> arma, e agente -> dados
+export function indicar(catalogoArmas, agentes) {
+  const armas = new Map((catalogoArmas || []).map((a) => [a.d, a]))
+  const porAgente = new Map((agentes || []).map((a) => [a.d, a]))
+  return { armas, porAgente }
+}
+
+// Como o item aparece num cartão: { titulo, subtitulo, img, cor }
+export function descrever(item, idx) {
+  if (item.t === 'agente') {
+    const a = idx.porAgente.get(item.d)
+    return { titulo: 'Agente', subtitulo: a?.n || `#${item.d}`, img: a ? urlImg(a.i, 360) : '', cor: a?.c || '' }
+  }
+  const arma = idx.armas.get(item.d)
+  const skin = arma?.s.find((s) => s[0] === item.p)
+  return {
+    titulo: `${item.t === 'faca' ? '★ ' : ''}${arma?.n || `#${item.d}`}`,
+    subtitulo: skin?.[1] || (item.t === 'faca' ? 'Faca lisa' : ''),
+    img: skin ? urlImg(skin[6], 360) : '',
+    cor: skin?.[2] || '',
+    skin,
+  }
+}
