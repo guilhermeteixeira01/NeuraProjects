@@ -97,8 +97,10 @@ const marcar = (id, marca) => {
   }
   salvarPerfil({ vistos: { ins: [marca] } }).catch(() => {}) // na conta, para os outros aparelhos não avisarem de novo
 }
-// Marca = insígnia + quando ganhou: se o admin tirar e der de novo, avisa de novo
-const marcaDe = (i) => `${i.id}:${i.desde || 0}`
+// Cada insígnia avisa UMA vez (a marca é só o id): antes era id+data, e qualquer mudança de data (gravação repetida) avisava de novo.
+// Marcas antigas ("id:data") ainda valem: o que vem depois dos dois pontos é ignorado.
+const marcaDe = (i) => i.id
+const idDaMarca = (m) => String(m).split(':')[0]
 
 // Som de conquista (feito na hora, sem arquivo): acorde subindo com brilho no fim.
 // Os navegadores só liberam som depois de um toque/clique/tecla na página. No celular o toque só conta quando o dedo
@@ -206,8 +208,8 @@ export default function AvisoInsignia() {
     if (!conta?.id) return setFila([])
     if (!frescos) return // espera a conta responder: o que já foi visto em outro aparelho vem de lá
     if (roleta) return // só depois da roleta da loja
-    const doServidor = perfis[conta.id]?.vistos?.ins || []
-    const locais = vistas(conta.id)
+    const doServidor = (perfis[conta.id]?.vistos?.ins || []).map(idDaMarca)
+    const locais = vistas(conta.id).map(idDaMarca)
     // avisos vistos só neste navegador (antes de existir o salvo na conta) vão para a conta, uma vez
     const faltam = locais.filter((m) => !doServidor.includes(m))
     if (faltam.length && !migrado.current) {
