@@ -119,7 +119,7 @@ function PaginaCaixa({ c, saldo, tem, maxQtd, aoFechar, aoComprar, aoAbrir, ocup
           <section className="lj-itens">
             <h3>{t('O que pode sair')}</h3>
             <ul className="lj-chances">
-              {[5, 4, 3, 2, 1, 0].map((r) => (
+              {[5, 4, 3, 2, 1, 0].filter((r) => c.chances.raridades[r] > 0).map((r) => (
                 <li key={r} style={{ '--cor': RARIDADES[r].cor }}>
                   <i />
                   <span>{t(RARIDADES[r].nome)}</span>
@@ -159,7 +159,7 @@ function PaginaCaixa({ c, saldo, tem, maxQtd, aoFechar, aoComprar, aoAbrir, ocup
                   <ul className="lj-grade">
                     {porRaridade[r].map((it) => (
                       <li key={`${it.d}:${it.p}`}>
-                        <CartaoItem r={r} d={it.d} p={it.p} achar={achar}>
+                        <CartaoItem r={r} d={it.d} p={it.p} tipo={it.t} n={it.n} i={it.i} achar={achar}>
                           <em className="lj-chance">{pct(it.chance)}</em>
                         </CartaoItem>
                       </li>

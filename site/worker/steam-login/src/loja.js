@@ -27,10 +27,11 @@
  *   GET  /admin/loja-saldo?id= (dono)  -> { saldo, ganhos, gastos, movimentos } de um jogador
  */
 import { avisarPerfil } from './amigos.js'
-import { CONFIG_PADRAO, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
+import { CONFIG_PADRAO, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
 import { gravarSkinsKv, lerSkinsKv, limparSkins, novoIdItem } from './skins.js'
 import CAIXAS_INICIAIS from './caixas-iniciais.json'
 import RARIDADE_SKIN from './skins-raridade.json'
+import FACAS_VALOR from './facas-valor.json'
 
 const ID_STEAM = /^\d{17}$/
 const ITENS_MAX = 2000
@@ -45,7 +46,16 @@ const num = (v, min, max, padrao) => {
 // ── caixas e configuração (KV) ──
 export async function lerCaixas(env) {
   const salvas = await env.MOLDURAS.get('caixas', 'json').catch(() => null)
-  return Array.isArray(salvas) && salvas.length ? salvas : CAIXAS_INICIAIS
+  if (!Array.isArray(salvas) || !salvas.length) return CAIXAS_INICIAIS
+  // caixas de fábrica novas (incluídas depois que o dono já tinha salvo a lista): entram uma vez; as que ele apagar não voltam
+  const vistas = (await env.MOLDURAS.get('caixas-vistas', 'json').catch(() => null)) || []
+  const novas = CAIXAS_INICIAIS.filter((c) => !vistas.includes(c.slug) && !salvas.some((x) => x.slug === c.slug))
+  if (!novas.length && vistas.length) return salvas
+  let id = Math.max(0, ...salvas.map((c) => c.id))
+  const lista = [...salvas, ...novas.map((c) => ({ ...c, id: ++id }))]
+  await env.MOLDURAS.put('caixas', JSON.stringify(lista)).catch(() => {})
+  await env.MOLDURAS.put('caixas-vistas', JSON.stringify(CAIXAS_INICIAIS.map((c) => c.slug))).catch(() => {})
+  return lista
 }
 export async function lerConfigLoja(env) {
   const c = await env.MOLDURAS.get('loja-config', 'json').catch(() => null)
@@ -73,7 +83,14 @@ function limparCaixa(c, n) {
   const slug = String(c?.slug || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40)
   if (!slug) return null
   const skin = (x) => ({ d: Math.round(num(x?.d, 1, 100000, 0)), p: Math.round(num(x?.p, 1, 100000, 0)), w: pesoOk(x?.w), min: num(x?.min, 0, 1, 0), max: num(x?.max, 0, 1, 1), l: x?.l ? 1 : 0 })
-  const itens = (Array.isArray(c.itens) ? c.itens : []).slice(0, 300).map((x) => ({ ...skin(x), r: Math.round(num(x?.r, 0, 4, 0)) })).filter((x) => x.d && x.p)
+  // itens: skin de arma (padrão), faca (t: 'faca'), adesivo ou chaveiro (t: 'adesivo'|'chaveiro', sem pintura; n = nome e i = imagem da Steam para mostrar)
+  const item = (x) => {
+    const t = ['faca', 'adesivo', 'chaveiro'].includes(x?.t) ? x.t : undefined
+    const base = { ...skin(x), r: Math.round(num(x?.r, 0, 4, 0)) }
+    if (t === 'adesivo' || t === 'chaveiro') return { ...base, t, p: 0, n: String(x.n || '').slice(0, 80), i: /^[A-Za-z0-9_-]{1,400}$/.test(x.i || '') ? x.i : '' }
+    return t ? { ...base, t } : base
+  }
+  const itens = (Array.isArray(c.itens) ? c.itens : []).slice(0, 300).map(item).filter((x) => x.d && (x.p || x.t === 'adesivo' || x.t === 'chaveiro'))
   const facas = (Array.isArray(c.facas) ? c.facas : []).slice(0, 300).map(skin).filter((x) => x.d && x.p)
   return {
     id: Math.round(num(c.id, 1, 100000, n + 1)),
@@ -282,6 +299,7 @@ export class Loja {
   // Raridade (0..6) e valor de venda (NP) de um item do inventário; null se não pode vender (adesivo, chaveiro, caixa, agente)
   valorDe(it) {
     if (!['arma', 'faca', 'luva'].includes(it.t)) return null
+    if (it.t === 'faca') return { r: 6, v: valorDaFaca(it, FACAS_VALOR) } // facas: valor por modelo e acabamento (facas-valor.json)
     const r = it.t === 'arma' ? RARIDADE_SKIN[`${it.d}:${it.p}`] ?? 2 : 6
     return { r, v: valorDoItem(it, r) }
   }
@@ -344,15 +362,16 @@ export class Loja {
       const ganhou = sortearAbertura(caixa, cfg, rndSeguro)
       const faixa = gerarFaixa(caixa, cfg, ganhou, rndSeguro)
       const item = novoIdItem()
-      const { faixa: nomeFaixa, ...base } = ganhou.item
-      inv.itens[item] = { ...base, st: 0, n: '', a: [null, null, null, null, null], k: null }
+      const { faixa: nomeFaixa, n: nomeItem, i: imgItem, ...base } = ganhou.item
+      const enfeite = base.t === 'adesivo' || base.t === 'chaveiro' // amuletos e adesivos vão guardados no inventário (como os que o dono dá)
+      inv.itens[item] = enfeite ? { t: base.t, d: base.d, p: 0 } : { ...base, st: 0, n: '', a: [null, null, null, null, null], k: null }
       inv.criado[item] = agora + k
       linhas.push([agora + k, caixa.slug, base.t, base.d, base.p, ganhou.raridade, base.f, faixa.quase ? 1 : 0])
       resultados.push({
         id: item,
         raridade: ganhou.raridade,
         indice: ganhou.indice,
-        item: { ...base, desgaste: nomeFaixa },
+        item: { ...base, desgaste: nomeFaixa, n: nomeItem, i: imgItem },
         faixa: faixa.itens,
         alvo: faixa.alvo,
         quase: faixa.quase,

@@ -46,6 +46,7 @@ function EscolherSkin({ armas, facas, aoEscolher, rotulo }) {
 function EditorCaixa({ c, armas, achar, mudar, remover }) {
   const t = useT()
   const nomeDe = (x) => {
+    if (x.n) return `${x.t === 'chaveiro' ? '🔑' : '🏷️'} ${x.n}` // adesivo ou chaveiro: o nome vem na própria caixa
     const a = achar.get(`${x.d}:${x.p}`)
     return a ? `${a.arma.n} | ${a.skin[1]}` : `#${x.d}/${x.p}`
   }
@@ -92,7 +93,7 @@ function EditorCaixa({ c, armas, achar, mudar, remover }) {
       <ul className="adm-cx-lista">
         {[4, 3, 2, 1, 0].flatMap((r) =>
           c.itens.map((x, i) => ({ x, i })).filter((y) => y.x.r === r).map(({ x, i }) => (
-            <li key={`${x.d}:${x.p}`} style={{ '--cor': RARIDADES[r].cor }}>
+            <li key={`${x.t || ""}${x.d}:${x.p}`} style={{ '--cor': RARIDADES[r].cor }}>
               <i />
               <span>{nomeDe(x)}</span>
               <select value={x.r} onChange={(e) => setItem('itens', i, { r: Number(e.target.value) })} aria-label={t('Raridade')}>
@@ -115,7 +116,7 @@ function EditorCaixa({ c, armas, achar, mudar, remover }) {
       <EscolherSkin armas={armas} facas aoEscolher={(a, s) => mudar({ facas: [...c.facas, { d: a.d, p: s[0], w: 100, min: s[3], max: s[4], l: s[7] ? 1 : 0 }] })} rotulo={t('Adicionar faca')} />
       <ul className="adm-cx-lista">
         {c.facas.map((x, i) => (
-          <li key={`${x.d}:${x.p}`} style={{ '--cor': RARIDADES[5].cor }}>
+          <li key={`${x.t || ""}${x.d}:${x.p}`} style={{ '--cor': RARIDADES[5].cor }}>
             <i />
             <span>{nomeDe(x)}</span>
             {peso('facas', x, i)}

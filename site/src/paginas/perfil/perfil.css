@@ -847,3 +847,21 @@ html.sm-aberto { overflow: hidden; }
 .pf-infos-lado .pf-info-val { min-width: 0; }
 .pf-infos-lado .pf-time { min-width: 0; max-width: 100%; }
 .pf-infos-lado .pf-time span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Time e Premier: nunca cortam o nome. Cada um ocupa o que precisa; se não couberem lado a lado, o Premier desce para a linha de baixo */
+.pf-infos.pf-infos-lado { display: flex; flex-wrap: wrap; gap: 10px; }
+.pf-infos-lado .pf-info { flex: 1 1 auto; width: auto; min-width: 0; }
+.pf-infos-lado .pf-info:last-child:not(:only-child) { flex: 0 1 auto; }
+.pf-infos-lado .pf-time span { overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; }
+/* celular/tablet: a coluna do jogador fica centralizada na tela */
+@media (max-width: 900px) {
+  .pf-lado { width: 100%; max-width: 560px; margin-inline: auto; }
+  .pf-lado .pf-cartao { margin-inline: auto; }
+  .pf-infos.pf-infos-lado { justify-content: center; }
+  .pf-infos-lado .pf-info { text-align: center; justify-items: center; }
+  .pf-infos-lado .pf-info-val { justify-content: center; }
+  .pf-lado .pf-lado-bloco h3 { text-align: center; }
+  .pf-lado .pf-desde { text-align: center; }
+  .pf-lado .pf-insig-lado .ins-lista { justify-content: center; }
+}
+@media (max-width: 900px) { .pf-lado .pf-cartao { width: 100%; max-width: none; margin-inline: 0; } }

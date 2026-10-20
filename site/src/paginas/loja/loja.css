@@ -309,3 +309,6 @@ html.lj-travado .nx-rolagem { display: none !important; }
 .lj-niveis { flex-wrap: wrap; justify-content: center; max-width: 100%; }
 .lj-niveis img { flex: none; }
 @media (max-width: 700px) { .lj-niveis img { width: 34px; height: 34px; } .lj-ins { padding: 14px 10px; } }
+
+.lj-rev-guardado { color: var(--dim); font-size: 12.5px; line-height: 1.4; max-width: 30ch; }
+.lj-cartao-arte img { image-rendering: auto; }
