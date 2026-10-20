@@ -3423,3 +3423,8 @@ html:is([data-tema='claro'], [data-tema='branco']) .cp-caixa b { color: #111; }
 a.cp-loja { text-decoration: none; transition: background .15s, transform .15s; }
 a.cp-loja:hover { background: #303036; transform: translateY(-1px); }
 html:is([data-tema='claro'], [data-tema='branco']) a.cp-loja:hover { background: #e4e4e8; }
+/* o botão LOJA é um link: as regras genéricas de link do menu da conta (.nx-conta-menu a) não valem para o cartão */
+.nx-conta-menu.cp-card a.cp-caixa { display: grid; justify-items: center; align-content: start; width: auto; text-align: center; padding: 14px 8px 12px; border-radius: 10px; background: #26262a; color: var(--blue-2); font-size: inherit; font-weight: inherit; }
+.nx-conta-menu.cp-card a.cp-caixa:hover { background: #303036; }
+html:is([data-tema='claro'], [data-tema='branco']) .nx-conta-menu.cp-card a.cp-caixa { background: #f0f0f2; }
+html:is([data-tema='claro'], [data-tema='branco']) .nx-conta-menu.cp-card a.cp-caixa:hover { background: #e4e4e8; }

@@ -26,7 +26,7 @@
  */
 import { avisarPerfil } from './amigos.js'
 import { CONFIG_PADRAO, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
-import { lerSkins, gravarSkins, limparSkins, novoIdItem } from './skins.js'
+import { gravarSkinsKv, lerSkinsKv, limparSkins, novoIdItem } from './skins.js'
 import CAIXAS_INICIAIS from './caixas-iniciais.json'
 
 const ID_STEAM = /^\d{17}$/
@@ -104,6 +104,21 @@ export class Loja {
     return r
   }
 
+  // Inventário de skins do jogador: a versão de verdade fica aqui (leitura e escrita sempre no mesmo lugar, sem o atraso do KV entre regiões);
+  // o KV é um espelho para o plugin do servidor e o perfil público. Quem está no meio de uma mudança no inventário (ver) é barrado se mexeram antes.
+  async invLer(id) {
+    let inv = (await this.ctx.storage.get('inv')) || null
+    const ver = (await this.ctx.storage.get('invv')) || 0
+    if (!inv) inv = await lerSkinsKv(this.env, id) // primeira vez: traz o que já estava no KV
+    return { inv, ver }
+  }
+  async invGravar(id, inv) {
+    const ver = ((await this.ctx.storage.get('invv')) || 0) + 1
+    await gravarSkinsKv(this.env, id, inv) // se o espelho falhar, nada muda aqui
+    await this.ctx.storage.put({ inv, invv: ver })
+    return ver
+  }
+
   gastos() {
     return Number(this.sql.exec('SELECT COALESCE(SUM(valor),0) AS s FROM movimentos').one().s) || 0
   }
@@ -125,6 +140,14 @@ export class Loja {
 
   async acao({ acao, id, caixas, cfg, pontos, ...p }) {
     switch (acao) {
+      case 'inv-ler':
+        return this.invLer(id)
+      case 'inv-gravar': {
+        const atual = await this.invLer(id)
+        if (atual.ver !== p.ver) return { ok: false }
+        await this.invGravar(id, limparSkins(p.inv))
+        return { ok: true }
+      }
       case 'saldo':
         return { saldo: pontos - this.gastos() }
       case 'estado':
@@ -146,7 +169,7 @@ export class Loja {
   }
 
   async fechadas(id) {
-    const inv = await lerSkins(this.env, id)
+    const { inv } = await this.invLer(id)
     const por = {}
     for (const it of Object.values(inv?.itens || {})) if (it.t === 'caixa') por[it.d] = (por[it.d] || 0) + 1
     return por
@@ -191,7 +214,7 @@ export class Loja {
     const marca = { mov: Number(this.sql.exec('SELECT COALESCE(MAX(id),0) AS m FROM movimentos').one().m), ab: Number(this.sql.exec('SELECT COALESCE(MAX(id),0) AS m FROM aberturas').one().m) }
     this.ctx.storage.transactionSync(sql)
     try {
-      await gravarSkins(this.env, id, inv)
+      await this.invGravar(id, inv)
     } catch {
       this.ctx.storage.transactionSync(() => {
         this.sql.exec('DELETE FROM movimentos WHERE id > ?', marca.mov)
@@ -211,7 +234,7 @@ export class Loja {
     const qtd = this.quantidade(p, cfg)
     const custo = caixa.preco * qtd
     if (pontos - this.gastos() < custo) throw new Error('saldo')
-    const inv = (await lerSkins(this.env, id)) || limparSkins({})
+    const inv = (await this.invLer(id)).inv || limparSkins({})
     if (Object.keys(inv.itens).length + qtd > ITENS_MAX) throw new Error('cheio')
     const agora = Date.now()
     const ids = []
@@ -231,7 +254,7 @@ export class Loja {
     if (!caixa) throw new Error('caixa')
     if (!caixa.itens.length) throw new Error('caixa')
     const qtd = this.quantidade(p, cfg)
-    const inv = (await lerSkins(this.env, id)) || limparSkins({})
+    const inv = (await this.invLer(id)).inv || limparSkins({})
     const direto = p.origem !== 'inventario'
     const custo = direto ? caixa.preco * qtd : 0
     if (direto) {
