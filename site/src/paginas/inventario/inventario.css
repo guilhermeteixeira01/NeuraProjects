@@ -39,18 +39,16 @@
 /* grade de itens: cartões cinzas com a barra da raridade embaixo */
 .inv-itens { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 16px 14px; }
 .inv-cartao { width: 100%; display: grid; gap: 6px; background: none; border: 0; padding: 0; text-align: left; cursor: pointer; color: var(--text); }
-.inv-cartao-arte { position: relative; display: grid; place-items: center; aspect-ratio: 1.35; background: linear-gradient(180deg, #9a9ca1 0%, #5a5c61 100%); border-bottom: 4px solid var(--cor); border-radius: 3px; overflow: hidden; transition: filter .15s, transform .15s; }
-.inv-cartao:hover .inv-cartao-arte, .inv-cartao:focus-visible .inv-cartao-arte { filter: brightness(1.12); transform: translateY(-2px); }
-.inv-cartao-arte img { width: 92%; height: 92%; object-fit: contain; filter: drop-shadow(0 4px 6px rgb(0 0 0 / .45)); }
+.inv-cartao-arte { position: relative; display: block; aspect-ratio: 4 / 3; border-bottom: 3px solid var(--cor); border-radius: 4px; background: transparent; transition: transform .15s, background .15s; }
+.inv-cartao:hover .inv-cartao-arte, .inv-cartao:focus-visible .inv-cartao-arte { transform: translateY(-2px); background: radial-gradient(ellipse at 50% 60%, rgb(255 255 255 / .14) 0%, rgb(255 255 255 / .04) 70%, transparent 100%); }
 .inv-cartao-nome { display: grid; gap: 1px; padding: 0 2px; }
 .inv-cartao-nome b { font: 700 12.5px var(--font-body); }
-.inv-cartao-nome small { color: rgb(255 255 255 / .75); font-size: 12px; }
+.inv-cartao-nome small { color: rgb(255 255 255 / .8); font-size: 12px; }
+.inv-cartao-nome em { font-style: normal; color: var(--dim); font-size: 11px; }
 .inv-marcas { position: absolute; top: 7px; right: 7px; display: flex; gap: 5px; }
 .inv-marca { width: 15px; height: 15px; border-radius: 50%; display: inline-block; flex: none; box-sizing: border-box; }
 .inv-marca-ct { border: 3px solid #6ec1ff; background: rgb(110 193 255 / .25); }
 .inv-marca-tr { border: 3px solid #f0b400; background: #f0b400; }
-.inv-cartao-adesivos { position: absolute; left: 6px; bottom: 6px; display: flex; gap: 2px; }
-.inv-cartao-adesivos img { width: 26px; height: 26px; filter: none; }
 .inv-st { position: absolute; left: 6px; top: 6px; font: 700 10px var(--font-body); color: #ff9d2e; text-shadow: 0 1px 2px #000; }
 .inv-sem-img { display: block; width: 60%; height: 60%; background: rgb(255 255 255 / .08); border-radius: 6px; }
 .inv-vazio { text-align: center; color: var(--dim); padding: 70px 10px; display: grid; gap: 16px; justify-items: center; }
@@ -102,9 +100,13 @@
 
 /* editar item */
 .inv-editor-grade { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
-.inv-previa-img { position: relative; display: grid; place-items: center; aspect-ratio: 1.35; background: linear-gradient(180deg, #9a9ca1 0%, #5a5c61 100%); border-bottom: 4px solid var(--cor); border-radius: 6px; overflow: hidden; }
-.inv-previa-img > img:first-child { width: 94%; height: 94%; object-fit: contain; filter: drop-shadow(0 6px 8px rgb(0 0 0 / .45)); }
+.inv-previa-img { position: relative; display: block; aspect-ratio: 4 / 3; border-bottom: 4px solid var(--cor); border-radius: 6px; background: transparent; }
 .inv-previa-adesivo { position: absolute; width: 11%; aspect-ratio: 1; object-fit: contain; pointer-events: none; filter: drop-shadow(0 1px 2px rgb(0 0 0 / .6)); }
+.inv-previa-chaveiro { position: absolute; width: 10%; aspect-ratio: 1; object-fit: contain; pointer-events: none; transform: translate(-50%, 0); filter: drop-shadow(0 2px 3px rgb(0 0 0 / .6)); }
+/* a arma e tudo que vai preso nela ocupam o mesmo quadro 4:3 (assim adesivo e chaveiro ficam no lugar certo) */
+.inv-arma-box { position: absolute; inset: 0; display: block; }
+.inv-arma-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 8px rgb(0 0 0 / .4)); }
+.inv-arma-box .inv-sem-img { width: 50%; height: 50%; inset: auto; left: 25%; top: 25%; }
 .inv-previa-adesivo.is-ativo { outline: 1px dashed #fff; outline-offset: 2px; }
 .inv-previa-aviso { display: block; margin-top: 8px; color: var(--dim); font-size: 11.5px; }
 .inv-editor-controles { display: grid; gap: 14px; }
@@ -131,8 +133,7 @@
 
 /* inspecionar */
 .inv-inspecao { display: grid; gap: 18px; justify-items: center; padding: 10px 0; }
-.inv-inspecao-arma { position: relative; width: min(680px, 100%); aspect-ratio: 1.6; display: grid; place-items: center; background: radial-gradient(ellipse at 50% 40%, #8e9096 0%, #4a4c51 70%); border-bottom: 5px solid var(--cor); border-radius: 10px; transition: transform .12s ease-out; will-change: transform; }
-.inv-inspecao-arma > img:first-child { width: 94%; height: 94%; object-fit: contain; filter: drop-shadow(0 14px 14px rgb(0 0 0 / .5)); }
+.inv-inspecao-arma { position: relative; width: min(720px, 100%); aspect-ratio: 4 / 3; display: block; border-bottom: 5px solid var(--cor); border-radius: 10px; background: transparent; transition: transform .12s ease-out; will-change: transform; }
 .inv-inspecao-info { display: grid; gap: 4px; text-align: center; }
 .inv-inspecao-info b { font-size: 18px; }
 .inv-inspecao-info span, .inv-inspecao-info small { color: var(--dim); }
@@ -143,3 +144,17 @@
   .inv-barra { flex-wrap: wrap; }
   .inv-layout-criar, .inv-editor-grade { grid-template-columns: 1fr; }
 }
+
+.inv-slot-chaveiro { width: 64px; aspect-ratio: 1; }
+.inv-st { z-index: 2; }
+.inv-marcas { z-index: 2; }
+
+/* visualizador 3D (3d.cstrike.app, embutido) */
+.inv-3d { position: relative; width: 100%; border-radius: 10px; background: radial-gradient(ellipse at 50% 55%, rgb(255 255 255 / .07) 0%, transparent 75%); overflow: hidden; }
+.inv-3d iframe { width: 100%; height: 100%; border: 0; display: block; background: transparent; }
+.inv-3d-carregando { position: absolute; inset: 0; display: grid; place-items: center; color: var(--dim); font-size: 14px; pointer-events: none; }
+.inv-3d-credito { position: absolute; right: 10px; bottom: 6px; color: rgb(255 255 255 / .35); font-size: 10.5px; pointer-events: none; }
+.inv-link { background: none; border: 0; color: var(--dim); font: 500 12px var(--font-body); text-decoration: underline; cursor: pointer; padding: 6px 0; text-align: left; }
+.inv-link:hover { color: var(--text); }
+.inv-slots-5 { grid-template-columns: repeat(5, 1fr); }
+.inv-inspecao-3d { width: min(900px, 100%); }

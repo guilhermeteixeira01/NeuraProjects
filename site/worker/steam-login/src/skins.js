@@ -6,7 +6,8 @@
  *   { v: 2,
  *     itens: { "<id>": { t: 'arma'|'faca'|'luva'|'agente', d: defIndex, p: paint (0 = sem pintura: faca lisa, agente), f: desgaste 0..1,
  *                        s: seed 0..1000, st: 0|1 (StatTrak), n: nome (name tag), l: 0|1 (modelo antigo), m: modelo do agente,
- *                        a: [ { i: adesivo, x, y: posição, r: rotação, w: desgaste } | null x4 ] } },
+ *                        a: [ { i: adesivo (id do jogo), s: posição-modelo na arma (schema), x, y: deslocamento (só se mexeu), r: rotação, w: desgaste } | null x5 ],
+ *                        k: { i: chaveiro (id do jogo), s: seed, x, y, z: posição (só se mexeu) } | null } },
  *     equip: { ct|tr: { "<defIndex da arma>" | "faca" | "luva" | "agente": "<id do item>" } },
  *     criado: { "<id>": ms } }   (ordem de criação, para ordenar)
  *
@@ -63,13 +64,24 @@ function converterV1(e) {
   return novo
 }
 
+const opcional = (v, min, max) => (v === null || v === undefined ? undefined : real(v, min, max))
+
+function limparChaveiro(k) {
+  if (!k || !inteiro(k.i, 1, ID_MAX)) return null
+  const r = { i: inteiro(k.i, 1, ID_MAX), s: inteiro(k.s, 0, 100000) }
+  for (const eixo of ['x', 'y', 'z']) if (opcional(k[eixo], -60, 60) !== undefined) r[eixo] = opcional(k[eixo], -60, 60)
+  return r
+}
+
 function limparAdesivos(lista) {
-  const a = Array.isArray(lista) ? lista.slice(0, 4) : []
-  while (a.length < 4) a.push(null)
+  const a = Array.isArray(lista) ? lista.slice(0, 5) : []
+  while (a.length < 5) a.push(null)
   return a.map((s) => {
     const id = typeof s === 'number' ? s : s?.i
     if (!inteiro(id, 1, ID_MAX)) return null
-    return { i: inteiro(id, 1, ID_MAX), x: real(s?.x, -1, 1), y: real(s?.y, -1, 1), r: real(s?.r, 0, 360), w: real(s?.w, 0, 1) }
+    const r = { i: inteiro(id, 1, ID_MAX), s: inteiro(s?.s, 0, 9), r: real(s?.r, 0, 360), w: real(s?.w, 0, 1) }
+    for (const eixo of ['x', 'y']) if (opcional(s?.[eixo], -6, 6) !== undefined) r[eixo] = opcional(s[eixo], -6, 6)
+    return r
   })
 }
 
@@ -87,7 +99,7 @@ export function limparSkins(entrada) {
     const nome = typeof it.n === 'string' ? it.n.replace(NOME_ITEM, '').trim().slice(0, 20) : ''
     if (it.t === 'arma') {
       if (!base.p) continue // arma sem skin não precisa existir
-      saida.itens[id] = { ...base, n: nome, a: limparAdesivos(it.a) }
+      saida.itens[id] = { ...base, n: nome, a: limparAdesivos(it.a), k: limparChaveiro(it.k) }
     } else if (it.t === 'faca') {
       if (!FACAS.has(d)) continue
       saida.itens[id] = { ...base, n: nome }
@@ -122,7 +134,7 @@ export function resolverEquipado(inv) {
       const it = inv.itens?.[id]
       if (!it) continue
       algo = true
-      if (it.t === 'arma') r.armas[lado][chave] = { p: it.p, f: it.f, s: it.s, st: it.st, n: it.n || '', l: it.l, a: it.a || [] }
+      if (it.t === 'arma') r.armas[lado][chave] = { p: it.p, f: it.f, s: it.s, st: it.st, n: it.n || '', l: it.l, a: it.a || [], k: it.k || null }
       else if (it.t === 'faca') r.facas[lado] = { d: it.d, p: it.p, f: it.f, s: it.s, st: it.st, n: it.n || '', l: it.l }
       else if (it.t === 'luva') r.luvas[lado] = { d: it.d, p: it.p, f: it.f, s: it.s, l: it.l }
       else if (it.t === 'agente') r.agentes[lado] = { d: it.d, m: it.m }

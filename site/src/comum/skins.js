@@ -8,6 +8,8 @@ const base = () => CONFIG.loginSteam.replace(/\/$/, '')
 
 export const IMG_BASE = 'https://community.akamai.steamstatic.com/economy/image/'
 export const urlImg = (sufixo, tamanho = 256) => (sufixo ? `${IMG_BASE}${sufixo}/${tamanho}fx${tamanho}f` : '')
+// Arma/faca/luva: imagem 4:3 (a quadrada da Steam corta a ponta da arma)
+export const urlImgArma = (sufixo, largura = 384) => (sufixo ? `${IMG_BASE}${sufixo}/${largura}fx${Math.round(largura * 0.75)}f` : '')
 
 export const CATEGORIAS = [
   ['rifles', 'Rifles'],
@@ -86,15 +88,16 @@ export function indicar(catalogoArmas, agentes) {
 export function descrever(item, idx) {
   if (item.t === 'agente') {
     const a = idx.porAgente.get(item.d)
-    return { titulo: 'Agente', subtitulo: a?.n || `#${item.d}`, img: a ? urlImg(a.i, 360) : '', cor: a?.c || '' }
+    return { titulo: 'Agente', subtitulo: a?.n || `#${item.d}`, img: a ? urlImg(a.i, 360) : '', cor: a?.c || '', times: a ? [a.t === 'ct' ? 'ct' : 'tr'] : ['ct', 'tr'] }
   }
   const arma = idx.armas.get(item.d)
   const skin = arma?.s.find((s) => s[0] === item.p)
   return {
     titulo: `${item.t === 'faca' ? '★ ' : ''}${arma?.n || `#${item.d}`}`,
     subtitulo: skin?.[1] || (item.t === 'faca' ? 'Faca lisa' : ''),
-    img: skin ? urlImg(skin[6], 360) : '',
+    img: skin ? urlImgArma(skin[6], 512) : '',
     cor: skin?.[2] || '',
     skin,
+    times: arma?.e && arma.e !== 'both' ? [arma.e] : ['ct', 'tr'],
   }
 }
