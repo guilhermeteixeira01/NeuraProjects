@@ -168,13 +168,33 @@ export function resolverEquipado(inv) {
 }
 
 const chave = (id) => `skins:${id}`
-export const lerSkins = async (env, id) => {
+// KV: espelho do inventário (o plugin do servidor e o perfil público leem daqui; o KV é eventualmente consistente, então pode atrasar até ~1 min em
+// outra região). Quem LÊ para mudar ou para mostrar ao dono do inventário usa o Durable Object (lerSkins/mudarSkins), que sempre tem a versão certa.
+export const lerSkinsKv = async (env, id) => {
   const bruto = await env.MOLDURAS.get(chave(id), 'json').catch(() => null)
   return bruto ? limparSkins(bruto) : null
 }
+export const gravarSkinsKv = (env, id, inv) => (Object.keys(inv.itens).length ? env.MOLDURAS.put(chave(id), JSON.stringify(inv)) : env.MOLDURAS.delete(chave(id)))
 
-export const gravarSkins = (env, id, inv) =>
-  Object.keys(inv.itens).length ? env.MOLDURAS.put(chave(id), JSON.stringify(inv)) : env.MOLDURAS.delete(chave(id))
+// Durable Object do jogador (loja.js, class Loja): guarda o inventário de verdade (com número de versão) e espelha no KV
+const doJogador = (env, id) => env.LOJA.get(env.LOJA.idFromName(id))
+const chamarDO = async (env, id, corpo) => (await doJogador(env, id).fetch('https://loja/', { method: 'POST', body: JSON.stringify({ id, ...corpo }) })).json()
+export async function lerSkinsVer(env, id) {
+  const r = await chamarDO(env, id, { acao: 'inv-ler' })
+  return { inv: r.inv ? limparSkins(r.inv) : null, ver: r.ver || 0 }
+}
+export const lerSkins = async (env, id) => (await lerSkinsVer(env, id)).inv
+// Lê, muda (fn(inv) devolve { inv, ...extra } ou { erro }) e grava só se mais ninguém mexeu no meio (compra/abertura da loja, presente do dono, outra aba)
+export async function mudarSkins(env, id, fn) {
+  for (let tentativa = 0; tentativa < 5; tentativa++) {
+    const { inv, ver } = await lerSkinsVer(env, id)
+    const r = await fn(inv || vazio())
+    if (r.erro) return r
+    const ok = await chamarDO(env, id, { acao: 'inv-gravar', inv: r.inv, ver })
+    if (ok.ok) return r
+  }
+  return { erro: 'ocupado' }
+}
 
 const novoId = () => (crypto.randomUUID().replace(/-/g, '').slice(0, 10))
 export const novoIdItem = novoId
@@ -217,28 +237,29 @@ function aplicarConsumo(antes, itens) {
 
 // GET/POST /skins (o próprio jogador logado)
 export async function rotaSkins(req, env, quem, cors) {
-  const atual = (await lerSkins(env, quem.id)) || vazio()
-  if (req.method === 'GET') return json(atual, 200, cors)
+  if (req.method === 'GET') return json((await lerSkins(env, quem.id)) || vazio(), 200, cors)
   const corpo = await req.json().catch(() => null)
   if (!corpo || typeof corpo !== 'object') return json({ erro: 'corpo' }, 400, cors)
 
-  // O jogador só mexe no que já tem: cria item novo não pode, e tipo/arma/skin de cada item são os de antes
-  const proposta = limparSkins(corpo)
-  const itens = {}
-  for (const [id, it] of Object.entries(proposta.itens)) {
-    const orig = atual.itens[id]
-    if (!orig) continue
-    itens[id] = { ...it, t: orig.t, d: orig.d, p: orig.p, ...(orig.m ? { m: orig.m } : {}) }
-  }
-  // Item que o jogador não mandou de volta continua com ele: só o dono tira skin (POST /admin/skin { remover })
-  for (const [id, orig] of Object.entries(atual.itens)) if (!itens[id]) itens[id] = orig
-  const erro = aplicarConsumo(atual.itens, itens)
-  if (erro) return json({ erro }, 400, cors)
-  const criado = { ...atual.criado }
-  for (const id of Object.keys(itens)) criado[id] ??= Date.now()
-  const limpo = limparSkins({ v: 2, itens, equip: proposta.equip, criado, presentes: atual.presentes })
-  await gravarSkins(env, quem.id, limpo)
-  return json(limpo, 200, cors)
+  const r = await mudarSkins(env, quem.id, (atual) => {
+    // O jogador só mexe no que já tem: cria item novo não pode, e tipo/arma/skin de cada item são os de antes
+    const proposta = limparSkins(corpo)
+    const itens = {}
+    for (const [id, it] of Object.entries(proposta.itens)) {
+      const orig = atual.itens[id]
+      if (!orig) continue
+      itens[id] = { ...it, t: orig.t, d: orig.d, p: orig.p, ...(orig.m ? { m: orig.m } : {}) }
+    }
+    // Item que o jogador não mandou de volta continua com ele: só o dono tira skin (POST /admin/skin { remover })
+    for (const [id, orig] of Object.entries(atual.itens)) if (!itens[id]) itens[id] = orig
+    const erro = aplicarConsumo(atual.itens, itens)
+    if (erro) return { erro }
+    const criado = { ...atual.criado }
+    for (const id of Object.keys(itens)) criado[id] ??= Date.now()
+    return { inv: limparSkins({ v: 2, itens, equip: proposta.equip, criado, presentes: atual.presentes }) }
+  })
+  if (r.erro) return json({ erro: r.erro }, r.erro === 'ocupado' ? 503 : 400, cors)
+  return json(r.inv, 200, cors)
 }
 
 // GET /skins/publico?id= (sem login): só o que está equipado, para o perfil mostrar a arma com a skin do jogador
@@ -247,7 +268,7 @@ export async function rotaSkinsPublico(url, env) {
   const id = url.searchParams.get('id') || ''
   const cab = { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=30' }
   if (!ID_STEAM.test(id)) return json({ erro: 'id' }, 400, cab)
-  const inv = await lerSkins(env, id)
+  const inv = await lerSkinsKv(env, id)
   const r = { armas: { ct: {}, tr: {} }, facas: {} }
   for (const lado of LADOS) {
     for (const itemId of Object.values(inv?.equip?.[lado] || {})) {
@@ -264,9 +285,8 @@ export async function rotaSkinsPublico(url, env) {
 export async function rotaSkinsPresentes(req, env, quem, cors) {
   const { vistos } = (await req.json().catch(() => null)) || {}
   const lista = new Set(Array.isArray(vistos) ? vistos.map(String) : [])
-  const inv = (await lerSkins(env, quem.id)) || vazio()
-  inv.presentes = inv.presentes.map((p) => (lista.has(p.i) ? { ...p, v: 1 } : p))
-  await gravarSkins(env, quem.id, inv)
+  const r = await mudarSkins(env, quem.id, (inv) => ({ inv: { ...inv, presentes: inv.presentes.map((p) => (lista.has(p.i) ? { ...p, v: 1 } : p)) } }))
+  if (r.erro) return json({ erro: r.erro }, 503, cors)
   return json({ ok: true }, 200, cors)
 }
 
@@ -275,43 +295,46 @@ export async function rotaAdminSkin(req, env, cors, avisar) {
   const corpo = await req.json().catch(() => null)
   if (!corpo || !ID_STEAM.test(String(corpo.id))) return json({ erro: 'id' }, 400, cors)
   const alvo = String(corpo.id)
-  const inv = (await lerSkins(env, alvo)) || vazio()
 
   if (corpo.remover) {
     const id = String(corpo.remover)
-    if (!inv.itens[id]) return json({ erro: 'item' }, 404, cors)
-    delete inv.itens[id]
-    delete inv.criado[id]
-    for (const lado of LADOS) inv.equip[lado] = Object.fromEntries(Object.entries(inv.equip[lado]).filter(([, v]) => v !== id))
-    const limpo = limparSkins(inv)
-    await gravarSkins(env, alvo, limpo)
-    return json({ ok: true, itens: limpo.itens }, 200, cors)
+    const r = await mudarSkins(env, alvo, (inv) => {
+      if (!inv.itens[id]) return { erro: 'item', status: 404 }
+      delete inv.itens[id]
+      delete inv.criado[id]
+      for (const lado of LADOS) inv.equip[lado] = Object.fromEntries(Object.entries(inv.equip[lado]).filter(([, v]) => v !== id))
+      return { inv: limparSkins(inv) }
+    })
+    if (r.erro) return json({ erro: r.erro }, r.status || 503, cors)
+    return json({ ok: true, itens: r.inv.itens }, 200, cors)
   }
 
-  // { item } ou { itens: [..] }: dá uma ou várias de uma vez (até 40); o jogador recebe um aviso para cada skin
+  // { item } ou { itens: [..] }: dá uma ou várias de uma vez (até 60); o jogador recebe um aviso para cada skin
   const lista = Array.isArray(corpo.itens) ? corpo.itens.slice(0, 60) : corpo.item ? [corpo.item] : []
   if (!lista.length || lista.some((it) => !it || !['arma', 'faca', 'luva', 'adesivo', 'chaveiro', 'caixa'].includes(it.t))) return json({ erro: 'item' }, 400, cors) // agente não: bloqueado no servidor
   // cada item pode vir com q (quantidade, até 50: adesivo/chaveiro repetido); o aviso é um só por tipo de item, com "×n"
   const total = lista.reduce((n, it) => n + (CONSUMIVEIS.has(it.t) ? inteiro(it.q, 1, 50, 1) : 1), 0)
-  if (Object.keys(inv.itens).length + total > ITENS_MAX) return json({ erro: 'cheio' }, 400, cors)
-  const ids = []
-  const agora = Date.now()
-  for (const [n, it] of lista.entries()) {
-    const qtd = CONSUMIVEIS.has(it.t) ? inteiro(it.q, 1, 50, 1) : 1
-    for (let k = 0; k < qtd; k++) {
-      const id = novoId()
-      const teste = limparSkins({ v: 2, itens: { [id]: it } })
-      if (!teste.itens[id]) return json({ erro: 'item' }, 400, cors)
-      inv.itens[id] = teste.itens[id]
-      inv.criado[id] = agora + n
-      if (k === 0) inv.presentes = [...inv.presentes, { i: id, q: agora + n, v: 0, n: qtd }]
-      ids.push(id)
+  const r = await mudarSkins(env, alvo, (inv) => {
+    if (Object.keys(inv.itens).length + total > ITENS_MAX) return { erro: 'cheio', status: 400 }
+    const ids = []
+    const agora = Date.now()
+    for (const [n, it] of lista.entries()) {
+      const qtd = CONSUMIVEIS.has(it.t) ? inteiro(it.q, 1, 50, 1) : 1
+      for (let k = 0; k < qtd; k++) {
+        const id = novoId()
+        const teste = limparSkins({ v: 2, itens: { [id]: it } })
+        if (!teste.itens[id]) return { erro: 'item', status: 400 }
+        inv.itens[id] = teste.itens[id]
+        inv.criado[id] = agora + n
+        if (k === 0) inv.presentes = [...inv.presentes, { i: id, q: agora + n, v: 0, n: qtd }]
+        ids.push(id)
+      }
     }
-  }
-  const limpo = limparSkins(inv)
-  await gravarSkins(env, alvo, limpo)
+    return { inv: limparSkins(inv), ids }
+  })
+  if (r.erro) return json({ erro: r.erro }, r.status || 503, cors)
   await avisar?.(env, alvo) // quem está com o site aberto vê o aviso na hora
-  return json({ ok: true, id: ids[0], ids, itens: limpo.itens }, 200, cors)
+  return json({ ok: true, id: r.ids[0], ids: r.ids, itens: r.inv.itens }, 200, cors)
 }
 
 // GET /admin/skins?id= (só o dono): o que o jogador tem
@@ -336,7 +359,7 @@ export async function rotaServidorSkins(req, env) {
   const resposta = {}
   await Promise.all(
     lista.map(async (id) => {
-      const inv = await lerSkins(env, id)
+      const inv = await lerSkinsKv(env, id)
       const r = inv && resolverEquipado(inv)
       if (r) resposta[id] = r
     }),
