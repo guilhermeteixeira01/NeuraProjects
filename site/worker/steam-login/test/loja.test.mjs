@@ -210,12 +210,16 @@ test('toda insígnia do catálogo tem arte tratada e todas as secretas têm a ve
 
 test('as caixas iniciais são válidas (imagem existe, tem de tudo, pesos > 0)', () => {
   const dir = new URL('../../../public/assets/caixas/web/', import.meta.url)
-  assert.equal(CAIXAS.length, 19)
+  assert.equal(CAIXAS.length, 30)
+  assert.equal(new Set(CAIXAS.map((c) => c.id)).size, 30)
+  assert.equal(new Set(CAIXAS.map((c) => c.slug)).size, 30)
   for (const c of CAIXAS) {
     assert.ok(fs.existsSync(new URL(`${c.slug}.webp`, dir)), c.slug)
-    assert.ok(c.preco > 0 && c.facas.length >= 5)
+    assert.ok(c.preco > 0)
+    if (c.itens.every((x) => !x.t)) assert.ok(c.facas.length >= 5, c.slug + ' sem facas do tier especial') // caixas de arma
+    else assert.equal(c.facas.length, 0) // facas e amuletos: sem tier de facas
     for (const r of [0, 1, 2, 3, 4]) assert.ok(c.itens.some((x) => x.r === r), `${c.slug} sem raridade ${r}`)
-    assert.ok([...c.itens, ...c.facas].every((x) => x.w > 0 && x.d > 0 && x.p > 0))
+    assert.ok([...c.itens, ...c.facas].every((x) => x.w > 0 && x.d > 0 && (x.p > 0 || x.t === 'adesivo' || x.t === 'chaveiro')))
   }
 })
 
@@ -225,7 +229,7 @@ test('sortearPeso ignora pesos zerados', () => {
 })
 
 // ── venda ──
-import { VALOR_BASE, multiplicadorDoDesgaste, valorDoItem } from '../src/loja-core.js'
+import { VALOR_BASE, multiplicadorDoDesgaste, valorDaFaca, valorDoItem } from '../src/loja-core.js'
 test('valor de venda: maior com raridade maior e desgaste melhor; StatTrak vale mais', () => {
   for (let r = 1; r <= 6; r++) assert.ok(valorDoItem({ f: 0.1 }, r) > valorDoItem({ f: 0.1 }, r - 1), 'raridade ' + r)
   for (const f of [0, 0.05, 0.1, 0.2, 0.4, 0.6, 0.9]) assert.ok(valorDoItem({ f }, 3) >= valorDoItem({ f: f + 0.05 }, 3), 'desgaste ' + f)
@@ -236,14 +240,58 @@ test('valor de venda: maior com raridade maior e desgaste melhor; StatTrak vale 
 test('vender não paga a caixa de volta (valor esperado de uma abertura fica bem abaixo do preço)', () => {
   const cfg2 = CONFIG_PADRAO
   const raridadeSkin = JSON.parse(fs.readFileSync(new URL('../src/skins-raridade.json', import.meta.url), 'utf8'))
+  const facasValor = JSON.parse(fs.readFileSync(new URL('../src/facas-valor.json', import.meta.url), 'utf8'))
   for (const c of CAIXAS) {
     let soma = 0
     const N = 4000
     for (let i = 0; i < N; i++) {
       const a = sortearAbertura(c, cfg2, rndSeguro)
-      const r = a.item.t === 'faca' ? 6 : raridadeSkin[`${a.item.d}:${a.item.p}`] ?? 2
-      soma += valorDoItem({ f: a.item.f }, r)
+      if (a.item.t === 'adesivo' || a.item.t === 'chaveiro') continue // não se vende
+      soma += a.item.t === 'faca' ? valorDaFaca(a.item, facasValor) : valorDoItem({ f: a.item.f }, raridadeSkin[`${a.item.d}:${a.item.p}`] ?? 2)
     }
     assert.ok(soma / N < c.preco * 0.6, `${c.slug}: valor médio ${(soma / N).toFixed(0)} vs preço ${c.preco}`)
   }
+})
+
+// ── caixas de facas e de amuletos/adesivos ──
+test('caixa de facas: só facas, a mais cara da loja, facas valiosas com chance menor', () => {
+  const c = CAIXAS.find((x) => x.slug === 'caixa-facas')
+  assert.equal(c.preco, Math.max(...CAIXAS.map((x) => x.preco)))
+  assert.ok(c.itens.every((x) => x.t === 'faca') && c.facas.length === 0)
+  const facasValor = JSON.parse(fs.readFileSync(new URL('../src/facas-valor.json', import.meta.url), 'utf8'))
+  const valorMedio = (r) => { const l = c.itens.filter((x) => x.r === r); return l.reduce((a, x) => a + facasValor[x.d + ':' + x.p], 0) / l.length }
+  assert.ok(valorMedio(4) > valorMedio(2) && valorMedio(2) > valorMedio(0), 'raridade alta = faca mais valiosa')
+  const pesoMedio = (r) => { const l = c.itens.filter((x) => x.r === r); return l.reduce((a, x) => a + x.w, 0) / l.length }
+  assert.ok(pesoMedio(4) < pesoMedio(0), 'faca valiosa tem peso menor')
+  for (let i = 0; i < 2000; i++) {
+    const a = sortearAbertura(c, CONFIG_PADRAO, rndSeguro)
+    assert.equal(a.item.t, 'faca')
+    assert.ok(a.item.f >= 0 && a.item.f <= 1)
+  }
+})
+test('caixas de amuletos: só adesivos e chaveiros (sem arma e sem faca), sem desgaste', () => {
+  for (const slug of ['caixa-fliperama', 'caixa-kawaii', 'caixa-terror', 'caixa-espacial', 'caixa-lendas']) {
+    const c = CAIXAS.find((x) => x.slug === slug)
+    assert.ok(c.itens.length >= 40 && c.itens.every((x) => (x.t === 'adesivo' || x.t === 'chaveiro') && x.n && x.i), slug)
+    assert.ok(c.itens.some((x) => x.t === 'chaveiro') && c.itens.some((x) => x.t === 'adesivo'), slug + ' precisa dos dois')
+    assert.ok(c.preco < CAIXAS.find((x) => x.slug === 'caixa-ak47').preco, slug + ' mais barata que as de arma')
+    for (let i = 0; i < 500; i++) {
+      const a = sortearAbertura(c, CONFIG_PADRAO, rndSeguro)
+      assert.ok(a.item.t === 'adesivo' || a.item.t === 'chaveiro')
+      assert.equal(a.item.p, 0)
+    }
+  }
+  const lendas = CAIXAS.find((x) => x.slug === 'caixa-lendas')
+  assert.equal(lendas.preco, Math.max(...['caixa-fliperama', 'caixa-kawaii', 'caixa-terror', 'caixa-espacial', 'caixa-lendas'].map((s) => CAIXAS.find((x) => x.slug === s).preco)))
+})
+test('caixas de arma: só skins daquela arma', () => {
+  const por = { 'caixa-ak47': [7], 'caixa-awp': [9], 'caixa-deagle': [1], 'caixa-m4a1': [60, 16], 'caixa-glock': [4] }
+  for (const [slug, defs] of Object.entries(por)) assert.ok(CAIXAS.find((x) => x.slug === slug).itens.every((x) => defs.includes(x.d)), slug)
+})
+test('Mestre da Caixa de facas e de amuletos conta os itens certos (adesivo e chaveiro com o mesmo id não se confundem)', () => {
+  const caixa = { slug: 'caixa-z', nome: 'Caixa Z', itens: [{ t: 'adesivo', d: 5, p: 0 }, { t: 'chaveiro', d: 5, p: 0 }, { t: 'faca', d: 507, p: 38 }], facas: [] }
+  const ok = (linhas) => progressoInsignias(calcularStats(linhas), [caixa]).find((i) => i.id === 'mestre-caixa-z').ok
+  const l = (t, d, p) => linha({ t, d, p, caixa: 'caixa-z' })
+  assert.equal(ok([l('adesivo', 5, 0), l('faca', 507, 38)]), false)
+  assert.equal(ok([l('adesivo', 5, 0), l('chaveiro', 5, 0), l('faca', 507, 38)]), true)
 })

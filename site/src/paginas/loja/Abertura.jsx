@@ -5,7 +5,7 @@ import { RARIDADES, nomeDoDesgaste } from '../../../worker/steam-login/src/loja-
 import { abrirCaixa, avisarSaldo } from '../../comum/loja.js'
 import { desempenhoAtivo } from '../../comum/desempenho.js'
 import { useT } from '../../comum/i18n.js'
-import { urlImgArma, useCatalogo } from '../../comum/skins.js'
+import { urlImg, urlImgArma, useCatalogo } from '../../comum/skins.js'
 import { definirPreferencia, preferenciaAtual, som, somDaRaridade } from './somLoja.js'
 
 const DURACAO = 6000 // roleta horizontal (ms)
@@ -31,7 +31,13 @@ export function useAcharItem() {
 }
 
 // ── cartão de um item (roleta e resultado) ──
-export function CartaoItem({ r, d, p, achar, classe = '', children }) {
+// Nome e imagem de um item de caixa: adesivo e chaveiro trazem nome (n) e imagem (i) da própria caixa; skin e faca vêm do catálogo de armas
+export function dadosDoItem(tipo, d, p, n, i, achar) {
+  if (tipo === 'adesivo' || tipo === 'chaveiro') return { nome: n || `#${d}`, skin: tipo === 'adesivo' ? 'Adesivo' : 'Chaveiro', img: urlImg(i, 256), imgGrande: urlImg(i, 512), enfeite: true }
+  return achar(d, p)
+}
+
+export function CartaoItem({ r, d, p, tipo, n, i, achar, classe = '', children }) {
   const t = useT()
   if (r === 5 && d === undefined) {
     return (
@@ -41,12 +47,12 @@ export function CartaoItem({ r, d, p, achar, classe = '', children }) {
       </div>
     )
   }
-  const x = achar(d, p)
+  const x = dadosDoItem(tipo, d, p, n, i, achar)
   return (
     <div className={`lj-cartao ${classe}`} style={{ '--cor': RARIDADES[r].cor }}>
       <span className="lj-cartao-arte">{x.img ? <img src={x.img} alt="" draggable="false" /> : null}</span>
       <b>{x.nome}</b>
-      <small>{x.skin}</small>
+      <small>{x.enfeite ? t(x.skin) : x.skin}</small>
       {children}
     </div>
   )
@@ -113,7 +119,7 @@ function Roleta({ vertical = false, itens, alvo, lista, achar, rodando, pular, d
           const base = it.r === 5 && !vertical ? null : vertical ? lista[it] : lista[it.i]
           const cls = k === alvo && parou ? 'lj-venceu' : ''
           if (!vertical && it.r === 5) return <CartaoItem key={k} r={5} achar={achar} classe={cls} />
-          return <CartaoItem key={k} r={vertical ? 5 : it.r} d={base.d} p={base.p} achar={achar} classe={cls} />
+          return <CartaoItem key={k} r={vertical ? 5 : it.r} d={base.d} p={base.p} tipo={base.t} n={base.n} i={base.i} achar={achar} classe={cls} />
         })}
       </div>
       <i className="lj-marcador" aria-hidden="true" />
@@ -178,7 +184,7 @@ function Particulas({ r }) {
 function Revelacao({ resultado, achar }) {
   const t = useT()
   const r = resultado.raridade
-  const x = achar(resultado.item.d, resultado.item.p)
+  const x = dadosDoItem(resultado.item.t, resultado.item.d, resultado.item.p, resultado.item.n, resultado.item.i, achar)
   const f = resultado.item.f
   return (
     <div className={`lj-revelacao lj-rev-${r}`} style={{ '--cor': RARIDADES[r].cor }}>
@@ -190,7 +196,10 @@ function Revelacao({ resultado, achar }) {
         <span className="lj-rev-raridade">{t(RARIDADES[r].nome)}</span>
         <img src={x.imgGrande || x.img} alt="" draggable="false" />
         <b>{x.nome}</b>
-        <span className="lj-rev-skin">{x.skin}</span>
+        <span className="lj-rev-skin">{x.enfeite ? t(x.skin) : x.skin}</span>
+        {x.enfeite ? (
+          <small className="lj-rev-guardado">{t('Guardado no seu inventário: cole numa arma ao editá-la.')}</small>
+        ) : (
         <div className="lj-rev-desgaste">
           <span>{t(nomeDoDesgaste(f))}</span>
           <i className="lj-barra-desgaste">
@@ -200,6 +209,7 @@ function Revelacao({ resultado, achar }) {
             {t('Float')} {f.toFixed(6)}
           </small>
         </div>
+        )}
       </div>
     </div>
   )
@@ -208,15 +218,17 @@ function Revelacao({ resultado, achar }) {
 function MiniResultado({ resultado, achar }) {
   const t = useT()
   const r = resultado.raridade
-  const x = achar(resultado.item.d, resultado.item.p)
+  const x = dadosDoItem(resultado.item.t, resultado.item.d, resultado.item.p, resultado.item.n, resultado.item.i, achar)
   return (
     <li className={`lj-mini lj-rev-${r}`} style={{ '--cor': RARIDADES[r].cor }}>
       <img src={x.img} alt="" draggable="false" />
       <b>{x.nome}</b>
-      <span>{x.skin}</span>
-      <small>
-        {t(nomeDoDesgaste(resultado.item.f))} · {resultado.item.f.toFixed(4)}
-      </small>
+      <span>{x.enfeite ? t(x.skin) : x.skin}</span>
+      {!x.enfeite && (
+        <small>
+          {t(nomeDoDesgaste(resultado.item.f))} · {resultado.item.f.toFixed(4)}
+        </small>
+      )}
     </li>
   )
 }

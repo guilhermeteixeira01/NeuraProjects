@@ -112,8 +112,10 @@ export function sortearAbertura(caixa, cfg, rnd) {
     origem = caixa.itens[indice]
     t = 'arma'
   }
+  // adesivo e chaveiro (caixas de amuletos) não têm desgaste nem padrão: vão guardados no inventário
+  if (origem.t === 'adesivo' || origem.t === 'chaveiro') return { raridade, indice, item: { t: origem.t, d: origem.d, p: 0, f: 0.5, s: 0, l: 0, faixa: null, n: origem.n || '', i: origem.i || '' } }
   const { f, faixa } = sortearDesgaste(cfg, origem.min, origem.max, rnd)
-  return { raridade, indice, item: { t, d: origem.d, p: origem.p, f, s: Math.floor(rnd() * 1001), l: origem.l ? 1 : 0, faixa } }
+  return { raridade, indice, item: { t: origem.t === 'faca' ? 'faca' : t, d: origem.d, p: origem.p, f, s: Math.floor(rnd() * 1001), l: origem.l ? 1 : 0, faixa } }
 }
 
 // Faixa da roleta horizontal: itens de enchimento nas proporções das raridades, com alguns cards dourados "?", e o vencedor em `alvo`.
@@ -187,6 +189,9 @@ export const diaSP = (ts) => new Date(ts - 3 * 3600 * 1000).toISOString().slice(
 
 // Estatísticas a partir do histórico (linhas em ordem de abertura): { ts, caixa (slug), r, t, d, p, f, q }.
 // "fechadas" (caixas fechadas no inventário agora) vem de fora.
+// Identifica um item de caixa: skin/faca por arma+pintura; adesivo e chaveiro pelo id do jogo (que se repete entre os dois tipos)
+export const chaveDoItem = (t, d, p) => (t === 'adesivo' ? `a${d}` : t === 'chaveiro' ? `c${d}` : `${d}:${p}`)
+
 export function calcularStats(linhas, fechadas = 0) {
   const s = { abertas: linhas.length, maxDia: 0, facas: 0, facasDif: 0, seqLend: 0, seqComum: 0, fabrica: 0, cicatriz: 0, quase: 0, raridades: 0, fechadas, porCaixa: {} }
   const dias = {}
@@ -201,7 +206,8 @@ export function calcularStats(linhas, fechadas = 0) {
     if (l.t === 'faca') {
       s.facas++
       facas.add(`${l.d}:${l.p}`)
-    } else (s.porCaixa[l.caixa] ??= new Set()).add(`${l.d}:${l.p}`)
+    }
+    ;(s.porCaixa[l.caixa] ??= new Set()).add(chaveDoItem(l.t, l.d, l.p)) // o Mestre da Caixa só olha a lista de itens da caixa (as facas do tier especial não entram)
     lend = l.r >= 4 ? lend + 1 : 0
     s.seqLend = Math.max(s.seqLend, lend)
     comum = l.r === 0 ? comum + 1 : 0
@@ -223,8 +229,9 @@ export function progressoInsignias(stats, caixas = []) {
     return { ...i, atual, ok: (stats[i.chave] || 0) >= i.meta }
   })
   for (const c of caixas) {
-    const total = new Set(c.itens.map((x) => `${x.d}:${x.p}`)).size // só as skins comuns da caixa (as facas não entram)
-    const tem = stats.porCaixa?.[c.slug] ? [...stats.porCaixa[c.slug]].filter((k) => c.itens.some((x) => `${x.d}:${x.p}` === k)).length : 0
+    const chaves = new Set(c.itens.map((x) => chaveDoItem(x.t, x.d, x.p))) // só a lista de itens da caixa (as facas do tier especial não entram)
+    const total = chaves.size
+    const tem = stats.porCaixa?.[c.slug] ? [...stats.porCaixa[c.slug]].filter((k) => chaves.has(k)).length : 0
     lista.push({ ...insigniaMestre(c), meta: total, atual: tem, ok: total > 0 && tem >= total })
   }
   return lista
@@ -280,3 +287,6 @@ export function multiplicadorDoDesgaste(f) {
 }
 // Valor de venda (NP) de um item { f (float), st (StatTrak) } da raridade dada (0..6)
 export const valorDoItem = (item, raridade) => Math.max(1, Math.round(VALOR_BASE[raridade] * multiplicadorDoDesgaste(item.f) * (item.st ? 1.35 : 1)))
+
+// Valor base (FN) de cada faca: tabela { "<defIndex>:<paint>": NP } gerada por scripts/gerar-raridades.mjs (modelo x acabamento). Sem entrada: valor das luvas/extraordinário.
+export const valorDaFaca = (item, tabela) => Math.max(1, Math.round((tabela?.[`${item.d}:${item.p}`] ?? VALOR_BASE[6]) * multiplicadorDoDesgaste(item.f) * (item.st ? 1.35 : 1)))

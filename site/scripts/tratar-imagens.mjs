@@ -70,7 +70,19 @@ export const CAIXAS = [
   ['caixa-cosmica', 'Gemini_Generated_Image_pzq61cpzq61cpzq6.jfif'],
   ['caixa-cibernetica', 'Gemini_Generated_Image_vjwcfyvjwcfyvjwc.jfif'],
   ['caixa-farao', 'Gemini_Generated_Image_z56r0sz56r0sz56r.jfif'],
-].map(([id, de]) => ({ id, de, fundo: 'azul' }))
+  // as 11 caixas novas (JPEG com fundo branco)
+  ['caixa-kawaii', 'Gemini_Generated_Image_1ybicx1ybicx1ybi.jpg', 'branco'],
+  ['caixa-ak47', 'Gemini_Generated_Image_5q4ski5q4ski5q4s.jpg', 'branco'],
+  ['caixa-terror', 'Gemini_Generated_Image_do0v4udo0v4udo0v.jpg', 'branco'],
+  ['caixa-fliperama', 'Gemini_Generated_Image_gbmhaigbmhaigbmh.jpg', 'branco'],
+  ['caixa-facas', 'Gemini_Generated_Image_ixvfldixvfldixvf.jpg', 'branco'],
+  ['caixa-glock', 'Gemini_Generated_Image_izo1gcizo1gcizo1.jpg', 'branco'],
+  ['caixa-m4a1', 'Gemini_Generated_Image_l9gb9sl9gb9sl9gb.jpg', 'branco'],
+  ['caixa-espacial', 'Gemini_Generated_Image_o3kdn0o3kdn0o3kd.jpg', 'branco'],
+  ['caixa-lendas', 'Gemini_Generated_Image_r6rqacr6rqacr6rq.jpg', 'branco'],
+  ['caixa-awp', 'Gemini_Generated_Image_x2vwiqx2vwiqx2vw.jpg', 'branco'],
+  ['caixa-deagle', 'Gemini_Generated_Image_yn6i52yn6i52yn6i.jpg', 'branco'],
+].map(([id, de, fundo]) => ({ id, de, fundo: fundo || 'azul' }))
 
 // ── fundo ──
 const dist = (d, i, r, g, b) => Math.abs(d[i] - r) + Math.abs(d[i + 1] - g) + Math.abs(d[i + 2] - b)
@@ -104,6 +116,7 @@ function tirarFundo(d, w, h, tipo) {
   const brilho = (i) => Math.max(d[i], d[i + 1], d[i + 2])
   let pertence
   if (tipo === 'preto') pertence = (i) => brilho(i) <= 30
+  else if (tipo === 'branco') pertence = (i) => Math.min(d[i], d[i + 1], d[i + 2]) >= 236 // fundo branco liso do Gemini
   else if (tipo === 'xadrez') pertence = (i) => brilho(i) <= 100 && Math.max(d[i], d[i + 1], d[i + 2]) - Math.min(d[i], d[i + 1], d[i + 2]) <= 30 // casas cinza-escuras, sem cor
   else {
     // fundo azul-marinho do Gemini: compara com a cor média das bordas (varia pouco)

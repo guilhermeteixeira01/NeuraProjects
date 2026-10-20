@@ -15,3 +15,10 @@ for (const a of catalogo.armas) {
 }
 fs.writeFileSync(path.join(aqui, '../worker/steam-login/src/skins-raridade.json'), JSON.stringify(mapa))
 console.log(`${Object.keys(mapa).length} skins → skins-raridade.json`)
+
+// valor base de cada faca (tabela usada em worker/steam-login/src/loja.js)
+import { valorBaseDaFaca } from './lib-facas.mjs'
+const valores = {}
+for (const a of catalogo.armas) if (a.c === 'facas') for (const s of a.s) valores[`${a.d}:${s[0]}`] = valorBaseDaFaca(a.d, s[1])
+fs.writeFileSync(path.join(aqui, '../worker/steam-login/src/facas-valor.json'), JSON.stringify(valores))
+console.log(`${Object.keys(valores).length} facas → facas-valor.json`)
