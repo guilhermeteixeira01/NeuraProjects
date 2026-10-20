@@ -124,7 +124,7 @@ export default {
         return rotaAdminSkins(url, env, cors)
       }
       // Loja de caixas: só o dono
-      if ((rota === '/admin/caixas' || rota === '/admin/caixas-lista' || rota === '/admin/loja-config' || rota === '/admin/loja-creditar' || rota === '/admin/loja-retro') && req.method === 'POST') {
+      if ((rota === '/admin/caixas' || rota === '/admin/caixas-lista' || rota === '/admin/loja-config' || rota === '/admin/loja-creditar' || rota === '/admin/loja-bonus' || rota === '/admin/loja-retro') && req.method === 'POST') {
         if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
         return rotaAdminLoja(req, env, rota, cors)
       }

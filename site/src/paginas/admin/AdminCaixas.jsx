@@ -137,6 +137,7 @@ export default function AdminCaixas({ usuarios }) {
   const [estado, setEstado] = useState('')
   const [ocupado, setOcupado] = useState(false)
   const [credito, setCredito] = useState({ id: '', valor: 1000 })
+  const [todos, setTodos] = useState({ valor: 1000, motivo: '' })
 
   useEffect(() => {
     chamar('/admin/caixas-lista', {}).then(setCaixas, (e) => setEstado(erroTexto(e)))
@@ -262,6 +263,28 @@ export default function AdminCaixas({ usuarios }) {
             }}
           >
             {t('Aplicar')}
+          </button>
+        </div>
+      </section>
+
+      <section className="adm-cx-bloco">
+        <h3>{t('Dar Neura Pontos para todos')}</h3>
+        <p className="adm-dar-dica">{t('Cada jogador recebe uma vez, na próxima vez que abrir a loja ou o menu da conta (inclusive quem ainda não abriu nenhuma caixa). Valor negativo tira.')}</p>
+        <div className="adm-sub-add">
+          <input type="number" value={todos.valor} onChange={(e) => setTodos({ ...todos, valor: Number(e.target.value) })} aria-label={t('Valor')} />
+          <input type="text" maxLength={60} placeholder={t('Motivo (opcional)')} value={todos.motivo} onChange={(e) => setTodos({ ...todos, motivo: e.target.value })} />
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={ocupado || !todos.valor}
+            onClick={() => {
+              if (!window.confirm(t('Dar {n} NP para TODOS os jogadores? Não dá para desfazer (só dando um valor negativo depois).', { n: todos.valor }))) return
+              rodar(async () => {
+                await chamar('/admin/loja-bonus', todos)
+              }, t('Pronto: {n} NP para todos. Cada um recebe ao abrir a loja ou o menu da conta.', { n: todos.valor }))
+            }}
+          >
+            {t('Dar para todos')}
           </button>
         </div>
       </section>

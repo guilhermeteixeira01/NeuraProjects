@@ -17,11 +17,12 @@
  *   GET  /loja/saldo             (login)    -> { saldo } (menu da conta)
  *   GET  /loja                   (login)    -> saldo, caixas com itens e chances, caixas fechadas, insígnias e últimas aberturas
  *   POST /loja/comprar {caixa, qtd}         -> desconta e põe as caixas fechadas no inventário
- *   POST /loja/abrir {caixa, qtd, origem: 'direto'|'inventario'}  -> sorteia (já grava o item no inventário) e devolve o necessário p/ animar
+ *   POST /loja/abrir {caixa, qtd, origem: 'direto'|'inventario'|'auto'}  -> sorteia (já grava o item no inventário) e devolve o necessário p/ animar
  *   GET  /loja/historico         (login)    -> últimas 100 aberturas
  *   POST /admin/caixas {caixas}  (dono)     -> troca a lista de caixas
  *   POST /admin/loja-config {taxas?, desgaste?, maxQtd?} (dono)
  *   POST /admin/loja-creditar {id, valor} (dono)  -> dá (ou tira, valor negativo) NP de um jogador
+ *   POST /admin/loja-bonus {valor, motivo?} (dono) -> dá NP para TODOS (cada um recebe uma vez, ao abrir a loja ou o menu da conta)
  *   POST /admin/loja-retro       (dono)     -> reconfere as insígnias de todos que já abriram caixa
  */
 import { avisarPerfil } from './amigos.js'
@@ -138,7 +139,20 @@ export class Loja {
     })
   }
 
-  async acao({ acao, id, caixas, cfg, pontos, ...p }) {
+  // Bônus de NP para todos (KV "loja-bonus": [{ id, ts, valor, motivo }], POST /admin/loja-bonus): cada jogador recebe cada bônus uma vez, na próxima vez que mexe na loja
+  async aplicarBonus(bonus) {
+    if (!Array.isArray(bonus) || !bonus.length) return
+    const visto = (await this.ctx.storage.get('bonusVisto')) || 0
+    const novos = bonus.filter((b) => b.id > visto)
+    if (!novos.length) return
+    this.ctx.storage.transactionSync(() => {
+      for (const b of novos) this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', b.ts, -Math.round(b.valor), `bônus: ${b.motivo || 'para todos'}`)
+    })
+    await this.ctx.storage.put('bonusVisto', Math.max(...novos.map((b) => b.id)))
+  }
+
+  async acao({ acao, id, caixas, cfg, pontos, bonus, ...p }) {
+    if (['saldo', 'estado', 'comprar', 'abrir'].includes(acao)) await this.aplicarBonus(bonus)
     switch (acao) {
       case 'inv-ler':
         return this.invLer(id)
@@ -254,18 +268,17 @@ export class Loja {
     if (!caixa.itens.length) throw new Error('caixa')
     const qtd = this.quantidade(p, cfg)
     const inv = (await this.invLer(id)).inv || limparSkins({})
-    const direto = p.origem !== 'inventario'
-    const custo = direto ? caixa.preco * qtd : 0
-    if (direto) {
-      if (pontos - this.gastos() < custo) throw new Error('saldo')
-    } else {
-      // abre as que já tem no inventário (as mais antigas primeiro)
-      const minhas = Object.entries(inv.itens).filter(([, it]) => it.t === 'caixa' && it.d === caixa.id).map(([k]) => k)
-      if (minhas.length < qtd) throw new Error('sem-caixa')
-      for (const k of minhas.slice(0, qtd)) {
-        delete inv.itens[k]
-        delete inv.criado[k]
-      }
+    // origem: 'inventario' = só as que já tem; 'direto' = paga todas; 'auto' = usa primeiro as do inventário e paga só as que faltam ("Abrir outra")
+    const minhas = Object.entries(inv.itens).filter(([, it]) => it.t === 'caixa' && it.d === caixa.id).map(([k]) => k)
+    const usar = p.origem === 'inventario' ? qtd : p.origem === 'auto' ? Math.min(qtd, minhas.length) : 0
+    if (p.origem === 'inventario' && minhas.length < qtd) throw new Error('sem-caixa')
+    const pagar = qtd - usar
+    const custo = caixa.preco * pagar
+    if (custo && pontos - this.gastos() < custo) throw new Error('saldo')
+    // as do inventário saem (as mais antigas primeiro)
+    for (const k of minhas.slice(0, usar)) {
+      delete inv.itens[k]
+      delete inv.criado[k]
     }
     if (Object.keys(inv.itens).length + qtd > ITENS_MAX) throw new Error('cheio')
     const agora = Date.now()
@@ -292,14 +305,16 @@ export class Loja {
     }
     const limpo = limparSkins(inv)
     await this.gravarTudo(id, limpo, () => {
-      if (custo) this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', agora, custo, `abertura direta ${qtd}x ${caixa.slug}`)
+      if (custo) this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', agora, custo, `abertura direta ${pagar}x ${caixa.slug}`)
       for (const l of linhas) this.sql.exec('INSERT INTO aberturas (ts, caixa, t, d, p, r, f, q) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', ...l)
     })
     // lista de quem já abriu (para o /admin/loja-retro)
     const lista = (await this.env.MOLDURAS.get('loja-jogadores', 'json').catch(() => null)) || []
     if (!lista.includes(id)) await this.env.MOLDURAS.put('loja-jogadores', JSON.stringify([...lista, id].slice(-5000))).catch(() => {})
     const novas = await this.conferirInsignias(id, caixas, await this.fechadas(id))
-    return { saldo: pontos - this.gastos(), resultados, insignias: novas.ids, insigniasTs: novas.ts }
+    // quantas dessa caixa ainda sobram no inventário (a tela "Abrir outra" usa para contar o que já tem antes de cobrar)
+    const restantes = Object.values(limpo.itens).filter((it) => it.t === 'caixa' && it.d === caixa.id).length
+    return { saldo: pontos - this.gastos(), resultados, restantes, insignias: novas.ids, insigniasTs: novas.ts }
   }
 }
 
@@ -340,7 +355,8 @@ export async function rotaLoja(req, env, quem, cors, rota) {
   else if (rota === '/loja/abrir' && req.method === 'POST') acao = 'abrir'
   else return json({ erro: 'rota' }, 404, cors)
   if (req.method === 'POST') corpo = await req.json().catch(() => ({}))
-  const r = await chamar(env, quem.id, { acao, caixas, cfg, pontos, caixa: corpo.caixa, qtd: corpo.qtd, origem: corpo.origem })
+  const bonus = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
+  const r = await chamar(env, quem.id, { acao, caixas, cfg, pontos, bonus, caixa: corpo.caixa, qtd: corpo.qtd, origem: corpo.origem === 'inventario' || corpo.origem === 'auto' ? corpo.origem : 'direto' })
   const dados = await r.json().catch(() => ({ erro: 'falhou' }))
   if (dados.insigniasTs && Object.keys(dados.insigniasTs).length) await aplicarInsignias(env, { [quem.id]: dados.insigniasTs })
   delete dados.insigniasTs
@@ -370,6 +386,14 @@ export async function rotaAdminLoja(req, env, rota, cors) {
     const pontos = await pontosGanhos(env, corpo.id)
     const r = await chamar(env, corpo.id, { acao: 'creditar', pontos, valor: corpo.valor })
     return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
+  }
+  if (rota === '/admin/loja-bonus') {
+    const valor = Math.round(num(corpo.valor, -1e7, 1e7, 0))
+    if (!valor) return json({ erro: 'valor' }, 400, cors)
+    const lista = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
+    const nova = { id: Math.max(0, ...lista.map((b) => b.id)) + 1, ts: Date.now(), valor, motivo: String(corpo.motivo || '').slice(0, 60) }
+    await env.MOLDURAS.put('loja-bonus', JSON.stringify([...lista, nova].slice(-200)))
+    return json({ ok: true, bonus: nova }, 200, cors)
   }
   if (rota === '/admin/loja-retro') {
     const [caixas, ids] = await Promise.all([lerCaixas(env), env.MOLDURAS.get('loja-jogadores', 'json').then((l) => l || [])])

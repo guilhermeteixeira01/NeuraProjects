@@ -241,6 +241,7 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
   const [pref, setPref] = useState(preferenciaAtual())
   const pular = useRef(false)
   const [tremer, setTremer] = useState(false)
+  const [restantes, setRestantes] = useState(0) // caixas dessa que ainda sobram no inventário (contam antes de cobrar)
   const [qtdOutra, setQtdOutra] = useState(1) // quantas caixas "Abrir outra" abre de uma vez
 
   // avisa o resto do site que a roleta começou/acabou: a insígnia nova só aparece depois (Insignias.jsx)
@@ -273,6 +274,7 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
       (r) => {
         if (!montado.current) return
         setDados(r)
+        setRestantes(r.restantes || 0)
         avisarSaldo(r.saldo)
         som('abrir')
         setFase('roleta')
@@ -329,6 +331,16 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
     setPref(preferenciaAtual())
   }
   const animando = fase === 'roleta' || fase === 'facas'
+  // "Abrir outra": usa primeiro as caixas dessa que o jogador já tem no inventário e só cobra as que faltam
+  const doInventario = Math.min(qtdOutra, restantes)
+  const aPagar = (qtdOutra - doInventario) * caixa.preco
+  const falta = aPagar > (dados?.saldo ?? 0)
+  const rotuloOutra = (() => {
+    const base = qtdOutra > 1 ? t('Abrir outras {n}', { n: qtdOutra }) : t('Abrir outra')
+    if (doInventario === 0) return `${base} (${aPagar.toLocaleString('pt-BR')} NP)`
+    if (aPagar === 0) return `${base} (${t('do inventário')})`
+    return `${base} (${t('{n} do inventário', { n: doInventario })} + ${aPagar.toLocaleString('pt-BR')} NP)`
+  })()
 
   return (
     <div className={`lj-abertura${tremer ? ' lj-tremer' : ''}`} role="dialog" aria-modal="true" aria-label={t('Abrindo caixa')} style={{ '--cor-caixa': caixa.cor }}>
@@ -428,8 +440,8 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
                   </button>
                 ))}
               </div>
-              <button type="button" className="lj-btn lj-btn-p" disabled={caixa.preco * qtdOutra > (dados?.saldo ?? 0)} onClick={() => aoOutra(qtdOutra)} title={caixa.preco * qtdOutra > (dados?.saldo ?? 0) ? t('Você não tem Neura Pontos suficientes.') : undefined}>
-                {qtdOutra > 1 ? t('Abrir outras {n} ({p} NP)', { n: qtdOutra, p: (caixa.preco * qtdOutra).toLocaleString('pt-BR') }) : t('Abrir outra')}
+              <button type="button" className="lj-btn lj-btn-p" disabled={falta} onClick={() => aoOutra(qtdOutra)} title={falta ? t('Você não tem Neura Pontos suficientes.') : undefined}>
+                {rotuloOutra}
               </button>
             </div>
             <a className="lj-btn" href="/inventario/">
