@@ -13,7 +13,7 @@
  *
  *     presentes: [ { i: id do item, q: quando recebeu (ms), v: 1 se já viu o aviso } ]   (skins que o dono deu; o jogador não cria itens)
  *
- *   Quem cria os itens é só o DONO (POST /admin/skin). O jogador só personaliza e equipa o que recebeu:
+ *   Quem cria e quem tira itens é só o DONO (POST /admin/skin). O jogador só personaliza e equipa o que recebeu (não exclui):
  *   tipo, arma e skin de cada item não mudam; item novo mandado pelo jogador é ignorado. Agentes não são aplicados no servidor.
  *
  *   GET  /skins            (login)  -> o inventário do próprio jogador
@@ -189,6 +189,8 @@ export async function rotaSkins(req, env, quem, cors) {
     if (!orig) continue
     itens[id] = { ...it, t: orig.t, d: orig.d, p: orig.p, ...(orig.m ? { m: orig.m } : {}) }
   }
+  // Item que o jogador não mandou de volta continua com ele: só o dono tira skin (POST /admin/skin { remover })
+  for (const [id, orig] of Object.entries(atual.itens)) if (!itens[id]) itens[id] = orig
   const limpo = limparSkins({ v: 2, itens, equip: proposta.equip, criado: atual.criado, presentes: atual.presentes })
   await gravarSkins(env, quem.id, limpo)
   return json(limpo, 200, cors)

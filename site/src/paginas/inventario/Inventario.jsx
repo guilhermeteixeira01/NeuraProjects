@@ -746,7 +746,7 @@ function Inspecionar({ item, idx, adesivos, chaveiros, mapa, aoFechar }) {
 
 // ── Menu do botão direito ──
 // Só aparece o time em que o item existe no jogo (AK-47 e Glock só no TR; M4 e USP-S só no CT; agente do CT só no CT...)
-function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoDesequipar, aoEditar, aoInspecionar, aoExcluir, podeEditar, aoFechar }) {
+function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoDesequipar, aoEditar, aoInspecionar, podeEditar, aoFechar }) {
   const t = useT()
   const ref = useRef(null)
   const [pos, setPos] = useState({ x, y })
@@ -808,12 +808,6 @@ function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoD
       <li>
         <button type="button" role="menuitem" onClick={aoInspecionar}>
           {t('Inspecionar')}
-        </button>
-      </li>
-      <li className="inv-menu-sep" />
-      <li>
-        <button type="button" role="menuitem" className="inv-menu-perigo" onClick={aoExcluir}>
-          {t('Excluir')}
         </button>
       </li>
     </ul>
@@ -1004,15 +998,6 @@ function Conteudo() {
       return { ...i, equip: { ...i.equip, [lado]: novo } }
     })
   }
-  const excluir = (id) =>
-    mudar((i) => {
-      const itensNovos = { ...i.itens }
-      delete itensNovos[id]
-      const criado = { ...i.criado }
-      delete criado[id]
-      const limpar = (m) => Object.fromEntries(Object.entries(m).filter(([, v]) => v !== id))
-      return { ...i, itens: itensNovos, criado, equip: { ct: limpar(i.equip.ct), tr: limpar(i.equip.tr) } }
-    })
   const abrirMenu = (e, item) => {
     e.stopPropagation()
     setMenu({ x: e.clientX, y: e.clientY, id: item.__id })
@@ -1114,7 +1099,6 @@ function Conteudo() {
           podeEditar={!pequena}
           aoEditar={() => { setJanela({ tipo: 'editar', id: menu.id }); fecharMenu() }}
           aoInspecionar={() => { setJanela({ tipo: 'inspecionar', id: menu.id }); fecharMenu() }}
-          aoExcluir={() => { excluir(menu.id); fecharMenu() }}
         />
       )}
       {janela?.tipo === 'editar' && itemJanela && !pequena && (
