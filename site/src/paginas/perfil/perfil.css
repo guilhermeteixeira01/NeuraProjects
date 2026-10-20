@@ -842,3 +842,8 @@ html.sm-aberto { overflow: hidden; }
 /* Time e Premier abaixo do cartão do jogador (coluna da esquerda): um embaixo do outro, na largura do cartão */
 .pf-infos.pf-infos-lado { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 0; }
 .pf-infos-lado .pf-info { width: 100%; min-width: 0; }
+/* Time e Premier lado a lado (um só ocupa a largura toda) */
+.pf-infos.pf-infos-lado { grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); }
+.pf-infos-lado .pf-info-val { min-width: 0; }
+.pf-infos-lado .pf-time { min-width: 0; max-width: 100%; }
+.pf-infos-lado .pf-time span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
