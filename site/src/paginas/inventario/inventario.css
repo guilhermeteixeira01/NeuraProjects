@@ -223,3 +223,9 @@
 .inv-enfeites-fileira { display: flex; gap: 2px; }
 .inv-enfeites img { width: 30px; height: 30px; object-fit: contain; filter: drop-shadow(0 1px 2px rgb(0 0 0 / .6)); }
 .inv-marcas-duas { display: inline-flex; gap: 3px; }
+
+/* dicas dos controles do 3D e botão de som */
+.inv-dicas { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; background: rgb(0 0 0 / .5); border: 1px solid rgb(255 255 255 / .1); padding: 8px 16px; border-radius: 6px; font-size: 12.5px; color: rgb(255 255 255 / .7); z-index: 2; pointer-events: none; }
+.inv-dicas b { color: #fff; font-weight: 600; }
+.inv-som { background: none; border: 0; font-size: 17px; cursor: pointer; padding: 2px 6px; opacity: .85; }
+.inv-som:hover { opacity: 1; }

@@ -16,6 +16,7 @@ import {
   useCatalogo,
 } from '../../comum/skins.js'
 import { useT } from '../../comum/i18n.js'
+import { definirSom, somMudo, tocar } from '../../comum/somInventario.js'
 
 // Inventário de skins, no estilo do inventário do jogo: o jogador CRIA itens (arma/faca/luva/agente com a skin que quiser), ajusta
 // cada um (desgaste, seed, StatTrak, nome, adesivos com posição) e EQUIPA no CT, no TR ou nos dois (botão direito no item).
@@ -46,6 +47,10 @@ function Marca({ lado }) {
 
 function Janela({ titulo, aoFechar, largura = 'media', children, rodape }) {
   const t = useT()
+  useEffect(() => {
+    tocar('abrir')
+    return () => tocar('fechar')
+  }, [])
   useEffect(() => {
     const tecla = (e) => e.key === 'Escape' && aoFechar()
     document.addEventListener('keydown', tecla)
@@ -373,6 +378,10 @@ function Visualizador3D({ item, m, aoMudar, aoEstado, aoFalhar, controle, altura
 function TelaInteira({ titulo, subtitulo, aviso, aoFechar, confirmar, rotuloConfirmar, lateral, children }) {
   const t = useT()
   useEffect(() => {
+    tocar('abrir')
+    return () => tocar('fechar')
+  }, [])
+  useEffect(() => {
     const tecla = (e) => e.key === 'Escape' && aoFechar()
     document.addEventListener('keydown', tecla)
     return () => document.removeEventListener('keydown', tecla)
@@ -391,7 +400,14 @@ function TelaInteira({ titulo, subtitulo, aviso, aoFechar, confirmar, rotuloConf
       </header>
       <div className="inv-tela-corpo">
         {lateral && <aside className="inv-tela-lateral">{lateral}</aside>}
-        <div className="inv-tela-centro">{children}</div>
+        <div className="inv-tela-centro">
+        <div className="inv-dicas" aria-hidden="true">
+          <span><b>{t('Clique e arraste')}</b> {t('no adesivo ou chaveiro para mover')}</span>
+          <span><b>{t('Botão direito')}</b> {t('gira a arma')}</span>
+          <span><b>{t('Roda do mouse')}</b> {t('aproxima')}</span>
+        </div>
+        {children}
+      </div>
       </div>
       <footer className="inv-tela-rodape">
         <button type="button" className="inv-btn-verde" onClick={confirmar}>
@@ -755,6 +771,7 @@ function DialogoItem({ inicial, modo, idx, adesivos, chaveiros, mapa, aoConfirma
           adesivos={adesivos}
           aoFechar={() => setTela('')}
           aoColar={(p) => {
+            tocar('criado')
             mudar(p)
             setTela('')
             setVersao((v) => v + 1)
@@ -769,6 +786,7 @@ function DialogoItem({ inicial, modo, idx, adesivos, chaveiros, mapa, aoConfirma
           chaveiros={chaveiros}
           aoFechar={() => setTela('')}
           aoPrender={(p) => {
+            tocar('criado')
             mudar(p)
             setTela('')
             setVersao((v) => v + 1)
@@ -962,6 +980,27 @@ function Conteudo() {
   const [janela, setJanela] = useState(null) // { tipo: 'criar'|'editar'|'inspecionar', id? }
   const catalogo = useCatalogo('armas')
   const agentes = useCatalogo('agentes')
+  const [mudo, setMudo] = useState(somMudo())
+  useEffect(() => {
+    const clique = (e) => {
+      const alvo = e.target.closest?.('button, select')
+      if (!alvo || alvo.closest('.inv-3d')) return
+      if (alvo.closest('.inv-abas')) tocar('aba')
+      else if (alvo.closest('.inv-cartao')) tocar('item')
+      else if (alvo.tagName === 'SELECT') tocar('selecionar')
+      else if (!alvo.closest('.inv-menu') && !alvo.closest('.inv-fechar')) tocar('botao')
+    }
+    const sobre = (e) => {
+      const c = e.target.closest?.('.inv-cartao')
+      if (c && !c.contains(e.relatedTarget)) tocar('hover')
+    }
+    document.addEventListener('pointerdown', clique)
+    document.addEventListener('pointerover', sobre)
+    return () => {
+      document.removeEventListener('pointerdown', clique)
+      document.removeEventListener('pointerover', sobre)
+    }
+  }, [])
   const precisaAdesivos = janela?.tipo === 'editar' || janela?.tipo === 'confirmar' || janela?.tipo === 'inspecionar' || (!!inv && Object.values(inv.itens).some((it) => it.a?.some(Boolean) || it.k?.i))
   const adesivos = useCatalogo('adesivos', precisaAdesivos)
   const chaveiros = useCatalogo('chaveiros', precisaAdesivos)
@@ -1029,18 +1068,22 @@ function Conteudo() {
 
   const mudar = useCallback((f) => setInv((i) => f(i)), [])
   const mudarItem = (id, parte) => mudar((i) => ({ ...i, itens: { ...i.itens, [id]: { ...i.itens[id], ...parte } } }))
-  const equipar = (id, lado) =>
+  const equipar = (id, lado) => {
+    tocar('equipar')
     mudar((i) => {
       const chave = chaveEquip(i.itens[id])
       return { ...i, equip: { ...i.equip, [lado]: { ...i.equip[lado], [chave]: id } } }
     })
-  const desequipar = (id, lado) =>
+  }
+  const desequipar = (id, lado) => {
+    tocar('equipar')
     mudar((i) => {
       const chave = chaveEquip(i.itens[id])
       const novo = { ...i.equip[lado] }
       if (novo[chave] === id) delete novo[chave]
       return { ...i, equip: { ...i.equip, [lado]: novo } }
     })
+  }
   const excluir = (id) =>
     mudar((i) => {
       const itensNovos = { ...i.itens }
@@ -1051,6 +1094,7 @@ function Conteudo() {
       return { ...i, itens: itensNovos, criado, equip: { ct: limpar(i.equip.ct), tr: limpar(i.equip.tr) } }
     })
   const gravarNovo = (dados) => {
+    tocar('criado')
     const id = novoIdItem()
     const { __id, ...limpo } = dados
     mudar((i) => ({ ...i, itens: { ...i.itens, [id]: limpo }, criado: { ...i.criado, [id]: Date.now() } }))
@@ -1114,6 +1158,19 @@ function Conteudo() {
           {estado === 'salvo' && <b className="inv-ok">{t('Salvo!')}</b>}
           {estado === 'erro' && <b className="inv-erro">{t('Não deu para salvar. Tentando de novo ao mudar algo.')}</b>}
         </span>
+        <button
+          type="button"
+          className="inv-som"
+          aria-pressed={!mudo}
+          title={mudo ? t('Ligar sons') : t('Desligar sons')}
+          aria-label={mudo ? t('Ligar sons') : t('Desligar sons')}
+          onClick={() => {
+            definirSom(mudo)
+            setMudo(!mudo)
+          }}
+        >
+          {mudo ? '🔇' : '🔊'}
+        </button>
         <span className="inv-total">{t('{n} itens', { n: total })}</span>
         <select className="inv-ordem" value={ordem} onChange={(e) => setOrdem(e.target.value)} aria-label={t('Ordenar')}>
           {ORDENS.map(([id, nome]) => (
@@ -1170,6 +1227,7 @@ function Conteudo() {
           chaveiros={chaveiros}
           mapa={mapa3d.dados}
           aoConfirmar={(r) => {
+            tocar('criado')
             const { __id, ...limpo } = r
             mudar((i) => ({ ...i, itens: { ...i.itens, [janela.id]: limpo } }))
             setJanela(null)
