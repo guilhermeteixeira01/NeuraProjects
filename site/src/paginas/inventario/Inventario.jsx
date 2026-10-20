@@ -27,7 +27,6 @@ const ABAS = [
   ['arma', 'ARMAS'],
   ['faca', 'FACAS'],
   ['luva', 'LUVAS'],
-  ['agente', 'AGENTES'],
 ]
 const ORDENS = [
   ['equipado', 'Equipado'],
@@ -136,100 +135,6 @@ function SeletorAdesivo({ aoEscolher, aoFechar, catalogo = 'adesivos' }) {
         {!dados && !erro && <li className="inv-nada">{t('Carregando…')}</li>}
         {dados && !lista.length && <li className="inv-nada">{t('Nenhum adesivo encontrado.')}</li>}
       </ul>
-    </Janela>
-  )
-}
-
-// ── Criar item: escolhe o tipo, a arma e a skin ──
-function CriarItem({ catalogo, agentes, aoCriar, aoFechar }) {
-  const t = useT()
-  const [tipo, setTipo] = useState('arma')
-  const [categoria, setCategoria] = useState('rifles')
-  const [def, setDef] = useState(7)
-  const [lado, setLado] = useState('ct')
-  const [busca, setBusca] = useState('')
-  const grupo = tipo === 'arma' ? catalogo.filter((a) => CATEGORIAS.some(([c]) => c === a.c)) : catalogo.filter((a) => a.c === (tipo === 'faca' ? 'facas' : 'luvas'))
-  const lista = tipo === 'arma' ? grupo.filter((a) => a.c === categoria) : grupo
-  const peca = lista.find((a) => a.d === def) || lista[0]
-  const novo = (s) =>
-    aoCriar({
-      t: tipo,
-      d: peca.d,
-      p: s ? s[0] : 0,
-      f: s ? Math.max(s[3], 0.0001) : 0.0001,
-      s: 0,
-      st: 0,
-      l: s?.[7] ? 1 : 0,
-      n: '',
-      a: [null, null, null, null],
-    })
-  const TIPOS = [
-    ['arma', 'Armas'],
-    ['faca', 'Facas'],
-    ['luva', 'Luvas'],
-    ['agente', 'Agentes'],
-  ]
-  const agentesLista = (agentes || []).filter((a) => a.t === lado && a.n.toLowerCase().includes(busca.trim().toLowerCase()))
-  return (
-    <Janela titulo={t('Criar item')} aoFechar={aoFechar} largura="grande">
-      <div className="inv-tipos" role="tablist">
-        {TIPOS.map(([id, nome]) => (
-          <button key={id} type="button" role="tab" aria-selected={tipo === id} className={tipo === id ? 'is-ativo' : ''} onClick={() => { setTipo(id); setDef(null) }}>
-            {t(nome)}
-          </button>
-        ))}
-      </div>
-      {tipo === 'agente' ? (
-        <div className="inv-criar-agentes">
-          <div className="inv-lados" role="tablist">
-            {LADOS_TIME.map(([id, nome]) => (
-              <button key={id} type="button" className={lado === id ? 'is-ativo' : ''} onClick={() => setLado(id)}>
-                {nome}
-              </button>
-            ))}
-          </div>
-          <input type="search" className="inv-busca" placeholder={t('Pesquisar agente')} value={busca} onChange={(e) => setBusca(e.target.value)} />
-          <ul className="inv-grade inv-grade-agentes">
-            {agentesLista.map((a) => (
-              <li key={a.d}>
-                <button type="button" className="inv-skin" style={{ '--cor': a.c || 'var(--border-2)' }} onClick={() => aoCriar({ t: 'agente', d: a.d, p: 0, f: 0.0001, s: 0, st: 0, l: 0, m: a.m })} title={a.n}>
-                  <span className="inv-skin-img">
-                    <Imagem src={urlImg(a.i, 360)} />
-                  </span>
-                  <b>{a.n}</b>
-                </button>
-              </li>
-            ))}
-            {!agentes && <li className="inv-nada">{t('Carregando…')}</li>}
-          </ul>
-        </div>
-      ) : (
-        <div className="inv-layout inv-layout-criar">
-          <aside className="inv-lista">
-            {tipo === 'arma' && (
-              <div className="inv-cats">
-                {CATEGORIAS.map(([id, nome]) => (
-                  <button key={id} type="button" className={categoria === id ? 'is-ativo' : ''} onClick={() => { setCategoria(id); setDef(null) }}>
-                    {t(nome)}
-                  </button>
-                ))}
-              </div>
-            )}
-            <ul>
-              {lista.map((a) => (
-                <li key={a.d}>
-                  <button type="button" className={a.d === peca?.d ? 'is-ativo' : ''} onClick={() => setDef(a.d)}>
-                    {a.n}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </aside>
-          <section className="inv-centro">
-            {peca && <GradeSkins skins={peca.s} paint={-1} aoEscolher={novo} rotuloVazio={tipo === 'faca' ? 'Faca lisa' : ''} />}
-          </section>
-        </div>
-      )}
     </Janela>
   )
 }
@@ -841,7 +746,7 @@ function Inspecionar({ item, idx, adesivos, chaveiros, mapa, aoFechar }) {
 
 // ── Menu do botão direito ──
 // Só aparece o time em que o item existe no jogo (AK-47 e Glock só no TR; M4 e USP-S só no CT; agente do CT só no CT...)
-function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoDesequipar, aoEditar, aoInspecionar, aoDuplicar, aoExcluir, aoFechar }) {
+function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoDesequipar, aoEditar, aoInspecionar, aoExcluir, podeEditar, aoFechar }) {
   const t = useT()
   const ref = useRef(null)
   const [pos, setPos] = useState({ x, y })
@@ -888,7 +793,12 @@ function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoD
         )
       })}
       <li className="inv-menu-sep" />
-      {item.t !== 'agente' && (
+      {item.t !== 'agente' && !podeEditar && (
+        <li>
+          <span className="inv-menu-aviso">{t('Editar (desgaste, adesivos, chaveiro) só no computador')}</span>
+        </li>
+      )}
+      {item.t !== 'agente' && podeEditar && (
         <li>
           <button type="button" role="menuitem" onClick={aoEditar}>
             {item.t === 'arma' ? t('Editar (desgaste, adesivos, chaveiro…)') : t('Editar (desgaste, seed…)')}
@@ -898,11 +808,6 @@ function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoD
       <li>
         <button type="button" role="menuitem" onClick={aoInspecionar}>
           {t('Inspecionar')}
-        </button>
-      </li>
-      <li>
-        <button type="button" role="menuitem" onClick={aoDuplicar}>
-          {t('Duplicar')}
         </button>
       </li>
       <li className="inv-menu-sep" />
@@ -966,6 +871,19 @@ function Cartao({ item, idx, adesivos, chaveiros, equip, aoAbrirMenu }) {
   )
 }
 
+// Celular e tablet (até 1024 px): a edição (3D, adesivos, chaveiro) só funciona bem no computador
+function useTelaPequena() {
+  const [pequena, setPequena] = useState(false)
+  useEffect(() => {
+    const q = window.matchMedia('(max-width: 1024px)')
+    const ler = () => setPequena(q.matches)
+    ler()
+    q.addEventListener('change', ler)
+    return () => q.removeEventListener('change', ler)
+  }, [])
+  return pequena
+}
+
 function Conteudo() {
   const t = useT()
   const conta = useConta()
@@ -981,6 +899,7 @@ function Conteudo() {
   const catalogo = useCatalogo('armas')
   const agentes = useCatalogo('agentes')
   const [mudo, setMudo] = useState(somMudo())
+  const pequena = useTelaPequena() // celular/tablet: dá para equipar e inspecionar, mas não editar
   useEffect(() => {
     const clique = (e) => {
       const alvo = e.target.closest?.('button, select')
@@ -1050,6 +969,7 @@ function Conteudo() {
     const q = busca.trim().toLowerCase()
     const lista = Object.entries(inv.itens)
       .map(([id, it]) => ({ ...it, __id: id }))
+      .filter((it) => it.t !== 'agente') // agentes: bloqueados no servidor
       .filter((it) => aba === 'tudo' || it.t === aba)
       .filter((it) => {
         if (!q) return true
@@ -1093,19 +1013,6 @@ function Conteudo() {
       const limpar = (m) => Object.fromEntries(Object.entries(m).filter(([, v]) => v !== id))
       return { ...i, itens: itensNovos, criado, equip: { ct: limpar(i.equip.ct), tr: limpar(i.equip.tr) } }
     })
-  const gravarNovo = (dados) => {
-    tocar('criado')
-    const id = novoIdItem()
-    const { __id, ...limpo } = dados
-    mudar((i) => ({ ...i, itens: { ...i.itens, [id]: limpo }, criado: { ...i.criado, [id]: Date.now() } }))
-    setJanela(null)
-  }
-  // Arma, faca e luva passam por "Confirmar criação" (3D, adesivos, desgaste...); o agente vai direto
-  const criar = (dados) => (dados.t === 'agente' ? gravarNovo(dados) : setJanela({ tipo: 'confirmar', rascunho: dados }))
-  const duplicar = (id) => {
-    const novo = novoIdItem()
-    mudar((i) => ({ ...i, itens: { ...i.itens, [novo]: JSON.parse(JSON.stringify(i.itens[id])) }, criado: { ...i.criado, [novo]: Date.now() } }))
-  }
   const abrirMenu = (e, item) => {
     e.stopPropagation()
     setMenu({ x: e.clientX, y: e.clientY, id: item.__id })
@@ -1129,7 +1036,7 @@ function Conteudo() {
 
   const itemMenu = menu ? { ...inv.itens[menu.id], __id: menu.id } : null
   const itemJanela = janela?.id && inv.itens[janela.id] ? { ...inv.itens[janela.id], __id: janela.id } : null
-  const total = Object.keys(inv.itens).length
+  const total = Object.values(inv.itens).filter((it) => it.t !== 'agente').length
   return (
     <>
       <div className="inv-topo">
@@ -1140,10 +1047,9 @@ function Conteudo() {
             </button>
           ))}
         </nav>
-        <button type="button" className="inv-btn inv-btn-p inv-criar" onClick={() => setJanela({ tipo: 'criar' })}>
-          + {t('Criar item')}
-        </button>
       </div>
+
+      {pequena && <p className="inv-aviso-mobile">{t('No celular dá para equipar e inspecionar. Para editar (desgaste, adesivos e chaveiro), abra o site no computador.')}</p>}
 
       <div className="inv-barra">
         <label className="inv-pesquisa">
@@ -1183,10 +1089,7 @@ function Conteudo() {
 
       {total === 0 ? (
         <div className="inv-vazio">
-          <p>{t('Seu inventário está vazio. Crie itens com as skins que quiser e depois clique com o botão direito em um item para equipar no CT ou no TR.')}</p>
-          <button type="button" className="inv-btn inv-btn-p" onClick={() => setJanela({ tipo: 'criar' })}>
-            + {t('Criar item')}
-          </button>
+          <p>{t('Seu inventário está vazio. As skins são entregues pelo dono do servidor: quando você receber uma, ela aparece aqui e um aviso no meio da tela.')}</p>
         </div>
       ) : (
         <ul className="inv-itens">
@@ -1208,17 +1111,13 @@ function Conteudo() {
           aoEquipar={(l) => { equipar(menu.id, l); fecharMenu() }}
           aoEquiparAmbos={() => { equipar(menu.id, 'ct'); equipar(menu.id, 'tr'); fecharMenu() }}
           aoDesequipar={(l) => { desequipar(menu.id, l); fecharMenu() }}
+          podeEditar={!pequena}
           aoEditar={() => { setJanela({ tipo: 'editar', id: menu.id }); fecharMenu() }}
           aoInspecionar={() => { setJanela({ tipo: 'inspecionar', id: menu.id }); fecharMenu() }}
-          aoDuplicar={() => { duplicar(menu.id); fecharMenu() }}
           aoExcluir={() => { excluir(menu.id); fecharMenu() }}
         />
       )}
-      {janela?.tipo === 'criar' && <CriarItem catalogo={catalogo.dados.armas} agentes={agentes.dados} aoCriar={criar} aoFechar={() => setJanela(null)} />}
-      {janela?.tipo === 'confirmar' && (
-        <DialogoItem inicial={janela.rascunho} modo="criar" idx={idx} adesivos={adesivos} chaveiros={chaveiros} mapa={mapa3d.dados} aoConfirmar={gravarNovo} aoFechar={() => setJanela(null)} />
-      )}
-      {janela?.tipo === 'editar' && itemJanela && (
+      {janela?.tipo === 'editar' && itemJanela && !pequena && (
         <DialogoItem
           inicial={itemJanela}
           modo="editar"

@@ -13,6 +13,7 @@ import { localeAtual, useT } from '../../comum/i18n.js'
 import { ICONES_CARGO, IconeCargo } from '../../comum/cargos.jsx'
 import { NIVEIS_SUB, SUB_MESES_PADRAO, maisUmMes, nivelDaSub, tituloNivel, urlEmblema } from '../../comum/assinatura.js'
 import { INSIGNIAS, imagemInsignia } from '../../comum/insignias.js'
+import { CATEGORIAS, urlImgArma, useCatalogo } from '../../comum/skins.js'
 import { useAvatar } from '../../comum/avatares.js'
 import SeletorMoldura from '../perfil/SeletorMoldura.jsx'
 import { IMAGENS_SELO, urlSelo } from '../../comum/selosEquipe.js'
@@ -1087,6 +1088,194 @@ function Assinaturas({ config, usuarios, aoSalvarConfig, aoSalvarPerfis }) {
   )
 }
 
+// ── Aba Skins (só o dono): dá uma skin para qualquer jogador ──
+// O jogador não cria itens no inventário: quem entrega é o dono, por aqui. A skin cai no inventário dele (/inventario/) e ele recebe o
+// aviso no meio da tela e no sino. Depois ele mesmo personaliza (desgaste, adesivos...) e equipa no CT/TR.
+function DarSkin({ usuarios }) {
+  const tr = useT()
+  const catalogo = useCatalogo('armas')
+  const [busca, setBusca] = useState('')
+  const [tipo, setTipo] = useState('arma')
+  const [categoria, setCategoria] = useState('rifles')
+  const [def, setDef] = useState(7)
+  const [filtro, setFiltro] = useState('')
+  const [skin, setSkin] = useState(null)
+  const [desgaste, setDesgaste] = useState('')
+  const [st, setSt] = useState(false)
+  const [estado, setEstado] = useState('')
+  const [ocupado, setOcupado] = useState(false)
+  const [itens, setItens] = useState(null)
+
+  const termo = busca.trim().toLowerCase()
+  const alvo = usuarios.find((u) => u.id === termo || (u.nome || '').toLowerCase() === termo) || (/^\d{17}$/.test(termo) ? { id: termo, nome: '' } : null)
+
+  // itens que o jogador já tem (para tirar um, se precisar)
+  const carregarItens = useCallback(async (id) => {
+    try {
+      setItens((await chamar(`/admin/skins?id=${id}`)).itens || {})
+    } catch {
+      setItens(null)
+    }
+  }, [])
+  useEffect(() => {
+    if (alvo?.id) carregarItens(alvo.id)
+    else setItens(null)
+  }, [alvo?.id, carregarItens])
+
+  const armas = catalogo.dados?.armas || []
+  const grupo = tipo === 'arma' ? armas.filter((a) => CATEGORIAS.some(([c]) => c === a.c)) : armas.filter((a) => a.c === (tipo === 'faca' ? 'facas' : 'luvas'))
+  const lista = tipo === 'arma' ? grupo.filter((a) => a.c === categoria) : grupo
+  const peca = lista.find((a) => a.d === def) || lista[0]
+  const skins = useMemo(() => {
+    const q = filtro.trim().toLowerCase()
+    return (peca?.s || []).filter((s) => !q || s[1].toLowerCase().includes(q))
+  }, [peca, filtro])
+  const nomeItem = (it) => {
+    const a = armas.find((x) => x.d === it.d)
+    const s = a?.s.find((x) => x[0] === it.p)
+    return `${a?.n || `#${it.d}`}${s ? ` | ${s[1]}` : ''}`
+  }
+
+  const dar = async () => {
+    if (!alvo || !skin || !peca) return
+    const [min, max] = [skin[3], skin[4]]
+    const f = Math.min(max, Math.max(min, Number(desgaste) || min))
+    setOcupado(true)
+    setEstado('')
+    try {
+      const d = await chamar('/admin/skin', { id: alvo.id, item: { t: tipo, d: peca.d, p: skin[0], f, s: 0, st: st && skin[5] === 1 ? 1 : 0, l: skin[7] ? 1 : 0, n: '', a: [null, null, null, null, null], k: null } })
+      setItens(d.itens)
+      setEstado(tr('Skin entregue! O jogador recebe o aviso na hora (ou na próxima vez que abrir o site).'))
+    } catch (e) {
+      setEstado(e.message === 'cheio' ? tr('O inventário dele está cheio.') : mensagemErro(e))
+    } finally {
+      setOcupado(false)
+    }
+  }
+  const tirar = async (id) => {
+    if (!window.confirm(tr('Tirar esta skin do jogador?'))) return
+    setOcupado(true)
+    try {
+      setItens((await chamar('/admin/skin', { id: alvo.id, remover: id })).itens)
+    } catch (e) {
+      setEstado(mensagemErro(e))
+    } finally {
+      setOcupado(false)
+    }
+  }
+
+  return (
+    <div className="caixa adm-dar">
+      <p className="adm-dar-dica">{tr('O jogador não cria skins sozinho: só você (dono) entrega. Escolha o jogador, a arma e a skin.')}</p>
+
+      <div className="adm-sub-add">
+        <input list="adm-skin-usuarios" type="text" placeholder={tr('Jogador: nome exato ou SteamID64')} value={busca} onChange={(e) => setBusca(e.target.value)} aria-label={tr('Jogador')} />
+        <datalist id="adm-skin-usuarios">
+          {usuarios
+            .filter((u) => u.nome)
+            .slice(0, 400)
+            .map((u) => (
+              <option key={u.id} value={u.nome} />
+            ))}
+        </datalist>
+        <span className="adm-cargo-info">{alvo ? `${alvo.nome || alvo.id}` : tr('Escolha um jogador da lista')}</span>
+      </div>
+
+      <div className="adm-dar-tipos" role="tablist">
+        {[
+          ['arma', 'Armas'],
+          ['faca', 'Facas'],
+          ['luva', 'Luvas'],
+        ].map(([id, nome]) => (
+          <button key={id} type="button" role="tab" aria-selected={tipo === id} className={tipo === id ? 'active' : ''} onClick={() => { setTipo(id); setDef(null); setSkin(null) }}>
+            {tr(nome)}
+          </button>
+        ))}
+      </div>
+
+      {catalogo.erro ? (
+        <p className="lb-erro">{tr('Não consegui carregar o catálogo de skins.')}</p>
+      ) : !catalogo.dados ? (
+        <p>{tr('Carregando…')}</p>
+      ) : (
+        <div className="adm-dar-corpo">
+          <aside>
+            {tipo === 'arma' && (
+              <div className="adm-dar-cats">
+                {CATEGORIAS.map(([id, nome]) => (
+                  <button key={id} type="button" className={categoria === id ? 'active' : ''} onClick={() => { setCategoria(id); setDef(null); setSkin(null) }}>
+                    {tr(nome)}
+                  </button>
+                ))}
+              </div>
+            )}
+            <ul>
+              {lista.map((a) => (
+                <li key={a.d}>
+                  <button type="button" className={a.d === peca?.d ? 'active' : ''} onClick={() => { setDef(a.d); setSkin(null) }}>
+                    {a.n}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </aside>
+          <section>
+            <input type="search" className="adm-dar-busca" placeholder={tr('Pesquisar skin')} value={filtro} onChange={(e) => setFiltro(e.target.value)} />
+            <ul className="adm-dar-grade">
+              {skins.map((s) => (
+                <li key={s[0]}>
+                  <button type="button" className={skin?.[0] === s[0] ? 'active' : ''} style={{ '--cor': s[2] || 'var(--border-2)' }} onClick={() => { setSkin(s); setDesgaste(String(Math.max(s[3], 0.0001))); setSt(false) }} title={s[1]}>
+                    <img src={urlImgArma(s[6], 256)} alt="" loading="lazy" />
+                    <b>{s[1]}</b>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      )}
+
+      {skin && (
+        <div className="adm-dar-extra">
+          <b>
+            {peca.n} | {skin[1]}
+          </b>
+          <label>
+            {tr('Desgaste')}
+            <input type="number" min={skin[3]} max={skin[4]} step="0.0001" value={desgaste} onChange={(e) => setDesgaste(e.target.value)} />
+          </label>
+          {skin[5] === 1 && (
+            <label className="adm-numerar">
+              <input type="checkbox" checked={st} onChange={(e) => setSt(e.target.checked)} />
+              StatTrak™
+            </label>
+          )}
+          <button type="button" className="btn btn-primary" disabled={!alvo || ocupado} onClick={dar}>
+            {alvo ? tr('Dar skin para {nome}', { nome: alvo.nome || alvo.id }) : tr('Escolha o jogador')}
+          </button>
+        </div>
+      )}
+      {estado && <p className="adm-dar-estado">{estado}</p>}
+
+      {alvo && itens && Object.keys(itens).length > 0 && (
+        <div className="adm-dar-itens">
+          <h3>{tr('Skins que ele tem')}</h3>
+          <ul>
+            {Object.entries(itens).map(([id, it]) => (
+              <li key={id}>
+                <span>{nomeItem(it)}</span>
+                <button type="button" className="btn btn-ghost adm-perigo" disabled={ocupado} onClick={() => tirar(id)}>
+                  {tr('Tirar')}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Aba Admins ──
 function Admins({ config, dono, souDono, usuarios, aoSalvar }) {
   const tr = useT()
@@ -1266,6 +1455,7 @@ export default function Admin() {
       ['cards', 'Cards'],
       ['cargos', 'Cargos'],
       ['assinaturas', 'Assinaturas'],
+      ...(eu.dono ? [['skins', 'Skins']] : []), // só o dono entrega skins
       ['admins', 'Admins'],
     ]
     conteudo = (
@@ -1311,6 +1501,7 @@ export default function Admin() {
             {aba === 'cargos' && eu.dono && <SelosEquipe key={JSON.stringify(painel.config.selos || {})} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
             {aba === 'cargos' && <Cargos key={JSON.stringify(painel.config.cargos || [])} config={painel.config} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
             {aba === 'assinaturas' && <Assinaturas key={JSON.stringify(painel.config.subMeses || {})} config={painel.config} usuarios={usuarios} aoSalvarConfig={(config) => setPainel((p) => ({ ...p, config }))} aoSalvarPerfis={(perfis) => setPainel((p) => ({ ...p, perfis }))} />}
+            {aba === 'skins' && eu.dono && <DarSkin usuarios={usuarios} />}
             {aba === 'admins' && <Admins config={painel.config} dono={painel.dono} souDono={eu.dono} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
           </div>
         </section>

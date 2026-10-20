@@ -142,6 +142,8 @@ function conectar(id) {
     if (m.tipo === 'estado') publicar({ status: m.status || {} })
     else if (m.tipo === 'mudou') publicar({ status: { ...estado.status, [m.id]: { st: m.st, visto: m.visto ?? estado.status[m.id]?.visto ?? null } } })
     else if (m.tipo === 'lista') carregarLista()
+    // O dono deu uma skin: o aviso aparece na hora (comum/AvisoSkin.jsx)
+    else if (m.tipo === 'skin') window.dispatchEvent(new Event('np-skin'))
     // Algo mudou no meu lobby (convite, alguém entrou/saiu, lobby aberto): a página do Lobby recarrega
     else if (m.tipo === 'lobby') window.dispatchEvent(new Event('np-lobby'))
     // O admin mudou o meu perfil (ex.: deu uma insígnia): Moldura.jsx atualiza na hora e o aviso aparece

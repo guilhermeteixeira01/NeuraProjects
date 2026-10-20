@@ -38,8 +38,8 @@
  *   STEAM_API_KEY   chave da Web API da Steam (opcional; sem ela o token vai sem nome/avatar e o site
  *                   usa os do ranking)
  */
-import { Presenca, avisarPerfil, rotaAmigos, rotaLobby, rotaPresenca, rotaServidor } from './amigos.js'
-import { rotaServidorSkins, rotaSkins } from './skins.js'
+import { Presenca, avisarPerfil, avisarSkin, rotaAmigos, rotaLobby, rotaPresenca, rotaServidor } from './amigos.js'
+import { rotaAdminSkin, rotaAdminSkins, rotaServidorSkins, rotaSkins, rotaSkinsPresentes } from './skins.js'
 export { Presenca } // Durable Object da presença (wrangler.toml)
 
 const OPENID = 'https://steamcommunity.com/openid/login'
@@ -99,6 +99,7 @@ export default {
     if (rota === '/usuarios/buscar' && req.method === 'GET') return buscarUsuarios(url, env, quem, cors)
     if (rota === '/lobby' && (req.method === 'GET' || req.method === 'POST')) return rotaLobby(req, env, quem, cors)
     if (rota === '/skins' && (req.method === 'GET' || req.method === 'POST')) return rotaSkins(req, env, quem, cors)
+    if (rota === '/skins/presentes' && req.method === 'POST') return rotaSkinsPresentes(req, env, quem, cors)
     if (req.method === 'POST' && (rota === '/perfil' || rota === '/moldura')) return salvarPerfil(req, env, site, quem, admin, config, cors, rota === '/moldura')
 
     if (rota.startsWith('/admin/')) {
@@ -106,6 +107,15 @@ export default {
       if (rota === '/admin/dados' && req.method === 'GET') return adminDados(env, config, cors)
       if (rota === '/admin/perfil' && req.method === 'POST') return adminPerfil(req, env, site, config, cors)
       if (rota === '/admin/config' && req.method === 'POST') return adminConfig(req, env, site, config, cors)
+      // Skins: só o dono dá e tira (o jogador não cria itens)
+      if (rota === '/admin/skin' && req.method === 'POST') {
+        if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
+        return rotaAdminSkin(req, env, cors, avisarSkin)
+      }
+      if (rota === '/admin/skins' && req.method === 'GET') {
+        if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
+        return rotaAdminSkins(url, env, cors)
+      }
       if (rota === '/admin/selos' && req.method === 'POST') {
         if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
         return adminSelos(req, env, config, cors)
