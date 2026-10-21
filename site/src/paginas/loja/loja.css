@@ -408,11 +408,13 @@ html.lj-travado .nx-rolagem { display: none !important; }
 /* parada: o 6º cartão (índice 5) fica no meio, embaixo do marcador (150 px + 8 px de espaço por cartão) */
 .lj-roleta-parada .lj-trilho { position: relative; left: 50%; transform: translateX(-865px); }
 /* abertura embutida: sem tela cheia, do tamanho da moldura */
-.lj-abertura.lj-embutida { position: relative; inset: auto; z-index: 1; height: auto !important; min-height: 300px; background: transparent; overflow: hidden; touch-action: auto; overscroll-behavior: auto; }
+.lj-abertura.lj-embutida { position: relative; inset: auto; z-index: 1; height: auto !important; min-height: 0; background: transparent; overflow: hidden; touch-action: auto; overscroll-behavior: auto; }
 .lj-embutida .lj-abertura-topo { position: absolute; top: 6px; right: 8px; padding: 0; }
-.lj-embutida .lj-faixas { padding: 8px 0; flex: none; }
+.lj-embutida .lj-faixas { padding: 0; flex: none; align-content: start; }
 .lj-embutida .lj-resultado { padding: 20px 16px; overflow: visible; }
-.lj-embutida .lj-centro { min-height: 260px; }
+/* "Abrindo…" ocupa a altura de uma roleta (a página não pula ao começar nem ao terminar) */
+.lj-embutida .lj-centro { flex: none; min-height: 214px; padding: 16px; }
+@media (max-width: 700px) { .lj-embutida .lj-centro { min-height: 168px; } }
 
 /* controles: quantidade (esquerda), abrir (meio), modos e som (direita) */
 .lj-cx-controles { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 14px; margin: 22px 0 10px; }
@@ -542,8 +544,17 @@ html.lj-travado .nx-rolagem { display: none !important; }
 
 /* ══════ Resultado na página da caixa: a roleta fica parada no item ganho, o resto apaga; "Vender por X" ao lado ══════ */
 .lj-cx-roletas .lj-parou .lj-cartao { opacity: .28; filter: saturate(.6); transition: opacity .4s, filter .4s; }
-.lj-cx-roletas .lj-parou .lj-cartao.lj-venceu { opacity: 1; filter: none; transform: none; box-shadow: none;
-  background: radial-gradient(80% 60% at 50% 35%, color-mix(in srgb, var(--cor) 30%, transparent), transparent 85%), #17264d; }
+/* o item ganho: com a cor da raridade (fundo, borda e brilho), como antes de girar, só que em destaque */
+.lj-cx-roletas .lj-parou .lj-cartao.lj-venceu { opacity: 1; filter: none; transform: none; z-index: 2;
+  background: radial-gradient(80% 65% at 50% 35%, color-mix(in srgb, var(--cor) 55%, transparent), transparent 90%), color-mix(in srgb, var(--cor) 18%, #101c3c);
+  box-shadow: inset 0 0 0 2px var(--cor), 0 0 26px color-mix(in srgb, var(--cor) 70%, transparent); animation: lj-venceu-pulso 1.6s ease-in-out 2; }
+@keyframes lj-venceu-pulso { 50% { box-shadow: inset 0 0 0 2px var(--cor), 0 0 44px var(--cor); } }
+.lj-confete { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; }
+/* enquanto gira: os controles ficam no lugar, só apagados */
+.lj-cx-controles.is-girando .lj-cx-qtd, .lj-cx-controles.is-girando .lj-cx-modos .lj-hex-caixa:nth-child(-n + 2) { opacity: .45; }
+.lj-hex:disabled { cursor: not-allowed; }
+.lj-hex:disabled:hover { background: rgb(255 255 255 / .2); }
+.lj-hex.is-ativo:disabled:hover { background: var(--modo); }
 .lj-venceu-desgaste { color: rgb(255 255 255 / .85) !important; font-weight: 700; }
 .lj-vender-um { position: absolute; z-index: 5; top: 50%; left: calc(50% + 100px); transform: translateY(-50%); padding: 12px 22px; border-radius: 6px;
   border: 2px solid #2ecc71; background: rgb(10 40 38 / .92); color: #fff; font: 600 17px var(--font-body); white-space: nowrap; cursor: pointer;
@@ -563,8 +574,7 @@ html.lj-travado .nx-rolagem { display: none !important; }
 .lj-cx-pos .lj-cx-qtd { align-self: center; }
 
 @media (max-width: 900px) {
-  .lj-vender-um { left: 50%; top: auto; bottom: 8px; transform: translateX(-50%); padding: 7px 14px; font-size: 14px; animation: none; }
-  .lj-cx-roletas .lj-roleta.lj-parou { padding-bottom: 52px; }
+  .lj-vender-um { left: auto; right: 8px; top: auto; bottom: 8px; transform: none; padding: 7px 12px; font-size: 13.5px; animation: none; } /* no canto, por cima dos cartões apagados: a roleta não cresce */
   .lj-cx-pos .lj-cx-qtd { order: 4; }
   .lj-cx-vender-tudo, .lj-cx-de-novo { min-width: 0; width: 100%; font-size: 16px; padding: 14px 16px; }
   .lj-cx-pos-botoes { width: min(100%, 460px); flex-direction: column; }
