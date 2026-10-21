@@ -70,7 +70,7 @@ export default function InventarioDoJogador({ steamId, nome, aoFechar }) {
   // guardados agrupados: { tipo, def, n }
   const grupos = useMemo(() => {
     const g = new Map()
-    for (const i of itens) if (GUARDADOS.has(i.t)) g.set(`${i.t}:${i.d}`, { tipo: i.t, def: i.d, n: (g.get(`${i.t}:${i.d}`)?.n || 0) + 1 })
+    for (const i of itens) if (GUARDADOS.has(i.t)) g.set(`${i.t}:${i.d}`, { tipo: i.t, def: i.d, n: (g.get(`${i.t}:${i.d}`)?.n || 0) + 1, ids: [...(g.get(`${i.t}:${i.d}`)?.ids || []), i.__id] })
     return [...g.values()]
   }, [itens])
   const contagem = (id) => (id === 'tudo' ? cartoes.length + grupos.reduce((a, g) => a + g.n, 0) : GUARDADOS.has(id) ? grupos.filter((g) => g.tipo === id).reduce((a, g) => a + g.n, 0) : cartoes.filter((c) => c.t === id).length)
@@ -115,7 +115,7 @@ export default function InventarioDoJogador({ steamId, nome, aoFechar }) {
         ) : (
           <ul className="inv-itens ij-itens">
             {verCartoes.map((it) => (
-              <CartaoSkin key={it.__id} item={it} idx={idx} adesivos={mapaAd} chaveiros={mapaCh} equip={dados.equip} />
+              <CartaoSkin key={it.__id} item={it} idx={idx} adesivos={mapaAd} chaveiros={mapaCh} equip={dados.equip} extra={dados.valores?.[it.__id] != null && <span className="ij-valor">{dados.valores[it.__id].toLocaleString(t.local)} NP</span>} />
             ))}
             {verGrupos.map((g) => {
               const d = dadosDoGrupo(g)
@@ -131,6 +131,7 @@ export default function InventarioDoJogador({ steamId, nome, aoFechar }) {
                     <span className="inv-cartao-nome">
                       <b>{d.nome}</b>
                       <small>{d.sub}</small>
+                      {dados.valores?.[g.ids?.[0]] != null && <span className="ij-valor">{dados.valores[g.ids[0]].toLocaleString(t.local)} NP</span>}
                     </span>
                   </div>
                 </li>

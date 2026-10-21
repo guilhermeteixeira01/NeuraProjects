@@ -41,7 +41,7 @@
 import { Presenca, avisarPerfil, avisarSkin, rotaAmigos, rotaLobby, rotaPresenca, rotaServidor } from './amigos.js'
 import { rotaAdminSkin, rotaAdminSkins, rotaServidorSkins, rotaSkins, rotaSkinsExcluir, rotaSkinsInventarioPublico, rotaSkinsPresentes, rotaSkinsPublico } from './skins.js'
 import { Trocas, rotaTrocas } from './trocas.js'
-import { Loja, rotaAdminLoja, rotaLoja, rotaLojaPublica, rotaNotificacoes } from './loja.js'
+import { Loja, valorDe, rotaAdminLoja, rotaLoja, rotaLojaPublica, rotaNotificacoes } from './loja.js'
 import { Mercado, rotaDrops, rotaMercado } from './mercado.js'
 import { zerarTudo } from './zerar.js'
 import { ehInsigniaLoja, ID_MESTRE } from './loja-core.js'
@@ -101,7 +101,7 @@ async function atender(req, env, ctx) {
     if ((rota === '/servidor/proxima' || rota === '/servidor/estado' || rota === '/servidor/elenco' || (rota === '/teste/limpar' && env.MODO_TESTE === '1')) && req.method === 'POST') return rotaServidor(req, env, rota)
 
     if (rota === '/skins/publico' && req.method === 'GET') return rotaSkinsPublico(url, env) // skins equipadas de um jogador (perfil)
-    if (rota === '/skins/inventario' && req.method === 'GET') return rotaSkinsInventarioPublico(url, env) // inventário de um jogador (botão "Ver inventário" do perfil)
+    if (rota === '/skins/inventario' && req.method === 'GET') return rotaSkinsInventarioPublico(url, env, valorDe) // inventário de um jogador (botão "Ver inventário" do perfil)
     // Zerar tudo pela manutenção (sem login Steam): só existe enquanto o segredo ZERAR_TOKEN estiver configurado (npx wrangler secret put/delete)
     if (rota === '/manutencao/zerar-tudo' && req.method === 'POST') {
       const dado = new TextEncoder().encode(req.headers.get('X-Zerar') || '')
