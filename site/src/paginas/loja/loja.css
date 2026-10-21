@@ -539,3 +539,33 @@ html.lj-travado .nx-rolagem { display: none !important; }
   .lj-cx-info { padding: 32px 4px 6px; }
   .lj-cx-info th, .lj-cx-info td { padding: 2px 3px; }
 }
+
+/* ══════ Resultado na página da caixa: a roleta fica parada no item ganho, o resto apaga; "Vender por X" ao lado ══════ */
+.lj-cx-roletas .lj-parou .lj-cartao { opacity: .28; filter: saturate(.6); transition: opacity .4s, filter .4s; }
+.lj-cx-roletas .lj-parou .lj-cartao.lj-venceu { opacity: 1; filter: none; transform: none; box-shadow: none;
+  background: radial-gradient(80% 60% at 50% 35%, color-mix(in srgb, var(--cor) 30%, transparent), transparent 85%), #17264d; }
+.lj-venceu-desgaste { color: rgb(255 255 255 / .85) !important; font-weight: 700; }
+.lj-vender-um { position: absolute; z-index: 5; top: 50%; left: calc(50% + 100px); transform: translateY(-50%); padding: 12px 22px; border-radius: 6px;
+  border: 2px solid #2ecc71; background: rgb(10 40 38 / .92); color: #fff; font: 600 17px var(--font-body); white-space: nowrap; cursor: pointer;
+  box-shadow: 0 6px 20px rgb(0 0 0 / .5); animation: lj-vender-entra .35s ease-out both; transition: background .15s; }
+.lj-vender-um:hover:not(:disabled) { background: rgb(20 70 60 / .95); }
+.lj-vender-um:disabled { cursor: default; }
+.lj-vender-um.is-vendido { border-color: rgb(255 255 255 / .2); color: rgb(255 255 255 / .6); background: rgb(15 25 45 / .9); }
+@keyframes lj-vender-entra { from { opacity: 0; transform: translate(-10px, -50%); } to { opacity: 1; transform: translateY(-50%); } }
+
+.lj-cx-pos-botoes { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.lj-cx-vender-tudo, .lj-cx-de-novo { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-width: 300px; padding: 16px 28px; border-radius: 6px; color: #fff; font: 600 19px var(--font-body); cursor: pointer; transition: background .15s; }
+.lj-cx-vender-tudo { border: 2px solid #2ecc71; background: rgb(14 52 50 / .9); }
+.lj-cx-vender-tudo:hover:not(:disabled) { background: rgb(20 75 66 / .95); }
+.lj-cx-de-novo { border: 2px solid color-mix(in srgb, var(--modo) 60%, #3b4a7a); background: rgb(22 32 70 / .85); }
+.lj-cx-de-novo:hover:not(:disabled) { background: rgb(32 46 96 / .9); }
+.lj-cx-vender-tudo:disabled, .lj-cx-de-novo:disabled { opacity: .5; cursor: not-allowed; }
+.lj-cx-pos .lj-cx-qtd { align-self: center; }
+
+@media (max-width: 900px) {
+  .lj-vender-um { left: 50%; top: auto; bottom: 8px; transform: translateX(-50%); padding: 7px 14px; font-size: 14px; animation: none; }
+  .lj-cx-roletas .lj-roleta.lj-parou { padding-bottom: 52px; }
+  .lj-cx-pos .lj-cx-qtd { order: 4; }
+  .lj-cx-vender-tudo, .lj-cx-de-novo { min-width: 0; width: 100%; font-size: 16px; padding: 14px 16px; }
+  .lj-cx-pos-botoes { width: min(100%, 460px); flex-direction: column; }
+}

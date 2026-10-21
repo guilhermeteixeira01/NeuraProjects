@@ -1281,4 +1281,10 @@ export default {
   "Não deu agora. Tente de novo.": "No se pudo ahora. Inténtalo de nuevo.",
   "Esta página não está disponível.": "Esta página no está disponible.",
   "ERRO 404": "ERROR 404",
+  // Mercado, drops ao vivo, página da caixa, trocas, lobby e loja
+  "Abrir de novo por {n} NP": "Abrir de nuevo por {n} NP",
+  "Tudo vendido": "Todo vendido",
+  "Vender por {n} NP": "Vender por {n} NP",
+  "Vender tudo por {n} NP": "Vender todo por {n} NP",
+  "Vendido": "Vendido",
 }

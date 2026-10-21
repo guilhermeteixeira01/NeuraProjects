@@ -53,7 +53,9 @@ const num = (v, min, max, padrao) => {
 // ── caixas e configuração (KV) ──
 // Revisão 2: Kawaii e Terror só com adesivos; Lendas e Espacial só com amuletos (chaveiros)
 // Revisão 3: preço das caixas = valor de mercado esperado do que sai nelas + margem (precos.json, scripts/gerar-precos.mjs); depois disso o dono ajusta à vontade
-const REVISAO_CAIXAS = 3 // (a caixa de luvas é nova: entra pela lista de fábrica, sem precisar de revisão)
+// Revisão 4: preços das caixas refeitos depois que as skins caras (facas, luvas, Dopplers, acima de US$ 2.000) passaram a ter o preço real do mercado
+// Revisão 5: refeitos de novo com o preço do mercado de terceiros (CSFloat/Buff), o que os sites de caixa usam
+const REVISAO_CAIXAS = 5 // (a caixa de luvas é nova: entra pela lista de fábrica, sem precisar de revisão)
 const ATUALIZAR_CAIXAS = ['caixa-kawaii', 'caixa-terror', 'caixa-lendas', 'caixa-espacial']
 export async function lerCaixas(env) {
   const salvas = await env.MOLDURAS.get('caixas', 'json').catch(() => null)
@@ -472,6 +474,7 @@ export class Loja {
         alvo: faixa.alvo,
         quase: faixa.quase,
         facas: ganhou.raridade === 5 ? gerarFaixaFacas(caixa, ganhou, rndSeguro) : null,
+        v: valorDe(inv.itens[item])?.v ?? 0, // por quanto vende (botões "Vender por X" do resultado)
       })
     }
     const limpo = limparSkins(inv)

@@ -4,7 +4,7 @@
 // (Abertura embutida). Chances, preços dos modos e valores por desgaste vêm do servidor (GET /loja/caixa).
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useT } from '../../comum/i18n.js'
-import { lerDetalhesCaixa } from '../../comum/loja.js'
+import { avisarSaldo, lerDetalhesCaixa, venderItens } from '../../comum/loja.js'
 import { desempenhoAtivo } from '../../comum/desempenho.js'
 import { RARIDADES } from '../../../worker/steam-login/src/loja-core.js'
 import Abertura, { CartaoItem, dadosDoItem } from './Abertura.jsx'
@@ -252,6 +252,10 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado = false, ac
   const [somLigado, setSomLigado] = useState(true)
   const [det, setDet] = useState(null) // GET /loja/caixa
   const [abrindo, setAbrindo] = useState(null) // { qtd, origem, chave }
+  const [resultado, setResultado] = useState(null) // o que saiu (depois que as roletas pararam): [{ id, v, ... }]
+  const [vendidos, setVendidos] = useState(() => new Set())
+  const [vendendo, setVendendo] = useState(false)
+  const [erroVenda, setErroVenda] = useState('')
 
   useEffect(() => {
     setRapida(lerRapida())
@@ -297,7 +301,37 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado = false, ac
     definirPreferencia({ mudo: somLigado })
     setSomLigado(!somLigado)
   }
-  const abrir = (q, origem) => setAbrindo({ qtd: q, origem, chave: Date.now() })
+  const abrir = (q, origem) => {
+    setResultado(null)
+    setVendidos(new Set())
+    setErroVenda('')
+    setAbrindo({ qtd: q, origem, chave: Date.now() })
+  }
+  const voltarParaCaixa = () => {
+    setAbrindo(null)
+    setResultado(null)
+    aoAbriu()
+  }
+  // Vender o que saiu (um ou todos): o item sai do inventário e os NP entram na hora
+  const vender = async (ids) => {
+    const lista = ids.filter((id) => !vendidos.has(id))
+    if (!lista.length) return
+    setVendendo(true)
+    setErroVenda('')
+    try {
+      const r = await venderItens(lista)
+      avisarSaldo(r.saldo)
+      som('parar')
+      setVendidos((s) => new Set([...s, ...lista]))
+      aoAbriu()
+    } catch {
+      setErroVenda(t('Não deu para vender agora. Tente de novo.'))
+    } finally {
+      setVendendo(false)
+    }
+  }
+  const aVender = (resultado || []).filter((r) => !vendidos.has(r.id))
+  const totalVenda = aVender.reduce((a, r) => a + (r.v || 0), 0)
 
   return (
     <section className="lj-cx" data-modo={modo || 'normal'} aria-label={c.nome}>
@@ -332,17 +366,54 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado = false, ac
             qtd={abrindo.qtd}
             origem={abrindo.origem}
             maxQtd={maximo}
-            aoFechar={() => {
-              setAbrindo(null)
-              aoAbriu()
-            }}
+            aoFechar={voltarParaCaixa}
             aoOutra={(n) => abrir(n || 1, modo ? 'direto' : 'auto')}
+            aoResultado={(r) => {
+              setResultado(r)
+              aoAbriu() // saldo novo (o "Abrir de novo" confere)
+            }}
+            vendidos={vendidos}
+            vendendo={vendendo}
+            aoVender={vender}
           />
         ) : (
           Array.from({ length: qtd }, (_, k) => <RoletaParada key={`${k}-${qtd}`} c={c} achar={achar} />)
         )}
         <ParticulasModo modo={modo} chave={efeito} />
       </div>
+
+      {/* resultado: vender tudo ou abrir de novo (a quantidade e o modo continuam os mesmos); Lightning e som à direita */}
+      {abrindo && resultado && (
+        <div className="lj-cx-controles lj-cx-pos">
+          <div className="lj-cx-qtd">
+            <button type="button" className="lj-cx-link" onClick={voltarParaCaixa}>
+              {t('Voltar')}
+            </button>
+          </div>
+          <div className="lj-cx-abrir">
+            <span className="lj-cx-pos-botoes">
+              <button type="button" className="lj-cx-vender-tudo" disabled={vendendo || !aVender.length} onClick={() => vender(aVender.map((r) => r.id))}>
+                <Icone d="M12 2v12m0 0 4-4m-4 4-4-4M4 16v4h16v-4" />
+                {aVender.length ? t('Vender tudo por {n} NP', { n: numero(totalVenda) }) : t('Tudo vendido')}
+              </button>
+              <button type="button" className="lj-cx-de-novo" disabled={preco == null || falta} onClick={() => abrir(qtd, modo ? 'direto' : 'auto')}>
+                <Icone d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4" />
+                {t('Abrir de novo por {n} NP', { n: numero(custo ?? 0) })}
+              </button>
+            </span>
+            {erroVenda && <small className="lj-cx-falta">{erroVenda}</small>}
+            {falta && <small className="lj-cx-falta">{t('Faltam {n} NP', { n: numero(custo - saldo) })}</small>}
+          </div>
+          <div className="lj-cx-modos">
+            <Hex ativo={rapida} cor="#f5c518" titulo="Lightning" dica={t('Acelere a animação de abertura da caixa')} aoClicar={alternarRapida}>
+              <Icone d={ICONES.raio} preenchido />
+            </Hex>
+            <Hex ativo={somLigado} rotulo={somLigado ? t('Desligar o som') : t('Ligar o som')} aoClicar={alternarSom}>
+              <IconeSom ligado={somLigado} />
+            </Hex>
+          </div>
+        </div>
+      )}
 
       {!abrindo && (
         <div className="lj-cx-controles">

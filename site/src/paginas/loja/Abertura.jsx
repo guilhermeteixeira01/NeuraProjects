@@ -13,6 +13,7 @@ const DURACAO_FACAS = 5000
 // Lightning (botão da página da caixa): a mesma animação, mais curta
 const DURACAO_RAPIDA = 2200
 const DURACAO_FACAS_RAPIDA = 1800
+const SEM_VENDIDOS = new Set()
 
 // ── dados de um item (nome, imagem) a partir do catálogo de skins ──
 export function useAcharItem() {
@@ -63,7 +64,10 @@ export function CartaoItem({ r, d, p, tipo, n, i, achar, classe = '', children }
 
 // ── roleta (horizontal ou vertical): anima até o item sorteado ──
 // itens: lista de { r, i } (i = índice na lista `lista` da caixa); o vencedor está em `alvo`
-function Roleta({ vertical = false, itens, alvo, lista, achar, rodando, pular, duracao, aoParar, sonora = true }) {
+// vencedor (só na página da caixa, depois que tudo parou): o item ganho no lugar do cartão do meio (a faca no lugar do "?"), com o desgaste
+// extra: algo por cima da roleta parada (o botão "Vender por X")
+function Roleta({ vertical = false, itens, alvo, lista, achar, rodando, pular, duracao, aoParar, sonora = true, vencedor, extra }) {
+  const t = useT()
   const caixa = useRef(null)
   const trilho = useRef(null)
   const [parou, setParou] = useState(false)
@@ -121,11 +125,21 @@ function Roleta({ vertical = false, itens, alvo, lista, achar, rodando, pular, d
         {itens.map((it, k) => {
           const base = it.r === 5 && !vertical ? null : vertical ? lista[it] : lista[it.i]
           const cls = k === alvo && parou ? 'lj-venceu' : ''
+          if (k === alvo && parou && vencedor) {
+            const v = vencedor.item
+            const enfeite = v.t === 'adesivo' || v.t === 'chaveiro'
+            return (
+              <CartaoItem key={k} r={vencedor.raridade} d={v.d} p={v.p} tipo={v.t} n={v.n} i={v.i} achar={achar} classe={cls}>
+                {!enfeite && <small className="lj-venceu-desgaste">{t(nomeDoDesgaste(v.f))}</small>}
+              </CartaoItem>
+            )
+          }
           if (!vertical && it.r === 5) return <CartaoItem key={k} r={5} achar={achar} classe={cls} />
           return <CartaoItem key={k} r={vertical ? 5 : it.r} d={base.d} p={base.p} tipo={base.t} n={base.n} i={base.i} achar={achar} classe={cls} />
         })}
       </div>
       <i className="lj-marcador" aria-hidden="true" />
+      {parou && extra}
     </div>
   )
 }
@@ -246,7 +260,8 @@ const MENSAGENS = {
 
 // props: caixa (completa, de GET /loja; no modo Jester/Boost, com o preço do modo), qtd, origem ('direto' | 'inventario'), aoFechar(), aoOutra()
 //   embutida: roda dentro da página da caixa (sem tela cheia); rapida: Lightning (animação curta); modo: 'jester' | 'boost' | undefined
-export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoOutra, embutida = false, rapida = false, modo }) {
+//   (embutida) aoResultado(resultados): tudo parou; vendidos: Set dos ids já vendidos; vendendo: venda em andamento; aoVender([ids])
+export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoOutra, embutida = false, rapida = false, modo, aoResultado, vendidos = SEM_VENDIDOS, vendendo = false, aoVender }) {
   const t = useT()
   const achar = useAcharItem()
   const [fase, setFase] = useState('carregando') // carregando | roleta | facas | resultado | erro
@@ -337,6 +352,11 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
     }
   }, [fase]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // embutida: a página da caixa mostra os botões do resultado (Vender tudo, Abrir de novo)
+  useEffect(() => {
+    if (embutida && fase === 'resultado' && resultados.length) aoResultado?.(resultados)
+  }, [fase]) // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     const tecla = (e) => e.key === 'Escape' && fase !== 'carregando' && fase !== 'roleta' && fase !== 'facas' && aoFechar()
     document.addEventListener('keydown', tecla)
@@ -396,11 +416,35 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
         </div>
       )}
 
-      {fase === 'roleta' && (
-        <div className="lj-faixas" data-n={resultados.length} style={{ "--n": resultados.length }}>
-          {resultados.map((r, k) => (
-            <Roleta key={r.id} itens={r.faixa} alvo={r.alvo} lista={caixa.itens} achar={achar} rodando sonora={k === 0} duracao={(rapida ? DURACAO_RAPIDA : DURACAO) + k * (rapida ? 120 : 250)} pular={pular} aoParar={() => setParadas((n) => n + 1)} />
-          ))}
+      {/* embutida: as roletas continuam na tela depois de parar (escondidas só durante a roleta da faca), com o item ganho e o "Vender por X" */}
+      {(fase === 'roleta' || (embutida && (fase === 'facas' || fase === 'resultado'))) && (
+        <div className="lj-faixas" data-n={resultados.length} style={{ '--n': resultados.length, ...(fase === 'facas' ? { display: 'none' } : {}) }}>
+          {resultados.map((r, k) => {
+            const pronto = embutida && fase === 'resultado'
+            const vendido = vendidos.has(r.id)
+            return (
+              <Roleta
+                key={r.id}
+                itens={r.faixa}
+                alvo={r.alvo}
+                lista={caixa.itens}
+                achar={achar}
+                rodando
+                sonora={k === 0}
+                duracao={(rapida ? DURACAO_RAPIDA : DURACAO) + k * (rapida ? 120 : 250)}
+                pular={pular}
+                aoParar={() => setParadas((n) => n + 1)}
+                vencedor={pronto ? r : undefined}
+                extra={
+                  pronto ? (
+                    <button type="button" className={`lj-vender-um${vendido ? ' is-vendido' : ''}`} disabled={vendido || vendendo} onClick={() => aoVender?.([r.id])}>
+                      {vendido ? t('Vendido') : t('Vender por {n} NP', { n: (r.v || 0).toLocaleString('pt-BR') })}
+                    </button>
+                  ) : null
+                }
+              />
+            )
+          })}
         </div>
       )}
 
@@ -426,7 +470,7 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
         </div>
       )}
 
-      {fase === 'resultado' && (
+      {fase === 'resultado' && !embutida && (
         <div className="lj-resultado">
           {resultados.length === 1 ? (
             <Revelacao resultado={resultados[0]} achar={achar} />
