@@ -370,7 +370,8 @@ function validarPerfil(corpo, soMoldura) {
     if (!v || typeof v !== 'object') return { erro: 'vistos' }
     const vistos = {}
     if ('ins' in v) {
-      if (!Array.isArray(v.ins) || v.ins.length > 50 || v.ins.some((m) => typeof m !== 'string' || !/^[a-z0-9_-]{1,40}:\d{1,15}$/.test(m))) return { erro: 'vistos' }
+      // marca = id da insígnia (formato atual) ou "id:data" (formato antigo, ainda guardado em navegadores)
+      if (!Array.isArray(v.ins) || v.ins.length > 50 || v.ins.some((m) => typeof m !== 'string' || !/^[a-z0-9_-]{1,60}(:\d{1,15})?$/.test(m))) return { erro: 'vistos' }
       vistos.ins = v.ins
     }
     if ('nivel' in v) {

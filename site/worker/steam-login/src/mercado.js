@@ -1,5 +1,5 @@
 /*
- * Mercado entre jogadores: o jogador anuncia uma skin (arma, faca ou luva) pelo preço que quiser em Neura Pontos (NP) e outro jogador compra.
+ * Mercado entre jogadores: o jogador anuncia uma skin (arma, faca ou luva), um adesivo ou um chaveiro pelo preço que quiser em Neura Pontos (NP) e outro jogador compra.
  * Enquanto está anunciado, o item SAI do inventário (não dá para equipar, trocar nem vender de novo); cancelar devolve o item ao inventário.
  * Quando alguém compra: o comprador paga e recebe o item (as duas coisas juntas, no objeto da loja dele: Loja.comprarDoMercado), o vendedor
  * recebe os NP e uma notificação no sino (gravada na conta dele, aparece em qualquer aparelho).
@@ -16,7 +16,7 @@ import { lerSkins, novoIdItem } from './skins.js'
 import { mexerNoInventario } from './trocas.js'
 import { pontosGanhos, valorDe } from './loja.js'
 
-const TIPOS_OK = new Set(['arma', 'faca', 'luva'])
+const TIPOS_OK = new Set(['arma', 'faca', 'luva', 'adesivo', 'chaveiro'])
 const MAX_POR_VENDEDOR = 30
 const MAX_ANUNCIOS = 3000
 const PRECO_MAX = 10_000_000

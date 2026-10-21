@@ -14,7 +14,10 @@ const TIPOS = [
   ['arma', 'Armas'],
   ['faca', 'Facas'],
   ['luva', 'Luvas'],
+  ['adesivo', 'Adesivos'],
+  ['chaveiro', 'Amuletos'],
 ]
+const ENFEITE = (t) => t === 'adesivo' || t === 'chaveiro'
 const ORDENS = [
   ['recente', 'Mais recentes'],
   ['barato', 'Menor preço'],
@@ -34,7 +37,7 @@ export default function AbaMercado({ saldo, aoMudarSaldo }) {
   const [ocupado, setOcupado] = useState('') // id do anúncio sendo comprado/cancelado
   const [aviso, setAviso] = useState(null) // { texto, ok }
   const catalogo = useCatalogo('armas')
-  const temEnfeite = !!anuncios?.some((a) => a.item.a?.some(Boolean) || a.item.k?.i)
+  const temEnfeite = !!anuncios?.some((a) => ENFEITE(a.item.t) || a.item.a?.some(Boolean) || a.item.k?.i)
   const adesivos = useCatalogo('adesivos', temEnfeite)
   const chaveiros = useCatalogo('chaveiros', temEnfeite)
   const idx = useMemo(() => indicar(catalogo.dados?.armas, []), [catalogo.dados])
@@ -49,6 +52,7 @@ export default function AbaMercado({ saldo, aoMudarSaldo }) {
   }, [carregar])
 
   const nome = (it) => {
+    if (ENFEITE(it.t)) return (it.t === 'adesivo' ? adesivosPorId : chaveirosPorId).get(it.d)?.[1] || `#${it.d}`
     const d = descrever(it, idx)
     return `${d.titulo}${d.subtitulo ? ` | ${d.subtitulo}` : ''}`
   }
@@ -64,7 +68,7 @@ export default function AbaMercado({ saldo, aoMudarSaldo }) {
     else r.sort((a, b) => b.criado - a.criado)
     return r
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [anuncios, tipo, ordem, busca, soMeus, conta?.id, idx])
+  }, [anuncios, tipo, ordem, busca, soMeus, conta?.id, idx, adesivosPorId, chaveirosPorId])
 
   const comprar = async (a) => {
     if (saldo != null && saldo < a.preco) return setAviso({ texto: t(erroDoMercado('saldo')), ok: false })
@@ -103,7 +107,7 @@ export default function AbaMercado({ saldo, aoMudarSaldo }) {
   return (
     <section className="lj-mercado" aria-label={t('Mercado')}>
       <p className="lj-mercado-intro">
-        {t('Skins anunciadas por outros jogadores. Para vender a sua, abra o inventário, clique na arma e escolha "Vender no mercado".')}{' '}
+        {t('Skins, adesivos e amuletos anunciados por outros jogadores. Para vender o seu, abra o inventário, clique no item e escolha "Vender no mercado".')}{' '}
         <a href="/inventario/">{t('Ir para o inventário')}</a>
       </p>
       <div className="lj-filtros lj-mercado-filtros">
