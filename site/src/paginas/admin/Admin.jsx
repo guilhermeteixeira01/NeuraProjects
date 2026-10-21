@@ -750,7 +750,7 @@ function SelosEquipe({ config, aoSalvar }) {
   const salvar = async () => {
     setEstado('salvando')
     try {
-      const d = await chamar('/admin/selos', { dono: { ...selos.dono, nome: selos.dono.nome.trim() }, admin: { ...selos.admin, nome: selos.admin.nome.trim() } })
+      const d = await chamar('/admin/selos', { dono: { ...selos.dono, nome: selos.dono.nome.trim() }, admin: { ...selos.admin, nome: selos.admin.nome.trim(), acessos: selos.admin.acessos ?? ABAS_PADRAO_ADMIN } })
       aoSalvar(d.config)
       setEstado('Salvo!')
     } catch (e) {
@@ -794,6 +794,7 @@ function SelosEquipe({ config, aoSalvar }) {
         <EditarSelo
           selo={selos[editando]}
           titulo={editando === 'dono' ? tr('Dono') : tr('Admins')}
+          qual={editando}
           mudar={(campo, valor) => mudar(editando, campo, valor)}
           aoFechar={() => setEditando(null)}
         />
@@ -802,8 +803,10 @@ function SelosEquipe({ config, aoSalvar }) {
   )
 }
 
-function EditarSelo({ selo, titulo, mudar, aoFechar }) {
+function EditarSelo({ selo, titulo, qual, mudar, aoFechar }) {
   const tr = useT()
+  const acessos = selo.acessos ?? ABAS_PADRAO_ADMIN
+  const alternar = (aba) => mudar('acessos', acessos.includes(aba) ? acessos.filter((a) => a !== aba) : [...acessos, aba])
   useEffect(() => {
     const tecla = (e) => e.key === 'Escape' && aoFechar()
     document.addEventListener('keydown', tecla)
@@ -854,6 +857,25 @@ function EditarSelo({ selo, titulo, mudar, aoFechar }) {
                 <small>{tr('A página fica escondida de todos os outros.')}</small>
               </span>
             </label>
+            <h5>{tr('Abas do painel admin')}</h5>
+            {qual === 'dono' ? (
+              <p className="adm-nota">{tr('O dono tem acesso a todas as abas.')}</p>
+            ) : (
+              <>
+                <div className="adm-acessos">
+                  {Object.keys(NOMES_ABAS).map((aba) => (
+                    <label key={aba} className="adm-numerar adm-acesso">
+                      <input type="checkbox" checked={acessos.includes(aba)} onChange={() => alternar(aba)} />
+                      <span>
+                        <b>{tr(NOMES_ABAS[aba])}</b>
+                        <small>{tr(DESCRICAO_ABAS[aba])}</small>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <p className="adm-nota">{tr('Vale para todos os admins. Por padrão: Usuários, Molduras, Cards e Cargos.')}</p>
+              </>
+            )}
           </section>
         </div>
         <footer>
@@ -868,6 +890,7 @@ function EditarSelo({ selo, titulo, mudar, aoFechar }) {
   )
 }
 
+const ABAS_PADRAO_ADMIN = ['usuarios', 'molduras', 'cards', 'cargos']
 // Abas do painel que um cargo pode liberar (o dono marca; o worker confere a aba em cada rota)
 const NOMES_ABAS = { usuarios: 'Usuários', molduras: 'Molduras', cards: 'Cards', cargos: 'Cargos', assinaturas: 'Assinaturas', skins: 'Skins', caixas: 'Caixas', pontos: 'Pontos', admins: 'Admins' }
 const DESCRICAO_ABAS = {

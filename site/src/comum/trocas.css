@@ -100,3 +100,8 @@ button.tr-item:hover { background: rgb(255 255 255 / .06); }
 }
 .tr-aviso { flex-basis: 100%; margin: 0 0 4px; padding: 10px 12px; border-radius: 8px; background: rgb(245 197 24 / .12); border: 1px solid rgb(245 197 24 / .4); color: #ffe08a; font-size: 13px; line-height: 1.4; }
 .tr-prop > footer { flex-wrap: wrap; }
+
+/* Itens nos quadros: ocupam a largura toda (sem isso o cartão da skin encolhe para um ponto) */
+.tr-slot .tr-item, .tr-prop-itens .tr-item { display: flex; align-items: center; justify-content: center; }
+.tr-slot .tr-skin, .tr-prop-itens .tr-skin, .tr-slot .tr-skin > li, .tr-prop-itens .tr-skin > li, .tr-slot .inv-cartao, .tr-prop-itens .inv-cartao { width: 100%; min-width: 0; }
+.tr-slot .inv-cartao-arte, .tr-prop-itens .inv-cartao-arte { width: 100%; }
