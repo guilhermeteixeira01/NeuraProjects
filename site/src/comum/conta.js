@@ -53,7 +53,10 @@ export function tokenConta() {
 
 export const loginAtivo = () => Boolean(CONFIG.loginSteam)
 
-export function entrar() {
+// Antes de ir para a Steam, mostra os Termos de Uso (uma vez por versão) com a caixinha de aceite
+export async function entrar() {
+  const { exigirTermos } = await import('./Termos.jsx')
+  if (!(await exigirTermos())) return
   const volta = location.origin + location.pathname + location.search
   location.href = `${CONFIG.loginSteam.replace(/\/$/, '')}/login?volta=${encodeURIComponent(volta)}`
 }
