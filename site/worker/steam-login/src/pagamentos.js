@@ -78,21 +78,32 @@ async function criar(env, quem, corpo) {
   const cpf = String(corpo.cpf).replace(/\D/g, '')
 
   try {
-    const pode = await chamarLoja(env, quem.id, { acao: 'dep-pode' })
-    let cliente = pode.cliente
-    if (!cliente) {
-      cliente = (await asaas(env, '/customers', 'POST', { name: nome, cpfCnpj: cpf, externalReference: quem.id, notificationDisabled: true })).id
-      await chamarLoja(env, quem.id, { acao: 'dep-cliente', cliente })
+    const amb = /sandbox/i.test(env.ASAAS_URL || 'sandbox') ? 'sandbox' : 'prod'
+    const pode = await chamarLoja(env, quem.id, { acao: 'dep-pode', amb })
+    const novoCliente = async () => {
+      const c = (await asaas(env, '/customers', 'POST', { name: nome, cpfCnpj: cpf, externalReference: quem.id, notificationDisabled: true })).id
+      await chamarLoja(env, quem.id, { acao: 'dep-cliente', cliente: c, amb })
+      return c
     }
+    let cliente = pode.cliente || (await novoCliente())
     const np = npDoPagamento(centavos)
-    const cobranca = await asaas(env, '/payments', 'POST', {
-      customer: cliente,
-      billingType: metodo === 'pix' ? 'PIX' : 'CREDIT_CARD',
-      value: centavos / 100,
-      dueDate: hojeSP(),
-      description: `Neura Project: ${np.toLocaleString('pt-BR')} Neura Pontos (NP)`,
-      externalReference: `np:${quem.id}`,
-    })
+    const nova = (customer) =>
+      asaas(env, '/payments', 'POST', {
+        customer,
+        billingType: metodo === 'pix' ? 'PIX' : 'CREDIT_CARD',
+        value: centavos / 100,
+        dueDate: hojeSP(),
+        description: `Neura Project: ${np.toLocaleString('pt-BR')} Neura Pontos (NP)`,
+        externalReference: `np:${quem.id}`,
+      })
+    let cobranca
+    try {
+      cobranca = await nova(cliente)
+    } catch (e) {
+      if (!pode.cliente) throw e
+      cliente = await novoCliente() // o cliente guardado não vale mais (apagado ou de outro ambiente): cria de novo e tenta uma vez
+      cobranca = await nova(cliente)
+    }
     await chamarLoja(env, quem.id, { acao: 'dep-registrar', pid: cobranca.id, centavos, np, metodo })
     const base = { id: cobranca.id, metodo, centavos, np }
     if (metodo === 'cartao') return { status: 200, dados: { ...base, url: cobranca.invoiceUrl } }
