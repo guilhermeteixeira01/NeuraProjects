@@ -3500,3 +3500,6 @@ html.ins-estante-aberta #root { filter: blur(10px) brightness(.5) saturate(.9); 
 .nx-rolagem-alca { background: #5a5d66; opacity: 1; }
 .nx-rolagem:hover .nx-rolagem-alca, .nx-rolagem.arrastando .nx-rolagem-alca { background: #7d808a; }
 @supports not selector(::-webkit-scrollbar) { html, * { scrollbar-color: #5a5d66 var(--bg-soft); } }
+
+/* celular/tablet: o avatar da barra de cima fica sem o emblema de assinante (ele já aparece no perfil e no cartão da conta) */
+@media (max-width: 1024px) { .nx-conta-btn .emblema-sub { display: none !important; } }
