@@ -1152,9 +1152,11 @@ function Conteudo() {
           {t('Abrir')}
         </a>
       )}
-      <button type="button" className="inv-btn inv-btn-perigo inv-excluir-guardado" onClick={() => pedirExclusao(Object.keys(inv.itens).find((k) => inv.itens[k].t === g.tipo && inv.itens[k].d === g.def), `${g.linha?.[1] || `#${g.def}`} (1)`)}>
-        {g.n > 1 ? t('Excluir 1') : t('Excluir')}
-      </button>
+      {g.tipo !== 'caixa' && (
+        <button type="button" className="inv-btn inv-btn-perigo inv-excluir-guardado" onClick={() => pedirExclusao(Object.keys(inv.itens).find((k) => inv.itens[k].t === g.tipo && inv.itens[k].d === g.def), `${g.linha?.[1] || `#${g.def}`} (1)`)}>
+          {g.n > 1 ? t('Excluir 1') : t('Excluir')}
+        </button>
+      )}
     </li>
   )
   return (
