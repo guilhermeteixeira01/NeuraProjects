@@ -90,7 +90,8 @@ const c = {}
 for (const r of chaveiros) { const v = brlEnfeite(`Charm | ${r[1]}`); if (v) c[r[0]] = v }
 console.log(`adesivos com preço: ${Object.keys(a).length}/${adesivos.length}; chaveiros: ${Object.keys(c).length}/${chaveiros.length}`)
 
-// Preço das caixas: o que se espera ganhar ao abrir (valor de venda médio, simulado) mais ~15% de margem da casa. { slug: NP }
+// Preço das caixas: o que se espera ganhar ao abrir (valor de venda médio, simulado) mais 30% de margem da casa: em média o jogador
+// recebe em itens ~77% do NP que gasta (com 15% era fácil demais juntar arma cara e faca). { slug: NP }
 const caixasIniciais = ler('worker/steam-login/src/caixas-iniciais.json')
 const caixas = {}
 for (const cx of caixasIniciais) {
@@ -100,7 +101,7 @@ for (const cx of caixasIniciais) {
     const it = sortearAbertura(cx, CONFIG_PADRAO, rndSeguro).item
     soma += (it.t === 'adesivo' ? a[it.d] : it.t === 'chaveiro' ? c[it.d] : precoDeMercado(it, skins)) || 0
   }
-  const bruto = (soma / N) * 1.15
+  const bruto = (soma / N) * 1.3
   const passo = bruto < 100 ? 5 : bruto < 1000 ? 10 : 50
   caixas[cx.slug] = Math.max(5, Math.round(bruto / passo) * passo)
   console.log(cx.nome.padEnd(22), String(cx.preco).padStart(5), '->', String(caixas[cx.slug]).padStart(5), '(valor esperado', (soma / N).toFixed(1) + ')')

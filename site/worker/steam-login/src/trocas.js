@@ -99,6 +99,11 @@ export class Trocas {
   }
 
   async acao({ acao, quem, ...p }) {
+    if (acao === 'zerar') {
+      // src/zerar.js: nenhuma proposta (nem histórico)
+      await this.ctx.storage.put('trocas', [])
+      return { ok: true }
+    }
     const todas = await this.lista()
     if (acao === 'listar') {
       const minhas = todas.filter((x) => x.de === quem || x.para === quem)
