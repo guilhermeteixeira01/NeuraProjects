@@ -646,9 +646,11 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
               <a className="btn btn-ghost" href="/ranking/">
                 {t('Ver ranking')}
               </a>
-              <button type="button" className="btn btn-ghost" onClick={() => setVerInventario(true)}>
-                {t('Ver inventário')}
-              </button>
+              {!eu && (
+                <button type="button" className="btn btn-ghost" onClick={() => setVerInventario(true)}>
+                  {t('Ver inventário')}
+                </button>
+              )}
               {eu && admin && <OcultarRanking steamId={j.steamId} />}
             </div>
             <InfosLado j={j} mapas={mapas} />

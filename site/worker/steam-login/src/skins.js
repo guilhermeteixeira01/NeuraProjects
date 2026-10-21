@@ -281,12 +281,18 @@ export async function rotaSkinsPublico(url, env) {
 }
 
 // GET /skins/inventario?id= (sem login): o inventário de um jogador para o perfil dele mostrar ("Ver inventário"). Só leitura: itens e o que está equipado.
-export async function rotaSkinsInventarioPublico(url, env) {
+// valorDe (de loja.js, passado pelo index.js para não importar em círculo): acrescenta o valor em NP de cada item
+export async function rotaSkinsInventarioPublico(url, env, valorDe) {
   const id = url.searchParams.get('id') || ''
   const cab = { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=20' }
   if (!ID_STEAM.test(id)) return json({ erro: 'id' }, 400, cab)
   const inv = await lerSkins(env, id)
-  return json({ itens: inv?.itens || {}, equip: inv?.equip || { ct: {}, tr: {} }, criado: inv?.criado || {} }, 200, cab)
+  const valores = {}
+  for (const [k, it] of Object.entries(inv?.itens || {})) {
+    const v = valorDe?.(it)?.v
+    if (v != null) valores[k] = v
+  }
+  return json({ itens: inv?.itens || {}, equip: inv?.equip || { ct: {}, tr: {} }, criado: inv?.criado || {}, valores }, 200, cab)
 }
 
 // POST /skins/presentes { vistos: [id] }: o jogador já viu o aviso das skins novas
