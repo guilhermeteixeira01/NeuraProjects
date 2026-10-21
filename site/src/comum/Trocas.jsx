@@ -308,6 +308,7 @@ function CartaoProposta({ p, eu, cat, aoMudar }) {
   const t = useT()
   const [ocupado, setOcupado] = useState(false)
   const [erro, setErro] = useState('')
+  const [confirmando, setConfirmando] = useState(false)
   const euPropus = p.de === eu
   const outro = euPropus ? p.paraNome : p.deNome
   const dou = euPropus ? p.dar : p.pedir // o que eu perco
@@ -317,6 +318,7 @@ function CartaoProposta({ p, eu, cat, aoMudar }) {
     setErro('')
     try {
       await chamar(`/trocas/${acao}`, { id: p.id })
+      setConfirmando(false)
       aoMudar()
     } catch (e) {
       setErro(e.message)
@@ -352,12 +354,28 @@ function CartaoProposta({ p, eu, cat, aoMudar }) {
             </button>
           ) : (
             <>
-              <button type="button" className="inv-btn inv-btn-p" disabled={ocupado} onClick={() => agir('aceitar')}>
-                {t('Aceitar')}
-              </button>
-              <button type="button" className="inv-btn" disabled={ocupado} onClick={() => agir('recusar')}>
-                {t('Recusar')}
-              </button>
+              {confirmando ? (
+                <>
+                  <p className="tr-aviso" role="alert">
+                    <b>{t('Confira com atenção antes de aceitar!')}</b> {t('Veja bem os itens que você perde e os que recebe (skin, desgaste, adesivos e chaveiro). Depois de aceita, a troca não pode ser desfeita.')}
+                  </p>
+                  <button type="button" className="inv-btn inv-btn-p" disabled={ocupado} onClick={() => agir('aceitar')}>
+                    {ocupado ? t('Aceitando…') : t('Sim, aceitar troca')}
+                  </button>
+                  <button type="button" className="inv-btn" disabled={ocupado} onClick={() => setConfirmando(false)}>
+                    {t('Voltar')}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button type="button" className="inv-btn inv-btn-p" disabled={ocupado} onClick={() => setConfirmando(true)}>
+                    {t('Aceitar')}
+                  </button>
+                  <button type="button" className="inv-btn" disabled={ocupado} onClick={() => agir('recusar')}>
+                    {t('Recusar')}
+                  </button>
+                </>
+              )}
             </>
           )}
         </footer>

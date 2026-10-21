@@ -743,6 +743,7 @@ function SelosEquipe({ config, aoSalvar }) {
   const inicial = { dono: { ...SELOS_PADRAO.dono, ...config.selos?.dono }, admin: { ...SELOS_PADRAO.admin, ...config.selos?.admin } }
   const [selos, setSelos] = useState(inicial)
   const [estado, setEstado] = useState('')
+  const [editando, setEditando] = useState(null) // 'dono' | 'admin'
   const mudou = JSON.stringify(selos) !== JSON.stringify(inicial)
   const mudar = (qual, campo, valor) => setSelos((s) => ({ ...s, [qual]: { ...s[qual], [campo]: valor } }))
   const valido = ['dono', 'admin'].every((q) => selos[q].nome.trim().length > 0 && selos[q].nome.trim().length <= 24)
@@ -778,22 +779,92 @@ function SelosEquipe({ config, aoSalvar }) {
         ].map(([qual, rotulo]) => (
           <li key={qual}>
             <b className="adm-selo-quem">{rotulo}</b>
-            <input type="color" value={selos[qual].cor} onChange={(e) => mudar(qual, 'cor', e.target.value)} aria-label={tr('Cor do selo')} />
-            <EscolherImagemSelo valor={selos[qual].imagem} aoEscolher={(nome) => mudar(qual, 'imagem', nome)} />
-            <input className="adm-cargo-nome" value={selos[qual].nome} maxLength={24} onChange={(e) => mudar(qual, 'nome', e.target.value)} aria-label={tr('Nome do selo')} />
             <SeloEquipe selo={{ ...selos[qual], nome: selos[qual].nome || '…' }} />
-            <label className="adm-check">
-              <input type="checkbox" checked={selos[qual].mostrar} onChange={(e) => mudar(qual, 'mostrar', e.target.checked)} />
-              <span>{tr('Mostrar no site')}</span>
-            </label>
-            <label className="adm-check" title={tr('Ligado: o dono/os admins veem a página Pick & Ban (ela fica escondida de todos, inclusive da equipe, até ligar aqui).')}>
-              <input type="checkbox" checked={!!selos[qual].pick} onChange={(e) => mudar(qual, 'pick', e.target.checked)} />
-              <span>{tr('Ver Pick & Ban')}</span>
-            </label>
+            <small className="adm-nota">
+              {selos[qual].mostrar ? tr('Aparece no site') : tr('Oculto no site')}
+              {selos[qual].pick ? ` · ${tr('Ver Pick & Ban')}` : ''}
+            </small>
+            <button type="button" className="btn btn-ghost adm-editar" onClick={() => setEditando(qual)}>
+              {tr('Editar')}
+            </button>
           </li>
         ))}
       </ul>
+      {editando && (
+        <EditarSelo
+          selo={selos[editando]}
+          titulo={editando === 'dono' ? tr('Dono') : tr('Admins')}
+          mudar={(campo, valor) => mudar(editando, campo, valor)}
+          aoFechar={() => setEditando(null)}
+        />
+      )}
     </div>
+  )
+}
+
+function EditarSelo({ selo, titulo, mudar, aoFechar }) {
+  const tr = useT()
+  useEffect(() => {
+    const tecla = (e) => e.key === 'Escape' && aoFechar()
+    document.addEventListener('keydown', tecla)
+    return () => document.removeEventListener('keydown', tecla)
+  }, [aoFechar])
+  return createPortal(
+    <div className="adm-modal-fundo" onClick={aoFechar}>
+      <div className="adm-modal adm-cargo-modal" role="dialog" aria-modal="true" aria-label={tr('Editar selo')} onClick={(e) => e.stopPropagation()}>
+        <header>
+          <h3>
+            {tr('Editar selo')}: {titulo} <SeloEquipe selo={{ ...selo, nome: selo.nome || '…' }} />
+          </h3>
+          <button type="button" className="adm-modal-x" onClick={aoFechar} aria-label={tr('Fechar')}>
+            ×
+          </button>
+        </header>
+        <div className="adm-modal-corpo">
+          <section>
+            <h4>{tr('Aparência')}</h4>
+            <div className="adm-cargo-campos">
+              <label>
+                {tr('Nome')}
+                <input value={selo.nome} maxLength={24} onChange={(e) => mudar('nome', e.target.value)} />
+              </label>
+              <label>
+                {tr('Cor')}
+                <input type="color" value={selo.cor} onChange={(e) => mudar('cor', e.target.value)} />
+              </label>
+              <label>
+                {tr('Imagem do selo')}
+                <EscolherImagemSelo valor={selo.imagem} aoEscolher={(nome) => mudar('imagem', nome)} />
+              </label>
+            </div>
+          </section>
+          <section>
+            <h4>{tr('Visibilidade')}</h4>
+            <label className="adm-numerar">
+              <input type="checkbox" checked={selo.mostrar} onChange={(e) => mudar('mostrar', e.target.checked)} />
+              {tr('Mostrar no site')}
+            </label>
+          </section>
+          <section>
+            <h4>{tr('Acessos')}</h4>
+            <label className="adm-numerar adm-acesso" title={tr('Ligado: o dono/os admins veem a página Pick & Ban (ela fica escondida de todos, inclusive da equipe, até ligar aqui).')}>
+              <input type="checkbox" checked={!!selo.pick} onChange={(e) => mudar('pick', e.target.checked)} />
+              <span>
+                <b>{tr('Ver Pick & Ban')}</b>
+                <small>{tr('A página fica escondida de todos os outros.')}</small>
+              </span>
+            </label>
+          </section>
+        </div>
+        <footer>
+          <span className="adm-nota">{tr('As mudanças só valem depois de "Salvar selos".')}</span>
+          <button type="button" className="btn btn-primary" onClick={aoFechar}>
+            {tr('Concluir')}
+          </button>
+        </footer>
+      </div>
+    </div>,
+    document.body,
   )
 }
 

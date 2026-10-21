@@ -68,3 +68,35 @@ button.tr-item:hover { background: rgb(255 255 255 / .06); }
   .tr-dir { overflow: visible; }
   .tr-prop-lados { grid-template-columns: 1fr; }
 }
+
+/* Arte dos cartões dentro da troca: sempre contida no próprio quadro */
+.tr-item .inv-cartao { display: grid; gap: 4px; width: 100%; }
+.tr-item .inv-cartao-arte { position: relative; display: block; aspect-ratio: 4 / 3; overflow: hidden; }
+.tr-item .inv-arma-box { position: absolute; inset: 0; display: block; }
+.tr-item .inv-arma-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.tr-slot .tr-item { width: 100%; height: 100%; display: grid; place-items: center; }
+.tr-slot .inv-cartao-nome, .tr-prop-itens .inv-cartao-nome { display: none; }
+.tr-slot .inv-cartao { height: auto; }
+.tr-skin .inv-cartao-arte { overflow: visible; }
+
+@media (max-width: 860px) {
+  .tr-janela { max-height: 96vh; padding: 12px 12px 18px; }
+  .tr-janela .ins-est-cab h2 { font-size: 17px; line-height: 1.25; }
+  .tr-corpo { display: block; overflow-y: auto; overflow-x: hidden; padding-right: 2px; }
+  .tr-esq { display: block; }
+  .tr-abas button { padding: 8px 10px; font-size: 12px; }
+  .tr-filtros { margin: 8px 0; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
+  .tr-filtros button { flex: none; }
+  .tr-inv { height: 44vh; max-height: 44vh; overflow-y: auto; }
+  .tr-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 8px; padding: 6px; }
+  .tr-dica { margin: 8px 0 14px; }
+  .tr-dir { display: block; overflow: visible; }
+  .tr-dir h3 { margin-top: 14px; }
+  .tr-slots { grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 6px 0; }
+  .tr-realizar { width: 100%; }
+  .tr-painel { max-height: 96vh; padding: 12px 12px 18px; }
+  .tr-painel .ins-est-cab { flex-wrap: wrap; }
+  .tr-nova { margin-left: 0; margin-right: 0; order: 3; width: 100%; justify-content: center; }
+}
+.tr-aviso { flex-basis: 100%; margin: 0 0 4px; padding: 10px 12px; border-radius: 8px; background: rgb(245 197 24 / .12); border: 1px solid rgb(245 197 24 / .4); color: #ffe08a; font-size: 13px; line-height: 1.4; }
+.tr-prop > footer { flex-wrap: wrap; }
