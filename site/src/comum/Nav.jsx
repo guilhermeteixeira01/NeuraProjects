@@ -304,7 +304,7 @@ export default function Nav({ pagina }) {
   }, [pagina])
 
   const conta = useConta()
-  const { admin } = useAdmin(conta)
+  const { painel: admin } = useAdmin(conta) // o botão Admin aparece para quem tem acesso a alguma aba (admin ou cargo com acesso)
   // Sem login, o menu mostra só Início e Ranking (as outras páginas continuam abrindo pelo link; só não aparecem no menu).
   // Site sem login configurado: mostra tudo.
   const verPick = useAcessoPick()
