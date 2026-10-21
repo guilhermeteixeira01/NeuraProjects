@@ -224,6 +224,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
       >
         <span className="sm-arte sm-arte-card">
           <img src={urlMiniCard(c)} alt="" loading="lazy" decoding="async" />
+          {ehAnimado(c) && <i className="sm-anim">{tr('ANIMADO')}</i>}
           {presa && (
             <span className="sm-vidro sm-vidro-card" aria-hidden="true">
               <CadeadoMini tamanho={18} />
@@ -231,7 +232,6 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
           )}
         </span>
         <span className="sm-nome">{nomeCard(c)}</span>
-        {ehAnimado(c) && <i className="sm-anim">{tr('ANIMADO')}</i>}
         {presa && (
           <span className="sm-req" style={{ '--rq': semC ? cargo.cor : faltaSub ? 'var(--accent)' : corNivel(nv) }}>
             {semC ? <IconeDoCargo cargo={cargo} tamanho={11} /> : faltaSub ? <img className="sm-req-emb" src={urlEmblema(subMin.id, true)} alt="" /> : <SeloNivel nivel={nv} tamanho={14} />}
