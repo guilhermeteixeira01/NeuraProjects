@@ -6,6 +6,7 @@ import { carregarTimes } from '../../comum/times.js'
 import { Contador } from '../../comum/efeitos.jsx'
 import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
 import { useT } from '../../comum/i18n.js'
+import { confirmar } from '../../comum/Dialogos.jsx'
 
 const CHAVE_TOKEN = 'neura_gh_token'
 const API = `https://api.github.com/repos/${CONFIG.repositorio}/contents/${CONFIG.arquivoTimes}`
@@ -176,8 +177,8 @@ export default function Times() {
     window.scrollTo({ top: form.current.getBoundingClientRect().top + window.scrollY - 90, behavior: 'smooth' })
   }
 
-  function remover(i) {
-    if (!confirm(tr('Remover "{nome}" da lista?', { nome: times[i].nome }))) return
+  async function remover(i) {
+    if (!(await confirmar(tr('Remover "{nome}" da lista?', { nome: times[i].nome }), { perigo: true, ok: tr('Remover') }))) return
     const novos = { ...marcados }
     delete novos[chave(times[i].nome)]
     setMarcados(novos)

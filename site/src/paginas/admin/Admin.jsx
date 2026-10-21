@@ -15,6 +15,7 @@ import { NIVEIS_SUB, SUB_MESES_PADRAO, maisUmMes, nivelDaSub, tituloNivel, urlEm
 import { INSIGNIAS, imagemInsignia } from '../../comum/insignias.js'
 import { CATEGORIAS, indicar, urlImg, urlImgArma, useCatalogo } from '../../comum/skins.js'
 import CartaoSkin from '../../comum/CartaoSkin.jsx'
+import { confirmar } from '../../comum/Dialogos.jsx'
 import AdminCaixas from './AdminCaixas.jsx'
 import AdminPontos from './AdminPontos.jsx'
 import { lerCaixasPublicas } from '../../comum/loja.js'
@@ -208,7 +209,7 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
     }
   }
   const salvar = () => enviar({ moldura: moldura || null, time: time || null, card: card || null, xp: Math.round(Number(ajuste) || 0), bloqueado, cargos: meus, insignias })
-  const limpar = () => window.confirm(tr('Apagar moldura, time, ajuste de XP, cargos e bloqueio de {nome}? (as insígnias ficam)', { nome: u.nome || u.id })) && enviar({ limpar: true })
+  const limpar = async () => (await confirmar(tr('Apagar moldura, time, ajuste de XP, cargos e bloqueio de {nome}? (as insígnias ficam)', { nome: u.nome || u.id }), { perigo: true, ok: tr('Apagar') })) && enviar({ limpar: true })
 
   return (
     <div className="sm-fundo" onClick={fechar}>
@@ -1042,10 +1043,10 @@ function Cargos({ config, usuarios, aoSalvar, souDono }) {
     setLista((l) => [...l, { id, nome, cor: novaCor, icone: novoIcone }])
     setNovoNome('')
   }
-  const apagar = (i) => {
+  const apagar = async (i) => {
     const c = lista[i]
     const n = membros(c.id).length
-    if (window.confirm(tr('Apagar o cargo {nome}? {n} jogador(es) perdem o cargo e as molduras exclusivas dele ficam livres.', { nome: c.nome, n }))) setLista((l) => l.filter((_, k) => k !== i))
+    if (await confirmar(tr('Apagar o cargo {nome}? {n} jogador(es) perdem o cargo e as molduras exclusivas dele ficam livres.', { nome: c.nome, n }), { perigo: true, ok: tr('Apagar') })) setLista((l) => l.filter((_, k) => k !== i))
   }
   const salvar = async () => {
     setEstado('salvando')
@@ -1171,7 +1172,7 @@ function Assinaturas({ config, usuarios, aoSalvarConfig, aoSalvarPerfis }) {
     const s = u.perfil.sub
     gravar(u.id, { inicio: s.inicio, meses: (Number(s.meses) || 0) + 1, expira: maisUmMes(Math.max(Date.now(), Number(s.expira) || 0)) })
   }
-  const remover = (u) => window.confirm(tr('Tirar a assinatura de {nome}?', { nome: u.nome || u.id })) && gravar(u.id, null)
+  const remover = async (u) => (await confirmar(tr('Tirar a assinatura de {nome}?', { nome: u.nome || u.id }), { perigo: true, ok: tr('Tirar') })) && gravar(u.id, null)
   const salvarEdicao = () =>
     gravar(editando.id, {
       inicio: usuarios.find((u) => u.id === editando.id)?.perfil.sub?.inicio,
@@ -1427,7 +1428,7 @@ function DarSkin({ usuarios }) {
     }
   }
   const tirar = async (id) => {
-    if (!window.confirm(tr('Tirar esta skin do jogador?'))) return
+    if (!(await confirmar(tr('Tirar esta skin do jogador?'), { perigo: true, ok: tr('Tirar') }))) return
     setOcupado(true)
     try {
       setItens((await chamar('/admin/skin', { id: alvo.id, remover: id })).itens)

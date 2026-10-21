@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { chamar } from '../../comum/Moldura.jsx'
 import { localeAtual, useT } from '../../comum/i18n.js'
+import { confirmar } from '../../comum/Dialogos.jsx'
 
 const num = (n) => Number(n || 0).toLocaleString(localeAtual())
 const erroTexto = (e) => ({ login: 'Seu login venceu. Entre de novo com a Steam.', dono: 'Só o dono mexe nos pontos.', id: 'SteamID64 inválido.', valor: 'Valor inválido.' })[e.message] || 'Não deu para aplicar. Tente de novo.'
@@ -56,7 +57,7 @@ export default function AdminPontos({ usuarios }) {
   const aplicar = async () => {
     const quem = alvo === 'todos' ? t('TODOS os jogadores') : jogador.nome || jogador.id
     const verbo = acao === 'adicionar' ? t('Dar') : acao === 'remover' ? t('Tirar') : t('Definir o saldo em')
-    if (!window.confirm(`${verbo} ${num(v)} NP — ${quem}?${alvo === 'todos' ? '\n' + t('Cada jogador recebe na próxima vez que abrir o site.') : ''}`)) return
+    if (!(await confirmar(`${verbo} ${num(v)} NP — ${quem}?${alvo === 'todos' ? '\n' + t('Cada jogador recebe na próxima vez que abrir o site.') : ''}`, { ok: t('Aplicar'), perigo: acao === 'remover' }))) return
     setOcupado(true)
     setEstado({ texto: '', ok: true })
     try {

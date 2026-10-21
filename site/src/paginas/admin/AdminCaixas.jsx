@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { chamar } from '../../comum/Moldura.jsx'
 import { useT } from '../../comum/i18n.js'
+import { confirmar, perguntar } from '../../comum/Dialogos.jsx'
 import { urlImgArma, useCatalogo } from '../../comum/skins.js'
 import { RARIDADES, raridadeDaCor } from '../../../worker/steam-login/src/loja-core.js'
 
@@ -83,7 +84,7 @@ function EditorCaixa({ c, armas, achar, mudar, remover }) {
           {t('Imagem')}
           <input type="text" value={c.img} onChange={(e) => mudar({ img: e.target.value })} />
         </label>
-        <button type="button" className="btn btn-ghost adm-perigo" onClick={() => window.confirm(t('Apagar esta caixa? (Quem tem ela fechada no inventário continua com o item, mas não consegue abrir.)')) && remover()}>
+        <button type="button" className="btn btn-ghost adm-perigo" onClick={async () => (await confirmar(t('Apagar esta caixa? (Quem tem ela fechada no inventário continua com o item, mas não consegue abrir.)'), { perigo: true, ok: t('Apagar') })) && remover()}>
           {t('Apagar caixa')}
         </button>
       </div>
@@ -162,8 +163,8 @@ export default function AdminCaixas() {
     }
   }
   const mudarCaixa = (id, parte) => setCaixas((l) => l.map((c) => (c.id === id ? { ...c, ...parte } : c)))
-  const nova = () => {
-    const nome = window.prompt(t('Nome da caixa nova:'))?.trim()
+  const nova = async () => {
+    const nome = await perguntar(t('Nome da caixa nova:'), { ok: t('Criar') })
     if (!nome) return
     let slug = slugDe(nome) || 'caixa'
     if (caixas.some((c) => c.slug === slug)) slug += '-2'

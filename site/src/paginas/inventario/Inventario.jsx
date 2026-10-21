@@ -21,6 +21,7 @@ import { tocar } from '../../comum/somInventario.js'
 import { avisarSaldo, lerCaixasPublicas, lerValores, venderItens } from '../../comum/loja.js'
 import { RARIDADES_CS, raridadeCsDaCor } from '../../../worker/steam-login/src/loja-core.js'
 import Cartao from '../../comum/CartaoSkin.jsx'
+import { confirmar } from '../../comum/Dialogos.jsx'
 import { BotaoTrocas } from '../../comum/Trocas.jsx'
 
 // Inventário de skins, no estilo do inventário do jogo: o jogador CRIA itens (arma/faca/luva/agente com a skin que quiser), ajusta
@@ -631,9 +632,9 @@ function DialogoItem({ inicial, modo, idx, adesivos, chaveiros, estoque, mapa, a
     enviar('setWear', { wear: w })
   }
   // Não dá para mexer em desgaste, padrão, StatTrak nem nome: só colar adesivos/chaveiro e, se quiser, voltar a skin ao original (sem enfeites)
-  const voltarAoOriginal = () => {
+  const voltarAoOriginal = async () => {
     const colados = (rasc.a || []).filter(Boolean).length + (rasc.k?.i ? 1 : 0)
-    if (colados && !window.confirm(t('Voltar ao original vai REMOVER os adesivos e o amuleto (chaveiro) colados nesta arma. Os adesivos se perdem; o chaveiro volta para o seu inventário. Continuar?'))) return
+    if (colados && !(await confirmar(t('Voltar ao original vai REMOVER os adesivos e o amuleto (chaveiro) colados nesta arma. Os adesivos se perdem; o chaveiro volta para o seu inventário. Continuar?'), { perigo: true, ok: t('Remover e voltar') }))) return
     setRasc((r) => ({ ...r, a: [null, null, null, null, null], k: null }))
     setVersao((v) => v + 1)
   }
