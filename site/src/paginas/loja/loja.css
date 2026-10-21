@@ -579,3 +579,9 @@ html.lj-travado .nx-rolagem { display: none !important; }
   .lj-cx-vender-tudo, .lj-cx-de-novo { min-width: 0; width: 100%; font-size: 16px; padding: 14px 16px; }
   .lj-cx-pos-botoes { width: min(100%, 460px); flex-direction: column; }
 }
+
+/* "Voltar" do resultado: botão de verdade (antes era só um texto sublinhado) */
+.lj-cx-voltar-res { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 6px; border: 1px solid rgb(255 255 255 / .18); background: rgb(255 255 255 / .05); color: rgb(255 255 255 / .85); font: 600 15px var(--font-body); cursor: pointer; transition: background .15s, border-color .15s, color .15s; }
+.lj-cx-voltar-res:hover { background: rgb(255 255 255 / .1); border-color: rgb(255 255 255 / .35); color: #fff; }
+.lj-cx-voltar-res svg { transition: transform .15s; }
+.lj-cx-voltar-res:hover svg { transform: translateX(-2px); }

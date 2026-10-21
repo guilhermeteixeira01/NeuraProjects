@@ -83,6 +83,15 @@ export class Mercado {
         }),
       }
     }
+    if (acao === 'zerar') {
+      // src/zerar.js: sem anúncios, sem créditos pendentes e sem drops
+      this.ctx.storage.transactionSync(() => {
+        this.sql.exec('DELETE FROM anuncios')
+        this.sql.exec('DELETE FROM creditos')
+        this.sql.exec('DELETE FROM drops')
+      })
+      return { ok: true }
+    }
     if (acao === 'drops-add') return this.dropsAdd(p.lista)
     if (acao === 'drops') return this.drops()
     if (acao === 'anunciar') return this.anunciar(quem, p)

@@ -9,6 +9,44 @@ import { valorBaseDaFaca } from './lib-facas.mjs'
 
 const aqui = path.dirname(fileURLToPath(import.meta.url))
 const catalogo = JSON.parse(fs.readFileSync(path.join(aqui, '../public/assets/skins/armas.json'), 'utf8'))
+// preço de mercado (scripts/gerar-precos.mjs) e cor medida de cada skin (ferramentas/skins/medir-cores.cjs)
+const precos = JSON.parse(fs.readFileSync(path.join(aqui, '../worker/steam-login/src/precos.json'), 'utf8'))
+const cores = JSON.parse(fs.readFileSync(path.join(aqui, '../ferramentas/skins/cores-skins.json'), 'utf8'))
+
+// Preço típico de uma skin (R$): a mediana dos desgastes que têm preço
+function precoDe(d, p) {
+  const l = precos.skins[`${d}:${p}`]
+  if (!l) return 0
+  const v = l.slice(0, l.length === 2 ? 1 : 5).filter((x) => x > 0).sort((a, b) => a - b)
+  return v.length ? v[Math.floor(v.length / 2)] : 0
+}
+// Peso pelo preço: dentro da mesma raridade, quanto mais cara, mais difícil de sair (o dobro do preço ≈ 30% menos chance), sem nunca chegar a zero
+const pesoPeloPreco = (valor) => Math.max(1, Math.round(10000 / Math.pow(Math.max(1, valor), 0.5)))
+
+// ── Temas por cor: nota de 0 a ~1 de quanto a skin combina, pela cor medida da imagem ──
+// h = matiz em 12 faixas de 30° (0 vermelho, 1 laranja/dourado, 2 amarelo, 3 verde-amarelo, 4 verde, 5 verde-ciano, 6 ciano, 7 azul-claro,
+// 8 azul, 9 violeta, 10 magenta, 11 rosa); cor = quanto da arma é colorida; branco, preto, cinza, ouro = quanto da arma é disso; luz = brilho médio
+const TEMA = {
+  'caixa-radioativa': (f) => (f.h[3] + f.h[4] + f.h[2] * 0.5) * f.cor * 2,
+  'caixa-explorador': (f) => (f.h[1] + f.h[2] * 0.4 + f.h[0] * 0.2) * f.cor * (1.3 - f.sat) * 1.6,
+  'caixa-faroeste': (f) => f.h[1] * f.cor * 1.4 + f.ouro * 4 + f.cinza * 0.1,
+  'caixa-abismo': (f) => (f.h[7] + f.h[8] + f.h[6] * 0.5) * f.cor * (1.3 - f.luz) * 1.8,
+  'caixa-pirata': (f) => f.ouro * 4 + f.preto * 0.5 + (f.h[0] + f.h[1]) * f.cor * 0.6,
+  'caixa-navegador': (f) => (f.h[5] + f.h[6] + f.h[7] * 0.6) * f.cor * 2,
+  'caixa-naufragio': (f) => (f.h[4] + f.h[5] + f.h[3] * 0.3) * f.cor * (1.3 - f.luz) * 1.8,
+  'caixa-sombria': (f) => f.preto * 1.6 + (1 - f.luz) * 0.6 - f.cor * 0.5,
+  'caixa-alquimista': (f) => (f.h[9] + f.h[10] * 0.7 + f.h[8] * 0.3) * f.cor * 2,
+  'caixa-halloween': (f) => f.h[1] * f.cor * 1.6 + f.preto * 0.6 + f.h[0] * f.cor * 0.3,
+  'caixa-natal': (f) => (f.h[0] + f.h[11] * 0.6) * f.cor * 1.4 + f.branco * 2 + f.h[4] * f.cor * 0.4,
+  'caixa-circo': (f) => f.cor * (1 - Math.max(...f.h)) * 2.2, // várias cores fortes ao mesmo tempo
+  'caixa-artica': (f) => f.branco * 3 + (f.h[6] + f.h[7] + f.h[5] * 0.4) * f.cor * 1.6 + f.luz * 0.4 - (f.h[0] + f.h[1] + f.h[11]) * f.cor * 0.6,
+  'caixa-dragao': (f) => (f.h[0] + f.h[1] * 0.8 + f.h[11] * 0.4) * f.cor * 2,
+  'caixa-samurai': (f) => (f.h[11] + f.h[10] * 0.7 + f.h[0] * 0.6) * f.cor * 1.8 + f.preto * 0.3,
+  'caixa-neon': (f) => (f.h[6] + f.h[10] + f.h[5] + f.h[9] * 0.5 + f.h[3] * 0.5) * f.cor * f.sat * 4,
+  'caixa-cosmica': (f) => (f.h[8] + f.h[9] + f.h[7] * 0.5) * f.cor * 1.8 + f.preto * 0.3,
+  'caixa-cibernetica': (f) => (f.h[9] + f.h[8] + f.h[6] * 0.6 + f.h[10] * 0.4) * f.cor * f.sat * 3 + f.preto * 0.3,
+  'caixa-farao': (f) => f.ouro * 5 + (f.h[1] + f.h[2]) * f.cor * 0.8,
+}
 
 // preço por faixa e quantas skins de cada raridade a caixa leva (comum, incomum, raro, épico, lendário) + quantas facas
 const FAIXAS = {
@@ -68,30 +106,46 @@ const escolher = (lista, n, rnd, bonus) => {
   return pool.slice(0, n).map((y) => y.x)
 }
 
+// Skins que entram na caixa de qualquer jeito (a cor medida não pegou, mas são a cara do tema): [arma, skin]
+const FIXAS = {
+  'caixa-artica': [['AWP', 'Gungnir']],
+}
+const fixasDe = (slug) =>
+  (FIXAS[slug] || []).map(([arma, skin]) => {
+    const s = todasSkins.find((x) => x.arma === arma && x.nome === skin)
+    if (!s) throw new Error(`skin fixa não encontrada: ${arma} | ${skin}`)
+    return s
+  })
+
+// As que mais combinam com a cor do tema (o nome da skin com uma palavra do tema ajuda um pouco); um pouco de sorte para não ficar sempre igual
+const escolherPorCor = (lista, n, rnd, nota, palavras) =>
+  lista
+    .map((x) => ({ x, v: (cores[`${x.d}:${x.p}`] ? nota(cores[`${x.d}:${x.p}`]) : 0) + (palavras(x) ? 0.12 : 0) + rnd() * 0.06 }))
+    .sort((a, b) => b.v - a.v)
+    .slice(0, n)
+    .map((y) => y.x)
+// facas e skins: peso pelo preço de mercado (sem preço, o valor aproximado de antes)
+const pesoSkin = (s) => pesoPeloPreco(precoDe(s.d, s.p) || 40 * (ARMA_VALIOSA[s.d] || 1) * (SKIN_VALIOSA.test(s.nome) ? 3 : 1) * (s.r + 1) ** 2)
+const pesoFaca = (f) => pesoPeloPreco(precoDe(f.d, f.p) || valorBaseDaFaca(f.d, f.nome))
+
 const caixas = CAIXAS.map(([slug, nome, faixa, cor, tema], n) => {
   const rnd = prng(slug)
   const cfg = FAIXAS[faixa]
   const combina = (x) => tema.some((k) => x.nome.toLowerCase().includes(k))
+  const nota = TEMA[slug] || (() => 0)
   const itens = []
   const usados = new Set()
+  const fixas = fixasDe(slug)
   for (let r = 0; r <= 4; r++) {
-    const pool = todasSkins.filter((s) => s.r === r && !usados.has(`${s.d}:${s.p}`))
-    for (const s of escolher(pool, cfg.por[r], rnd, combina)) {
+    const daqui = fixas.filter((s) => s.r === r)
+    const pool = todasSkins.filter((s) => s.r === r && !usados.has(`${s.d}:${s.p}`) && !daqui.includes(s))
+    for (const s of [...daqui, ...escolherPorCor(pool, Math.max(0, cfg.por[r] - daqui.length), rnd, nota, combina)]) {
       usados.add(`${s.d}:${s.p}`)
-      // peso: mais valiosa = mais rara dentro da própria raridade
-      let w = 100 / (ARMA_VALIOSA[s.d] || 1)
-      if (SKIN_VALIOSA.test(s.nome)) w *= 0.45
-      if (combina(s)) w *= 1.15
-      itens.push({ d: s.d, p: s.p, r, w: Math.max(1, Math.round(w)), min: s.min, max: s.max, l: s.l })
+      itens.push({ d: s.d, p: s.p, r, w: pesoSkin(s), min: s.min, max: s.max, l: s.l })
     }
   }
   const poolFacas = todasFacas.filter((f) => f.nome !== 'Vanilla')
-  const fx = escolher(poolFacas, cfg.facas, rnd, combina).map((f) => {
-    let w = 100 * (FACA_VALIOSA[f.d] ?? 1)
-    if (FACA_SKIN_RARA.test(f.nome)) w *= 0.4
-    else if (FACA_SKIN_COMUM.test(f.nome)) w *= 1.6
-    return { d: f.d, p: f.p, w: Math.max(1, Math.round(w)), min: f.min, max: f.max, l: f.l }
-  })
+  const fx = escolherPorCor(poolFacas, cfg.facas, rnd, nota, combina).map((f) => ({ d: f.d, p: f.p, w: pesoFaca(f), min: f.min, max: f.max, l: f.l }))
   return { id: n + 1, slug, nome, img: `/assets/caixas/web/${slug}.webp`, preco: cfg.preco, tier: faixa, ativa: true, cor, itens, facas: fx }
 })
 
@@ -118,23 +172,18 @@ for (const [slug, nome, tier, cor, preco, defs] of ARMAS) {
   for (const a of armas.filter((x) => defs.includes(x.d))) {
     for (const s of a.s) {
       if (!s[0]) continue
-      const w = 100 / (SKIN_VALIOSA.test(s[1]) ? 2.2 : 1)
-      itens.push({ d: a.d, p: s[0], r: Math.min(4, raridadeDaCor(s[2])), w: Math.max(1, Math.round(w)), min: s[3], max: s[4], l: s[7] ? 1 : 0 })
+      const r = Math.min(4, raridadeDaCor(s[2]))
+      itens.push({ d: a.d, p: s[0], r, w: pesoSkin({ d: a.d, p: s[0], nome: s[1], r }), min: s[3], max: s[4], l: s[7] ? 1 : 0 })
     }
   }
-  const fx = escolher(todasFacas.filter((f) => f.nome !== 'Vanilla'), 8, rnd, () => false).map((f) => {
-    let w = 100 * (FACA_VALIOSA[f.d] ?? 1)
-    if (FACA_SKIN_RARA.test(f.nome)) w *= 0.4
-    else if (FACA_SKIN_COMUM.test(f.nome)) w *= 1.6
-    return { d: f.d, p: f.p, w: Math.max(1, Math.round(w)), min: f.min, max: f.max, l: f.l }
-  })
+  const fx = escolher(todasFacas.filter((f) => f.nome !== 'Vanilla'), 8, rnd, () => false).map((f) => ({ d: f.d, p: f.p, w: pesoFaca(f), min: f.min, max: f.max, l: f.l }))
   novas.push({ id: proxId(), slug, nome, img: '/assets/caixas/web/' + slug + '.webp', preco, tier, ativa: true, cor, itens, facas: fx })
 }
 
 // ── caixa de FACAS: só facas; a mais cara da loja. Mais valiosas (Karambit, Butterfly, Doppler, Fade...) nas raridades altas e com chance menor ──
 {
   const rnd = prng('caixa-facas')
-  const todas = todasFacas.filter((f) => f.nome !== 'Vanilla').map((f) => ({ ...f, valor: valorBaseDaFaca(f.d, f.nome) }))
+  const todas = todasFacas.filter((f) => f.nome !== 'Vanilla').map((f) => ({ ...f, valor: precoDe(f.d, f.p) || valorBaseDaFaca(f.d, f.nome) }))
   const escolhidas = []
   for (const d of [...new Set(todas.map((f) => f.d))]) {
     const dele = todas.filter((f) => f.d === d).sort((a, b) => b.valor - a.valor)
@@ -143,7 +192,7 @@ for (const [slug, nome, tier, cor, preco, defs] of ARMAS) {
   escolhidas.sort((a, b) => b.valor - a.valor)
   const n = escolhidas.length
   const faixa = (i) => (i < n * 0.05 ? 4 : i < n * 0.15 ? 3 : i < n * 0.35 ? 2 : i < n * 0.65 ? 1 : 0)
-  const itens = escolhidas.map((f, i) => ({ t: 'faca', d: f.d, p: f.p, r: faixa(i), w: peso(f.valor), min: f.min, max: f.max, l: f.l }))
+  const itens = escolhidas.map((f, i) => ({ t: 'faca', d: f.d, p: f.p, r: faixa(i), w: pesoPeloPreco(f.valor), min: f.min, max: f.max, l: f.l }))
   novas.push({ id: proxId(), slug: 'caixa-facas', nome: 'Caixa de Facas', img: '/assets/caixas/web/caixa-facas.webp', preco: 3500, tier: 'premium', ativa: true, cor: '#e4ae39', itens, facas: [] })
 }
 
@@ -238,11 +287,11 @@ for (const [slug, nome, tier, cor, preco, stickersBase, charmsBase] of AMULETOS)
   const luvas = catalogo.armas.filter((a) => a.c === 'luvas')
   const MOD = { 5030: 1, 5035: 1.05, 5034: 0.95, 5033: 0.8, 5031: 0.7, 5032: 0.6, 5027: 0.65, 4725: 0.7 }
   const TOPL = /(case hardened|emerald|pandora|vice|crimson kimono|fade|spearmint|superconductor|slingshot|omega|hedge maze|amphibious|nocts|cool mint|polygon|turtle|lunar weave|marble fade)/i
-  const todas = luvas.flatMap((a) => a.s.map((s) => ({ d: a.d, p: s[0], nome: s[1], min: s[3], max: s[4], l: s[7] ? 1 : 0, v: (MOD[a.d] ?? 0.7) * (TOPL.test(s[1]) ? 1 : 0.45) * 3000 + 500 })))
+  const todas = luvas.flatMap((a) => a.s.map((s) => ({ d: a.d, p: s[0], nome: s[1], min: s[3], max: s[4], l: s[7] ? 1 : 0, v: precoDe(a.d, s[0]) || (MOD[a.d] ?? 0.7) * (TOPL.test(s[1]) ? 1 : 0.45) * 3000 + 500 })))
   todas.sort((a, b) => b.v - a.v)
   const n = todas.length
   const faixa = (i) => (i < n * 0.05 ? 4 : i < n * 0.15 ? 3 : i < n * 0.35 ? 2 : i < n * 0.65 ? 1 : 0)
-  const itens = todas.map((g, i) => ({ t: 'luva', d: g.d, p: g.p, r: faixa(i), w: peso(g.v), min: g.min, max: g.max, l: g.l }))
+  const itens = todas.map((g, i) => ({ t: 'luva', d: g.d, p: g.p, r: faixa(i), w: pesoPeloPreco(g.v), min: g.min, max: g.max, l: g.l }))
   novas.push({ id: proxId(), slug: 'caixa-luvas', nome: 'Caixa de Luvas', img: '/assets/caixas/web/caixa-luvas.webp', preco: 5000, tier: 'premium', ativa: true, cor: '#2fe08a', itens, facas: [] })
 }
 caixas.push(...novas)

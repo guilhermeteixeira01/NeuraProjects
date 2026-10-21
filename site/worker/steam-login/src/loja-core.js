@@ -20,7 +20,7 @@ export const RARIDADES = [
 
 // Chances (%) por raridade e por faixa de desgaste: valores iniciais; o dono muda em /admin/loja-config (KV "loja-config")
 export const CONFIG_PADRAO = {
-  taxas: [45, 28, 15, 8, 3, 1],
+  taxas: [52, 27, 13, 5.5, 2, 0.5], // vermelho 1 em 50 e faca 1 em 200 (antes 3% e 1%: saía arma cara e faca fácil demais)
   desgaste: [
     { nome: 'Factory New', min: 0, max: 0.07, chance: 10 },
     { nome: 'Minimal Wear', min: 0.07, max: 0.15, chance: 22 },

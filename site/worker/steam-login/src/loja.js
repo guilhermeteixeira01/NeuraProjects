@@ -55,7 +55,9 @@ const num = (v, min, max, padrao) => {
 // Revisão 3: preço das caixas = valor de mercado esperado do que sai nelas + margem (precos.json, scripts/gerar-precos.mjs); depois disso o dono ajusta à vontade
 // Revisão 4: preços das caixas refeitos depois que as skins caras (facas, luvas, Dopplers, acima de US$ 2.000) passaram a ter o preço real do mercado
 // Revisão 5: refeitos de novo com o preço do mercado de terceiros (CSFloat/Buff), o que os sites de caixa usam
-const REVISAO_CAIXAS = 5 // (a caixa de luvas é nova: entra pela lista de fábrica, sem precisar de revisão)
+// Revisão 6: caixas rebalanceadas (skin cara sai menos, temas pela cor das skins) e chances de raridade novas: TODAS as caixas de fábrica
+//            recebem os itens e as facas novos, e as taxas salvas no painel voltam para o padrão (vermelho 2%, faca 0,5%)
+const REVISAO_CAIXAS = 6 // (a caixa de luvas é nova: entra pela lista de fábrica, sem precisar de revisão)
 const ATUALIZAR_CAIXAS = ['caixa-kawaii', 'caixa-terror', 'caixa-lendas', 'caixa-espacial']
 export async function lerCaixas(env) {
   const salvas = await env.MOLDURAS.get('caixas', 'json').catch(() => null)
@@ -68,6 +70,14 @@ export async function lerCaixas(env) {
       const nova = CAIXAS_INICIAIS.find((c) => c.slug === slug)
       const i = salvas.findIndex((c) => c.slug === slug)
       if (nova && i >= 0 && revisao < 2) salvas[i] = { ...salvas[i], itens: nova.itens, facas: nova.facas }
+    }
+    if (revisao < 6) {
+      for (const [i, c] of salvas.entries()) {
+        const nova = CAIXAS_INICIAIS.find((x) => x.slug === c.slug)
+        if (nova) salvas[i] = { ...c, itens: nova.itens, facas: nova.facas }
+      }
+      const cfg = await env.MOLDURAS.get('loja-config', 'json').catch(() => null)
+      if (cfg) await env.MOLDURAS.put('loja-config', JSON.stringify({ ...cfg, taxas: CONFIG_PADRAO.taxas })).catch(() => {})
     }
     for (const c of salvas) if (PRECOS.caixas?.[c.slug]) c.preco = PRECOS.caixas[c.slug]
     await env.MOLDURAS.put('caixas', JSON.stringify(salvas)).catch(() => {})
@@ -271,6 +281,8 @@ export class Loja {
         return this.vender(id, pontos, p)
       case 'mercado-comprar':
         return this.comprarDoMercado(id, pontos, p)
+      case 'zerar': // src/zerar.js: o jogador volta para o começo (NP, aberturas, insígnias da loja e inventário)
+        return this.zerar(p.bonusMax)
       case 'saldo':
         return { saldo: pontos - this.gastos(), ganhos: pontos, gastos: this.gastos(), movimentos: p.movimentos ? this.movimentos() : undefined }
       case 'estado':
@@ -408,6 +420,18 @@ export class Loja {
     const limpo = limparSkins(inv)
     await this.gravarTudo(id, limpo, () => this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), -total, `venda de ${ids.length} item(ns)`))
     return { saldo: pontos - this.gastos(), total, vendidos: ids.length, inv: limpo }
+  }
+
+  async zerar(bonusMax) {
+    this.ctx.storage.transactionSync(() => {
+      this.sql.exec('DELETE FROM movimentos')
+      this.sql.exec('DELETE FROM aberturas')
+    })
+    await this.ctx.storage.delete('ganhas')
+    const ver = ((await this.ctx.storage.get('invv')) || 0) + 1
+    const visto = Math.max(Number(bonusMax) || 0, (await this.ctx.storage.get('bonusVisto')) || 0)
+    await this.ctx.storage.put({ inv: limparSkins({}), invv: ver, bonusVisto: visto }) // inventário vazio (não volta a ler o KV antigo)
+    return { ok: true }
   }
 
   // Compra de um anúncio do mercado (src/mercado.js chama no objeto de quem compra): desconta o preço e põe o item no inventário, tudo junto

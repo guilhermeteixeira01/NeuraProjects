@@ -43,6 +43,7 @@ import { rotaAdminSkin, rotaAdminSkins, rotaServidorSkins, rotaSkins, rotaSkinsE
 import { Trocas, rotaTrocas } from './trocas.js'
 import { Loja, rotaAdminLoja, rotaLoja, rotaLojaPublica, rotaNotificacoes } from './loja.js'
 import { Mercado, rotaDrops, rotaMercado } from './mercado.js'
+import { zerarTudo } from './zerar.js'
 import { ehInsigniaLoja, ID_MESTRE } from './loja-core.js'
 export { Presenca } // Durable Object da presença (wrangler.toml)
 export { Loja } // Durable Object da loja de caixas (wrangler.toml)
@@ -101,6 +102,17 @@ async function atender(req, env, ctx) {
 
     if (rota === '/skins/publico' && req.method === 'GET') return rotaSkinsPublico(url, env) // skins equipadas de um jogador (perfil)
     if (rota === '/skins/inventario' && req.method === 'GET') return rotaSkinsInventarioPublico(url, env) // inventário de um jogador (botão "Ver inventário" do perfil)
+    // Zerar tudo pela manutenção (sem login Steam): só existe enquanto o segredo ZERAR_TOKEN estiver configurado (npx wrangler secret put/delete)
+    if (rota === '/manutencao/zerar-tudo' && req.method === 'POST') {
+      const dado = new TextEncoder().encode(req.headers.get('X-Zerar') || '')
+      const certo = new TextEncoder().encode(env.ZERAR_TOKEN || '')
+      let dif = dado.length ^ certo.length
+      for (let i = 0; i < certo.length; i++) dif |= (dado[i] ?? 0) ^ certo[i]
+      if (!env.ZERAR_TOKEN || dif !== 0) return json({ erro: 'rota' }, 404)
+      const c = (await req.json().catch(() => null)) || {}
+      if (c.confirmar !== 'ZERAR TUDO') return json({ erro: 'confirmar' }, 400)
+      return json(await zerarTudo(env, c.simular === true))
+    }
     if (rota === '/loja/drops' && req.method === 'GET') return rotaDrops(req, env, { 'Access-Control-Allow-Origin': '*' }, ctx) // carrossel de drops ao vivo da loja
     if (rota === '/loja/caixas' && req.method === 'GET') return rotaLojaPublica(env, publico) // caixas da loja (nome, imagem, preço): o site usa para nomear as insígnias "Mestre da ..."
     if (rota === '/servidor/skins' && req.method === 'POST') return rotaServidorSkins(req, env) // plugin: inventário de skins de quem está no servidor
@@ -132,6 +144,13 @@ async function atender(req, env, ctx) {
     if (rota === '/mercado' || rota.startsWith('/mercado/')) return rotaMercado(req, env, quem, cors, rota)
     if (req.method === 'POST' && (rota === '/perfil' || rota === '/moldura')) return salvarPerfil(req, env, site, quem, admin, config, cors, rota === '/moldura')
 
+    // Zerar tudo (só o dono): src/zerar.js. Corpo { confirmar: 'ZERAR TUDO', simular?: true }
+    if (rota === '/admin/zerar-tudo' && req.method === 'POST') {
+      if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
+      const c = (await req.json().catch(() => null)) || {}
+      if (c.confirmar !== 'ZERAR TUDO') return json({ erro: 'confirmar' }, 400, cors)
+      return json(await zerarTudo(env, c.simular === true), 200, cors)
+    }
     if (rota.startsWith('/admin/')) {
       const abas = await abasDe(quem.id, env, config)
       if (!abas.length) return json({ erro: 'admin' }, 403, cors)
