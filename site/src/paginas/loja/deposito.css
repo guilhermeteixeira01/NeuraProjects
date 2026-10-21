@@ -23,7 +23,8 @@
 .dep-pacote b { font-size: 14px; color: #fff; }
 .dep-pacote span { font: 600 12px var(--font-mono, inherit); color: #f5c542; }
 .dep-pacote em { font: 700 11px var(--font-body, inherit); font-style: normal; color: #b6f23a; }
-.dep-moedas { display: flex; align-items: center; height: 34px; margin-bottom: 4px; }
+.dep-moedas { display: grid; place-items: center; height: 70px; margin-bottom: 2px; }
+.dep-moedas img { filter: drop-shadow(0 3px 8px rgb(245 197 66 / .35)); }
 .dep-campo { display: grid; gap: 5px; font-size: 13px; color: var(--dim, #9aa0a8); }
 .dep-campo input { width: 100%; box-sizing: border-box; background: #0c0e12; border: 1px solid rgb(255 255 255 / .14); color: #fff; border-radius: 8px; padding: 11px 12px; font: 15px var(--font-body, inherit); }
 .dep-campo input:focus { outline: 2px solid #f5c518; outline-offset: 1px; }

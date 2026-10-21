@@ -3429,7 +3429,16 @@ html:is([data-tema='claro'], [data-tema='branco']) a.cp-loja:hover { background:
 /* caixa dos pontos: botão que abre o depósito */
 .nx-conta-menu.cp-card button.cp-pontos { display: grid; justify-items: center; align-content: start; width: auto; border: 0; cursor: pointer; font: inherit; text-align: center; padding: 14px 8px 12px; border-radius: 10px; background: #26262a; color: var(--blue-2); transition: background .15s; }
 .nx-conta-menu.cp-card button.cp-pontos:hover { background: #303036; }
-.nx-conta-menu.cp-card button.cp-pontos small { color: #b6f23a; }
+.nx-conta-menu.cp-card button.cp-pontos { position: relative; gap: 2px; overflow: hidden; background: linear-gradient(160deg, #2b2f27, #22251f 60%); box-shadow: inset 0 0 0 1px rgb(182 242 58 / .18); }
+.nx-conta-menu.cp-card button.cp-pontos::before { content: ''; position: absolute; inset: -40% -20% auto auto; width: 90px; height: 90px; border-radius: 50%; background: radial-gradient(closest-side, rgb(182 242 58 / .22), transparent); pointer-events: none; }
+.nx-conta-menu.cp-card button.cp-pontos:hover { background: linear-gradient(160deg, #323826, #272b21 60%); box-shadow: inset 0 0 0 1px rgb(182 242 58 / .45); }
+.cp-pontos-topo { position: relative; display: grid; place-items: center; margin-bottom: 2px; }
+.cp-pontos-topo .cp-logo { filter: drop-shadow(0 2px 6px rgb(182 242 58 / .35)); }
+.cp-pontos-mais { position: absolute; right: -14px; top: -4px; width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; background: #b6f23a; color: #14200a; font: 800 13px/1 var(--font-body); transition: transform .15s; }
+.nx-conta-menu.cp-card button.cp-pontos:hover .cp-pontos-mais { transform: rotate(90deg) scale(1.1); }
+.nx-conta-menu.cp-card button.cp-pontos small.cp-pontos-rot { color: #9a9aa2; }
+.cp-pontos-dep { margin-top: 5px; padding: 3px 10px; border-radius: 999px; background: #b6f23a; color: #14200a; font: 800 10.5px var(--font-body); letter-spacing: .08em; }
+html:is([data-tema='claro'], [data-tema='branco']) .nx-conta-menu.cp-card button.cp-pontos { background: linear-gradient(160deg, #f3f7e6, #eef2e0); box-shadow: inset 0 0 0 1px rgb(80 120 0 / .25); }
 html:is([data-tema='claro'], [data-tema='branco']) .nx-conta-menu.cp-card button.cp-pontos { background: #f0f0f2; }
 html:is([data-tema='claro'], [data-tema='branco']) .nx-conta-menu.cp-card a.cp-caixa { background: #f0f0f2; }
 html:is([data-tema='claro'], [data-tema='branco']) .nx-conta-menu.cp-card a.cp-caixa:hover { background: #e4e4e8; }

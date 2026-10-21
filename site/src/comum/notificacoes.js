@@ -111,7 +111,7 @@ export function useNotificacoes() {
       document.removeEventListener('visibilitychange', voltou)
     }
   }, [id])
-  const lista = doc.lista
+  const lista = doc.lista.filter((x) => !String(x.id).startsWith('partida:')) // avisos de fim de partida não aparecem mais (os que já estavam guardados somem)
   return {
     lista,
     naoLidas: lista.filter((x) => !x.lida).length,

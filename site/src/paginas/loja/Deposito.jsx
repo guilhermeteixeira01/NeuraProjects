@@ -10,12 +10,12 @@ import './deposito.css'
 const numero = (n) => Number(n).toLocaleString('pt-BR')
 const reais = (centavos) => (centavos / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
-function Moedas({ qtd }) {
+// Uma moeda só; o tamanho cresce com o pacote (nada de logo repetido)
+function Moedas({ nivel }) {
+  const tam = 28 + nivel * 5
   return (
     <span className="dep-moedas" aria-hidden="true">
-      {Array.from({ length: Math.min(5, qtd) }, (_, i) => (
-        <img key={i} src="/assets/logos/logo-np-64.png" alt="" width="30" height="30" style={{ marginLeft: i ? -14 : 0 }} />
-      ))}
+      <img src="/assets/logos/logo-np-64.png" alt="" width={tam} height={tam} />
     </span>
   )
 }
@@ -175,7 +175,7 @@ export default function Deposito({ nomeInicial = '', aoFechar, aoPagar }) {
             {grade.map((g) => (
               <li key={g.r}>
                 <button type="button" className={`dep-pacote${livre === '' && centavos === g.c ? ' is-ativo' : ''}`} onClick={() => { setCentavos(g.c); setLivre('') }}>
-                  <Moedas qtd={1 + grade.indexOf(g) * 0.6 | 0} />
+                  <Moedas nivel={grade.indexOf(g)} />
                   <b>{reais(g.c)}</b>
                   <span>{numero(g.np)} NP</span>
                   {g.b ? <em>+{g.b}% {t('bônus')}</em> : <em className="dep-sem">&nbsp;</em>}
