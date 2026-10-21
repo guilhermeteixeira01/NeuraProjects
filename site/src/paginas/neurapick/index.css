@@ -2182,3 +2182,7 @@ body *::-webkit-scrollbar-thumb {
     background: radial-gradient(closest-side, var(--accent), transparent);
   }
 }
+
+/* barra de rolagem cinza fixa (igual ao resto do site) */
+::-webkit-scrollbar-thumb, ::-webkit-scrollbar-thumb:horizontal, body *::-webkit-scrollbar-thumb { background: #5a5d66; }
+::-webkit-scrollbar-thumb:hover, ::-webkit-scrollbar-thumb:horizontal:hover { background: #7d808a; }
