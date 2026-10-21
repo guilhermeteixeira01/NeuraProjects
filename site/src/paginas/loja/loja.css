@@ -377,7 +377,9 @@ html.lj-travado .nx-rolagem { display: none !important; }
 @media (prefers-reduced-motion: reduce) { .lj-drops-lista > li.is-novo { animation: none; } }
 
 /* ══════ Página da caixa (PaginaCaixa.jsx): roleta na página, modos, conteúdo da caixa ══════ */
-.lj-cx { --azul: #1e90ff; padding-bottom: 30px; }
+.lj-cx { --modo: #1e90ff; --modo-2: #4aa8ff; --modo-fundo: #123063; padding-bottom: 30px; }
+.lj-cx[data-modo="jester"] { --modo: #a944f5; --modo-2: #d07bff; --modo-fundo: #3a1a63; }
+.lj-cx[data-modo="boost"] { --modo: #ff5a45; --modo-2: #ff9d55; --modo-fundo: #5a2418; }
 .lj-cx-topo { display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; gap: 12px; margin: 6px 0 22px; }
 .lj-cx-voltar { justify-self: start; display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; background: none; border: 0; color: rgb(255 255 255 / .75); font: 500 17px var(--font-body); cursor: pointer; padding: 4px 0; }
 .lj-cx-voltar:hover { color: #fff; }
@@ -388,15 +390,21 @@ html.lj-travado .nx-rolagem { display: none !important; }
 .lj-cx-fav.is-ativo { color: #ff4d6d; }
 .lj-cx-preco-topo { margin: 4px 0 0; color: rgb(255 255 255 / .55); font: 700 20px var(--font-body); }
 
-/* roleta dentro da página: moldura azul brilhante */
-.lj-cx-roleta { position: relative; border: 3px solid var(--azul); border-radius: 14px; background: #0c1630; box-shadow: 0 0 22px rgb(30 144 255 / .45), inset 0 0 30px rgb(30 144 255 / .12); overflow: hidden; }
-.lj-cx-roleta .lj-roleta { border: 0; background: transparent; padding: 10px 0; }
-.lj-cx-roleta .lj-roleta::before { background: linear-gradient(90deg, #0c1630, transparent); }
-.lj-cx-roleta .lj-roleta::after { background: linear-gradient(-90deg, #0c1630, transparent); }
-.lj-cx-roleta .lj-marcador { background: var(--azul); box-shadow: 0 0 12px var(--azul); }
-.lj-cx-roleta .lj-marcador::before { border-top-color: var(--azul); }
-.lj-cx-roleta .lj-marcador::after { border-bottom-color: var(--azul); }
-.lj-cx-roleta .lj-cartao { background: radial-gradient(70% 50% at 50% 30%, color-mix(in srgb, var(--cor) 20%, transparent), transparent 80%), #101c3c; border-color: rgb(255 255 255 / .05); }
+/* roletas dentro da página: uma moldura brilhante para cada (até 3), na cor do modo (azul, Jester roxo, Boost laranja) */
+.lj-cx-roletas { position: relative; display: grid; gap: 12px; }
+.lj-cx-roletas .lj-roleta { border: 3px solid var(--modo) !important; border-radius: 14px; padding: 10px 0; background: #0c1630;
+  box-shadow: 0 0 22px color-mix(in srgb, var(--modo) 45%, transparent), inset 0 0 30px color-mix(in srgb, var(--modo) 12%, transparent); transition: border-color .35s, box-shadow .35s; }
+.lj-cx-roletas .lj-roleta::before { background: linear-gradient(90deg, #0c1630, transparent); }
+.lj-cx-roletas .lj-roleta::after { background: linear-gradient(-90deg, #0c1630, transparent); }
+.lj-cx-roletas .lj-marcador { background: var(--modo); box-shadow: 0 0 12px var(--modo); transition: background .35s; }
+.lj-cx-roletas .lj-marcador::before { border-top-color: var(--modo); }
+.lj-cx-roletas .lj-marcador::after { border-bottom-color: var(--modo); }
+.lj-cx-roletas .lj-cartao { background: radial-gradient(70% 50% at 50% 30%, color-mix(in srgb, var(--cor) 20%, transparent), transparent 80%), #101c3c; border-color: rgb(255 255 255 / .05); }
+.lj-cx-roletas .lj-faixas { gap: 12px; }
+.lj-cx-particulas { position: absolute; inset: -30px; width: calc(100% + 60px); height: calc(100% + 60px); pointer-events: none; z-index: 4; }
+/* selos de chance do conteúdo: Jester = pílula roxa; Boost = quantas vezes mais chance */
+.lj-cx-pilula { padding: 2px 6px; border-radius: 4px; background: #6d28d9; color: #fff; font-weight: 700; font-size: 12.5px; }
+.lj-cx-vezes { margin-right: 8px; padding: 2px 6px; border-radius: 4px; background: #6b4a2e; color: #ffc98a; font: 700 12.5px var(--font-body); font-style: normal; }
 /* parada: o 6º cartão (índice 5) fica no meio, embaixo do marcador (150 px + 8 px de espaço por cartão) */
 .lj-roleta-parada .lj-trilho { position: relative; left: 50%; transform: translateX(-865px); }
 /* abertura embutida: sem tela cheia, do tamanho da moldura */
@@ -411,7 +419,7 @@ html.lj-travado .nx-rolagem { display: none !important; }
 .lj-cx-qtd, .lj-cx-modos { display: flex; gap: 10px; flex-wrap: wrap; }
 .lj-cx-modos { justify-content: flex-end; }
 .lj-cx-abrir { display: grid; justify-items: center; gap: 6px; }
-.lj-cx-btn-abrir { background: var(--azul); border: 0; border-radius: 6px; color: #fff; font: 600 21px var(--font-body); padding: 18px 42px; cursor: pointer; box-shadow: 0 8px 24px -8px rgb(30 144 255 / .7); transition: filter .15s, transform .15s; }
+.lj-cx-btn-abrir { background: linear-gradient(90deg, var(--modo), var(--modo-2)); border: 0; border-radius: 6px; color: #fff; font: 600 21px var(--font-body); padding: 18px 42px; cursor: pointer; box-shadow: 0 8px 24px -8px var(--modo); transition: filter .15s, transform .15s; }
 .lj-cx-btn-abrir:hover:not(:disabled) { filter: brightness(1.12); transform: translateY(-1px); }
 .lj-cx-btn-abrir:disabled { opacity: .5; cursor: not-allowed; }
 .lj-cx-falta { color: #ff6b6b; font-size: 13px; }
@@ -426,8 +434,8 @@ html.lj-travado .nx-rolagem { display: none !important; }
 .lj-hex > span { display: grid; place-items: center; width: 100%; height: 100%; clip-path: var(--hx); background: #0e1a38; color: rgb(255 255 255 / .6); font: 700 18px var(--font-body); transition: background .15s, color .15s; }
 .lj-hex:hover { background: rgb(255 255 255 / .4); }
 .lj-hex:hover > span { color: #fff; background: #15244a; }
-.lj-hex.is-ativo { background: var(--azul); }
-.lj-hex.is-ativo > span { background: #123063; color: #fff; }
+.lj-hex.is-ativo { background: var(--modo); }
+.lj-hex.is-ativo > span { background: var(--modo-fundo); color: #fff; }
 .lj-hex-dica { position: absolute; bottom: calc(100% + 12px); left: 50%; transform: translateX(-50%) translateY(4px); width: max-content; max-width: 280px; padding: 12px 16px; border-radius: 10px; background: #0b1328; box-shadow: 0 10px 30px rgb(0 0 0 / .5); font: 500 15px/1.35 var(--font-body); color: #fff; opacity: 0; pointer-events: none; transition: opacity .15s, transform .15s; z-index: 20; }
 .lj-hex-dica b { display: block; font-size: 16px; margin-bottom: 2px; }
 .lj-hex-dica::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -8px; border: 8px solid transparent; border-top-color: #0b1328; }
@@ -439,7 +447,6 @@ html.lj-travado .nx-rolagem { display: none !important; }
 
 /* conteúdo da caixa */
 .lj-cx-sub { margin: 40px 0 6px; text-align: center; font: 700 26px var(--font-display); }
-.lj-cx-modo-aviso { margin: 0 0 6px; text-align: center; color: #f5c518; font-size: 14px; }
 .lj-cx-grade { list-style: none; margin: 24px auto 0; padding: 0; max-width: 1340px; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; }
 .lj-cx-item { position: relative; height: 282px; border-radius: 8px; overflow: hidden; border: 1px solid rgb(255 255 255 / .1); background: linear-gradient(180deg, #13214a 0%, color-mix(in srgb, var(--cor) 22%, #1b2153) 100%); }
 .lj-cx-item::before { content: ""; position: absolute; top: 0; left: 50%; width: 36%; height: 2px; transform: translateX(-50%); background: var(--cor); box-shadow: 0 0 10px var(--cor); }
