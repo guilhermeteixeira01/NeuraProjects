@@ -1,5 +1,6 @@
 // Gera worker/steam-login/src/precos.json: preço de mercado (R$) de skins, adesivos e chaveiros, para o valor de venda ficar fiel ao mercado.
-// Fonte: preços do mercado da Steam (prices.csgotrader.app, em US$) convertidos para R$ pela cotação do dia.
+// Fonte: o preço que os sites de caixa usam, o do mercado de terceiros (CSFloat; sem ele, Buff; sem os dois, a Steam), via prices.csgotrader.app
+// em US$ e convertido para R$ pela cotação do dia. Doppler/Gamma Doppler têm preço por fase.
 //   node scripts/gerar-precos.mjs
 import { gunzipSync } from 'node:zlib'
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -39,12 +40,19 @@ const usd = (nome) => {
   return v > 0 ? v : 0
 }
 const brlEnfeite = (nome) => {
-  const v = usd(nome) || usdExtra(nome)
+  const v = usdExtra(nome) || usd(nome) // mesmo critério das skins: mercado de terceiros primeiro
   return v ? Math.round(v * cotacao * 100) / 100 : 0
 }
-const brl = (nome) => {
-  const v = usd(nome)
-  return v ? Math.round(v * cotacao * 100) / 100 : 0
+// fase: "Phase 2", "Ruby", "Emerald"... (Doppler e Gamma Doppler): preço daquela fase no CSFloat (ou no Buff)
+const usdSkin = (nome, fase) => {
+  if (fase) return csfloat[nome]?.doppler?.[fase] || csfloat[nome]?.starting_at?.doppler?.[fase] || buff[nome]?.starting_at?.doppler?.[fase] || 0
+  // o preço que os sites de caixa usam: o do mercado de terceiros (CSFloat; sem ele, Buff). A Steam (~1,7x mais cara, com teto de US$ 2.000)
+  // só entra quando nenhum dos dois tem o item
+  return csfloat[nome]?.price || buff[nome]?.starting_at?.price || usd(nome) || 0
+}
+const brl = (nome, fase) => {
+  const v = usdSkin(nome, fase)
+  return v > 0 ? Math.round(v * cotacao * 100) / 100 : 0
 }
 const DESGASTES = ['Factory New', 'Minimal Wear', 'Field-Tested', 'Well-Worn', 'Battle-Scarred']
 
@@ -58,11 +66,15 @@ for (const a of armas) {
   const pref = faca || luva ? '★ ' : ''
   for (const s of a.s) {
     total++
-    const nome = `${a.n} | ${s[1]}`
-    const linha = DESGASTES.map((d) => brl(`${pref}${a.n} | ${s[1]} (${d})`))
-    const st = luva ? [0, 0, 0, 0, 0] : DESGASTES.map((d) => brl(`${pref}${faca ? 'StatTrak™ ' : 'StatTrak™ '}${a.n} | ${s[1]} (${d})`))
+    // "Doppler (Phase 2)" no catálogo = "Doppler" no mercado, com o preço da fase à parte
+    const dop = s[1].match(/^(.*Doppler) \((.+)\)$/)
+    const skin = dop ? dop[1] : s[1]
+    const fase = dop ? dop[2] : undefined
+    const nome = `${a.n} | ${skin}`
+    const linha = DESGASTES.map((d) => brl(`${pref}${nome} (${d})`, fase))
+    const st = luva ? [0, 0, 0, 0, 0] : DESGASTES.map((d) => brl(`${pref}StatTrak™ ${nome} (${d})`, fase))
     if (linha.some(Boolean)) achou++
-    else if (!linha.some(Boolean)) {
+    else if (!dop) {
       const lisa = brl(`${pref}${a.n}`)
       if (lisa) { skins[`${a.d}:${s[0]}`] = [lisa, brl(`${pref}StatTrak™ ${a.n}`)]; achou++; continue }
     }
