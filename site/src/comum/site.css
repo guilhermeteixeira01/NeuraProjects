@@ -3493,3 +3493,10 @@ html.ins-estante-aberta #root { filter: blur(10px) brightness(.5) saturate(.9); 
 .ins-lista.pf-insignias .ins-botao { width: 100%; --ins-h: auto; }
 .ins-lista.pf-insignias .ins-botao img { width: 100%; height: auto; max-height: 72px; }
 .ins-lista.pf-insignias .ins-mais { width: 100%; max-width: 64px; height: auto; aspect-ratio: 1; }
+
+/* ── Barra de rolagem: cor fixa cinza em todo o site (a global, a da página e as internas), sem gradiente azul/amarelo ── */
+::-webkit-scrollbar-thumb, ::-webkit-scrollbar-thumb:horizontal { background: #5a5d66; border: 1px solid var(--bg-soft); }
+::-webkit-scrollbar-thumb:hover, ::-webkit-scrollbar-thumb:horizontal:hover { background: #7d808a; }
+.nx-rolagem-alca { background: #5a5d66; opacity: 1; }
+.nx-rolagem:hover .nx-rolagem-alca, .nx-rolagem.arrastando .nx-rolagem-alca { background: #7d808a; }
+@supports not selector(::-webkit-scrollbar) { html, * { scrollbar-color: #5a5d66 var(--bg-soft); } }

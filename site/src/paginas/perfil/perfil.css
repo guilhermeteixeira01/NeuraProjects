@@ -875,3 +875,7 @@ html.sm-aberto { overflow: hidden; }
 .pf-infos-lado .pf-time span { min-width: 0; overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; line-height: 1.15; }
 .pf-infos-lado .pf-info:last-child:not(:only-child) .pf-info-val { zoom: .9; }
 @media (max-width: 900px) { .pf-infos.pf-infos-lado { justify-content: stretch; } .pf-infos-lado .pf-info { text-align: left; justify-items: start; } .pf-infos-lado .pf-info-val { justify-content: flex-start; } }
+
+/* a seção do perfil ocupa a tela toda (mesmo com pouca coisa) e não corta a dica das insígnias (só o lado é cortado, por causa do fundo) */
+.pf-pagina { overflow-x: clip; overflow-y: visible; min-height: 100dvh; padding-bottom: 150px; }
+@media (min-width: 1025px) { .pf-pagina { min-height: 106dvh; } } /* o site tem zoom de 95% no computador */

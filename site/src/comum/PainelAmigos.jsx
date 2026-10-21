@@ -196,7 +196,7 @@ export default function PainelAmigos({ celular = false }) {
   // Por cima do site: fecha com Esc ou clicando fora (no painel e no botão, não)
   useEffect(() => {
     if (!aberto) return
-    const fora = (e) => !celular && !e.target.closest?.('.am-painel:not(.nt-painel), .nx-amigos-btn:not(.nx-notif-btn)') && setAberto(false)
+    const fora = (e) => !celular && !e.target.closest?.('.am-painel:not(.nt-painel):not(.pp-painel), .nx-amigos-btn:not(.nx-notif-btn):not(.nx-partidas-btn)') && setAberto(false)
     const tecla = (e) => e.key === 'Escape' && setAberto(false)
     document.addEventListener('pointerdown', fora)
     document.addEventListener('keydown', tecla)
