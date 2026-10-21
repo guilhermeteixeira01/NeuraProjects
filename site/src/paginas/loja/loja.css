@@ -491,3 +491,51 @@ html.lj-travado .nx-rolagem { display: none !important; }
 }
 /* celular: os cartões da roleta têm 110 px (5 × 118 + 55) */
 @media (max-width: 700px) { .lj-roleta-parada .lj-trilho { transform: translateX(-645px); } }
+
+/* ══════ Página da caixa: ajustes para celular e tablet ══════ */
+/* as partículas dos modos passam um pouco da moldura: cortadas aqui, sem criar rolagem para o lado */
+.lj-cx { overflow-x: clip; }
+.lj-cx-roletas { min-width: 0; }
+/* a roleta embutida não tem barra de cima (nome, som e "pular" ficam na página) */
+.lj-embutida .lj-abertura-topo { display: none; }
+/* parada e girando com o mesmo tamanho de cartão (as regras da tela cheia encolhiam pela altura da tela) */
+.lj-cx-roletas .lj-faixas[data-n] .lj-trilho .lj-cartao, .lj-cx-roletas .lj-roleta-parada .lj-cartao { width: 150px !important; padding: 10px 8px 9px; gap: 3px; }
+.lj-cx-roletas .lj-faixas[data-n] .lj-cartao small { display: block; }
+.lj-cx-roletas .lj-faixas[data-n] .lj-cartao b { font-size: 12px; }
+.lj-cx-roletas .lj-faixas { --altura: auto; padding: 0; }
+/* toque não tem "passar o mouse": as dicas dos botões não aparecem (ficavam presas na tela) */
+@media (hover: none) { .lj-hex-dica { display: none !important; } }
+
+@media (max-width: 900px) {
+  .lj-cx-titulo h1 { flex-wrap: wrap; justify-content: center; gap: 8px; text-align: center; }
+  .lj-cx-preco-topo { font-size: 17px; }
+  .lj-cx-controles { gap: 16px; margin-top: 16px; }
+  .lj-cx-abrir { width: 100%; }
+  .lj-cx-btn-abrir { width: min(100%, 420px); }
+}
+@media (max-width: 700px) {
+  .lj-cx-roletas { gap: 8px; }
+  .lj-cx-roletas .lj-roleta { padding: 6px 0; border-width: 2px !important; border-radius: 10px; }
+  .lj-cx-roletas .lj-faixas[data-n] .lj-trilho .lj-cartao, .lj-cx-roletas .lj-roleta-parada .lj-cartao { width: 110px !important; padding: 6px 5px 7px; }
+  .lj-cx-roletas .lj-cartao b { font-size: 11px; }
+  .lj-cx-roletas .lj-cartao small { font-size: 10px; }
+  .lj-cx-roletas .lj-marcador::before, .lj-cx-roletas .lj-marcador::after { border-width: 6px; margin-left: -6px; }
+  .lj-cx-voltar { font-size: 15px; }
+  .lj-cx-sub { font-size: 21px; margin-top: 28px; }
+  .lj-cx-grade { gap: 10px; margin-top: 14px; }
+  .lj-cx-pilula, .lj-cx-vezes { font-size: 11px; padding: 1px 4px; }
+  .lj-cx-vezes { margin-right: 4px; }
+  .lj-embutida .lj-resultado { padding: 14px 8px; }
+  .lj-embutida .lj-botoes { width: 100%; }
+}
+@media (max-width: 400px) {
+  .lj-hex { width: 46px; height: 52px; }
+  .lj-hex > span { font-size: 14px; }
+  .lj-hex > span svg { width: 17px; height: 17px; }
+  .lj-cx-qtd, .lj-cx-modos { gap: 6px; }
+  .lj-cx-btn-abrir { font-size: 16px; padding: 14px 18px; }
+  .lj-cx-item { height: 190px; }
+  .lj-cx-nome { font-size: 12.5px; }
+  .lj-cx-info { padding: 32px 4px 6px; }
+  .lj-cx-info th, .lj-cx-info td { padding: 2px 3px; }
+}

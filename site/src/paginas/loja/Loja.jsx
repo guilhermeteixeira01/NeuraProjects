@@ -1,15 +1,15 @@
-// Loja de caixas: o jogador gasta Neura Pontos (NP) para comprar caixas de skins (vão fechadas para o inventário) ou abrir na hora.
+// Loja de caixas: o jogador gasta Neura Pontos (NP) para abrir caixas de skins (na página de cada caixa) ou abre as que já tem no inventário.
 // O saldo, as compras, o sorteio e as insígnias são do servidor (worker/steam-login/src/loja.js); aqui só aparece e se anima.
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Layout from '../../comum/Layout.jsx'
 import { entrar, loginAtivo, useConta } from '../../comum/conta.js'
 import { useT } from '../../comum/i18n.js'
-import { avisarSaldo, comprarCaixa, lerLoja } from '../../comum/loja.js'
+import { avisarSaldo, lerLoja } from '../../comum/loja.js'
 import Abertura, { useAcharItem } from './Abertura.jsx'
 import AbaMercado from './Mercado.jsx'
 import Drops from './Drops.jsx'
 import PaginaCaixa, { useFavoritas } from './PaginaCaixa.jsx'
-import { prepararSons, som } from './somLoja.js'
+import { prepararSons } from './somLoja.js'
 
 const TIERS = [
   ['todas', 'Todas'],
@@ -165,7 +165,6 @@ function Conteudo() {
   const [aberta, setAberta] = useState(null) // id da caixa com a página aberta
   const [abertura, setAbertura] = useState(null) // { caixa, qtd, origem }
   const [aviso, setAviso] = useState('')
-  const [ocupado, setOcupado] = useState(false)
 
   const carregar = useCallback(async () => {
     try {
@@ -223,20 +222,6 @@ function Conteudo() {
     return () => window.removeEventListener('popstate', ouvir)
   }, [dados])
 
-  const comprar = async (c, qtd) => {
-    setOcupado(true)
-    try {
-      const r = await comprarCaixa(c.id, qtd)
-      som('abrir')
-      avisarSaldo(r.saldo)
-      setAviso(t('{n} caixa(s) guardada(s) no seu inventário.', { n: qtd }))
-      await carregar()
-    } catch (e) {
-      setAviso(e.message === 'saldo' ? t('Você não tem Neura Pontos suficientes.') : e.message === 'cheio' ? t('O seu inventário está cheio.') : t('Não deu para comprar agora. Tente de novo.'))
-    } finally {
-      setOcupado(false)
-    }
-  }
   const fecharAbertura = () => {
     setAbertura(null)
     carregar()
@@ -275,12 +260,10 @@ function Conteudo() {
           saldo={dados.saldo}
           tem={dados.fechadas[sel.id] || 0}
           maxQtd={dados.cfg.maxQtd}
-          ocupado={ocupado}
           achar={achar}
           favorita={fav.includes(sel.slug)}
           aoFavoritar={() => alternarFav(sel.slug)}
           aoVoltar={voltarCaixas}
-          aoComprar={comprar}
           aoAbriu={carregar}
         />
         {abertura_}
@@ -294,7 +277,6 @@ function Conteudo() {
       <header className="lj-topo">
         <div>
           <h1>{t('Loja')}</h1>
-          <p>{t('Gaste seus Neura Pontos em caixas de skins. Sem dinheiro de verdade: os pontos vêm das partidas (100 por vitória, 50 por derrota).')}</p>
         </div>
         <Saldo saldo={dados.saldo} />
       </header>

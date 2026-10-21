@@ -242,7 +242,7 @@ function ItemConteudo({ r, base, chance, normal, modo, desgastes, achar }) {
   )
 }
 
-export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado, achar, favorita, aoFavoritar, aoVoltar, aoComprar, aoAbriu }) {
+export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado = false, achar, favorita, aoFavoritar, aoVoltar, aoAbriu }) {
   const t = useT()
   const maximo = Math.min(maxQtd, MAX_POR_VEZ)
   const [qtd, setQtd] = useState(1)
@@ -359,15 +359,10 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado, achar, fav
               {preco == null ? t('Carregando…') : t('Abrir por {n} NP', { n: numero(custo) })}
             </button>
             {falta && <small className="lj-cx-falta">{t('Faltam {n} NP', { n: numero(custo - saldo) })}</small>}
-            {!modo && (
+            {!modo && tem > 0 && (
               <span className="lj-cx-extras">
-                {tem > 0 && (
-                  <button type="button" className="lj-cx-link" disabled={ocupado} onClick={() => abrir(Math.min(qtd, tem), 'inventario')}>
-                    {t('Abrir do inventário ({n})', { n: tem })}
-                  </button>
-                )}
-                <button type="button" className="lj-cx-link" disabled={ocupado || falta} onClick={() => aoComprar(c, qtd)} title={t('Guarda a caixa fechada no seu inventário')}>
-                  {t('Comprar e guardar')}
+                <button type="button" className="lj-cx-link" disabled={ocupado} onClick={() => abrir(Math.min(qtd, tem), 'inventario')}>
+                  {t('Abrir do inventário ({n})', { n: tem })}
                 </button>
               </span>
             )}
