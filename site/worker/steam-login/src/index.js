@@ -97,9 +97,10 @@ export default {
     const admin = ehAdmin(quem.id, env, config)
 
     if (rota === '/eu' && req.method === 'GET') {
+      const abas = await abasDe(quem.id, env, config)
       // Toda página com login chama /eu: registra a visita (nome/avatar do próprio login) para o painel
       await registrarUsuario(env, quem.id, { nome: quem.nome, avatar: quem.avatar }, true)
-      return json({ id: quem.id, admin, dono: quem.id === env.DONO }, 200, cors)
+      return json({ id: quem.id, admin, dono: quem.id === env.DONO, painel: abas.length > 0, abas }, 200, cors)
     }
     if (rota === '/amigos' && (req.method === 'GET' || req.method === 'POST')) return rotaAmigos(req, env, quem, cors)
     if (rota === '/usuarios/buscar' && req.method === 'GET') return buscarUsuarios(url, env, quem, cors)
@@ -112,22 +113,39 @@ export default {
     if (req.method === 'POST' && (rota === '/perfil' || rota === '/moldura')) return salvarPerfil(req, env, site, quem, admin, config, cors, rota === '/moldura')
 
     if (rota.startsWith('/admin/')) {
-      if (!admin) return json({ erro: 'admin' }, 403, cors)
+      const abas = await abasDe(quem.id, env, config)
+      if (!abas.length) return json({ erro: 'admin' }, 403, cors)
+      const pode = (...precisa) => precisa.every((a) => abas.includes(a)) // cada rota confere a aba dela
       if (rota === '/admin/dados' && req.method === 'GET') return adminDados(env, config, cors)
-      if (rota === '/admin/perfil' && req.method === 'POST') return adminPerfil(req, env, site, config, cors)
-      if (rota === '/admin/config' && req.method === 'POST') return adminConfig(req, env, site, config, cors)
+      if (rota === '/admin/perfil' && req.method === 'POST') {
+        const c = await req.clone().json().catch(() => ({}))
+        if (!pode(c && 'sub' in c ? 'assinaturas' : 'usuarios')) return json({ erro: 'aba' }, 403, cors)
+        return adminPerfil(req, env, site, config, cors)
+      }
+      if (rota === '/admin/config' && req.method === 'POST') {
+        const c = (await req.clone().json().catch(() => ({}))) || {}
+        const porAba = { molduraPorNivel: 'molduras', nivelMoldura: 'molduras', molduraCargo: 'molduras', molduraSub: 'molduras', cardPorNivel: 'cards', nivelCard: 'cards', cardCargo: 'cards', cardSub: 'cards', cargos: 'cargos', subMeses: 'assinaturas' }
+        const precisa = [...new Set(Object.keys(c).map((k) => porAba[k] || 'admins'))]
+        if (!pode(...precisa)) return json({ erro: 'aba' }, 403, cors)
+        // acessos dos cargos (abas liberadas): só o dono mexe
+        if (Array.isArray(c.cargos) && quem.id !== env.DONO) {
+          const antes = new Map((config.cargos || []).map((x) => [x.id, JSON.stringify([...(x.acessos || [])].sort())]))
+          if (c.cargos.some((x) => (antes.get(x.id) ?? '[]') !== JSON.stringify([...(x.acessos || [])].sort()))) return json({ erro: 'dono' }, 403, cors)
+        }
+        return adminConfig(req, env, site, config, cors)
+      }
       // Skins: só o dono dá e tira (o jogador não cria itens)
       if (rota === '/admin/skin' && req.method === 'POST') {
-        if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
+        if (!pode('skins')) return json({ erro: 'aba' }, 403, cors)
         return rotaAdminSkin(req, env, cors, avisarSkin)
       }
       if (rota === '/admin/skins' && req.method === 'GET') {
-        if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
+        if (!pode('skins')) return json({ erro: 'aba' }, 403, cors)
         return rotaAdminSkins(url, env, cors)
       }
       // Loja de caixas: só o dono
       if (((rota === '/admin/caixas' || rota === '/admin/caixas-lista' || rota === '/admin/loja-config' || rota === '/admin/loja-pontos') && req.method === 'POST') || (rota === '/admin/loja-saldo' && req.method === 'GET')) {
-        if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
+        if (!pode(rota === '/admin/loja-pontos' || rota === '/admin/loja-saldo' ? 'pontos' : 'caixas')) return json({ erro: 'aba' }, 403, cors)
         return rotaAdminLoja(req, env, rota, cors)
       }
       if (rota === '/admin/selos' && req.method === 'POST') {
@@ -135,7 +153,7 @@ export default {
         return adminSelos(req, env, config, cors)
       }
       if (rota === '/admin/admins' && req.method === 'POST') {
-        if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
+        if (!pode('admins')) return json({ erro: 'aba' }, 403, cors)
         return adminAdmins(req, env, config, cors)
       }
     }
@@ -170,6 +188,22 @@ async function logado(req, env) {
 }
 
 const ehAdmin = (id, env, config) => id === env.DONO || (config.admins || []).includes(id)
+
+// ── Acesso ao painel admin por aba ──
+// Abas: usuarios, molduras, cards, cargos, assinaturas, skins, caixas, pontos, admins.
+//  - o DONO tem todas;
+//  - quem é admin (config.admins) tem usuarios, molduras, cards e cargos;
+//  - qualquer jogador ganha mais abas (ou só as abas) pelos CARGOS dele: cada cargo tem uma lista "acessos" que o dono marca ao editar o cargo.
+// Assinaturas, Admins, Skins, Caixas e Pontos são só do dono, a não ser que um cargo libere.
+const ABAS_ADMIN = ['usuarios', 'molduras', 'cards', 'cargos', 'assinaturas', 'skins', 'caixas', 'pontos', 'admins']
+const ABAS_DO_ADMIN = ['usuarios', 'molduras', 'cards', 'cargos']
+async function abasDe(id, env, config) {
+  if (id === env.DONO) return [...ABAS_ADMIN]
+  const abas = new Set(ehAdmin(id, env, config) ? ABAS_DO_ADMIN : [])
+  const meus = (await ler(env, 'perfis'))[id]?.cargos || []
+  for (const c of config.cargos || []) if (meus.includes(c.id)) for (const a of c.acessos || []) if (ABAS_ADMIN.includes(a)) abas.add(a)
+  return ABAS_ADMIN.filter((a) => abas.has(a))
+}
 
 // Lê uma chave do KV (objeto vazio se não existir). "perfis" ainda converte o formato antigo da chave "molduras".
 async function ler(env, chave) {
@@ -615,7 +649,8 @@ async function adminConfig(req, env, site, config, cors) {
       const imagem = c.imagem ? String(c.imagem) : ''
       if (imagem && !IMAGEM_SELO.test(imagem)) return json({ erro: 'cargos' }, 400, cors)
       // numerar: automático mostra a posição ("Campeão 1", "Campeão 2"...)
-      novo.cargos.push({ id: c.id, nome, cor: c.cor, icone, ...(imagem ? { imagem } : {}), ...(top > 0 ? { top } : {}), ...(top > 0 && c.numerar === true ? { numerar: true } : {}), ...(c.oculto === true ? { oculto: true } : {}), ...(c.pick === true ? { pick: true } : {}) })
+      const acessos = (Array.isArray(c.acessos) ? c.acessos : []).filter((a, i, l) => ABAS_ADMIN.includes(a) && l.indexOf(a) === i)
+      novo.cargos.push({ id: c.id, nome, cor: c.cor, icone, ...(acessos.length ? { acessos } : {}), ...(imagem ? { imagem } : {}), ...(top > 0 ? { top } : {}), ...(top > 0 && c.numerar === true ? { numerar: true } : {}), ...(c.oculto === true ? { oculto: true } : {}), ...(c.pick === true ? { pick: true } : {}) })
     }
   }
   if ('molduraCargo' in corpo || 'cargos' in corpo) {

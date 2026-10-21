@@ -797,13 +797,144 @@ function SelosEquipe({ config, aoSalvar }) {
   )
 }
 
-function Cargos({ config, usuarios, aoSalvar }) {
+// Abas do painel que um cargo pode liberar (o dono marca; o worker confere a aba em cada rota)
+const NOMES_ABAS = { usuarios: 'Usuários', molduras: 'Molduras', cards: 'Cards', cargos: 'Cargos', assinaturas: 'Assinaturas', skins: 'Skins', caixas: 'Caixas', pontos: 'Pontos', admins: 'Admins' }
+const DESCRICAO_ABAS = {
+  usuarios: 'Ver e editar os jogadores (moldura, time, XP, cargos, insígnias, bloqueio).',
+  molduras: 'Regras das molduras (nível, cargo, assinatura).',
+  cards: 'Regras dos cards do perfil.',
+  cargos: 'Criar e editar os cargos (não muda os acessos dos cargos: isso é só do dono).',
+  assinaturas: 'Assinaturas Premium: dar, renovar e tirar.',
+  skins: 'Dar e tirar skins, adesivos, chaveiros e caixas dos jogadores.',
+  caixas: 'Caixas da loja: taxas, preços e itens.',
+  pontos: 'Neura Pontos: adicionar, remover e definir o saldo.',
+  admins: 'Promover e remover administradores.',
+}
+
+function EditarCargo({ cargo, indice, mudar, membros, souDono, aoFechar }) {
+  const tr = useT()
+  useEffect(() => {
+    const tecla = (e) => e.key === 'Escape' && aoFechar()
+    document.addEventListener('keydown', tecla)
+    return () => document.removeEventListener('keydown', tecla)
+  }, [aoFechar])
+  const c = cargo
+  const acessos = c.acessos || []
+  const alternar = (aba) => mudar(indice, 'acessos', acessos.includes(aba) ? acessos.filter((a) => a !== aba) : [...acessos, aba])
+  return createPortal(
+    <div className="adm-modal-fundo" onClick={aoFechar}>
+      <div className="adm-modal adm-cargo-modal" role="dialog" aria-modal="true" aria-label={tr('Editar cargo')} onClick={(e) => e.stopPropagation()}>
+        <header>
+          <h3>
+            {tr('Editar cargo')}: <SeloCargo cargo={{ ...c, nome: c.top > 0 && c.numerar ? `${c.nome || '…'} 1` : c.nome || '…' }} />
+          </h3>
+          <button type="button" className="adm-modal-x" onClick={aoFechar} aria-label={tr('Fechar')}>
+            ×
+          </button>
+        </header>
+        <div className="adm-modal-corpo">
+          <section>
+            <h4>{tr('Aparência')}</h4>
+            <div className="adm-cargo-campos">
+              <label>
+                {tr('Nome')}
+                <input value={c.nome} maxLength={24} onChange={(e) => mudar(indice, 'nome', e.target.value)} />
+              </label>
+              <label>
+                {tr('Cor')}
+                <input type="color" value={c.cor} onChange={(e) => mudar(indice, 'cor', e.target.value)} />
+              </label>
+              <label>
+                {tr('Ícone')}
+                <EscolherIcone valor={c.icone} cor={c.cor} aoEscolher={(id) => mudar(indice, 'icone', id)} />
+              </label>
+              <label>
+                {tr('Imagem do selo (opcional)')}
+                <EscolherImagemSelo opcional valor={c.imagem} aoEscolher={(nome) => mudar(indice, 'imagem', nome || undefined)} />
+              </label>
+            </div>
+          </section>
+          <section>
+            <h4>{tr('Como a pessoa ganha o cargo')}</h4>
+            <label className="adm-top" title={tr('0 = só manual. Ex.: 3 = os 3 primeiros do ranking ganham o cargo e perdem ao sair do top 3')}>
+              {tr('Automático: top')}
+              <input type="number" min="0" max="15" value={c.top || 0} onChange={(e) => mudar(indice, 'top', Math.min(15, Math.max(0, Math.round(Number(e.target.value) || 0))))} />
+              <small>{tr('0 = só manual (você dá em Usuários → Editar)')}</small>
+            </label>
+            <label className={`adm-numerar${c.top > 0 ? '' : ' desligado'}`}>
+              <input type="checkbox" checked={c.top > 0 && !!c.numerar} disabled={!(c.top > 0)} onChange={(e) => mudar(indice, 'numerar', e.target.checked)} />
+              {tr('Numerar posição')} <small>({c.nome || '…'} 1, {c.nome || '…'} 2…)</small>
+            </label>
+          </section>
+          <section>
+            <h4>{tr('Visibilidade')}</h4>
+            <label className="adm-numerar">
+              <input type="checkbox" checked={!c.oculto} onChange={(e) => mudar(indice, 'oculto', !e.target.checked)} />
+              {tr('Mostrar o selo no site')} <small>({tr('perfil, ranking e amigos; desligado, o cargo continua liberando o que ele libera')})</small>
+            </label>
+          </section>
+          <section>
+            <h4>{tr('Acessos')}</h4>
+            <p className="adm-nota">{tr('O que quem tem este cargo pode ver e usar. Marque só o que for preciso: cada aba liberada dá acesso completo a ela.')}</p>
+            <label className="adm-numerar adm-acesso">
+              <input type="checkbox" checked={!!c.pick} onChange={(e) => mudar(indice, 'pick', e.target.checked)} />
+              <span>
+                <b>{tr('Página Pick & Ban')}</b>
+                <small>{tr('A página fica escondida de todos os outros.')}</small>
+              </span>
+            </label>
+            <h5>{tr('Abas do painel admin')}</h5>
+            {souDono ? (
+              <div className="adm-acessos">
+                {Object.keys(NOMES_ABAS).map((aba) => (
+                  <label key={aba} className="adm-numerar adm-acesso">
+                    <input type="checkbox" checked={acessos.includes(aba)} onChange={() => alternar(aba)} />
+                    <span>
+                      <b>{tr(NOMES_ABAS[aba])}</b>
+                      <small>{tr(DESCRICAO_ABAS[aba])}</small>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <p className="adm-nota">{tr('Só o dono muda os acessos ao painel.')}{acessos.length ? ` ${tr('Atuais')}: ${acessos.map((a) => tr(NOMES_ABAS[a] || a)).join(', ')}` : ''}</p>
+            )}
+            <p className="adm-nota">{tr('Admins já têm Usuários, Molduras, Cards e Cargos. Assinaturas, Admins, Skins, Caixas e Pontos são só do dono, a não ser que um cargo libere.')}</p>
+          </section>
+          <section>
+            <h4>
+              {tr('Quem tem')} ({membros.length})
+            </h4>
+            <span className="adm-cargo-membros">
+              {membros.slice(0, 24).map((u) => (
+                <a key={u.id} href={linkPerfil(u.id)} title={u.nome}>
+                  <Avatar id={u.id} src={u.avatar} nome={u.nome} classe="adm-av mini" />
+                </a>
+              ))}
+              {!membros.length && <small>{tr('Ninguém ainda.')}</small>}
+            </span>
+          </section>
+        </div>
+        <footer>
+          <span className="adm-nota">{tr('As mudanças só valem depois de "Salvar cargos" na lista.')}</span>
+          <button type="button" className="btn btn-primary" onClick={aoFechar}>
+            {tr('Concluir')}
+          </button>
+        </footer>
+      </div>
+    </div>,
+    document.body,
+  )
+}
+
+function Cargos({ config, usuarios, aoSalvar, souDono }) {
   const tr = useT()
   const [lista, setLista] = useState(() => (config.cargos || []).map((c) => ({ ...c })))
   const [novoNome, setNovoNome] = useState('')
   const [novaCor, setNovaCor] = useState('#f5c542')
   const [novoIcone, setNovoIcone] = useState('coroa')
   const [estado, setEstado] = useState('')
+  const [editandoCargo, setEditandoCargo] = useState(null) // id do cargo aberto no editor
   const mudou = JSON.stringify(lista) !== JSON.stringify(config.cargos || [])
   const membros = (id) => usuarios.filter((u) => (u.perfil.cargos || []).includes(id) || u.auto.includes(id))
   const exclusivas = (id) => Object.values(config.molduraCargo || {}).filter((c) => c === id).length
@@ -825,7 +956,7 @@ function Cargos({ config, usuarios, aoSalvar }) {
   const salvar = async () => {
     setEstado('salvando')
     try {
-      const d = await chamar('/admin/config', { cargos: lista.map((c) => ({ id: c.id, nome: c.nome.trim(), cor: c.cor, icone: c.icone || 'coroa', imagem: c.imagem || '', top: Number(c.top) || 0, numerar: Number(c.top) > 0 && !!c.numerar, oculto: !!c.oculto, pick: !!c.pick })) })
+      const d = await chamar('/admin/config', { cargos: lista.map((c) => ({ id: c.id, acessos: c.acessos || [], nome: c.nome.trim(), cor: c.cor, icone: c.icone || 'coroa', imagem: c.imagem || '', top: Number(c.top) || 0, numerar: Number(c.top) > 0 && !!c.numerar, oculto: !!c.oculto, pick: !!c.pick })) })
       aoSalvar(d.config)
       setEstado('Salvo!')
     } catch (e) {
@@ -849,50 +980,32 @@ function Cargos({ config, usuarios, aoSalvar }) {
           </button>
         </div>
       </div>
-      <ul>
+      <ul className="adm-cargos-lista">
         {lista.map((c, i) => (
-          <li key={c.id}>
-            <input type="color" value={c.cor} onChange={(e) => mudar(i, 'cor', e.target.value)} aria-label={tr('Cor do cargo {nome}', { nome: c.nome })} />
-            <EscolherIcone valor={c.icone} cor={c.cor} aoEscolher={(id) => mudar(i, 'icone', id)} />
-            <EscolherImagemSelo opcional valor={c.imagem} aoEscolher={(nome) => mudar(i, 'imagem', nome || undefined)} />
-            <input className="adm-cargo-nome" value={c.nome} maxLength={24} onChange={(e) => mudar(i, 'nome', e.target.value)} aria-label={tr('Nome do cargo')} />
+          <li key={c.id} className="adm-cargo-linha">
+            <span className="adm-cargo-cor" style={{ background: c.cor }} aria-hidden="true" />
             <SeloCargo cargo={{ ...c, nome: c.top > 0 && c.numerar ? `${c.nome || '…'} 1` : c.nome || '…' }} />
-            <label className="adm-top" title={tr('0 = só manual. Ex.: 3 = os 3 primeiros do ranking ganham o cargo e perdem ao sair do top 3')}>
-              {tr('Automático: top')}
-              <input
-                type="number"
-                min="0"
-                max="15"
-                value={c.top || 0}
-                onChange={(e) => mudar(i, 'top', Math.min(15, Math.max(0, Math.round(Number(e.target.value) || 0))))}
-              />
-            </label>
-            <label className={`adm-numerar${c.top > 0 ? '' : ' desligado'}`} title={tr('Mostra a posição no selo: {nome} 1, {nome} 2, {nome} 3...', { nome: c.nome || '…' })}>
-              <input type="checkbox" checked={c.top > 0 && !!c.numerar} disabled={!(c.top > 0)} onChange={(e) => mudar(i, 'numerar', e.target.checked)} />
-              {tr('Numerar posição')}
-            </label>
-            <label className="adm-numerar" title={tr('Desligado: o selo não aparece no perfil, no ranking nem nos amigos, mas o cargo continua liberando as molduras exclusivas dele.')}>
-              <input type="checkbox" checked={!c.oculto} onChange={(e) => mudar(i, 'oculto', !e.target.checked)} />
-              {tr('Mostrar no site')}
-            </label>
-            <label className="adm-numerar" title={tr('Ligado: quem tem este cargo vê a página Pick & Ban (ela fica escondida de todos os outros).')}>
-              <input type="checkbox" checked={!!c.pick} onChange={(e) => mudar(i, 'pick', e.target.checked)} />
-              {tr('Ver Pick & Ban')}
-            </label>
-            <span className="adm-cargo-info">
-              {c.oculto && <b className="adm-oculto">{tr('Oculto no site')} · </b>}
-              {tr('{n} jogador(es) · {m} moldura(s) exclusiva(s)', { n: membros(c.id).length, m: exclusivas(c.id) })}
-              {c.top > 0 ? ` · ${tr('automático para o top {n} do ranking (sai sozinho de quem cair)', { n: c.top })}` : ` · ${tr('só manual')}`}
-              <span className="adm-cargo-membros">
-                {membros(c.id)
-                  .slice(0, 8)
-                  .map((u) => (
-                    <a key={u.id} href={linkPerfil(u.id)} title={u.nome}>
-                      <Avatar id={u.id} src={u.avatar} nome={u.nome} classe="adm-av mini" />
-                    </a>
-                  ))}
-              </span>
+            <span className="adm-cargo-resumo">
+              <b>{c.nome}</b>
+              <small>
+                {c.oculto && <em className="adm-oculto">{tr('Oculto no site')} · </em>}
+                {tr('{n} jogador(es) · {m} moldura(s) exclusiva(s)', { n: membros(c.id).length, m: exclusivas(c.id) })}
+                {c.top > 0 ? ` · ${tr('automático: top {n} do ranking', { n: c.top })}` : ` · ${tr('só manual')}`}
+                {(c.acessos?.length || c.pick) ? ` · ${tr('acessos')}: ${[...(c.acessos || []).map((a) => tr(NOMES_ABAS[a] || a)), ...(c.pick ? ['Pick & Ban'] : [])].join(', ')}` : ''}
+              </small>
             </span>
+            <span className="adm-cargo-membros">
+              {membros(c.id)
+                .slice(0, 6)
+                .map((u) => (
+                  <a key={u.id} href={linkPerfil(u.id)} title={u.nome}>
+                    <Avatar id={u.id} src={u.avatar} nome={u.nome} classe="adm-av mini" />
+                  </a>
+                ))}
+            </span>
+            <button type="button" className="btn btn-ghost" onClick={() => setEditandoCargo(c.id)}>
+              {tr('Editar')}
+            </button>
             <button type="button" className="btn btn-ghost adm-perigo" onClick={() => apagar(i)}>
               {tr('Apagar')}
             </button>
@@ -908,6 +1021,9 @@ function Cargos({ config, usuarios, aoSalvar }) {
           {tr('Adicionar cargo')}
         </button>
       </div>
+      {editandoCargo && lista.some((c) => c.id === editandoCargo) && (
+        <EditarCargo cargo={lista.find((c) => c.id === editandoCargo)} indice={lista.findIndex((c) => c.id === editandoCargo)} mudar={mudar} membros={membros(editandoCargo)} souDono={souDono} aoFechar={() => setEditandoCargo(null)} />
+      )}
     </div>
   )
 }
@@ -1533,11 +1649,11 @@ export default function Admin() {
       .catch((e) => (!silencioso || e.message !== 'falhou') && setErro(mensagemErro(e)))
   }, [])
   useEffect(() => {
-    if (eu.admin) carregar()
-  }, [eu.admin, carregar])
+    if (eu.painel) carregar()
+  }, [eu.painel, carregar])
   // Atualiza sozinho a cada 15 s com a aba visível (e ao voltar para a aba); pausa enquanto edita alguém
   useEffect(() => {
-    if (!eu.admin || editando) return
+    if (!eu.painel || editando) return
     const tique = () => document.visibilityState === 'visible' && carregar(true)
     const id = setInterval(tique, 15000)
     document.addEventListener('visibilitychange', tique)
@@ -1545,7 +1661,7 @@ export default function Admin() {
       clearInterval(id)
       document.removeEventListener('visibilitychange', tique)
     }
-  }, [eu.admin, editando, carregar])
+  }, [eu.painel, editando, carregar])
 
   const usuarios = useMemo(() => (painel ? montarUsuarios(painel, ranking) : []), [painel, ranking])
   const fecharEdicao = useCallback(() => setEditando(null), [])
@@ -1562,7 +1678,7 @@ export default function Admin() {
         )}
       </Aviso>
     )
-  else if (!eu.admin) conteudo = <Aviso titulo="Acesso restrito" texto="Esta área é só para administradores do site." />
+  else if (!eu.painel) conteudo = <Aviso titulo="Acesso restrito" texto="Esta área é só para quem tem acesso ao painel." />
   else if (erro)
     conteudo = (
       <Aviso titulo="Não deu para carregar" texto={erro}>
@@ -1579,15 +1695,19 @@ export default function Admin() {
       perfis: Object.keys(painel.perfis || {}).length,
       bloqueados: Object.values(painel.perfis || {}).filter((p) => p.bloqueado).length,
     }
+    // Cada pessoa vê só as abas que o worker liberou (/eu → abas): o dono vê todas; admin vê Usuários, Molduras, Cards e Cargos; um cargo pode liberar mais
     const ABAS = [
       ['usuarios', 'Usuários'],
       ['molduras', 'Molduras'],
       ['cards', 'Cards'],
       ['cargos', 'Cargos'],
       ['assinaturas', 'Assinaturas'],
-      ...(eu.dono ? [['skins', 'Skins'], ['caixas', 'Caixas'], ['pontos', 'Pontos']] : []), // só o dono entrega skins e mexe na loja
+      ['skins', 'Skins'],
+      ['caixas', 'Caixas'],
+      ['pontos', 'Pontos'],
       ['admins', 'Admins'],
-    ]
+    ].filter(([id]) => eu.abas.includes(id))
+    const abaAtual = ABAS.some(([id]) => id === aba) ? aba : ABAS[0]?.[0]
     conteudo = (
       <>
         <section className="hero adm-hero">
@@ -1614,7 +1734,7 @@ export default function Admin() {
           <div className="wrap">
             <div className="adm-abas" role="tablist" aria-label={tr('Seções do painel')}>
               {ABAS.map(([id, rotulo]) => (
-                <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'active' : ''} onClick={() => setAba(id)}>
+                <button key={id} type="button" role="tab" aria-selected={abaAtual === id} className={abaAtual === id ? 'active' : ''} onClick={() => setAba(id)}>
                   {tr(rotulo)}
                 </button>
               ))}
@@ -1625,16 +1745,16 @@ export default function Admin() {
                 ↻
               </button>
             </div>
-            {aba === 'usuarios' && <Usuarios usuarios={usuarios} painel={painel} dono={painel.dono} editar={setEditando} />}
-            {aba === 'cards' && <CardsRegras key={JSON.stringify(painel.config)} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
-            {aba === 'molduras' && <Molduras key={JSON.stringify(painel.config)} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
-            {aba === 'cargos' && eu.dono && <SelosEquipe key={JSON.stringify(painel.config.selos || {})} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
-            {aba === 'cargos' && <Cargos key={JSON.stringify(painel.config.cargos || [])} config={painel.config} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
-            {aba === 'assinaturas' && <Assinaturas key={JSON.stringify(painel.config.subMeses || {})} config={painel.config} usuarios={usuarios} aoSalvarConfig={(config) => setPainel((p) => ({ ...p, config }))} aoSalvarPerfis={(perfis) => setPainel((p) => ({ ...p, perfis }))} />}
-            {aba === 'skins' && eu.dono && <DarSkin usuarios={usuarios} />}
-            {aba === 'caixas' && eu.dono && <AdminCaixas />}
-            {aba === 'pontos' && eu.dono && <AdminPontos usuarios={usuarios} />}
-            {aba === 'admins' && <Admins config={painel.config} dono={painel.dono} souDono={eu.dono} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
+            {abaAtual === 'usuarios' && <Usuarios usuarios={usuarios} painel={painel} dono={painel.dono} editar={setEditando} />}
+            {abaAtual === 'cards' && <CardsRegras key={JSON.stringify(painel.config)} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
+            {abaAtual === 'molduras' && <Molduras key={JSON.stringify(painel.config)} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
+            {abaAtual === 'cargos' && eu.dono && <SelosEquipe key={JSON.stringify(painel.config.selos || {})} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
+            {abaAtual === 'cargos' && <Cargos key={JSON.stringify(painel.config.cargos || [])} souDono={eu.dono} config={painel.config} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
+            {abaAtual === 'assinaturas' && <Assinaturas key={JSON.stringify(painel.config.subMeses || {})} config={painel.config} usuarios={usuarios} aoSalvarConfig={(config) => setPainel((p) => ({ ...p, config }))} aoSalvarPerfis={(perfis) => setPainel((p) => ({ ...p, perfis }))} />}
+            {abaAtual === 'skins' && <DarSkin usuarios={usuarios} />}
+            {abaAtual === 'caixas' && <AdminCaixas />}
+            {abaAtual === 'pontos' && <AdminPontos usuarios={usuarios} />}
+            {abaAtual === 'admins' && <Admins config={painel.config} dono={painel.dono} souDono={eu.dono} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
           </div>
         </section>
         {editando && <EditarUsuario u={editando} cargos={painel.config.cargos || []} ehAdmin={editando.id === painel.dono || (painel.config.admins || []).includes(editando.id)} fechar={fecharEdicao} aoSalvar={(perfis) => setPainel((p) => ({ ...p, perfis }))} />}

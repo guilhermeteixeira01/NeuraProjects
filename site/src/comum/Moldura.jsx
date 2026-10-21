@@ -447,19 +447,19 @@ export function CargosDe({ steamId, classe = '', max = Infinity, lista }) {
 }
 
 // Quem está logado é admin? (o worker confere de verdade em toda ação; aqui é só para mostrar a aba)
-let eu = { id: null, admin: false, dono: false }
+let eu = { id: null, admin: false, dono: false, painel: false, abas: [] }
 let buscandoEu = null
 export function useAdmin(conta) {
   const [atual, setAtual] = useState(eu)
   useEffect(() => {
     if (!conta?.id) {
-      setAtual({ id: null, admin: false, dono: false })
+      setAtual({ id: null, admin: false, dono: false, painel: false, abas: [] })
       return
     }
     if (eu.id !== conta.id) buscandoEu = null
     buscandoEu ??= chamar('/eu')
-      .then((d) => (eu = { id: d.id, admin: !!d.admin, dono: !!d.dono }))
-      .catch(() => (eu = { id: conta.id, admin: false, dono: false }))
+      .then((d) => (eu = { id: d.id, admin: !!d.admin, dono: !!d.dono, painel: !!d.painel, abas: Array.isArray(d.abas) ? d.abas : [] }))
+      .catch(() => (eu = { id: conta.id, admin: false, dono: false, painel: false, abas: [] }))
     let vivo = true
     buscandoEu.then((e) => vivo && setAtual(e))
     return () => {
