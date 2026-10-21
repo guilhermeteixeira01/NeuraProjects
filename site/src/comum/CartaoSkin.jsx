@@ -18,7 +18,10 @@ export const nomeDoDesgaste = (f) => (f < 0.07 ? 'Factory New' : f < 0.15 ? 'Min
 // valor: NP do item (aparece embaixo do nome; no mercado, o preço do anúncio)
 export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAbrirMenu, extra, selecionado, valor }) {
   const t = useT()
-  const d = descrever(item, idx)
+  // adesivo/chaveiro guardado (mercado): nome, imagem e cor vêm do catálogo dele ([id, nome, imagem, cor])
+  const enfeite = item.t === 'adesivo' || item.t === 'chaveiro'
+  const linha = enfeite ? (item.t === 'adesivo' ? adesivos : chaveiros)?.get(item.d) : null
+  const d = enfeite ? { titulo: linha?.[1] || `#${item.d}`, subtitulo: t(item.t === 'adesivo' ? 'Adesivo' : 'Chaveiro'), img: urlImg(linha?.[2], 256), cor: linha?.[3] || '' } : descrever(item, idx)
   const chave = chaveEquip(item)
   const lados = LADOS_TIME.filter(([l]) => equip?.[l]?.[chave] === item.__id)
   const corpo = (

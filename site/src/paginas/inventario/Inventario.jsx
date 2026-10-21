@@ -807,22 +807,29 @@ function useMenuFlutuante(x, y, aoFechar) {
   return { ref, pos }
 }
 
-// Menu de adesivo/chaveiro guardado (o mesmo visual do menu das armas): vender e excluir
-function MenuGuardado({ x, y, n, valor, aoVender, aoVenderTodos, aoExcluir, aoFechar }) {
+// Menu de adesivo/chaveiro guardado (o mesmo visual do menu das armas): vender no mercado, venda rápida e excluir
+function MenuGuardado({ x, y, n, valor, aoAnunciar, aoVender, aoVenderTodos, aoExcluir, aoFechar }) {
   const t = useT()
   const { ref, pos } = useMenuFlutuante(x, y, aoFechar)
   return (
     <ul className="inv-menu" ref={ref} style={{ left: pos.x, top: pos.y }} role="menu">
       <li>
+        <button type="button" role="menuitem" className="inv-menu-vender" onClick={aoAnunciar}>
+          {t('Vender no mercado')}
+          {valor != null ? <b> ~{valor.toLocaleString('pt-BR')} NP</b> : null}
+        </button>
+      </li>
+      <li className="inv-menu-sep" />
+      <li>
         <button type="button" role="menuitem" className="inv-menu-vender" disabled={valor == null} onClick={aoVender}>
-          {t('Vender')}
+          {t('Venda rápida')}
           {valor != null ? <b> +{valor.toLocaleString('pt-BR')} NP</b> : null}
         </button>
       </li>
       {n > 1 && (
         <li>
           <button type="button" role="menuitem" className="inv-menu-vender" disabled={valor == null} onClick={aoVenderTodos}>
-            {t('Vender todos ({n})', { n: Math.min(n, 100) })}
+            {t('Venda rápida de todos ({n})', { n: Math.min(n, 100) })}
             {valor != null ? <b> +{(valor * Math.min(n, 100)).toLocaleString('pt-BR')} NP</b> : null}
           </button>
         </li>
@@ -967,7 +974,7 @@ function Conteudo() {
       document.removeEventListener('pointerover', sobre)
     }
   }, [])
-  const precisaAdesivos = janela?.tipo === 'editar' || janela?.tipo === 'confirmar' || janela?.tipo === 'inspecionar' || aba === 'adesivo' || aba === 'chaveiro' || (!!inv && Object.values(inv.itens).some((it) => it.a?.some(Boolean) || it.k?.i || EMBALAGEM(it.t)))
+  const precisaAdesivos = janela?.tipo === 'editar' || janela?.tipo === 'confirmar' || janela?.tipo === 'inspecionar' || aba === 'adesivo' || aba === 'chaveiro' || aba === 'avenda' || (!!inv && Object.values(inv.itens).some((it) => it.a?.some(Boolean) || it.k?.i || EMBALAGEM(it.t)))
   const [caixasLoja, setCaixasLoja] = useState([])
   const temCaixa = (!!inv && Object.values(inv.itens).some((it) => it.t === 'caixa')) || aba === 'caixa'
   useEffect(() => {
@@ -1357,7 +1364,7 @@ function Conteudo() {
         </div>
       )}
       {avisoVenda && <p className="inv-aviso-venda" role="status">{avisoVenda}</p>}
-      {anuncios.length > 0 && aba !== 'avenda' && ['tudo', 'arma', 'faca', 'luva'].includes(aba) && (
+      {anuncios.length > 0 && ['tudo', 'arma', 'faca', 'luva', 'adesivo', 'chaveiro'].includes(aba) && (
         <p className="inv-avenda-faixa">
           <span>{t('Você tem {n} item(ns) à venda no mercado. Enquanto estão anunciados, eles ficam fora do inventário.', { n: anuncios.length })}</span>
           <button type="button" className="inv-btn" onClick={() => setAba('avenda')}>
@@ -1387,7 +1394,7 @@ function Conteudo() {
           ))}
           {!anuncios.length && (
             <li className="inv-nada">
-              {t('Você não tem nada à venda. Clique numa arma e escolha "Vender no mercado" para anunciar pelo preço que quiser.')} <a href="/loja/?aba=mercado">{t('Ver o mercado')}</a>
+              {t('Você não tem nada à venda. Clique numa arma, adesivo ou chaveiro e escolha "Vender no mercado" para anunciar pelo preço que quiser.')} <a href="/loja/?aba=mercado">{t('Ver o mercado')}</a>
             </li>
           )}
         </ul>
@@ -1438,6 +1445,7 @@ function Conteudo() {
             n={guardadoDoMenu.n}
             valor={valores[ids[0]]?.v}
             aoFechar={fechar}
+            aoAnunciar={() => { pedirAnuncio(ids[0]); fechar() }}
             aoVender={() => { pedirVenda([ids[0]]); fechar() }}
             aoVenderTodos={() => { pedirVenda(ids.slice(0, 100)); fechar() }}
             aoExcluir={() => { pedirExclusao(ids[0], `${guardadoDoMenu.linha?.[1] || `#${guardadoDoMenu.def}`} (1)`); fechar() }}
@@ -1446,7 +1454,9 @@ function Conteudo() {
       })()}
       {anuncio && inv.itens[anuncio.id] && (() => {
         const item = inv.itens[anuncio.id]
-        const d = descrever(item, idx)
+        const enfeite = EMBALAGEM(item.t)
+        const linha = enfeite ? (item.t === 'adesivo' ? adesivosPorId : chaveirosPorId).get(item.d) : null
+        const d = enfeite ? { img: urlImg(linha?.[2], 256), cor: linha?.[3] } : descrever(item, idx)
         const ref = valores[anuncio.id]?.v
         const preco = Math.round(Number(anuncio.preco)) || 0
         return (
@@ -1471,6 +1481,7 @@ function Conteudo() {
               </span>
               <span className="inv-anuncio-nome">
                 <b>{nomeDoItem(item)}</b>
+                {enfeite && <small>{item.t === 'adesivo' ? t('Adesivo') : t('Chaveiro')}</small>}
                 {d.skin && <small>{t(nomeDoDesgaste(Number(item.f)))} · {Number(item.f).toFixed(4)}</small>}
                 {ref != null && <small>{t('Valor de referência')}: <b className="inv-cartao-valor">{ref.toLocaleString('pt-BR')} NP</b></small>}
               </span>
