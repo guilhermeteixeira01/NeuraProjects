@@ -29,7 +29,7 @@
  *   GET  /admin/loja-saldo?id= (dono)  -> { saldo, ganhos, gastos, movimentos } de um jogador
  */
 import { avisarPerfil } from './amigos.js'
-import { CONFIG_PADRAO, MODOS, aplicarModo, faixasDeDesgaste, precoDeMercado, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
+import { CONFIG_PADRAO, VENDA_INSTANTANEA_MAX, MODOS, aplicarModo, faixasDeDesgaste, precoDeMercado, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
 import { lerSkinsKv, limparSkins, novoIdItem } from './skins.js'
 import CAIXAS_INICIAIS from './caixas-iniciais.json'
 import RARIDADE_SKIN from './skins-raridade.json'
@@ -411,6 +411,7 @@ export class Loja {
       const it = inv.itens[k]
       const x = it && valorDe(it)
       if (!x) throw new Error('item')
+      if (x.v > VENDA_INSTANTANEA_MAX) throw new Error('so-mercado') // caro demais para vender na hora: só pelo mercado
       total += x.v
       delete inv.itens[k]
       delete inv.criado[k]

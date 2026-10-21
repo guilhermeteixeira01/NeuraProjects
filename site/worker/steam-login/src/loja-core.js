@@ -294,6 +294,9 @@ export const RARIDADES_CS = [
 // Cor da skin no catálogo (Steam) -> raridade 0..5 (a mesma do worker/steam-login/src/skins-raridade.json)
 export const raridadeCsDaCor = (cor) => ({ '#b0c3d9': 0, '#5e98d9': 1, '#4b69ff': 2, '#8847ff': 3, '#d32ce6': 4, '#eb4b4b': 5 })[String(cor || '').toLowerCase()] ?? 2
 
+// Venda instantânea (para a loja): só itens que valem até este tanto de NP; acima disso só pelo mercado entre jogadores
+export const VENDA_INSTANTANEA_MAX = 1000
+
 // Valor base em NP de cada raridade, com o desgaste Factory New. Fica bem abaixo do preço das caixas (vender não paga a caixa de volta).
 export const VALOR_BASE = [12, 25, 60, 150, 380, 1000, 4000]
 // Quanto do valor sobra conforme o desgaste (float): interpolado entre os pontos
