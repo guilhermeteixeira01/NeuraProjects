@@ -202,7 +202,9 @@ const ABAS_ADMIN = ['usuarios', 'molduras', 'cards', 'cargos', 'assinaturas', 's
 const ABAS_DO_ADMIN = ['usuarios', 'molduras', 'cards', 'cargos']
 async function abasDe(id, env, config) {
   if (id === env.DONO) return [...ABAS_ADMIN]
-  const abas = new Set(ehAdmin(id, env, config) ? ABAS_DO_ADMIN : [])
+  // abas dos admins: as do selo "Admins" (o dono edita em Cargos → Selos da equipe); sem nada salvo, as padrão
+  const dosAdmins = Array.isArray(config.selos?.admin?.acessos) ? config.selos.admin.acessos.filter((a) => ABAS_ADMIN.includes(a)) : ABAS_DO_ADMIN
+  const abas = new Set(ehAdmin(id, env, config) ? dosAdmins : [])
   const meus = (await ler(env, 'perfis'))[id]?.cargos || []
   for (const c of config.cargos || []) if (meus.includes(c.id)) for (const a of c.acessos || []) if (ABAS_ADMIN.includes(a)) abas.add(a)
   return ABAS_ADMIN.filter((a) => abas.has(a))
@@ -721,6 +723,7 @@ async function adminSelos(req, env, config, cors) {
     const imagem = s.imagem ?? selos[qual].imagem ?? 'verified.png'
     if (!IMAGEM_SELO.test(String(imagem))) return json({ erro: 'selos' }, 400, cors)
     selos[qual] = { nome, cor: s.cor, icone: s.icone, imagem, mostrar: s.mostrar !== false, pick: s.pick === true }
+    if (qual === 'admin' && Array.isArray(s.acessos)) selos.admin.acessos = s.acessos.filter((a, i, l) => ABAS_ADMIN.includes(a) && l.indexOf(a) === i)
   }
   const novo = { ...config, selos }
   await gravar(env, 'config', novo)
