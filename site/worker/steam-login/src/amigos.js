@@ -46,7 +46,7 @@ const VETO_SEG = 30
 //   entrega   o plugin pegou a série e não confirmou que carregou: volta para a fila
 //   serie     tempo máximo de uma série em andamento (se o plugin sumir sem avisar, a sala fecha depois disso)
 //   encerrada a série acabou (ou deu erro): a sala mostra o resultado por esse tempo e fecha sozinha
-const T = { fila: 10 * 60 * 1000, entrega: 90 * 1000, serie: 6 * 60 * 60 * 1000, encerrada: 2 * 60 * 1000 }
+const T = { fila: 10 * 60 * 1000, entrega: 90 * 1000, serie: 6 * 60 * 60 * 1000, encerrada: 20 * 1000 }
 const ORDEM_SERVIDOR = { fila: 0, entregue: 1, carregada: 2, jogando: 3, encerrada: 4, erro: 4 } // o plugin só avança (aviso atrasado não volta a sala)
 const ESTADOS_SERVIDOR = ['carregada', 'jogando', 'encerrada', 'erro']
 const FORMATOS_FILA = ['bo1', 'bo3'] // formatos que o líder pode buscar; só lobbies do mesmo formato se enfrentam
@@ -191,18 +191,40 @@ async function lerAmigos(env) {
 const presenca = (env) => env.PRESENCA.get(env.PRESENCA.idFromName('global'))
 
 // Nome e foto: quem já entrou no site (lista "usuarios"); os outros, pela Web API da Steam numa chamada só
+// "usuarios" fica 20 s na memória e o que veio da Steam 10 min: o lobby pergunta nomes a cada pedido, e uma ida à Steam (ou ao KV) parava a fila inteira
+let usuariosGuardados = { texto: null, ate: 0 }
+const steamGuardados = new Map() // id -> { nome, avatar, ate }
+async function lerUsuarios(env) {
+  if (usuariosGuardados.ate < Date.now()) {
+    const texto = await env.MOLDURAS.get('usuarios', 'text').catch(() => null)
+    if (texto) usuariosGuardados = { texto, ate: Date.now() + 20_000 }
+    else return {}
+  }
+  try {
+    return JSON.parse(usuariosGuardados.texto) || {}
+  } catch {
+    return {}
+  }
+}
 async function nomes(env, ids) {
-  const usuarios = (await env.MOLDURAS.get('usuarios', 'json').catch(() => null)) || {}
-  const fora = ids.filter((id) => !usuarios[id]?.nome)
-  const steam = {}
+  const usuarios = await lerUsuarios(env)
+  const agora = Date.now()
+  const fora = ids.filter((id) => !usuarios[id]?.nome && !(steamGuardados.get(id)?.ate > agora))
   if (fora.length && env.STEAM_API_KEY) {
     try {
-      const r = await fetch(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${env.STEAM_API_KEY}&steamids=${fora.slice(0, 100).join(',')}`)
-      for (const p of (await r.json())?.response?.players || []) steam[p.steamid] = { nome: p.personaname || '', avatar: p.avatarfull || '' }
+      const r = await fetch(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${env.STEAM_API_KEY}&steamids=${fora.slice(0, 100).join(',')}`, { signal: AbortSignal.timeout(2500) })
+      const achados = new Set()
+      for (const p of (await r.json())?.response?.players || []) {
+        steamGuardados.set(p.steamid, { nome: p.personaname || '', avatar: p.avatarfull || '', ate: agora + 10 * 60_000 })
+        achados.add(p.steamid)
+      }
+      for (const id of fora) if (!achados.has(id)) steamGuardados.set(id, { nome: '', avatar: '', ate: agora + 60_000 })
     } catch {
-      // sem nome: o site mostra o SteamID
+      // sem nome: o site mostra o SteamID (e não pergunta de novo por 30 s)
+      for (const id of fora) steamGuardados.set(id, { nome: '', avatar: '', ate: agora + 30_000 })
     }
   }
+  const steam = Object.fromEntries(ids.map((id) => [id, steamGuardados.get(id)]))
   return Object.fromEntries(ids.map((id) => [id, { nome: usuarios[id]?.nome || steam[id]?.nome || '', avatar: usuarios[id]?.avatar || steam[id]?.avatar || '' }]))
 }
 
@@ -215,48 +237,18 @@ async function minhaLista(env, eu, todos) {
 }
 
 // GET /amigos e POST /amigos { acao, id }
+// Pedidos e amizades vivem no objeto de presença (consistência na hora): no KV (eventual) o pedido novo levava até 1 min para a outra pessoa enxergar.
 export async function rotaAmigos(req, env, quem, cors) {
-  const todos = await lerAmigos(env)
-  if (req.method === 'GET') return json(await minhaLista(env, quem.id, todos), 200, cors)
-
-  let corpo
-  try {
-    corpo = await req.json()
-  } catch {
-    return json({ erro: 'corpo' }, 400, cors)
-  }
-  const { acao, id } = corpo || {}
-  if (!ACOES.includes(acao) || !ID_STEAM.test(String(id)) || id === quem.id) return json({ erro: 'amigos' }, 400, cors)
-
-  const eu = (todos[quem.id] ??= vazio())
-  const ele = (todos[id] ??= vazio())
-  if (acao === 'pedir') {
-    if (eu.amigos.includes(id)) return json(await minhaLista(env, quem.id, todos), 200, cors)
-    if (eu.amigos.length >= MAX_AMIGOS) return json({ erro: 'limite' }, 400, cors)
-    if (eu.recebidos.includes(id)) {
-      // ele já tinha pedido: vira amizade direto
-      eu.recebidos = tira(eu.recebidos, id); ele.enviados = tira(ele.enviados, quem.id)
-      eu.amigos = poe(eu.amigos, id); ele.amigos = poe(ele.amigos, quem.id)
-    } else {
-      eu.enviados = poe(eu.enviados, id); ele.recebidos = poe(ele.recebidos, quem.id)
+  let corpo = {}
+  if (req.method === 'POST') {
+    try {
+      corpo = await req.json()
+    } catch {
+      return json({ erro: 'corpo' }, 400, cors)
     }
-  } else if (acao === 'aceitar') {
-    if (!eu.recebidos.includes(id)) return json({ erro: 'pedido' }, 400, cors)
-    if (eu.amigos.length >= MAX_AMIGOS) return json({ erro: 'limite' }, 400, cors)
-    eu.recebidos = tira(eu.recebidos, id); ele.enviados = tira(ele.enviados, quem.id)
-    eu.amigos = poe(eu.amigos, id); ele.amigos = poe(ele.amigos, quem.id)
-  } else if (acao === 'recusar') {
-    eu.recebidos = tira(eu.recebidos, id); ele.enviados = tira(ele.enviados, quem.id)
-  } else if (acao === 'cancelar') {
-    eu.enviados = tira(eu.enviados, id); ele.recebidos = tira(ele.recebidos, quem.id)
-  } else if (acao === 'remover') {
-    eu.amigos = tira(eu.amigos, id); ele.amigos = tira(ele.amigos, quem.id)
   }
-  for (const k of [quem.id, id]) if (!todos[k].amigos.length && !todos[k].recebidos.length && !todos[k].enviados.length) delete todos[k]
-  await env.MOLDURAS.put('amigos', JSON.stringify(todos))
-  // Avisa as duas pessoas (as abas abertas recarregam a lista e a presença na hora)
-  await presenca(env).fetch('https://presenca/avisar', { method: 'POST', body: JSON.stringify({ ids: [quem.id, id] }) }).catch(() => {})
-  return json(await minhaLista(env, quem.id, todos), 200, cors)
+  const r = await presenca(env).fetch('https://presenca/amigos', { method: 'POST', body: JSON.stringify({ metodo: req.method, quem: quem.id, acao: corpo?.acao, id: corpo?.id }) })
+  return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
 }
 
 // Perfil mudou (admin deu insígnia, moldura...): manda o perfil novo para as abas abertas da pessoa, na hora
@@ -338,8 +330,55 @@ export class Presenca {
   }
 
   async listaAmigos(recarregar = false) {
-    if (!this.amigos || recarregar) this.amigos = await lerAmigos(this.env)
+    if (!this.amigos || recarregar) {
+      this.amigos = await this.state.storage.get('amigosV2')
+      if (!this.amigos) {
+        this.amigos = await lerAmigos(this.env) // primeira vez: traz o que estava no KV
+        await this.state.storage.put('amigosV2', this.amigos)
+      }
+    }
     return this.amigos
+  }
+
+  // GET/POST /amigos (rotaAmigos): lista, pedir, aceitar, recusar, cancelar, remover. Tudo aqui dentro, um pedido de cada vez
+  async amigosPedido(req) {
+    const { metodo, quem, acao, id } = (await req.json().catch(() => null)) || {}
+    const todos = await this.listaAmigos()
+    if (metodo === 'GET') return json(await minhaLista(this.env, quem, todos))
+    if (!ACOES.includes(acao) || !ID_STEAM.test(String(id)) || id === quem) return json({ erro: 'amigos' }, 400)
+    const eu = (todos[quem] ??= vazio())
+    const ele = (todos[id] ??= vazio())
+    if (acao === 'pedir') {
+      if (eu.amigos.includes(id)) return json(await minhaLista(this.env, quem, todos))
+      if (eu.amigos.length >= MAX_AMIGOS) return json({ erro: 'limite' }, 400)
+      if (eu.recebidos.includes(id)) {
+        // ele já tinha pedido: vira amizade direto
+        eu.recebidos = tira(eu.recebidos, id); ele.enviados = tira(ele.enviados, quem)
+        eu.amigos = poe(eu.amigos, id); ele.amigos = poe(ele.amigos, quem)
+      } else {
+        eu.enviados = poe(eu.enviados, id); ele.recebidos = poe(ele.recebidos, quem)
+      }
+    } else if (acao === 'aceitar') {
+      if (!eu.recebidos.includes(id)) return json({ erro: 'pedido' }, 400)
+      if (eu.amigos.length >= MAX_AMIGOS) return json({ erro: 'limite' }, 400)
+      eu.recebidos = tira(eu.recebidos, id); ele.enviados = tira(ele.enviados, quem)
+      eu.amigos = poe(eu.amigos, id); ele.amigos = poe(ele.amigos, quem)
+    } else if (acao === 'recusar') {
+      eu.recebidos = tira(eu.recebidos, id); ele.enviados = tira(ele.enviados, quem)
+    } else if (acao === 'cancelar') {
+      eu.enviados = tira(eu.enviados, id); ele.recebidos = tira(ele.recebidos, quem)
+    } else if (acao === 'remover') {
+      eu.amigos = tira(eu.amigos, id); ele.amigos = tira(ele.amigos, quem)
+    }
+    for (const k of [quem, id]) if (!todos[k].amigos.length && !todos[k].recebidos.length && !todos[k].enviados.length) delete todos[k]
+    this.amigos = todos
+    await this.state.storage.put('amigosV2', todos)
+    // Avisa as duas pessoas (as abas abertas recarregam a lista e a presença na hora)
+    for (const k of [quem, id]) {
+      this.enviar(k, { tipo: 'lista' })
+      if (this.state.getWebSockets(k).length) this.enviar(k, await this.estadoPara(k))
+    }
+    return json(await minhaLista(this.env, quem, todos))
   }
 
   // online > ausente > offline, juntando todas as abas da pessoa
@@ -724,6 +763,7 @@ export class Presenca {
 
   async fetch(req) {
     const url = new URL(req.url)
+    if (url.pathname === '/amigos') return this.exclusivo(() => this.amigosPedido(req))
     if (url.pathname === '/servidor/elenco') return this.exclusivo(() => this.servidorElenco(req))
     if (url.pathname === '/servidor/proxima') return this.exclusivo(() => this.servidorProxima())
     if (url.pathname === '/servidor/estado') return this.exclusivo(() => this.servidorEstado(req))

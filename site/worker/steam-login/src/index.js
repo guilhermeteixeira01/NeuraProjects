@@ -250,9 +250,22 @@ async function abasDe(id, env, config) {
 }
 
 // Lê uma chave do KV (objeto vazio se não existir). "perfis" ainda converte o formato antigo da chave "molduras".
+// Leituras do KV ficam guardadas na memória por alguns segundos (config, perfis, usuarios são lidos em quase todo pedido: sem isso o plano grátis
+// estoura as 100 mil leituras por dia e tudo começa a dar erro ou demorar). Quem grava (gravar) atualiza o guardado na hora; os outros processos
+// do worker enxergam a mudança em até o TTL.
+const CACHE_KV = new Map()
+const TTL_KV = { config: 30_000, usuarios: 30_000, perfis: 15_000 }
 async function ler(env, chave) {
   try {
-    const v = await env.MOLDURAS.get(chave, 'json')
+    const ttl = TTL_KV[chave]
+    let texto
+    const guardado = ttl && CACHE_KV.get(chave)
+    if (guardado && guardado.ate > Date.now()) texto = guardado.texto
+    else {
+      texto = await env.MOLDURAS.get(chave, 'text')
+      if (ttl && texto) CACHE_KV.set(chave, { texto, ate: Date.now() + ttl })
+    }
+    const v = texto ? JSON.parse(texto) : null
     if (v) return v
     if (chave === 'perfis') {
       const antigo = (await env.MOLDURAS.get('molduras', 'json')) || {}
@@ -263,7 +276,11 @@ async function ler(env, chave) {
   }
   return {}
 }
-const gravar = (env, chave, valor) => env.MOLDURAS.put(chave, JSON.stringify(valor))
+const gravar = async (env, chave, valor) => {
+  const texto = JSON.stringify(valor)
+  await env.MOLDURAS.put(chave, texto)
+  if (TTL_KV[chave]) CACHE_KV.set(chave, { texto, ate: Date.now() + TTL_KV[chave] })
+}
 
 const soMolduras = (perfis) => Object.fromEntries(Object.entries(perfis).filter(([, p]) => p.moldura).map(([id, p]) => [id, p.moldura]))
 // Selos da equipe (dono e admins): o dono edita nome, cor, ícone, imagem, se aparecem e se veem a página Pick & Ban (pick, desligado por padrão) (POST /admin/selos)
