@@ -31,6 +31,7 @@ import { CONFIG_PADRAO, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa,
 import { gravarSkinsKv, lerSkinsKv, limparSkins, novoIdItem } from './skins.js'
 import CAIXAS_INICIAIS from './caixas-iniciais.json'
 import RARIDADE_SKIN from './skins-raridade.json'
+import { docVazio, juntar } from './notif-core.js'
 import FACAS_VALOR from './facas-valor.json'
 
 const ID_STEAM = /^\d{17}$/
@@ -199,6 +200,12 @@ export class Loja {
         if (atual.ver !== p.ver) return { ok: false }
         await this.invGravar(id, limparSkins(p.inv))
         return { ok: true }
+      }
+      case 'notif-sync': { // junta o que o aparelho mandou com o que a conta já tem e devolve o resultado
+        const atual = (await this.ctx.storage.get('notifs')) || docVazio()
+        const novo = p.doc ? juntar(atual, p.doc) : atual
+        if (p.doc) await this.ctx.storage.put('notifs', novo)
+        return { doc: novo }
       }
       case 'valores':
         return this.valores(id)
@@ -431,6 +438,13 @@ async function aplicarInsignias(env, porJogador) {
   if (!mudou.length) return
   await env.MOLDURAS.put('perfis', JSON.stringify(perfis))
   for (const id of mudou) await avisarPerfil(env, id, perfis[id])
+}
+
+// GET/POST /notificacoes (login): notificações do sino guardadas na conta (valem em todos os aparelhos). POST { doc } junta e devolve { doc }.
+export async function rotaNotificacoes(req, env, quem, cors) {
+  const corpo = req.method === 'POST' ? await req.json().catch(() => ({})) : {}
+  const r = await chamar(env, quem.id, { acao: 'notif-sync', doc: req.method === 'POST' ? corpo.doc : null })
+  return json(await r.json().catch(() => ({ erro: 'falhou' })), r.status, cors)
 }
 
 export async function rotaLoja(req, env, quem, cors, rota) {

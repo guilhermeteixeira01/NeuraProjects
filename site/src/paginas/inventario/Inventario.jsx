@@ -371,6 +371,7 @@ function TelaAdesivos({ item, d, m, adesivos, estoque, original, aoColar, aoFech
   const porId = useMemo(() => new Map((adesivos.dados || []).map((s) => [s[0], s])), [adesivos.dados])
   const tem3d = !!m && idNo3d(item, m) !== undefined && !sem3d
   const enviar = (tipo, dados) => controle.current?.enviar(tipo, dados)
+  const [rec3d, setRec3d] = useState(0) // recarrega o 3D com os dados atuais (o 5º adesivo só entra assim: o 3D só aceita 4 pelo addSticker)
   const [ativoLocal, setAtivoLocal] = useState(null) // adesivo escolhido que o 3D não conhece (o 5º)
   const slotAtivo = (ativoLocal != null && loc.a[ativoLocal] ? ativoLocal : null) ?? viewer.activeSticker ?? [0, 1, 2, 3, 4].find((k) => loc.a[k]) ?? null
   const ad = slotAtivo != null ? loc.a[slotAtivo] : null
@@ -390,11 +391,17 @@ function TelaAdesivos({ item, d, m, adesivos, estoque, original, aoColar, aoFech
     if (!tem3d || (livres[0] ?? 0) >= limite3d) {
       const k = loc.a.findIndex((x) => !x)
       if (k >= 0) setAtivoLocal(k)
+      if (tem3d) setRec3d((v) => v + 1)
     } else setAtivoLocal(null)
   }
-  const remover = (k) => (tem3d && k < limite3d ? enviar('removeSticker', { index: k }) : setLoc((l) => ({ ...l, a: l.a.map((s, j) => (j === k ? null : s)) })))
+  const remover = (k) => {
+    if (tem3d && k < limite3d) return enviar('removeSticker', { index: k })
+    setLoc((l) => ({ ...l, a: l.a.map((s, j) => (j === k ? null : s)) }))
+    if (tem3d) setRec3d((v) => v + 1)
+  }
   const mexer = (k, campo, valor) => {
-    if (!tem3d || k >= limite3d) return mudar2D(k, { [campo]: valor }) // o 5º adesivo não existe no 3D: os ajustes vão direto nos dados
+    if (!tem3d) return mudar2D(k, { [campo]: valor })
+    if (k >= limite3d) mudar2D(k, { [campo]: valor }) // o 5º: grava nos dados e também tenta no 3D (ele aceita depois de recarregar com o adesivo)
     if (campo === 'x' || campo === 'y') enviar('setStickerOffset', { index: k, x: campo === 'x' ? valor : loc.a[k].x ?? 0, y: campo === 'y' ? valor : loc.a[k].y ?? 0 })
     else if (campo === 'r') enviar('setStickerRotation', { index: k, rotation: valor })
     else enviar('setStickerWear', { index: k, wear: valor })
@@ -422,7 +429,7 @@ function TelaAdesivos({ item, d, m, adesivos, estoque, original, aoColar, aoFech
               if (!st) return null
               return (
                 <li key={k} className={k === slotAtivo ? 'is-ativo' : ''}>
-                  <button type="button" className="inv-painel-item" onClick={() => (k >= limite3d ? setAtivoLocal(k) : (setAtivoLocal(null), tem3d && enviar('setActiveSticker', { index: k })))}>
+                  <button type="button" className="inv-painel-item" onClick={() => (k >= limite3d ? (setAtivoLocal(k), tem3d && enviar('setActiveSticker', { index: k })) : (setAtivoLocal(null), tem3d && enviar('setActiveSticker', { index: k })))}>
                     <Imagem src={urlImg(st[2], 128)} />
                     <span>{st[1]}</span>
                   </button>
@@ -435,7 +442,6 @@ function TelaAdesivos({ item, d, m, adesivos, estoque, original, aoColar, aoFech
               )
             })}
           </ul>
-          {tem3d && loc.a.some((x, k) => x && k >= limite3d) && <p className="inv-aviso-3d">{t('O 3D mostra só {n} adesivos nesta arma: o 5º é salvo e vale no jogo, mas não aparece aqui.', { n: limite3d })}</p>}
           {usados < 5 && (
             <button type="button" className="inv-btn" onClick={() => setEscolhendo(true)}>
               + {t('Adicionar adesivo')}
@@ -465,7 +471,7 @@ function TelaAdesivos({ item, d, m, adesivos, estoque, original, aoColar, aoFech
       }
     >
       {tem3d ? (
-        <Visualizador3D item={{ ...item, a: loc.a, k: loc.k }} m={m} aoMudar={(p) => setLoc((l) => ({ ...l, a: p.a.map((x, i) => x || (i >= limite3d ? l.a[i] : null)), k: p.k }))} aoEstado={setViewer} aoFalhar={() => setSem3d(true)} controle={controle} altura="100%" />
+        <Visualizador3D key={rec3d} item={{ ...item, a: loc.a, k: loc.k }} m={m} aoMudar={(p) => setLoc((l) => ({ ...l, a: p.a.map((x, i) => x || (i >= limite3d ? l.a[i] : null)), k: p.k }))} aoEstado={setViewer} aoFalhar={() => setSem3d(true)} controle={controle} altura="100%" />
       ) : (
         <div className="inv-previa-grande inv-previa-img">
           <ArmaComEnfeites item={{ ...item, a: loc.a, k: loc.k }} d={d} adesivos={porId} chaveiros={new Map()} />

@@ -10,6 +10,7 @@
 // "imagem" é o final do endereço da Steam: o site junta com IMG_BASE (ver src/comum/skins.js).
 import fs from 'node:fs'
 import path from 'node:path'
+import { nomearFases } from './fases-doppler.mjs'
 import { fileURLToPath } from 'node:url'
 
 const aqui = path.dirname(fileURLToPath(import.meta.url))
@@ -94,6 +95,7 @@ const gravar = (nome, v) => {
   fs.writeFileSync(path.join(saida, nome), JSON.stringify(v))
   console.log(`${nome}: ${(fs.statSync(path.join(saida, nome)).size / 1024).toFixed(0)} KB`)
 }
+nomearFases(armas)
 gravar('armas.json', { gerado: new Date().toISOString().slice(0, 10), armas })
 gravar('agentes.json', agentes)
 gravar('adesivos.json', adesivos)
