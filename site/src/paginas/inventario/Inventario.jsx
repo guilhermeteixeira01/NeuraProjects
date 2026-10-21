@@ -391,7 +391,11 @@ function TelaAdesivos({ item, d, m, adesivos, estoque, original, aoColar, aoFech
     if (!tem3d || (livres[0] ?? 0) >= limite3d) {
       const k = loc.a.findIndex((x) => !x)
       if (k >= 0) setAtivoLocal(k)
-      if (tem3d) setRec3d((v) => v + 1)
+      if (tem3d) {
+        setRec3d((v) => v + 1)
+        // depois que o 3D recarregar, seleciona o novo adesivo nele (senão só dava para mexer depois de clicar em outro e voltar)
+        if (k >= 0) [1500, 3000, 5000].forEach((ms) => setTimeout(() => enviar('setActiveSticker', { index: k }), ms))
+      }
     } else setAtivoLocal(null)
   }
   const remover = (k) => {
