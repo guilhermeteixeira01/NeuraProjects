@@ -183,7 +183,15 @@ const AMULETOS = [
     ['Hot Howl', "Lil' Serpent", "Lil' Hero", "Lil' Ferno", 'Magmatude', 'Semi-Precious', "Lil' Squatch", 'Hot Sauce'],
   ],
 ]
-for (const [slug, nome, tier, cor, preco, stickers, charms] of AMULETOS) {
+// Tipo de cada caixa: Fliperama = amuletos e adesivos; Kawaii e Terror = SÓ adesivos; Lendas e Espacial = SÓ amuletos (chaveiros)
+const SO_ADESIVOS = new Set(['caixa-kawaii', 'caixa-terror'])
+const SO_AMULETOS = {
+  'caixa-lendas': ['Hot Howl', "Lil' Serpent", "Lil' Hero", "Lil' Ferno", 'Magmatude', 'Semi-Precious', "Lil' Squatch", 'Hot Sauce', "Lil' Yeti", "Lil' Tusk", "Lil' SAS", "Lil' Zen", 'Diamond Dog', 'Quick Silver', 'Titeenium AWP', 'Pocket AWP', 'Die-cast AK', "Baby's AK", "Lil' Smokey", "Lil' Eco", 'Whittle Knife', 'Whittle Guy', 'Big Kev', "Lil' Moments", 'Hot Hands', 'Hot Wurst', "Lil' Eldritch", "Lil' Baller"],
+  'caixa-espacial': ['Biomech', 'Titeenium AWP', 'Quick Silver', 'Semi-Precious', 'Magmatude', 'Flash Bomb', 'Backsplash', 'Glamour Shot', 'Glitter Bomb', 'Disco MAC', 'Big Brain', "Lil' Eco", "Lil' Goop", 'Eye of Ball', '8 Ball IGL', 'Dr. Brian', "Lil' Moments", 'Butane Buddy', "Lil' Zen", 'Splatter Cat', 'POP Art', "Pinch O' Salt", 'Hungry Eyes', "Lil' Eldritch", 'Dead Weight', 'Pocket Pop'],
+}
+for (const [slug, nome, tier, cor, preco, stickersBase, charmsBase] of AMULETOS) {
+  const stickers = slug in SO_AMULETOS ? [] : stickersBase
+  const charms = SO_ADESIVOS.has(slug) ? [] : SO_AMULETOS[slug] || charmsBase
   const itens = []
   const base = new Map()
   for (const a of adesivos) {
@@ -207,7 +215,7 @@ for (const [slug, nome, tier, cor, preco, stickers, charms] of AMULETOS) {
     }
     for (const a of lista) colocar({ t: 'adesivo', d: a[0], p: 0, r: raridadeAdesivo(a[1]), w: 100, min: 0, max: 1, l: 0, n: a[1], i: a[2] })
   }
-  if (slug === 'caixa-lendas') for (const a of adesivos) if (/\(Champion\)/i.test(a[1])) colocar({ t: 'adesivo', d: a[0], p: 0, r: 4, w: 60, min: 0, max: 1, l: 0, n: a[1], i: a[2] }) // campeões de Major: o topo da caixa
+  if (false) for (const a of adesivos) if (/\(Champion\)/i.test(a[1])) colocar({ t: 'adesivo', d: a[0], p: 0, r: 4, w: 60, min: 0, max: 1, l: 0, n: a[1], i: a[2] }) // campeões de Major: o topo da caixa
   for (const nomeC of new Set(charms)) {
     const c = chaveiros.find((x) => x[1].toLowerCase() === nomeC.toLowerCase())
     if (!c) {

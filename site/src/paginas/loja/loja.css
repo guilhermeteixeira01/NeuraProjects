@@ -312,3 +312,13 @@ html.lj-travado .nx-rolagem { display: none !important; }
 
 .lj-rev-guardado { color: var(--dim); font-size: 12.5px; line-height: 1.4; max-width: 30ch; }
 .lj-cartao-arte img { image-rendering: auto; }
+
+/* barra de progresso das insígnias: número exatamente no centro */
+.lj-progresso { display: grid; place-items: center; }
+.lj-progresso small { position: absolute; inset: 0; display: grid; place-items: center; line-height: 1; }
+/* categorias da loja */
+.lj-categoria { margin: 26px 0 0; }
+.lj-categoria h2 { display: flex; align-items: baseline; gap: 10px; margin: 0 0 4px; font: 700 20px var(--font-display); }
+.lj-categoria h2 em { font-style: normal; font: 600 12px var(--font-body); color: var(--dim); background: rgb(255 255 255 / .07); border-radius: 999px; padding: 2px 9px; }
+.lj-categoria > p { margin: 0 0 12px; color: var(--dim); font-size: 13px; }
+.lj-categoria + .lj-categoria { margin-top: 34px; padding-top: 22px; border-top: 1px solid rgb(255 255 255 / .08); }
