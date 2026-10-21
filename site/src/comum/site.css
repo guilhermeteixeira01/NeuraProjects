@@ -3426,6 +3426,11 @@ html:is([data-tema='claro'], [data-tema='branco']) a.cp-loja:hover { background:
 /* o botão LOJA é um link: as regras genéricas de link do menu da conta (.nx-conta-menu a) não valem para o cartão */
 .nx-conta-menu.cp-card a.cp-caixa { display: grid; justify-items: center; align-content: start; width: auto; text-align: center; padding: 14px 8px 12px; border-radius: 10px; background: #26262a; color: var(--blue-2); font-size: inherit; font-weight: inherit; }
 .nx-conta-menu.cp-card a.cp-caixa:hover { background: #303036; }
+/* caixa dos pontos: botão que abre o depósito */
+.nx-conta-menu.cp-card button.cp-pontos { display: grid; justify-items: center; align-content: start; width: auto; border: 0; cursor: pointer; font: inherit; text-align: center; padding: 14px 8px 12px; border-radius: 10px; background: #26262a; color: var(--blue-2); transition: background .15s; }
+.nx-conta-menu.cp-card button.cp-pontos:hover { background: #303036; }
+.nx-conta-menu.cp-card button.cp-pontos small { color: #b6f23a; }
+html:is([data-tema='claro'], [data-tema='branco']) .nx-conta-menu.cp-card button.cp-pontos { background: #f0f0f2; }
 html:is([data-tema='claro'], [data-tema='branco']) .nx-conta-menu.cp-card a.cp-caixa { background: #f0f0f2; }
 html:is([data-tema='claro'], [data-tema='branco']) .nx-conta-menu.cp-card a.cp-caixa:hover { background: #e4e4e8; }
 
