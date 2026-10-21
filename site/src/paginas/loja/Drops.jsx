@@ -88,23 +88,23 @@ export default function Drops({ achar }) {
           const cor = RARIDADES[x.r]?.cor || RARIDADES[0].cor
           return (
             <li key={x.id} className={novos.has(x.id) ? 'is-novo' : ''}>
-              <a className="lj-drop" href={`/perfil/?id=${x.quem}`} style={{ '--cor': cor }} title={`${x.nome || t('Jogador')} · ${it.nome}${it.enfeite ? '' : ` | ${it.skin}`}`}>
-                <svg className="lj-drop-hex" viewBox="0 0 100 100" aria-hidden="true">
-                  <polygon points="50,4 91,27 91,73 50,96 9,73 9,27" />
-                  <polygon points="50,24 73,37 73,63 50,76 27,63 27,37" />
-                </svg>
-                <svg className="lj-drop-origem" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-label={t('Aberto numa caixa')}>
-                  <path d="M3 7h18v4H3zM5 11v9h14v-9M10 15h4" />
-                </svg>
-                <span className="lj-drop-arte">{it.img ? <img src={it.img} alt="" loading="lazy" draggable="false" /> : null}</span>
-                <span className="lj-drop-texto">
-                  <b>{it.enfeite ? it.nome : it.skin || it.nome}</b>
-                  <small>{tempo(t, agora + diferenca.current - x.ts)}</small>
+              {/* mesmo cartão do inventário (comum/cartaoSkin.css): arma sem fundo, barra da raridade embaixo, nome e skin */}
+              <a className="inv-cartao lj-drop" href={`/perfil/?id=${x.quem}`} style={{ '--cor': cor }} title={`${x.nome || t('Jogador')} · ${it.nome}${it.enfeite ? '' : ` | ${it.skin}`}`}>
+                <span className="inv-cartao-arte">
+                  <span className="inv-arma-box">{it.img ? <img className="inv-arma-img" src={it.img} alt="" loading="lazy" draggable="false" /> : <span className="inv-sem-img" />}</span>
+                  <svg className="lj-drop-origem" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-label={t('Aberto numa caixa')}>
+                    <path d="M3 7h18v4H3zM5 11v9h14v-9M10 15h4" />
+                  </svg>
+                  {/* passar o mouse: quem ganhou */}
+                  <span className="lj-drop-quem">
+                    {x.avatar ? <img src={x.avatar} alt="" loading="lazy" /> : <i aria-hidden="true" />}
+                    <b>{x.nome || t('Jogador')}</b>
+                  </span>
                 </span>
-                {/* passar o mouse: quem ganhou */}
-                <span className="lj-drop-quem">
-                  {x.avatar ? <img src={x.avatar} alt="" loading="lazy" /> : <i aria-hidden="true" />}
-                  <b>{x.nome || t('Jogador')}</b>
+                <span className="inv-cartao-nome">
+                  <b>{it.nome}</b>
+                  <small>{it.enfeite ? t(it.skin) : it.skin}</small>
+                  <em>{tempo(t, agora + diferenca.current - x.ts)}</em>
                 </span>
               </a>
             </li>
