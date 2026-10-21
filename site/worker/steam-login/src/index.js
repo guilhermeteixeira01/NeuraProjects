@@ -39,8 +39,8 @@
  *                   usa os do ranking)
  */
 import { Presenca, avisarPerfil, avisarSkin, rotaAmigos, rotaLobby, rotaPresenca, rotaServidor } from './amigos.js'
-import { rotaAdminSkin, rotaAdminSkins, rotaServidorSkins, rotaSkins, rotaSkinsExcluir, rotaSkinsPresentes, rotaSkinsPublico } from './skins.js'
-import { Loja, rotaAdminLoja, rotaLoja, rotaLojaPublica } from './loja.js'
+import { rotaAdminSkin, rotaAdminSkins, rotaServidorSkins, rotaSkins, rotaSkinsExcluir, rotaSkinsInventarioPublico, rotaSkinsPresentes, rotaSkinsPublico } from './skins.js'
+import { Loja, rotaAdminLoja, rotaLoja, rotaLojaPublica, rotaNotificacoes } from './loja.js'
 import { ehInsigniaLoja, ID_MESTRE } from './loja-core.js'
 export { Presenca } // Durable Object da presença (wrangler.toml)
 export { Loja } // Durable Object da loja de caixas (wrangler.toml)
@@ -83,6 +83,7 @@ export default {
     if ((rota === '/servidor/proxima' || rota === '/servidor/estado' || rota === '/servidor/elenco' || (rota === '/teste/limpar' && env.MODO_TESTE === '1')) && req.method === 'POST') return rotaServidor(req, env, rota)
 
     if (rota === '/skins/publico' && req.method === 'GET') return rotaSkinsPublico(url, env) // skins equipadas de um jogador (perfil)
+    if (rota === '/skins/inventario' && req.method === 'GET') return rotaSkinsInventarioPublico(url, env) // inventário de um jogador (botão "Ver inventário" do perfil)
     if (rota === '/loja/caixas' && req.method === 'GET') return rotaLojaPublica(env, publico) // caixas da loja (nome, imagem, preço): o site usa para nomear as insígnias "Mestre da ..."
     if (rota === '/servidor/skins' && req.method === 'POST') return rotaServidorSkins(req, env) // plugin: inventário de skins de quem está no servidor
 
@@ -107,6 +108,7 @@ export default {
     if (rota === '/skins/presentes' && req.method === 'POST') return rotaSkinsPresentes(req, env, quem, cors)
     if (rota === '/skins/excluir' && req.method === 'POST') return rotaSkinsExcluir(req, env, quem, cors)
     if (rota === '/loja' || rota.startsWith('/loja/')) return rotaLoja(req, env, quem, cors, rota)
+    if (rota === '/notificacoes' && (req.method === 'GET' || req.method === 'POST')) return rotaNotificacoes(req, env, quem, cors)
     if (req.method === 'POST' && (rota === '/perfil' || rota === '/moldura')) return salvarPerfil(req, env, site, quem, admin, config, cors, rota === '/moldura')
 
     if (rota.startsWith('/admin/')) {

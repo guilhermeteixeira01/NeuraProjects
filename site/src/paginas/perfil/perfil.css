@@ -2,6 +2,7 @@
 @import '../../comum/site.css';
 @import '../../comum/paginas.css';
 @import '../../comum/premier.css';
+@import '../../comum/cartaoSkin.css'; /* cartões de item do "Ver inventário" */
 
 /* ── Topo ── */
 .pf-hero { padding: 56px 0 40px; }
@@ -886,3 +887,14 @@ html.sm-aberto { overflow: hidden; }
 /* selo ANIMADO no canto de baixo à direita da imagem do card */
 .sm-arte .sm-anim { top: auto; right: 6px; bottom: 6px; }
 .sm-arte { position: relative; }
+
+/* "Ver inventário" do jogador (InventarioDoJogador.jsx): usa a janela da estante de insígnias */
+.ij-janela { width: min(1180px, 100%); }
+.ij-abas { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 14px; }
+.ij-abas button { background: rgb(255 255 255 / .06); border: 1px solid rgb(255 255 255 / .12); color: var(--dim); border-radius: 999px; padding: 6px 14px; font: 700 12px var(--font-display); letter-spacing: .06em; cursor: pointer; }
+.ij-abas button small { opacity: .7; margin-left: 4px; font-family: var(--font-mono); }
+.ij-abas button.is-ativo { background: #2bb3d6; border-color: #2bb3d6; color: #06222b; }
+.ij-vazio { color: var(--dim); text-align: center; padding: 40px 0; }
+.ij-itens { padding: 4px 2px 10px; }
+.ij-janela .inv-cartao { cursor: default; }
+@media (max-width: 700px) { .ij-itens { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 8px; } }

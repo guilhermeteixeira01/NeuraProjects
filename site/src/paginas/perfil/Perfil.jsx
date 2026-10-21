@@ -13,6 +13,7 @@ import { mapIcon, nomeMapa } from '../../comum/mapas.js'
 import { NIVEIS, NIVEL_ELITE, textoNivel } from '../../comum/niveis.js'
 import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, salvarPerfil, useAdmin, useCardDe, usePerfis, useTimeDe } from '../../comum/Moldura.jsx'
 import Premier from '../../comum/Premier.jsx'
+import InventarioDoJogador from '../../comum/InventarioDoJogador.jsx'
 import { BarraXp, SeloNivel, useNivelDe } from '../../comum/Nivel.jsx'
 import SeletorMoldura from './SeletorMoldura.jsx'
 import { fundoCard } from '../../comum/cardsPerfil.js'
@@ -562,6 +563,7 @@ function DesempenhoRecente({ mapas, nivel, eu }) {
 function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   const t = useT()
   const timeEscolhido = useTimeDe(j.steamId)
+  const [verInventario, setVerInventario] = useState(false)
   const nivel = useNivelDe(j)
   const card = useCardDe(j.steamId) // banner do card (janela Personalizar); some se for exclusivo de cargo que o jogador não tem
   // CS Rating do Premier: vem do ranking (deploy); sem ele (jogador sem partidas, ou deploy sem Leetify),
@@ -643,9 +645,13 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
               <a className="btn btn-ghost" href="/ranking/">
                 {t('Ver ranking')}
               </a>
+              <button type="button" className="btn btn-ghost" onClick={() => setVerInventario(true)}>
+                {t('Ver inventário')}
+              </button>
               {eu && admin && <OcultarRanking steamId={j.steamId} />}
             </div>
             <InfosLado j={j} mapas={mapas} />
+            {verInventario && <InventarioDoJogador steamId={j.steamId} nome={j.nome} aoFechar={() => setVerInventario(false)} />}
           </aside>
 
           <div className="pf-centro">
