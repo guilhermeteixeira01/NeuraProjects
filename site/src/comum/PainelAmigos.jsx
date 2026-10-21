@@ -40,7 +40,7 @@ function Linha({ a, st, visto, children }) {
           <ComMoldura steamId={a.id}>
             <Foto a={a} />
           </ComMoldura>
-          <i className="am-bolinha" aria-label={t(st === 'online' ? 'Online' : st === 'ausente' ? 'Ausente' : 'Offline')} />
+          <i className="am-bolinha" aria-label={t(st === 'online' ? 'Online' : st === 'jogando' ? 'Jogando' : st === 'ausente' ? 'Ausente' : 'Offline')} />
         </span>
         <span className="am-txt">
           <span className="am-nome">
@@ -49,7 +49,7 @@ function Linha({ a, st, visto, children }) {
             {/* Insígnias na frente do ícone de verificado, com um espaço */}
             <InsigniasMini steamId={a.id} max={3} classe="am-ins" />
           </span>
-          {st === 'offline' && visto ? <small>{t('visto {quando}', { quando: tempoDesde(visto, t) })}</small> : <CargosDe steamId={a.id} max={1} classe="am-cargos" />}
+          {st === 'jogando' ? <small className="am-jogando">{t('Jogando')}</small> : st === 'offline' && visto ? <small>{t('visto {quando}', { quando: tempoDesde(visto, t) })}</small> : <CargosDe steamId={a.id} max={1} classe="am-cargos" />}
         </span>
       </a>
       {children}
@@ -210,6 +210,7 @@ export default function PainelAmigos({ celular = false }) {
   const amigos = lista?.amigos || []
   const st = (a) => status[a.id]?.st || 'offline'
   const porNome = (x, y) => (x.nome || '').localeCompare(y.nome || '')
+  const jogando = amigos.filter((a) => st(a) === 'jogando').sort(porNome)
   const online = amigos.filter((a) => st(a) === 'online').sort(porNome)
   const ausentes = amigos.filter((a) => st(a) === 'ausente').sort(porNome)
   const offline = amigos.filter((a) => st(a) === 'offline').sort((x, y) => (status[y.id]?.visto || 0) - (status[x.id]?.visto || 0) || porNome(x, y))
@@ -249,7 +250,7 @@ export default function PainelAmigos({ celular = false }) {
           <div className="am-cab">
             <b>{t('Amigos')}</b>
             <span className="mono">
-              {online.length + ausentes.length}/{amigos.length}
+              {jogando.length + online.length + ausentes.length}/{amigos.length}
             </span>
             <button type="button" className="am-fechar" onClick={() => setAberto(false)} aria-label={t('Fechar')}>
               ×
@@ -270,6 +271,11 @@ export default function PainelAmigos({ celular = false }) {
                     </button>
                   </span>
                 </Linha>
+              ))}
+            </Grupo>
+            <Grupo titulo={t('JOGANDO')} n={jogando.length}>
+              {jogando.map((a) => (
+                <Linha key={a.id} a={a} st="jogando" />
               ))}
             </Grupo>
             <Grupo titulo={t('ONLINE')} n={online.length}>

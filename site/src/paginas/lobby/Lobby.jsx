@@ -214,7 +214,7 @@ function Convidar({ lobby, aoFechar, aoConvidar, ocupado }) {
               </span>
               <span className="lb-amigo-nome">
                 <b>{a.nome || a.id}</b>
-                <small>{st(a) === 'online' ? t('Online') : st(a) === 'ausente' ? t('Ausente') : t('Offline')}</small>
+                <small>{st(a) === 'online' ? t('Online') : st(a) === 'jogando' ? t('Jogando') : st(a) === 'ausente' ? t('Ausente') : t('Offline')}</small>
               </span>
               <button type="button" className="lb-btn lb-btn-p" disabled={ocupado} onClick={() => aoConvidar(a.id)}>
                 {t('Convidar')}

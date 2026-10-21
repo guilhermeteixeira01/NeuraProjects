@@ -675,6 +675,8 @@ html.sm-aberto { overflow: hidden; }
 .pf-status-online { color: var(--green); }
 .pf-status-online i { background: var(--green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 25%, transparent); }
 .pf-status-ausente { color: #f5a524; }
+.pf-status-jogando { color: #6ea8ff; }
+.pf-status-jogando i { background: #3b82f6; box-shadow: 0 0 0 3px rgb(59 130 246 / .28); }
 .pf-status-ausente i { background: #f5a524; }
 @media (max-width: 720px) {
   .pf-acoes .pf-amizade, .pf-acoes .pf-amizade-par { grid-column: 1 / -1; }

@@ -75,7 +75,7 @@ export function StatusAmigo({ id }) {
   return (
     <span className={`pf-status pf-status-${s.st}`}>
       <i aria-hidden="true" />
-      {s.st === 'online' ? t('Online agora') : s.st === 'ausente' ? t('Ausente') : s.visto ? t('Visto {quando}', { quando: tempoDesde(s.visto, t) }) : t('Offline')}
+      {s.st === 'online' ? t('Online agora') : s.st === 'jogando' ? t('Jogando agora') : s.st === 'ausente' ? t('Ausente') : s.visto ? t('Visto {quando}', { quando: tempoDesde(s.visto, t) }) : t('Offline')}
     </span>
   )
 }
