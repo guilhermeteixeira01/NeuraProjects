@@ -196,6 +196,8 @@ export class Loja {
     this.env = env
     this.sql = ctx.storage.sql
     this.sql.exec('CREATE TABLE IF NOT EXISTS aberturas (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, caixa TEXT, t TEXT, d INTEGER, p INTEGER, r INTEGER, f REAL, q INTEGER)')
+    // itens que acabaram de sair de uma caixa: o botão "Vender" do resultado vende na hora qualquer valor (até 30 min depois)
+    this.sql.exec('CREATE TABLE IF NOT EXISTS abertos (item TEXT PRIMARY KEY, ts INTEGER)')
     this.sql.exec('CREATE TABLE IF NOT EXISTS movimentos (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, valor INTEGER, motivo TEXT)')
     this.fila = Promise.resolve()
   }
@@ -407,11 +409,12 @@ export class Loja {
     const { inv } = await this.invLer(id)
     if (!inv) throw new Error('item')
     let total = 0
+    const recemAbertos = new Set(this.sql.exec('SELECT item FROM abertos WHERE ts > ?', Date.now() - 30 * 60 * 1000).toArray().map((l) => l.item))
     for (const k of ids) {
       const it = inv.itens[k]
       const x = it && valorDe(it)
       if (!x) throw new Error('item')
-      if (x.v > VENDA_INSTANTANEA_MAX) throw new Error('so-mercado') // caro demais para vender na hora: só pelo mercado
+      if (x.v > VENDA_INSTANTANEA_MAX && !recemAbertos.has(k)) throw new Error('so-mercado') // caro demais para vender na hora: só pelo mercado
       total += x.v
       delete inv.itens[k]
       delete inv.criado[k]
@@ -419,7 +422,10 @@ export class Loja {
       inv.presentes = inv.presentes.filter((q) => q.i !== k)
     }
     const limpo = limparSkins(inv)
-    await this.gravarTudo(id, limpo, () => this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), -total, `venda de ${ids.length} item(ns)`))
+    await this.gravarTudo(id, limpo, () => {
+      this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), -total, `venda de ${ids.length} item(ns)`)
+      for (const k of ids) this.sql.exec('DELETE FROM abertos WHERE item = ?', k)
+    })
     return { saldo: pontos - this.gastos(), total, vendidos: ids.length, inv: limpo }
   }
 
@@ -427,6 +433,7 @@ export class Loja {
     this.ctx.storage.transactionSync(() => {
       this.sql.exec('DELETE FROM movimentos')
       this.sql.exec('DELETE FROM aberturas')
+      this.sql.exec('DELETE FROM abertos')
     })
     await this.ctx.storage.delete('ganhas')
     const ver = ((await this.ctx.storage.get('invv')) || 0) + 1
@@ -505,6 +512,8 @@ export class Loja {
     const limpo = limparSkins(inv)
     await this.gravarTudo(id, limpo, () => {
       if (custo) this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', agora, custo, `abertura direta ${pagar}x ${caixa.slug}${p.modo ? ` (${p.modo})` : ''}`)
+      this.sql.exec('DELETE FROM abertos WHERE ts < ?', agora - 24 * 3600 * 1000)
+      for (const r of resultados) this.sql.exec('INSERT OR REPLACE INTO abertos (item, ts) VALUES (?, ?)', r.id, agora)
       for (const l of linhas) this.sql.exec('INSERT INTO aberturas (ts, caixa, t, d, p, r, f, q) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', ...l)
     })
     // lista de quem já abriu (para o /admin/loja-retro)
