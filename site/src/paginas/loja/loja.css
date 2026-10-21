@@ -585,3 +585,8 @@ html.lj-travado .nx-rolagem { display: none !important; }
 .lj-cx-voltar-res:hover { background: rgb(255 255 255 / .1); border-color: rgb(255 255 255 / .35); color: #fff; }
 .lj-cx-voltar-res svg { transition: transform .15s; }
 .lj-cx-voltar-res:hover svg { transform: translateX(-2px); }
+.lj-topo-saldo { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.lj-depositar { border: 0; border-radius: 10px; padding: 11px 18px; background: #b6f23a; color: #14200a; font: 800 13px var(--font-display, inherit); letter-spacing: .05em; text-transform: uppercase; cursor: pointer; box-shadow: 0 0 0 0 rgb(182 242 58 / .5); animation: lj-dep-brilho 2.8s ease-in-out infinite; }
+.lj-depositar:hover { background: #c8ff4d; }
+@keyframes lj-dep-brilho { 50% { box-shadow: 0 0 0 6px rgb(182 242 58 / 0); } }
+@media (prefers-reduced-motion: reduce) { .lj-depositar { animation: none; } }

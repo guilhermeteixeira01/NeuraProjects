@@ -198,6 +198,8 @@ export class Loja {
     this.sql.exec('CREATE TABLE IF NOT EXISTS aberturas (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, caixa TEXT, t TEXT, d INTEGER, p INTEGER, r INTEGER, f REAL, q INTEGER)')
     // itens que acabaram de sair de uma caixa: o botão "Vender" do resultado vende na hora qualquer valor (até 30 min depois)
     this.sql.exec('CREATE TABLE IF NOT EXISTS abertos (item TEXT PRIMARY KEY, ts INTEGER)')
+    // depósitos com dinheiro (Asaas): um por cobrança; "estado" = pendente | pago | estornado. É daqui que sai a garantia de creditar uma vez só
+    this.sql.exec('CREATE TABLE IF NOT EXISTS depositos (pid TEXT PRIMARY KEY, ts INTEGER, centavos INTEGER, np INTEGER, metodo TEXT, estado TEXT)')
     this.sql.exec('CREATE TABLE IF NOT EXISTS movimentos (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, valor INTEGER, motivo TEXT)')
     this.fila = Promise.resolve()
   }
@@ -261,7 +263,7 @@ export class Loja {
   }
 
   async acao({ acao, id, caixas, cfg, pontos, bonus, ...p }) {
-    if (['saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir', 'vender', 'mercado-comprar'].includes(acao)) await this.aplicarBonus(bonus)
+    if (['saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir', 'vender', 'mercado-comprar', 'dep-creditar'].includes(acao)) await this.aplicarBonus(bonus)
     switch (acao) {
       case 'inv-ler':
         return this.invLer(id)
@@ -283,6 +285,41 @@ export class Loja {
         return this.vender(id, pontos, p)
       case 'mercado-comprar':
         return this.comprarDoMercado(id, pontos, p)
+      case 'dep-pode': { // antes de criar uma cobrança: no máximo 5 por hora
+        const n = Number(this.sql.exec("SELECT COUNT(*) AS n FROM depositos WHERE estado = 'pendente' AND ts > ?", Date.now() - 3600 * 1000).one().n)
+        if (n >= 5) throw new Error('muitos-pagamentos')
+        return { ok: true, cliente: (await this.ctx.storage.get('asaasCliente')) || null }
+      }
+      case 'dep-cliente':
+        await this.ctx.storage.put('asaasCliente', String(p.cliente || ''))
+        return { ok: true }
+      case 'dep-registrar':
+        this.sql.exec('INSERT OR IGNORE INTO depositos (pid, ts, centavos, np, metodo, estado) VALUES (?, ?, ?, ?, ?, ?)', String(p.pid), Date.now(), Math.round(p.centavos), Math.round(p.np), String(p.metodo), 'pendente')
+        return { ok: true }
+      case 'dep-ler': {
+        const l = this.sql.exec('SELECT pid, ts, centavos, np, metodo, estado FROM depositos WHERE pid = ?', String(p.pid)).toArray()[0]
+        return { deposito: l || null }
+      }
+      case 'dep-creditar': { // cobrança paga: credita os NP uma única vez (por mais que o aviso chegue várias vezes)
+        const l = this.sql.exec('SELECT centavos, np, estado FROM depositos WHERE pid = ?', String(p.pid)).toArray()[0]
+        if (!l) throw new Error('desconhecido')
+        if (l.centavos !== Math.round(p.centavos)) throw new Error('valor')
+        if (l.estado !== 'pendente') return { novo: false, estado: l.estado, saldo: pontos - this.gastos() }
+        this.ctx.storage.transactionSync(() => {
+          this.sql.exec("UPDATE depositos SET estado = 'pago' WHERE pid = ?", String(p.pid))
+          this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), -l.np, `depósito R$ ${(l.centavos / 100).toFixed(2).replace('.', ',')}`)
+        })
+        return { novo: true, np: l.np, estado: 'pago', saldo: pontos - this.gastos() }
+      }
+      case 'dep-estornar': { // devolução/chargeback: tira os NP de volta (o saldo pode ficar negativo; aí não dá para comprar até regularizar)
+        const l = this.sql.exec('SELECT np, estado FROM depositos WHERE pid = ?', String(p.pid)).toArray()[0]
+        if (!l || l.estado !== 'pago') return { novo: false }
+        this.ctx.storage.transactionSync(() => {
+          this.sql.exec("UPDATE depositos SET estado = 'estornado' WHERE pid = ?", String(p.pid))
+          this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), l.np, 'depósito estornado')
+        })
+        return { novo: true }
+      }
       case 'zerar': // src/zerar.js: o jogador volta para o começo (NP, aberturas, insígnias da loja e inventário)
         return this.zerar(p.bonusMax)
       case 'saldo':

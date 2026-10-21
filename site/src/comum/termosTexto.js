@@ -1,7 +1,7 @@
 // Texto dos Termos de Uso (a caixa de aceite antes do login e o PDF usam este mesmo texto).
 // Mudou algo importante? Suba a VERSAO: todo mundo vê e aceita de novo no próximo login.
 // Negrito: **assim**.
-export const VERSAO_TERMOS = '2026-10-21'
+export const VERSAO_TERMOS = '2026-10-22'
 
 export const RESUMO_TERMOS =
   '**Resumo importante:** a Neura é um projeto de comunidade, feito por diversão. Pontos, skins, caixas, trocas, ranking e níveis são virtuais, existem somente no nosso site e nos nossos servidores, não valem dinheiro e podem ser alterados ou apagados a qualquer momento. O site pode ser fechado, e não nos responsabilizamos por nenhum prejuízo, inclusive se você comprar pontos ou itens com dinheiro de verdade, da Neura ou de outro jogador.'
@@ -33,7 +33,7 @@ export const SECOES_TERMOS = [
     t: '3. Compras com dinheiro real e negociações entre jogadores: riscos',
     b: [
       {
-        p: 'Hoje a Neura não vende nada, mas poderá passar a oferecer a compra de NP, assinaturas ou outros itens e benefícios virtuais com dinheiro de verdade. Além disso, jogadores podem combinar entre si, por conta própria, vender itens ou NP da Neura. Se você fizer qualquer compra, da Neura ou de outra pessoa, você declara estar ciente e de acordo com o seguinte:',
+        p: 'A Neura permite comprar Neura Pontos (NP) com dinheiro de verdade, por Pix ou cartão (R$ 5,00 = 2.000 NP), e poderá oferecer assinaturas e outros itens ou benefícios virtuais. Os pagamentos são processados pelo Asaas, que pode exigir seus dados (nome e CPF); esses dados vão direto para o Asaas e a Neura não os guarda. Além disso, jogadores podem combinar entre si, por conta própria, vender itens ou NP da Neura. Se você fizer qualquer compra, da Neura ou de outra pessoa, você declara estar ciente e de acordo com o seguinte:',
       },
       {
         ul: [
@@ -42,7 +42,7 @@ export const SECOES_TERMOS = [
           '**Sem reembolso.** Compras de NP e de itens virtuais não são reembolsáveis, exceto quando a lei brasileira garantir esse direito (por exemplo, o direito de arrependimento em compras online, quando se aplicar).',
           '**Sorteios não garantem nada.** Abrir caixas com NP, mesmo comprados com dinheiro, é sorteio: você pode não ganhar o item que quer. Gaste só o que você pode perder sem prejuízo.',
           '**Idade.** Compras com dinheiro real são só para maiores de 18 anos, ou para menores com autorização e acompanhamento de pai, mãe ou responsável, que assume a compra.',
-          '**Pagamentos de terceiros.** Eventuais pagamentos serão processados por serviços de terceiros (como bancos, Pix ou intermediadores), com as regras, taxas e prazos deles.',
+          '**Pagamentos de terceiros.** Os pagamentos são processados pelo Asaas (Pix e cartão), com as regras, taxas e prazos dele. Os NP são creditados depois da confirmação do pagamento. Se o pagamento for estornado ou contestado (chargeback), os NP correspondentes são retirados da conta, e ela pode ficar com saldo negativo e bloqueada para compras até regularizar.',
           '**Comprar de outro jogador é por sua conta e risco.** A Neura não participa, não intermedeia, não confere, não garante e não reembolsa negociações feitas entre jogadores, principalmente as pagas em dinheiro, Pix, itens da Steam ou qualquer outro bem. Existem golpes: o item pode não ser entregue, a pessoa pode sumir, o pagamento pode ser contestado. A Neura não dá suporte nem devolve valores nesses casos, e recomenda que você não pague dinheiro a outros jogadores.',
           '**Fraude.** Contas envolvidas em golpes, chargebacks, lavagem de itens ou pagamentos contestados podem ter itens e NP removidos e ser banidas, sem reembolso.',
         ],

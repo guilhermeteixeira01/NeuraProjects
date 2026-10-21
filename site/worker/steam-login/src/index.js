@@ -44,6 +44,7 @@ import { Trocas, rotaTrocas } from './trocas.js'
 import { Loja, valorDe, rotaAdminLoja, rotaLoja, rotaLojaPublica, rotaNotificacoes } from './loja.js'
 import { Mercado, rotaDrops, rotaMercado } from './mercado.js'
 import { zerarTudo } from './zerar.js'
+import { rotaPagamentos, rotaWebhookAsaas } from './pagamentos.js'
 import { ehInsigniaLoja, ID_MESTRE } from './loja-core.js'
 export { Presenca } // Durable Object da presença (wrangler.toml)
 export { Loja } // Durable Object da loja de caixas (wrangler.toml)
@@ -113,6 +114,7 @@ async function atender(req, env, ctx) {
       if (c.confirmar !== 'ZERAR TUDO') return json({ erro: 'confirmar' }, 400)
       return json(await zerarTudo(env, c.simular === true))
     }
+    if (rota === '/pagamentos/webhook' && req.method === 'POST') return rotaWebhookAsaas(req, env) // aviso do Asaas (token próprio)
     if (rota === '/loja/drops' && req.method === 'GET') return rotaDrops(req, env, { 'Access-Control-Allow-Origin': '*' }, ctx) // carrossel de drops ao vivo da loja
     if (rota === '/loja/caixas' && req.method === 'GET') return rotaLojaPublica(env, publico) // caixas da loja (nome, imagem, preço): o site usa para nomear as insígnias "Mestre da ..."
     if (rota === '/servidor/skins' && req.method === 'POST') return rotaServidorSkins(req, env) // plugin: inventário de skins de quem está no servidor
@@ -141,6 +143,7 @@ async function atender(req, env, ctx) {
     if (rota === '/loja' || rota.startsWith('/loja/')) return rotaLoja(req, env, quem, cors, rota)
     if (rota === '/notificacoes' && (req.method === 'GET' || req.method === 'POST')) return rotaNotificacoes(req, env, quem, cors)
     if (rota === '/trocas' || rota.startsWith('/trocas/')) return rotaTrocas(req, env, quem, cors, rota)
+    if (rota.startsWith('/pagamentos/')) return rotaPagamentos(req, env, quem, cors, rota, url)
     if (rota === '/mercado' || rota.startsWith('/mercado/')) return rotaMercado(req, env, quem, cors, rota)
     if (req.method === 'POST' && (rota === '/perfil' || rota === '/moldura')) return salvarPerfil(req, env, site, quem, admin, config, cors, rota === '/moldura')
 

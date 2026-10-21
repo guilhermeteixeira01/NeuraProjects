@@ -294,6 +294,21 @@ export const RARIDADES_CS = [
 // Cor da skin no catálogo (Steam) -> raridade 0..5 (a mesma do worker/steam-login/src/skins-raridade.json)
 export const raridadeCsDaCor = (cor) => ({ '#b0c3d9': 0, '#5e98d9': 1, '#4b69ff': 2, '#8847ff': 3, '#d32ce6': 4, '#eb4b4b': 5 })[String(cor || '').toLowerCase()] ?? 2
 
+// Depósito de NP com dinheiro de verdade (Asaas: Pix e cartão). R$ 5,00 = 2.000 NP (1 real = 400 NP); valores maiores ganham bônus.
+// O servidor calcula tudo a partir do valor pago: o site só mostra.
+export const PAGAMENTO = {
+  minCentavos: 500,
+  maxCentavos: 200000,
+  npPorReal: 400,
+  pacotes: [5, 10, 25, 50, 100, 250, 500, 1000], // reais
+  bonus: [[25, 5], [50, 10], [100, 15], [250, 20]], // [a partir de R$, % de bônus]
+}
+export const bonusDoPagamento = (centavos) => PAGAMENTO.bonus.filter(([reais]) => centavos >= reais * 100).reduce((_, [, pc]) => pc, 0)
+export const npDoPagamento = (centavos) => {
+  const base = Math.floor((centavos * PAGAMENTO.npPorReal) / 100)
+  return base + Math.floor((base * bonusDoPagamento(centavos)) / 100)
+}
+
 // Venda instantânea (para a loja): só itens que valem até este tanto de NP; acima disso só pelo mercado entre jogadores
 export const VENDA_INSTANTANEA_MAX = 1000
 
