@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { tokenConta, useConta } from './conta.js'
 import { registrarNotificacao } from './notificacoes.js'
+import { lerCaixasPublicas } from './loja.js'
 import { descrever, indicar, lerInventario, urlImg, urlImgArma, useCatalogo } from './skins.js'
 import { prepararSom, tocarConquista } from './Insignias.jsx'
 import { desempenhoAtivo } from './desempenho.js'
@@ -28,6 +29,11 @@ export default function AvisoSkin() {
   const ativo = !!conta?.id && !!CONFIG.loginSteam
   const temAdesivo = pendentes.some((p) => p.item.t === 'adesivo')
   const temChaveiro = pendentes.some((p) => p.item.t === 'chaveiro')
+  const temCaixa = pendentes.some((p) => p.item.t === 'caixa')
+  const [caixasLoja, setCaixasLoja] = useState([])
+  useEffect(() => {
+    if (temCaixa) lerCaixasPublicas().then(setCaixasLoja)
+  }, [temCaixa])
   const adesivosCat = useCatalogo('adesivos', temAdesivo)
   const chaveirosCat = useCatalogo('chaveiros', temChaveiro)
 
@@ -69,6 +75,11 @@ export default function AvisoSkin() {
   const idx = catalogo.dados ? indicar(catalogo.dados.armas, []) : null
   // adesivo/chaveiro: nome e imagem vêm dos catálogos deles; skin: do catálogo de armas
   const descreverAviso = (p) => {
+    if (p.item.t === 'caixa') {
+      const c = caixasLoja.find((x) => x.id === p.item.d)
+      if (!c) return null // espera o nome da caixa carregar (sem inventar "skin #31")
+      return { titulo: c.nome, subtitulo: `Caixa fechada${p.n > 1 ? ` ×${p.n}` : ''}`, img: c.img, cor: c.cor || '', embalagem: true, caixa: true }
+    }
     if (p.item.t !== 'adesivo' && p.item.t !== 'chaveiro') return descrever(p.item, idx)
     const cat = p.item.t === 'adesivo' ? adesivosCat.dados : chaveirosCat.dados
     const linha = cat?.find((x) => x[0] === p.item.d)
@@ -84,9 +95,9 @@ export default function AvisoSkin() {
     for (const p of pendentes) {
       const x = descreverAviso(p)
       if (!x) continue
-      registrarNotificacao(conta.id, { id: `skin:${p.id}`, imagem: x.img ? x.img.replace(/\/\d+fx\d+f$/, '/128fx96f') : '', titulo: x.embalagem ? `Você recebeu: ${x.titulo} (${x.subtitulo})` : `Você recebeu a skin ${x.titulo}${x.subtitulo ? ` | ${x.subtitulo}` : ''}`, texto: 'Já está no seu inventário.', link: '/inventario/' })
+      registrarNotificacao(conta.id, { id: `skin:${p.id}`, imagem: x.caixa ? x.img : x.img ? x.img.replace(/\/\d+fx\d+f$/, '/128fx96f') : '', titulo: x.embalagem ? `Você recebeu: ${x.titulo} (${x.subtitulo})` : `Você recebeu a skin ${x.titulo}${x.subtitulo ? ` | ${x.subtitulo}` : ''}`, texto: 'Já está no seu inventário.', link: '/inventario/' })
     }
-  }, [pendentes, idx, conta?.id, adesivosCat.dados, chaveirosCat.dados]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pendentes, idx, conta?.id, adesivosCat.dados, chaveirosCat.dados, caixasLoja]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!atual || tocou.current === atual.id) return
@@ -127,7 +138,7 @@ export default function AvisoSkin() {
         <h2 id="skin-aviso-titulo">{d.embalagem ? t('Você recebeu um novo item!') : t('Você recebeu uma nova skin!')}</h2>
         <b className="skin-nome">{d.titulo}</b>
         {d.subtitulo && <span className="skin-sub">{d.subtitulo}</span>}
-        <p>{d.embalagem ? t('Ele já está no seu inventário: cole numa arma ao editá-la (cada um colado é gasto).') : t('Ela já está no seu inventário: dá para ajustar o desgaste, colocar adesivos e equipar no CT ou no TR.')}</p>
+        <p>{d.caixa ? t('Ela já está no seu inventário: abra na loja ou pelo botão Abrir.') : d.embalagem ? t('Ele já está no seu inventário: cole numa arma ao editá-la (cada um colado é gasto).') : t('Ela já está no seu inventário: dá para ajustar o desgaste, colocar adesivos e equipar no CT ou no TR.')}</p>
         <div className="skin-botoes">
           <button type="button" className="skin-ok" onClick={() => fechar(true)} autoFocus>
             {t('Ver no inventário')}
