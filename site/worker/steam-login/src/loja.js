@@ -27,13 +27,14 @@
  *   GET  /admin/loja-saldo?id= (dono)  -> { saldo, ganhos, gastos, movimentos } de um jogador
  */
 import { avisarPerfil } from './amigos.js'
-import { CONFIG_PADRAO, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
+import { CONFIG_PADRAO, precoDeMercado, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
 import { gravarSkinsKv, lerSkinsKv, limparSkins, novoIdItem } from './skins.js'
 import CAIXAS_INICIAIS from './caixas-iniciais.json'
 import RARIDADE_SKIN from './skins-raridade.json'
 import { docVazio, juntar } from './notif-core.js'
 import FACAS_VALOR from './facas-valor.json'
 import ENFEITES_VALOR from './valor-enfeites.json'
+import PRECOS from './precos.json'
 
 const ID_STEAM = /^\d{17}$/
 const ITENS_MAX = 2000
@@ -47,7 +48,8 @@ const num = (v, min, max, padrao) => {
 
 // ── caixas e configuração (KV) ──
 // Revisão 2: Kawaii e Terror só com adesivos; Lendas e Espacial só com amuletos (chaveiros)
-const REVISAO_CAIXAS = 2 // (a caixa de luvas é nova: entra pela lista de fábrica, sem precisar de revisão)
+// Revisão 3: preço das caixas = valor de mercado esperado do que sai nelas + margem (precos.json, scripts/gerar-precos.mjs); depois disso o dono ajusta à vontade
+const REVISAO_CAIXAS = 3 // (a caixa de luvas é nova: entra pela lista de fábrica, sem precisar de revisão)
 const ATUALIZAR_CAIXAS = ['caixa-kawaii', 'caixa-terror', 'caixa-lendas', 'caixa-espacial']
 export async function lerCaixas(env) {
   const salvas = await env.MOLDURAS.get('caixas', 'json').catch(() => null)
@@ -59,8 +61,9 @@ export async function lerCaixas(env) {
     for (const slug of ATUALIZAR_CAIXAS) {
       const nova = CAIXAS_INICIAIS.find((c) => c.slug === slug)
       const i = salvas.findIndex((c) => c.slug === slug)
-      if (nova && i >= 0) salvas[i] = { ...salvas[i], itens: nova.itens, facas: nova.facas }
+      if (nova && i >= 0 && revisao < 2) salvas[i] = { ...salvas[i], itens: nova.itens, facas: nova.facas }
     }
+    for (const c of salvas) if (PRECOS.caixas?.[c.slug]) c.preco = PRECOS.caixas[c.slug]
     await env.MOLDURAS.put('caixas', JSON.stringify(salvas)).catch(() => {})
     await env.MOLDURAS.put('caixas-revisao', String(REVISAO_CAIXAS)).catch(() => {})
   }
@@ -324,6 +327,8 @@ export class Loja {
 
   // Raridade (0..6) e valor de venda (NP) de um item do inventário; null se não pode vender (caixa, agente)
   valorDe(it) {
+    if (it.t === 'adesivo' && PRECOS.a[it.d]) return { r: Math.min(5, (ENFEITES_VALOR.a[it.d] ?? 0) + 1), v: Math.max(1, Math.round(PRECOS.a[it.d])) }
+    if (it.t === 'chaveiro' && PRECOS.c[it.d]) return { r: ENFEITES_VALOR.c[it.d] ?? 2, v: Math.max(1, Math.round(PRECOS.c[it.d])) }
     if (it.t === 'adesivo') {
       const nivel = ENFEITES_VALOR.a[it.d] ?? 0 // papel 0 … gold/campeão 4-5
       return { r: Math.min(5, nivel + 1), v: VALOR_ADESIVO[nivel] }
@@ -333,9 +338,10 @@ export class Loja {
       return { r, v: VALOR_CHAVEIRO[r - 2] ?? VALOR_CHAVEIRO[0] }
     }
     if (!['arma', 'faca', 'luva'].includes(it.t)) return null
-    if (it.t === 'faca') return { r: 6, v: valorDaFaca(it, FACAS_VALOR) } // facas: valor por modelo e acabamento (facas-valor.json)
+    const mercado = precoDeMercado(it, PRECOS.skins) // preço de mercado em R$ (1 NP = R$ 1)
+    if (it.t === 'faca') return { r: 6, v: mercado ?? valorDaFaca(it, FACAS_VALOR) } // facas: valor por modelo e acabamento (facas-valor.json)
     const r = it.t === 'arma' ? RARIDADE_SKIN[`${it.d}:${it.p}`] ?? 2 : 6
-    return { r, v: valorDoItem(it, r) }
+    return { r, v: mercado ?? valorDoItem(it, r) }
   }
 
   async valores(id) {

@@ -288,5 +288,24 @@ export function multiplicadorDoDesgaste(f) {
 // Valor de venda (NP) de um item { f (float), st (StatTrak) } da raridade dada (0..6)
 export const valorDoItem = (item, raridade) => Math.max(1, Math.round(VALOR_BASE[raridade] * multiplicadorDoDesgaste(item.f) * (item.st ? 1.35 : 1)))
 
+// Preço de mercado (R$ = NP) de uma skin: tabela { "<def>:<paint>": [FN, MW, FT, WW, BS, StatTrak FN..BS] } (scripts/gerar-precos.mjs); faca lisa: [preço, preço StatTrak].
+// Sem preço no mercado: null (aí vale a conta por raridade e desgaste).
+export function precoDeMercado(item, tabela) {
+  const linha = tabela?.[`${item.d}:${item.p}`]
+  if (!linha) return null
+  const st = !!item.st
+  if (linha.length === 2) return Math.max(1, Math.round((st ? linha[1] || linha[0] * 2 : linha[0]) || 0)) || null
+  const f = Number(item.f) || 0
+  const faixa = f < 0.07 ? 0 : f < 0.15 ? 1 : f < 0.38 ? 2 : f < 0.45 ? 3 : 4
+  const grupo = (g) => {
+    const v = linha.slice(g * 5, g * 5 + 5)
+    if (v[faixa]) return v[faixa]
+    for (let d = 1; d < 5; d++) if (v[faixa - d] || v[faixa + d]) return v[faixa - d] || v[faixa + d] // faixa sem preço: a mais perto
+    return 0
+  }
+  const v = st ? grupo(1) || grupo(0) * 2 : grupo(0) || grupo(1) / 2
+  return v > 0 ? Math.max(1, Math.round(v)) : null
+}
+
 // Valor base (FN) de cada faca: tabela { "<defIndex>:<paint>": NP } gerada por scripts/gerar-raridades.mjs (modelo x acabamento). Sem entrada: valor das luvas/extraordinário.
 export const valorDaFaca = (item, tabela) => Math.max(1, Math.round((tabela?.[`${item.d}:${item.p}`] ?? VALOR_BASE[6]) * multiplicadorDoDesgaste(item.f) * (item.st ? 1.35 : 1)))
