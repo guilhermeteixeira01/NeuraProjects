@@ -61,7 +61,20 @@ export default {
     // Premier (Leetify) de hora em hora: na primeira rodada de cada hora (minuto 0–9)
     if (new Date(evento.scheduledTime).getUTCMinutes() < 10) ctx.waitUntil(atualizarPremier(env, site))
   },
+  // Erro inesperado (ex.: limite diário de gravações do KV): responde com CORS e um código, senão o navegador só mostra "bloqueado por CORS"
   async fetch(req, env, ctx) {
+    try {
+      return await atender(req, env, ctx)
+    } catch (e) {
+      console.error(e)
+      const site = (env.SITE || 'https://neuraproject.com.br').replace(/\/$/, '')
+      return json({ erro: /limit exceeded/i.test(e?.message || '') ? 'limite-diario' : 'falhou' }, 503, corsDe(req, env, site))
+    }
+  },
+}
+
+async function atender(req, env, ctx) {
+  {
     const url = new URL(req.url)
     const site = (env.SITE || 'https://neuraproject.com.br').replace(/\/$/, '')
     const rota = url.pathname
@@ -165,7 +178,7 @@ export default {
       }
     }
     return json({ erro: 'rota' }, 404, cors)
-  },
+  }
 }
 
 // ── Utilidades ──

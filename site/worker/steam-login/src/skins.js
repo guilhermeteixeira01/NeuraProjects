@@ -2,7 +2,7 @@
  * Skins: inventário do jogador no site (como o inventário do jogo) e o que ele equipa em cada time.
  * O plugin BaseComp lê o inventário já "resolvido" em /servidor/skins e aplica no servidor de CS2.
  *
- * KV MOLDURAS, uma chave por jogador:  skins:<SteamID64>
+ * Guardado no Durable Object do jogador (loja.js, class Loja). O KV MOLDURAS (skins:<SteamID64>) é só o formato antigo, lido uma vez para migrar:
  *   { v: 2,
  *     itens: { "<id>": { t: 'arma'|'faca'|'luva'|'agente', d: defIndex, p: paint (0 = sem pintura: faca lisa, agente), f: desgaste 0..1,
  *                        s: seed 0..1000, st: 0|1 (StatTrak), n: nome (name tag), l: 0|1 (modelo antigo), m: modelo do agente,
@@ -168,15 +168,13 @@ export function resolverEquipado(inv) {
 }
 
 const chave = (id) => `skins:${id}`
-// KV: espelho do inventário (o plugin do servidor e o perfil público leem daqui; o KV é eventualmente consistente, então pode atrasar até ~1 min em
-// outra região). Quem LÊ para mudar ou para mostrar ao dono do inventário usa o Durable Object (lerSkins/mudarSkins), que sempre tem a versão certa.
+// KV: formato antigo do inventário. Só o Durable Object do jogador lê daqui, na primeira vez (para migrar); ninguém mais grava.
 export const lerSkinsKv = async (env, id) => {
   const bruto = await env.MOLDURAS.get(chave(id), 'json').catch(() => null)
   return bruto ? limparSkins(bruto) : null
 }
-export const gravarSkinsKv = (env, id, inv) => (Object.keys(inv.itens).length ? env.MOLDURAS.put(chave(id), JSON.stringify(inv)) : env.MOLDURAS.delete(chave(id)))
 
-// Durable Object do jogador (loja.js, class Loja): guarda o inventário de verdade (com número de versão) e espelha no KV
+// Durable Object do jogador (loja.js, class Loja): guarda o inventário de verdade (com número de versão). Todo mundo lê e muda por aqui
 const doJogador = (env, id) => env.LOJA.get(env.LOJA.idFromName(id))
 const chamarDO = async (env, id, corpo) => (await doJogador(env, id).fetch('https://loja/', { method: 'POST', body: JSON.stringify({ id, ...corpo }) })).json()
 export async function lerSkinsVer(env, id) {
@@ -269,7 +267,7 @@ export async function rotaSkinsPublico(url, env) {
   const id = url.searchParams.get('id') || ''
   const cab = { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=30' }
   if (!ID_STEAM.test(id)) return json({ erro: 'id' }, 400, cab)
-  const inv = await lerSkinsKv(env, id)
+  const inv = await lerSkins(env, id)
   const r = { armas: { ct: {}, tr: {} }, facas: {} }
   for (const lado of LADOS) {
     for (const itemId of Object.values(inv?.equip?.[lado] || {})) {
@@ -287,7 +285,7 @@ export async function rotaSkinsInventarioPublico(url, env) {
   const id = url.searchParams.get('id') || ''
   const cab = { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=20' }
   if (!ID_STEAM.test(id)) return json({ erro: 'id' }, 400, cab)
-  const inv = await lerSkinsKv(env, id)
+  const inv = await lerSkins(env, id)
   return json({ itens: inv?.itens || {}, equip: inv?.equip || { ct: {}, tr: {} }, criado: inv?.criado || {} }, 200, cab)
 }
 
@@ -385,7 +383,7 @@ export async function rotaServidorSkins(req, env) {
   const resposta = {}
   await Promise.all(
     lista.map(async (id) => {
-      const inv = await lerSkinsKv(env, id)
+      const inv = await lerSkins(env, id)
       const r = inv && resolverEquipado(inv)
       if (r) resposta[id] = r
     }),
