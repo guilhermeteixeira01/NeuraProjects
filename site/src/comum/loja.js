@@ -27,6 +27,9 @@ export const lerValores = async () => (await chamar('/loja/valores')).valores ||
 // Vende itens (skin, faca ou luva) por NP: { saldo, total, vendidos, inv }
 export const venderItens = (ids) => chamar('/loja/vender', { ids })
 
+// Carrossel de drops ao vivo (público): { agora, recentes, bons, top }, cada drop { id, ts, r, v, t, d, p, n?, i?, quem, nome, avatar, caixa }
+export const lerDrops = () => fetch(`${base()}/loja/drops`).then((r) => (r.ok ? r.json() : Promise.reject(new Error('drops'))))
+
 // Caixas (nome, imagem, preço) sem a lista de itens: público, serve para dar nome às caixas fechadas do inventário
 let publicas = null
 export const lerCaixasPublicas = () => (publicas ??= fetch(`${base()}/loja/caixas`).then((r) => (r.ok ? r.json() : [])).catch(() => []))
