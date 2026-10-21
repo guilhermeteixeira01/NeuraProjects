@@ -72,6 +72,18 @@ function Estante({ lista, aoFechar }) {
       document.removeEventListener('keydown', tecla)
     }
   }, [aoFechar])
+  // A dica abre para baixo; se não couber na área rolável (última fileira), vira para cima (e nunca passa dos lados)
+  const rolagem = useRef(null)
+  const viraDica = (e) => {
+    const hex = e.currentTarget
+    const area = rolagem.current?.getBoundingClientRect()
+    const r = hex.getBoundingClientRect()
+    if (!area) return
+    hex.dataset.cima = r.bottom + 110 > area.bottom && r.top - 130 > area.top ? '1' : ''
+    const metade = 115
+    const meio = r.left + r.width / 2
+    hex.dataset.lado = meio - metade < area.left ? 'e' : meio + metade > area.right ? 'd' : ''
+  }
   // fileiras alternadas (n, n-1, n, ...): é o que dá o desenho de colmeia
   const n = larg >= 1000 ? 6 : larg >= 760 ? 5 : larg >= 520 ? 4 : 3
   const fileiras = []
@@ -90,13 +102,14 @@ function Estante({ lista, aoFechar }) {
             ×
           </button>
         </header>
+        <div className="ins-est-rolagem" ref={rolagem}>
         <div className="ins-est-vitrine">
           {fileiras.map((f, r) => (
             <div className="ins-est-fileira" key={r}>
               {f.map((i) => {
                 const data = i.desde ? new Date(i.desde).toLocaleDateString(localeAtual()) : null
                 return (
-                  <button type="button" className="ins-hex" key={i.id} style={{ '--cor': i.cor || COR_PADRAO }} aria-label={t(i.nome)}>
+                  <button type="button" className="ins-hex" key={i.id} style={{ '--cor': i.cor || COR_PADRAO }} aria-label={t(i.nome)} onMouseEnter={viraDica} onFocus={viraDica}>
                     <span className="ins-hex-placa" aria-hidden="true" />
                     <img src={imagemInsignia(i.id)} alt="" loading="lazy" decoding="async" draggable="false" onError={caiNaGrande(i.id)} />
                     <span className="ins-hex-info" role="tooltip">
@@ -109,6 +122,7 @@ function Estante({ lista, aoFechar }) {
               })}
             </div>
           ))}
+        </div>
         </div>
       </div>
     </div>,

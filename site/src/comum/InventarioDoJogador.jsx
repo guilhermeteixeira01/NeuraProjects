@@ -21,7 +21,7 @@ const GUARDADOS = new Set(['adesivo', 'chaveiro', 'caixa'])
 
 function Imagem({ src }) {
   const [erro, setErro] = useState(false)
-  return src && !erro ? <img src={src} alt="" loading="lazy" onError={() => setErro(true)} /> : <span className="inv-sem-img" aria-hidden="true" />
+  return src && !erro ? <img className="inv-arma-img" src={src} alt="" loading="lazy" onError={() => setErro(true)} /> : <span className="inv-sem-img" aria-hidden="true" />
 }
 
 export default function InventarioDoJogador({ steamId, nome, aoFechar }) {
@@ -101,6 +101,7 @@ export default function InventarioDoJogador({ steamId, nome, aoFechar }) {
             </button>
           ))}
         </nav>
+        <div className="ij-itens-rolagem">
         {erro ? (
           <p className="ij-vazio">{t('Não consegui carregar o inventário agora.')}</p>
         ) : !dados || !catalogo.dados ? (
@@ -133,6 +134,7 @@ export default function InventarioDoJogador({ steamId, nome, aoFechar }) {
             })}
           </ul>
         )}
+        </div>
       </div>
     </div>,
     document.body,

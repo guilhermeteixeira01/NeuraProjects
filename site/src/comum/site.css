@@ -3503,3 +3503,15 @@ html.ins-estante-aberta #root { filter: blur(10px) brightness(.5) saturate(.9); 
 
 /* celular/tablet: o avatar da barra de cima fica sem o emblema de assinante (ele já aparece no perfil e no cartão da conta) */
 @media (max-width: 1024px) { .nx-conta-btn .emblema-sub { display: none !important; } }
+
+/* estante/inventário em janela: o cabeçalho fica fixo e SÓ o miolo rola (a barra de rolagem fica dentro da caixa arredondada, não para fora) */
+.ins-est { display: flex; flex-direction: column; overflow: hidden; }
+.ins-est-rolagem { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; margin: 0 -14px; padding: 0 14px 6px; }
+/* dica das insígnias: vira para cima na última fileira e não passa dos lados */
+.ins-hex[data-cima='1'] .ins-hex-info { top: auto; bottom: calc(100% - 6px); transform: translate(-50%, -6px); }
+.ins-hex[data-cima='1']:hover .ins-hex-info, .ins-hex[data-cima='1']:focus-visible .ins-hex-info { transform: translate(-50%, 0); }
+.ins-hex[data-lado='e'] .ins-hex-info { left: 0; transform: translate(0, 6px); }
+.ins-hex[data-lado='e']:hover .ins-hex-info, .ins-hex[data-lado='e']:focus-visible .ins-hex-info { transform: translate(0, 0); }
+.ins-hex[data-lado='d'] .ins-hex-info { left: auto; right: 0; transform: translate(0, 6px); }
+.ins-hex[data-lado='d']:hover .ins-hex-info, .ins-hex[data-lado='d']:focus-visible .ins-hex-info { transform: translate(0, 0); }
+.ins-hex[data-cima='1'][data-lado='e'] .ins-hex-info, .ins-hex[data-cima='1'][data-lado='d'] .ins-hex-info { top: auto; bottom: calc(100% - 6px); }
