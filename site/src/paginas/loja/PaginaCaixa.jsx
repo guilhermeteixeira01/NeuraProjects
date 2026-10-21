@@ -58,10 +58,10 @@ const lerRapida = () => {
 }
 
 // ── botão hexagonal com a dica em cima (quantidade, Jester, Boost, Lightning, som) ──
-function Hex({ ativo, cor, titulo, dica, aoClicar, children, rotulo }) {
+function Hex({ ativo, cor, titulo, dica, aoClicar, children, rotulo, desativado = false }) {
   return (
     <span className="lj-hex-caixa">
-      <button type="button" className={`lj-hex${ativo ? ' is-ativo' : ''}`} onClick={aoClicar} aria-pressed={ativo} aria-label={rotulo || titulo}>
+      <button type="button" className={`lj-hex${ativo ? ' is-ativo' : ''}`} onClick={aoClicar} disabled={desativado} aria-pressed={ativo} aria-label={rotulo || titulo}>
         <span>{children}</span>
       </button>
       {titulo && (
@@ -162,23 +162,23 @@ function ParticulasModo({ modo, chave }) {
 }
 
 // ── roleta parada (antes de abrir): uma amostra dos itens da caixa, com o marcador no meio ──
-function RoletaParada({ c, achar }) {
-  const amostra = useMemo(() => {
-    const lista = []
-    const pesos = c.itens.map((it) => Math.max(1, (RARIDADES.length - it.r) * 3))
-    const total = pesos.reduce((a, b) => a + b, 0)
-    for (let k = 0; k < 11; k++) {
-      if (c.facas.length && k === 7) {
-        lista.push({ r: 5 })
-        continue
-      }
-      let x = Math.random() * total
-      let i = 0
-      while (x > pesos[i] && i < pesos.length - 1) x -= pesos[i++]
-      lista.push({ r: c.itens[i].r, it: c.itens[i] })
+function sortearAmostra(c) {
+  const lista = []
+  const pesos = c.itens.map((it) => Math.max(1, (RARIDADES.length - it.r) * 3))
+  const total = pesos.reduce((a, b) => a + b, 0)
+  for (let k = 0; k < 11; k++) {
+    if (c.facas.length && k === 7) {
+      lista.push({ r: 5 })
+      continue
     }
-    return lista
-  }, [c])
+    let x = Math.random() * total
+    let i = 0
+    while (x > pesos[i] && i < pesos.length - 1) x -= pesos[i++]
+    lista.push({ r: c.itens[i].r, it: c.itens[i] })
+  }
+  return lista
+}
+function RoletaParada({ amostra, achar }) {
   return (
     <div className="lj-roleta lj-roleta-parada">
       <div className="lj-trilho">
@@ -330,6 +330,10 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado = false, ac
       setVendendo(false)
     }
   }
+  const girando = !!abrindo && !resultado
+  // as roletas paradas (uma por caixa escolhida): a mesma amostra antes de abrir e enquanto o servidor sorteia
+  const amostras = useMemo(() => Array.from({ length: qtd }, () => sortearAmostra(c)), [c.id, qtd]) // eslint-disable-line react-hooks/exhaustive-deps
+  const paradas = amostras.map((a, k) => <RoletaParada key={k} amostra={a} achar={achar} />)
   const aVender = (resultado || []).filter((r) => !vendidos.has(r.id))
   const totalVenda = aVender.reduce((a, r) => a + (r.v || 0), 0)
 
@@ -375,9 +379,10 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado = false, ac
             vendidos={vendidos}
             vendendo={vendendo}
             aoVender={vender}
+            espera={paradas}
           />
         ) : (
-          Array.from({ length: qtd }, (_, k) => <RoletaParada key={`${k}-${qtd}`} c={c} achar={achar} />)
+          paradas
         )}
         <ParticulasModo modo={modo} chave={efeito} />
       </div>
@@ -415,24 +420,25 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado = false, ac
         </div>
       )}
 
-      {!abrindo && (
-        <div className="lj-cx-controles">
+      {/* enquanto gira, os mesmos controles continuam na tela (só travados): nada some, a página não pula */}
+      {!(abrindo && resultado) && (
+        <div className={`lj-cx-controles${girando ? ' is-girando' : ''}`}>
           <div className="lj-cx-qtd" role="group" aria-label={t('Quantidade')}>
             {Array.from({ length: maximo }, (_, k) => k + 1).map((n) => (
-              <Hex key={n} ativo={qtd === n} aoClicar={() => setQtd(n)} rotulo={t('Abrir {n}', { n })}>
+              <Hex key={n} ativo={qtd === n} desativado={girando} aoClicar={() => setQtd(n)} rotulo={t('Abrir {n}', { n })}>
                 <b>{n}</b>
               </Hex>
             ))}
           </div>
 
           <div className="lj-cx-abrir">
-            <button type="button" className="lj-cx-btn-abrir" disabled={ocupado || preco == null || falta} onClick={() => abrir(qtd, 'direto')}>
-              {preco == null ? t('Carregando…') : t('Abrir por {n} NP', { n: numero(custo) })}
+            <button type="button" className="lj-cx-btn-abrir" disabled={girando || ocupado || preco == null || falta} onClick={() => abrir(qtd, 'direto')}>
+              {girando ? t('Abrindo…') : preco == null ? t('Carregando…') : t('Abrir por {n} NP', { n: numero(custo) })}
             </button>
-            {falta && <small className="lj-cx-falta">{t('Faltam {n} NP', { n: numero(custo - saldo) })}</small>}
+            {falta && !girando && <small className="lj-cx-falta">{t('Faltam {n} NP', { n: numero(custo - saldo) })}</small>}
             {!modo && tem > 0 && (
               <span className="lj-cx-extras">
-                <button type="button" className="lj-cx-link" disabled={ocupado} onClick={() => abrir(Math.min(qtd, tem), 'inventario')}>
+                <button type="button" className="lj-cx-link" disabled={girando || ocupado} onClick={() => abrir(Math.min(qtd, tem), 'inventario')}>
                   {t('Abrir do inventário ({n})', { n: tem })}
                 </button>
               </span>
@@ -440,10 +446,10 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado = false, ac
           </div>
 
           <div className="lj-cx-modos">
-            <Hex ativo={modo === 'jester'} cor="#d58cff" titulo="Jester Mode" dica={t('Chances iguais para todos os itens ({n} NP)', { n: det ? numero(det.modos.jester.preco) : '…' })} aoClicar={() => alternarModo('jester')}>
+            <Hex ativo={modo === 'jester'} desativado={girando} cor="#d58cff" titulo="Jester Mode" dica={t('Chances iguais para todos os itens ({n} NP)', { n: det ? numero(det.modos.jester.preco) : '…' })} aoClicar={() => alternarModo('jester')}>
               <Icone d={ICONES.jester} preenchido />
             </Hex>
-            <Hex ativo={modo === 'boost'} cor="#ff6b5b" titulo="Boost Mode" dica={t('Chances aumentadas para itens melhores ({n} NP)', { n: det ? numero(det.modos.boost.preco) : '…' })} aoClicar={() => alternarModo('boost')}>
+            <Hex ativo={modo === 'boost'} desativado={girando} cor="#ff6b5b" titulo="Boost Mode" dica={t('Chances aumentadas para itens melhores ({n} NP)', { n: det ? numero(det.modos.boost.preco) : '…' })} aoClicar={() => alternarModo('boost')}>
               <Icone d={ICONES.boost} />
             </Hex>
             <Hex ativo={rapida} cor="#f5c518" titulo="Lightning" dica={t('Acelere a animação de abertura da caixa')} aoClicar={alternarRapida}>

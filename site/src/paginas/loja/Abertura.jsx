@@ -64,6 +64,52 @@ export function CartaoItem({ r, d, p, tipo, n, i, achar, classe = '', children }
 
 // ── roleta (horizontal ou vertical): anima até o item sorteado ──
 // itens: lista de { r, i } (i = índice na lista `lista` da caixa); o vencedor está em `alvo`
+// ── confete do item ganho (página da caixa): estoura do meio da roleta na cor da raridade, com dourado e branco; mais confete quanto mais raro ──
+function Confete({ r }) {
+  const ref = useRef(null)
+  useEffect(() => {
+    const cv = ref.current
+    if (!cv) return
+    const ctx = cv.getContext('2d')
+    const dpr = Math.min(2, window.devicePixelRatio || 1)
+    const w = (cv.width = cv.clientWidth * dpr)
+    const h = (cv.height = cv.clientHeight * dpr)
+    const cores = [RARIDADES[r].cor, RARIDADES[r].cor, '#ffffff', '#ffd34d']
+    const n = Math.round((40 + r * 28) / (desempenhoAtivo() ? 3 : 1))
+    const ps = Array.from({ length: n }, () => {
+      const ang = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.3
+      const v = (4 + Math.random() * (5 + r * 1.5)) * dpr
+      return { x: w / 2, y: h * 0.55, vx: Math.cos(ang) * v, vy: Math.sin(ang) * v, g: 0.16 * dpr, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.35, tam: (4 + Math.random() * 5) * dpr, cor: cores[Math.floor(Math.random() * cores.length)], vida: 1 }
+    })
+    let quadro = 0
+    const anima = () => {
+      ctx.clearRect(0, 0, w, h)
+      let vivos = 0
+      for (const p of ps) {
+        p.x += p.vx
+        p.y += p.vy
+        p.vy += p.g
+        p.vx *= 0.985
+        p.rot += p.vr
+        p.vida -= 0.0075
+        if (p.vida <= 0 || p.y > h + 20) continue
+        vivos++
+        ctx.globalAlpha = Math.min(1, p.vida * 1.6)
+        ctx.fillStyle = p.cor
+        ctx.save()
+        ctx.translate(p.x, p.y)
+        ctx.rotate(p.rot)
+        ctx.fillRect(-p.tam / 2, -p.tam / 4, p.tam, p.tam / 2) // tirinha de papel girando
+        ctx.restore()
+      }
+      if (vivos) quadro = requestAnimationFrame(anima)
+    }
+    quadro = requestAnimationFrame(anima)
+    return () => cancelAnimationFrame(quadro)
+  }, [r])
+  return <canvas className="lj-confete" ref={ref} aria-hidden="true" />
+}
+
 // vencedor (só na página da caixa, depois que tudo parou): o item ganho no lugar do cartão do meio (a faca no lugar do "?"), com o desgaste
 // extra: algo por cima da roleta parada (o botão "Vender por X")
 function Roleta({ vertical = false, itens, alvo, lista, achar, rodando, pular, duracao, aoParar, sonora = true, vencedor, extra }) {
@@ -139,6 +185,7 @@ function Roleta({ vertical = false, itens, alvo, lista, achar, rodando, pular, d
         })}
       </div>
       <i className="lj-marcador" aria-hidden="true" />
+      {parou && vencedor && <Confete r={vencedor.raridade} />}
       {parou && extra}
     </div>
   )
@@ -261,7 +308,8 @@ const MENSAGENS = {
 // props: caixa (completa, de GET /loja; no modo Jester/Boost, com o preço do modo), qtd, origem ('direto' | 'inventario'), aoFechar(), aoOutra()
 //   embutida: roda dentro da página da caixa (sem tela cheia); rapida: Lightning (animação curta); modo: 'jester' | 'boost' | undefined
 //   (embutida) aoResultado(resultados): tudo parou; vendidos: Set dos ids já vendidos; vendendo: venda em andamento; aoVender([ids])
-export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoOutra, embutida = false, rapida = false, modo, aoResultado, vendidos = SEM_VENDIDOS, vendendo = false, aoVender }) {
+//   espera: o que mostrar (embutida) enquanto o servidor sorteia
+export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoOutra, embutida = false, rapida = false, modo, aoResultado, vendidos = SEM_VENDIDOS, vendendo = false, aoVender, espera = null }) {
   const t = useT()
   const achar = useAcharItem()
   const [fase, setFase] = useState('carregando') // carregando | roleta | facas | resultado | erro
@@ -400,7 +448,9 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
         {/* sem "Pular animação": a roleta sempre vai até o fim (o Lightning da página da caixa deixa ela mais curta) */}
       </div>
 
-      {fase === 'carregando' && (
+      {/* embutida: enquanto o servidor sorteia, ficam as mesmas roletas paradas que já estavam na tela (nada muda de altura) */}
+      {fase === 'carregando' && embutida && espera}
+      {fase === 'carregando' && !embutida && (
         <div className="lj-centro">
           <span className="lj-girando" aria-hidden="true" />
           <p>{t('Abrindo…')}</p>
