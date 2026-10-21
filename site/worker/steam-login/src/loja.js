@@ -29,7 +29,7 @@
  */
 import { avisarPerfil } from './amigos.js'
 import { CONFIG_PADRAO, precoDeMercado, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
-import { gravarSkinsKv, lerSkinsKv, limparSkins, novoIdItem } from './skins.js'
+import { lerSkinsKv, limparSkins, novoIdItem } from './skins.js'
 import CAIXAS_INICIAIS from './caixas-iniciais.json'
 import RARIDADE_SKIN from './skins-raridade.json'
 import { docVazio, juntar } from './notif-core.js'
@@ -168,8 +168,9 @@ export class Loja {
     return r
   }
 
-  // Inventário de skins do jogador: a versão de verdade fica aqui (leitura e escrita sempre no mesmo lugar, sem o atraso do KV entre regiões);
-  // o KV é um espelho para o plugin do servidor e o perfil público. Quem está no meio de uma mudança no inventário (ver) é barrado se mexeram antes.
+  // Inventário de skins do jogador: a versão de verdade fica só aqui (o plugin do servidor e o perfil público também leem daqui).
+  // O KV (skins:<id>) não é mais espelhado a cada mudança: o plano grátis só permite 1.000 gravações no KV por dia e o inventário muda o tempo todo.
+  // Ele só é lido na primeira vez, para trazer o inventário de quem é anterior a este objeto. Quem está no meio de uma mudança (ver) é barrado se mexeram antes.
   async invLer(id) {
     let inv = (await this.ctx.storage.get('inv')) || null
     const ver = (await this.ctx.storage.get('invv')) || 0
@@ -178,7 +179,6 @@ export class Loja {
   }
   async invGravar(id, inv) {
     const ver = ((await this.ctx.storage.get('invv')) || 0) + 1
-    await gravarSkinsKv(this.env, id, inv) // se o espelho falhar, nada muda aqui
     await this.ctx.storage.put({ inv, invv: ver })
     return ver
   }
