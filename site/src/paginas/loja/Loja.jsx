@@ -22,6 +22,7 @@ const CATEGORIAS = [
   ['tematicas', 'Caixas temáticas', 'Skins de várias armas, com facas raras.'],
   ['armas', 'Caixas de arma', 'Só skins de uma arma (e as facas raras).'],
   ['facas', 'Facas', 'Só facas: as mais valiosas saem com chance menor.'],
+  ['luvas', 'Luvas', 'Só luvas, sem item raro especial: a caixa de luxo.'],
   ['amuletos', 'Amuletos', 'Só chaveiros, para pendurar nas suas armas.'],
   ['adesivos', 'Adesivos', 'Só adesivos, para colar nas suas armas.'],
   ['misto', 'Amuletos e adesivos', 'Chaveiros e adesivos juntos.'],
@@ -29,6 +30,7 @@ const CATEGORIAS = [
 function categoriaDe(c) {
   const t = new Set(c.itens.map((i) => i.t || 'arma'))
   if (t.size === 1 && t.has('faca')) return 'facas'
+  if (t.size === 1 && t.has('luva')) return 'luvas'
   if (t.has('chaveiro') && !t.has('adesivo') && t.size === 1) return 'amuletos'
   if (t.has('adesivo') && !t.has('chaveiro') && t.size === 1) return 'adesivos'
   if (t.has('chaveiro') || t.has('adesivo')) return 'misto'

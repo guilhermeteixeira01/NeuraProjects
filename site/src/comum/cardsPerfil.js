@@ -23,7 +23,7 @@ export const idCard = (id) => (arquivos.includes(id) ? id : porArquivo.get(id) |
 const caminho = (id) => String(id).split('/').map(encodeURIComponent).join('/')
 
 // Tema = pasta. Nome para mostrar: "funcoes" -> "Funções" (os que não estão aqui viram "Nome da pasta")
-const NOMES_TEMA = { funcoes: 'Funções', cenarios: 'Cenários', neura: 'Neura', times: 'Times' }
+const NOMES_TEMA = { funcoes: 'Funções', cenarios: 'Cenários', neura: 'Neura', times: 'Times', 'one-piece': 'One Piece', 'dragon-ball': 'Dragon Ball', 'hunter-x-hunter': 'Hunter x Hunter', 'jujutsu-kaisen': 'Jujutsu Kaisen', 'demon-slayer': 'Demon Slayer', criaturas: 'Criaturas' }
 export const temaCard = (id) => (idCard(id).includes('/') ? idCard(id).split('/')[0] : '')
 export const nomeTema = (tema) => NOMES_TEMA[tema] || String(tema).replace(/[-_]+/g, ' ').replace(/^./, (c) => c.toUpperCase())
 export const TEMAS_CARD = [...new Set(arquivos.map(temaCard))].filter(Boolean)

@@ -45,7 +45,7 @@ const num = (v, min, max, padrao) => {
 
 // ── caixas e configuração (KV) ──
 // Revisão 2: Kawaii e Terror só com adesivos; Lendas e Espacial só com amuletos (chaveiros)
-const REVISAO_CAIXAS = 2
+const REVISAO_CAIXAS = 2 // (a caixa de luvas é nova: entra pela lista de fábrica, sem precisar de revisão)
 const ATUALIZAR_CAIXAS = ['caixa-kawaii', 'caixa-terror', 'caixa-lendas', 'caixa-espacial']
 export async function lerCaixas(env) {
   const salvas = await env.MOLDURAS.get('caixas', 'json').catch(() => null)
@@ -99,7 +99,7 @@ function limparCaixa(c, n) {
   const skin = (x) => ({ d: Math.round(num(x?.d, 1, 100000, 0)), p: Math.round(num(x?.p, 1, 100000, 0)), w: pesoOk(x?.w), min: num(x?.min, 0, 1, 0), max: num(x?.max, 0, 1, 1), l: x?.l ? 1 : 0 })
   // itens: skin de arma (padrão), faca (t: 'faca'), adesivo ou chaveiro (t: 'adesivo'|'chaveiro', sem pintura; n = nome e i = imagem da Steam para mostrar)
   const item = (x) => {
-    const t = ['faca', 'adesivo', 'chaveiro'].includes(x?.t) ? x.t : undefined
+    const t = ['faca', 'luva', 'adesivo', 'chaveiro'].includes(x?.t) ? x.t : undefined
     const base = { ...skin(x), r: Math.round(num(x?.r, 0, 4, 0)) }
     if (t === 'adesivo' || t === 'chaveiro') return { ...base, t, p: 0, n: String(x.n || '').slice(0, 80), i: /^[A-Za-z0-9_-]{1,400}$/.test(x.i || '') ? x.i : '' }
     return t ? { ...base, t } : base

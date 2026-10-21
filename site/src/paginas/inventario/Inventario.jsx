@@ -361,7 +361,7 @@ function TelaAdesivos({ item, d, m, adesivos, estoque, original, aoColar, aoFech
   const t = useT()
   const controle = useRef(null)
   const [loc, setLoc] = useState({ a: item.a || [null, null, null, null, null], k: item.k || null })
-  const [viewer, setViewer] = useState({ activeSticker: null, schemaCount: 4 })
+  const [viewer, setViewer] = useState({ activeSticker: null, schemaCount: 5 })
   const [escolhendo, setEscolhendo] = useState(false)
   const [sem3d, setSem3d] = useState(false)
   const porId = useMemo(() => new Map((adesivos.dados || []).map((s) => [s[0], s])), [adesivos.dados])
@@ -370,7 +370,7 @@ function TelaAdesivos({ item, d, m, adesivos, estoque, original, aoColar, aoFech
   const slotAtivo = viewer.activeSticker ?? [0, 1, 2, 3, 4].find((k) => loc.a[k]) ?? null
   const ad = slotAtivo != null ? loc.a[slotAtivo] : null
   const usados = loc.a.filter(Boolean).length
-  const livres = Array.from({ length: viewer.schemaCount || 4 }, (_, k) => k).filter((k) => !loc.a.some((s) => s && s.s === k))
+  const livres = Array.from({ length: 5 }, (_, k) => k).filter((k) => !loc.a.some((s) => s && s.s === k))
   const mudar2D = (k, parte) => setLoc((l) => ({ ...l, a: l.a.map((s, j) => (j === k ? { i: 0, s: 0, r: 0, w: 0, ...(s || {}), ...parte } : s)) }))
 
   const adicionar = (def) => {
@@ -423,7 +423,7 @@ function TelaAdesivos({ item, d, m, adesivos, estoque, original, aoColar, aoFech
               )
             })}
           </ul>
-          {usados < (viewer.schemaCount || 5) && (
+          {usados < 5 && (
             <button type="button" className="inv-btn" onClick={() => setEscolhendo(true)}>
               + {t('Adicionar adesivo')}
             </button>
@@ -606,6 +606,13 @@ function DialogoItem({ inicial, modo, idx, adesivos, chaveiros, estoque, mapa, a
     mudar({ f: w })
     enviar('setWear', { wear: w })
   }
+  // Não dá para mexer em desgaste, padrão, StatTrak nem nome: só colar adesivos/chaveiro e, se quiser, voltar a skin ao original (sem enfeites)
+  const voltarAoOriginal = () => {
+    const colados = (rasc.a || []).filter(Boolean).length + (rasc.k?.i ? 1 : 0)
+    if (colados && !window.confirm(t('Voltar ao original vai REMOVER os adesivos e o amuleto (chaveiro) colados nesta arma. Os adesivos se perdem; o chaveiro volta para o seu inventário. Continuar?'))) return
+    setRasc((r) => ({ ...r, a: [null, null, null, null, null], k: null }))
+    setVersao((v) => v + 1)
+  }
   const aleatorio = (a, b) => a + Math.random() * (b - a)
   const slider = (valor, mn, mx, passo) => ({ min: mn, max: mx, step: passo, value: valor })
 
@@ -653,40 +660,7 @@ function DialogoItem({ inicial, modo, idx, adesivos, chaveiros, estoque, mapa, a
               </div>
             </>
           )}
-          {(rasc.t === 'arma' || rasc.t === 'faca') && (
-            <label className="inv-linha">
-              <b>{t('Etiqueta de Nome')}</b>
-              <input type="text" maxLength={20} placeholder={t('Digite um nome...')} value={rasc.n || ''} onChange={(e) => mudar({ n: e.target.value })} />
-            </label>
-          )}
-          {temSkin && (
-            <>
-              <div className="inv-linha">
-                <b>{t('Padrão')}</b>
-                <input type="number" min="0" max="1000" step="1" value={rasc.s ?? 0} onChange={(e) => mudarSeed(Math.min(1000, Math.max(0, Math.trunc(Number(e.target.value) || 0))))} />
-                <input type="range" {...slider(rasc.s ?? 0, 0, 1000, 1)} onChange={(e) => mudarSeed(Number(e.target.value))} aria-label={t('Padrão')} />
-                <button type="button" className="inv-dado" onClick={() => mudarSeed(Math.floor(aleatorio(0, 1000)))} title={t('Aleatório')} aria-label={t('Aleatório')}>
-                  ⤮
-                </button>
-              </div>
-              <div className="inv-linha">
-                <b>{t('Desgaste')}</b>
-                <input type="number" min={min} max={max} step="0.0001" value={Number(f.toFixed(6))} onChange={(e) => mudarDesgaste(Math.min(max, Math.max(min, Number(e.target.value) || min)))} />
-                <input type="range" {...slider(f, min, max, 0.0001)} onChange={(e) => mudarDesgaste(Number(e.target.value))} aria-label={t('Desgaste')} />
-                <button type="button" className="inv-dado" onClick={() => mudarDesgaste(Number(aleatorio(min, max).toFixed(6)))} title={t('Aleatório')} aria-label={t('Aleatório')}>
-                  ⤮
-                </button>
-              </div>
-              {skin[5] === 1 && (
-                <label className="inv-linha inv-linha-st">
-                  <b>StatTrak™</b>
-                  <span className="inv-st-txt">{rasc.st ? t('Sim') : t('Não')}</span>
-                  <button type="button" role="switch" aria-checked={!!rasc.st} className={`inv-chave${rasc.st ? ' is-on' : ''}`} onClick={() => mudar({ st: rasc.st ? 0 : 1 })} />
-                </label>
-              )}
-            </>
-          )}
-          <button type="button" className="inv-reset" onClick={() => { setRasc(inicial); setVersao((v) => v + 1) }} title={t('Voltar ao original')} aria-label={t('Voltar ao original')}>
+          <button type="button" className="inv-reset" onClick={voltarAoOriginal} title={t('Voltar ao original')} aria-label={t('Voltar ao original')}>
             ↺
           </button>
         </div>
@@ -830,15 +804,15 @@ function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoD
         )
       })}
       <li className="inv-menu-sep" />
-      {item.t !== 'agente' && !podeEditar && (
+      {item.t === 'arma' && !podeEditar && (
         <li>
-          <span className="inv-menu-aviso">{t('Editar (desgaste, adesivos, chaveiro) só no computador')}</span>
+          <span className="inv-menu-aviso">{t('Editar (adesivos e chaveiro) só no computador')}</span>
         </li>
       )}
-      {item.t !== 'agente' && podeEditar && (
+      {item.t === 'arma' && podeEditar && (
         <li>
           <button type="button" role="menuitem" onClick={aoEditar}>
-            {item.t === 'arma' ? t('Editar (desgaste, adesivos, chaveiro…)') : t('Editar (desgaste, seed…)')}
+            {t('Editar (adesivos e chaveiro)')}
           </button>
         </li>
       )}
