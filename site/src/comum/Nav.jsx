@@ -117,13 +117,13 @@ function Conta() {
                 setDepositando(true)
               }}
             >
-              <span className="cp-pontos-topo">
-                <img className="cp-logo" src="/assets/logos/logo-np-64.png" alt="" width="30" height="30" />
-                <span className="cp-pontos-mais" aria-hidden="true">+</span>
-              </span>
+              <img className="cp-logo" src="/assets/logos/logo-np-64.png" alt="" width="30" height="30" />
               <b>{Number(pontos).toLocaleString(localeAtual())}</b>
               <small className="cp-pontos-rot">{t('PONTOS')}</small>
-              <span className="cp-pontos-dep">{t('DEPOSITAR')}</span>
+              <span className="cp-pontos-dep">
+                <i aria-hidden="true">+</i>
+                {t('DEPOSITAR')}
+              </span>
             </button>
             <a className="cp-caixa cp-loja" href="/loja/" title={t('Gaste seus pontos em caixas de skins')}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

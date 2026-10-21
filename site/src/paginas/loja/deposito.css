@@ -7,7 +7,11 @@
 .dep-cab p { margin: 3px 0 0; color: var(--dim, #9aa0a8); font-size: 13px; }
 .dep-x { margin-left: auto; flex: none; width: 40px; height: 40px; border: 0; border-radius: 10px; background: rgb(255 255 255 / .08); color: #fff; font-size: 22px; cursor: pointer; }
 .dep-x:hover { background: rgb(255 255 255 / .18); }
-.dep-corpo { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 22px 22px; scrollbar-width: thin; }
+.dep-corpo { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 4px 16px 22px 22px; margin-right: 4px; scrollbar-width: thin; scrollbar-color: #3a404c transparent; }
+.dep-corpo::-webkit-scrollbar { width: 8px; }
+.dep-corpo::-webkit-scrollbar-track { background: transparent; margin: 6px 0; }
+.dep-corpo::-webkit-scrollbar-thumb { background: #3a404c; border-radius: 999px; border: 2px solid #12151b; }
+.dep-corpo::-webkit-scrollbar-thumb:hover { background: #566070; }
 .dep-grade { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 20px; }
 .dep-metodos { display: grid; gap: 10px; align-content: start; }
 .dep-metodo { display: grid; justify-items: center; gap: 4px; padding: 18px 10px; border-radius: 12px; background: #1a1e26; border: 2px solid transparent; color: var(--dim, #9aa0a8); cursor: pointer; font: inherit; }
