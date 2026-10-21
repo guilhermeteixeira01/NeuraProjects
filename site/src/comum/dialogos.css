@@ -1,0 +1,18 @@
+/* Caixas de confirmação do site (Dialogos.jsx) */
+.dlg-fundo { position: fixed; inset: 0; z-index: 6000; display: grid; place-items: center; padding: 16px; background: rgb(4 6 10 / .62); backdrop-filter: blur(3px); animation: dlg-fundo .15s ease both; }
+.dlg { width: min(440px, 100%); background: #15181e; border: 1px solid rgb(255 255 255 / .16); border-radius: 14px; padding: 20px 22px; color: var(--text, #e8eaed); box-shadow: 0 20px 60px rgb(0 0 0 / .55); animation: dlg-entra .18s ease both; }
+.dlg-perigo { border-color: rgb(229 72 77 / .5); }
+.dlg h3 { margin: 0 0 8px; font: 700 18px var(--font-display, inherit); }
+.dlg p { margin: 0; font-size: 14px; line-height: 1.5; white-space: pre-line; overflow-wrap: anywhere; }
+.dlg-campo { width: 100%; box-sizing: border-box; margin-top: 12px; background: rgb(0 0 0 / .3); border: 1px solid rgb(255 255 255 / .16); color: inherit; border-radius: 8px; padding: 9px 11px; font: 14px var(--font-body, inherit); }
+.dlg-botoes { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+.dlg-btn { background: rgb(255 255 255 / .08); border: 1px solid rgb(255 255 255 / .14); color: inherit; border-radius: 8px; padding: 9px 18px; font: 600 13px var(--font-body, inherit); cursor: pointer; }
+.dlg-btn:hover:not(:disabled) { background: rgb(255 255 255 / .15); }
+.dlg-btn:disabled { opacity: .5; cursor: default; }
+.dlg-btn-p { background: #f5c518; border-color: #f5c518; color: #1a1a1a; }
+.dlg-btn-p:hover:not(:disabled) { background: #ffd43b; }
+.dlg-btn-perigo { background: #d7263d; border-color: #d7263d; color: #fff; }
+.dlg-btn-perigo:hover:not(:disabled) { background: #f0364d; }
+@keyframes dlg-fundo { from { opacity: 0; } }
+@keyframes dlg-entra { from { opacity: 0; transform: translateY(8px) scale(.97); } }
+@media (prefers-reduced-motion: reduce) { .dlg-fundo, .dlg { animation: none; } }

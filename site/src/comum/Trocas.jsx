@@ -123,6 +123,7 @@ export function JanelaTroca({ para, aoFechar, aoEnviada }) {
   const [msg, setMsg] = useState('')
   const [erro, setErro] = useState('')
   const [enviando, setEnviando] = useState(false)
+  const [presente, setPresente] = useState(false) // pergunta "dar de presente?" quando só oferece itens
 
   useEffect(() => {
     lerInventario().then(setMeu, () => setErro('falhou'))
@@ -156,6 +157,7 @@ export function JanelaTroca({ para, aoFechar, aoEnviada }) {
     else if (atual.length < 20) set([...atual, id])
   }
   const enviar = async () => {
+    setPresente(false)
     setEnviando(true)
     setErro('')
     try {
@@ -246,13 +248,32 @@ export function JanelaTroca({ para, aoFechar, aoEnviada }) {
               <textarea value={msg} maxLength={200} onChange={(e) => setMsg(e.target.value)} rows={2} />
             </label>
             {erro && <p className="tr-erro">{t(textoErro({ message: erro }))}</p>}
-            <button type="button" className="tr-realizar" disabled={enviando || (!dar.length && !pedir.length)} onClick={enviar}>
+            <button type="button" className="tr-realizar" disabled={enviando || (!dar.length && !pedir.length)} onClick={() => (dar.length && !pedir.length ? setPresente(true) : enviar())}>
               {enviando ? t('Enviando…') : t('Realizar proposta')}
             </button>
             <small>{t('{nome} receberá uma notificação desta proposta e tem 7 dias para responder.', { nome: para.nome })}</small>
           </section>
         </div>
       </div>
+      {presente && (
+        <div className="tr-presente-fundo" onClick={(e) => { e.stopPropagation(); setPresente(false) }}>
+          <div className="tr-presente" role="alertdialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <h3>{t('Dar de presente?')}</h3>
+            <p>
+              {t('Você escolheu {n} item(ns) para dar, mas não pediu nada de {nome}. Se ele(a) aceitar, você perde os itens e não recebe nada em troca.', { n: dar.length, nome: para.nome })}
+            </p>
+            <p>{t('Quer mesmo dar de presente? Para trocar, volte e escolha o que você quer receber em "Inventário dele(a)".')}</p>
+            <div className="tr-presente-botoes">
+              <button type="button" className="inv-btn" onClick={() => setPresente(false)}>
+                {t('Voltar e escolher')}
+              </button>
+              <button type="button" className="inv-btn inv-btn-p" onClick={enviar}>
+                {t('Sim, dar de presente')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>,
     document.body,
   )
