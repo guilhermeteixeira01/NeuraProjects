@@ -36,7 +36,7 @@ export default function NaoEncontrada() {
               <span>4</span>
             </div>
             <span className="kicker">
-              <b>ERRO 404</b> {t('PÁGINA NÃO ENCONTRADA')}
+              <b>{t('ERRO 404')}</b> {t('PÁGINA NÃO ENCONTRADA')}
             </span>
             <h1>{t('Essa página saiu do mapa')}</h1>
             <p className="nf-texto">
