@@ -113,3 +113,13 @@ button.tr-item:hover { background: rgb(255 255 255 / .06); }
 .tr-slot .inv-cartao, .tr-prop-itens .inv-cartao { height: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid var(--cor, #6b6f76); border-radius: 8px; background: rgb(255 255 255 / .06); overflow: hidden; padding: 4px; }
 .tr-slot .inv-cartao-arte, .tr-prop-itens .inv-cartao-arte { border-bottom: 0; width: 100%; background: none; }
 .tr-slot .inv-cartao:hover .inv-cartao-arte, .tr-prop-itens .inv-cartao:hover .inv-cartao-arte { transform: none; background: none; }
+
+/* Quadros pequenos: StatTrak e adesivos/chaveiro em tamanho reduzido, dentro do cartão */
+.tr-slot .inv-cartao, .tr-prop-itens .inv-cartao { padding: 2px; }
+.tr-slot .inv-cartao-arte, .tr-prop-itens .inv-cartao-arte { overflow: hidden; }
+.tr-slot .inv-st, .tr-prop-itens .inv-st { left: 3px; top: 2px; font-size: 7px; letter-spacing: -.02em; }
+.tr-slot .inv-marcas, .tr-prop-itens .inv-marcas { display: none; }
+.tr-slot .inv-enfeites, .tr-prop-itens .inv-enfeites { left: 2px; bottom: 2px; gap: 1px; }
+.tr-slot .inv-enfeites-fileira, .tr-prop-itens .inv-enfeites-fileira { gap: 1px; }
+.tr-slot .inv-enfeites img, .tr-prop-itens .inv-enfeites img { width: 13px; height: 13px; }
+.tr-slot .inv-arma-img, .tr-prop-itens .inv-arma-img { padding: 0 0 8px; box-sizing: border-box; }
