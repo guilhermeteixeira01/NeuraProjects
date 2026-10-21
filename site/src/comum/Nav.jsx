@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import { CONFIG, MENU } from './config.js'
 import { entrar, linkPerfil, loginAtivo, sair, useConta } from './conta.js'
 import { ICONES_MENU, IconeDiscord, IconeSteam } from './Icones.jsx'
@@ -17,6 +17,8 @@ import { useAmigos } from './amigos.js'
 import { usePontos } from './pontos.js'
 import { useSaldo } from './loja.js'
 import { localeAtual } from './i18n.js'
+
+const Deposito = lazy(() => import('../paginas/loja/Deposito.jsx')) // só baixa quando alguém clica nos pontos
 
 function LinkMenu({ item, atual }) {
   const t = useT()
@@ -42,6 +44,7 @@ function Conta() {
   const conta = useConta()
   const [aberto, setAberto] = useState(false)
   const [erroAvatar, setErroAvatar] = useState('')
+  const [depositando, setDepositando] = useState(false)
   // A foto do token é a do dia do login (vale 30 dias): troca pela atual da Steam
   const fotoAtual = useAvatar(conta?.id)
   const caixa = useRef(null)
@@ -105,11 +108,19 @@ function Conta() {
             </button>
           </div>
           <div className="cp-caixas">
-            <div className="cp-caixa" title={t('Pontos: 100 por mapa vencido e 50 por mapa perdido')}>
+            <button
+              type="button"
+              className="cp-caixa cp-pontos"
+              title={t('Clique para depositar mais pontos')}
+              onClick={() => {
+                setAberto(false)
+                setDepositando(true)
+              }}
+            >
               <img className="cp-logo" src="/assets/logos/logo-np-64.png" alt="" width="26" height="26" />
               <b>{Number(pontos).toLocaleString(localeAtual())}</b>
-              <small>{t('PONTOS')}</small>
-            </div>
+              <small>{t('PONTOS')} · + {t('DEPOSITAR')}</small>
+            </button>
             <a className="cp-caixa cp-loja" href="/loja/" title={t('Gaste seus pontos em caixas de skins')}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" />
@@ -137,6 +148,11 @@ function Conta() {
             </button>
           </div>
         </div>
+      )}
+      {depositando && (
+        <Suspense fallback={null}>
+          <Deposito aoFechar={() => setDepositando(false)} />
+        </Suspense>
       )}
     </div>
   )
