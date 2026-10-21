@@ -1,6 +1,6 @@
 // Sons da loja (feitos na hora com Web Audio, sem arquivo): tick da roleta, abertura, parada e revelação por raridade.
-// Se um dia quiser os sons do jogo, ponha os .wav em public/loja/sounds/ com os nomes de ARQUIVOS abaixo: eles têm preferência
-// (são pré-carregados) e o som sintetizado só entra quando o arquivo não existe.
+// Se um dia quiser os sons do jogo, ponha os .wav em public/loja/sounds/ com os nomes de ARQUIVOS abaixo e liste-os em SONS_COM_ARQUIVO:
+// eles têm preferência (são pré-carregados) e o som sintetizado só entra quando não há arquivo.
 // Preferências (mudo e volume) ficam no navegador: localStorage np_loja_som = { mudo, vol }.
 const ARQUIVOS = {
   tick: 'tick.wav',
@@ -39,23 +39,20 @@ export function definirPreferencia(nova) {
   if (mestre) mestre.gain.value = pref.mudo ? 0 : pref.vol
 }
 
-// Pré-carrega os arquivos que existirem: public/loja/sounds/lista.json diz quais (ex.: ["tick","abrir","r5"]); sem a lista, só o som sintetizado.
+// Arquivos de som de verdade (opcional): ponha os .wav em public/loja/sounds/ e liste aqui os nomes que existem (ex.: ['tick', 'abrir', 'r5']).
+// Só o que está nesta lista é pré-carregado; o resto usa o som sintetizado. (Antes a página tentava baixar uma lista.json e dava 404 no console.)
+const SONS_COM_ARQUIVO = []
 let preparado = false
 export function prepararSons() {
   if (preparado || typeof Audio === 'undefined') return
   preparado = true
-  fetch('/loja/sounds/lista.json')
-    .then((r) => (r.ok ? r.json() : []))
-    .then((nomes) => {
-      for (const nome of Array.isArray(nomes) ? nomes : []) {
-        if (!ARQUIVOS[nome]) continue
-        const a = new Audio(`/loja/sounds/${ARQUIVOS[nome]}`)
-        a.preload = 'auto'
-        a.addEventListener('canplaythrough', () => (carregados[nome] = a), { once: true })
-        a.load()
-      }
-    })
-    .catch(() => {})
+  for (const nome of SONS_COM_ARQUIVO) {
+    if (!ARQUIVOS[nome]) continue
+    const a = new Audio(`/loja/sounds/${ARQUIVOS[nome]}`)
+    a.preload = 'auto'
+    a.addEventListener('canplaythrough', () => (carregados[nome] = a), { once: true })
+    a.load()
+  }
 }
 
 function contexto() {
