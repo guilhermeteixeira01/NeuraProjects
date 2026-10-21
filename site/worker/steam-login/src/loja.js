@@ -29,7 +29,7 @@
  *   GET  /admin/loja-saldo?id= (dono)  -> { saldo, ganhos, gastos, movimentos } de um jogador
  */
 import { avisarPerfil } from './amigos.js'
-import { CONFIG_PADRAO, VENDA_INSTANTANEA_MAX, MODOS, aplicarModo, faixasDeDesgaste, precoDeMercado, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
+import { CONFIG_PADRAO, MODOS, definirValorador, aplicarModo, faixasDeDesgaste, precoDeMercado, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
 import { lerSkinsKv, limparSkins, novoIdItem } from './skins.js'
 import CAIXAS_INICIAIS from './caixas-iniciais.json'
 import RARIDADE_SKIN from './skins-raridade.json'
@@ -165,6 +165,13 @@ export function valorDe(it) {
   return { r, v: mercado ?? valorDoItem(it, r) }
 }
 
+// Dificuldade pelo valor (loja-core.js: DIFICULDADE): as caixas sorteiam com o valor de mercado do item (no desgaste do meio da faixa dele)
+definirValorador((x) => {
+  if (x.t === 'adesivo' || x.t === 'chaveiro') return valorDe({ t: x.t, d: x.d })?.v ?? 0
+  const f = Math.min(0.45, ((Number.isFinite(x.min) ? x.min : 0) + (Number.isFinite(x.max) ? x.max : 1)) / 2)
+  return valorDe({ t: x.t, d: x.d, p: x.p, f, st: 0 })?.v ?? 0
+})
+
 // Página de uma caixa: valor (NP) e chance de cada desgaste de cada item, e os modos Jester/Boost com preço e chances.
 // O preço do modo = preço da caixa × (valor esperado no modo ÷ valor esperado normal): a margem que o dono escolheu continua a mesma.
 export function detalhesDaCaixa(caixa, cfg) {
@@ -196,8 +203,6 @@ export class Loja {
     this.env = env
     this.sql = ctx.storage.sql
     this.sql.exec('CREATE TABLE IF NOT EXISTS aberturas (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, caixa TEXT, t TEXT, d INTEGER, p INTEGER, r INTEGER, f REAL, q INTEGER)')
-    // itens que acabaram de sair de uma caixa: o botão "Vender" do resultado vende na hora qualquer valor (até 30 min depois)
-    this.sql.exec('CREATE TABLE IF NOT EXISTS abertos (item TEXT PRIMARY KEY, ts INTEGER)')
     // depósitos com dinheiro (Asaas): um por cobrança; "estado" = pendente | pago | estornado. É daqui que sai a garantia de creditar uma vez só
     this.sql.exec('CREATE TABLE IF NOT EXISTS depositos (pid TEXT PRIMARY KEY, ts INTEGER, centavos INTEGER, np INTEGER, metodo TEXT, estado TEXT)')
     this.sql.exec('CREATE TABLE IF NOT EXISTS movimentos (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, valor INTEGER, motivo TEXT)')
@@ -446,12 +451,10 @@ export class Loja {
     const { inv } = await this.invLer(id)
     if (!inv) throw new Error('item')
     let total = 0
-    const recemAbertos = new Set(this.sql.exec('SELECT item FROM abertos WHERE ts > ?', Date.now() - 30 * 60 * 1000).toArray().map((l) => l.item))
     for (const k of ids) {
       const it = inv.itens[k]
       const x = it && valorDe(it)
       if (!x) throw new Error('item')
-      if (x.v > VENDA_INSTANTANEA_MAX && !recemAbertos.has(k)) throw new Error('so-mercado') // caro demais para vender na hora: só pelo mercado
       total += x.v
       delete inv.itens[k]
       delete inv.criado[k]
@@ -459,10 +462,7 @@ export class Loja {
       inv.presentes = inv.presentes.filter((q) => q.i !== k)
     }
     const limpo = limparSkins(inv)
-    await this.gravarTudo(id, limpo, () => {
-      this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), -total, `venda de ${ids.length} item(ns)`)
-      for (const k of ids) this.sql.exec('DELETE FROM abertos WHERE item = ?', k)
-    })
+    await this.gravarTudo(id, limpo, () => this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), -total, `venda de ${ids.length} item(ns)`))
     return { saldo: pontos - this.gastos(), total, vendidos: ids.length, inv: limpo }
   }
 
@@ -470,7 +470,6 @@ export class Loja {
     this.ctx.storage.transactionSync(() => {
       this.sql.exec('DELETE FROM movimentos')
       this.sql.exec('DELETE FROM aberturas')
-      this.sql.exec('DELETE FROM abertos')
     })
     await this.ctx.storage.delete('ganhas')
     const ver = ((await this.ctx.storage.get('invv')) || 0) + 1
@@ -549,8 +548,6 @@ export class Loja {
     const limpo = limparSkins(inv)
     await this.gravarTudo(id, limpo, () => {
       if (custo) this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', agora, custo, `abertura direta ${pagar}x ${caixa.slug}${p.modo ? ` (${p.modo})` : ''}`)
-      this.sql.exec('DELETE FROM abertos WHERE ts < ?', agora - 24 * 3600 * 1000)
-      for (const r of resultados) this.sql.exec('INSERT OR REPLACE INTO abertos (item, ts) VALUES (?, ?)', r.id, agora)
       for (const l of linhas) this.sql.exec('INSERT INTO aberturas (ts, caixa, t, d, p, r, f, q) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', ...l)
     })
     // lista de quem já abriu (para o /admin/loja-retro)

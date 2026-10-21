@@ -381,6 +381,28 @@ export class Presenca {
     return json(await minhaLista(this.env, quem, todos))
   }
 
+  // "jogando": quem está numa partida do site com o servidor carregado/ao vivo (e o plugin diz que está lá, quando ele informa quem está presente).
+  // Só aparece para os outros (amigos, lobby); as regras de convite continuam usando a presença (statusDe).
+  jogandoAgora = new Set()
+  async sincronizarJogando(partidas) {
+    const agora = new Set()
+    for (const p of Object.values(partidas || {})) {
+      if (!['carregada', 'jogando'].includes(p.servidor?.estado)) continue
+      const presentes = Array.isArray(p.servidor.presentes) ? new Set(p.servidor.presentes) : null
+      for (const id of idsDe(p)) if (!presentes || presentes.has(id)) agora.add(id)
+    }
+    const mudaram = [...new Set([...agora, ...this.jogandoAgora])].filter((id) => agora.has(id) !== this.jogandoAgora.has(id))
+    this.jogandoAgora = agora
+    for (const id of mudaram) await this.avisarAmigos(id, this.statusVisivel(id), this.statusVisivel(id) === 'offline' ? (await this.state.storage.get(`visto:${id}`)) || null : null)
+  }
+  statusVisivel(id) {
+    return this.jogandoAgora.has(id) ? 'jogando' : this.statusDe(id)
+  }
+  async gravarPartidas(partidas) {
+    await this.state.storage.put('partidas', partidas)
+    await this.sincronizarJogando(partidas)
+  }
+
   // online > ausente > offline, juntando todas as abas da pessoa
   statusDe(id) {
     // Conexão que não dá sinal há tempo demais (aba que morreu sem avisar, PC que dormiu) não conta como presente
@@ -408,7 +430,7 @@ export class Presenca {
   async estadoPara(id) {
     const amigos = (await this.listaAmigos())[id]?.amigos || []
     const vistos = amigos.length ? await this.state.storage.get(amigos.map((a) => `visto:${a}`)) : new Map()
-    const status = Object.fromEntries(amigos.map((a) => [a, { st: this.statusDe(a), visto: vistos.get(`visto:${a}`) || null }]))
+    const status = Object.fromEntries(amigos.map((a) => [a, { st: this.statusVisivel(a), visto: vistos.get(`visto:${a}`) || null }]))
     return { tipo: 'estado', status }
   }
 
@@ -602,7 +624,7 @@ export class Presenca {
     for (const k of Object.keys(todos)) if (lobbyVazio(todos[k])) delete todos[k]
     if (mudou) {
       await this.state.storage.put('lobbies', todos)
-      await this.state.storage.put('partidas', partidas)
+      await this.gravarPartidas(partidas)
       await this.agendar(partidas)
       for (const a of avisados) this.enviar(a, { tipo: 'lobby' })
     }
@@ -616,7 +638,7 @@ export class Presenca {
     const chamadosPor = minhaPartida ? [] : [...new Set(Object.values(partidas).flatMap((x) => (x.chamados?.[eu] && x.chamados[eu].ate > Date.now() && vagasDe(x, x.times.A.membros.includes(x.chamados[eu].por) ? x.times.A : x.times.B).length ? [x.chamados[eu].por] : [])))]
     const ids = [...new Set([lider, ...lb.membros, ...lb.convites, ...convitesRecebidos, ...chamadosPor, ...abertos, ...(minhaPartida ? idsDe(minhaPartida) : [])])]
     const info = await nomes(this.env, ids)
-    const pessoa = (id) => ({ id, ...info[id], st: this.statusDe(id) })
+    const pessoa = (id) => ({ id, ...info[id], st: this.statusVisivel(id) })
     return json({
       eu,
       lider,
@@ -679,7 +701,7 @@ export class Presenca {
     }
     for (const p of procurar(todos, partidas)) idsDe(p).forEach((i) => avisados.add(i))
     await this.state.storage.put('lobbies', todos)
-    await this.state.storage.put('partidas', partidas)
+    await this.gravarPartidas(partidas)
     await this.agendar(partidas)
     for (const a of avisados) this.enviar(a, { tipo: 'lobby' })
   }
@@ -716,7 +738,7 @@ export class Presenca {
       idsDe(p).forEach((i) => avisados.add(i))
     }
     if (avisados.size) {
-      await this.state.storage.put('partidas', partidas)
+      await this.gravarPartidas(partidas)
       await this.agendar(partidas)
       for (const a of avisados) this.enviar(a, { tipo: 'lobby' })
     }
@@ -734,7 +756,7 @@ export class Presenca {
     if (ORDEM_SERVIDOR[estado] < ORDEM_SERVIDOR[p.servidor.estado] || ORDEM_SERVIDOR[p.servidor.estado] >= 4) return json({ ok: true, ignorado: true })
     p.servidor = { ...p.servidor, estado, detalhe: String(detalhe || '').slice(0, 200), placar: String(placar || '').slice(0, 40) }
     prazoServidor(p)
-    await this.state.storage.put('partidas', partidas)
+    await this.gravarPartidas(partidas)
     await this.agendar(partidas)
     for (const i of idsDe(p)) this.enviar(i, { tipo: 'lobby' })
     return json({ ok: true })
@@ -754,7 +776,7 @@ export class Presenca {
       const mudou = !Array.isArray(p.servidor.presentes) || JSON.stringify([...agora].sort()) !== JSON.stringify([...(p.servidor.presentes || [])].sort()) || vistos.length !== (p.servidor.vistos || []).length
       if (mudou) {
         p.servidor = { ...p.servidor, presentes: agora, vistos }
-        await this.state.storage.put('partidas', partidas)
+        await this.gravarPartidas(partidas)
         for (const i of idsDe(p)) this.enviar(i, { tipo: 'lobby' })
       }
     }
@@ -763,6 +785,11 @@ export class Presenca {
 
   async fetch(req) {
     const url = new URL(req.url)
+    if (!this.jogandoPronto) {
+      this.jogandoPronto = true // quem está jogando agora (partidas guardadas) entra na conta logo na primeira chamada depois de o objeto acordar
+      this.jogandoAgora = new Set()
+      await this.sincronizarJogando((await this.state.storage.get('partidas')) || {})
+    }
     if (url.pathname === '/amigos') return this.exclusivo(() => this.amigosPedido(req))
     if (url.pathname === '/servidor/elenco') return this.exclusivo(() => this.servidorElenco(req))
     if (url.pathname === '/servidor/proxima') return this.exclusivo(() => this.servidorProxima())
@@ -802,7 +829,7 @@ export class Presenca {
     this.state.acceptWebSocket(servidor, [id])
     servidor.serializeAttachment({ id, st: 'online', ts: Date.now() })
     servidor.send(JSON.stringify(await this.estadoPara(id)))
-    if (antes !== 'online') await this.avisarAmigos(id, 'online')
+    if (antes !== 'online') await this.avisarAmigos(id, this.statusVisivel(id))
     return new Response(null, { status: 101, webSocket: cliente })
   }
 
@@ -812,7 +839,7 @@ export class Presenca {
     const antes = this.statusDe(dados.id)
     ws.serializeAttachment({ ...dados, st: msg })
     const depois = this.statusDe(dados.id)
-    if (antes !== depois) await this.avisarAmigos(dados.id, depois)
+    if (antes !== depois) await this.avisarAmigos(dados.id, this.statusVisivel(dados.id))
   }
 
   async saiu(ws) {
@@ -822,12 +849,12 @@ export class Presenca {
     const outras = this.state.getWebSockets(id).filter((x) => x !== ws)
     if (outras.length) {
       const st = outras.some((x) => x.deserializeAttachment()?.st !== 'ausente') ? 'online' : 'ausente'
-      await this.avisarAmigos(id, st)
+      await this.avisarAmigos(id, this.jogandoAgora.has(id) ? 'jogando' : st)
       return
     }
     const agora = Date.now()
     await this.state.storage.put(`visto:${id}`, agora)
-    await this.avisarAmigos(id, 'offline', agora)
+    await this.avisarAmigos(id, this.jogandoAgora.has(id) ? 'jogando' : 'offline', agora)
   }
 
   async webSocketClose(ws, codigo) {

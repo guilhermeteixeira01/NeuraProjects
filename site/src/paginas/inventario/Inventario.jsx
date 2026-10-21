@@ -20,7 +20,7 @@ import { useT } from '../../comum/i18n.js'
 import { tocar } from '../../comum/somInventario.js'
 import { avisarSaldo, lerCaixasPublicas, lerValores, venderItens } from '../../comum/loja.js'
 import { EVENTO_MERCADO, anunciarItem, cancelarAnuncio, erroDoMercado, lerMercado } from '../../comum/mercado.js'
-import { RARIDADES_CS, VENDA_INSTANTANEA_MAX, raridadeCsDaCor } from '../../../worker/steam-login/src/loja-core.js'
+import { RARIDADES_CS, raridadeCsDaCor } from '../../../worker/steam-login/src/loja-core.js'
 import Cartao from '../../comum/CartaoSkin.jsx'
 import { confirmar } from '../../comum/Dialogos.jsx'
 import { BotaoTrocas } from '../../comum/Trocas.jsx'
@@ -813,7 +813,7 @@ function MenuGuardado({ x, y, n, valor, aoAnunciar, aoVenderAgora, aoExcluir, ao
   const { ref, pos } = useMenuFlutuante(x, y, aoFechar)
   return (
     <ul className="inv-menu" ref={ref} style={{ left: pos.x, top: pos.y }} role="menu">
-      {valor != null && valor <= VENDA_INSTANTANEA_MAX && (
+      {valor != null && (
         <li>
           <button type="button" role="menuitem" className="inv-menu-vender" onClick={aoVenderAgora}>
             {t('Vender agora')}
@@ -885,7 +885,7 @@ function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoD
         </button>
       </li>
       <li className="inv-menu-sep" />
-      {valor > 0 && valor <= VENDA_INSTANTANEA_MAX && (
+      {valor > 0 && (
         <li>
           <button type="button" role="menuitem" className="inv-menu-vender" onClick={aoVenderAgora}>
             {t('Vender agora')}
@@ -1172,11 +1172,6 @@ function Conteudo() {
   }
   const valorTotal = (ids) => ids.reduce((a, k) => a + (valores[k]?.v || 0), 0)
   const pedirVenda = (ids) => {
-    if (ids.some((k) => (valores[k]?.v || 0) > VENDA_INSTANTANEA_MAX)) {
-      setAvisoVenda(t('Itens acima de {n} NP só podem ser vendidos no mercado.', { n: VENDA_INSTANTANEA_MAX.toLocaleString('pt-BR') }))
-      setTimeout(() => setAvisoVenda(''), 6000)
-      return
-    }
     setErroVenda('')
     setVenda({ ids })
   }
@@ -1193,8 +1188,8 @@ function Conteudo() {
       setTimeout(() => setAvisoVenda(''), 6000)
       setVenda(null)
       setSel(new Set())
-    } catch (e) {
-      setErroVenda(e?.message === 'so-mercado' ? t('Itens acima de {n} NP só podem ser vendidos no mercado.', { n: VENDA_INSTANTANEA_MAX.toLocaleString('pt-BR') }) : t('Não deu para vender agora. Tente de novo.'))
+    } catch {
+      setErroVenda(t('Não deu para vender agora. Tente de novo.'))
     } finally {
       setVendendo(false)
     }

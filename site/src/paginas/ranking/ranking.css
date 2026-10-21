@@ -354,3 +354,11 @@
 }
 .pod.com-card .pod-nome { text-shadow: 0 2px 12px rgba(0, 0, 0, .85); }
 
+
+/* Pódio no formato do card (5:7, o mesmo das imagens dos cards do perfil): a arte aparece inteira, sem esticar nem dar zoom.
+ * O do 1º lugar fica um pouco mais largo (e portanto maior, na mesma proporção). Se o conteúdo precisar de mais altura, o card cresce. */
+@media (min-width: 901px) {
+  .podio { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1fr); }
+  .pod:not(.esq-pod) { aspect-ratio: 5 / 7; justify-content: flex-start; }
+  .pod:not(.esq-pod) .pod-info { margin-top: auto; }
+}

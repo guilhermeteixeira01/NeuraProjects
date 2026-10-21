@@ -62,6 +62,21 @@ export function raridadeDaCor(cor, ehFaca = false) {
 
 export const nomeDoDesgaste = (f) => (f < 0.07 ? 'Factory New' : f < 0.15 ? 'Minimal Wear' : f < 0.38 ? 'Field-Tested' : f < 0.45 ? 'Well-Worn' : 'Battle-Scarred')
 
+// Dificuldade pelo valor: dentro de cada raridade, quanto mais caro o item, menos chance ele tem (o peso do item é dividido por 1 + (valor / V0)^EXPO).
+// Itens de até ~150 NP quase não mudam; um de 1.000 NP fica ~10x mais raro e um de 5.000 NP, centenas de vezes. O valor vem da tabela de preços (loja.js:
+// definirValorador). Modo Jester (igual: true) ignora isto.
+export const DIFICULDADE = { v0: 400, expo: 2 }
+let valoradorDeItem = null
+export const definirValorador = (fn) => {
+  valoradorDeItem = fn
+}
+const pesoDoItem = (it, tipo) => {
+  const w = it.w > 0 ? it.w : 0
+  if (!w || it.igual || !valoradorDeItem) return w
+  const v = Number(valoradorDeItem(it.t ? it : { ...it, t: tipo })) || 0
+  return w / (1 + Math.pow(v / DIFICULDADE.v0, DIFICULDADE.expo))
+}
+
 // Índice sorteado por pesos (pesos <= 0 nunca saem)
 export function sortearPeso(pesos, rnd) {
   let total = 0
@@ -103,11 +118,11 @@ export function sortearAbertura(caixa, cfg, rnd) {
   let indice
   let t
   if (raridade === 5) {
-    indice = sortearPeso(caixa.facas.map((f) => f.w), rnd)
+    indice = sortearPeso(caixa.facas.map((f) => pesoDoItem(f, 'faca')), rnd)
     origem = caixa.facas[indice]
     t = 'faca'
   } else {
-    const k = sortearPeso(porRaridade[raridade].map((x) => x.it.w), rnd)
+    const k = sortearPeso(porRaridade[raridade].map((x) => pesoDoItem(x.it, 'arma')), rnd)
     indice = porRaridade[raridade][k].i
     origem = caixa.itens[indice]
     t = 'arma'
@@ -160,7 +175,7 @@ const BOOST = [0.5, 0.8, 1.4, 2.2, 3, 3]
 export function aplicarModo(caixa, cfg, modo) {
   if (modo === 'jester') {
     const contagem = [0, 1, 2, 3, 4].map((r) => caixa.itens.filter((i) => i.r === r).length).concat(caixa.facas.length)
-    return { caixa: { ...caixa, itens: caixa.itens.map((i) => ({ ...i, w: 1 })), facas: caixa.facas.map((f) => ({ ...f, w: 1 })) }, cfg: { ...cfg, taxas: contagem } }
+    return { caixa: { ...caixa, itens: caixa.itens.map((i) => ({ ...i, w: 1, igual: true })), facas: caixa.facas.map((f) => ({ ...f, w: 1, igual: true })) }, cfg: { ...cfg, taxas: contagem } }
   }
   if (modo === 'boost') return { caixa, cfg: { ...cfg, taxas: cfg.taxas.map((t, r) => t * BOOST[r]) } }
   return { caixa, cfg }
@@ -174,11 +189,11 @@ export function chancesDaCaixa(caixa, cfg) {
   const raridades = taxas.map((t) => Math.round((t / total) * 10000) / 100)
   const itens = caixa.itens.map(() => 0)
   porRaridade.forEach((lista, r) => {
-    const soma = lista.reduce((a, x) => a + x.it.w, 0) || 1
-    for (const x of lista) itens[x.i] = Math.round(((raridades[r] * x.it.w) / soma) * 1000) / 1000
+    const soma = lista.reduce((a, x) => a + pesoDoItem(x.it, 'arma'), 0) || 1
+    for (const x of lista) itens[x.i] = Math.round(((raridades[r] * pesoDoItem(x.it, 'arma')) / soma) * 1000) / 1000
   })
-  const somaF = caixa.facas.reduce((a, f) => a + f.w, 0) || 1
-  const facas = caixa.facas.map((f) => Math.round(((raridades[5] * f.w) / somaF) * 1000) / 1000)
+  const somaF = caixa.facas.reduce((a, f) => a + pesoDoItem(f, 'faca'), 0) || 1
+  const facas = caixa.facas.map((f) => Math.round(((raridades[5] * pesoDoItem(f, 'faca')) / somaF) * 1000) / 1000)
   return { raridades, itens, facas }
 }
 
@@ -308,9 +323,6 @@ export const npDoPagamento = (centavos) => {
   const base = Math.floor((centavos * PAGAMENTO.npPorReal) / 100)
   return base + Math.floor((base * bonusDoPagamento(centavos)) / 100)
 }
-
-// Venda instantânea (para a loja): só itens que valem até este tanto de NP; acima disso só pelo mercado entre jogadores
-export const VENDA_INSTANTANEA_MAX = 1000
 
 // Valor base em NP de cada raridade, com o desgaste Factory New. Fica bem abaixo do preço das caixas (vender não paga a caixa de volta).
 export const VALOR_BASE = [12, 25, 60, 150, 380, 1000, 4000]
