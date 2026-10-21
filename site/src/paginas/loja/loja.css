@@ -549,7 +549,7 @@ html.lj-travado .nx-rolagem { display: none !important; }
   background: radial-gradient(80% 65% at 50% 35%, color-mix(in srgb, var(--cor) 55%, transparent), transparent 90%), color-mix(in srgb, var(--cor) 18%, #101c3c);
   box-shadow: inset 0 0 0 2px var(--cor), 0 0 26px color-mix(in srgb, var(--cor) 70%, transparent); animation: lj-venceu-pulso 1.6s ease-in-out 2; }
 @keyframes lj-venceu-pulso { 50% { box-shadow: inset 0 0 0 2px var(--cor), 0 0 44px var(--cor); } }
-.lj-confete { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; }
+.lj-confete { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 9000; }
 /* enquanto gira: os controles ficam no lugar, só apagados */
 .lj-cx-controles.is-girando .lj-cx-qtd, .lj-cx-controles.is-girando .lj-cx-modos .lj-hex-caixa:nth-child(-n + 2) { opacity: .45; }
 .lj-hex:disabled { cursor: not-allowed; }

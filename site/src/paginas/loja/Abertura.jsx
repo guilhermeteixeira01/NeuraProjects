@@ -1,6 +1,7 @@
 // Abertura de caixa: roleta horizontal (estilo CS), roleta vertical das facas, revelação com efeitos e a tela de resultado.
 // O resultado já vem definido do servidor (POST /loja/abrir): aqui só se anima até ele. O item já está salvo no inventário quando a roleta começa.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { RARIDADES, nomeDoDesgaste } from '../../../worker/steam-login/src/loja-core.js'
 import { abrirCaixa, avisarSaldo } from '../../comum/loja.js'
 import { desempenhoAtivo } from '../../comum/desempenho.js'
@@ -64,50 +65,66 @@ export function CartaoItem({ r, d, p, tipo, n, i, achar, classe = '', children }
 
 // ── roleta (horizontal ou vertical): anima até o item sorteado ──
 // itens: lista de { r, i } (i = índice na lista `lista` da caixa); o vencedor está em `alvo`
-// ── confete do item ganho (página da caixa): estoura do meio da roleta na cor da raridade, com dourado e branco; mais confete quanto mais raro ──
-function Confete({ r }) {
+// ── confete do item ganho: só para item muito valioso (acima de VALOR_CONFETE NP). Cai do topo por cima da tela inteira, na cor da raridade, com dourado e branco ──
+const VALOR_CONFETE = 700
+function Confete({ r, valor }) {
   const ref = useRef(null)
   useEffect(() => {
     const cv = ref.current
-    if (!cv) return
+    if (!cv || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
     const ctx = cv.getContext('2d')
     const dpr = Math.min(2, window.devicePixelRatio || 1)
-    const w = (cv.width = cv.clientWidth * dpr)
-    const h = (cv.height = cv.clientHeight * dpr)
-    const cores = [RARIDADES[r].cor, RARIDADES[r].cor, '#ffffff', '#ffd34d']
-    const n = Math.round((40 + r * 28) / (desempenhoAtivo() ? 3 : 1))
-    const ps = Array.from({ length: n }, () => {
-      const ang = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.3
-      const v = (4 + Math.random() * (5 + r * 1.5)) * dpr
-      return { x: w / 2, y: h * 0.55, vx: Math.cos(ang) * v, vy: Math.sin(ang) * v, g: 0.16 * dpr, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.35, tam: (4 + Math.random() * 5) * dpr, cor: cores[Math.floor(Math.random() * cores.length)], vida: 1 }
-    })
+    const w = (cv.width = window.innerWidth * dpr)
+    const h = (cv.height = window.innerHeight * dpr)
+    const cores = [RARIDADES[r].cor, RARIDADES[r].cor, '#ffffff', '#ffd34d', '#ffd34d']
+    const total = Math.round((170 + Math.min(valor, 5000) / 25) / (desempenhoAtivo() ? 3 : 1)) // mais valioso, mais confete
+    const DURACAO = 2600 // ms soltando confete do topo
+    const ps = []
+    const t0 = performance.now()
+    let soltos = 0
     let quadro = 0
-    const anima = () => {
+    const nova = () => ({
+      x: Math.random() * w,
+      y: -20 * dpr - Math.random() * 60 * dpr,
+      vx: (Math.random() - 0.5) * 2 * dpr,
+      vy: (2 + Math.random() * 3.5) * dpr,
+      bal: Math.random() * 6,
+      vbal: 0.03 + Math.random() * 0.05,
+      rot: Math.random() * 6,
+      vr: (Math.random() - 0.5) * 0.3,
+      tam: (6 + Math.random() * 7) * dpr,
+      cor: cores[Math.floor(Math.random() * cores.length)],
+    })
+    const anima = (agora) => {
+      const t = agora - t0
+      const meta = Math.min(total, Math.floor((t / DURACAO) * total))
+      while (soltos < meta) {
+        ps.push(nova())
+        soltos++
+      }
       ctx.clearRect(0, 0, w, h)
       let vivos = 0
       for (const p of ps) {
-        p.x += p.vx
-        p.y += p.vy
-        p.vy += p.g
-        p.vx *= 0.985
-        p.rot += p.vr
-        p.vida -= 0.0075
-        if (p.vida <= 0 || p.y > h + 20) continue
+        if (p.y > h + 30) continue
         vivos++
-        ctx.globalAlpha = Math.min(1, p.vida * 1.6)
+        p.bal += p.vbal
+        p.x += p.vx + Math.sin(p.bal) * 1.4 * dpr
+        p.y += p.vy
+        p.rot += p.vr
         ctx.fillStyle = p.cor
         ctx.save()
         ctx.translate(p.x, p.y)
         ctx.rotate(p.rot)
-        ctx.fillRect(-p.tam / 2, -p.tam / 4, p.tam, p.tam / 2) // tirinha de papel girando
+        ctx.scale(1, Math.cos(p.bal * 1.7)) // vira de lado como papel de verdade
+        ctx.fillRect(-p.tam / 2, -p.tam / 3, p.tam, (p.tam * 2) / 3)
         ctx.restore()
       }
-      if (vivos) quadro = requestAnimationFrame(anima)
+      if (soltos < total || vivos) quadro = requestAnimationFrame(anima)
     }
     quadro = requestAnimationFrame(anima)
     return () => cancelAnimationFrame(quadro)
-  }, [r])
-  return <canvas className="lj-confete" ref={ref} aria-hidden="true" />
+  }, [r, valor])
+  return createPortal(<canvas className="lj-confete" ref={ref} aria-hidden="true" />, document.body)
 }
 
 // vencedor (só na página da caixa, depois que tudo parou): o item ganho no lugar do cartão do meio (a faca no lugar do "?"), com o desgaste
@@ -185,7 +202,7 @@ function Roleta({ vertical = false, itens, alvo, lista, achar, rodando, pular, d
         })}
       </div>
       <i className="lj-marcador" aria-hidden="true" />
-      {parou && vencedor && <Confete r={vencedor.raridade} />}
+      {parou && vencedor && (vencedor.v || 0) > VALOR_CONFETE && <Confete r={vencedor.raridade} valor={vencedor.v} />}
       {parou && extra}
     </div>
   )
