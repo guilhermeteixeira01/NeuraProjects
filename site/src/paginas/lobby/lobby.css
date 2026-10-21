@@ -90,6 +90,7 @@
 .lb-bolinha.st-online { background: var(--green); }
 .lb-bolinha.st-ausente { background: #f5a524; }
 .lb-bolinha.st-jogando { background: #3b82f6; }
+.lb-amigo-nome small.lb-em-lobby { color: #f5a524; font-weight: 700; }
 .lb-nome { display: flex; align-items: center; justify-content: center; gap: 3px; max-width: 100%; font: 700 15px var(--font-body); }
 .lb-nome span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lb-pilula { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 4px 12px 4px 5px; border-radius: 999px; font: 700 12.5px var(--font-body); background: rgb(var(--tinta) / .07); white-space: nowrap; }

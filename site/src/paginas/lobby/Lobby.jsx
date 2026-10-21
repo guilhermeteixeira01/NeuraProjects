@@ -24,6 +24,8 @@ const ERROS = {
   cheio: 'O lobby está cheio.',
   amigo: 'Só dá para convidar amigos.',
   offline: 'Só dá para convidar quem está online ou ausente.',
+  'em-lobby': 'Essa pessoa já está em outro lobby.',
+  'convidado-em-partida': 'Essa pessoa está numa partida.',
   lider: 'Só o líder do lobby pode fazer isso.',
   negado: 'Você não pode entrar nesse lobby.',
   'sem-lobby': 'Esse lobby não existe mais.',
@@ -183,13 +185,15 @@ function Convidar({ lobby, aoFechar, aoConvidar, ocupado }) {
     return () => document.removeEventListener('keydown', tecla)
   }, [aoFechar])
   const dentro = new Set([...lobby.membros.map((m) => m.id), ...lobby.convites.map((c) => c.id)])
-  const ordem = { online: 0, ausente: 1, offline: 2 }
+  const ordem = { online: 0, jogando: 1, ausente: 2, offline: 3 }
   const st = (a) => status[a.id]?.st || 'offline'
+  const emLobby = new Set(lobby.emLobby || [])
+  const emPartida = new Set(lobby.emPartida || [])
   const amigos = useMemo(
     () =>
       (lista?.amigos || [])
         .filter((a) => !dentro.has(a.id) && st(a) !== 'offline' && (a.nome || a.id).toLowerCase().includes(busca.trim().toLowerCase()))
-        .sort((x, y) => ordem[st(x)] - ordem[st(y)] || (x.nome || '').localeCompare(y.nome || '')),
+        .sort((x, y) => Number(emLobby.has(x.id) || emPartida.has(x.id)) - Number(emLobby.has(y.id) || emPartida.has(y.id)) || ordem[st(x)] - ordem[st(y)] || (x.nome || '').localeCompare(y.nome || '')),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [lista, status, busca, lobby],
   )
@@ -214,10 +218,10 @@ function Convidar({ lobby, aoFechar, aoConvidar, ocupado }) {
               </span>
               <span className="lb-amigo-nome">
                 <b>{a.nome || a.id}</b>
-                <small>{st(a) === 'online' ? t('Online') : st(a) === 'jogando' ? t('Jogando') : st(a) === 'ausente' ? t('Ausente') : t('Offline')}</small>
+                <small className={emLobby.has(a.id) || emPartida.has(a.id) ? 'lb-em-lobby' : undefined}>{emPartida.has(a.id) ? t('Em partida') : emLobby.has(a.id) ? t('Em outro lobby') : st(a) === 'online' ? t('Online') : st(a) === 'jogando' ? t('Jogando') : st(a) === 'ausente' ? t('Ausente') : t('Offline')}</small>
               </span>
-              <button type="button" className="lb-btn lb-btn-p" disabled={ocupado} onClick={() => aoConvidar(a.id)}>
-                {t('Convidar')}
+              <button type="button" className="lb-btn lb-btn-p" disabled={ocupado || emLobby.has(a.id) || emPartida.has(a.id)} title={emLobby.has(a.id) ? t('Essa pessoa já está em outro lobby') : emPartida.has(a.id) ? t('Essa pessoa está numa partida') : undefined} onClick={() => aoConvidar(a.id)}>
+                {emLobby.has(a.id) ? t('Em lobby') : emPartida.has(a.id) ? t('Em partida') : t('Convidar')}
               </button>
             </li>
           ))}

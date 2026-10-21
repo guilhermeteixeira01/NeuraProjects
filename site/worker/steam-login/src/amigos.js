@@ -454,6 +454,11 @@ export class Presenca {
     const avisados = new Set([eu])
     let mudou = req.method === 'POST' // só grava e avisa se algo mudou (a limpeza de membros offline também conta)
     const avisar = (...ids) => ids.flat().forEach((i) => i && avisados.add(i))
+    // Em lobby = dentro de um grupo com mais gente (líder com membros, ou membro de outro líder). Sozinho (ou só com convites) ainda dá para convidar.
+    const emLobbyComGente = (id) => {
+      const l = achar(id)
+      return !!l && todos[l].membros.length > 0
+    }
 
     // Tira "id" de qualquer lobby em que esteja. Líder que sai passa a liderança para o primeiro membro.
     const sairDe = (id) => {
@@ -504,6 +509,8 @@ export class Presenca {
         if (this.statusDe(id) === 'offline') return json({ erro: 'offline' }, 409)
         const dono = meuLider || eu
         if (dono === id) return json({ erro: 'amigo' }, 400)
+        if (partidaDe(partidas, id)) return json({ erro: 'convidado-em-partida' }, 409)
+        if (emLobbyComGente(id) && achar(id) !== dono) return json({ erro: 'em-lobby' }, 409) // já está num lobby: não dá para convidar
         const lb = (todos[dono] ??= novoLobby())
         if (!lb.membros.includes(id) && !lb.convites.includes(id)) {
           if (1 + lb.membros.length + lb.convites.length >= LOBBY_MAX) return json({ erro: 'cheio' }, 400)
@@ -619,7 +626,8 @@ export class Presenca {
 
     // quem estava num lobby aberto: os amigos dele recarregam a lista de "lobbies abertos"
     for (const l of lideres) {
-      if (todos[l]?.publico || publicosAntes.has(l)) avisar((await this.listaAmigos())[l]?.amigos || [])
+      // os amigos de quem mexeu no lobby recarregam (o "Em lobby" deles na lista de convidar muda; lobby público também aparece em "abertos")
+      avisar((await this.listaAmigos())[l]?.amigos || [])
     }
     for (const k of Object.keys(todos)) if (lobbyVazio(todos[k])) delete todos[k]
     if (mudou) {
@@ -668,6 +676,9 @@ export class Presenca {
         ...chamadosPor.map((l) => ({ lider: pessoa(l), membros: 0, vaga: true })),
       ],
       abertos: abertos.map((l) => ({ lider: pessoa(l), membros: 1 + todos[l].membros.length })),
+      // amigos que não dá para convidar agora: já estão num lobby com gente, ou numa partida
+      emLobby: amigosEu.filter((a) => a !== lider && emLobbyComGente(a) && achar(a) !== lider),
+      emPartida: amigosEu.filter((a) => partidaDe(partidas, a)),
     })
   }
 
