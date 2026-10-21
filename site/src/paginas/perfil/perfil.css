@@ -865,3 +865,13 @@ html.sm-aberto { overflow: hidden; }
   .pf-lado .pf-insig-lado .ins-lista { justify-content: center; }
 }
 @media (max-width: 900px) { .pf-lado .pf-cartao { width: 100%; max-width: none; margin-inline: 0; } }
+
+/* FINAL: Time e Premier SEMPRE lado a lado. O Time ocupa o que sobra e o nome quebra de linha (nunca é cortado); o Premier tem a largura dele */
+.pf-infos.pf-infos-lado { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: stretch; }
+.pf-infos-lado .pf-info { padding: 10px 12px; width: auto; min-width: 0; flex: none; }
+.pf-infos-lado .pf-info:only-child { grid-column: 1 / -1; }
+.pf-infos-lado .pf-time { display: inline-flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%; }
+.pf-infos-lado .pf-time img { flex: none; }
+.pf-infos-lado .pf-time span { min-width: 0; overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; line-height: 1.15; }
+.pf-infos-lado .pf-info:last-child:not(:only-child) .pf-info-val { zoom: .9; }
+@media (max-width: 900px) { .pf-infos.pf-infos-lado { justify-content: stretch; } .pf-infos-lado .pf-info { text-align: left; justify-items: start; } .pf-infos-lado .pf-info-val { justify-content: flex-start; } }
