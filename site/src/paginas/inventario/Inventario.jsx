@@ -371,7 +371,8 @@ function TelaAdesivos({ item, d, m, adesivos, estoque, original, aoColar, aoFech
   const porId = useMemo(() => new Map((adesivos.dados || []).map((s) => [s[0], s])), [adesivos.dados])
   const tem3d = !!m && idNo3d(item, m) !== undefined && !sem3d
   const enviar = (tipo, dados) => controle.current?.enviar(tipo, dados)
-  const slotAtivo = viewer.activeSticker ?? [0, 1, 2, 3, 4].find((k) => loc.a[k]) ?? null
+  const [ativoLocal, setAtivoLocal] = useState(null) // adesivo escolhido que o 3D não conhece (o 5º)
+  const slotAtivo = (ativoLocal != null && loc.a[ativoLocal] ? ativoLocal : null) ?? viewer.activeSticker ?? [0, 1, 2, 3, 4].find((k) => loc.a[k]) ?? null
   const ad = slotAtivo != null ? loc.a[slotAtivo] : null
   const usados = loc.a.filter(Boolean).length
   const livres = Array.from({ length: 5 }, (_, k) => k).filter((k) => !loc.a.some((s) => s && s.s === k))
@@ -385,6 +386,11 @@ function TelaAdesivos({ item, d, m, adesivos, estoque, original, aoColar, aoFech
       const k = loc.a.findIndex((s) => !s)
       if (k >= 0) mudar2D(k, { i: def, s: k })
     }
+    // sem espaço no 3D: o adesivo entra só nos dados e já fica selecionado na lista
+    if (!tem3d || (livres[0] ?? 0) >= limite3d) {
+      const k = loc.a.findIndex((x) => !x)
+      if (k >= 0) setAtivoLocal(k)
+    } else setAtivoLocal(null)
   }
   const remover = (k) => (tem3d && k < limite3d ? enviar('removeSticker', { index: k }) : setLoc((l) => ({ ...l, a: l.a.map((s, j) => (j === k ? null : s)) })))
   const mexer = (k, campo, valor) => {
@@ -416,7 +422,7 @@ function TelaAdesivos({ item, d, m, adesivos, estoque, original, aoColar, aoFech
               if (!st) return null
               return (
                 <li key={k} className={k === slotAtivo ? 'is-ativo' : ''}>
-                  <button type="button" className="inv-painel-item" onClick={() => tem3d && enviar('setActiveSticker', { index: k })}>
+                  <button type="button" className="inv-painel-item" onClick={() => (k >= limite3d ? setAtivoLocal(k) : (setAtivoLocal(null), tem3d && enviar('setActiveSticker', { index: k })))}>
                     <Imagem src={urlImg(st[2], 128)} />
                     <span>{st[1]}</span>
                   </button>
@@ -429,6 +435,7 @@ function TelaAdesivos({ item, d, m, adesivos, estoque, original, aoColar, aoFech
               )
             })}
           </ul>
+          {tem3d && loc.a.some((x, k) => x && k >= limite3d) && <p className="inv-aviso-3d">{t('O 3D mostra só {n} adesivos nesta arma: o 5º é salvo e vale no jogo, mas não aparece aqui.', { n: limite3d })}</p>}
           {usados < 5 && (
             <button type="button" className="inv-btn" onClick={() => setEscolhendo(true)}>
               + {t('Adicionar adesivo')}

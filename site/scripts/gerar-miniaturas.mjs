@@ -84,7 +84,20 @@ for (const t of pendentes) {
   const url = await pagina.evaluate(
     async ({ base64, mime, largura, qualidade }) => {
       const bin = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
-      const img = await createImageBitmap(new Blob([bin], { type: mime }))
+      // AVIF animado: o 1º quadro às vezes é um clarão/transição (a miniatura ficava errada); usa um quadro mais adiante (1/3 do caminho)
+      let img
+      if (mime === 'image/avif' && typeof ImageDecoder !== 'undefined') {
+        try {
+          const dec = new ImageDecoder({ data: bin, type: mime })
+          await dec.tracks.ready
+          const n = dec.tracks.selectedTrack.frameCount
+          const quadro = (await dec.decode({ frameIndex: n > 1 ? Math.floor(n / 3) : 0 })).image
+          img = await createImageBitmap(quadro)
+        } catch {
+          img = null
+        }
+      }
+      if (!img) img = await createImageBitmap(new Blob([bin], { type: mime }))
       const w = Math.min(largura, img.width) // nunca aumenta
       const h = Math.round((img.height * w) / img.width)
       const tela = document.createElement('canvas')

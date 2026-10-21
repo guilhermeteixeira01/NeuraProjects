@@ -879,3 +879,6 @@ html.sm-aberto { overflow: hidden; }
 /* a seção do perfil ocupa a tela toda (mesmo com pouca coisa) e não corta a dica das insígnias (só o lado é cortado, por causa do fundo) */
 .pf-pagina { overflow-x: clip; overflow-y: visible; min-height: 100dvh; padding-bottom: 150px; }
 @media (min-width: 1025px) { .pf-pagina { min-height: 106dvh; } } /* o site tem zoom de 95% no computador */
+
+/* título da coleção por cima dos emblemas dos cards (os dois tinham o mesmo z-index e o emblema aparecia em cima do título) */
+.sm-grupo-cab { z-index: 8; }

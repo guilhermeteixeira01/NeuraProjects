@@ -302,3 +302,5 @@ html.inv-travado body { position: fixed; inset: 0; width: 100%; }
 .inv-fundo { overscroll-behavior: contain; touch-action: none; }
 .inv-janela-corpo { touch-action: pan-y; }
 .inv-janela-insp .inv-janela-corpo, .inv-inspecao, .inv-inspecao-3d, .inv-3d, .inv-3d iframe { touch-action: none; overscroll-behavior: none; }
+
+.inv-aviso-3d { margin: 6px 0; padding: 8px 10px; border-radius: 8px; background: rgb(245 197 24 / .1); border: 1px solid rgb(245 197 24 / .3); font-size: 12px; line-height: 1.4; }
