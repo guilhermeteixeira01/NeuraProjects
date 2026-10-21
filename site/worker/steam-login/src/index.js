@@ -194,7 +194,7 @@ const SELOS_PADRAO = {
 // Imagem do selo: arquivo da pasta public/assets/selos-equipe/ do site (só o nome do arquivo)
 const IMAGEM_SELO = /^[A-Za-z0-9._-]{1,80}\.(png|webp|avif|svg|jpe?g|gif)$/i
 // Id de um card do perfil: "tema/arquivo.ext" (pasta do tema dentro de public/assets/cards/); o nome sem pasta também vale (cards antigos)
-const CARD_ID = /^([A-Za-z0-9_ -]{1,40}\/)?[A-Za-z0-9._ -]{1,80}\.(png|webp|avif|svg|jpe?g|gif)$/i
+const CARD_ID = /^([\p{L}0-9_ -]{1,40}\/)?[\p{L}0-9._ -]{1,80}\.(png|webp|avif|svg|jpe?g|gif)$/iu // aceita letras com acento (cards "Tubarão", "Cobra tática")
 // Assinatura Premium (emblema no avatar: Subscriber, Gold, Platinum, Diamond, Elite, Legend). Meses de assinatura que cada nível exige
 // (o Subscriber é o 1º mês); o admin muda no painel (aba Assinaturas). Padrão igual ao do site: src/comum/assinatura.js
 const SUB_MESES_PADRAO = { gold: 3, platinum: 6, diamond: 12, elite: 18, legend: 24 }

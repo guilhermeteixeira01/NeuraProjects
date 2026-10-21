@@ -77,7 +77,11 @@ function Janela({ titulo, aoFechar, largura = 'media', classe = '', children, ro
   const t = useT()
   useEffect(() => {
     tocar('abrir')
-    return () => tocar('fechar')
+    document.documentElement.classList.add('inv-travado')
+    return () => {
+      tocar('fechar')
+      document.documentElement.classList.remove('inv-travado')
+    }
   }, [])
   useEffect(() => {
     const tecla = (e) => e.key === 'Escape' && aoFechar()
@@ -373,16 +377,18 @@ function TelaAdesivos({ item, d, m, adesivos, estoque, original, aoColar, aoFech
   const livres = Array.from({ length: 5 }, (_, k) => k).filter((k) => !loc.a.some((s) => s && s.s === k))
   const mudar2D = (k, parte) => setLoc((l) => ({ ...l, a: l.a.map((s, j) => (j === k ? { i: 0, s: 0, r: 0, w: 0, ...(s || {}), ...parte } : s)) }))
 
+  // quantos espaços o próprio 3D informa (se ele só tiver 4, o 5º vai direto nos dados); sem informação, assume 5
+  const limite3d = viewer.schemaCount ?? 5
   const adicionar = (def) => {
-    if (tem3d && (livres[0] ?? 0) < 4) enviar('addSticker', { id: m.adesivos.paraLib.get(def), schema: livres[0] ?? 0 })
+    if (tem3d && (livres[0] ?? 0) < limite3d) enviar('addSticker', { id: m.adesivos.paraLib.get(def), schema: livres[0] ?? 0 })
     else {
       const k = loc.a.findIndex((s) => !s)
       if (k >= 0) mudar2D(k, { i: def, s: k })
     }
   }
-  const remover = (k) => (tem3d && k < 4 ? enviar('removeSticker', { index: k }) : setLoc((l) => ({ ...l, a: l.a.map((s, j) => (j === k ? null : s)) })))
+  const remover = (k) => (tem3d && k < limite3d ? enviar('removeSticker', { index: k }) : setLoc((l) => ({ ...l, a: l.a.map((s, j) => (j === k ? null : s)) })))
   const mexer = (k, campo, valor) => {
-    if (!tem3d || k >= 4) return mudar2D(k, { [campo]: valor }) // o 5º adesivo não existe no 3D: os ajustes vão direto nos dados
+    if (!tem3d || k >= limite3d) return mudar2D(k, { [campo]: valor }) // o 5º adesivo não existe no 3D: os ajustes vão direto nos dados
     if (campo === 'x' || campo === 'y') enviar('setStickerOffset', { index: k, x: campo === 'x' ? valor : loc.a[k].x ?? 0, y: campo === 'y' ? valor : loc.a[k].y ?? 0 })
     else if (campo === 'r') enviar('setStickerRotation', { index: k, rotation: valor })
     else enviar('setStickerWear', { index: k, wear: valor })
@@ -452,7 +458,7 @@ function TelaAdesivos({ item, d, m, adesivos, estoque, original, aoColar, aoFech
       }
     >
       {tem3d ? (
-        <Visualizador3D item={{ ...item, a: loc.a, k: loc.k }} m={m} aoMudar={(p) => setLoc((l) => ({ ...l, a: p.a.map((x, i) => x || (i >= 4 ? l.a[i] : null)), k: p.k }))} aoEstado={setViewer} aoFalhar={() => setSem3d(true)} controle={controle} altura="100%" />
+        <Visualizador3D item={{ ...item, a: loc.a, k: loc.k }} m={m} aoMudar={(p) => setLoc((l) => ({ ...l, a: p.a.map((x, i) => x || (i >= limite3d ? l.a[i] : null)), k: p.k }))} aoEstado={setViewer} aoFalhar={() => setSem3d(true)} controle={controle} altura="100%" />
       ) : (
         <div className="inv-previa-grande inv-previa-img">
           <ArmaComEnfeites item={{ ...item, a: loc.a, k: loc.k }} d={d} adesivos={porId} chaveiros={new Map()} />
