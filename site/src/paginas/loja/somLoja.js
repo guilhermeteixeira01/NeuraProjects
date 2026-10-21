@@ -112,6 +112,21 @@ const SINTESE = {
     nota(ac, { freq: 180, fim: 70, dur: 0.22, ganho: 0.32 })
     nota(ac, { tipo: 'triangle', freq: 1400, fim: 900, dur: 0.08, ganho: 0.1 })
   },
+  // modos da página da caixa: Jester = arpejo brincalhão com brilho; Boost = subida com impacto; desligar = descida curta
+  jester: (ac) => {
+    acorde(ac, [523, 659, 784, 1047, 1319], { dur: 0.45, ganho: 0.09, passo: 0.055, tipo: 'triangle' })
+    acorde(ac, [2093, 2637, 3136], { inicio: 0.22, dur: 0.5, ganho: 0.035, passo: 0.05, tipo: 'sine' })
+    ruido(ac, { inicio: 0.05, dur: 0.35, de: 6000, ate: 9000, ganho: 0.04 })
+  },
+  boost: (ac) => {
+    ruido(ac, { dur: 0.4, de: 400, ate: 4500, ganho: 0.1 })
+    nota(ac, { tipo: 'sawtooth', freq: 110, fim: 440, dur: 0.32, ganho: 0.09, ataque: 0.2 })
+    acorde(ac, [440, 554, 659], { inicio: 0.3, dur: 0.55, ganho: 0.1, passo: 0.02, tipo: 'sawtooth' })
+    nota(ac, { freq: 90, fim: 55, inicio: 0.3, dur: 0.45, ganho: 0.25 })
+  },
+  modoOff: (ac) => {
+    nota(ac, { tipo: 'triangle', freq: 660, fim: 330, dur: 0.18, ganho: 0.07 })
+  },
   // revelação: cada raridade soa maior que a anterior
   r0: (ac) => acorde(ac, [440, 554], { dur: 0.5, ganho: 0.1 }),
   r1: (ac) => acorde(ac, [523, 659, 784], { dur: 0.7, ganho: 0.11 }),

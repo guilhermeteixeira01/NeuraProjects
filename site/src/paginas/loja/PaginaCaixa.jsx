@@ -1,16 +1,21 @@
-// Página de uma caixa (dentro da loja, com o carrossel de drops em cima): roleta parada com os itens da caixa, quantidade, "Abrir por X NP",
+// Página de uma caixa (dentro da loja, com o carrossel de drops em cima): uma roleta parada por caixa escolhida (até 3), "Abrir por X NP",
 // os modos (Jester = chances iguais, Boost = itens melhores mais prováveis, Lightning = animação rápida), o som e o conteúdo da caixa.
-// Abrir roda a roleta ali mesmo (Abertura embutida). Chances, preços dos modos e valores por desgaste vêm do servidor (GET /loja/caixa).
-import { useEffect, useMemo, useState } from 'react'
+// Cada modo pinta a página com a cor dele (Jester roxo, Boost laranja) e entra com partículas e som. Abrir roda as roletas ali mesmo
+// (Abertura embutida). Chances, preços dos modos e valores por desgaste vêm do servidor (GET /loja/caixa).
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useT } from '../../comum/i18n.js'
 import { lerDetalhesCaixa } from '../../comum/loja.js'
+import { desempenhoAtivo } from '../../comum/desempenho.js'
 import { RARIDADES } from '../../../worker/steam-login/src/loja-core.js'
 import Abertura, { CartaoItem, dadosDoItem } from './Abertura.jsx'
-import { definirPreferencia, preferenciaAtual } from './somLoja.js'
+import { definirPreferencia, preferenciaAtual, som } from './somLoja.js'
 
+const MAX_POR_VEZ = 3 // o servidor também não deixa passar disso
 const numero = (n) => Number(n).toLocaleString('pt-BR')
 const pct = (n) => `${n >= 1 ? n.toFixed(2).replace(/\.?0+$/, '') : n >= 0.01 ? n.toFixed(3).replace(/0+$/, '') : n.toFixed(4).replace(/0+$/, '')}%`
 const SIGLA = { 'Factory New': 'FN', 'Minimal Wear': 'MW', 'Field-Tested': 'FT', 'Well-Worn': 'WW', 'Battle-Scarred': 'BS' }
+// cor de cada modo (moldura das roletas, botão Abrir, botões ativos, partículas)
+const CORES = { normal: ['#1e90ff'], jester: ['#b14dff', '#e08cff', '#ffffff'], boost: ['#ff5f45', '#ff9a52', '#ffd27a'] }
 
 // ── caixas favoritas (coração): ficam neste navegador ──
 const CHAVE_FAV = 'np_caixas_fav'
@@ -52,7 +57,7 @@ const lerRapida = () => {
   }
 }
 
-// ── botão hexagonal com a dica em cima (Jester, Boost, Lightning, som) ──
+// ── botão hexagonal com a dica em cima (quantidade, Jester, Boost, Lightning, som) ──
 function Hex({ ativo, cor, titulo, dica, aoClicar, children, rotulo }) {
   return (
     <span className="lj-hex-caixa">
@@ -69,8 +74,8 @@ function Hex({ ativo, cor, titulo, dica, aoClicar, children, rotulo }) {
   )
 }
 
-const Icone = ({ d, preenchido }) => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill={preenchido ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={preenchido ? 0 : 2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+const Icone = ({ d, preenchido, tam = 20 }) => (
+  <svg width={tam} height={tam} viewBox="0 0 24 24" fill={preenchido ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={preenchido ? 0 : 2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d={d} />
   </svg>
 )
@@ -78,8 +83,82 @@ const ICONES = {
   jester: 'M3 8l3.5 9h11L21 8l-4.5 3.5L12 5l-4.5 6.5L3 8Zm3.5 11h11v2h-11z',
   boost: 'M6 13l6-6 6 6M6 19l6-6 6 6',
   raio: 'M13 2 4 14h7l-1 8 9-12h-7l1-8Z',
-  som: 'M4 9v6h4l5 4V5L8 9H4Zm12.5 3a4 4 0 0 0-2-3.5v7a4 4 0 0 0 2-3.5Zm2.5 0a7 7 0 0 0-4.5-6.5',
-  mudo: 'M4 9v6h4l5 4V5L8 9H4Zm12 .5 5 5m0-5-5 5',
+}
+// alto-falante (o corpo é preenchido; as ondas e o "x" são traços)
+function IconeSom({ ligado }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 9.5h3.5L11 5.5v13l-4.5-4H3z" fill="currentColor" stroke="none" />
+      {ligado ? (
+        <>
+          <path d="M14.5 9a4 4 0 0 1 0 6" />
+          <path d="M17.5 6.5a7.5 7.5 0 0 1 0 11" />
+        </>
+      ) : (
+        <path d="m15 9.5 5 5m0-5-5 5" />
+      )}
+    </svg>
+  )
+}
+
+// ── partículas ao ligar um modo: saem das molduras das roletas, na cor do modo (canvas por cima, não pega clique) ──
+function ParticulasModo({ modo, chave }) {
+  const ref = useRef(null)
+  useEffect(() => {
+    const cv = ref.current
+    if (!cv || !modo || modo === 'normal') return
+    const ctx = cv.getContext('2d')
+    const dpr = Math.min(2, window.devicePixelRatio || 1)
+    const w = (cv.width = cv.clientWidth * dpr)
+    const h = (cv.height = cv.clientHeight * dpr)
+    const cores = CORES[modo]
+    const n = desempenhoAtivo() ? 50 : 160
+    const jester = modo === 'jester'
+    // Jester: estrelinhas que estouram de toda a borda; Boost: faíscas que sobem da borda de baixo
+    const ps = Array.from({ length: n }, () => {
+      const lado = Math.random()
+      const x = jester ? (lado < 0.5 ? Math.random() * w : lado < 0.75 ? 0 : w) : Math.random() * w
+      const y = jester ? (lado < 0.25 ? 0 : lado < 0.5 ? h : Math.random() * h) : h - Math.random() * h * 0.15
+      const ang = jester ? Math.atan2(y - h / 2, x - w / 2) + (Math.random() - 0.5) * 1.2 : -Math.PI / 2 + (Math.random() - 0.5) * 0.7
+      const v = (jester ? 1.5 + Math.random() * 4 : 3 + Math.random() * 7) * dpr
+      return { x, y, vx: Math.cos(ang) * v, vy: Math.sin(ang) * v, vida: 1, tam: (jester ? 2 + Math.random() * 4 : 1.5 + Math.random() * 3) * dpr, cor: cores[Math.floor(Math.random() * cores.length)], rot: Math.random() * 6 }
+    })
+    let quadro = 0
+    const estrela = (x, y, r) => {
+      ctx.beginPath()
+      for (let k = 0; k < 8; k++) {
+        const a = (k * Math.PI) / 4
+        const rr = k % 2 ? r * 0.4 : r
+        ctx.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr)
+      }
+      ctx.closePath()
+      ctx.fill()
+    }
+    const anima = () => {
+      ctx.clearRect(0, 0, w, h)
+      let vivos = 0
+      for (const p of ps) {
+        p.x += p.vx
+        p.y += p.vy
+        p.vx *= 0.97
+        p.vy = jester ? p.vy * 0.97 : p.vy * 0.985
+        p.vida -= jester ? 0.016 : 0.02
+        if (p.vida <= 0) continue
+        vivos++
+        ctx.globalAlpha = Math.min(1, p.vida * 1.5)
+        ctx.fillStyle = p.cor
+        ctx.shadowColor = p.cor
+        ctx.shadowBlur = 8 * dpr
+        if (jester) estrela(p.x, p.y, p.tam * 1.4)
+        else ctx.fillRect(p.x - p.tam / 2, p.y - p.tam * 2, p.tam, p.tam * 4) // faísca comprida, subindo
+      }
+      if (vivos) quadro = requestAnimationFrame(anima)
+      else ctx.clearRect(0, 0, w, h)
+    }
+    quadro = requestAnimationFrame(anima)
+    return () => cancelAnimationFrame(quadro)
+  }, [modo, chave])
+  return <canvas className="lj-cx-particulas" ref={ref} aria-hidden="true" />
 }
 
 // ── roleta parada (antes de abrir): uma amostra dos itens da caixa, com o marcador no meio ──
@@ -110,19 +189,22 @@ function RoletaParada({ c, achar }) {
   )
 }
 
-// ── um item do "Conteúdo da caixa": chance no canto; o "i" mostra preço e chance de cada desgaste ──
-function ItemConteudo({ r, base, chance, desgastes, achar }) {
+// ── um item do "Conteúdo da caixa": chance no canto (no Boost, quantas vezes mais chance); o "i" mostra preço e chance de cada desgaste ──
+function ItemConteudo({ r, base, chance, normal, modo, desgastes, achar }) {
   const t = useT()
   const [info, setInfo] = useState(false)
   const x = dadosDoItem(base.t || (r === 5 ? 'faca' : 'arma'), base.d, base.p, base.n, base.i, achar)
-  const cor = RARIDADES[r].cor
   const nome = x.enfeite ? x.nome : `${x.nome}${x.skin ? ` | ${x.skin}` : ''}`
+  const vezes = modo === 'boost' && normal > 0 ? chance / normal : 0
   return (
-    <li className={`lj-cx-item${info ? ' is-info' : ''}`} style={{ '--cor': cor }}>
+    <li className={`lj-cx-item${info ? ' is-info' : ''}`} style={{ '--cor': RARIDADES[r].cor }}>
       <button type="button" className="lj-cx-i" onClick={() => setInfo((v) => !v)} aria-expanded={info} aria-label={t('Preço e chance por desgaste')}>
         i
       </button>
-      <span className="lj-cx-chance">{pct(chance)}</span>
+      <span className="lj-cx-chance">
+        {vezes >= 1.05 && <em className="lj-cx-vezes">{vezes.toFixed(1)}x</em>}
+        <span className={modo === 'jester' ? 'lj-cx-pilula' : ''}>{pct(chance)}</span>
+      </span>
       <svg className="lj-cx-hex" viewBox="0 0 100 100" aria-hidden="true">
         <polygon points="50,6 89,28 89,72 50,94 11,72 11,28" />
         <polygon points="50,20 77,35 77,65 50,80 23,65 23,35" />
@@ -162,8 +244,10 @@ function ItemConteudo({ r, base, chance, desgastes, achar }) {
 
 export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado, achar, favorita, aoFavoritar, aoVoltar, aoComprar, aoAbriu }) {
   const t = useT()
+  const maximo = Math.min(maxQtd, MAX_POR_VEZ)
   const [qtd, setQtd] = useState(1)
   const [modo, setModo] = useState(null) // null | 'jester' | 'boost'
+  const [efeito, setEfeito] = useState(0) // muda a cada troca de modo: dispara as partículas de novo
   const [rapida, setRapida] = useState(false)
   const [somLigado, setSomLigado] = useState(true)
   const [det, setDet] = useState(null) // GET /loja/caixa
@@ -188,12 +272,17 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado, achar, fav
   const falta = custo != null && saldo != null && custo > saldo
 
   const conteudo = useMemo(() => {
-    const l = c.itens.map((it, i) => ({ chave: `i${i}`, r: it.r, base: it, chance: chances.itens[i], desgastes: det?.itens?.[i] }))
-    c.facas.forEach((f, i) => l.push({ chave: `f${i}`, r: 5, base: { ...f, t: f.t || 'faca' }, chance: chances.facas[i], desgastes: det?.facas?.[i] }))
-    return l.sort((a, b) => b.r - a.r || a.chance - b.chance)
+    const l = c.itens.map((it, i) => ({ chave: `i${i}`, r: it.r, base: it, chance: chances.itens[i], normal: c.chances.itens[i], desgastes: det?.itens?.[i] }))
+    c.facas.forEach((f, i) => l.push({ chave: `f${i}`, r: 5, base: { ...f, t: f.t || 'faca' }, chance: chances.facas[i], normal: c.chances.facas[i], desgastes: det?.facas?.[i] }))
+    return l.sort((a, b) => b.r - a.r || a.normal - b.normal)
   }, [c, chances, det])
 
-  const alternarModo = (m) => setModo((x) => (x === m ? null : m))
+  const alternarModo = (m) => {
+    const novo = modo === m ? null : m
+    setModo(novo)
+    setEfeito((n) => n + 1)
+    som(novo || 'modoOff')
+  }
   const alternarRapida = () => {
     setRapida((v) => {
       try {
@@ -211,7 +300,7 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado, achar, fav
   const abrir = (q, origem) => setAbrindo({ qtd: q, origem, chave: Date.now() })
 
   return (
-    <section className="lj-cx" style={{ '--cor': c.cor }} aria-label={c.nome}>
+    <section className="lj-cx" data-modo={modo || 'normal'} aria-label={c.nome}>
       <header className="lj-cx-topo">
         <button type="button" className="lj-cx-voltar" onClick={aoVoltar}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -232,7 +321,7 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado, achar, fav
         </div>
       </header>
 
-      <div className="lj-cx-roleta">
+      <div className="lj-cx-roletas">
         {abrindo ? (
           <Abertura
             key={abrindo.chave}
@@ -242,7 +331,7 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado, achar, fav
             caixa={{ ...c, preco: preco ?? c.preco }}
             qtd={abrindo.qtd}
             origem={abrindo.origem}
-            maxQtd={maxQtd}
+            maxQtd={maximo}
             aoFechar={() => {
               setAbrindo(null)
               aoAbriu()
@@ -250,14 +339,15 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado, achar, fav
             aoOutra={(n) => abrir(n || 1, modo ? 'direto' : 'auto')}
           />
         ) : (
-          <RoletaParada c={c} achar={achar} />
+          Array.from({ length: qtd }, (_, k) => <RoletaParada key={`${k}-${qtd}`} c={c} achar={achar} />)
         )}
+        <ParticulasModo modo={modo} chave={efeito} />
       </div>
 
       {!abrindo && (
         <div className="lj-cx-controles">
           <div className="lj-cx-qtd" role="group" aria-label={t('Quantidade')}>
-            {Array.from({ length: maxQtd }, (_, k) => k + 1).map((n) => (
+            {Array.from({ length: maximo }, (_, k) => k + 1).map((n) => (
               <Hex key={n} ativo={qtd === n} aoClicar={() => setQtd(n)} rotulo={t('Abrir {n}', { n })}>
                 <b>{n}</b>
               </Hex>
@@ -294,17 +384,16 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado, achar, fav
               <Icone d={ICONES.raio} preenchido />
             </Hex>
             <Hex ativo={somLigado} rotulo={somLigado ? t('Desligar o som') : t('Ligar o som')} aoClicar={alternarSom}>
-              <Icone d={somLigado ? ICONES.som : ICONES.mudo} />
+              <IconeSom ligado={somLigado} />
             </Hex>
           </div>
         </div>
       )}
 
       <h2 className="lj-cx-sub">{t('Conteúdo da caixa')}</h2>
-      {modo && <p className="lj-cx-modo-aviso">{modo === 'jester' ? t('Jester Mode ligado: todos os itens com a mesma chance.') : t('Boost Mode ligado: chances maiores para os itens melhores.')}</p>}
       <ul className="lj-cx-grade">
         {conteudo.map((x) => (
-          <ItemConteudo key={x.chave} r={x.r} base={x.base} chance={x.chance} desgastes={x.desgastes} achar={achar} />
+          <ItemConteudo key={x.chave} r={x.r} base={x.base} chance={x.chance} normal={x.normal} modo={modo} desgastes={x.desgastes} achar={achar} />
         ))}
       </ul>
     </section>

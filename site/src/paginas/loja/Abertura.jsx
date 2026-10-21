@@ -347,7 +347,6 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
     definirPreferencia(p)
     setPref(preferenciaAtual())
   }
-  const animando = fase === 'roleta' || fase === 'facas'
   // "Abrir outra": usa primeiro as caixas dessa que o jogador já tem no inventário e só cobra as que faltam
   const doInventario = modo ? 0 : Math.min(qtdOutra, restantes) // Jester/Boost: sempre paga o preço do modo
   const aPagar = (qtdOutra - doInventario) * caixa.preco
@@ -378,18 +377,7 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
             <input type="range" min="0" max="1" step="0.05" value={pref.vol} onChange={(e) => mudarSom({ vol: Number(e.target.value), mudo: false })} aria-label={t('Volume')} />
           </span>
         )}
-        {animando && (
-          <button
-            type="button"
-            className="lj-pular"
-            onClick={() => {
-              pular.current = true
-              if (fase === 'facas') proximaFaca()
-            }}
-          >
-            {t('Pular animação')}
-          </button>
-        )}
+        {/* sem "Pular animação": a roleta sempre vai até o fim (o Lightning da página da caixa deixa ela mais curta) */}
       </div>
 
       {fase === 'carregando' && (
@@ -460,7 +448,7 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
           <div className="lj-botoes">
             <div className="lj-outra">
               <div className="lj-qtd lj-qtd-p" role="group" aria-label={t('Quantidade')}>
-                {Array.from({ length: maxQtd }, (_, k) => k + 1).map((n) => (
+                {Array.from({ length: Math.min(maxQtd, 3) }, (_, k) => k + 1).map((n) => (
                   <button key={n} type="button" className={qtdOutra === n ? 'is-ativo' : ''} aria-pressed={qtdOutra === n} onClick={() => setQtdOutra(n)}>
                     {n}
                   </button>

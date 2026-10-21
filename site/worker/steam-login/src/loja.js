@@ -41,6 +41,7 @@ import PRECOS from './precos.json'
 
 const ID_STEAM = /^\d{17}$/
 const ITENS_MAX = 2000
+const MAX_POR_VEZ = 3 // caixas por compra/abertura
 
 const json = (dados, status = 200, extra = {}) =>
   new Response(JSON.stringify(dados), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...extra } })
@@ -349,8 +350,9 @@ export class Loja {
     }
   }
 
+  // no máximo 3 caixas por vez (as 3 roletas da página da caixa), mesmo que a configuração permita mais
   quantidade(p, cfg) {
-    return Math.trunc(num(p.qtd, 1, cfg.maxQtd, 1))
+    return Math.trunc(num(p.qtd, 1, Math.min(cfg.maxQtd, MAX_POR_VEZ), 1))
   }
 
   async comprar(id, caixas, cfg, pontos, p) {
