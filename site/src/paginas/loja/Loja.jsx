@@ -8,6 +8,7 @@ import { avisarSaldo, comprarCaixa, lerLoja } from '../../comum/loja.js'
 import { RARIDADES } from '../../../worker/steam-login/src/loja-core.js'
 import Abertura, { CartaoItem, useAcharItem } from './Abertura.jsx'
 import AbaMercado from './Mercado.jsx'
+import Drops from './Drops.jsx'
 import { prepararSons, som } from './somLoja.js'
 
 const TIERS = [
@@ -365,6 +366,7 @@ function Conteudo() {
 
   return (
     <>
+      <Drops achar={achar} />
       <header className="lj-topo">
         <div>
           <h1>{t('Loja')}</h1>

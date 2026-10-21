@@ -14,6 +14,7 @@
  * KV MOLDURAS:  caixas (lista de caixas; vazia = caixas-iniciais.json), loja-config ({ taxas, desgaste, maxQtd } ou o padrão), loja-jogadores ([ids que já abriram])
  *
  *   GET  /loja/caixas            (público)  -> caixas ativas, sem a lista de itens (nome, imagem, preço)
+ *   GET  /loja/drops             (público)  -> carrossel de drops ao vivo: { recentes, bons, top } (src/mercado.js)
  *   GET  /loja/valores           (login)    -> { valores: { <id do item>: { r: raridade 0..6, v: valor de venda em NP } } }
  *   POST /loja/vender {ids}      (login)    -> vende itens (skin/faca/luva) por NP: { saldo, total, vendidos, inv }
  *   GET  /loja/saldo             (login)    -> { saldo } (menu da conta)
@@ -32,6 +33,7 @@ import { gravarSkinsKv, lerSkinsKv, limparSkins, novoIdItem } from './skins.js'
 import CAIXAS_INICIAIS from './caixas-iniciais.json'
 import RARIDADE_SKIN from './skins-raridade.json'
 import { docVazio, juntar } from './notif-core.js'
+import { registrarDrops } from './mercado.js'
 import FACAS_VALOR from './facas-valor.json'
 import ENFEITES_VALOR from './valor-enfeites.json'
 import PRECOS from './precos.json'
@@ -500,6 +502,8 @@ export async function rotaLoja(req, env, quem, cors, rota) {
   const bonus = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
   const r = await chamar(env, quem.id, { acao, caixas, cfg, pontos, bonus, caixa: corpo.caixa, qtd: corpo.qtd, ids: corpo.ids, origem: corpo.origem === 'inventario' || corpo.origem === 'auto' ? corpo.origem : 'direto' })
   const dados = await r.json().catch(() => ({ erro: 'falhou' }))
+  // o que saiu da caixa entra no carrossel de drops ao vivo do topo da loja (aparece depois que a roleta termina)
+  if (acao === 'abrir' && r.ok && Array.isArray(dados.resultados)) await registrarDrops(env, quem, caixas.find((c) => c.id === Number(corpo.caixa)), dados.resultados)
   // insígnias novas + as que o perfil ainda não tem (cura sozinha: nada de botão "reconferir"); aplicarInsignias só grava se faltar algo
   const dar = { ...(dados.ganhas || {}), ...(dados.insigniasTs || {}) }
   if (Object.keys(dar).length) await aplicarInsignias(env, { [quem.id]: dar })

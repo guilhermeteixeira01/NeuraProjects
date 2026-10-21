@@ -42,7 +42,7 @@ import { Presenca, avisarPerfil, avisarSkin, rotaAmigos, rotaLobby, rotaPresenca
 import { rotaAdminSkin, rotaAdminSkins, rotaServidorSkins, rotaSkins, rotaSkinsExcluir, rotaSkinsInventarioPublico, rotaSkinsPresentes, rotaSkinsPublico } from './skins.js'
 import { Trocas, rotaTrocas } from './trocas.js'
 import { Loja, rotaAdminLoja, rotaLoja, rotaLojaPublica, rotaNotificacoes } from './loja.js'
-import { Mercado, rotaMercado } from './mercado.js'
+import { Mercado, rotaDrops, rotaMercado } from './mercado.js'
 import { ehInsigniaLoja, ID_MESTRE } from './loja-core.js'
 export { Presenca } // Durable Object da presença (wrangler.toml)
 export { Loja } // Durable Object da loja de caixas (wrangler.toml)
@@ -88,6 +88,7 @@ export default {
 
     if (rota === '/skins/publico' && req.method === 'GET') return rotaSkinsPublico(url, env) // skins equipadas de um jogador (perfil)
     if (rota === '/skins/inventario' && req.method === 'GET') return rotaSkinsInventarioPublico(url, env) // inventário de um jogador (botão "Ver inventário" do perfil)
+    if (rota === '/loja/drops' && req.method === 'GET') return rotaDrops(req, env, { 'Access-Control-Allow-Origin': '*' }, ctx) // carrossel de drops ao vivo da loja
     if (rota === '/loja/caixas' && req.method === 'GET') return rotaLojaPublica(env, publico) // caixas da loja (nome, imagem, preço): o site usa para nomear as insígnias "Mestre da ..."
     if (rota === '/servidor/skins' && req.method === 'POST') return rotaServidorSkins(req, env) // plugin: inventário de skins de quem está no servidor
 
