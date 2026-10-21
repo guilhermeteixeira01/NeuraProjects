@@ -21,6 +21,7 @@ import { tocar } from '../../comum/somInventario.js'
 import { avisarSaldo, lerCaixasPublicas, lerValores, venderItens } from '../../comum/loja.js'
 import { RARIDADES_CS, raridadeCsDaCor } from '../../../worker/steam-login/src/loja-core.js'
 import Cartao from '../../comum/CartaoSkin.jsx'
+import { BotaoTrocas } from '../../comum/Trocas.jsx'
 
 // Inventário de skins, no estilo do inventário do jogo: o jogador CRIA itens (arma/faca/luva/agente com a skin que quiser), ajusta
 // cada um (desgaste, seed, StatTrak, nome, adesivos com posição) e EQUIPA no CT, no TR ou nos dois (botão direito no item).
@@ -1196,6 +1197,13 @@ function Conteudo() {
           {estado === 'salvo' && <b className="inv-ok">{t('Salvo!')}</b>}
           {estado === 'erro' && <b className="inv-erro">{t('Não deu para salvar. Tentando de novo ao mudar algo.')}</b>}
         </span>
+        <BotaoTrocas aoMudouInventario={() =>
+            lerInventario().then((d) => {
+              const base = { ...inventarioNovo(), ...d }
+              salvo.current = JSON.stringify(base)
+              setInv(base)
+            }, () => {})
+          } />
         <span className="inv-total">{t('{n} itens', { n: total })}</span>
         {['tudo', 'arma', 'faca', 'luva'].includes(aba) && (
           <button type="button" className={`inv-btn inv-btn-sel${modoSel ? ' is-ativo' : ''}`} onClick={() => (modoSel ? sairDaSelecao() : setModoSel(true))}>
