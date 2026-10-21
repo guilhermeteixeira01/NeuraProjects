@@ -21,7 +21,10 @@ async function chamar(rota, corpo) {
 export const lerLoja = () => chamar('/loja')
 export const lerSaldo = () => chamar('/loja/saldo')
 export const comprarCaixa = (caixa, qtd) => chamar('/loja/comprar', { caixa, qtd })
-export const abrirCaixa = (caixa, qtd, origem) => chamar('/loja/abrir', { caixa, qtd, origem })
+// modo: undefined (normal) | 'jester' (chances iguais) | 'boost' (raridades altas mais prováveis); o preço do modo é o do servidor
+export const abrirCaixa = (caixa, qtd, origem, modo) => chamar('/loja/abrir', { caixa, qtd, origem, ...(modo ? { modo } : {}) })
+// Página da caixa: { itens, facas: [[{ nome, p, v }] por desgaste], modos: { jester|boost: { preco, chances } } }
+export const lerDetalhesCaixa = (id) => chamar(`/loja/caixa?id=${id}`)
 // Valor de venda de cada item do inventário: { <id do item>: { r: raridade 0..6, v: NP } } (o servidor calcula)
 export const lerValores = async () => (await chamar('/loja/valores')).valores || {}
 // Vende itens (skin, faca ou luva) por NP: { saldo, total, vendidos, inv }
