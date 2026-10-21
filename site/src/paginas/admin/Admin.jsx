@@ -888,9 +888,7 @@ function Cargos({ config, usuarios, aoSalvar }) {
                   .slice(0, 8)
                   .map((u) => (
                     <a key={u.id} href={linkPerfil(u.id)} title={u.nome}>
-                      <ComMoldura steamId={u.id} soEmblema>
-                        <Avatar id={u.id} src={u.avatar} nome={u.nome} classe="adm-av mini" />
-                      </ComMoldura>
+                      <Avatar id={u.id} src={u.avatar} nome={u.nome} classe="adm-av mini" />
                     </a>
                   ))}
               </span>
@@ -1028,9 +1026,7 @@ function Assinaturas({ config, usuarios, aoSalvarConfig, aoSalvarPerfis }) {
           const aberto = editando?.id === u.id
           return (
             <li key={u.id} className={e.ativa ? '' : 'adm-sub-vencida'}>
-              <ComMoldura steamId={u.id} soEmblema>
-                <Avatar id={u.id} src={u.avatar} nome={u.nome} />
-              </ComMoldura>
+              <Avatar id={u.id} src={u.avatar} nome={u.nome} />
               <a className="adm-admin-nome" href={linkPerfil(u.id)}>
                 <b>{u.nome || tr('Sem nome')}</b>
               </a>
