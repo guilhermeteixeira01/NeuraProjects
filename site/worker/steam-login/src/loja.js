@@ -33,6 +33,7 @@ import CAIXAS_INICIAIS from './caixas-iniciais.json'
 import RARIDADE_SKIN from './skins-raridade.json'
 import { docVazio, juntar } from './notif-core.js'
 import FACAS_VALOR from './facas-valor.json'
+import ENFEITES_VALOR from './valor-enfeites.json'
 
 const ID_STEAM = /^\d{17}$/
 const ITENS_MAX = 2000
@@ -122,6 +123,10 @@ function limparCaixa(c, n) {
 }
 
 // ── Durable Object do jogador ──
+// Valor de venda (NP) de adesivos (por acabamento: papel, glitter, holo, foil, gold, campeão) e de chaveiros (por raridade: azul, roxo, rosa, vermelho)
+const VALOR_ADESIVO = [4, 8, 15, 40, 100, 250]
+const VALOR_CHAVEIRO = [25, 70, 180, 450]
+
 export class Loja {
   constructor(ctx, env) {
     this.ctx = ctx
@@ -317,8 +322,16 @@ export class Loja {
     return { saldo: pontos - this.gastos(), ids, insignias: novas.ids, insigniasTs: novas.ts }
   }
 
-  // Raridade (0..6) e valor de venda (NP) de um item do inventário; null se não pode vender (adesivo, chaveiro, caixa, agente)
+  // Raridade (0..6) e valor de venda (NP) de um item do inventário; null se não pode vender (caixa, agente)
   valorDe(it) {
+    if (it.t === 'adesivo') {
+      const nivel = ENFEITES_VALOR.a[it.d] ?? 0 // papel 0 … gold/campeão 4-5
+      return { r: Math.min(5, nivel + 1), v: VALOR_ADESIVO[nivel] }
+    }
+    if (it.t === 'chaveiro') {
+      const r = ENFEITES_VALOR.c[it.d] ?? 2
+      return { r, v: VALOR_CHAVEIRO[r - 2] ?? VALOR_CHAVEIRO[0] }
+    }
     if (!['arma', 'faca', 'luva'].includes(it.t)) return null
     if (it.t === 'faca') return { r: 6, v: valorDaFaca(it, FACAS_VALOR) } // facas: valor por modelo e acabamento (facas-valor.json)
     const r = it.t === 'arma' ? RARIDADE_SKIN[`${it.d}:${it.p}`] ?? 2 : 6

@@ -1064,6 +1064,7 @@ function Conteudo() {
     setApagar({ id, nome })
   }
   const nomeDoItem = (it) => {
+    if (it.t === 'adesivo' || it.t === 'chaveiro') return (it.t === 'adesivo' ? adesivosPorId : chaveirosPorId).get(it.d)?.[1] || `#${it.d}`
     const d = descrever(it, idx)
     return `${d.titulo}${d.subtitulo ? ` | ${d.subtitulo}` : ''}`
   }
@@ -1163,6 +1164,22 @@ function Conteudo() {
           {t('Abrir')}
         </a>
       )}
+      {g.tipo !== 'caixa' && (() => {
+        const ids = Object.keys(inv.itens).filter((k) => inv.itens[k].t === g.tipo && inv.itens[k].d === g.def)
+        const v = valores[ids[0]]?.v
+        return (
+          <>
+            <button type="button" className="inv-btn inv-btn-p inv-vender-guardado" disabled={v == null} onClick={() => pedirVenda([ids[0]])}>
+              {t('Vender')} {v != null && `· ${v.toLocaleString('pt-BR')} NP`}
+            </button>
+            {g.n > 1 && (
+              <button type="button" className="inv-btn inv-vender-guardado" disabled={v == null} onClick={() => pedirVenda(ids.slice(0, 100))}>
+                {t('Vender todos ({n})', { n: Math.min(g.n, 100) })}
+              </button>
+            )}
+          </>
+        )
+      })()}
       {g.tipo !== 'caixa' && (
         <button type="button" className="inv-btn inv-btn-perigo inv-excluir-guardado" onClick={() => pedirExclusao(Object.keys(inv.itens).find((k) => inv.itens[k].t === g.tipo && inv.itens[k].d === g.def), `${g.linha?.[1] || `#${g.def}`} (1)`)}>
           {g.n > 1 ? t('Excluir 1') : t('Excluir')}
