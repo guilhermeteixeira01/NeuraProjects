@@ -100,7 +100,7 @@ export class Mercado {
     return { ok: true }
   }
 
-  // Três listas, uma por botão do carrossel: recentes (tudo), bons (Épico para cima) e top (os mais valiosos das últimas 24 h)
+  // Três listas, uma por botão do carrossel: recentes (tudo), bons (Épico para cima) e top (só Lendário/vermelho e Item Raro Especial, os mais valiosos das últimas 24 h)
   drops() {
     const agora = Date.now()
     const ler = (sql, ...args) => this.sql.exec(sql, ...args).toArray().map((l) => ({ ...JSON.parse(l.dados), id: l.id }))
@@ -108,7 +108,7 @@ export class Mercado {
       agora,
       recentes: ler('SELECT id, dados FROM drops WHERE ts <= ? ORDER BY ts DESC LIMIT 24', agora),
       bons: ler('SELECT id, dados FROM drops WHERE ts <= ? AND r >= 3 ORDER BY ts DESC LIMIT 24', agora),
-      top: ler('SELECT id, dados FROM drops WHERE ts <= ? AND ts > ? ORDER BY v DESC, ts DESC LIMIT 24', agora, agora - 24 * 3600 * 1000),
+      top: ler('SELECT id, dados FROM drops WHERE ts <= ? AND ts > ? AND r >= 4 ORDER BY v DESC, ts DESC LIMIT 24', agora, agora - 24 * 3600 * 1000),
     }
   }
 

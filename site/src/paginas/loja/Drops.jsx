@@ -1,5 +1,5 @@
 // Carrossel de drops ao vivo no topo da loja: o que os jogadores estão ganhando nas caixas (worker: GET /loja/drops, src/mercado.js).
-// Três botões à esquerda: relógio = tudo, na hora; joinha = drops bons (Épico para cima); estrela = os mais valiosos das últimas 24 h.
+// Três botões à esquerda: relógio = tudo, na hora; joinha = drops bons (Épico para cima); estrela = os mais valiosos das últimas 24 h, só vermelhos (Lendário) e Item Raro Especial.
 // A lista pergunta ao worker a cada poucos segundos; o drop novo entra pela esquerda e empurra os outros. Passar o mouse mostra quem ganhou.
 import { useEffect, useRef, useState } from 'react'
 import { useT } from '../../comum/i18n.js'
@@ -11,7 +11,7 @@ const INTERVALO = 5000
 const ABAS = [
   ['recentes', 'Drops ao vivo', <path key="r" d="M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />],
   ['bons', 'Drops bons (Épico para cima)', <path key="b" d="M7 11v9H4v-9h3Zm0 0 4-8a2 2 0 0 1 2 2v4h6a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.8 20H7" />],
-  ['top', 'Top drops das últimas 24 horas', <path key="t" d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9L12 3Z" />],
+  ['top', 'Top drops das últimas 24 horas (vermelhos e itens raros especiais)',<path key="t" d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9L12 3Z" />],
 ]
 
 function tempo(t, ms) {
