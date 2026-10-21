@@ -288,10 +288,10 @@ export class Loja {
       case 'dep-pode': { // antes de criar uma cobrança: no máximo 5 por hora
         const n = Number(this.sql.exec("SELECT COUNT(*) AS n FROM depositos WHERE estado = 'pendente' AND ts > ?", Date.now() - 3600 * 1000).one().n)
         if (n >= 5) throw new Error('muitos-pagamentos')
-        return { ok: true, cliente: (await this.ctx.storage.get('asaasCliente')) || null }
+        return { ok: true, cliente: (await this.ctx.storage.get(`asaasCliente:${p.amb || 'sandbox'}`)) || null } // um cliente por ambiente (o do sandbox não existe na produção)
       }
       case 'dep-cliente':
-        await this.ctx.storage.put('asaasCliente', String(p.cliente || ''))
+        await this.ctx.storage.put(`asaasCliente:${p.amb || 'sandbox'}`, String(p.cliente || ''))
         return { ok: true }
       case 'dep-registrar':
         this.sql.exec('INSERT OR IGNORE INTO depositos (pid, ts, centavos, np, metodo, estado) VALUES (?, ?, ?, ?, ?, ?)', String(p.pid), Date.now(), Math.round(p.centavos), Math.round(p.np), String(p.metodo), 'pendente')
