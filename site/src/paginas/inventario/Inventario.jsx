@@ -20,7 +20,7 @@ import { useT } from '../../comum/i18n.js'
 import { tocar } from '../../comum/somInventario.js'
 import { avisarSaldo, lerCaixasPublicas, lerValores, venderItens } from '../../comum/loja.js'
 import { EVENTO_MERCADO, anunciarItem, cancelarAnuncio, erroDoMercado, lerMercado } from '../../comum/mercado.js'
-import { RARIDADES_CS, raridadeCsDaCor } from '../../../worker/steam-login/src/loja-core.js'
+import { RARIDADES_CS, VENDA_INSTANTANEA_MAX, raridadeCsDaCor } from '../../../worker/steam-login/src/loja-core.js'
 import Cartao from '../../comum/CartaoSkin.jsx'
 import { confirmar } from '../../comum/Dialogos.jsx'
 import { BotaoTrocas } from '../../comum/Trocas.jsx'
@@ -808,11 +808,19 @@ function useMenuFlutuante(x, y, aoFechar) {
 }
 
 // Menu de adesivo/chaveiro guardado (o mesmo visual do menu das armas): vender no mercado e excluir
-function MenuGuardado({ x, y, n, valor, aoAnunciar, aoExcluir, aoFechar }) {
+function MenuGuardado({ x, y, n, valor, aoAnunciar, aoVenderAgora, aoExcluir, aoFechar }) {
   const t = useT()
   const { ref, pos } = useMenuFlutuante(x, y, aoFechar)
   return (
     <ul className="inv-menu" ref={ref} style={{ left: pos.x, top: pos.y }} role="menu">
+      {valor != null && valor <= VENDA_INSTANTANEA_MAX && (
+        <li>
+          <button type="button" role="menuitem" className="inv-menu-vender" onClick={aoVenderAgora}>
+            {t('Vender agora')}
+            <b> +{valor.toLocaleString('pt-BR')} NP</b>
+          </button>
+        </li>
+      )}
       <li>
         <button type="button" role="menuitem" className="inv-menu-vender" onClick={aoAnunciar}>
           {t('Vender no mercado')}
@@ -830,7 +838,7 @@ function MenuGuardado({ x, y, n, valor, aoAnunciar, aoExcluir, aoFechar }) {
 }
 
 // Só aparece o time em que o item existe no jogo (AK-47 e Glock só no TR; M4 e USP-S só no CT; agente do CT só no CT...)
-function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoDesequipar, aoEditar, aoInspecionar, aoVender, valor, podeEditar, aoFechar }) {
+function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoDesequipar, aoEditar, aoInspecionar, aoVender, aoVenderAgora, valor, podeEditar, aoFechar }) {
   const t = useT()
   const { ref, pos } = useMenuFlutuante(x, y, aoFechar)
   const chave = chaveEquip(item)
@@ -877,6 +885,14 @@ function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoD
         </button>
       </li>
       <li className="inv-menu-sep" />
+      {valor > 0 && valor <= VENDA_INSTANTANEA_MAX && (
+        <li>
+          <button type="button" role="menuitem" className="inv-menu-vender" onClick={aoVenderAgora}>
+            {t('Vender agora')}
+            <b> +{valor.toLocaleString('pt-BR')} NP</b>
+          </button>
+        </li>
+      )}
       <li>
         <button type="button" role="menuitem" className="inv-menu-vender" onClick={aoVender}>
           {t('Vender no mercado')}
@@ -1156,6 +1172,11 @@ function Conteudo() {
   }
   const valorTotal = (ids) => ids.reduce((a, k) => a + (valores[k]?.v || 0), 0)
   const pedirVenda = (ids) => {
+    if (ids.some((k) => (valores[k]?.v || 0) > VENDA_INSTANTANEA_MAX)) {
+      setAvisoVenda(t('Itens acima de {n} NP só podem ser vendidos no mercado.', { n: VENDA_INSTANTANEA_MAX.toLocaleString('pt-BR') }))
+      setTimeout(() => setAvisoVenda(''), 6000)
+      return
+    }
     setErroVenda('')
     setVenda({ ids })
   }
@@ -1172,8 +1193,8 @@ function Conteudo() {
       setTimeout(() => setAvisoVenda(''), 6000)
       setVenda(null)
       setSel(new Set())
-    } catch {
-      setErroVenda(t('Não deu para vender agora. Tente de novo.'))
+    } catch (e) {
+      setErroVenda(e?.message === 'so-mercado' ? t('Itens acima de {n} NP só podem ser vendidos no mercado.', { n: VENDA_INSTANTANEA_MAX.toLocaleString('pt-BR') }) : t('Não deu para vender agora. Tente de novo.'))
     } finally {
       setVendendo(false)
     }
@@ -1418,6 +1439,7 @@ function Conteudo() {
           aoInspecionar={() => { setJanela({ tipo: 'inspecionar', id: menu.id }); fecharMenu() }}
           valor={valores[menu.id]?.v}
           aoVender={() => { pedirAnuncio(menu.id); fecharMenu() }}
+          aoVenderAgora={() => { pedirVenda([menu.id]); fecharMenu() }}
         />
       )}
       {menuGuardado && guardadoDoMenu && (() => {
@@ -1431,6 +1453,7 @@ function Conteudo() {
             valor={valores[ids[0]]?.v}
             aoFechar={fechar}
             aoAnunciar={() => { pedirAnuncio(ids[0]); fechar() }}
+            aoVenderAgora={() => { pedirVenda([ids[0]]); fechar() }}
             aoExcluir={() => { pedirExclusao(ids[0], `${guardadoDoMenu.linha?.[1] || `#${guardadoDoMenu.def}`} (1)`); fechar() }}
           />
         )
