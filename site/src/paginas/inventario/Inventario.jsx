@@ -807,8 +807,8 @@ function useMenuFlutuante(x, y, aoFechar) {
   return { ref, pos }
 }
 
-// Menu de adesivo/chaveiro guardado (o mesmo visual do menu das armas): vender no mercado, venda rápida e excluir
-function MenuGuardado({ x, y, n, valor, aoAnunciar, aoVender, aoVenderTodos, aoExcluir, aoFechar }) {
+// Menu de adesivo/chaveiro guardado (o mesmo visual do menu das armas): vender no mercado e excluir
+function MenuGuardado({ x, y, n, valor, aoAnunciar, aoExcluir, aoFechar }) {
   const t = useT()
   const { ref, pos } = useMenuFlutuante(x, y, aoFechar)
   return (
@@ -819,21 +819,6 @@ function MenuGuardado({ x, y, n, valor, aoAnunciar, aoVender, aoVenderTodos, aoE
           {valor != null ? <b> ~{valor.toLocaleString('pt-BR')} NP</b> : null}
         </button>
       </li>
-      <li className="inv-menu-sep" />
-      <li>
-        <button type="button" role="menuitem" className="inv-menu-vender" disabled={valor == null} onClick={aoVender}>
-          {t('Venda rápida')}
-          {valor != null ? <b> +{valor.toLocaleString('pt-BR')} NP</b> : null}
-        </button>
-      </li>
-      {n > 1 && (
-        <li>
-          <button type="button" role="menuitem" className="inv-menu-vender" disabled={valor == null} onClick={aoVenderTodos}>
-            {t('Venda rápida de todos ({n})', { n: Math.min(n, 100) })}
-            {valor != null ? <b> +{(valor * Math.min(n, 100)).toLocaleString('pt-BR')} NP</b> : null}
-          </button>
-        </li>
-      )}
       <li className="inv-menu-sep" />
       <li>
         <button type="button" role="menuitem" className="inv-menu-perigo" onClick={aoExcluir}>
@@ -1357,7 +1342,7 @@ function Conteudo() {
           {RARIDADES_CS.map((r) =>
             contagemRar[r.id] ? (
               <button key={r.id} type="button" className={rar === r.id ? 'is-ativo' : ''} style={{ '--cor': r.cor }} onClick={() => setRar(rar === r.id ? 'todas' : r.id)}>
-                <i /> {r.curto} <em>{contagemRar[r.id]}</em>
+                <i /> {t(r.curto)} <em>{contagemRar[r.id]}</em>
               </button>
             ) : null,
           )}
@@ -1446,8 +1431,6 @@ function Conteudo() {
             valor={valores[ids[0]]?.v}
             aoFechar={fechar}
             aoAnunciar={() => { pedirAnuncio(ids[0]); fechar() }}
-            aoVender={() => { pedirVenda([ids[0]]); fechar() }}
-            aoVenderTodos={() => { pedirVenda(ids.slice(0, 100)); fechar() }}
             aoExcluir={() => { pedirExclusao(ids[0], `${guardadoDoMenu.linha?.[1] || `#${guardadoDoMenu.def}`} (1)`); fechar() }}
           />
         )
