@@ -1262,6 +1262,8 @@ function Conteudo() {
   const total = Object.values(inv.itens).filter((it) => it.t !== 'agente').length
   const emEmbalagem = GUARDADO(aba)
   const idsGuardados = (tipo, def) => Object.keys(inv.itens).filter((k) => inv.itens[k].t === tipo && inv.itens[k].d === def)
+  // tudo que dá para selecionar (e vender) no filtro atual: skins/facas/luvas e as unidades de adesivo e chaveiro
+  const idsVisiveis = [...itens.map((i) => i.__id), ...guardados.filter((g) => g.tipo !== 'caixa').flatMap((g) => idsGuardados(g.tipo, g.def))]
   const cartaoGuardado = (g) => {
     const caixa = g.tipo === 'caixa'
     const v = caixa ? undefined : valores[idsGuardados(g.tipo, g.def)[0]]?.v
@@ -1286,9 +1288,20 @@ function Conteudo() {
       </>
     )
     // adesivo/chaveiro: clicar (ou botão direito) abre o menu com Vender e Excluir, igual às armas
+    const idsDoGrupo = caixa ? [] : idsGuardados(g.tipo, g.def)
+    const marcado = modoSel && idsDoGrupo.length > 0 && idsDoGrupo.every((k) => sel.has(k))
     const abrir = (e) => {
       e.preventDefault()
       e.stopPropagation()
+      if (modoSel) {
+        // selecionando: o clique marca (ou desmarca) todas as unidades deste adesivo/chaveiro
+        setSel((s) => {
+          const n = new Set(s)
+          for (const k of idsDoGrupo) marcado ? n.delete(k) : n.add(k)
+          return n
+        })
+        return
+      }
       setMenuGuardado({ x: e.clientX, y: e.clientY, tipo: g.tipo, def: g.def })
     }
     return (
@@ -1298,7 +1311,7 @@ function Conteudo() {
             {corpo}
           </div>
         ) : (
-          <button type="button" className="inv-cartao inv-cartao-guardado" style={{ '--cor': g.linha?.[3] || '#6b6f76' }} onClick={abrir} onContextMenu={abrir}>
+          <button type="button" className={`inv-cartao inv-cartao-guardado${marcado ? ' inv-cartao-sel' : ''}`} aria-pressed={modoSel ? marcado : undefined} style={{ '--cor': g.linha?.[3] || '#6b6f76' }} onClick={abrir} onContextMenu={abrir}>
             {corpo}
           </button>
         )}
@@ -1341,7 +1354,7 @@ function Conteudo() {
         </span>
         <BotaoTrocas aoMudouInventario={recarregarInv} />
         <span className="inv-total">{t('{n} itens', { n: total })}</span>
-        {['tudo', 'arma', 'faca', 'luva'].includes(aba) && (
+        {!['caixa', 'avenda'].includes(aba) && (
           <button type="button" className={`inv-btn inv-btn-sel${modoSel ? ' is-ativo' : ''}`} onClick={() => (modoSel ? sairDaSelecao() : setModoSel(true))}>
             {modoSel ? t('Cancelar seleção') : t('Selecionar')}
           </button>
@@ -1544,7 +1557,7 @@ function Conteudo() {
           aoFechar={() => setJanela(null)}
         />
       )}
-      {modoSel && (
+      {modoSel && !['caixa', 'avenda'].includes(aba) && (
         <div className="inv-selbar" role="region" aria-label={t('Itens selecionados')}>
           <span>
             <b>{sel.size}</b> {t('selecionado(s)')}
@@ -1555,8 +1568,8 @@ function Conteudo() {
               </em>
             )}
           </span>
-          <button type="button" className="inv-btn" onClick={() => setSel(new Set(itens.map((i) => i.__id)))}>
-            {t('Selecionar todos ({n})', { n: itens.length })}
+          <button type="button" className="inv-btn" onClick={() => setSel(new Set(idsVisiveis))}>
+            {t('Selecionar todos ({n})', { n: idsVisiveis.length })}
           </button>
           {sel.size > 0 && (
             <button type="button" className="inv-btn" onClick={() => setSel(new Set())}>
