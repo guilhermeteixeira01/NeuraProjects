@@ -210,9 +210,9 @@ test('toda insígnia do catálogo tem arte tratada e todas as secretas têm a ve
 
 test('as caixas iniciais são válidas (imagem existe, tem de tudo, pesos > 0)', () => {
   const dir = new URL('../../../public/assets/caixas/web/', import.meta.url)
-  assert.equal(CAIXAS.length, 30)
-  assert.equal(new Set(CAIXAS.map((c) => c.id)).size, 30)
-  assert.equal(new Set(CAIXAS.map((c) => c.slug)).size, 30)
+  assert.equal(CAIXAS.length, 31)
+  assert.equal(new Set(CAIXAS.map((c) => c.id)).size, 31)
+  assert.equal(new Set(CAIXAS.map((c) => c.slug)).size, 31)
   for (const c of CAIXAS) {
     assert.ok(fs.existsSync(new URL(`${c.slug}.webp`, dir)), c.slug)
     assert.ok(c.preco > 0)
@@ -256,7 +256,7 @@ test('vender não paga a caixa de volta (valor esperado de uma abertura fica bem
 // ── caixas de facas e de amuletos/adesivos ──
 test('caixa de facas: só facas, a mais cara da loja, facas valiosas com chance menor', () => {
   const c = CAIXAS.find((x) => x.slug === 'caixa-facas')
-  assert.equal(c.preco, Math.max(...CAIXAS.map((x) => x.preco)))
+  assert.ok(c.preco > CAIXAS.filter((x) => x.slug !== 'caixa-luvas').reduce((m, x) => (x.slug === 'caixa-facas' ? m : Math.max(m, x.preco)), 0))
   assert.ok(c.itens.every((x) => x.t === 'faca') && c.facas.length === 0)
   const facasValor = JSON.parse(fs.readFileSync(new URL('../src/facas-valor.json', import.meta.url), 'utf8'))
   const valorMedio = (r) => { const l = c.itens.filter((x) => x.r === r); return l.reduce((a, x) => a + facasValor[x.d + ':' + x.p], 0) / l.length }
@@ -297,4 +297,15 @@ test('Mestre da Caixa de facas e de amuletos conta os itens certos (adesivo e ch
   const l = (t, d, p) => linha({ t, d, p, caixa: 'caixa-z' })
   assert.equal(ok([l('adesivo', 5, 0), l('faca', 507, 38)]), false)
   assert.equal(ok([l('adesivo', 5, 0), l('chaveiro', 5, 0), l('faca', 507, 38)]), true)
+})
+
+test('caixa de luvas: só luvas, sem item raro especial, a mais cara; luvas valiosas com chance menor', () => {
+  const c = CAIXAS.find((x) => x.slug === 'caixa-luvas')
+  assert.equal(c.preco, Math.max(...CAIXAS.map((x) => x.preco)))
+  assert.ok(c.itens.length >= 90 && c.itens.every((x) => x.t === 'luva') && c.facas.length === 0)
+  for (let i = 0; i < 2000; i++) {
+    const a = sortearAbertura(c, CONFIG_PADRAO, rndSeguro)
+    assert.equal(a.item.t, 'luva')
+    assert.ok(a.raridade <= 4, 'sem tier especial')
+  }
 })

@@ -233,6 +233,18 @@ for (const [slug, nome, tier, cor, preco, stickersBase, charmsBase] of AMULETOS)
   })
   novas.push({ id: proxId(), slug, nome, img: '/assets/caixas/web/' + slug + '.webp', preco, tier, ativa: true, cor, itens, facas: [] })
 }
+// ── caixa de LUVAS (luxo): todas as luvas, sem tier especial. As mais valiosas (Case Hardened, Emerald, Pandora's Box, Vice, Fade...) com chance menor ──
+{
+  const luvas = catalogo.armas.filter((a) => a.c === 'luvas')
+  const MOD = { 5030: 1, 5035: 1.05, 5034: 0.95, 5033: 0.8, 5031: 0.7, 5032: 0.6, 5027: 0.65, 4725: 0.7 }
+  const TOPL = /(case hardened|emerald|pandora|vice|crimson kimono|fade|spearmint|superconductor|slingshot|omega|hedge maze|amphibious|nocts|cool mint|polygon|turtle|lunar weave|marble fade)/i
+  const todas = luvas.flatMap((a) => a.s.map((s) => ({ d: a.d, p: s[0], nome: s[1], min: s[3], max: s[4], l: s[7] ? 1 : 0, v: (MOD[a.d] ?? 0.7) * (TOPL.test(s[1]) ? 1 : 0.45) * 3000 + 500 })))
+  todas.sort((a, b) => b.v - a.v)
+  const n = todas.length
+  const faixa = (i) => (i < n * 0.05 ? 4 : i < n * 0.15 ? 3 : i < n * 0.35 ? 2 : i < n * 0.65 ? 1 : 0)
+  const itens = todas.map((g, i) => ({ t: 'luva', d: g.d, p: g.p, r: faixa(i), w: peso(g.v), min: g.min, max: g.max, l: g.l }))
+  novas.push({ id: proxId(), slug: 'caixa-luvas', nome: 'Caixa de Luvas', img: '/assets/caixas/web/caixa-luvas.webp', preco: 5000, tier: 'premium', ativa: true, cor: '#2fe08a', itens, facas: [] })
+}
 caixas.push(...novas)
 for (const c of novas) {
   const por = [0, 0, 0, 0, 0]

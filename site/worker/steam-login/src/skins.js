@@ -248,7 +248,8 @@ export async function rotaSkins(req, env, quem, cors) {
     for (const [id, it] of Object.entries(proposta.itens)) {
       const orig = atual.itens[id]
       if (!orig) continue
-      itens[id] = { ...it, t: orig.t, d: orig.d, p: orig.p, ...(orig.m ? { m: orig.m } : {}) }
+      // desgaste, padrão, StatTrak, nome e modelo antigo não mudam (só o dono/ a caixa define); o jogador só muda adesivos e chaveiro (a, k)
+      itens[id] = { ...it, t: orig.t, d: orig.d, p: orig.p, f: orig.f, s: orig.s, st: orig.st, n: orig.n ?? '', l: orig.l, ...(orig.m ? { m: orig.m } : {}) }
     }
     // Item que o jogador não mandou de volta continua com ele: só o dono tira skin (POST /admin/skin { remover })
     for (const [id, orig] of Object.entries(atual.itens)) if (!itens[id]) itens[id] = orig

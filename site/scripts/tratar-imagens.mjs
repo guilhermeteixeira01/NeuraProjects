@@ -1,8 +1,8 @@
 // Prepara as imagens das insígnias e das caixas (geradas no Gemini: JPEG com fundo preto/azul ou xadrez desenhado):
-//   1. guarda o original em <pasta>/originais/ (só na primeira vez; nunca apaga nem altera o que já está lá);
+//   1. guarda o original em ferramentas/imagens-originais/<pasta>/ (fora do site; solte o arquivo novo na pasta de assets e o script o move);
 //   2. tira o fundo (preenche a partir das bordas) e suaviza o contorno;
 //   3. recorta o vazio, centraliza num quadrado transparente com a mesma margem e fixa em 512×512;
-//   4. grava PNG (reserva) e WebP, a miniatura de 128 px e, nas insígnias, as versões "bloqueada" (cinza) e "secreta" (borrada).
+//   4. grava WebP (grande e a miniatura de 128 px e, nas insígnias, as versões "bloqueada" (cinza) e "secreta" (borrada).
 //
 // Uso (na pasta site/):  node scripts/tratar-imagens.mjs            (trata tudo que está na lista abaixo)
 //                        node scripts/tratar-imagens.mjs paciente   (só o(s) id(s) citado(s))
@@ -80,6 +80,7 @@ export const CAIXAS = [
   ['caixa-m4a1', 'Gemini_Generated_Image_l9gb9sl9gb9sl9gb.jpg', 'branco'],
   ['caixa-espacial', 'Gemini_Generated_Image_o3kdn0o3kdn0o3kd.jpg', 'branco'],
   ['caixa-lendas', 'Gemini_Generated_Image_r6rqacr6rqacr6rq.jpg', 'branco'],
+  ['caixa-luvas', 'Gemini_Generated_Image_tacutxtacutxtacu.jpg', 'branco'],
   ['caixa-awp', 'Gemini_Generated_Image_x2vwiqx2vwiqx2vw.jpg', 'branco'],
   ['caixa-deagle', 'Gemini_Generated_Image_yn6i52yn6i52yn6i.jpg', 'branco'],
 ].map(([id, de, fundo]) => ({ id, de, fundo: fundo || 'azul' }))
@@ -186,14 +187,14 @@ const gravar = (img, arq) => {
 
 async function tratar(pasta, item, tipo) {
   const dir = path.join(assets, pasta)
-  const orig = path.join(dir, 'originais')
+  // os originais ficam FORA de public/ (não vão para o site): ferramentas/imagens-originais/<pasta>/
+  const orig = path.resolve(aqui, '../ferramentas/imagens-originais', pasta)
   garantirPasta(orig)
   const no_dir = path.join(dir, item.de)
+  const velho = path.join(dir, 'originais', item.de) // pasta antiga dentro de public (migra)
   const guardado = path.join(orig, item.de)
-  if (fs.existsSync(no_dir)) {
-    // o original sobra na pasta principal: guarda uma cópia antes de qualquer coisa (e só então move)
-    if (!fs.existsSync(guardado)) fs.copyFileSync(no_dir, guardado)
-  }
+  if (!fs.existsSync(guardado) && fs.existsSync(velho)) fs.copyFileSync(velho, guardado)
+  if (!fs.existsSync(guardado) && fs.existsSync(no_dir)) fs.copyFileSync(no_dir, guardado)
   if (!fs.existsSync(guardado)) throw new Error(`sem o arquivo ${item.de} em ${pasta}/`)
   const { data, info } = await sharp(guardado).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
   const d = Buffer.from(data)
@@ -201,8 +202,6 @@ async function tratar(pasta, item, tipo) {
   if (item.douradaProvisoria) dourar(d, info.width, info.height)
   const png = await quadrado(d, info.width, info.height)
   const base = sharp(png)
-  const principal = path.join(dir, `${item.id}.png`)
-  await base.clone().png({ compressionLevel: 9 }).toFile(principal)
   // web/ e mini/ (onde o site já procura as insígnias); caixas: web/ só
   await gravar(base.clone().resize(TAM, TAM), path.join(dir, 'web', `${item.id}.webp`))
   await gravar(base.clone().resize(128, 128), path.join(dir, 'mini', `${item.id}.webp`))
@@ -212,8 +211,9 @@ async function tratar(pasta, item, tipo) {
     await gravar(base.clone().modulate({ saturation: 0, brightness: 0.18 }).blur(10).resize(TAM, TAM), path.join(dir, 'secreta', `${item.id}.webp`))
   }
   // a cópia da pasta principal (jfif/png original) já está em originais/: tira de lá para a pasta ficar só com as artes tratadas
-  if (fs.existsSync(no_dir) && fs.existsSync(guardado) && no_dir !== principal) fs.rmSync(no_dir)
-  return `${item.id}: ${info.width}×${info.height} (${item.fundo}) → ${TAM}×${TAM} png+webp+mini${tipo === 'insignia' ? '+bloqueada+secreta' : ''}`
+  if (fs.existsSync(no_dir) && fs.existsSync(guardado)) fs.rmSync(no_dir)
+  if (fs.existsSync(velho)) fs.rmSync(velho)
+  return `${item.id}: ${info.width}×${info.height} (${item.fundo}) → ${TAM}×${TAM} webp+mini${tipo === 'insignia' ? '+bloqueada+secreta' : ''}`
 }
 
 const so = new Set(process.argv.slice(2))
