@@ -1,0 +1,65 @@
+/* Depositar saldo (Deposito.jsx) */
+.dep-fundo { position: fixed; inset: 0; z-index: 6500; display: grid; place-items: center; padding: 16px; background: rgb(3 5 9 / .72); backdrop-filter: blur(5px); animation: dep-fundo .2s ease both; }
+.dep { width: min(980px, 100%); max-height: min(92vh, 860px); display: flex; flex-direction: column; border-radius: 18px; overflow: hidden; color: var(--text, #e8eaed);
+  background: #12151b; border: 1px solid rgb(255 255 255 / .1); box-shadow: 0 30px 90px rgb(0 0 0 / .6); animation: dep-entra .25s cubic-bezier(.2, .8, .2, 1) both; }
+.dep-cab { display: flex; align-items: flex-start; gap: 12px; padding: 18px 22px 12px; }
+.dep-cab h2 { margin: 0; font: 800 20px var(--font-display, inherit); letter-spacing: .04em; }
+.dep-cab p { margin: 3px 0 0; color: var(--dim, #9aa0a8); font-size: 13px; }
+.dep-x { margin-left: auto; flex: none; width: 40px; height: 40px; border: 0; border-radius: 10px; background: rgb(255 255 255 / .08); color: #fff; font-size: 22px; cursor: pointer; }
+.dep-x:hover { background: rgb(255 255 255 / .18); }
+.dep-corpo { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 22px 22px; scrollbar-width: thin; }
+.dep-grade { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 20px; }
+.dep-metodos { display: grid; gap: 10px; align-content: start; }
+.dep-metodo { display: grid; justify-items: center; gap: 4px; padding: 18px 10px; border-radius: 12px; background: #1a1e26; border: 2px solid transparent; color: var(--dim, #9aa0a8); cursor: pointer; font: inherit; }
+.dep-metodo b { color: #fff; font-size: 16px; }
+.dep-metodo small { font-size: 11px; }
+.dep-metodo:hover { background: #20252f; }
+.dep-metodo.is-ativo { border-color: #f5c518; color: #f5c518; background: #1e222a; }
+.dep-direita { display: grid; gap: 14px; min-width: 0; }
+.dep-pacotes { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.dep-pacote { width: 100%; display: grid; justify-items: center; gap: 3px; padding: 12px 6px 9px; border-radius: 12px; background: #1a1e26; border: 2px solid transparent; color: inherit; cursor: pointer; font: inherit; }
+.dep-pacote:hover { background: #20252f; }
+.dep-pacote.is-ativo { border-color: #b6f23a; box-shadow: 0 0 0 1px rgb(182 242 58 / .25); }
+.dep-pacote b { font-size: 14px; color: #fff; }
+.dep-pacote span { font: 600 12px var(--font-mono, inherit); color: #f5c542; }
+.dep-pacote em { font: 700 11px var(--font-body, inherit); font-style: normal; color: #b6f23a; }
+.dep-moedas { display: flex; align-items: center; height: 34px; margin-bottom: 4px; }
+.dep-campo { display: grid; gap: 5px; font-size: 13px; color: var(--dim, #9aa0a8); }
+.dep-campo input { width: 100%; box-sizing: border-box; background: #0c0e12; border: 1px solid rgb(255 255 255 / .14); color: #fff; border-radius: 8px; padding: 11px 12px; font: 15px var(--font-body, inherit); }
+.dep-campo input:focus { outline: 2px solid #f5c518; outline-offset: 1px; }
+.dep-campo small { font-size: 11.5px; line-height: 1.4; }
+.dep-pagador { margin: 0; padding: 14px; border-radius: 12px; border: 1px solid rgb(255 255 255 / .1); background: #0f1217; display: grid; gap: 12px; }
+.dep-pagador legend { padding: 0 6px; font: 700 12px var(--font-display, inherit); letter-spacing: .06em; text-transform: uppercase; color: var(--dim, #9aa0a8); }
+.dep-aceite { display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; line-height: 1.45; color: rgb(255 255 255 / .8); cursor: pointer; }
+.dep-aceite input { flex: none; width: 18px; height: 18px; margin-top: 2px; accent-color: #f5c518; }
+.dep-erro { margin: 0; color: #ff8a8a; font-size: 13px; }
+.dep-bonus { margin: -4px 0 0; text-align: center; color: #b6f23a; font-size: 12.5px; font-weight: 700; }
+.dep-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid rgb(255 255 255 / .14); background: rgb(255 255 255 / .08); color: inherit; border-radius: 10px; padding: 12px 20px; font: 700 14px var(--font-body, inherit); cursor: pointer; text-decoration: none; }
+.dep-btn:hover:not(:disabled) { background: rgb(255 255 255 / .16); }
+.dep-btn-p { background: #b6f23a; border-color: #b6f23a; color: #14200a; }
+.dep-btn-p:hover:not(:disabled) { background: #c8ff4d; }
+.dep-btn:disabled { opacity: .4; cursor: not-allowed; }
+.dep-pagar { width: 100%; padding: 14px; font-size: 15px; }
+.dep-final { max-width: 440px; margin: 0 auto; display: grid; justify-items: center; gap: 12px; text-align: center; padding: 8px 0 4px; }
+.dep-final h3 { margin: 0; font: 800 20px var(--font-display, inherit); }
+.dep-resumo { margin: 0; color: rgb(255 255 255 / .85); }
+.dep-qr { background: #fff; padding: 10px; border-radius: 12px; }
+.dep-dica { margin: 0; color: var(--dim, #9aa0a8); font-size: 13px; line-height: 1.45; }
+.dep-codigo { width: 100%; box-sizing: border-box; background: #0c0e12; border: 1px solid rgb(255 255 255 / .14); color: #cfd4da; border-radius: 8px; padding: 10px; font: 11.5px var(--font-mono, monospace); resize: none; word-break: break-all; }
+.dep-espera { display: flex; align-items: center; gap: 8px; margin: 4px 0 0; font-size: 13px; color: #f5c542; }
+.dep-pulsa { width: 9px; height: 9px; border-radius: 50%; background: #f5c542; animation: dep-pulsa 1.2s ease-in-out infinite; }
+.dep-link { background: none; border: 0; color: #6ec1ff; cursor: pointer; font: 600 13px var(--font-body, inherit); }
+.dep-ok { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: rgb(182 242 58 / .15); border: 2px solid #b6f23a; color: #b6f23a; font-size: 34px; }
+.dep-btn-saldo { margin-left: 12px; }
+@keyframes dep-fundo { from { opacity: 0; } }
+@keyframes dep-entra { from { opacity: 0; transform: translateY(14px) scale(.97); } }
+@keyframes dep-pulsa { 50% { opacity: .35; transform: scale(.7); } }
+@media (max-width: 780px) {
+  .dep-grade { grid-template-columns: 1fr; }
+  .dep-metodos { grid-template-columns: 1fr 1fr; }
+  .dep-metodo { padding: 12px 8px; }
+  .dep-pacotes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dep-cab { padding: 14px 14px 8px; }
+  .dep-corpo { padding: 4px 14px 16px; }
+}
+@media (prefers-reduced-motion: reduce) { .dep-fundo, .dep, .dep-pulsa { animation: none; } }

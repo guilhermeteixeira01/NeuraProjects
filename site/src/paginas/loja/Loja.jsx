@@ -7,6 +7,7 @@ import { useT } from '../../comum/i18n.js'
 import { avisarSaldo, lerLoja } from '../../comum/loja.js'
 import Abertura, { useAcharItem } from './Abertura.jsx'
 import AbaMercado from './Mercado.jsx'
+import Deposito from './Deposito.jsx'
 import Drops from './Drops.jsx'
 import PaginaCaixa, { useFavoritas } from './PaginaCaixa.jsx'
 import { prepararSons } from './somLoja.js'
@@ -165,6 +166,7 @@ function Conteudo() {
   const [aberta, setAberta] = useState(null) // id da caixa com a página aberta
   const [abertura, setAbertura] = useState(null) // { caixa, qtd, origem }
   const [aviso, setAviso] = useState('')
+  const [depositando, setDepositando] = useState(false)
 
   const carregar = useCallback(async () => {
     try {
@@ -278,8 +280,14 @@ function Conteudo() {
         <div>
           <h1>{t('Loja')}</h1>
         </div>
-        <Saldo saldo={dados.saldo} />
+        <div className="lj-topo-saldo">
+          <Saldo saldo={dados.saldo} />
+          <button type="button" className="lj-depositar" onClick={() => setDepositando(true)}>
+            + {t('Depositar')}
+          </button>
+        </div>
       </header>
+      {depositando && <Deposito aoFechar={() => setDepositando(false)} aoPagar={carregar} />}
 
       <nav className="lj-abas" role="tablist">
         {[

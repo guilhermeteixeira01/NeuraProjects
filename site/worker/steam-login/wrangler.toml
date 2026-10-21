@@ -8,6 +8,9 @@ SITE = "https://neuraproject.com.br"
 # Dono do site (Te1xe1ra): sempre admin e o único que promove outros admins no painel
 DONO = "76561199151150360"
 # Servidor de CS2 das partidas do lobby (aparece no botão Entrar na partida). A senha é o segredo SERVIDOR_SENHA
+# Depósito de NP (Asaas). Sandbox (testes) até a conta de produção estar pronta; produção: "https://api.asaas.com/v3".
+# Segredos: npx wrangler secret put ASAAS_API_KEY  e  npx wrangler secret put ASAAS_WEBHOOK_TOKEN
+ASAAS_URL = "https://api-sandbox.asaas.com/v3"
 SERVIDOR_CONECTAR = "179.197.67.29:27015"
 # Para testar no `npm run dev`, descomente:
 # ORIGENS_EXTRAS = "http://localhost:5173"
