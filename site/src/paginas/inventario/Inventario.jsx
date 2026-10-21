@@ -19,6 +19,7 @@ import {
 import { useT } from '../../comum/i18n.js'
 import { tocar } from '../../comum/somInventario.js'
 import { avisarSaldo, lerCaixasPublicas, lerValores, venderItens } from '../../comum/loja.js'
+import { EVENTO_MERCADO, anunciarItem, cancelarAnuncio, erroDoMercado, lerMercado } from '../../comum/mercado.js'
 import { RARIDADES_CS, raridadeCsDaCor } from '../../../worker/steam-login/src/loja-core.js'
 import Cartao from '../../comum/CartaoSkin.jsx'
 import { confirmar } from '../../comum/Dialogos.jsx'
@@ -36,6 +37,7 @@ const ABAS = [
   ['adesivo', 'ADESIVOS'],
   ['chaveiro', 'CHAVEIROS'],
   ['caixa', 'CAIXAS'],
+  ['avenda', 'À VENDA'],
 ]
 const EMBALAGEM = (t) => t === 'adesivo' || t === 'chaveiro' // itens guardados que se gastam ao colar numa arma
 const GUARDADO = (t) => EMBALAGEM(t) || t === 'caixa' // + caixas fechadas da loja (o botão Abrir leva para a roleta)
@@ -781,9 +783,8 @@ function Inspecionar({ item, idx, adesivos, chaveiros, mapa, aoFechar }) {
 }
 
 // ── Menu do botão direito ──
-// Só aparece o time em que o item existe no jogo (AK-47 e Glock só no TR; M4 e USP-S só no CT; agente do CT só no CT...)
-function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoDesequipar, aoEditar, aoInspecionar, aoVender, valor, podeEditar, aoFechar }) {
-  const t = useT()
+// Fecha ao clicar fora, no Esc ou ao rolar, e não deixa o menu sair da tela
+function useMenuFlutuante(x, y, aoFechar) {
   const ref = useRef(null)
   const [pos, setPos] = useState({ x, y })
   useEffect(() => {
@@ -803,6 +804,43 @@ function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoD
     const r = ref.current?.getBoundingClientRect()
     if (r) setPos({ x: Math.min(x, window.innerWidth - r.width - 8), y: Math.min(y, window.innerHeight - r.height - 8) })
   }, [x, y])
+  return { ref, pos }
+}
+
+// Menu de adesivo/chaveiro guardado (o mesmo visual do menu das armas): vender e excluir
+function MenuGuardado({ x, y, n, valor, aoVender, aoVenderTodos, aoExcluir, aoFechar }) {
+  const t = useT()
+  const { ref, pos } = useMenuFlutuante(x, y, aoFechar)
+  return (
+    <ul className="inv-menu" ref={ref} style={{ left: pos.x, top: pos.y }} role="menu">
+      <li>
+        <button type="button" role="menuitem" className="inv-menu-vender" disabled={valor == null} onClick={aoVender}>
+          {t('Vender')}
+          {valor != null ? <b> +{valor.toLocaleString('pt-BR')} NP</b> : null}
+        </button>
+      </li>
+      {n > 1 && (
+        <li>
+          <button type="button" role="menuitem" className="inv-menu-vender" disabled={valor == null} onClick={aoVenderTodos}>
+            {t('Vender todos ({n})', { n: Math.min(n, 100) })}
+            {valor != null ? <b> +{(valor * Math.min(n, 100)).toLocaleString('pt-BR')} NP</b> : null}
+          </button>
+        </li>
+      )}
+      <li className="inv-menu-sep" />
+      <li>
+        <button type="button" role="menuitem" className="inv-menu-perigo" onClick={aoExcluir}>
+          {n > 1 ? t('Excluir 1') : t('Excluir')}
+        </button>
+      </li>
+    </ul>
+  )
+}
+
+// Só aparece o time em que o item existe no jogo (AK-47 e Glock só no TR; M4 e USP-S só no CT; agente do CT só no CT...)
+function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoDesequipar, aoEditar, aoInspecionar, aoVender, valor, podeEditar, aoFechar }) {
+  const t = useT()
+  const { ref, pos } = useMenuFlutuante(x, y, aoFechar)
   const chave = chaveEquip(item)
   return (
     <ul className="inv-menu" ref={ref} style={{ left: pos.x, top: pos.y }} role="menu">
@@ -849,8 +887,8 @@ function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoD
       <li className="inv-menu-sep" />
       <li>
         <button type="button" role="menuitem" className="inv-menu-vender" onClick={aoVender}>
-          {t('Vender')}
-          {valor ? <b> +{valor.toLocaleString('pt-BR')} NP</b> : null}
+          {t('Vender no mercado')}
+          {valor ? <b> ~{valor.toLocaleString('pt-BR')} NP</b> : null}
         </button>
       </li>
     </ul>
@@ -886,6 +924,12 @@ function Conteudo() {
   const [vendendo, setVendendo] = useState(false)
   const [erroVenda, setErroVenda] = useState('')
   const [avisoVenda, setAvisoVenda] = useState('')
+  const [menuGuardado, setMenuGuardado] = useState(null) // { x, y, tipo, def } (menu de adesivo/chaveiro)
+  const [anuncios, setAnuncios] = useState([]) // meus itens à venda no mercado (saíram do inventário)
+  const [anuncio, setAnuncio] = useState(null) // { id, preco } enquanto a janela "Vender no mercado" está aberta
+  const [anunciando, setAnunciando] = useState(false)
+  const [erroAnuncio, setErroAnuncio] = useState('')
+  const [cancelando, setCancelando] = useState('') // id do anúncio sendo cancelado
   const [estado, setEstado] = useState('') // '' | 'salvando' | 'salvo' | 'erro'
   const [erroCarga, setErroCarga] = useState(false)
   const [menu, setMenu] = useState(null) // { x, y, id }
@@ -949,6 +993,27 @@ function Conteudo() {
       vivo = false
     }
   }, [conta?.id])
+
+  // O servidor mexeu no inventário (anúncio no mercado, troca): adota a versão dele
+  const recarregarInv = useCallback(
+    () =>
+      lerInventario().then((d) => {
+        const base = { ...inventarioNovo(), ...d }
+        salvo.current = JSON.stringify(base)
+        setInv(base)
+      }, () => {}),
+    [],
+  )
+  const carregarAnuncios = useCallback(() => {
+    const eu = conta?.id
+    if (!eu) return Promise.resolve()
+    return lerMercado().then((r) => setAnuncios(r.anuncios.filter((a) => a.vendedor === eu)), () => {})
+  }, [conta?.id])
+  useEffect(() => {
+    carregarAnuncios()
+    window.addEventListener(EVENTO_MERCADO, carregarAnuncios) // venderam um item meu: sai da lista "À venda"
+    return () => window.removeEventListener(EVENTO_MERCADO, carregarAnuncios)
+  }, [carregarAnuncios])
 
   // Salva sozinho (um instante depois da última mudança)
   useEffect(() => {
@@ -1121,6 +1186,43 @@ function Conteudo() {
       setVendendo(false)
     }
   }
+  // Vender no mercado: o jogador escolhe o preço (começa no valor do item); o item sai do inventário enquanto está anunciado
+  const pedirAnuncio = (id) => {
+    setErroAnuncio('')
+    setAnuncio({ id, preco: String(valores[id]?.v || '') })
+  }
+  const confirmarAnuncio = async () => {
+    const preco = Math.round(Number(anuncio.preco))
+    if (!(preco >= 1 && preco <= 10_000_000)) return setErroAnuncio(t(erroDoMercado('preco')))
+    setAnunciando(true)
+    try {
+      await anunciarItem(anuncio.id, preco, nomeDoItem(inv.itens[anuncio.id]))
+      tocar('criado')
+      setAnuncio(null)
+      setAvisoVenda(t('Anunciado no mercado por {n} NP! Você acompanha (e pode cancelar) na aba À VENDA.', { n: preco.toLocaleString('pt-BR') }))
+      setTimeout(() => setAvisoVenda(''), 7000)
+      await Promise.all([recarregarInv(), carregarAnuncios()])
+    } catch (e) {
+      setErroAnuncio(t(erroDoMercado(e.message)))
+    } finally {
+      setAnunciando(false)
+    }
+  }
+  const cancelarVenda = async (a) => {
+    setCancelando(a.id)
+    try {
+      await cancelarAnuncio(a.id)
+      tocar('fechar')
+      setAvisoVenda(t('Venda cancelada: o item voltou para o seu inventário.'))
+      setTimeout(() => setAvisoVenda(''), 6000)
+      await Promise.all([recarregarInv(), carregarAnuncios()])
+    } catch (e) {
+      setAvisoVenda(t(erroDoMercado(e.message)))
+      carregarAnuncios()
+    } finally {
+      setCancelando('')
+    }
+  }
   const abrirMenu = (e, item) => {
     e.stopPropagation()
     setMenu({ x: e.clientX, y: e.clientY, id: item.__id })
@@ -1146,48 +1248,56 @@ function Conteudo() {
   const itemJanela = janela?.id && inv.itens[janela.id] ? { ...inv.itens[janela.id], __id: janela.id } : null
   const total = Object.values(inv.itens).filter((it) => it.t !== 'agente').length
   const emEmbalagem = GUARDADO(aba)
-  const cartaoGuardado = (g) => (
-    <li key={g.tipo + g.def}>
-      <div className="inv-cartao inv-cartao-fixo" style={{ '--cor': g.linha?.[3] || '#6b6f76' }}>
+  const idsGuardados = (tipo, def) => Object.keys(inv.itens).filter((k) => inv.itens[k].t === tipo && inv.itens[k].d === def)
+  const cartaoGuardado = (g) => {
+    const caixa = g.tipo === 'caixa'
+    const v = caixa ? undefined : valores[idsGuardados(g.tipo, g.def)[0]]?.v
+    const corpo = (
+      <>
         <span className="inv-cartao-arte">
           <span className="inv-arma-box">
-            <Imagem src={g.tipo === 'caixa' ? g.linha?.[2] : urlImg(g.linha?.[2], 256)} classe="inv-arma-img" />
+            <Imagem src={caixa ? g.linha?.[2] : urlImg(g.linha?.[2], 256)} classe="inv-arma-img" />
           </span>
           <span className="inv-st">×{g.n}</span>
         </span>
         <span className="inv-cartao-nome">
           <b>{g.linha?.[1] || `#${g.def}`}</b>
           <small>{g.tipo === 'adesivo' ? t('Adesivo') : g.tipo === 'chaveiro' ? t('Chaveiro') : t('Caixa fechada')}</small>
+          {v != null && (
+            <span className="inv-cartao-valor">
+              <img src="/assets/logos/logo-np-64.png" alt="" width="14" height="14" />
+              {v.toLocaleString('pt-BR')} NP
+            </span>
+          )}
         </span>
-      </div>
-      {g.tipo === 'caixa' && (
-        <a className="inv-btn inv-btn-p inv-abrir-caixa" href={`/loja/?abrir=${g.def}`}>
-          {t('Abrir')}
-        </a>
-      )}
-      {g.tipo !== 'caixa' && (() => {
-        const ids = Object.keys(inv.itens).filter((k) => inv.itens[k].t === g.tipo && inv.itens[k].d === g.def)
-        const v = valores[ids[0]]?.v
-        return (
-          <>
-            <button type="button" className="inv-btn inv-btn-p inv-vender-guardado" disabled={v == null} onClick={() => pedirVenda([ids[0]])}>
-              {t('Vender')} {v != null && `· ${v.toLocaleString('pt-BR')} NP`}
-            </button>
-            {g.n > 1 && (
-              <button type="button" className="inv-btn inv-vender-guardado" disabled={v == null} onClick={() => pedirVenda(ids.slice(0, 100))}>
-                {t('Vender todos ({n})', { n: Math.min(g.n, 100) })}
-              </button>
-            )}
-          </>
-        )
-      })()}
-      {g.tipo !== 'caixa' && (
-        <button type="button" className="inv-btn inv-btn-perigo inv-excluir-guardado" onClick={() => pedirExclusao(Object.keys(inv.itens).find((k) => inv.itens[k].t === g.tipo && inv.itens[k].d === g.def), `${g.linha?.[1] || `#${g.def}`} (1)`)}>
-          {g.n > 1 ? t('Excluir 1') : t('Excluir')}
-        </button>
-      )}
-    </li>
-  )
+      </>
+    )
+    // adesivo/chaveiro: clicar (ou botão direito) abre o menu com Vender e Excluir, igual às armas
+    const abrir = (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setMenuGuardado({ x: e.clientX, y: e.clientY, tipo: g.tipo, def: g.def })
+    }
+    return (
+      <li key={g.tipo + g.def}>
+        {caixa ? (
+          <div className="inv-cartao inv-cartao-fixo" style={{ '--cor': g.linha?.[3] || '#6b6f76' }}>
+            {corpo}
+          </div>
+        ) : (
+          <button type="button" className="inv-cartao inv-cartao-guardado" style={{ '--cor': g.linha?.[3] || '#6b6f76' }} onClick={abrir} onContextMenu={abrir}>
+            {corpo}
+          </button>
+        )}
+        {caixa && (
+          <a className="inv-btn inv-btn-p inv-abrir-caixa" href={`/loja/?abrir=${g.def}`}>
+            {t('Abrir')}
+          </a>
+        )}
+      </li>
+    )
+  }
+  const guardadoDoMenu = menuGuardado ? guardados.find((g) => g.tipo === menuGuardado.tipo && g.def === menuGuardado.def) : null
   return (
     <>
       <div className="inv-topo">
@@ -1195,6 +1305,7 @@ function Conteudo() {
           {ABAS.map(([id, nome]) => (
             <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'is-ativo' : ''} onClick={() => setAba(id)}>
               {t(nome)}
+              {id === 'avenda' && anuncios.length > 0 && ` (${anuncios.length})`}
             </button>
           ))}
         </nav>
@@ -1215,13 +1326,7 @@ function Conteudo() {
           {estado === 'salvo' && <b className="inv-ok">{t('Salvo!')}</b>}
           {estado === 'erro' && <b className="inv-erro">{t('Não deu para salvar. Tentando de novo ao mudar algo.')}</b>}
         </span>
-        <BotaoTrocas aoMudouInventario={() =>
-            lerInventario().then((d) => {
-              const base = { ...inventarioNovo(), ...d }
-              salvo.current = JSON.stringify(base)
-              setInv(base)
-            }, () => {})
-          } />
+        <BotaoTrocas aoMudouInventario={recarregarInv} />
         <span className="inv-total">{t('{n} itens', { n: total })}</span>
         {['tudo', 'arma', 'faca', 'luva'].includes(aba) && (
           <button type="button" className={`inv-btn inv-btn-sel${modoSel ? ' is-ativo' : ''}`} onClick={() => (modoSel ? sairDaSelecao() : setModoSel(true))}>
@@ -1252,8 +1357,41 @@ function Conteudo() {
         </div>
       )}
       {avisoVenda && <p className="inv-aviso-venda" role="status">{avisoVenda}</p>}
+      {anuncios.length > 0 && aba !== 'avenda' && ['tudo', 'arma', 'faca', 'luva'].includes(aba) && (
+        <p className="inv-avenda-faixa">
+          <span>{t('Você tem {n} item(ns) à venda no mercado. Enquanto estão anunciados, eles ficam fora do inventário.', { n: anuncios.length })}</span>
+          <button type="button" className="inv-btn" onClick={() => setAba('avenda')}>
+            {t('Ver à venda')}
+          </button>
+        </p>
+      )}
 
-      {total === 0 ? (
+      {aba === 'avenda' ? (
+        <ul className="inv-itens">
+          {anuncios.map((a) => (
+            <Cartao
+              key={a.id}
+              item={{ ...a.item, __id: a.id }}
+              idx={idx}
+              adesivos={adesivosPorId}
+              chaveiros={chaveirosPorId}
+              valor={a.preco}
+              extra={
+                <div className="inv-avenda-info">
+                  <button type="button" className="inv-btn inv-btn-perigo" disabled={cancelando === a.id} onClick={() => cancelarVenda(a)}>
+                    {cancelando === a.id ? t('Cancelando…') : t('Cancelar venda')}
+                  </button>
+                </div>
+              }
+            />
+          ))}
+          {!anuncios.length && (
+            <li className="inv-nada">
+              {t('Você não tem nada à venda. Clique numa arma e escolha "Vender no mercado" para anunciar pelo preço que quiser.')} <a href="/loja/?aba=mercado">{t('Ver o mercado')}</a>
+            </li>
+          )}
+        </ul>
+      ) : total === 0 ? (
         <div className="inv-vazio">
           <p>{t('Seu inventário está vazio. As skins são entregues pelo dono do servidor: quando você receber uma, ela aparece aqui e um aviso no meio da tela.')}</p>
         </div>
@@ -1265,7 +1403,7 @@ function Conteudo() {
       ) : (
         <ul className="inv-itens">
           {itens.map((it) => (
-            <Cartao key={it.__id} item={it} idx={idx} adesivos={adesivosPorId} chaveiros={chaveirosPorId} equip={inv.equip} aoAbrirMenu={modoSel ? alternarSel : abrirMenu} selecionado={modoSel ? sel.has(it.__id) : undefined} />
+            <Cartao key={it.__id} item={it} idx={idx} adesivos={adesivosPorId} chaveiros={chaveirosPorId} equip={inv.equip} aoAbrirMenu={modoSel ? alternarSel : abrirMenu} selecionado={modoSel ? sel.has(it.__id) : undefined} valor={valores[it.__id]?.v} />
           ))}
           {guardados.map(cartaoGuardado)}
           {!itens.length && !guardados.length && <li className="inv-nada">{t('Nenhum item encontrado.')}</li>}
@@ -1287,9 +1425,90 @@ function Conteudo() {
           aoEditar={() => { setJanela({ tipo: 'editar', id: menu.id }); fecharMenu() }}
           aoInspecionar={() => { setJanela({ tipo: 'inspecionar', id: menu.id }); fecharMenu() }}
           valor={valores[menu.id]?.v}
-          aoVender={() => { pedirVenda([menu.id]); fecharMenu() }}
+          aoVender={() => { pedirAnuncio(menu.id); fecharMenu() }}
         />
       )}
+      {menuGuardado && guardadoDoMenu && (() => {
+        const ids = idsGuardados(guardadoDoMenu.tipo, guardadoDoMenu.def)
+        const fechar = () => setMenuGuardado(null)
+        return (
+          <MenuGuardado
+            x={menuGuardado.x}
+            y={menuGuardado.y}
+            n={guardadoDoMenu.n}
+            valor={valores[ids[0]]?.v}
+            aoFechar={fechar}
+            aoVender={() => { pedirVenda([ids[0]]); fechar() }}
+            aoVenderTodos={() => { pedirVenda(ids.slice(0, 100)); fechar() }}
+            aoExcluir={() => { pedirExclusao(ids[0], `${guardadoDoMenu.linha?.[1] || `#${guardadoDoMenu.def}`} (1)`); fechar() }}
+          />
+        )
+      })()}
+      {anuncio && inv.itens[anuncio.id] && (() => {
+        const item = inv.itens[anuncio.id]
+        const d = descrever(item, idx)
+        const ref = valores[anuncio.id]?.v
+        const preco = Math.round(Number(anuncio.preco)) || 0
+        return (
+          <Janela
+            titulo={t('Vender no mercado')}
+            aoFechar={() => !anunciando && setAnuncio(null)}
+            largura="media"
+            rodape={
+              <>
+                <button type="button" className="inv-btn" disabled={anunciando} onClick={() => setAnuncio(null)}>
+                  {t('Cancelar')}
+                </button>
+                <button type="button" className="inv-btn inv-btn-p" disabled={anunciando || preco < 1} onClick={confirmarAnuncio}>
+                  {anunciando ? t('Anunciando…') : t('Anunciar por {n} NP', { n: preco.toLocaleString('pt-BR') })}
+                </button>
+              </>
+            }
+          >
+            <div className="inv-anuncio">
+              <span className="inv-anuncio-arte" style={{ '--cor': d.cor || '#6b6f76' }}>
+                <ArmaComEnfeites item={item} d={d} adesivos={adesivosPorId} chaveiros={chaveirosPorId} />
+              </span>
+              <span className="inv-anuncio-nome">
+                <b>{nomeDoItem(item)}</b>
+                {d.skin && <small>{t(nomeDoDesgaste(Number(item.f)))} · {Number(item.f).toFixed(4)}</small>}
+                {ref != null && <small>{t('Valor de referência')}: <b className="inv-cartao-valor">{ref.toLocaleString('pt-BR')} NP</b></small>}
+              </span>
+            </div>
+            <div className="inv-anuncio-aviso">
+              <b>{t('Seu item vai ser postado no mercado.')}</b>
+              <ul>
+                <li>{t('Outros jogadores vão ver que é você quem está vendendo e o preço que você escolher.')}</li>
+                <li>{t('Enquanto estiver à venda, o item sai do seu inventário e você não pode usá-lo (nem equipar, trocar ou editar).')}</li>
+                <li>{t('Você pode cancelar a venda a qualquer momento na aba À VENDA: o item volta para o seu inventário.')}</li>
+                <li>{t('Quando alguém comprar, você recebe os Neura Pontos e uma notificação.')}</li>
+              </ul>
+            </div>
+            <label className="inv-campo">
+              <span>{t('Preço (NP)')}</span>
+              <span className="inv-anuncio-preco">
+                <input
+                  type="number"
+                  min="1"
+                  max="10000000"
+                  step="1"
+                  inputMode="numeric"
+                  value={anuncio.preco}
+                  autoFocus
+                  onChange={(e) => setAnuncio((a) => ({ ...a, preco: e.target.value }))}
+                  onKeyDown={(e) => e.key === 'Enter' && !anunciando && confirmarAnuncio()}
+                />
+                {ref != null && (
+                  <button type="button" className="inv-btn" onClick={() => setAnuncio((a) => ({ ...a, preco: String(ref) }))}>
+                    {t('Usar o valor de referência')}
+                  </button>
+                )}
+              </span>
+            </label>
+            {erroAnuncio && <p className="inv-excluir-erro">{erroAnuncio}</p>}
+          </Janela>
+        )
+      })()}
       {janela?.tipo === 'editar' && itemJanela && !pequena && (
         <DialogoItem
           inicial={itemJanela}
@@ -1328,7 +1547,7 @@ function Conteudo() {
             </button>
           )}
           <button type="button" className="inv-btn inv-btn-p" disabled={!sel.size} onClick={() => pedirVenda([...sel])}>
-            {t('Vender selecionados')}
+            {t('Venda rápida (NP na hora)')}
           </button>
         </div>
       )}

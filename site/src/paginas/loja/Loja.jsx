@@ -7,6 +7,7 @@ import { useT } from '../../comum/i18n.js'
 import { avisarSaldo, comprarCaixa, lerLoja } from '../../comum/loja.js'
 import { RARIDADES } from '../../../worker/steam-login/src/loja-core.js'
 import Abertura, { CartaoItem, useAcharItem } from './Abertura.jsx'
+import AbaMercado from './Mercado.jsx'
 import { prepararSons, som } from './somLoja.js'
 
 const TIERS = [
@@ -284,7 +285,7 @@ function Conteudo() {
   const achar = useAcharItem()
   const [dados, setDados] = useState(null)
   const [erroCarga, setErroCarga] = useState(false)
-  const [aba, setAba] = useState('caixas')
+  const [aba, setAba] = useState(() => (typeof location !== 'undefined' && new URLSearchParams(location.search).get('aba') === 'mercado' ? 'mercado' : 'caixas'))
   const [tier, setTier] = useState('todas')
   const [aberta, setAberta] = useState(null) // id da caixa com a página aberta
   const [abertura, setAbertura] = useState(null) // { caixa, qtd, origem }
@@ -375,6 +376,7 @@ function Conteudo() {
       <nav className="lj-abas" role="tablist">
         {[
           ['caixas', 'CAIXAS'],
+          ['mercado', 'MERCADO'],
           ['insignias', 'INSÍGNIAS'],
         ].map(([id, nome]) => (
           <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'is-ativo' : ''} onClick={() => setAba(id)}>
@@ -416,6 +418,8 @@ function Conteudo() {
             )
           })}
         </>
+      ) : aba === 'mercado' ? (
+        <AbaMercado saldo={dados.saldo} aoMudarSaldo={carregar} />
       ) : (
         <AbaInsignias lista={dados.insignias} />
       )}

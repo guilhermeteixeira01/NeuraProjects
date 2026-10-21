@@ -42,10 +42,12 @@ import { Presenca, avisarPerfil, avisarSkin, rotaAmigos, rotaLobby, rotaPresenca
 import { rotaAdminSkin, rotaAdminSkins, rotaServidorSkins, rotaSkins, rotaSkinsExcluir, rotaSkinsInventarioPublico, rotaSkinsPresentes, rotaSkinsPublico } from './skins.js'
 import { Trocas, rotaTrocas } from './trocas.js'
 import { Loja, rotaAdminLoja, rotaLoja, rotaLojaPublica, rotaNotificacoes } from './loja.js'
+import { Mercado, rotaMercado } from './mercado.js'
 import { ehInsigniaLoja, ID_MESTRE } from './loja-core.js'
 export { Presenca } // Durable Object da presença (wrangler.toml)
 export { Loja } // Durable Object da loja de caixas (wrangler.toml)
 export { Trocas } // Durable Object das trocas entre jogadores (wrangler.toml)
+export { Mercado } // Durable Object do mercado entre jogadores (wrangler.toml)
 
 const OPENID = 'https://steamcommunity.com/openid/login'
 const NS = 'http://specs.openid.net/auth/2.0'
@@ -113,6 +115,7 @@ export default {
     if (rota === '/loja' || rota.startsWith('/loja/')) return rotaLoja(req, env, quem, cors, rota)
     if (rota === '/notificacoes' && (req.method === 'GET' || req.method === 'POST')) return rotaNotificacoes(req, env, quem, cors)
     if (rota === '/trocas' || rota.startsWith('/trocas/')) return rotaTrocas(req, env, quem, cors, rota)
+    if (rota === '/mercado' || rota.startsWith('/mercado/')) return rotaMercado(req, env, quem, cors, rota)
     if (req.method === 'POST' && (rota === '/perfil' || rota === '/moldura')) return salvarPerfil(req, env, site, quem, admin, config, cors, rota === '/moldura')
 
     if (rota.startsWith('/admin/')) {

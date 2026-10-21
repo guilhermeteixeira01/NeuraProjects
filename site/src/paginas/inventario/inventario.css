@@ -304,3 +304,27 @@ html.inv-travado body { position: fixed; inset: 0; width: 100%; }
 .inv-janela-insp .inv-janela-corpo, .inv-inspecao, .inv-inspecao-3d, .inv-3d, .inv-3d iframe { touch-action: none; overscroll-behavior: none; }
 
 .inv-aviso-3d { margin: 6px 0; padding: 8px 10px; border-radius: 8px; background: rgb(245 197 24 / .1); border: 1px solid rgb(245 197 24 / .3); font-size: 12px; line-height: 1.4; }
+
+/* valor de cada item (NP) embaixo do nome */
+.inv-cartao-valor { display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; color: #f5c518; font: 700 12px var(--font-body); }
+.inv-cartao-valor img { width: 14px; height: 14px; }
+
+/* adesivos e chaveiros guardados: clicar abre o mesmo menu das armas */
+.inv-cartao-guardado { width: 100%; }
+
+/* mercado: anunciar e itens à venda */
+.inv-anuncio { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 16px; align-items: center; margin-bottom: 14px; }
+.inv-anuncio-arte { position: relative; aspect-ratio: 4 / 3; border-bottom: 3px solid var(--cor); border-radius: 4px; }
+.inv-anuncio-nome { display: grid; gap: 4px; }
+.inv-anuncio-nome small { color: var(--dim); }
+.inv-anuncio-aviso { margin: 0 0 14px; padding: 12px 14px; border-radius: 8px; background: rgb(43 179 214 / .1); border: 1px solid rgb(43 179 214 / .35); line-height: 1.5; font-size: 13.5px; }
+.inv-anuncio-aviso ul { margin: 6px 0 0; padding-left: 18px; }
+.inv-anuncio-preco { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.inv-anuncio-preco input { width: 160px; background: rgb(255 255 255 / .06); border: 1px solid rgb(255 255 255 / .18); border-radius: 8px; color: var(--text); padding: 9px 12px; font: 700 16px var(--font-body); }
+.inv-anuncio-preco small { color: var(--dim); }
+.inv-avenda-info { display: grid; gap: 4px; margin-top: 6px; }
+.inv-avenda-info .inv-btn { width: 100%; }
+.inv-avenda-faixa { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 0 0 14px; padding: 10px 14px; border-radius: 8px; background: rgb(245 197 24 / .08); border: 1px solid rgb(245 197 24 / .3); font-size: 13.5px; }
+@media (max-width: 560px) { .inv-anuncio { grid-template-columns: 1fr; } }
+.inv-menu button:disabled { opacity: .5; cursor: default; }
+.inv-menu button:disabled:hover { background: none; }

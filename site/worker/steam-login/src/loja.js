@@ -85,7 +85,7 @@ export async function lerConfigLoja(env) {
   }
 }
 
-async function pontosGanhos(env, id) {
+export async function pontosGanhos(env, id) {
   const site = (env.SITE || 'https://neuraproject.com.br').replace(/\/$/, '')
   try {
     const r = await fetch(`${site}/ranking/ranking.json`, { cf: { cacheTtl: 60 } })
@@ -129,6 +129,25 @@ function limparCaixa(c, n) {
 // Valor de venda (NP) de adesivos (por acabamento: papel, glitter, holo, foil, gold, campeão) e de chaveiros (por raridade: azul, roxo, rosa, vermelho)
 const VALOR_ADESIVO = [4, 8, 15, 40, 100, 250]
 const VALOR_CHAVEIRO = [25, 70, 180, 450]
+
+// Raridade (0..6) e valor de venda (NP) de um item do inventário; null se não pode vender (caixa, agente). O mercado usa como preço sugerido.
+export function valorDe(it) {
+  if (it.t === 'adesivo' && PRECOS.a[it.d]) return { r: Math.min(5, (ENFEITES_VALOR.a[it.d] ?? 0) + 1), v: Math.max(1, Math.round(PRECOS.a[it.d])) }
+  if (it.t === 'chaveiro' && PRECOS.c[it.d]) return { r: ENFEITES_VALOR.c[it.d] ?? 2, v: Math.max(1, Math.round(PRECOS.c[it.d])) }
+  if (it.t === 'adesivo') {
+    const nivel = ENFEITES_VALOR.a[it.d] ?? 0 // papel 0 … gold/campeão 4-5
+    return { r: Math.min(5, nivel + 1), v: VALOR_ADESIVO[nivel] }
+  }
+  if (it.t === 'chaveiro') {
+    const r = ENFEITES_VALOR.c[it.d] ?? 2
+    return { r, v: VALOR_CHAVEIRO[r - 2] ?? VALOR_CHAVEIRO[0] }
+  }
+  if (!['arma', 'faca', 'luva'].includes(it.t)) return null
+  const mercado = precoDeMercado(it, PRECOS.skins) // preço de mercado em R$ (1 NP = R$ 1)
+  if (it.t === 'faca') return { r: 6, v: mercado ?? valorDaFaca(it, FACAS_VALOR) } // facas: valor por modelo e acabamento (facas-valor.json)
+  const r = it.t === 'arma' ? RARIDADE_SKIN[`${it.d}:${it.p}`] ?? 2 : 6
+  return { r, v: mercado ?? valorDoItem(it, r) }
+}
 
 export class Loja {
   constructor(ctx, env) {
@@ -199,7 +218,7 @@ export class Loja {
   }
 
   async acao({ acao, id, caixas, cfg, pontos, bonus, ...p }) {
-    if (['saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir', 'vender'].includes(acao)) await this.aplicarBonus(bonus)
+    if (['saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir', 'vender', 'mercado-comprar'].includes(acao)) await this.aplicarBonus(bonus)
     switch (acao) {
       case 'inv-ler':
         return this.invLer(id)
@@ -219,6 +238,8 @@ export class Loja {
         return this.valores(id)
       case 'vender':
         return this.vender(id, pontos, p)
+      case 'mercado-comprar':
+        return this.comprarDoMercado(id, pontos, p)
       case 'saldo':
         return { saldo: pontos - this.gastos(), ganhos: pontos, gastos: this.gastos(), movimentos: p.movimentos ? this.movimentos() : undefined }
       case 'estado':
@@ -325,30 +346,11 @@ export class Loja {
     return { saldo: pontos - this.gastos(), ids, insignias: novas.ids, insigniasTs: novas.ts }
   }
 
-  // Raridade (0..6) e valor de venda (NP) de um item do inventário; null se não pode vender (caixa, agente)
-  valorDe(it) {
-    if (it.t === 'adesivo' && PRECOS.a[it.d]) return { r: Math.min(5, (ENFEITES_VALOR.a[it.d] ?? 0) + 1), v: Math.max(1, Math.round(PRECOS.a[it.d])) }
-    if (it.t === 'chaveiro' && PRECOS.c[it.d]) return { r: ENFEITES_VALOR.c[it.d] ?? 2, v: Math.max(1, Math.round(PRECOS.c[it.d])) }
-    if (it.t === 'adesivo') {
-      const nivel = ENFEITES_VALOR.a[it.d] ?? 0 // papel 0 … gold/campeão 4-5
-      return { r: Math.min(5, nivel + 1), v: VALOR_ADESIVO[nivel] }
-    }
-    if (it.t === 'chaveiro') {
-      const r = ENFEITES_VALOR.c[it.d] ?? 2
-      return { r, v: VALOR_CHAVEIRO[r - 2] ?? VALOR_CHAVEIRO[0] }
-    }
-    if (!['arma', 'faca', 'luva'].includes(it.t)) return null
-    const mercado = precoDeMercado(it, PRECOS.skins) // preço de mercado em R$ (1 NP = R$ 1)
-    if (it.t === 'faca') return { r: 6, v: mercado ?? valorDaFaca(it, FACAS_VALOR) } // facas: valor por modelo e acabamento (facas-valor.json)
-    const r = it.t === 'arma' ? RARIDADE_SKIN[`${it.d}:${it.p}`] ?? 2 : 6
-    return { r, v: mercado ?? valorDoItem(it, r) }
-  }
-
   async valores(id) {
     const { inv } = await this.invLer(id)
     const m = {}
     for (const [k, it] of Object.entries(inv?.itens || {})) {
-      const x = this.valorDe(it)
+      const x = valorDe(it)
       if (x) m[k] = x
     }
     return { valores: m }
@@ -363,7 +365,7 @@ export class Loja {
     let total = 0
     for (const k of ids) {
       const it = inv.itens[k]
-      const x = it && this.valorDe(it)
+      const x = it && valorDe(it)
       if (!x) throw new Error('item')
       total += x.v
       delete inv.itens[k]
@@ -374,6 +376,22 @@ export class Loja {
     const limpo = limparSkins(inv)
     await this.gravarTudo(id, limpo, () => this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), -total, `venda de ${ids.length} item(ns)`))
     return { saldo: pontos - this.gastos(), total, vendidos: ids.length, inv: limpo }
+  }
+
+  // Compra de um anúncio do mercado (src/mercado.js chama no objeto de quem compra): desconta o preço e põe o item no inventário, tudo junto
+  async comprarDoMercado(id, pontos, p) {
+    const preco = Math.round(num(p.preco, 0, 1e7, 0))
+    if (!preco || !p.item) throw new Error('anuncio')
+    if (pontos - this.gastos() < preco) throw new Error('saldo')
+    const inv = (await this.invLer(id)).inv || limparSkins({})
+    if (Object.keys(inv.itens).length + 1 > ITENS_MAX) throw new Error('cheio')
+    const novo = novoIdItem()
+    inv.itens[novo] = JSON.parse(JSON.stringify(p.item))
+    inv.criado[novo] = Date.now()
+    const limpo = limparSkins(inv)
+    if (!limpo.itens[novo]) throw new Error('anuncio')
+    await this.gravarTudo(id, limpo, () => this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), preco, 'mercado: compra'))
+    return { saldo: pontos - this.gastos(), id: novo }
   }
 
   async abrir(id, caixas, cfg, pontos, p) {

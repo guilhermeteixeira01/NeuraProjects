@@ -146,6 +146,8 @@ function conectar(id) {
     else if (m.tipo === 'skin') window.dispatchEvent(new Event('np-skin'))
     // Troca nova/aceita/recusada: o aviso e a lista de trocas atualizam na hora (comum/Trocas.jsx)
     else if (m.tipo === 'troca') window.dispatchEvent(new Event('np-troca'))
+    // Venderam um item meu no mercado: o sino busca a notificação e as listas do mercado/inventário atualizam (comum/mercado.js)
+    else if (m.tipo === 'mercado') window.dispatchEvent(new Event('np-mercado'))
     // Algo mudou no meu lobby (convite, alguém entrou/saiu, lobby aberto): a página do Lobby recarrega
     else if (m.tipo === 'lobby') window.dispatchEvent(new Event('np-lobby'))
     // O admin mudou o meu perfil (ex.: deu uma insígnia): Moldura.jsx atualiza na hora e o aviso aparece

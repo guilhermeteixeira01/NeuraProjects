@@ -15,7 +15,8 @@ const Marca = ({ lado }) => <i className={`inv-marca inv-marca-${lado}`} title={
 
 export const nomeDoDesgaste = (f) => (f < 0.07 ? 'Factory New' : f < 0.15 ? 'Minimal Wear' : f < 0.38 ? 'Field-Tested' : f < 0.45 ? 'Well-Worn' : 'Battle-Scarred')
 
-export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAbrirMenu, extra, selecionado }) {
+// valor: NP do item (aparece embaixo do nome; no mercado, o preço do anúncio)
+export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAbrirMenu, extra, selecionado, valor }) {
   const t = useT()
   const d = descrever(item, idx)
   const chave = chaveEquip(item)
@@ -49,6 +50,12 @@ export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
           <em>
             {t(nomeDoDesgaste(Number(item.f)))} · {Number(item.f).toFixed(3)}
           </em>
+        )}
+        {valor != null && (
+          <span className="inv-cartao-valor">
+            <img src="/assets/logos/logo-np-64.png" alt="" width="14" height="14" />
+            {Number(valor).toLocaleString('pt-BR')} NP
+          </span>
         )}
       </span>
     </>

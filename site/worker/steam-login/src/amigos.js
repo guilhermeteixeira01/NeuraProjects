@@ -275,6 +275,13 @@ export async function avisarTroca(env, id) {
     .catch(() => {})
 }
 
+// Venderam um item meu no mercado: o sino busca a notificação nova e a lista do mercado atualiza na hora (comum/mercado.js)
+export async function avisarMercado(env, id) {
+  await presenca(env)
+    .fetch('https://presenca/mandar', { method: 'POST', body: JSON.stringify({ ids: [id], msg: { tipo: 'mercado' } }) })
+    .catch(() => {})
+}
+
 export async function avisarPerfil(env, id, perfil) {
   await presenca(env)
     .fetch('https://presenca/mandar', { method: 'POST', body: JSON.stringify({ ids: [id], msg: { tipo: 'perfil', id, perfil: perfil || null } }) })
