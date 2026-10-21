@@ -65,8 +65,9 @@ export const urlMiniCard = (nome) => {
   const id = idCard(nome)
   const base = id.replace(/\.[^.]+$/, '')
   const svg = /\.svg$/i.test(id)
-  // raster: miniatura parada, a não ser que seja animado e a grade possa animar (computador)
-  if (!svg && minis.includes(base + '.webp') && !(ehAnimado(id) && gradeAnima() && !semMovimento())) return `/assets/cards/mini/${caminho(base)}.webp`
+  // A grade do Personalizar é sempre PARADA (mesmo os animados): só a prévia da esquerda anima, como no perfil
+  if (!svg && minis.includes(base + '.webp')) return `/assets/cards/mini/${caminho(base)}.webp`
+  if (svg && /-anim\.svg$/i.test(id)) return `/assets/cards/parado/${caminho(id)}`
   return urlCard(id)
 }
 // "neura/neura-ouro.svg" -> "Neura ouro"; "neura/radar-anim.svg" -> "Radar"

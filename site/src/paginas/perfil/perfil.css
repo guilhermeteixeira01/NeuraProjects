@@ -837,7 +837,7 @@ html.sm-aberto { overflow: hidden; }
 .sm-item .sm-exige img.selo-img { width: 12px; height: 12px; }
 .sm-item .sm-req img.selo-img { width: 14px; height: 14px; }
 /* Card animado de cargo: o selo "ANIMADO" desce um pouco para não ficar embaixo do marcador do cargo (canto de cima à direita) */
-.sm-item.de-cargo .sm-anim { top: 34px; right: 8px; }
+.sm-item.de-cargo .sm-anim { top: auto; right: 8px; }
 
 /* Time e Premier abaixo do cartão do jogador (coluna da esquerda): um embaixo do outro, na largura do cartão */
 .pf-infos.pf-infos-lado { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 0; }
@@ -882,3 +882,7 @@ html.sm-aberto { overflow: hidden; }
 
 /* título da coleção por cima dos emblemas dos cards (os dois tinham o mesmo z-index e o emblema aparecia em cima do título) */
 .sm-grupo-cab { z-index: 8; }
+
+/* selo ANIMADO no canto de baixo à direita da imagem do card */
+.sm-arte .sm-anim { top: auto; right: 6px; bottom: 6px; }
+.sm-arte { position: relative; }
