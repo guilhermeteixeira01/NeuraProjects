@@ -142,6 +142,30 @@ export function gerarFaixaFacas(caixa, ganhou, rnd, n = 44, alvo = 35) {
   return { itens, alvo }
 }
 
+// Faixas de desgaste que uma skin pode ter (as mesmas regras de sortearDesgaste): [{ nome, p: chance 0..1, f: float do meio da faixa }]
+export function faixasDeDesgaste(cfg, skinMin, skinMax) {
+  const min = Number.isFinite(skinMin) ? skinMin : 0
+  const max = Number.isFinite(skinMax) ? skinMax : 1
+  const ok = cfg.desgaste.map((f) => ({ nome: f.nome, chance: f.chance, lo: Math.max(f.min, min), hi: Math.min(f.max, max) })).filter((f) => f.hi > f.lo && f.chance > 0)
+  if (!ok.length) return [{ nome: nomeDoDesgaste(min), p: 1, f: Math.min(max, Math.max(min, 0.0001)) }]
+  const total = ok.reduce((a, f) => a + f.chance, 0)
+  return ok.map((f) => ({ nome: f.nome, p: f.chance / total, f: (f.lo + f.hi) / 2 }))
+}
+
+// Modos de abertura (botões da página da caixa). Mudam só as chances; o preço do modo acompanha o valor esperado (loja.js: detalhesDaCaixa).
+//   jester: todos os itens com a mesma chance (cada item, inclusive cada faca, vale 1)
+//   boost: as raridades altas ficam mais prováveis e as baixas menos
+export const MODOS = ['jester', 'boost']
+const BOOST = [0.5, 0.8, 1.4, 2.2, 3, 3]
+export function aplicarModo(caixa, cfg, modo) {
+  if (modo === 'jester') {
+    const contagem = [0, 1, 2, 3, 4].map((r) => caixa.itens.filter((i) => i.r === r).length).concat(caixa.facas.length)
+    return { caixa: { ...caixa, itens: caixa.itens.map((i) => ({ ...i, w: 1 })), facas: caixa.facas.map((f) => ({ ...f, w: 1 })) }, cfg: { ...cfg, taxas: contagem } }
+  }
+  if (modo === 'boost') return { caixa, cfg: { ...cfg, taxas: cfg.taxas.map((t, r) => t * BOOST[r]) } }
+  return { caixa, cfg }
+}
+
 // Chances reais de cada item da caixa (%), para a página da caixa mostrar com transparência
 export function chancesDaCaixa(caixa, cfg) {
   const porRaridade = [0, 1, 2, 3, 4].map((r) => caixa.itens.map((it, i) => ({ it, i })).filter((x) => x.it.r === r))

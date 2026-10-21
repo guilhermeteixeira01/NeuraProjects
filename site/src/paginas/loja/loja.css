@@ -375,3 +375,112 @@ html.lj-travado .nx-rolagem { display: none !important; }
   @keyframes lj-drop-entra { from { width: 0; opacity: 0; } to { width: 124px; opacity: 1; } }
 }
 @media (prefers-reduced-motion: reduce) { .lj-drops-lista > li.is-novo { animation: none; } }
+
+/* ══════ Página da caixa (PaginaCaixa.jsx): roleta na página, modos, conteúdo da caixa ══════ */
+.lj-cx { --azul: #1e90ff; padding-bottom: 30px; }
+.lj-cx-topo { display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; gap: 12px; margin: 6px 0 22px; }
+.lj-cx-voltar { justify-self: start; display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; background: none; border: 0; color: rgb(255 255 255 / .75); font: 500 17px var(--font-body); cursor: pointer; padding: 4px 0; }
+.lj-cx-voltar:hover { color: #fff; }
+.lj-cx-titulo { text-align: center; }
+.lj-cx-titulo h1 { display: inline-flex; align-items: center; gap: 12px; margin: 0; font: 700 clamp(24px, 3.2vw, 34px) var(--font-display); }
+.lj-cx-fav { display: grid; place-items: center; background: none; border: 0; padding: 2px; color: rgb(255 255 255 / .7); cursor: pointer; transition: color .15s, transform .15s; }
+.lj-cx-fav:hover { color: #fff; transform: scale(1.08); }
+.lj-cx-fav.is-ativo { color: #ff4d6d; }
+.lj-cx-preco-topo { margin: 4px 0 0; color: rgb(255 255 255 / .55); font: 700 20px var(--font-body); }
+
+/* roleta dentro da página: moldura azul brilhante */
+.lj-cx-roleta { position: relative; border: 3px solid var(--azul); border-radius: 14px; background: #0c1630; box-shadow: 0 0 22px rgb(30 144 255 / .45), inset 0 0 30px rgb(30 144 255 / .12); overflow: hidden; }
+.lj-cx-roleta .lj-roleta { border: 0; background: transparent; padding: 10px 0; }
+.lj-cx-roleta .lj-roleta::before { background: linear-gradient(90deg, #0c1630, transparent); }
+.lj-cx-roleta .lj-roleta::after { background: linear-gradient(-90deg, #0c1630, transparent); }
+.lj-cx-roleta .lj-marcador { background: var(--azul); box-shadow: 0 0 12px var(--azul); }
+.lj-cx-roleta .lj-marcador::before { border-top-color: var(--azul); }
+.lj-cx-roleta .lj-marcador::after { border-bottom-color: var(--azul); }
+.lj-cx-roleta .lj-cartao { background: radial-gradient(70% 50% at 50% 30%, color-mix(in srgb, var(--cor) 20%, transparent), transparent 80%), #101c3c; border-color: rgb(255 255 255 / .05); }
+/* parada: o 6º cartão (índice 5) fica no meio, embaixo do marcador (150 px + 8 px de espaço por cartão) */
+.lj-roleta-parada .lj-trilho { position: relative; left: 50%; transform: translateX(-865px); }
+/* abertura embutida: sem tela cheia, do tamanho da moldura */
+.lj-abertura.lj-embutida { position: relative; inset: auto; z-index: 1; height: auto !important; min-height: 300px; background: transparent; overflow: hidden; touch-action: auto; overscroll-behavior: auto; }
+.lj-embutida .lj-abertura-topo { position: absolute; top: 6px; right: 8px; padding: 0; }
+.lj-embutida .lj-faixas { padding: 8px 0; flex: none; }
+.lj-embutida .lj-resultado { padding: 20px 16px; overflow: visible; }
+.lj-embutida .lj-centro { min-height: 260px; }
+
+/* controles: quantidade (esquerda), abrir (meio), modos e som (direita) */
+.lj-cx-controles { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 14px; margin: 22px 0 10px; }
+.lj-cx-qtd, .lj-cx-modos { display: flex; gap: 10px; flex-wrap: wrap; }
+.lj-cx-modos { justify-content: flex-end; }
+.lj-cx-abrir { display: grid; justify-items: center; gap: 6px; }
+.lj-cx-btn-abrir { background: var(--azul); border: 0; border-radius: 6px; color: #fff; font: 600 21px var(--font-body); padding: 18px 42px; cursor: pointer; box-shadow: 0 8px 24px -8px rgb(30 144 255 / .7); transition: filter .15s, transform .15s; }
+.lj-cx-btn-abrir:hover:not(:disabled) { filter: brightness(1.12); transform: translateY(-1px); }
+.lj-cx-btn-abrir:disabled { opacity: .5; cursor: not-allowed; }
+.lj-cx-falta { color: #ff6b6b; font-size: 13px; }
+.lj-cx-extras { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+.lj-cx-link { background: none; border: 0; color: rgb(255 255 255 / .6); font: 500 13px var(--font-body); text-decoration: underline; cursor: pointer; padding: 2px; }
+.lj-cx-link:hover:not(:disabled) { color: #fff; }
+.lj-cx-link:disabled { opacity: .45; cursor: not-allowed; }
+
+/* botão hexagonal: a borda é o fundo do botão e o miolo é o span (o clip-path corta o resto) */
+.lj-hex-caixa { position: relative; display: inline-flex; }
+.lj-hex { --hx: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); width: 64px; height: 72px; padding: 2px; border: 0; background: rgb(255 255 255 / .2); clip-path: var(--hx); cursor: pointer; transition: background .15s; }
+.lj-hex > span { display: grid; place-items: center; width: 100%; height: 100%; clip-path: var(--hx); background: #0e1a38; color: rgb(255 255 255 / .6); font: 700 18px var(--font-body); transition: background .15s, color .15s; }
+.lj-hex:hover { background: rgb(255 255 255 / .4); }
+.lj-hex:hover > span { color: #fff; background: #15244a; }
+.lj-hex.is-ativo { background: var(--azul); }
+.lj-hex.is-ativo > span { background: #123063; color: #fff; }
+.lj-hex-dica { position: absolute; bottom: calc(100% + 12px); left: 50%; transform: translateX(-50%) translateY(4px); width: max-content; max-width: 280px; padding: 12px 16px; border-radius: 10px; background: #0b1328; box-shadow: 0 10px 30px rgb(0 0 0 / .5); font: 500 15px/1.35 var(--font-body); color: #fff; opacity: 0; pointer-events: none; transition: opacity .15s, transform .15s; z-index: 20; }
+.lj-hex-dica b { display: block; font-size: 16px; margin-bottom: 2px; }
+.lj-hex-dica::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -8px; border: 8px solid transparent; border-top-color: #0b1328; }
+.lj-hex-caixa:hover .lj-hex-dica, .lj-hex:focus-visible + .lj-hex-dica { opacity: 1; transform: translateX(-50%); }
+/* as dicas dos botões mais à direita abrem para a esquerda (não saem da tela) */
+.lj-cx-modos .lj-hex-caixa:nth-last-child(-n + 2) .lj-hex-dica { left: auto; right: -10px; transform: translateY(4px); }
+.lj-cx-modos .lj-hex-caixa:nth-last-child(-n + 2):hover .lj-hex-dica { transform: none; }
+.lj-cx-modos .lj-hex-caixa:nth-last-child(-n + 2) .lj-hex-dica::after { left: auto; right: 34px; }
+
+/* conteúdo da caixa */
+.lj-cx-sub { margin: 40px 0 6px; text-align: center; font: 700 26px var(--font-display); }
+.lj-cx-modo-aviso { margin: 0 0 6px; text-align: center; color: #f5c518; font-size: 14px; }
+.lj-cx-grade { list-style: none; margin: 24px auto 0; padding: 0; max-width: 1340px; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; }
+.lj-cx-item { position: relative; height: 282px; border-radius: 8px; overflow: hidden; border: 1px solid rgb(255 255 255 / .1); background: linear-gradient(180deg, #13214a 0%, color-mix(in srgb, var(--cor) 22%, #1b2153) 100%); }
+.lj-cx-item::before { content: ""; position: absolute; top: 0; left: 50%; width: 36%; height: 2px; transform: translateX(-50%); background: var(--cor); box-shadow: 0 0 10px var(--cor); }
+.lj-cx-i { position: absolute; top: 18px; left: 18px; z-index: 3; width: 18px; height: 18px; border-radius: 50%; border: 0; background: rgb(255 255 255 / .45); color: #13214a; font: 800 12px/18px Georgia, serif; text-align: center; cursor: pointer; padding: 0; }
+.lj-cx-i:hover { background: #fff; }
+.lj-cx-chance { position: absolute; top: 18px; right: 18px; z-index: 2; color: rgb(255 255 255 / .55); font-size: 14px; }
+.lj-cx-hex { position: absolute; left: 50%; top: 50px; width: 140px; height: 150px; transform: translateX(-50%); }
+.lj-cx-hex polygon { fill: color-mix(in srgb, var(--cor) 14%, transparent); stroke: rgb(255 255 255 / .06); stroke-width: 1.5; }
+.lj-cx-hex polygon + polygon { fill: color-mix(in srgb, var(--cor) 12%, transparent); stroke: var(--cor); stroke-width: 3; }
+.lj-cx-arte { position: absolute; left: 22px; right: 22px; top: 38px; height: 160px; display: grid; place-items: center; z-index: 1; }
+.lj-cx-arte img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 8px 10px rgb(0 0 0 / .5)); transition: transform .2s; }
+.lj-cx-item:hover .lj-cx-arte img { transform: scale(1.05) rotate(-2deg); }
+.lj-cx-nome { position: absolute; left: 10px; right: 10px; bottom: 34px; z-index: 2; text-align: center; font: 600 18px/1.2 var(--font-body); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+/* "i": preço e chance de cada desgaste por cima do item (o resto do cartão fica desfocado) */
+.lj-cx-item.is-info .lj-cx-arte, .lj-cx-item.is-info .lj-cx-nome, .lj-cx-item.is-info .lj-cx-hex, .lj-cx-item.is-info .lj-cx-chance { filter: blur(4px); opacity: .35; }
+.lj-cx-info { position: absolute; inset: 0; z-index: 2; padding: 14px 16px 12px 44px; background: rgb(10 14 30 / .78); cursor: pointer; overflow: auto; }
+.lj-cx-info table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.lj-cx-info th { color: #fff; font-weight: 700; padding: 2px 6px 6px; text-align: center; }
+.lj-cx-info td { color: rgb(255 255 255 / .75); padding: 3px 6px; text-align: center; white-space: nowrap; }
+.lj-cx-info td:first-child { text-align: left; font-weight: 700; color: rgb(255 255 255 / .6); }
+.lj-cx-info .lj-cx-preco { color: #3b9cff; font-weight: 700; }
+
+@media (max-width: 900px) {
+  .lj-cx-topo { grid-template-columns: 1fr; justify-items: center; }
+  .lj-cx-voltar { justify-self: start; margin: 0; }
+  .lj-cx-controles { grid-template-columns: 1fr; justify-items: center; }
+  .lj-cx-modos, .lj-cx-qtd { justify-content: center; }
+  .lj-cx-modos { order: 3; }
+  .lj-hex { width: 52px; height: 58px; }
+  .lj-hex > span { font-size: 15px; }
+  .lj-cx-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .lj-cx-item { height: 210px; }
+  .lj-cx-hex { width: 100px; height: 108px; top: 40px; }
+  .lj-cx-arte { top: 34px; height: 110px; left: 12px; right: 12px; }
+  .lj-cx-nome { font-size: 13.5px; bottom: 18px; }
+  .lj-cx-i, .lj-cx-chance { top: 12px; }
+  .lj-cx-i { left: 12px; }
+  .lj-cx-chance { right: 12px; font-size: 12px; }
+  .lj-cx-info { padding: 34px 8px 8px; }
+  .lj-cx-info table { font-size: 11.5px; }
+  .lj-cx-btn-abrir { font-size: 18px; padding: 15px 30px; }
+}
+/* celular: os cartões da roleta têm 110 px (5 × 118 + 55) */
+@media (max-width: 700px) { .lj-roleta-parada .lj-trilho { transform: translateX(-645px); } }

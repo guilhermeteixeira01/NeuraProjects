@@ -20,7 +20,8 @@
  *   GET  /loja/saldo             (login)    -> { saldo } (menu da conta)
  *   GET  /loja                   (login)    -> saldo, caixas com itens e chances, caixas fechadas, insígnias e últimas aberturas
  *   POST /loja/comprar {caixa, qtd}         -> desconta e põe as caixas fechadas no inventário
- *   POST /loja/abrir {caixa, qtd, origem: 'direto'|'inventario'|'auto'}  -> sorteia (já grava o item no inventário) e devolve o necessário p/ animar
+ *   GET  /loja/caixa?id=         (login)    -> página da caixa: { itens, facas: [[{ nome, p, v }] por desgaste], modos: { jester|boost: { preco, chances } } }
+ *   POST /loja/abrir {caixa, qtd, origem: 'direto'|'inventario'|'auto', modo?: 'jester'|'boost'}  -> sorteia (já grava o item no inventário) e devolve o necessário p/ animar
  *   GET  /loja/historico         (login)    -> últimas 100 aberturas
  *   POST /admin/caixas {caixas}  (dono)     -> troca a lista de caixas
  *   POST /admin/loja-config {taxas?, desgaste?, maxQtd?} (dono)
@@ -28,7 +29,7 @@
  *   GET  /admin/loja-saldo?id= (dono)  -> { saldo, ganhos, gastos, movimentos } de um jogador
  */
 import { avisarPerfil } from './amigos.js'
-import { CONFIG_PADRAO, precoDeMercado, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
+import { CONFIG_PADRAO, MODOS, aplicarModo, faixasDeDesgaste, precoDeMercado, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
 import { lerSkinsKv, limparSkins, novoIdItem } from './skins.js'
 import CAIXAS_INICIAIS from './caixas-iniciais.json'
 import RARIDADE_SKIN from './skins-raridade.json'
@@ -149,6 +150,31 @@ export function valorDe(it) {
   if (it.t === 'faca') return { r: 6, v: mercado ?? valorDaFaca(it, FACAS_VALOR) } // facas: valor por modelo e acabamento (facas-valor.json)
   const r = it.t === 'arma' ? RARIDADE_SKIN[`${it.d}:${it.p}`] ?? 2 : 6
   return { r, v: mercado ?? valorDoItem(it, r) }
+}
+
+// Página de uma caixa: valor (NP) e chance de cada desgaste de cada item, e os modos Jester/Boost com preço e chances.
+// O preço do modo = preço da caixa × (valor esperado no modo ÷ valor esperado normal): a margem que o dono escolheu continua a mesma.
+export function detalhesDaCaixa(caixa, cfg) {
+  const desgastes = (x, tipo) => {
+    if (x.t === 'adesivo' || x.t === 'chaveiro') return [{ nome: null, p: 1, v: valorDe({ t: x.t, d: x.d })?.v ?? 0 }]
+    return faixasDeDesgaste(cfg, x.min, x.max).map((fx) => ({ nome: fx.nome, p: fx.p, v: valorDe({ t: x.t || tipo, d: x.d, p: x.p, f: fx.f, st: 0 })?.v ?? 0 }))
+  }
+  const itens = caixa.itens.map((x) => desgastes(x, 'arma'))
+  const facas = caixa.facas.map((x) => desgastes(x, 'faca'))
+  const medio = (l) => l.reduce((a, x) => a + x.p * x.v, 0)
+  const esperado = (cx, cf) => {
+    const ch = chancesDaCaixa(cx, cf)
+    return ch.itens.reduce((a, c, i) => a + (c / 100) * medio(itens[i]), 0) + ch.facas.reduce((a, c, i) => a + (c / 100) * medio(facas[i]), 0)
+  }
+  const base = esperado(caixa, cfg)
+  const modos = {}
+  for (const m of MODOS) {
+    const x = aplicarModo(caixa, cfg, m)
+    const bruto = base > 0 ? (caixa.preco * esperado(x.caixa, x.cfg)) / base : caixa.preco
+    const passo = bruto < 100 ? 5 : bruto < 1000 ? 10 : 50
+    modos[m] = { preco: Math.max(caixa.preco, Math.round(bruto / passo) * passo), chances: chancesDaCaixa(x.caixa, x.cfg) }
+  }
+  return { itens, facas, modos }
 }
 
 export class Loja {
@@ -397,9 +423,17 @@ export class Loja {
   }
 
   async abrir(id, caixas, cfg, pontos, p) {
-    const caixa = caixas.find((c) => c.id === Number(p.caixa) && c.ativa)
+    let caixa = caixas.find((c) => c.id === Number(p.caixa) && c.ativa)
     if (!caixa) throw new Error('caixa')
     if (!caixa.itens.length) throw new Error('caixa')
+    // Jester/Boost: chances do modo e o preço dele (calculado na rota); paga sempre na hora (não usa as caixas fechadas do inventário)
+    if (p.modo) {
+      if (!MODOS.includes(p.modo) || !(p.precoModo > 0)) throw new Error('caixa')
+      const m = aplicarModo(caixa, cfg, p.modo)
+      caixa = { ...m.caixa, preco: p.precoModo }
+      cfg = m.cfg
+      p = { ...p, origem: 'direto' }
+    }
     const qtd = this.quantidade(p, cfg)
     const inv = (await this.invLer(id)).inv || limparSkins({})
     // origem: 'inventario' = só as que já tem; 'direto' = paga todas; 'auto' = usa primeiro as do inventário e paga só as que faltam ("Abrir outra")
@@ -440,7 +474,7 @@ export class Loja {
     }
     const limpo = limparSkins(inv)
     await this.gravarTudo(id, limpo, () => {
-      if (custo) this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', agora, custo, `abertura direta ${pagar}x ${caixa.slug}`)
+      if (custo) this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', agora, custo, `abertura direta ${pagar}x ${caixa.slug}${p.modo ? ` (${p.modo})` : ''}`)
       for (const l of linhas) this.sql.exec('INSERT INTO aberturas (ts, caixa, t, d, p, r, f, q) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', ...l)
     })
     // lista de quem já abriu (para o /admin/loja-retro)
@@ -487,6 +521,12 @@ export async function rotaNotificacoes(req, env, quem, cors) {
 }
 
 export async function rotaLoja(req, env, quem, cors, rota) {
+  // Página de uma caixa (não precisa do objeto do jogador): desgastes com valor e chance, e os modos Jester/Boost
+  if (rota === '/loja/caixa' && req.method === 'GET') {
+    const [lista, config] = await Promise.all([lerCaixas(env), lerConfigLoja(env)])
+    const c = lista.find((x) => x.id === Number(new URL(req.url).searchParams.get('id')) && x.ativa)
+    return c ? json(detalhesDaCaixa(c, config), 200, cors) : json({ erro: 'caixa' }, 404, cors)
+  }
   const [caixas, cfg, pontos] = await Promise.all([lerCaixas(env), lerConfigLoja(env), pontosGanhos(env, quem.id)])
   let corpo = {}
   let acao
@@ -500,7 +540,11 @@ export async function rotaLoja(req, env, quem, cors, rota) {
   else return json({ erro: 'rota' }, 404, cors)
   if (req.method === 'POST') corpo = await req.json().catch(() => ({}))
   const bonus = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
-  const r = await chamar(env, quem.id, { acao, caixas, cfg, pontos, bonus, caixa: corpo.caixa, qtd: corpo.qtd, ids: corpo.ids, origem: corpo.origem === 'inventario' || corpo.origem === 'auto' ? corpo.origem : 'direto' })
+  // modo Jester/Boost: o preço sai daqui (do servidor), nunca do site
+  const modo = acao === 'abrir' && MODOS.includes(corpo.modo) ? corpo.modo : null
+  const caixaModo = modo && caixas.find((c) => c.id === Number(corpo.caixa) && c.ativa)
+  const precoModo = caixaModo ? detalhesDaCaixa(caixaModo, cfg).modos[modo].preco : undefined
+  const r = await chamar(env, quem.id, { acao, caixas, cfg, pontos, bonus, caixa: corpo.caixa, qtd: corpo.qtd, ids: corpo.ids, origem: corpo.origem === 'inventario' || corpo.origem === 'auto' ? corpo.origem : 'direto', ...(modo ? { modo, precoModo } : {}) })
   const dados = await r.json().catch(() => ({ erro: 'falhou' }))
   // o que saiu da caixa entra no carrossel de drops ao vivo do topo da loja (aparece depois que a roleta termina)
   if (acao === 'abrir' && r.ok && Array.isArray(dados.resultados)) await registrarDrops(env, quem, caixas.find((c) => c.id === Number(corpo.caixa)), dados.resultados)

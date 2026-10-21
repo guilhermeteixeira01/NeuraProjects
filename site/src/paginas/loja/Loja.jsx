@@ -5,10 +5,10 @@ import Layout from '../../comum/Layout.jsx'
 import { entrar, loginAtivo, useConta } from '../../comum/conta.js'
 import { useT } from '../../comum/i18n.js'
 import { avisarSaldo, comprarCaixa, lerLoja } from '../../comum/loja.js'
-import { RARIDADES } from '../../../worker/steam-login/src/loja-core.js'
-import Abertura, { CartaoItem, useAcharItem } from './Abertura.jsx'
+import Abertura, { useAcharItem } from './Abertura.jsx'
 import AbaMercado from './Mercado.jsx'
 import Drops from './Drops.jsx'
+import PaginaCaixa, { useFavoritas } from './PaginaCaixa.jsx'
 import { prepararSons, som } from './somLoja.js'
 
 const TIERS = [
@@ -39,7 +39,6 @@ function categoriaDe(c) {
   return new Set(c.itens.map((i) => i.d)).size <= 2 ? 'armas' : 'tematicas' // uma ou duas armas (M4A1-S + M4A4) = caixa de arma
 }
 const numero = (n) => Number(n).toLocaleString('pt-BR')
-const pct = (n) => (n >= 1 ? n.toFixed(2) : n >= 0.1 ? n.toFixed(2) : n.toFixed(3)).replace(/\.?0+$/, (m) => (m === '.0' ? '' : m)) + '%'
 
 function Saldo({ saldo }) {
   const t = useT()
@@ -69,131 +68,6 @@ function CartaoCaixa({ c, tem, aoAbrir }) {
         {tem > 0 && <em className="lj-tem">{t('Você tem {n}', { n: tem })}</em>}
       </button>
     </li>
-  )
-}
-
-// ── página de uma caixa: itens por raridade com as chances, quantidade, comprar e abrir ──
-function PaginaCaixa({ c, saldo, tem, maxQtd, aoFechar, aoComprar, aoAbrir, ocupado, achar }) {
-  const t = useT()
-  const [qtd, setQtd] = useState(1)
-  const custo = c.preco * qtd
-  const falta = custo > saldo
-  const porRaridade = useMemo(() => {
-    const r = [[], [], [], [], []]
-    c.itens.forEach((it, i) => r[it.r].push({ ...it, chance: c.chances.itens[i] }))
-    r.forEach((l) => l.sort((a, b) => a.chance - b.chance))
-    return r
-  }, [c])
-  useEffect(() => {
-    const tecla = (e) => e.key === 'Escape' && aoFechar()
-    document.addEventListener('keydown', tecla)
-    return () => document.removeEventListener('keydown', tecla)
-  }, [aoFechar])
-
-  return (
-    <div className="lj-fundo" onClick={aoFechar}>
-      <div className="lj-janela" role="dialog" aria-modal="true" aria-label={c.nome} style={{ '--cor': c.cor }} onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="lj-fechar" onClick={aoFechar} aria-label={t('Fechar')}>
-          ×
-        </button>
-        <div className="lj-janela-corpo">
-          <aside className="lj-lado">
-            <span className="lj-lado-arte">
-              <img src={c.img} alt="" draggable="false" />
-            </span>
-            <h2>{c.nome}</h2>
-            <small className="lj-tier">{t(NOME_TIER[c.tier])}</small>
-            <div className="lj-preco-grande">
-              <img src="/assets/logos/logo-np-64.png" alt="" width="22" height="22" /> {numero(c.preco)} <small>NP</small>
-            </div>
-
-            <div className="lj-qtd" role="group" aria-label={t('Quantidade')}>
-              {Array.from({ length: maxQtd }, (_, k) => k + 1).map((n) => (
-                <button key={n} type="button" className={qtd === n ? 'is-ativo' : ''} onClick={() => setQtd(n)} aria-pressed={qtd === n}>
-                  {n}
-                </button>
-              ))}
-            </div>
-            <p className="lj-total">
-              {t('Total')}: <b>{numero(custo)} NP</b>
-            </p>
-            <p className={`lj-seu-saldo${falta ? ' lj-falta' : ''}`}>
-              {t('Seu saldo')}: <b>{numero(saldo)} NP</b>
-              {falta && <span> · {t('faltam {n} NP', { n: numero(custo - saldo) })}</span>}
-            </p>
-
-            <div className="lj-acoes">
-              <button type="button" className="lj-btn lj-btn-p" disabled={falta || ocupado} onClick={() => aoAbrir(c, qtd, 'direto')}>
-                {t('Abrir agora')}
-              </button>
-              <button type="button" className="lj-btn" disabled={falta || ocupado} onClick={() => aoComprar(c, qtd)}>
-                {t('Comprar')}
-              </button>
-              {tem > 0 && (
-                <button type="button" className="lj-btn lj-btn-v" disabled={ocupado} onClick={() => aoAbrir(c, Math.min(qtd, tem), 'inventario')}>
-                  {t('Abrir do inventário ({n})', { n: tem })}
-                </button>
-              )}
-            </div>
-            <small className="lj-nota">{t('"Comprar" guarda a caixa fechada no seu inventário. O sorteio é feito pelo servidor, antes da animação.')}</small>
-          </aside>
-
-          <section className="lj-itens">
-            <h3>{t('O que pode sair')}</h3>
-            <ul className="lj-chances">
-              {[5, 4, 3, 2, 1, 0].filter((r) => c.chances.raridades[r] > 0).map((r) => (
-                <li key={r} style={{ '--cor': RARIDADES[r].cor }}>
-                  <i />
-                  <span>{t(RARIDADES[r].nome)}</span>
-                  <b>{pct(c.chances.raridades[r])}</b>
-                </li>
-              ))}
-            </ul>
-
-            {c.facas.length > 0 && (
-              <details className="lj-bloco lj-bloco-faca" style={{ '--cor': RARIDADES[5].cor }}>
-                <summary>
-                  <span className="lj-interroga lj-interroga-p">?</span>
-                  <b>{t('Item Raro Especial')}</b>
-                  <em>{t('{n} facas · {p} no total', { n: c.facas.length, p: pct(c.chances.raridades[5]) })}</em>
-                </summary>
-                <ul className="lj-grade">
-                  {c.facas
-                    .map((f, i) => ({ ...f, chance: c.chances.facas[i] }))
-                    .sort((a, b) => a.chance - b.chance)
-                    .map((f) => (
-                      <li key={`${f.d}:${f.p}`}>
-                        <CartaoItem r={5} d={f.d} p={f.p} achar={achar}>
-                          <em className="lj-chance">{pct(f.chance)}</em>
-                        </CartaoItem>
-                      </li>
-                    ))}
-                </ul>
-              </details>
-            )}
-
-            {[4, 3, 2, 1, 0].map((r) =>
-              porRaridade[r].length ? (
-                <div className="lj-bloco" key={r} style={{ '--cor': RARIDADES[r].cor }}>
-                  <h4>
-                    <i /> {t(RARIDADES[r].nome)} <em>{pct(c.chances.raridades[r])}</em>
-                  </h4>
-                  <ul className="lj-grade">
-                    {porRaridade[r].map((it) => (
-                      <li key={`${it.d}:${it.p}`}>
-                        <CartaoItem r={r} d={it.d} p={it.p} tipo={it.t} n={it.n} i={it.i} achar={achar}>
-                          <em className="lj-chance">{pct(it.chance)}</em>
-                        </CartaoItem>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null,
-            )}
-          </section>
-        </div>
-      </div>
-    </div>
   )
 }
 
@@ -324,6 +198,30 @@ function Conteudo() {
 
   const caixas = useMemo(() => (dados?.caixas || []).filter((c) => tier === 'todas' || c.tier === tier), [dados, tier])
   const sel = dados?.caixas.find((c) => c.id === aberta) || null
+  const { fav, alternar: alternarFav } = useFavoritas()
+
+  // Página da caixa: entra no histórico (?caixa=slug), então o "voltar" do navegador também volta para a lista
+  const verCaixa = (c) => {
+    history.pushState({ caixa: c.slug }, '', `${location.pathname}?caixa=${c.slug}`)
+    setAviso('')
+    setAberta(c.id)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+  const voltarCaixas = () => {
+    if (history.state?.caixa) history.back()
+    else {
+      history.replaceState(null, '', location.pathname)
+      setAberta(null)
+    }
+  }
+  useEffect(() => {
+    const ouvir = () => {
+      const slug = new URLSearchParams(location.search).get('caixa')
+      setAberta(slug ? dados?.caixas.find((x) => x.slug === slug)?.id ?? null : null)
+    }
+    window.addEventListener('popstate', ouvir)
+    return () => window.removeEventListener('popstate', ouvir)
+  }, [dados])
 
   const comprar = async (c, qtd) => {
     setOcupado(true)
@@ -338,11 +236,6 @@ function Conteudo() {
     } finally {
       setOcupado(false)
     }
-  }
-  const abrirCaixa = (c, qtd, origem) => {
-    setAberta(null)
-    setAviso('')
-    setAbertura({ caixa: c, qtd, origem, chave: Date.now() })
   }
   const fecharAbertura = () => {
     setAbertura(null)
@@ -364,6 +257,37 @@ function Conteudo() {
   if (erroCarga) return <p className="lj-dica">{t('Não consegui carregar a loja. Tente de novo mais tarde.')}</p>
   if (!dados) return <p className="lj-dica">{t('Carregando…')}</p>
 
+  const abertura_ = abertura && <Abertura key={abertura.chave} caixa={abertura.caixa} qtd={abertura.qtd} origem={abertura.origem} maxQtd={dados.cfg.maxQtd} aoFechar={fecharAbertura} aoOutra={(n) => setAbertura({ caixa: abertura.caixa, qtd: n || 1, origem: 'auto', chave: Date.now() })} />
+
+  // Página de uma caixa: o carrossel de drops continua em cima
+  if (sel)
+    return (
+      <>
+        <Drops achar={achar} />
+        {aviso && (
+          <p className="lj-aviso" role="status">
+            {aviso} <a href="/inventario/">{t('Ver no inventário')}</a>
+          </p>
+        )}
+        <PaginaCaixa
+          key={sel.id}
+          c={sel}
+          saldo={dados.saldo}
+          tem={dados.fechadas[sel.id] || 0}
+          maxQtd={dados.cfg.maxQtd}
+          ocupado={ocupado}
+          achar={achar}
+          favorita={fav.includes(sel.slug)}
+          aoFavoritar={() => alternarFav(sel.slug)}
+          aoVoltar={voltarCaixas}
+          aoComprar={comprar}
+          aoAbriu={carregar}
+        />
+        {abertura_}
+      </>
+    )
+
+  const favoritas = caixas.filter((c) => fav.includes(c.slug))
   return (
     <>
       <Drops achar={achar} />
@@ -402,6 +326,19 @@ function Conteudo() {
             ))}
             <span className="lj-total-caixas">{t('{n} caixas', { n: caixas.length })}</span>
           </div>
+          {favoritas.length > 0 && (
+            <section className="lj-categoria" aria-label={t('Favoritas')}>
+              <h2>
+                ♥ {t('Favoritas')} <em>{favoritas.length}</em>
+              </h2>
+              <p>{t('As caixas que você marcou com o coração.')}</p>
+              <ul className="lj-grade-caixas">
+                {favoritas.map((c) => (
+                  <CartaoCaixa key={c.id} c={c} tem={dados.fechadas[c.id] || 0} aoAbrir={verCaixa} />
+                ))}
+              </ul>
+            </section>
+          )}
           {CATEGORIAS.map(([id, nome, dica]) => {
             const lista = caixas.filter((c) => categoriaDe(c) === id)
             if (!lista.length) return null
@@ -413,7 +350,7 @@ function Conteudo() {
                 <p>{t(dica)}</p>
                 <ul className="lj-grade-caixas">
                   {lista.map((c) => (
-                    <CartaoCaixa key={c.id} c={c} tem={dados.fechadas[c.id] || 0} aoAbrir={(x) => setAberta(x.id)} />
+                    <CartaoCaixa key={c.id} c={c} tem={dados.fechadas[c.id] || 0} aoAbrir={verCaixa} />
                   ))}
                 </ul>
               </section>
@@ -426,8 +363,7 @@ function Conteudo() {
         <AbaInsignias lista={dados.insignias} />
       )}
 
-      {sel && <PaginaCaixa c={sel} saldo={dados.saldo} tem={dados.fechadas[sel.id] || 0} maxQtd={dados.cfg.maxQtd} aoFechar={() => setAberta(null)} aoComprar={comprar} aoAbrir={abrirCaixa} ocupado={ocupado} achar={achar} />}
-      {abertura && <Abertura key={abertura.chave} caixa={abertura.caixa} qtd={abertura.qtd} origem={abertura.origem} maxQtd={dados.cfg.maxQtd} aoFechar={fecharAbertura} aoOutra={(n) => setAbertura({ caixa: abertura.caixa, qtd: n || 1, origem: 'auto', chave: Date.now() })} />}
+      {abertura_}
     </>
   )
 }

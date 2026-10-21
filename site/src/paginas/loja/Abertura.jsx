@@ -10,6 +10,9 @@ import { definirPreferencia, preferenciaAtual, som, somDaRaridade } from './somL
 
 const DURACAO = 6000 // roleta horizontal (ms)
 const DURACAO_FACAS = 5000
+// Lightning (botão da página da caixa): a mesma animação, mais curta
+const DURACAO_RAPIDA = 2200
+const DURACAO_FACAS_RAPIDA = 1800
 
 // ── dados de um item (nome, imagem) a partir do catálogo de skins ──
 export function useAcharItem() {
@@ -241,8 +244,9 @@ const MENSAGENS = {
   login: 'Entre com a Steam para abrir caixas.',
 }
 
-// props: caixa (completa, de GET /loja), qtd, origem ('direto' | 'inventario'), aoFechar(), aoOutra()
-export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoOutra }) {
+// props: caixa (completa, de GET /loja; no modo Jester/Boost, com o preço do modo), qtd, origem ('direto' | 'inventario'), aoFechar(), aoOutra()
+//   embutida: roda dentro da página da caixa (sem tela cheia); rapida: Lightning (animação curta); modo: 'jester' | 'boost' | undefined
+export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoOutra, embutida = false, rapida = false, modo }) {
   const t = useT()
   const achar = useAcharItem()
   const [fase, setFase] = useState('carregando') // carregando | roleta | facas | resultado | erro
@@ -258,10 +262,11 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
 
   // avisa o resto do site que a roleta começou/acabou: a insígnia nova só aparece depois (Insignias.jsx)
   useEffect(() => {
-    // trava a rolagem da página de trás (barras de rolagem do site não aparecem por cima da roleta)
+    // trava a rolagem da página de trás (barras de rolagem do site não aparecem por cima da roleta); embutida, a página rola normal
+    if (embutida) return
     document.documentElement.classList.add('lj-travado')
     return () => document.documentElement.classList.remove('lj-travado')
-  }, [])
+  }, [embutida])
   useEffect(() => {
     window.dispatchEvent(new Event('np-loja-inicio'))
     return () => {
@@ -282,7 +287,7 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
   useEffect(() => {
     if (iniciou.current) return
     iniciou.current = true
-    abrirCaixa(caixa.id, qtd, origem).then(
+    abrirCaixa(caixa.id, qtd, origem, modo).then(
       (r) => {
         if (!montado.current) return
         setDados(r)
@@ -344,7 +349,7 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
   }
   const animando = fase === 'roleta' || fase === 'facas'
   // "Abrir outra": usa primeiro as caixas dessa que o jogador já tem no inventário e só cobra as que faltam
-  const doInventario = Math.min(qtdOutra, restantes)
+  const doInventario = modo ? 0 : Math.min(qtdOutra, restantes) // Jester/Boost: sempre paga o preço do modo
   const aPagar = (qtdOutra - doInventario) * caixa.preco
   const falta = aPagar > (dados?.saldo ?? 0)
   const rotuloOutra = (() => {
@@ -355,15 +360,24 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
   })()
 
   return (
-    <div className={`lj-abertura${tremer ? ' lj-tremer' : ''}`} role="dialog" aria-modal="true" aria-label={t('Abrindo caixa')} style={{ '--cor-caixa': caixa.cor }}>
+    <div
+      className={`lj-abertura${embutida ? ' lj-embutida' : ''}${tremer ? ' lj-tremer' : ''}`}
+      role={embutida ? 'region' : 'dialog'}
+      aria-modal={embutida ? undefined : 'true'}
+      aria-label={t('Abrindo caixa')}
+      style={{ '--cor-caixa': caixa.cor }}
+    >
       <div className="lj-abertura-topo">
-        <b>{caixa.nome}</b>
-        <span className="lj-som">
-          <button type="button" className="lj-icone" onClick={() => mudarSom({ mudo: !pref.mudo })} aria-label={pref.mudo ? t('Ligar o som') : t('Desligar o som')} title={pref.mudo ? t('Ligar o som') : t('Desligar o som')}>
-            {pref.mudo ? '🔇' : '🔊'}
-          </button>
-          <input type="range" min="0" max="1" step="0.05" value={pref.vol} onChange={(e) => mudarSom({ vol: Number(e.target.value), mudo: false })} aria-label={t('Volume')} />
-        </span>
+        {/* embutida: o nome e o som já estão na página da caixa */}
+        {!embutida && <b>{caixa.nome}</b>}
+        {!embutida && (
+          <span className="lj-som">
+            <button type="button" className="lj-icone" onClick={() => mudarSom({ mudo: !pref.mudo })} aria-label={pref.mudo ? t('Ligar o som') : t('Desligar o som')} title={pref.mudo ? t('Ligar o som') : t('Desligar o som')}>
+              {pref.mudo ? '🔇' : '🔊'}
+            </button>
+            <input type="range" min="0" max="1" step="0.05" value={pref.vol} onChange={(e) => mudarSom({ vol: Number(e.target.value), mudo: false })} aria-label={t('Volume')} />
+          </span>
+        )}
         {animando && (
           <button
             type="button"
@@ -397,7 +411,7 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
       {fase === 'roleta' && (
         <div className="lj-faixas" data-n={resultados.length} style={{ "--n": resultados.length }}>
           {resultados.map((r, k) => (
-            <Roleta key={r.id} itens={r.faixa} alvo={r.alvo} lista={caixa.itens} achar={achar} rodando sonora={k === 0} duracao={DURACAO + k * 250} pular={pular} aoParar={() => setParadas((n) => n + 1)} />
+            <Roleta key={r.id} itens={r.faixa} alvo={r.alvo} lista={caixa.itens} achar={achar} rodando sonora={k === 0} duracao={(rapida ? DURACAO_RAPIDA : DURACAO) + k * (rapida ? 120 : 250)} pular={pular} aoParar={() => setParadas((n) => n + 1)} />
           ))}
         </div>
       )}
@@ -414,7 +428,7 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
             lista={caixa.facas}
             achar={achar}
             rodando
-            duracao={DURACAO_FACAS}
+            duracao={rapida ? DURACAO_FACAS_RAPIDA : DURACAO_FACAS}
             pular={pular}
             aoParar={() => {
               som('parar')
@@ -460,7 +474,7 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
               {t('Ver no inventário')}
             </a>
             <button type="button" className="lj-btn" onClick={aoFechar}>
-              {t('Voltar para a loja')}
+              {embutida ? t('Voltar para a caixa') : t('Voltar para a loja')}
             </button>
           </div>
           <small className="lj-salvo">{t('O item já está salvo no seu inventário.')}</small>
