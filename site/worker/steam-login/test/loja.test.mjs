@@ -269,20 +269,23 @@ test('caixa de facas: só facas, a mais cara da loja, facas valiosas com chance 
     assert.ok(a.item.f >= 0 && a.item.f <= 1)
   }
 })
-test('caixas de amuletos: só adesivos e chaveiros (sem arma e sem faca), sem desgaste', () => {
-  for (const slug of ['caixa-fliperama', 'caixa-kawaii', 'caixa-terror', 'caixa-espacial', 'caixa-lendas']) {
+test('caixas de amuletos e adesivos: cada uma só com o tipo certo (sem arma e sem faca) e sem desgaste', () => {
+  // [slug, tipos permitidos, mínimo de itens]
+  const regras = [['caixa-fliperama', ['adesivo', 'chaveiro'], 40], ['caixa-kawaii', ['adesivo'], 40], ['caixa-terror', ['adesivo'], 40], ['caixa-espacial', ['chaveiro'], 20], ['caixa-lendas', ['chaveiro'], 20]]
+  for (const [slug, tipos, minimo] of regras) {
     const c = CAIXAS.find((x) => x.slug === slug)
-    assert.ok(c.itens.length >= 40 && c.itens.every((x) => (x.t === 'adesivo' || x.t === 'chaveiro') && x.n && x.i), slug)
-    assert.ok(c.itens.some((x) => x.t === 'chaveiro') && c.itens.some((x) => x.t === 'adesivo'), slug + ' precisa dos dois')
+    assert.ok(c.itens.length >= minimo && c.itens.every((x) => tipos.includes(x.t) && x.n && x.i), slug)
+    for (const tp of tipos) assert.ok(c.itens.some((x) => x.t === tp), slug + ' precisa de ' + tp)
     assert.ok(c.preco < CAIXAS.find((x) => x.slug === 'caixa-ak47').preco, slug + ' mais barata que as de arma')
     for (let i = 0; i < 500; i++) {
       const a = sortearAbertura(c, CONFIG_PADRAO, rndSeguro)
-      assert.ok(a.item.t === 'adesivo' || a.item.t === 'chaveiro')
+      assert.ok(tipos.includes(a.item.t))
       assert.equal(a.item.p, 0)
     }
+    for (const r of [0, 1, 2, 3, 4]) assert.ok(c.itens.some((x) => x.r === r), slug + ' sem raridade ' + r)
   }
-  const lendas = CAIXAS.find((x) => x.slug === 'caixa-lendas')
-  assert.equal(lendas.preco, Math.max(...['caixa-fliperama', 'caixa-kawaii', 'caixa-terror', 'caixa-espacial', 'caixa-lendas'].map((s) => CAIXAS.find((x) => x.slug === s).preco)))
+  const grupo = ['caixa-fliperama', 'caixa-kawaii', 'caixa-terror', 'caixa-espacial', 'caixa-lendas']
+  assert.equal(CAIXAS.find((x) => x.slug === 'caixa-lendas').preco, Math.max(...grupo.map((s) => CAIXAS.find((x) => x.slug === s).preco)))
 })
 test('caixas de arma: só skins daquela arma', () => {
   const por = { 'caixa-ak47': [7], 'caixa-awp': [9], 'caixa-deagle': [1], 'caixa-m4a1': [60, 16], 'caixa-glock': [4] }

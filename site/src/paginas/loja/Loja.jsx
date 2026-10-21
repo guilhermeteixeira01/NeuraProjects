@@ -16,6 +16,24 @@ const TIERS = [
   ['premium', 'Premium'],
 ]
 const NOME_TIER = { barata: 'Barata', media: 'Média', premium: 'Premium' }
+
+// Categorias da loja (pelo que a caixa sorteia): separam as caixas temáticas das de arma, de facas, de amuletos e de adesivos
+const CATEGORIAS = [
+  ['tematicas', 'Caixas temáticas', 'Skins de várias armas, com facas raras.'],
+  ['armas', 'Caixas de arma', 'Só skins de uma arma (e as facas raras).'],
+  ['facas', 'Facas', 'Só facas: as mais valiosas saem com chance menor.'],
+  ['amuletos', 'Amuletos', 'Só chaveiros, para pendurar nas suas armas.'],
+  ['adesivos', 'Adesivos', 'Só adesivos, para colar nas suas armas.'],
+  ['misto', 'Amuletos e adesivos', 'Chaveiros e adesivos juntos.'],
+]
+function categoriaDe(c) {
+  const t = new Set(c.itens.map((i) => i.t || 'arma'))
+  if (t.size === 1 && t.has('faca')) return 'facas'
+  if (t.has('chaveiro') && !t.has('adesivo') && t.size === 1) return 'amuletos'
+  if (t.has('adesivo') && !t.has('chaveiro') && t.size === 1) return 'adesivos'
+  if (t.has('chaveiro') || t.has('adesivo')) return 'misto'
+  return new Set(c.itens.map((i) => i.d)).size <= 2 ? 'armas' : 'tematicas' // uma ou duas armas (M4A1-S + M4A4) = caixa de arma
+}
 const numero = (n) => Number(n).toLocaleString('pt-BR')
 const pct = (n) => (n >= 1 ? n.toFixed(2) : n >= 0.1 ? n.toFixed(2) : n.toFixed(3)).replace(/\.?0+$/, (m) => (m === '.0' ? '' : m)) + '%'
 
@@ -378,11 +396,23 @@ function Conteudo() {
             ))}
             <span className="lj-total-caixas">{t('{n} caixas', { n: caixas.length })}</span>
           </div>
-          <ul className="lj-grade-caixas">
-            {caixas.map((c) => (
-              <CartaoCaixa key={c.id} c={c} tem={dados.fechadas[c.id] || 0} aoAbrir={(x) => setAberta(x.id)} />
-            ))}
-          </ul>
+          {CATEGORIAS.map(([id, nome, dica]) => {
+            const lista = caixas.filter((c) => categoriaDe(c) === id)
+            if (!lista.length) return null
+            return (
+              <section className="lj-categoria" key={id} aria-label={t(nome)}>
+                <h2>
+                  {t(nome)} <em>{lista.length}</em>
+                </h2>
+                <p>{t(dica)}</p>
+                <ul className="lj-grade-caixas">
+                  {lista.map((c) => (
+                    <CartaoCaixa key={c.id} c={c} tem={dados.fechadas[c.id] || 0} aoAbrir={(x) => setAberta(x.id)} />
+                  ))}
+                </ul>
+              </section>
+            )
+          })}
         </>
       ) : (
         <AbaInsignias lista={dados.insignias} />

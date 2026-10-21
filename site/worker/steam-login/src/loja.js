@@ -44,10 +44,24 @@ const num = (v, min, max, padrao) => {
 }
 
 // ── caixas e configuração (KV) ──
+// Revisão 2: Kawaii e Terror só com adesivos; Lendas e Espacial só com amuletos (chaveiros)
+const REVISAO_CAIXAS = 2
+const ATUALIZAR_CAIXAS = ['caixa-kawaii', 'caixa-terror', 'caixa-lendas', 'caixa-espacial']
 export async function lerCaixas(env) {
   const salvas = await env.MOLDURAS.get('caixas', 'json').catch(() => null)
   if (!Array.isArray(salvas) || !salvas.length) return CAIXAS_INICIAIS
   // caixas de fábrica novas (incluídas depois que o dono já tinha salvo a lista): entram uma vez; as que ele apagar não voltam
+  // revisão do conteúdo de fábrica: quando sobe, as caixas listadas recebem os itens novos (preço, nome e imagem que o dono mudou ficam)
+  const revisao = Number(await env.MOLDURAS.get('caixas-revisao').catch(() => 0)) || 0
+  if (revisao < REVISAO_CAIXAS) {
+    for (const slug of ATUALIZAR_CAIXAS) {
+      const nova = CAIXAS_INICIAIS.find((c) => c.slug === slug)
+      const i = salvas.findIndex((c) => c.slug === slug)
+      if (nova && i >= 0) salvas[i] = { ...salvas[i], itens: nova.itens, facas: nova.facas }
+    }
+    await env.MOLDURAS.put('caixas', JSON.stringify(salvas)).catch(() => {})
+    await env.MOLDURAS.put('caixas-revisao', String(REVISAO_CAIXAS)).catch(() => {})
+  }
   const vistas = (await env.MOLDURAS.get('caixas-vistas', 'json').catch(() => null)) || []
   const novas = CAIXAS_INICIAIS.filter((c) => !vistas.includes(c.slug) && !salvas.some((x) => x.slug === c.slug))
   if (!novas.length && vistas.length) return salvas
