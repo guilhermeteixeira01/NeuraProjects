@@ -37,7 +37,7 @@ function tirar(inv, id) {
 }
 
 // Troca os itens de um jogador: tira "sai" (ids com o item esperado) e põe "entra" (itens novos, com id novo). Devolve { novosIds } ou { erro }
-async function mexerNoInventario(env, jogador, sai, entra) {
+export async function mexerNoInventario(env, jogador, sai, entra) {
   let novosIds = []
   const r = await mudarSkins(env, jogador, (inv) => {
     novosIds = []

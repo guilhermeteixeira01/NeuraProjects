@@ -42,12 +42,15 @@ export function useSaldo(steamId, ativo = true) {
   useEffect(() => {
     if (!steamId || !ativo || !CONFIG.loginSteam) return
     let vivo = true
-    lerSaldo().then((r) => vivo && (ultimo = r.saldo, setSaldo(r.saldo)), () => {})
+    const buscar = () => lerSaldo().then((r) => vivo && (ultimo = r.saldo, setSaldo(r.saldo)), () => {})
+    buscar()
     const ouvir = (e) => setSaldo(e.detail)
     window.addEventListener('np-saldo', ouvir)
+    window.addEventListener('np-mercado', buscar) // venderam um item meu: os NP entraram
     return () => {
       vivo = false
       window.removeEventListener('np-saldo', ouvir)
+      window.removeEventListener('np-mercado', buscar)
     }
   }, [steamId, ativo])
   return saldo
