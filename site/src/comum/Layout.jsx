@@ -5,6 +5,7 @@ import AceitarPartida from './AceitarPartida.jsx'
 import AvisoNivel from './AvisoNivel.jsx'
 import AvisoInsignia from './Insignias.jsx'
 import AvisoSkin from './AvisoSkin.jsx'
+import { AvisoTroca } from './Trocas.jsx'
 import { useLuzCursor } from './efeitos.jsx'
 import Nav from './Nav.jsx'
 import Rodape from './Rodape.jsx'
@@ -65,6 +66,7 @@ export default function Layout({ pagina, children }) {
       <AvisoNivel />
       <AvisoInsignia />
       <AvisoSkin />
+      <AvisoTroca />
       <SincronizarPreferencias />
       <MostrarAposIdioma />
     </>

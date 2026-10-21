@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import CartaoSkin from './CartaoSkin.jsx'
 import { CONFIG } from './config.js'
+import { useConta } from './conta.js'
+import { BotaoTrocas } from './Trocas.jsx'
 import { useT } from './i18n.js'
 import { lerCaixasPublicas } from './loja.js'
 import { indicar, urlImg, useCatalogo } from './skins.js'
@@ -26,6 +28,7 @@ function Imagem({ src }) {
 
 export default function InventarioDoJogador({ steamId, nome, aoFechar }) {
   const t = useT()
+  const conta = useConta()
   const [dados, setDados] = useState(null)
   const [erro, setErro] = useState(false)
   const [aba, setAba] = useState('tudo')
@@ -90,6 +93,7 @@ export default function InventarioDoJogador({ steamId, nome, aoFechar }) {
             {t('Inventário de')} {nome}
           </h2>
           {dados && <span>{contagem('tudo')}</span>}
+          {conta && conta.id !== steamId && <BotaoTrocas para={{ id: steamId, nome }} classe="inv-btn inv-btn-p" />}
           <button type="button" className="ins-est-fechar" onClick={aoFechar} aria-label={t('Fechar')}>
             ×
           </button>

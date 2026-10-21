@@ -39,6 +39,11 @@ class_name = "Presenca"
 name = "LOJA"
 class_name = "Loja"
 
+# Trocas entre jogadores: um objeto global (src/trocas.js) que roda um pedido de cada vez
+[[durable_objects.bindings]]
+name = "TROCAS"
+class_name = "Trocas"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["Presenca"]
@@ -46,3 +51,7 @@ new_sqlite_classes = ["Presenca"]
 [[migrations]]
 tag = "v2"
 new_sqlite_classes = ["Loja"]
+
+[[migrations]]
+tag = "v3"
+new_sqlite_classes = ["Trocas"]

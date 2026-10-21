@@ -17,12 +17,13 @@ export function IconeMochila() {
   )
 }
 
+// Loja: fachada com toldo
 export function IconeCaixa() {
   return (
     <svg className="nx-icone" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M21 8 12 3 3 8v8l9 5 9-5Z" />
-      <path d="m3 8 9 5 9-5" />
-      <path d="M12 13v8" />
+      <path d="M4 9.5V20a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9.5" />
+      <path d="M3.2 9.2 5 3.6A1 1 0 0 1 6 3h12a1 1 0 0 1 .95.6l1.85 5.6a2.4 2.4 0 0 1-4.4 1.8 2.4 2.4 0 0 1-4.4 0 2.4 2.4 0 0 1-4.4 0 2.4 2.4 0 0 1-4.4-1.8Z" />
+      <path d="M9.5 21v-5.5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1V21" />
     </svg>
   )
 }

@@ -268,6 +268,13 @@ export async function avisarSkin(env, id) {
     .catch(() => {})
 }
 
+// Troca nova (ou aceita/recusada) envolvendo a pessoa: o site dela recarrega as trocas na hora (comum/Trocas.jsx)
+export async function avisarTroca(env, id) {
+  await presenca(env)
+    .fetch('https://presenca/mandar', { method: 'POST', body: JSON.stringify({ ids: [id], msg: { tipo: 'troca' } }) })
+    .catch(() => {})
+}
+
 export async function avisarPerfil(env, id, perfil) {
   await presenca(env)
     .fetch('https://presenca/mandar', { method: 'POST', body: JSON.stringify({ ids: [id], msg: { tipo: 'perfil', id, perfil: perfil || null } }) })
