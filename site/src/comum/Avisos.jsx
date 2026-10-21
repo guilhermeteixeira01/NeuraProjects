@@ -71,6 +71,9 @@ function Aviso({ aviso, onFechar }) {
   )
 }
 
+// Os avisos de fim de partida (card no canto e item no sino) foram desligados: ninguém quer notificação a cada mapa.
+export const AVISOS_DE_PARTIDA = false
+
 export default function Avisos() {
   const [avisos, setAvisos] = useState([])
   const conta = useConta()
@@ -84,6 +87,7 @@ export default function Avisos() {
 
   // Partida nova com o site aberto: confere o histórico ao abrir e a cada 30s
   useEffect(() => {
+    if (!AVISOS_DE_PARTIDA) return
     let vivo = true
     const conferir = async () => {
       const lista = await fetch(`/partidas/partidas.json?t=${Date.now()}`, { cache: 'no-store' })
