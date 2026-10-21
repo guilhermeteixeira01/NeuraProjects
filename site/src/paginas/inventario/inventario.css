@@ -295,3 +295,10 @@
 .inv-venda-total { margin: 12px 0 0; font-size: 15px; }
 .inv-venda-total b { color: #f5c518; }
 @media (max-width: 700px) { .inv-selbar { bottom: 76px; } .inv-selbar .inv-btn { flex: 1 1 auto; } }
+
+/* janela aberta: a página de trás não rola (no celular o dedo na arma 3D movia o site inteiro) */
+html.inv-travado, html.inv-travado body { overflow: hidden !important; overscroll-behavior: none; }
+html.inv-travado body { position: fixed; inset: 0; width: 100%; }
+.inv-fundo { overscroll-behavior: contain; touch-action: none; }
+.inv-janela-corpo { touch-action: pan-y; }
+.inv-janela-insp .inv-janela-corpo, .inv-inspecao, .inv-inspecao-3d, .inv-3d, .inv-3d iframe { touch-action: none; overscroll-behavior: none; }
