@@ -36,6 +36,7 @@ export default function AdminLogs({ usuarios }) {
 
   const consulta = useCallback((antes) => `/admin/logs?limite=80${tipo ? `&tipo=${tipo}` : ''}${termo ? `&q=${encodeURIComponent(termo)}` : ''}${antes ? `&antes=${antes}` : ''}`, [tipo, termo])
 
+  // (t é uma função nova a cada render: fora das dependências, senão a lista recarregava sem parar e ficava piscando)
   const recarregar = useCallback(async () => {
     try {
       const d = await chamar(consulta())
@@ -43,9 +44,10 @@ export default function AdminLogs({ usuarios }) {
       setMais(!!d.mais)
       setErro('')
     } catch {
-      setErro(t('Não consegui ler o registro agora.'))
+      setErro('Não consegui ler o registro agora.')
     }
-  }, [consulta, t])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [consulta])
   useEffect(() => {
     setLogs(null)
     recarregar()
@@ -90,7 +92,7 @@ export default function AdminLogs({ usuarios }) {
         </label>
       </div>
 
-      {erro && <p className="adm-pt-erro">{erro}</p>}
+      {erro && <p className="adm-pt-erro">{t(erro)}</p>}
       {logs === null ? (
         <p className="adm-dar-dica">{t('Carregando…')}</p>
       ) : !logs.length ? (

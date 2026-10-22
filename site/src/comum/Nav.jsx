@@ -2,7 +2,7 @@ import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import { CONFIG, MENU } from './config.js'
 import { entrar, linkPerfil, loginAtivo, sair, useConta } from './conta.js'
 import { ICONES_MENU, IconeDiscord, IconeSteam } from './Icones.jsx'
-import { useAcessoPick, useAdmin } from './Moldura.jsx'
+import { useAcessoPick, useAdmin, useNivelSub } from './Moldura.jsx'
 import Configuracoes from './Configuracoes.jsx'
 import { useT } from './i18n.js'
 
@@ -46,6 +46,7 @@ function Conta() {
   const [erroAvatar, setErroAvatar] = useState('')
   const [depositando, setDepositando] = useState(false)
   const [assinando, setAssinando] = useState(false)
+  const jaAssina = Boolean(useNivelSub(conta?.id)) // quem já tem Premium ativo não vê o botão de assinar
   // A foto do token é a do dia do login (vale 30 dias): troca pela atual da Steam
   const fotoAtual = useAvatar(conta?.id)
   const caixa = useRef(null)
@@ -135,16 +136,24 @@ function Conta() {
               <small>{t('LOJA')}</small>
             </a>
           </div>
-          <button
-            type="button"
-            className="cp-premium"
-            onClick={() => {
-              setAberto(false)
-              setAssinando(true)
-            }}
-          >
-            <span aria-hidden="true">★</span> {t('ASSINAR PREMIUM')}
-          </button>
+          {!jaAssina && (
+            <button
+              type="button"
+              className="cp-premium"
+              onClick={() => {
+                setAberto(false)
+                setAssinando(true)
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="m12 2.5 2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9Z" />
+              </svg>
+              <span className="cp-premium-txt">
+                <b>{t('ASSINAR PREMIUM')}</b>
+                <small>{t('Emblema, molduras e mais')}</small>
+              </span>
+            </button>
+          )}
           <a className="cp-perfil" href={linkPerfil(conta.id)}>
             {t('VER PERFIL')}
           </a>
