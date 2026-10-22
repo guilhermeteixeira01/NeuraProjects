@@ -4,7 +4,7 @@
 
 /* ══════════════ Lobby (src/paginas/lobby/Lobby.jsx): grupo + painel de partida, no estilo da FACEIT, com a paleta do site ══════════════ */
 .lb-pagina {
-  position: relative; min-height: calc(100vh / var(--escala-site, 1) - 64px); padding: 22px 0 80px;
+  position: relative; box-sizing: border-box; min-height: calc(100vh / var(--escala-site, 1) - 64px); padding: 22px 0; /* sem rodapé: a página fecha na tela */
   background:
     radial-gradient(70% 38% at 50% 0%, rgb(var(--tinta) / .045), transparent 70%),
     repeating-linear-gradient(135deg, transparent 0 22px, rgb(var(--tinta) / .018) 22px 23px),

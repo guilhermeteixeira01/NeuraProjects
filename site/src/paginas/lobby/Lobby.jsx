@@ -673,7 +673,7 @@ export default function Lobby() {
   const t = useT()
   const pequena = useTelaPequena()
   return (
-    <Layout pagina="lobby">
+    <Layout pagina="lobby" semRodape>
       <main className="lb-pagina">
         <div className="wrap lb-wrap">
           <div className="lb-bloqueio" role="status">

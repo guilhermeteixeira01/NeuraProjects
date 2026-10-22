@@ -46,8 +46,8 @@ export function useRevelar(seletor = '.reveal', classe = 'is-visible', opcoes = 
   }, [seletor, classe])
 }
 
-// Estrutura de toda página: menu, conteúdo, rodapé e avisos de novidade
-export default function Layout({ pagina, children }) {
+// Estrutura de toda página: menu, conteúdo, rodapé (semRodape: página que ocupa só a tela, como o lobby) e avisos de novidade
+export default function Layout({ pagina, semRodape = false, children }) {
   useRevelar()
   useLuzCursor() // cards com a classe "spot" ganham a luz que segue o cursor
   // Imagens não podem ser arrastadas (o CSS -webkit-user-drag não vale no Firefox)
@@ -60,7 +60,7 @@ export default function Layout({ pagina, children }) {
     <>
       <Nav pagina={pagina} />
       {children}
-      <Rodape />
+      {!semRodape && <Rodape />}
       <Avisos />
       <AvisoConvite />
       <AceitarPartida />

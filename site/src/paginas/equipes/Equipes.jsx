@@ -250,6 +250,7 @@ function ChatDoTime({ time, eu, pode }) {
   }, [msgs.length])
 
   const membro = (id) => time.membros.find((m) => m.id === id)
+  const cargoDe = (m) => (m.dono ? { nome: t('Dono'), cor: '#f5c518' } : time.cargos.find((c) => c.id === m.cargo) || { nome: t('Membro'), cor: '#9aa0a8' })
   const enviar = async (e) => {
     e.preventDefault()
     const limpo = texto.trim()
@@ -286,7 +287,12 @@ function ChatDoTime({ time, eu, pode }) {
               <div>
                 <span>
                   <a href={linkPerfil(m.de)}>{quem?.nome || m.nome}</a>
-                  <time>{new Date(m.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time>
+                  {quem && (
+                    <span className="eq-cargo eq-cargo-chat" style={{ '--cor': cargoDe(quem).cor }}>
+                      {cargoDe(quem).nome}
+                    </span>
+                  )}
+                  <time dateTime={new Date(m.ts).toISOString()}>{new Date(m.ts).toLocaleString([], { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</time>
                   {pode('moderar') && (
                     <button type="button" className="eq-apagar-msg" title={t('Apagar mensagem')} onClick={() => acaoEquipe('chat-apagar', { id: m.id }).catch(() => {})}>
                       ×
