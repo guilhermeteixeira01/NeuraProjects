@@ -368,21 +368,43 @@ export default function Inicio() {
         {/* COMUNIDADE */}
         <section className="cta cta-painel" id="comunidade">
           <div className="wrap">
-            <div className="cta-x spot reveal">
-              <div className="cta-inner">
-                <span className="kicker">
-                  <b>04</b> {t('COMUNIDADE')}
+            <div className="cb reveal">
+              <i className="cb-canto cb-c1" />
+              <i className="cb-canto cb-c2" />
+              <i className="cb-canto cb-c3" />
+              <i className="cb-canto cb-c4" />
+              <div className="cb-texto">
+                <span className="cb-tag">
+                  <b>04</b> {t('COMUNIDADE')} <em>// online</em>
                 </span>
-                <h2>{t('Joga com a gente?')}</h2>
-                <p className="lead">{t('Entre na nossa comunidade no Discord para jogar no servidor, participar dos campeonatos e acompanhar o que estamos criando.')}</p>
-                <div className="cta-acoes">
-                  <LinkComunidade className="btn btn-comunidade btn-lg btn-brilho">
-                    <IconeDiscord tamanho={20} /> {t('Entrar no Discord')}
+                <h2 className="cb-titulo" data-glitch={t('Joga com a gente?')}>
+                  {t('Joga com a gente?')}
+                </h2>
+                <p className="cb-lead">{t('Entre na nossa comunidade no Discord para jogar no servidor, participar dos campeonatos e acompanhar o que estamos criando.')}</p>
+                <div className="cb-acoes">
+                  <LinkComunidade className="cb-botao cb-botao-discord">
+                    <IconeDiscord tamanho={20} /> <span>{t('Entrar no Discord')}</span>
                   </LinkComunidade>
-                  <a className="btn btn-ghost btn-lg btn-borda" href="/partidas/">
-                    {t('Ver últimas partidas')}
+                  <a className="cb-botao cb-botao-fantasma" href="/partidas/">
+                    <span>{t('Ver últimas partidas')}</span>
                   </a>
                 </div>
+              </div>
+              <div className="cb-hud" aria-hidden="true">
+                <div className="cb-anel">
+                  <svg viewBox="0 0 200 200">
+                    <circle cx="100" cy="100" r="92" className="cb-r1" />
+                    <circle cx="100" cy="100" r="72" className="cb-r2" />
+                    <circle cx="100" cy="100" r="50" className="cb-r3" />
+                    <path d="M100 8v22M100 170v22M8 100h22M170 100h22" className="cb-marcas" />
+                  </svg>
+                  <span className="cb-nucleo">NP</span>
+                </div>
+                <ul className="cb-log">
+                  <li><b>&gt;</b> link.discord <em>ok</em></li>
+                  <li><b>&gt;</b> servidor.cs2 <em>online</em></li>
+                  <li><b>&gt;</b> campeonatos <em>abertos</em></li>
+                </ul>
               </div>
             </div>
           </div>

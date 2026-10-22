@@ -1344,3 +1344,252 @@ html[data-desempenho] .tc-grupo[aria-hidden='true'] { display: none; }
     padding: 14px 0 20px;
   }
 }
+
+/* ══════════════ COMUNIDADE: painel cyberpunk (HUD com quinas cortadas, neon e glitch) ══════════════ */
+.cb {
+  --cb-ciano: #38e8ff;
+  --cb-magenta: #ff3df2;
+  --cb-azul: #5865f2;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
+  align-items: center;
+  gap: 32px;
+  padding: clamp(36px, 5vw, 68px) clamp(24px, 4.5vw, 64px);
+  text-align: left;
+  isolation: isolate;
+  background:
+    linear-gradient(115deg, rgba(88, 101, 242, 0.2), transparent 45%),
+    linear-gradient(295deg, rgba(255, 61, 242, 0.16), transparent 45%),
+    repeating-linear-gradient(0deg, rgba(56, 232, 255, 0.05) 0 1px, transparent 1px 4px),
+    #060a18;
+  clip-path: polygon(0 0, calc(100% - 38px) 0, 100% 38px, 100% 100%, 38px 100%, 0 calc(100% - 38px));
+  box-shadow: inset 0 0 0 1px rgba(56, 232, 255, 0.35);
+}
+/* grade em perspectiva + varredura neon */
+.cb::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(rgba(56, 232, 255, 0.09) 1px, transparent 1px) 0 0 / 44px 44px,
+    linear-gradient(90deg, rgba(56, 232, 255, 0.09) 1px, transparent 1px) 0 0 / 44px 44px;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 90%);
+  mask-image: linear-gradient(180deg, transparent, #000 90%);
+}
+.cb::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -30%;
+  height: 30%;
+  z-index: -1;
+  background: linear-gradient(180deg, transparent, rgba(56, 232, 255, 0.16), transparent);
+  animation: cb-varre 6s linear infinite;
+}
+@keyframes cb-varre {
+  to {
+    top: 110%;
+  }
+}
+.cb-canto {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 0 solid var(--cb-ciano);
+  filter: drop-shadow(0 0 4px var(--cb-ciano));
+}
+.cb-c1 { top: 12px; left: 12px; border-width: 2px 0 0 2px; }
+.cb-c2 { top: 12px; right: 52px; border-width: 2px 2px 0 0; }
+.cb-c3 { bottom: 52px; left: 12px; border-width: 0 0 2px 2px; border-color: var(--cb-magenta); filter: drop-shadow(0 0 4px var(--cb-magenta)); }
+.cb-c4 { bottom: 12px; right: 12px; border-width: 0 2px 2px 0; border-color: var(--cb-magenta); filter: drop-shadow(0 0 4px var(--cb-magenta)); }
+
+.cb-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 12px/1 var(--font-mono, monospace);
+  letter-spacing: 0.22em;
+  color: var(--cb-ciano);
+  text-shadow: 0 0 10px rgba(56, 232, 255, 0.7);
+}
+.cb-tag b {
+  padding: 4px 7px;
+  background: var(--cb-ciano);
+  color: #04101f;
+  text-shadow: none;
+  clip-path: polygon(0 0, 100% 0, 100% 70%, 80% 100%, 0 100%);
+}
+.cb-tag em {
+  font-style: normal;
+  color: var(--cb-magenta);
+  text-shadow: 0 0 10px rgba(255, 61, 242, 0.7);
+  animation: cb-pisca 1.6s steps(2, end) infinite;
+}
+@keyframes cb-pisca {
+  50% {
+    opacity: 0.3;
+  }
+}
+.cb-titulo {
+  position: relative;
+  margin: 18px 0 14px;
+  font-size: clamp(34px, 5.2vw, 64px);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 0 22px rgba(88, 101, 242, 0.6);
+}
+/* glitch: cópias ciano/magenta deslocadas, só por instantes */
+.cb-titulo::before,
+.cb-titulo::after {
+  content: attr(data-glitch);
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.cb-titulo::before { color: var(--cb-ciano); }
+.cb-titulo::after { color: var(--cb-magenta); }
+.cb-titulo::before { animation: cb-gl1 5s steps(1, end) infinite; }
+.cb-titulo::after { animation: cb-gl2 5s steps(1, end) infinite; }
+@keyframes cb-gl1 {
+  0%, 92%, 100% { opacity: 0; transform: none; }
+  93% { opacity: 0.85; transform: translate(-4px, 1px); clip-path: inset(10% 0 55% 0); }
+  96% { opacity: 0.85; transform: translate(3px, -1px); clip-path: inset(60% 0 8% 0); }
+}
+@keyframes cb-gl2 {
+  0%, 92%, 100% { opacity: 0; transform: none; }
+  94% { opacity: 0.85; transform: translate(4px, -1px); clip-path: inset(45% 0 25% 0); }
+  97% { opacity: 0.85; transform: translate(-3px, 1px); clip-path: inset(5% 0 70% 0); }
+}
+.cb-lead {
+  max-width: 54ch;
+  color: rgba(205, 220, 255, 0.82);
+  font-size: clamp(14px, 1.3vw, 16.5px);
+  line-height: 1.65;
+}
+.cb-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 28px;
+}
+.cb-botao {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 30px;
+  font: 700 13px/1 var(--font-display, 'Chakra Petch', sans-serif);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #fff;
+  overflow: hidden;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  transition: transform 0.2s, box-shadow 0.25s, color 0.25s, background 0.25s;
+}
+.cb-botao > * { position: relative; z-index: 1; }
+.cb-botao-discord {
+  background: linear-gradient(100deg, var(--cb-azul), #7b4dff 60%, var(--cb-magenta));
+  box-shadow: 0 0 26px rgba(123, 77, 255, 0.55);
+}
+.cb-botao-discord::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -45%;
+  width: 30%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: skewX(-18deg);
+  animation: cb-brilho 4s ease-in-out infinite;
+}
+@keyframes cb-brilho {
+  0%, 55% { left: -45%; }
+  85%, 100% { left: 130%; }
+}
+.cb-botao-fantasma {
+  background: rgba(56, 232, 255, 0.06);
+  color: var(--cb-ciano);
+  box-shadow: inset 0 0 0 1px rgba(56, 232, 255, 0.7);
+}
+@media (hover: hover) {
+  .cb-botao:hover { transform: translateY(-2px); }
+  .cb-botao-discord:hover { box-shadow: 0 0 44px rgba(255, 61, 242, 0.7); }
+  .cb-botao-fantasma:hover { background: var(--cb-ciano); color: #04101f; box-shadow: 0 0 30px rgba(56, 232, 255, 0.6); }
+}
+
+/* lado direito: anel HUD + log de status */
+.cb-hud {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+}
+.cb-anel {
+  position: relative;
+  width: clamp(140px, 17vw, 210px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+}
+.cb-anel svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke-width: 2;
+  overflow: visible;
+}
+.cb-r1 { stroke: var(--cb-ciano); stroke-dasharray: 3 9; transform-origin: center; animation: cb-gira 24s linear infinite; filter: drop-shadow(0 0 4px var(--cb-ciano)); }
+.cb-r2 { stroke: var(--cb-magenta); stroke-dasharray: 90 40; transform-origin: center; animation: cb-gira 11s linear infinite reverse; filter: drop-shadow(0 0 4px var(--cb-magenta)); }
+.cb-r3 { stroke: rgba(88, 101, 242, 0.9); stroke-dasharray: 20 14; transform-origin: center; animation: cb-gira 16s linear infinite; }
+.cb-marcas { stroke: var(--cb-ciano); stroke-width: 2; }
+@keyframes cb-gira {
+  to { transform: rotate(360deg); }
+}
+.cb-nucleo {
+  font: 700 clamp(26px, 3vw, 38px) var(--font-display, 'Chakra Petch', sans-serif);
+  letter-spacing: 0.08em;
+  color: #fff;
+  text-shadow: 0 0 18px var(--cb-ciano), 0 0 36px var(--cb-azul);
+}
+.cb-log {
+  list-style: none;
+  margin: 0;
+  padding: 12px 14px;
+  width: 100%;
+  max-width: 250px;
+  text-align: left;
+  font: 500 11.5px/1.9 var(--font-mono, monospace);
+  color: rgba(190, 215, 255, 0.78);
+  background: rgba(3, 8, 20, 0.6);
+  border-left: 2px solid var(--cb-ciano);
+}
+.cb-log b { color: var(--cb-magenta); margin-right: 6px; }
+.cb-log em { font-style: normal; float: right; color: #6dffb0; text-shadow: 0 0 8px rgba(109, 255, 176, 0.6); }
+
+@media (max-width: 860px) {
+  .cb { grid-template-columns: 1fr; text-align: center; gap: 28px; clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 26px 100%, 0 calc(100% - 26px)); }
+  .cb-lead { margin-inline: auto; }
+  .cb-acoes { justify-content: center; }
+  .cb-botao { flex: 1 1 220px; justify-content: center; }
+  .cb-hud { flex-direction: row; justify-content: center; flex-wrap: wrap; }
+  .cb-anel { width: 120px; }
+  .cb-c2 { right: 38px; }
+  .cb-c3 { bottom: 38px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cb::after,
+  .cb-titulo::before,
+  .cb-titulo::after,
+  .cb-botao-discord::after,
+  .cb-tag em,
+  .cb-anel circle { animation: none !important; }
+}

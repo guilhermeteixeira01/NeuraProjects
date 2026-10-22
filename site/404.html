@@ -13,26 +13,20 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/logos/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/logos/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
-<meta name="theme-color" content="#0b0c0f">
+<meta name="theme-color" content="#050914">
+<link rel="preload" as="image" href="/assets/404-foto.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"></noscript>
 <style>
 :root{
-  /* ===== PALETA — ajuste aqui para casar com o resto do site ===== */
-  --bg:#0b0c0f;
+  --bg:#050914;
   --texto:#ffffff;
-  --texto-suave:rgba(255,255,255,.55);
-  --linha:rgba(255,255,255,.28);
-  --verde:#22d37a;   --verde-2:#07803f;   /* pétalas verdes */
-  --azul:#2f7bff;    --azul-2:#0f3fa8;    /* pétalas azuis  */
-  /* ===== FOTO — coloque uma imagem livre (Unsplash/Pexels) aqui ===== */
-  --foto:url("/assets/404-foto.jpg");
+  --ciano:#38bdf8;   --azul:#3b82f6;   --violeta:#a855f7;   --magenta:#ff3df2;   --ambar:#ffb84d;
+  /* A arte do 404 (com o número e o texto desenhados nela): public/assets/404-foto.webp */
+  --foto:url("/assets/404-foto.webp");
 }
-:root[data-tema="claro"]{--bg:#e9e9ec;--texto:#0b0c0f;--texto-suave:rgba(11,12,15,.6);--linha:rgba(11,12,15,.3)}
-:root[data-tema="branco"]{--bg:#fff;--texto:#0b0c0f;--texto-suave:rgba(11,12,15,.6);--linha:rgba(11,12,15,.3)}
-
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{
@@ -40,139 +34,81 @@ body{
   font-family:"JetBrains Mono",ui-monospace,monospace;
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
-.cena{position:fixed;inset:0;overflow:hidden}
+.cena{position:fixed;inset:0;overflow:hidden;background:var(--bg)}
 
-/* ---------- figura / foto ---------- */
+/* ---------- arte ---------- */
 .figura{
-  position:absolute;inset:0;
-  background:var(--foto) 30% center/cover no-repeat;
-  filter:grayscale(.3) contrast(1.06) brightness(.85);
-  transform-origin:30% 50%;
-  animation:respira 14s ease-in-out infinite alternate;
+  position:absolute;inset:-2%;
+  background:var(--foto) center 40%/cover no-repeat;
+  transform:translate3d(var(--px,0px),var(--py,0px),0) scale(1.04);
+  transition:transform .35s ease-out;
+  animation:respira 16s ease-in-out infinite alternate;
+  will-change:transform;
 }
-/* tinta azul/verde sobre a figura (esconde pixelação e liga ao tema) */
-.tinta{position:absolute;inset:0;pointer-events:none;mix-blend-mode:soft-light;opacity:.55;
-  background:linear-gradient(135deg,rgba(47,123,255,.7),rgba(34,211,122,.5))}
-/* grão de filme */
-.grao{position:absolute;inset:0;pointer-events:none;opacity:.10;mix-blend-mode:overlay;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
-.vinheta{position:absolute;inset:0;pointer-events:none;
-  background:
-   linear-gradient(180deg,color-mix(in srgb,var(--bg) 70%,transparent) 0,transparent 20%),
-   linear-gradient(0deg,color-mix(in srgb,var(--bg) 85%,transparent) 0,transparent 22%),
-   linear-gradient(90deg,transparent 0,transparent 30%,color-mix(in srgb,var(--bg) 72%,transparent) 62%,color-mix(in srgb,var(--bg) 90%,transparent) 100%)}
-@keyframes respira{from{transform:scale(1.03) translate(0,0)}to{transform:scale(1.08) translate(-.6vw,-.8vh)}}
+@keyframes respira{from{scale:1}to{scale:1.035}}
+/* quando a página "falha" por um instante (glitch ocasional) */
+.figura.glitch{animation:respira 16s ease-in-out infinite alternate,glitch .22s steps(2,end) 1}
+@keyframes glitch{
+  0%{filter:none;clip-path:inset(0 0 0 0)}
+  20%{filter:hue-rotate(40deg) saturate(1.6);clip-path:inset(12% 0 70% 0);translate:-8px 0}
+  40%{filter:hue-rotate(-30deg);clip-path:inset(58% 0 22% 0);translate:9px 0}
+  60%{filter:saturate(1.8) contrast(1.15);clip-path:inset(30% 0 48% 0);translate:-5px 0}
+  100%{filter:none;clip-path:inset(0 0 0 0);translate:0 0}
+}
+canvas#particulas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+/* leve escurecida só nas bordas de baixo, para o botão ler bem (a arte fica como está) */
+.base{position:absolute;left:0;right:0;bottom:0;height:22%;pointer-events:none;background:linear-gradient(0deg,rgba(3,6,14,.55),transparent)}
 
-canvas#petalas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-
-/* ---------- topo ---------- */
-.topo{position:absolute;top:0;left:0;right:0;display:flex;justify-content:center;padding-top:calc(clamp(12px,2.4vh,26px) + env(safe-area-inset-top,0px));z-index:5}
-.logo{text-align:center;text-decoration:none;color:var(--texto)}
-.logo b{display:block;font:700 clamp(20px,2.6vw,30px)/1 "Chakra Petch",sans-serif;letter-spacing:.14em}
-.logo small{display:block;margin-top:5px;font-size:7px;letter-spacing:.38em;color:var(--texto-suave)}
-.acoes-topo{position:absolute;right:clamp(14px,2vw,28px);top:clamp(14px,2.6vh,28px);display:flex;gap:18px}
-
-.ico{width:18px;height:18px;stroke:var(--texto);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;display:block;transition:transform .25s,opacity .25s;opacity:.9}
-a:hover .ico,button:hover .ico{transform:translateY(-2px);opacity:1}
-.ico.cheio{fill:var(--texto);stroke:none}
-
-/* ---------- linhas laterais ---------- */
-.lateral{position:absolute;top:50%;display:flex;align-items:center;gap:8px;font-size:8px;letter-spacing:.2em;color:var(--texto-suave);z-index:4}
-.lateral i{display:block;width:clamp(40px,6vw,86px);height:1px;background:var(--linha)}
-.lateral.e{left:0}.lateral.d{right:0;flex-direction:row-reverse}
-
-/* ---------- conteúdo ---------- */
-.conteudo{position:absolute;right:clamp(28px,8vw,150px);bottom:clamp(60px,15vh,150px);z-index:6;display:flex;flex-direction:column;align-items:center}
+/* ---------- botão ---------- */
+.conteudo{position:absolute;left:50%;transform:translateX(-50%);bottom:clamp(26px,8vh,86px);z-index:6;display:flex;flex-direction:column;align-items:center;gap:14px;width:max-content;max-width:92vw}
 .botao{
-  position:relative;z-index:20;cursor:pointer;pointer-events:auto;display:inline-block;margin-bottom:clamp(-30px,-3vh,-8px);margin-top:0;
-  padding:clamp(12px,1.6vh,16px) clamp(28px,3.4vw,52px);
-  border:1px solid var(--texto);color:var(--texto);text-decoration:none;
-  font:600 clamp(11px,1.15vw,15px) "Chakra Petch",sans-serif;letter-spacing:.12em;text-transform:uppercase;
-  background:rgba(0,0,0,.25);backdrop-filter:blur(2px);overflow:hidden;
-  transition:color .35s;-webkit-tap-highlight-color:transparent;
-  transform:translateY(-6vh);
+  position:relative;display:inline-flex;align-items:center;gap:14px;cursor:pointer;text-decoration:none;color:var(--texto);
+  padding:clamp(13px,1.8vh,17px) clamp(30px,3.6vw,56px);
+  font:700 clamp(12px,1.15vw,15px) "Chakra Petch",sans-serif;letter-spacing:.2em;text-transform:uppercase;
+  background:linear-gradient(180deg,rgba(15,30,70,.55),rgba(6,12,34,.72));backdrop-filter:blur(4px);
+  clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);
+  box-shadow:inset 0 0 0 1px rgba(56,189,248,.6);
+  transition:color .3s,box-shadow .3s,letter-spacing .3s;-webkit-tap-highlight-color:transparent;
 }
-.botao::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--verde),var(--azul));transform:translateX(-101%);transition:transform .4s cubic-bezier(.7,0,.2,1);z-index:-1}
-@media (hover:hover){.botao:hover{color:#05060a;border-color:transparent}.botao:hover::before{transform:none}}
-.botao:active{color:#05060a;border-color:transparent}.botao:active::before{transform:none}
+.botao::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--ciano),var(--azul) 55%,var(--violeta));opacity:0;transition:opacity .3s}
+.botao span,.botao svg{position:relative;z-index:1}
+.botao svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .3s}
+.botao::after{content:"";position:absolute;top:0;bottom:0;left:-45%;width:30%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-18deg);animation:brilho 4.2s ease-in-out infinite}
+@keyframes brilho{0%,55%{left:-45%}85%,100%{left:130%}}
+@media (hover:hover){
+  .botao:hover{color:#04101f;letter-spacing:.24em;box-shadow:0 0 0 1px rgba(56,189,248,.9),0 0 38px rgba(59,130,246,.65)}
+  .botao:hover::before{opacity:1}
+  .botao:hover svg{transform:translateX(-4px)}
+}
+.botao:active::before{opacity:1}
+.botao:active{color:#04101f}
+.dica{font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:rgba(190,215,255,.7);text-shadow:0 0 10px rgba(56,189,248,.6)}
+.dica i{display:inline-block;width:6px;height:6px;margin-right:9px;border-radius:50%;background:var(--ciano);box-shadow:0 0 10px var(--ciano);animation:pisca 1.4s ease-in-out infinite}
+@keyframes pisca{50%{opacity:.25}}
 
-.numero{position:relative;z-index:1;pointer-events:none;display:flex;align-items:flex-end}
-.numero h1{
-  font:700 min(clamp(130px,27vw,400px),50vh)/.82 "Chakra Petch",sans-serif;letter-spacing:-.02em;color:var(--texto);
-  text-shadow:0 0 70px rgba(47,123,255,.28),0 0 140px rgba(34,211,122,.16);
-  animation:entra 1.1s cubic-bezier(.2,.8,.2,1) both;
-}
-.numero h1 span:nth-child(2){display:inline-block;animation:vira 1.4s .2s cubic-bezier(.2,.8,.2,1) both}
-.vertical{
-  writing-mode:vertical-rl;transform:rotate(180deg);
-  font:500 clamp(8px,.9vw,12px) "JetBrains Mono",monospace;letter-spacing:.32em;text-transform:uppercase;color:var(--texto);
-  margin-left:clamp(6px,1vw,14px);padding-bottom:.4em;align-self:flex-start;margin-top:.6em;
-}
-@keyframes entra{from{opacity:0;transform:translateY(40px) scale(.96)}to{opacity:1;transform:none}}
-@keyframes vira{from{transform:rotateY(90deg)}to{transform:none}}
-
-/* ---------- rodapé ---------- */
-.rodape{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;padding:clamp(12px,2.4vh,24px) clamp(14px,2vw,28px) calc(clamp(12px,2.4vh,24px) + env(safe-area-inset-bottom,0px));z-index:6}
-.grupo{display:flex;gap:18px;align-items:center}
-.pontos{display:flex;gap:5px}
-.pontos i{width:4px;height:4px;border-radius:50%;background:var(--texto-suave)}
-.pontos i:nth-child(2){background:var(--verde)}
-
-/* ---------- responsivo ---------- */
-@media (max-width:1100px){
-  .conteudo{right:clamp(20px,5vw,80px)}
-}
 @media (max-width:760px){
-  .figura{background-position:24% center}
-  .vinheta{background:
-    linear-gradient(180deg,color-mix(in srgb,var(--bg) 65%,transparent) 0,transparent 20%),
-    linear-gradient(180deg,transparent 30%,color-mix(in srgb,var(--bg) 60%,transparent) 55%,color-mix(in srgb,var(--bg) 94%,transparent) 100%)}
-  .conteudo{right:auto;left:50%;transform:translateX(-50%);bottom:calc(9vh + env(safe-area-inset-bottom,0px))}
-  .botao{transform:none;margin:0 0 16px;padding:13px 30px;font-size:12px}
-  .numero h1{font:700 min(clamp(110px,42vw,230px),36vh)/.82 "Chakra Petch",sans-serif}
-  .vertical{font-size:8px;letter-spacing:.26em;margin-left:8px}
-  .lateral{display:none}
-  .logo b{font-size:20px}
-  .logo small{font-size:6px}
-}
-@media (max-height:520px) and (orientation:landscape){
-  .conteudo{bottom:7vh;right:5vw;left:auto;transform:none}
-  .botao{transform:none;margin:0 0 10px;padding:9px 24px;font-size:11px}
-  .numero h1{font-size:min(30vw,52vh)}
-  .logo small,.lateral{display:none}
+  .figura{background-position:center 38%}
+  .conteudo{bottom:calc(7vh + env(safe-area-inset-bottom,0px))}
+  .botao{padding:13px 28px;font-size:12px;letter-spacing:.16em}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-:root[data-desempenho="1"] .figura{animation:none}
-:root[data-desempenho="1"] canvas#petalas{display:none}
+:root[data-desempenho="1"] .figura{animation:none;transition:none}
+:root[data-desempenho="1"] canvas#particulas{display:none}
 </style>
 </head>
 <body>
 <main class="cena">
-  <!-- Figura: arquivo /assets/404-foto.jpg (veja --foto no CSS) -->
-  <div class="figura" role="img" aria-label=""></div>
-  <div class="tinta"></div>
-  <div class="vinheta"></div>
-  <div class="grao"></div>
-  <canvas id="petalas"></canvas>
-
-  <header class="topo">
-    <a class="logo" href="/" aria-label="Neura Project"><b>NEURA</b><small>PROJECT · 404 · ERROR</small></a>
-  </header>
-
-  <div class="lateral e"><i></i><span>ERR</span></div>
-  <div class="lateral d"><i></i><span>404</span></div>
+  <div class="figura" role="img" aria-label="404 — Página não encontrada"></div>
+  <canvas id="particulas" aria-hidden="true"></canvas>
+  <div class="base"></div>
 
   <section class="conteudo">
-    <a class="botao" href="/" data-i18n>Voltar ao início</a>
-    <div class="numero">
-      <h1 aria-label="404"><span>4</span><span>0</span><span>4</span></h1>
-      <span class="vertical">Página não encontrada</span>
-    </div>
+    <a class="botao" href="/" aria-label="Voltar ao início">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+      <span data-i18n>Voltar ao início</span>
+    </a>
+    <span class="dica"><i></i><span class="dica-txt">Erro 404 · sinal perdido</span></span>
   </section>
-
-  <footer class="rodape">
-    <div class="pontos"><i></i><i></i><i></i></div>
-  </footer>
 </main>
 
 <script>
@@ -182,44 +118,80 @@ a:hover .ico,button:hover .ico{transform:translateY(-2px);opacity:1}
 /* Textos EN/ES (usa o idioma salvo em np_idioma) */
 (function(){
   var L=document.documentElement.lang,T={
-    en:{t:"Page not found — Neura Project",b:"Back home",v:"Page not found"},
-    es:{t:"Página no encontrada — Neura Project",b:"Volver al inicio",v:"Página no encontrada"}}[L];
+    en:{t:"Page not found — Neura Project",b:"Back home",d:"Error 404 · signal lost",a:"404 — Page not found"},
+    es:{t:"Página no encontrada — Neura Project",b:"Volver al inicio",d:"Error 404 · señal perdida",a:"404 — Página no encontrada"}}[L];
   if(!T)return;document.title=T.t;
-  document.querySelector('.botao').textContent=T.b;
-  document.querySelector('.vertical').textContent=T.v;
+  document.querySelector('.botao span').textContent=T.b;
+  document.querySelector('.botao').setAttribute('aria-label',T.b);
+  document.querySelector('.dica-txt').textContent=T.d;
+  document.querySelector('.figura').setAttribute('aria-label',T.a);
 })();
 
-/* Pétalas caindo */
+/* Partículas cyberpunk: chuva fina, poeira de luz (âmbar das janelas) e faíscas neon (ciano, azul, violeta e magenta), tudo com brilho aditivo. */
 (function(){
-  var c=document.getElementById('petalas');if(!c||getComputedStyle(c).display==='none')return;
-  var x=c.getContext('2d'),W,H,dpr=Math.min(devicePixelRatio||1,2),P=[],
-  cs=getComputedStyle(document.documentElement),
-  V=[cs.getPropertyValue('--verde').trim()||'#22d37a',cs.getPropertyValue('--verde-2').trim()||'#07803f'],Z=[cs.getPropertyValue('--azul').trim()||'#2f7bff',cs.getPropertyValue('--azul-2').trim()||'#0f3fa8'];
-  function size(){W=c.width=innerWidth*dpr;H=c.height=innerHeight*dpr}
+  var c=document.getElementById('particulas');if(!c||getComputedStyle(c).display==='none')return;
+  var x=c.getContext('2d'),W,H,dpr=Math.min(devicePixelRatio||1,2),
+      leve=matchMedia('(pointer:coarse)').matches||innerWidth<760,
+      NEON=['56,189,248','59,130,246','168,85,247','255,61,242'],AMBAR='255,184,77';
+  var rand=function(a,b){return a+Math.random()*(b-a)};
+  function size(){W=c.width=Math.round(innerWidth*dpr);H=c.height=Math.round(innerHeight*dpr)}
   addEventListener('resize',size);size();
-  function nova(topo){
-    var k=Math.max(.5,Math.min(1,innerWidth/1300)),r0=Math.random(),gig=r0<.07,grande=!gig&&r0<.25,s=(gig?90+Math.random()*50:grande?38+Math.random()*14:14+Math.random()*12)*dpr*k;
-    return{x:Math.random()*W,y:topo?-s*2:Math.random()*H,s:s,
-      vy:(gig?2.4:grande?1.7:.8+Math.random()*1.1)*dpr,vx:(Math.random()-.4)*.5*dpr,
-      r:Math.random()*6.28,vr:(Math.random()-.5)*.04,
-      sw:Math.random()*6.28,swv:.01+Math.random()*.02,
-      a:gig?.32:grande?.6:.92,blur:grande||gig,bl:gig?9:4,cor:Math.random()<.5?V:Z}}
-  var N=innerWidth<760?16:30;for(var i=0;i<N;i++)P.push(nova(false));
-  function petala(p){
-    var s=p.s;x.save();x.translate(p.x,p.y);x.rotate(p.r);
-    x.scale(1,.55+.45*Math.abs(Math.sin(p.sw)));x.globalAlpha=p.a;
-    if(p.blur)x.filter='blur('+(p.bl||4)*dpr+'px)';
-    var g=x.createRadialGradient(0,-s*.2,s*.1,0,0,s);g.addColorStop(0,p.cor[0]);g.addColorStop(1,p.cor[1]);
-    x.fillStyle=g;x.beginPath();x.moveTo(0,-s);
-    x.bezierCurveTo(s*.9,-s*.6,s*.8,s*.7,0,s);
-    x.bezierCurveTo(-s*.8,s*.7,-s*.9,-s*.6,0,-s);x.fill();x.restore()}
-  function loop(){
-    x.clearRect(0,0,W,H);
-    P.forEach(function(p,i){
-      p.y+=p.vy;p.sw+=p.swv;p.x+=p.vx+Math.sin(p.sw)*.8*dpr;p.r+=p.vr;
-      if(p.y>H+p.s*2||p.x<-100||p.x>W+100)P[i]=nova(true);petala(p)});
-    requestAnimationFrame(loop)}
-  loop();
+
+  /* chuva */
+  var chuva=[],NC=leve?55:120;
+  function gota(topo){var v=rand(16,30)*dpr;return{x:rand(-.1,1.1)*W,y:topo?-rand(0,.3)*H:rand(0,H),v:v,l:rand(12,30)*dpr*(v/(22*dpr)),a:rand(.1,.32),w:rand(.6,1.2)*dpr}}
+  for(var i=0;i<NC;i++)chuva.push(gota(false));
+
+  /* poeira de luz */
+  var poeira=[],NP=leve?40:90;
+  function mota(){var amb=Math.random()<.45;return{x:rand(0,W),y:rand(0,H),r:rand(.7,2.3)*dpr,vy:-rand(.1,.45)*dpr,vx:rand(-.15,.15)*dpr,fase:rand(0,6.28),vf:rand(.012,.035),cor:amb?AMBAR:NEON[Math.floor(Math.random()*2)]}}
+  for(i=0;i<NP;i++)poeira.push(mota());
+
+  /* faíscas neon com rastro curto */
+  var faiscas=[],NF=leve?10:24;
+  function faisca(){var cor=NEON[Math.floor(Math.random()*NEON.length)];return{x:rand(0,W),y:H+rand(0,.2)*H,vx:rand(-.5,.9)*dpr,vy:-rand(.9,2.6)*dpr,r:rand(1.3,3)*dpr,vida:rand(.5,1),cor:cor,rastro:[],osc:rand(0,6.28),vo:rand(.02,.06)}}
+  for(i=0;i<NF;i++){var f=faisca();f.y=rand(0,H);faiscas.push(f)}
+
+  var vento=0;
+  function quadro(){
+    x.clearRect(0,0,W,H);x.globalCompositeOperation='lighter';
+    /* chuva */
+    x.lineCap='round';
+    for(var i=0;i<chuva.length;i++){var g=chuva[i];
+      g.y+=g.v;g.x-=g.v*.12;
+      if(g.y>H+g.l||g.x<-40){chuva[i]=gota(true);g=chuva[i]}
+      x.strokeStyle='rgba(150,200,255,'+g.a+')';x.lineWidth=g.w;
+      x.beginPath();x.moveTo(g.x,g.y);x.lineTo(g.x+g.l*.12,g.y-g.l);x.stroke()}
+    /* poeira */
+    for(i=0;i<poeira.length;i++){var m=poeira[i];
+      m.fase+=m.vf;m.y+=m.vy;m.x+=m.vx+Math.sin(m.fase)*.25*dpr;
+      if(m.y<-10||m.x<-10||m.x>W+10){poeira[i]=mota();poeira[i].y=H+5;m=poeira[i]}
+      var a=.25+.55*Math.abs(Math.sin(m.fase*1.3));
+      var gr=x.createRadialGradient(m.x,m.y,0,m.x,m.y,m.r*4);
+      gr.addColorStop(0,'rgba('+m.cor+','+a+')');gr.addColorStop(1,'rgba('+m.cor+',0)');
+      x.fillStyle=gr;x.beginPath();x.arc(m.x,m.y,m.r*4,0,6.283);x.fill()}
+    /* faíscas */
+    for(i=0;i<faiscas.length;i++){var s=faiscas[i];
+      s.osc+=s.vo;s.x+=s.vx+Math.sin(s.osc)*.9*dpr;s.y+=s.vy;s.vida-=.0022;
+      s.rastro.push(s.x,s.y);if(s.rastro.length>16)s.rastro.splice(0,2);
+      if(s.y<-20||s.vida<=0){faiscas[i]=faisca();continue}
+      var al=Math.min(1,s.vida*1.6);
+      for(var k=0;k<s.rastro.length;k+=2){var t=k/s.rastro.length;
+        x.fillStyle='rgba('+s.cor+','+(al*t*.35)+')';x.beginPath();x.arc(s.rastro[k],s.rastro[k+1],s.r*t,0,6.283);x.fill()}
+      var gs=x.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r*6);
+      gs.addColorStop(0,'rgba(255,255,255,'+al+')');gs.addColorStop(.25,'rgba('+s.cor+','+al*.85+')');gs.addColorStop(1,'rgba('+s.cor+',0)');
+      x.fillStyle=gs;x.beginPath();x.arc(s.x,s.y,s.r*6,0,6.283);x.fill()}
+    x.globalCompositeOperation='source-over';
+    requestAnimationFrame(quadro)}
+  quadro();
+
+  /* parallax leve com o mouse e glitch ocasional (só no computador) */
+  var fig=document.querySelector('.figura');
+  if(!leve){
+    addEventListener('pointermove',function(e){
+      fig.style.setProperty('--px',((e.clientX/innerWidth-.5)*-14)+'px');
+      fig.style.setProperty('--py',((e.clientY/innerHeight-.5)*-10)+'px')});
+    (function glitch(){setTimeout(function(){fig.classList.add('glitch');setTimeout(function(){fig.classList.remove('glitch')},260);glitch()},rand(6000,13000))})()}
 })();
 </script>
 </body>
