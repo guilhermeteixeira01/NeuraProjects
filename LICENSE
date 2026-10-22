@@ -1,0 +1,60 @@
+Copyright (c) 2026 Neura Project (guilhermeteixeira01). Todos os direitos reservados.
+Copyright (c) 2026 Neura Project (guilhermeteixeira01). All rights reserved.
+
+LICENÇA PROPRIETÁRIA / PROPRIETARY LICENSE
+
+Este repositório e tudo que há nele — código-fonte, scripts, configurações, textos,
+imagens, logotipos, molduras, cards, caixas, ilustrações, sons, dados e a marca
+"Neura Project" e "NP" (o "Software") — é propriedade exclusiva dos titulares
+acima e está protegido pelas leis de direitos autorais e de propriedade intelectual.
+
+1. O que é permitido
+   Você pode visualizar o código neste repositório para fins pessoais de leitura e
+   consulta, e usar o site publicado normalmente, como visitante ou jogador,
+   conforme os Termos de Uso do site.
+
+2. O que NÃO é permitido sem autorização prévia e por escrito dos titulares
+   a) copiar, reproduzir, modificar, traduzir ou criar obras derivadas do Software;
+   b) distribuir, publicar, sublicenciar, vender, alugar ou disponibilizar o Software,
+      no todo ou em parte, a terceiros;
+   c) hospedar ou operar o Software, ou uma versão dele, como serviço, site ou
+      servidor próprio ou de terceiros;
+   d) usar o nome, a marca, os logotipos, as imagens e demais materiais visuais do
+      Neura Project, nem imitá-los de forma que gere confusão;
+   e) fazer engenharia reversa, extrair ou reutilizar imagens, dados, preços,
+      tabelas de caixas e demais conteúdos do Software;
+   f) usar o Software para treinar modelos de inteligência artificial.
+
+3. Contribuições
+   Qualquer contribuição enviada a este repositório (código, texto, arte) passa a
+   poder ser usada pelos titulares sem restrição, sem direito a remuneração, salvo
+   acordo escrito diferente.
+
+4. Itens de terceiros
+   Nomes, marcas, imagens e dados de terceiros (como Counter-Strike, Valve, Steam,
+   Discord e Asaas) pertencem aos seus respectivos donos e não são licenciados por
+   este documento. Dependências de código aberto usadas pelo projeto continuam sob
+   as licenças delas.
+
+5. Ausência de garantia
+   O Software é fornecido "como está", sem garantia de qualquer tipo, expressa ou
+   implícita, incluindo comercialização, adequação a uma finalidade específica e
+   não violação. Os titulares não respondem por danos decorrentes do uso do Software.
+
+6. Encerramento
+   Qualquer uso em desacordo com esta licença encerra automaticamente qualquer
+   permissão aqui dada, sem prejuízo das medidas legais cabíveis.
+
+Para pedir autorização de uso, fale com os titulares pelo Discord do Neura Project.
+
+---
+
+This repository and everything in it (source code, scripts, configuration, text,
+images, logos, frames, cards, crates, artwork, sounds, data, and the "Neura Project"
+and "NP" names and marks) is the exclusive property of the copyright holders above.
+You may read the code for personal reference and use the published website as a
+normal visitor. Any other use — copying, modifying, redistributing, hosting, selling,
+reusing the brand or artwork, or training AI models on it — requires prior written
+permission from the copyright holders. The Software is provided "as is", without
+warranty of any kind. Third-party names, marks and open-source dependencies remain
+under their owners' terms.
