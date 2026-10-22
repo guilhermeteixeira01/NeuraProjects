@@ -3,7 +3,7 @@
 // (página do lobby). Se alguém não aceitar a partida cai (o time que aceitou inteiro volta para a fila; ver src/amigos.js no worker).
 // Só no computador, como o lobby (CSS em site.css).
 import { useEffect, useState } from 'react'
-import { acaoLobby, msAte, useLobby, useRelogio } from './lobby.js'
+import { acaoLobby, carregarLobby, msAte, useLobby, useRelogio } from './lobby.js'
 import { useT } from './i18n.js'
 
 // Os sons do NeuraPick só são baixados quando uma partida aparece (esta peça está em todas as páginas)
@@ -17,6 +17,11 @@ export default function AceitarPartida() {
   const partida = conta ? dados?.partida : null
   const fase = partida?.fase
   useRelogio(fase === 'aceitar')
+
+  // Este componente fica montado em todas as páginas: o "ocupado" de uma partida anterior (que caiu ou foi recusada) não pode
+  // passar para a próxima, senão o botão novo nasce travado e só atualizando a página para clicar
+  const idPartida = partida?.id
+  useEffect(() => setOcupado(false), [idPartida, fase])
 
   // Todos aceitaram: leva para a sala do veto (a página do lobby mostra a sala)
   useEffect(() => {
@@ -40,7 +45,9 @@ export default function AceitarPartida() {
     try {
       await acaoLobby(acao)
     } catch {
-      setOcupado(false) // o aviso do worker chega pela conexão; tenta de novo se foi falha de rede
+      carregarLobby() // falha de rede: confere o estado real (talvez o aceite tenha passado) e deixa tentar de novo
+    } finally {
+      setOcupado(false) // aceitei = vem do estado do servidor; nunca fica travado esperando
     }
   }
 
