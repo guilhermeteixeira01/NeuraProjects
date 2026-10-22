@@ -156,7 +156,9 @@ export class Equipes {
     // Lista pública (sem login): só os times criados no site, para o carrossel, o Pick & Ban e o plugin
     if (acao === 'publico') {
       const linhas = this.sql.exec('SELECT id, nome, tag, img_ver FROM equipes ORDER BY nome COLLATE NOCASE LIMIT 500').toArray()
-      return { times: linhas.map((e) => ({ nome: e.nome, tag: e.tag, logo: e.img_ver ? `/equipes/imagem?id=${e.id}&v=${e.img_ver}` : '' })) }
+      const nomes = Object.fromEntries(linhas.map((e) => [e.id, e.nome]))
+      const doMembro = Object.fromEntries(this.sql.exec('SELECT steam, equipe FROM membros').toArray().map((m) => [m.steam, nomes[m.equipe]]).filter((x) => x[1]))
+      return { membros: doMembro, times: linhas.map((e) => ({ nome: e.nome, tag: e.tag, logo: e.img_ver ? `/equipes/imagem?id=${e.id}&v=${e.img_ver}` : '' })) }
     }
     if (!ID_STEAM.test(String(quem))) throw new Error('login')
     const u = await usuarios(this.env)
@@ -432,6 +434,16 @@ export async function rotaListaPublicaEquipes(url, env) {
 }
 
 // GET /equipes/imagem?id=&v= (público): a imagem do time; o "v" muda quando a imagem muda, então o navegador pode guardar por muito tempo
+// Time de cada jogador (o que vale é o time em que ele está): { steamId: nomeDoTime }, guardado na memória por 15s
+let timesDosJogadores = { ate: 0, mapa: {} }
+export async function timeDosJogadores(env) {
+  if (Date.now() < timesDosJogadores.ate) return timesDosJogadores.mapa
+  const r = await chamar(env, { acao: 'publico' })
+  const d = await r.json().catch(() => null)
+  if (d) timesDosJogadores = { ate: Date.now() + 15_000, mapa: d.membros || {} }
+  return timesDosJogadores.mapa
+}
+
 export async function rotaImagemEquipe(url, env) {
   const id = url.searchParams.get('id') || ''
   if (!/^[a-z0-9]{6,16}$/.test(id)) return new Response('', { status: 404 })

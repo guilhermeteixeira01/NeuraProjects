@@ -111,7 +111,6 @@ function Usuarios({ usuarios, painel, dono, editar }) {
               <th />
               <th className="esq">{tr('JOGADOR')}</th>
               <th className="esq">{tr('NÍVEL')}</th>
-              <th className="esq">{tr('TIME')}</th>
               <th className="esq">{tr('SITUAÇÃO')}</th>
               <th>{tr('ÚLTIMO ACESSO')}</th>
             </tr>
@@ -149,7 +148,6 @@ function Usuarios({ usuarios, painel, dono, editar }) {
                       </span>
                     </span>
                   </td>
-                  <td className="esq">{u.perfil.time || <span className="adm-nada">—</span>}</td>
                   <td className="esq">
                     {/* No máximo 1 selo e o "+N" com o resto. Dono/Admin não entram aqui: viram o ícone ao lado do nome */}
                     <span className="adm-tags">
@@ -182,7 +180,6 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
   const tr = useT()
   const [personalizando, setPersonalizando] = useState(false)
   const [moldura, setMoldura] = useState(u.perfil.moldura || '')
-  const [time, setTime] = useState(u.perfil.time || '')
   const [card, setCard] = useState(u.perfil.card || '')
   const [ajuste, setAjuste] = useState(u.ajuste)
   const [bloqueado, setBloqueado] = useState(!!u.perfil.bloqueado)
@@ -210,8 +207,8 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
       setEstado(mensagemErro(e))
     }
   }
-  const salvar = () => enviar({ moldura: moldura || null, time: time || null, card: card || null, xp: Math.round(Number(ajuste) || 0), bloqueado, cargos: meus, insignias })
-  const limpar = async () => (await confirmar(tr('Apagar moldura, time, ajuste de XP, cargos e bloqueio de {nome}? (as insígnias ficam)', { nome: u.nome || u.id }), { perigo: true, ok: tr('Apagar') })) && enviar({ limpar: true })
+  const salvar = () => enviar({ moldura: moldura || null, card: card || null, xp: Math.round(Number(ajuste) || 0), bloqueado, cargos: meus, insignias })
+  const limpar = async () => (await confirmar(tr('Apagar moldura, ajuste de XP, cargos e bloqueio de {nome}? (as insígnias ficam)', { nome: u.nome || u.id }), { perigo: true, ok: tr('Apagar') })) && enviar({ limpar: true })
 
   return (
     <div className="sm-fundo" onClick={fechar}>
@@ -258,13 +255,10 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
           </label>
 
           <div className="adm-campo">
-            <span>{tr('Moldura, time e card')}</span>
+            <span>{tr('Moldura e card')}</span>
             <button type="button" className="adm-personalizar" onClick={() => setPersonalizando(true)}>
               <span>
                 {tr('Moldura')}: <b className="adm-mold-atual">{molduraPorId(moldura)?.nome || tr('Sem moldura')}</b>
-              </span>
-              <span>
-                {tr('Time')}: <b className="adm-mold-atual">{time || tr('Sem time')}</b>
               </span>
               <span>
                 {tr('Card')}: <b className="adm-mold-atual">{card ? nomeCard(card) : tr('Sem card')}</b>
@@ -281,10 +275,9 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
                 nome={u.nome || u.id}
                 nivel={previa.nivel}
                 admin
-                inicial={{ moldura: moldura || null, time: time || null, card: card || null }}
+                inicial={{ moldura: moldura || null, card: card || null }}
                 aoSalvar={(e) => {
                   setMoldura(e.moldura || '')
-                  setTime(e.time || '')
                   setCard(e.card || '')
                 }}
                 fechar={() => setPersonalizando(false)}
@@ -342,7 +335,7 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
               <small>
                 {ehAdmin
                   ? tr('Este usuário é admin: o bloqueio não vale para admins (eles continuam podendo personalizar).')
-                  : tr('O jogador não consegue mais trocar a moldura nem o time sozinho.')}
+                  : tr('O jogador não consegue mais trocar a moldura sozinho.')}
               </small>
             </span>
           </label>

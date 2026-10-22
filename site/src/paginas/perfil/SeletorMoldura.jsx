@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { CamadaMoldura, EmblemaDe, IconeDoCargo, SeloCargo, cargoDaMoldura, cargoDoCard, nivelDoCard, semSubMinima, subDaMoldura, subDoCard, useCargosIdsDe, useNivelSub, nivelDaMoldura, salvarPerfil, useConfigSite, useListaTimes, usePerfis } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, EmblemaDe, IconeDoCargo, SeloCargo, cargoDaMoldura, cargoDoCard, nivelDoCard, semSubMinima, subDaMoldura, subDoCard, useCargosIdsDe, useNivelSub, nivelDaMoldura, salvarPerfil, useConfigSite, usePerfis } from '../../comum/Moldura.jsx'
 import { tituloNivel, urlEmblema } from '../../comum/assinatura.js'
 import { COLECOES, MOLDURAS, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { urlOk } from '../../comum/dados.js'
@@ -19,19 +19,10 @@ function CadeadoMini({ tamanho = 12 }) {
   )
 }
 
-function Logo({ url, nome, classe }) {
-  const [erro, setErro] = useState(false)
-  return urlOk(url) && !erro ? (
-    <img className={classe} src={url} alt="" loading="lazy" onError={() => setErro(true)} />
-  ) : (
-    <span className={`${classe} sm-logo-ini`}>{String(nome || '?').slice(0, 1).toUpperCase()}</span>
-  )
-}
-
-// Janela "Personalizar perfil": aba Moldura (moldura do avatar) e aba Time (time que aparece no ranking e no
-// perfil). A prévia mostra as duas escolhas; Salvar manda as duas juntas e todas as páginas passam a mostrar.
+// Janela "Personalizar perfil": aba Moldura (moldura do avatar) e aba Card. O time não se escolhe: vale o time criado em que o jogador está
+// (ou "sem time"). A prévia mostra as escolhas; Salvar manda as duas juntas e todas as páginas passam a mostrar.
 // nivel: nível de quem está personalizando; admin: sem trava de nível
-// Editando outro jogador (painel admin): inicial = { moldura, time } de partida e aoSalvar(escolha) no lugar de salvar no perfil
+// Editando outro jogador (painel admin): inicial = { moldura, card } de partida e aoSalvar(escolha) no lugar de salvar no perfil
 export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin = false, inicial = null, aoSalvar = null, fechar }) {
   const tr = useT()
   const perfis = usePerfis()
@@ -58,11 +49,10 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   }
   const travadoCard = (c) => (!admin && nivelDoCard(config, c) > nivelEf) || semCargoCard(c) || semSubC(c)
   const [falta, setFalta] = useState(0) // nível exigido, quando o worker recusa
-  const times = useListaTimes()
-  const salvo = { moldura: perfil.moldura || null, time: perfil.time || null, card: perfil.card ? idCard(perfil.card) : null }
+  const salvo = { moldura: perfil.moldura || null, card: perfil.card ? idCard(perfil.card) : null }
   const [escolha, setEscolha] = useState(salvo)
   const [mexeu, setMexeu] = useState(false)
-  const [aba, setAba] = useState('moldura') // 'moldura' | 'time' | 'card'
+  const [aba, setAba] = useState('moldura') // 'moldura' | 'card'
   const [colecao, setColecao] = useState('todas')
   const [temaAberto, setTemaAberto] = useState('todas') // tema (pasta) dos cards
   const [busca, setBusca] = useState('')
@@ -78,8 +68,8 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
 
   // O perfil salvo pode chegar depois de abrir: enquanto não mexeu em nada, acompanha ele
   useEffect(() => {
-    if (!mexeu) setEscolha({ moldura: perfil.moldura || null, time: perfil.time || null, card: perfil.card ? idCard(perfil.card) : null })
-  }, [perfil.moldura, perfil.time, perfil.card, mexeu])
+    if (!mexeu) setEscolha({ moldura: perfil.moldura || null, card: perfil.card ? idCard(perfil.card) : null })
+  }, [perfil.moldura, perfil.card, mexeu])
 
   const cancelar = useCallback(() => fechar(), [fechar])
 
@@ -321,8 +311,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   const grupos = (colecao === 'todas' ? COLECOES : [colecao]).map((c) => [c, ordenar(MOLDURAS.filter((m) => m.colecao === c))]).filter(([, l]) => l.length)
   const algumaPresa = MOLDURAS.some((m) => travada(m.id))
   const moldura = molduraPorId(escolha.moldura)
-  const time = times.find((t) => t.nome === escolha.time) || null
-  const mudou = escolha.moldura !== salvo.moldura || escolha.time !== salvo.time || escolha.card !== salvo.card
+  const mudou = escolha.moldura !== salvo.moldura || escolha.card !== salvo.card
 
   const salvar = async () => {
     if (aoSalvar) {
@@ -334,7 +323,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
     try {
       // só manda o que mudou (o worker confere as travas de cada item novo; o que já estava salvo não é reavaliado)
       const mudancas = {}
-      for (const k of ['moldura', 'time', 'card']) if (escolha[k] !== salvo[k]) mudancas[k] = escolha[k]
+      for (const k of ['moldura', 'card']) if (escolha[k] !== salvo[k]) mudancas[k] = escolha[k]
       await salvarPerfil(mudancas)
       fechar()
     } catch (e) {
@@ -377,13 +366,6 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                 <span className="sm-resumo-rot">{tr('Card')}</span>
                 <span className="sm-resumo-val">{escolha.card ? nomeCard(escolha.card) : tr('Sem card')}</span>
               </button>
-              <button type="button" className={`sm-resumo-linha${aba === 'time' ? ' ativa' : ''}`} onClick={() => setAba('time')}>
-                <span className="sm-resumo-rot">{tr('Time')}</span>
-                <span className="sm-resumo-val">
-                  {time && <Logo url={time.logo} nome={time.nome} classe="sm-logo" />}
-                  {time ? time.nome : tr('Sem time')}
-                </span>
-              </button>
             </div>
           </div>
 
@@ -391,7 +373,6 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
             <div className="sm-abas" role="tablist" aria-label={tr('O que personalizar')}>
               {[
                 ['moldura', 'Moldura'],
-                ['time', 'Time'],
                 ['card', 'Card'],
               ].map(([id, rotulo]) => (
                 <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'active' : ''} onClick={() => setAba(id)}>
@@ -451,7 +432,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                   )}
                 </div>
               </>
-            ) : aba === 'card' ? (
+            ) : (
               <>
                 <div className="sm-ferramentas">
                   <div className="sm-colecoes" role="tablist" aria-label={tr('Temas')}>
@@ -489,24 +470,6 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                 ))}
               </div>
               </>
-            ) : (
-              <div className="sm-rolagem">
-              <div className="sm-grade sm-grade-times">
-                <button type="button" className={`sm-item sem${escolha.time === null ? ' sel' : ''}`} onClick={() => escolher('time', null)} aria-pressed={escolha.time === null}>
-                  <span className="sm-sem-icone">
-                    <IconeNenhum />
-                  </span>
-                  <span>{tr('Sem time')}</span>
-                </button>
-                {times.map((t) => (
-                  <button key={t.nome} type="button" className={`sm-item${escolha.time === t.nome ? ' sel' : ''}`} onClick={() => escolher('time', t.nome)} aria-pressed={escolha.time === t.nome}>
-                    <Logo url={t.logo} nome={t.nome} classe="sm-time-logo" />
-                    <span>{t.nome}</span>
-                  </button>
-                ))}
-                {times.length === 0 && <p className="sm-vazio">{tr('Nenhum time cadastrado ainda (a lista é editada em /times/).')}</p>}
-              </div>
-              </div>
             )}
           </div>
         </div>

@@ -46,7 +46,7 @@ import { Mercado, rotaDrops, rotaMercado } from './mercado.js'
 import { zerarTudo } from './zerar.js'
 import { definirConcedenteSub, rotaAdminPagamento, rotaAdminPlanosSub, rotaPagamentos, rotaWebhookAsaas } from './pagamentos.js'
 import { Registro, registrar, rotaAdminLogs } from './registro.js'
-import { Equipes, rotaEquipes, rotaImagemEquipe, rotaListaPublicaEquipes } from './equipes.js'
+import { Equipes, rotaEquipes, rotaImagemEquipe, rotaListaPublicaEquipes, timeDosJogadores } from './equipes.js'
 import { ehInsigniaLoja, ID_MESTRE } from './loja-core.js'
 export { Presenca } // Durable Object da presença (wrangler.toml)
 export { Loja } // Durable Object da loja de caixas (wrangler.toml)
@@ -186,7 +186,16 @@ async function atender(req, env, ctx) {
     const rota = url.pathname
     if (rota === '/login') return login(url, env, site)
     if (rota === '/retorno') return retorno(url, env, site)
-    if (rota === '/perfis' && req.method === 'GET') return json(await ler(env, 'perfis'), 200, publico)
+    if (rota === '/perfis' && req.method === 'GET') {
+      // O time de cada jogador é o time em que ele está (o campo "time" escolhido à mão deixou de valer)
+      const perfis = await ler(env, 'perfis'), doTime = await timeDosJogadores(env).catch(() => ({})), saida = {}
+      for (const [id, p] of Object.entries(perfis)) {
+        const { time, ...resto } = p
+        saida[id] = doTime[id] ? { ...resto, time: doTime[id] } : resto
+      }
+      for (const [id, nome] of Object.entries(doTime)) if (!saida[id]) saida[id] = { time: nome }
+      return json(saida, 200, publico)
+    }
     if (rota === '/config' && req.method === 'GET') return json(configPublica(await ler(env, "config"), env), 200, publico)
     if (rota === '/jogador' && req.method === 'GET') return jogadorPublico(url, env)
     if (rota === '/avatares' && req.method === 'GET') return avataresAtuais(url, env)
