@@ -1,7 +1,7 @@
 // Carrossel de drops ao vivo no topo da loja: o que os jogadores estão ganhando nas caixas (worker: GET /loja/drops, src/mercado.js).
 // Três botões à esquerda: relógio = tudo, na hora; joinha = drops bons (Épico para cima); estrela = os mais valiosos das últimas 24 h, só vermelhos (Lendário) e Item Raro Especial.
 // A lista pergunta ao worker a cada poucos segundos; o drop novo entra pela esquerda e empurra os outros. Passar o mouse mostra quem ganhou.
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useT } from '../../comum/i18n.js'
 import { lerDrops } from '../../comum/loja.js'
 import { RARIDADES } from '../../../worker/steam-login/src/loja-core.js'
@@ -32,6 +32,39 @@ export default function Drops({ achar }) {
   const vistos = useRef(null) // ids que já estavam na tela: o resto entra animado
   const [novos, setNovos] = useState(() => new Set())
   const diferenca = useRef(0) // relógio do worker - relógio daqui (para o "há X segundos" não mentir)
+  const faixa = useRef(null)
+
+  // A faixa vai de uma ponta à outra da área da página: da borda da barra da esquerda até a borda da barra da direita
+  // (o body guarda o espaço das barras como padding). Mede de novo quando a janela muda de tamanho.
+  useLayoutEffect(() => {
+    const el = faixa.current
+    if (!el) return
+    const ajustar = () => {
+      el.style.marginLeft = '0px'
+      el.style.width = 'auto'
+      const cs = getComputedStyle(document.body)
+      const esq = parseFloat(cs.paddingLeft) || 0
+      const dir = parseFloat(cs.paddingRight) || 0
+      const largura = document.body.clientWidth - esq - dir // em px da página (o site usa zoom no computador, então tudo é medido nessa mesma unidade)
+      const pai = el.parentElement
+      const r = pai.getBoundingClientRect()
+      const zoom = pai.offsetWidth ? r.width / pai.offsetWidth : 1 // tela / página
+      const paiEsq = r.left / zoom + (parseFloat(getComputedStyle(pai).paddingLeft) || 0) // a margem conta a partir de dentro do padding do pai
+      el.style.marginLeft = `${esq - paiEsq}px`
+      el.style.width = `${largura}px`
+    }
+    ajustar()
+    const ro = new ResizeObserver(ajustar)
+    ro.observe(document.body)
+    ro.observe(el.parentElement) // a página pode se reacomodar depois que a loja carrega
+    window.addEventListener('resize', ajustar)
+    const cedo = [100, 400, 1200].map((ms) => setTimeout(ajustar, ms))
+    return () => {
+      ro.disconnect()
+      cedo.forEach(clearTimeout)
+      window.removeEventListener('resize', ajustar)
+    }
+  }, [])
 
   useEffect(() => {
     let vivo = true
@@ -72,7 +105,7 @@ export default function Drops({ achar }) {
   }, [dados, aba])
 
   return (
-    <section className="lj-drops" aria-label={t('Drops ao vivo')}>
+    <section className="lj-drops" ref={faixa} aria-label={t('Drops ao vivo')}>
       <div className="lj-drops-abas" role="tablist">
         {ABAS.map(([id, rotulo, curto, icone]) => (
           <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'is-ativo' : ''} title={t(rotulo)} aria-label={t(rotulo)} onClick={() => setAba(id)}>
