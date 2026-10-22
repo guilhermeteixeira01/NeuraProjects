@@ -434,7 +434,8 @@ clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%);transition
 .serie-bloco:not(.acabou):not(.cancelada)::before{background:linear-gradient(var(--orange),transparent)}
 .partida{border-radius:3px}
 @media (max-width:980px){
-  .hist-grade{grid-template-columns:1fr;gap:14px}
+  .hist-grade{grid-template-columns:minmax(0,1fr);gap:14px}
+  .fl-painel{min-width:0;max-width:100%}
   .fl-painel{position:static;padding:12px;gap:10px;clip-path:none;border-radius:8px}
   .fl-cab,.fl-rodape{display:none}
   .fl-lista{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:2px;scrollbar-width:none}

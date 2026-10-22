@@ -3622,3 +3622,8 @@ html[data-desempenho] .pm-niveis figure img, html[data-desempenho] .pm-destaque 
   .nx-aba { font-size: 10px; }
   .nx-aba i { width: 100%; max-width: 40px; }
 }
+
+/* Celular e tablet: nada pode alargar a página (sem barra de rolagem horizontal); "clip" (e não "hidden") não quebra o sticky */
+@media (max-width: 1024px) {
+  html, body { max-width: 100%; overflow-x: clip; }
+}
