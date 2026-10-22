@@ -678,3 +678,62 @@ html.lj-travado .nx-rolagem { display: none !important; }
 
 /* o carrossel de drops encosta no topo da página */
 .lj-pagina { padding-top: 0; }
+
+/* ══════ Item Raro Especial: rolagem no lugar do card dourado, card único no conteúdo e janela de Chances ══════ */
+/* o card dourado vira uma janela onde os itens especiais descem; mesmo tamanho do card da roleta */
+.lj-trilho .lj-reel { position: relative; padding: 0; display: block; align-self: stretch; overflow: hidden; border-radius: 10px; background: #1c1810; border: 1px solid rgb(228 174 57 / .6); box-shadow: 0 0 22px rgb(228 174 57 / .35); }
+.lj-reel-trilho { position: absolute; left: 0; right: 0; top: 0; will-change: transform; }
+.lj-reel-item { display: block; width: 100%; }
+.lj-reel-item .lj-cartao { width: 100% !important; height: 100%; box-sizing: border-box; border-radius: 0; margin: 0; align-content: center; }
+.lj-reel::before, .lj-reel::after { content: ''; position: absolute; left: 0; right: 0; height: 26%; z-index: 2; pointer-events: none; }
+.lj-reel::before { top: 0; background: linear-gradient(180deg, #1c1810, transparent); }
+.lj-reel::after { bottom: 0; background: linear-gradient(0deg, #1c1810, transparent); }
+.lj-reel-risco { position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; z-index: 3; background: rgb(255 214 90 / .65); box-shadow: 0 0 10px rgb(255 214 90 / .9); pointer-events: none; }
+
+/* card único do conteúdo */
+.lj-cx-especial { background: radial-gradient(70% 55% at 50% 38%, rgb(228 174 57 / .3), transparent 75%), linear-gradient(180deg, #13214a 0%, #2a2a1f 100%); border-color: rgb(228 174 57 / .45); }
+.lj-cx-especial-btn { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: none; color: inherit; cursor: pointer; padding: 0; }
+.lj-cx-especial-btn:hover .lj-cx-medalha { transform: scale(1.07); }
+.lj-cx-i-fixo { position: absolute; top: 18px; left: 18px; z-index: 3; display: block; }
+.lj-cx-medalha { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%); transition: transform .2s; display: grid; place-items: center; }
+.lj-cx-medalha .lj-emblema { width: 118px; height: 118px; }
+.lj-cx-especial .lj-cx-nome { position: absolute; left: 8px; right: 8px; bottom: 18px; text-align: center; color: #ffd98a; text-shadow: 0 0 12px rgb(228 174 57 / .6); }
+.lj-cx-especial .lj-cx-chance { position: absolute; top: 16px; right: 18px; }
+
+/* janela de chances */
+.lj-chances-fundo { position: fixed; inset: 0; z-index: 5200; display: grid; place-items: center; padding: 20px; background: rgb(3 6 16 / .78); backdrop-filter: blur(3px); }
+.lj-chances { width: min(940px, 100%); max-height: min(86vh, 760px); display: flex; flex-direction: column; border-radius: 16px; background: #0d2147; border: 1px solid rgb(255 255 255 / .1); box-shadow: 0 30px 80px rgb(0 0 0 / .6); overflow: hidden; color: #fff; }
+.lj-chances header { display: flex; align-items: center; justify-content: space-between; padding: 22px 26px 8px; }
+.lj-chances h3 { display: flex; align-items: center; gap: 12px; margin: 0; font: 700 26px var(--font-display); color: #fff; }
+.lj-chances h3 svg { color: #3b9bff; }
+.lj-chances-x { background: none; border: 0; color: rgb(255 255 255 / .6); font-size: 30px; line-height: 1; cursor: pointer; }
+.lj-chances-x:hover { color: #fff; }
+.lj-chances-cab, .lj-chances li { display: grid; grid-template-columns: minmax(0, 1fr) 140px 90px; align-items: center; gap: 12px; padding: 0 26px; }
+.lj-chances-cab { padding-top: 10px; padding-bottom: 8px; color: rgb(255 255 255 / .45); font: 600 13px var(--font-body); }
+.lj-chances-cab span:not(:first-child) { text-align: right; }
+.lj-chances ul { list-style: none; margin: 0; padding: 0 0 12px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #2b4a85 transparent; }
+.lj-chances li { min-height: 64px; border-top: 1px solid rgb(255 255 255 / .04); }
+.lj-chances li:nth-child(odd) { background: rgb(255 255 255 / .03); }
+.lj-chances li:hover { background: rgb(255 255 255 / .07); }
+.lj-chances-item { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.lj-chances-item img, .lj-chances-item i { flex: none; width: 70px; height: 46px; object-fit: contain; filter: drop-shadow(0 4px 6px rgb(0 0 0 / .5)); }
+.lj-chances-item b { font: 600 15px var(--font-body); overflow: hidden; text-overflow: ellipsis; }
+.lj-chances-valor { text-align: right; font: 700 15px var(--font-body); }
+.lj-chances-chance { text-align: right; color: rgb(255 255 255 / .6); font: 500 14px var(--font-body); }
+@media (max-width: 640px) {
+  .lj-chances-fundo { padding: 8px; }
+  .lj-chances { max-height: 92dvh; }
+  .lj-chances header { padding: 16px 16px 4px; }
+  .lj-chances h3 { font-size: 21px; }
+  .lj-chances-cab, .lj-chances li { grid-template-columns: minmax(0, 1fr) 88px 62px; gap: 8px; padding: 0 14px; }
+  .lj-chances-item img, .lj-chances-item i { width: 54px; height: 36px; }
+  .lj-chances-item b { font-size: 12.5px; white-space: normal; }
+  .lj-chances-valor { font-size: 12.5px; }
+  .lj-chances-chance { font-size: 12px; }
+  .lj-cx-medalha .lj-emblema { width: 84px; height: 84px; }
+}
+@media (prefers-reduced-motion: reduce) { .lj-reel-trilho { transition: none; } }
+
+/* a rolagem do item especial fica nítida (não apagada como as outras cartas depois que a roleta para) e suas cartas internas também */
+.lj-cx-roletas .lj-parou .lj-reel.lj-venceu { opacity: 1; filter: none; border-color: #e4ae39; animation: none; }
+.lj-cx-roletas .lj-parou .lj-reel .lj-cartao { opacity: 1; filter: none; transform: none; animation: none; box-shadow: none; }

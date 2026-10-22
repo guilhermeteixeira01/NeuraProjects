@@ -3,12 +3,13 @@
 // Cada modo pinta a página com a cor dele (Jester roxo, Boost laranja) e entra com partículas e som. Abrir roda as roletas ali mesmo
 // (Abertura embutida). Chances, preços dos modos e valores por desgaste vêm do servidor (GET /loja/caixa).
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Deposito from './Deposito.jsx'
 import { useT } from '../../comum/i18n.js'
 import { avisarSaldo, lerDetalhesCaixa, venderItens } from '../../comum/loja.js'
 import { desempenhoAtivo } from '../../comum/desempenho.js'
 import { RARIDADES } from '../../../worker/steam-login/src/loja-core.js'
-import Abertura, { CartaoItem, dadosDoItem } from './Abertura.jsx'
+import Abertura, { CartaoItem, EmblemaEspecial, dadosDoItem } from './Abertura.jsx'
 import { definirPreferencia, preferenciaAtual, som } from './somLoja.js'
 
 const MAX_POR_VEZ = 3 // o servidor também não deixa passar disso
@@ -256,11 +257,88 @@ function ItemConteudo({ r, base, chance, normal, modo, desgastes, achar }) {
   )
 }
 
+// ── card único do "Item Raro Especial" no conteúdo da caixa: a chance é a soma de todos os itens especiais; clicar abre a lista com preço e chance de cada um ──
+function CartaoEspecial({ chance, aoAbrir, modo }) {
+  const t = useT()
+  return (
+    <li className="lj-cx-item lj-cx-especial" style={{ '--cor': RARIDADES[5].cor }}>
+      <button type="button" className="lj-cx-especial-btn" onClick={aoAbrir} aria-label={t('Ver os itens raros especiais e as chances')}>
+        <span className="lj-cx-chance">
+          <span className={modo === 'jester' ? 'lj-cx-pilula' : ''}>{pct(chance)}</span>
+        </span>
+        <span className="lj-cx-i lj-cx-i-fixo" aria-hidden="true">i</span>
+        <span className="lj-cx-medalha" aria-hidden="true">
+          <EmblemaEspecial />
+        </span>
+        <b className="lj-cx-nome">★ {t('Item Raro Especial')} ★</b>
+      </button>
+    </li>
+  )
+}
+
+// janela "Chances": cada item especial com a imagem, o nome, o valor e a chance
+function JanelaEspeciais({ itens, achar, aoFechar }) {
+  const t = useT()
+  useEffect(() => {
+    const tecla = (e) => e.key === 'Escape' && aoFechar()
+    document.addEventListener('keydown', tecla)
+    document.documentElement.classList.add('inv-travado')
+    return () => {
+      document.removeEventListener('keydown', tecla)
+      document.documentElement.classList.remove('inv-travado')
+    }
+  }, [aoFechar])
+  return createPortal(
+    <div className="lj-chances-fundo" onClick={aoFechar}>
+      <div className="lj-chances" role="dialog" aria-modal="true" aria-label={t('Chances')} onClick={(e) => e.stopPropagation()}>
+        <header>
+          <h3>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z" />
+              <path d="m9 12 2 2 4-4" />
+            </svg>
+            {t('Chances')}
+          </h3>
+          <button type="button" className="lj-chances-x" onClick={aoFechar} aria-label={t('Fechar')}>
+            ×
+          </button>
+        </header>
+        <div className="lj-chances-cab">
+          <span>{t('Item')}</span>
+          <span>{t('Valor')}</span>
+          <span>{t('Chance')}</span>
+        </div>
+        <ul>
+          {itens.map((x) => {
+            const d = dadosDoItem(x.base.t || 'faca', x.base.d, x.base.p, x.base.n, x.base.i, achar)
+            const valor = (x.desgastes || []).reduce((a, g) => a + g.p * g.v, 0)
+            return (
+              <li key={x.chave}>
+                <span className="lj-chances-item">
+                  {d.img ? <img src={d.img} alt="" loading="lazy" draggable="false" /> : <i />}
+                  <b>
+                    {d.nome}
+                    {d.skin ? ` | ${d.skin}` : ''}
+                  </b>
+                </span>
+                <span className="lj-chances-valor">{x.desgastes ? `${numero(Math.round(valor))} NP` : '…'}</span>
+                <span className="lj-chances-chance">{pct(x.chance)}</span>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+    </div>,
+    document.body,
+  )
+}
+
 export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado = false, achar, favorita, aoFavoritar, aoVoltar, aoAbriu }) {
   const t = useT()
   const maximo = Math.min(maxQtd, MAX_POR_VEZ)
   const [qtd, setQtd] = useState(1)
   const [modo, setModo] = useState(null) // null | 'jester' | 'boost'
+  const [verEspeciais, setVerEspeciais] = useState(false) // janela com os itens do card dourado
   const [depositando, setDepositando] = useState(false) // sem NP para abrir: o botão Abrir leva direto para a recarga
   const [efeito, setEfeito] = useState(0) // muda a cada troca de modo: dispara as partículas de novo
   const [rapida, setRapida] = useState(false)
@@ -295,6 +373,9 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado = false, ac
     c.facas.forEach((f, i) => l.push({ chave: `f${i}`, r: 5, base: { ...f, t: f.t || 'faca' }, chance: chances.facas[i], normal: c.chances.facas[i], desgastes: det?.facas?.[i] }))
     return l.sort((a, b) => b.r - a.r || a.normal - b.normal)
   }, [c, chances, det])
+
+  const especiais = useMemo(() => conteudo.filter((x) => x.r === 5), [conteudo])
+  const comuns = useMemo(() => conteudo.filter((x) => x.r !== 5), [conteudo])
 
   const alternarModo = (m) => {
     const novo = modo === m ? null : m
@@ -480,10 +561,13 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado = false, ac
 
       <h2 className="lj-cx-sub">{t('Conteúdo da caixa')}</h2>
       <ul className="lj-cx-grade">
-        {conteudo.map((x) => (
+        {/* os itens do card dourado ficam juntos num card só ("Item Raro Especial") com a chance somada; clicar abre a lista */}
+        {especiais.length > 0 && <CartaoEspecial chance={especiais.reduce((a, x) => a + (x.chance || 0), 0)} modo={modo} aoAbrir={() => setVerEspeciais(true)} />}
+        {comuns.map((x) => (
           <ItemConteudo key={x.chave} r={x.r} base={x.base} chance={x.chance} normal={x.normal} modo={modo} desgastes={x.desgastes} achar={achar} />
         ))}
       </ul>
+      {verEspeciais && <JanelaEspeciais itens={[...especiais].sort((a, b) => b.chance - a.chance || (b.desgastes?.[0]?.v || 0) - (a.desgastes?.[0]?.v || 0))} achar={achar} aoFechar={() => setVerEspeciais(false)} />}
       {depositando && <Deposito aoFechar={() => setDepositando(false)} aoPagar={aoAbriu} />}
     </section>
   )

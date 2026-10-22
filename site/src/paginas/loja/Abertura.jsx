@@ -152,9 +152,65 @@ function Confete({ r, valor }) {
   return createPortal(<canvas className="lj-confete" ref={ref} aria-hidden="true" />, document.body)
 }
 
+// Rolagem do item raro especial NO LUGAR do card dourado: o card continua onde a roleta parou e, dentro dele, os itens especiais descem
+// (de cima para baixo) até parar no que foi sorteado. A ordem da lista é invertida para o alvo ficar perto do topo e a descida passar por todos.
+function RolagemNoLugar({ itens, alvo, lista, achar, rapida, aoParar, pular }) {
+  const caixa = useRef(null)
+  const trilho = useRef(null)
+  const parar = useRef(aoParar)
+  parar.current = aoParar
+  const ordem = useMemo(() => [...itens].reverse(), [itens])
+  const destino = ordem.length - 1 - alvo // posição do alvo na lista invertida
+  const [altura, setAltura] = useState(0)
+
+  useEffect(() => {
+    const el = caixa.current
+    const tr = trilho.current
+    if (!el || !tr) return
+    const H = el.clientHeight
+    if (!H) return
+    setAltura(H)
+    const n = ordem.length
+    const de = -(n - 1) * H // começa mostrando o último
+    const ate = -destino * H // para no sorteado (com valor maior = mais para baixo na tela)
+    tr.style.transform = `translateY(${de}px)`
+    const duracao = pular?.current ? 1 : rapida ? 1700 : 4200
+    let anim = null
+    try {
+      anim = tr.animate([{ transform: `translateY(${de}px)` }, { transform: `translateY(${ate}px)` }], { duration: duracao, easing: 'cubic-bezier(.1,.75,.12,1)', fill: 'forwards' })
+      anim.onfinish = () => {
+        tr.style.transform = `translateY(${ate}px)`
+        parar.current?.()
+      }
+    } catch {
+      tr.style.transform = `translateY(${ate}px)`
+      const id = setTimeout(() => parar.current?.(), 300)
+      return () => clearTimeout(id)
+    }
+    return () => anim?.cancel()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  return (
+    <div className="lj-cartao lj-reel lj-venceu" ref={caixa} aria-hidden="true">
+      <div className="lj-reel-trilho" ref={trilho}>
+        {ordem.map((idx, k) => {
+          const b = lista[idx] || {}
+          return (
+            <div key={k} className="lj-reel-item" style={altura ? { height: altura } : undefined}>
+              <CartaoItem r={5} d={b.d} p={b.p} tipo={b.t || 'faca'} achar={achar} />
+            </div>
+          )
+        })}
+      </div>
+      <i className="lj-reel-risco" aria-hidden="true" />
+    </div>
+  )
+}
+
 // vencedor (só na página da caixa, depois que tudo parou): o item ganho no lugar do cartão do meio (a faca no lugar do "?"), com o desgaste
 // extra: algo por cima da roleta parada (o botão "Vender por X")
-function Roleta({ vertical = false, itens, alvo, lista, achar, rodando, pular, duracao, aoParar, sonora = true, vencedor, extra }) {
+function Roleta({ vertical = false, itens, alvo, lista, achar, rodando, pular, duracao, aoParar, sonora = true, vencedor, extra, especial }) {
   const t = useT()
   const caixa = useRef(null)
   const trilho = useRef(null)
@@ -222,6 +278,8 @@ function Roleta({ vertical = false, itens, alvo, lista, achar, rodando, pular, d
               </CartaoItem>
             )
           }
+          // card dourado onde a roleta parou e o item especial está sendo sorteado: a rolagem acontece dentro do próprio card
+          if (!vertical && it.r === 5 && k === alvo && parou && especial) return <RolagemNoLugar key={k} itens={especial.itens} alvo={especial.alvo} lista={especial.lista} achar={achar} rapida={especial.rapida} aoParar={especial.aoParar} pular={pular} />
           if (!vertical && it.r === 5) return <CartaoItem key={k} r={5} achar={achar} classe={cls} />
           return <CartaoItem key={k} r={vertical ? 5 : it.r} d={base.d} p={base.p} tipo={base.t} n={base.n} i={base.i} achar={achar} classe={cls} />
         })}
@@ -510,10 +568,14 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
 
       {/* embutida: as roletas continuam na tela depois de parar (escondidas só durante a roleta da faca), com o item ganho e o "Vender por X" */}
       {(fase === 'roleta' || (embutida && (fase === 'facas' || fase === 'resultado'))) && (
-        <div className="lj-faixas" data-n={resultados.length} style={{ '--n': resultados.length, ...(fase === 'facas' ? { display: 'none' } : {}) }}>
+        <div className="lj-faixas" data-n={resultados.length} style={{ '--n': resultados.length }}>
           {resultados.map((r, k) => {
             const pronto = embutida && fase === 'resultado'
             const vendido = vendidos.has(r.id)
+            // item raro especial: o card dourado sorteia no lugar (uma roleta de cada vez); as que já foram reveladas mostram o item ganho
+            const posFaca = comFaca.indexOf(k)
+            const ativa = fase === 'facas' && posFaca >= 0 && posFaca === faca
+            const revelada = fase === 'facas' && posFaca >= 0 && posFaca < faca
             return (
               <Roleta
                 key={r.id}
@@ -526,7 +588,8 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
                 duracao={(rapida ? DURACAO_RAPIDA : DURACAO) + k * (rapida ? 120 : 250)}
                 pular={pular}
                 aoParar={() => setParadas((n) => n + 1)}
-                vencedor={pronto ? r : undefined}
+                vencedor={pronto || revelada ? r : undefined}
+                especial={ativa ? { itens: r.facas.itens, alvo: r.facas.alvo, lista: caixa.facas, rapida, aoParar: () => { som('parar'); setTimeout(proximaFaca, 1000) } } : undefined}
                 extra={
                   pronto ? (
                     <button type="button" className={`lj-vender-um${vendido ? ' is-vendido' : ''}`} disabled={vendido || vendendo} onClick={() => aoVender?.([r.id])}>
@@ -537,28 +600,6 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
               />
             )
           })}
-        </div>
-      )}
-
-      {fase === 'facas' && resultados[comFaca[faca]] && (
-        <div className="lj-centro lj-facas">
-          <h2>{t('É uma faca!')}</h2>
-          <p>{t('Qual faca vai ser?')}</p>
-          <Roleta
-            key={faca}
-            vertical
-            itens={resultados[comFaca[faca]].facas.itens}
-            alvo={resultados[comFaca[faca]].facas.alvo}
-            lista={caixa.facas}
-            achar={achar}
-            rodando
-            duracao={rapida ? DURACAO_FACAS_RAPIDA : DURACAO_FACAS}
-            pular={pular}
-            aoParar={() => {
-              som('parar')
-              setTimeout(proximaFaca, 1100)
-            }}
-          />
         </div>
       )}
 
