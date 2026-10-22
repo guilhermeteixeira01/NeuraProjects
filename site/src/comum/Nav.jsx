@@ -374,7 +374,7 @@ export default function Nav({ pagina }) {
   // Barra de baixo (celular): páginas do site; as de fora (Inventário) vão para o "Mais"
   const menuCel = menu.filter((m) => !m.soComputador) // o que só existe no computador (▶ Jogar) fica fora da barra de baixo e do "Mais"
   const botaoEntrar = loginAtivo() && !conta
-  const vagas = 4 - (botaoEntrar ? 1 : 0) // a barra de baixo tem no máximo 5 ícones (com o "Mais"): o que passar vai para o "Mais"
+  const vagas = 6 - (botaoEntrar ? 1 : 0) // a barra de baixo tem no máximo 6 páginas (Loja ao lado do Inventário) e o "Mais": o que passar vai para o "Mais"
   const todasAbas = menuCel.filter((m) => !m.externo)
   const abas = todasAbas.slice(0, vagas)
   const extras = [...todasAbas.slice(vagas), ...menuCel.filter((m) => m.externo)].map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)

@@ -3,9 +3,9 @@
 // Platinum são imagens paradas; Diamond, Elite e Legend são animadas. A caixinha e a janela vão para o <body> (portal): o avatar fica
 // dentro de cartões com overflow: hidden.
 // nivel: { id, nome, meses, proximo, faltam } (assinatura.js: nivelDaSub). parado: usa a versão sem animação.
-import { useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { CONFIG } from './config.js'
+import { entrar, loginAtivo, useConta } from './conta.js'
 import { NIVEIS_SUB, SUB_MESES_PADRAO, tituloNivel, urlEmblema } from './assinatura.js'
 import { useConfigSite } from './Moldura.jsx'
 import ParticulasPremium from './ParticulasPremium.jsx'
@@ -14,8 +14,12 @@ import { useT } from './i18n.js'
 // Cor (r,g,b) de cada nível: halo do emblema e partículas
 const COR_NIVEL = { subscriber: '140,220,60', gold: '255,200,60', platinum: '160,205,255', diamond: '70,130,255', elite: '170,120,255', legend: '255,110,60' }
 
+const Deposito = lazy(() => import('../paginas/loja/Deposito.jsx')) // só baixa quando alguém clica em "Seja Premium"
+
 function JanelaPremium({ nivel, parado, aoFechar }) {
   const t = useT()
+  const conta = useConta()
+  const [assinando, setAssinando] = useState(false) // abre a apresentação/planos do Premium (a mesma do menu da conta)
   const { subMeses } = useConfigSite()
   const [vendo, setVendo] = useState(nivel.id) // nível aberto no destaque (clicar nos emblemas troca)
   const v = NIVEIS_SUB.find((n) => n.id === vendo) || nivel
@@ -27,6 +31,7 @@ function JanelaPremium({ nivel, parado, aoFechar }) {
     return () => document.removeEventListener('keydown', tecla)
   }, [aoFechar])
   return (
+    <>
     <div className="pm-fundo" onClick={aoFechar}>
       <div className="pm-janela" style={{ '--cn': cor }} role="dialog" aria-modal="true" aria-labelledby="pm-titulo" onClick={(e) => e.stopPropagation()}>
         <ParticulasPremium quantidade={34} cor={cor} />
@@ -62,18 +67,18 @@ function JanelaPremium({ nivel, parado, aoFechar }) {
           <button type="button" className="pm-fechar" onClick={aoFechar}>
             {t('FECHAR')}
           </button>
-          {CONFIG.premium ? (
-            <a className="pm-premium" href={CONFIG.premium} target="_blank" rel="noopener">
-              {t('SEJA PREMIUM')}
-            </a>
-          ) : (
-            <span className="pm-premium desligado" title={t('Em breve')}>
-              {t('SEJA PREMIUM')}
-            </span>
-          )}
+          <button type="button" className="pm-premium" onClick={() => (conta || !loginAtivo() ? setAssinando(true) : entrar())}>
+            {t('SEJA PREMIUM')}
+          </button>
         </div>
       </div>
     </div>
+    {assinando && (
+      <Suspense fallback={null}>
+        <Deposito modo="sub" aoFechar={() => setAssinando(false)} />
+      </Suspense>
+    )}
+    </>
   )
 }
 

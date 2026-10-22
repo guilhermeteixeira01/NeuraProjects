@@ -3250,6 +3250,8 @@ a.nt-corpo:hover b { color: var(--accent); }
   color: var(--text);
 }
 .pm-premium {
+  border: 0;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   padding: 11px 26px;
@@ -3598,3 +3600,10 @@ html.ins-estante-aberta #root { filter: blur(10px) brightness(.5) saturate(.9); 
 @keyframes pm-troca { from { opacity: 0; transform: translateY(6px); } }
 @media (prefers-reduced-motion: reduce) { .pm-niveis figure img, .pm-destaque > img, .pm-halo, .pm-destaque { animation: none; } }
 html[data-desempenho] .pm-niveis figure img, html[data-desempenho] .pm-destaque > img, html[data-desempenho] .pm-halo { animation: none; }
+
+/* Barra de baixo do celular com 7 botões (6 páginas + Mais): cabe em telas estreitas */
+@media (max-width: 420px) {
+  .nx-baixo { gap: 0; padding-left: 2px; padding-right: 2px; }
+  .nx-aba { font-size: 10px; }
+  .nx-aba i { width: 100%; max-width: 40px; }
+}
