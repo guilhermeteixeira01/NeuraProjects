@@ -928,3 +928,59 @@ html.sm-aberto { overflow: hidden; }
   .pf-arma-mini { height: 34px; }
   .pf-arma-mini img { max-width: 68px; max-height: 32px; }
 }
+
+/* ══════════════ Inventário no perfil (PerfilInventario.jsx): caixa favorita, melhor queda e grade de itens ══════════════ */
+.pf-inv { display: grid; gap: 16px; margin: 0 0 26px; }
+.pf-inv-topo { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+.pf-inv-quem, .pf-inv-card { position: relative; display: flex; border-radius: 14px; border: 1px solid rgb(255 255 255 / .07); background: linear-gradient(135deg, #191b24, #12131a); overflow: hidden; min-height: 150px; }
+.pf-inv-quem { flex-direction: column; justify-content: center; gap: 6px; padding: 18px 20px; }
+.pf-inv-quem b { font: 700 22px var(--font-display); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pf-inv-quem small { color: var(--dim); }
+.pf-inv-rot { font: 600 11px var(--font-body); letter-spacing: .14em; color: rgb(255 255 255 / .55); }
+.pf-inv-ver { margin-top: 8px; width: max-content; padding: 7px 13px; border-radius: 8px; border: 1px solid rgb(255 255 255 / .16); background: rgb(255 255 255 / .06); color: var(--text); font: 600 12px var(--font-body); cursor: pointer; }
+.pf-inv-ver:hover { background: rgb(255 255 255 / .12); }
+.pf-inv-card { align-items: center; justify-content: space-between; gap: 6px; padding: 16px 8px 16px 20px; }
+.pf-inv-card-txt { display: grid; gap: 4px; align-content: center; min-width: 0; z-index: 1; }
+.pf-inv-card-txt b { font: 700 17px var(--font-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pf-inv-card-txt small { color: rgb(255 255 255 / .6); font-size: 12.5px; }
+.pf-inv-card img { flex: none; width: 46%; max-height: 138px; object-fit: contain; filter: drop-shadow(0 8px 12px rgb(0 0 0 / .55)); }
+.pf-inv-fav { background: radial-gradient(70% 90% at 80% 40%, rgb(170 90 255 / .22), transparent 70%), linear-gradient(135deg, #191b24, #12131a); }
+.pf-inv-melhor { background: radial-gradient(70% 90% at 80% 40%, color-mix(in srgb, var(--cor) 30%, transparent), transparent 70%), linear-gradient(135deg, #191b24, #12131a); }
+.pf-inv-abrir { width: max-content; margin-top: 8px; padding: 9px 18px; border-radius: 6px; background: #f39c54; color: #1a1208; font: 800 13px var(--font-body); letter-spacing: .06em; text-decoration: none; }
+.pf-inv-abrir:hover { filter: brightness(1.1); }
+.pf-inv-preco { width: max-content; margin-top: 6px; padding: 5px 10px; border-radius: 6px; background: rgb(60 220 130 / .12); color: #5fe3a1; font: 700 14px var(--font-body); }
+.pf-inv-abas { display: flex; flex-wrap: wrap; gap: 10px; padding: 8px; border-radius: 14px; background: #12131a; border: 1px solid rgb(255 255 255 / .06); }
+.pf-inv-abas button { display: inline-flex; align-items: center; gap: 10px; padding: 12px 20px; border: 0; border-radius: 10px; background: none; color: rgb(255 255 255 / .55); font: 700 13.5px var(--font-body); letter-spacing: .07em; cursor: pointer; transition: background .15s, color .15s; }
+.pf-inv-abas button small { padding: 3px 8px; border-radius: 6px; background: rgb(255 255 255 / .08); font-size: 12px; }
+.pf-inv-abas button:hover { color: #fff; }
+.pf-inv-abas button.is-ativo { color: #f39c54; background: rgb(255 255 255 / .07); }
+.pf-inv-abas button.is-ativo small { background: rgb(255 255 255 / .16); color: #fff; }
+.pf-inv-grade { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 12px; }
+.pf-inv-item { position: relative; display: block; width: 100%; height: 100%; min-height: 168px; padding: 0; border: 1px solid rgb(255 255 255 / .06); border-radius: 12px; overflow: hidden; text-align: left; color: #fff; cursor: pointer;
+  background: radial-gradient(circle at 50% 40%, rgb(0 0 0 / .22) 0 46px, transparent 47px), linear-gradient(160deg, color-mix(in srgb, var(--cor) 38%, #15161d) 0%, color-mix(in srgb, var(--cor) 10%, #12131a) 100%); transition: transform .15s, border-color .15s; }
+.pf-inv-item:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--cor) 70%, #fff); }
+.pf-inv-item-fixo { cursor: default; }
+.pf-inv-item-fixo:hover { transform: none; border-color: rgb(255 255 255 / .06); }
+.pf-inv-item-arte { position: absolute; left: 8px; right: 8px; top: 22px; height: 84px; display: grid; place-items: center; }
+.pf-inv-item-arte img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 6px 8px rgb(0 0 0 / .55)); }
+.pf-inv-item-preco { position: absolute; top: 8px; right: 10px; z-index: 2; font: 700 13px var(--font-body); color: #5fe3a1; }
+.pf-inv-item-st { position: absolute; top: 8px; left: 10px; z-index: 2; font: 700 10px var(--font-body); color: #ffb64d; letter-spacing: .03em; }
+.pf-inv .inv-gema { left: 8px; bottom: auto; top: 26px; }
+.pf-inv-item-nome { position: absolute; left: 10px; right: 8px; bottom: 9px; display: grid; gap: 1px; }
+.pf-inv-item-nome small { color: rgb(255 255 255 / .62); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pf-inv-item-nome b { font: 600 14px var(--font-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pf-inv-item-nome em { font-style: normal; color: rgb(255 255 255 / .6); font-size: 12px; font-weight: 500; }
+.pf-inv-mais { justify-self: center; padding: 11px 26px; border-radius: 10px; border: 1px solid rgb(255 255 255 / .16); background: rgb(255 255 255 / .06); color: var(--text); font: 700 13px var(--font-body); cursor: pointer; }
+.pf-inv-mais:hover { background: rgb(255 255 255 / .12); }
+.pf-inv-vazio { margin: 0; padding: 28px 8px; text-align: center; color: var(--dim); }
+@media (max-width: 1100px) { .pf-inv-topo { grid-template-columns: 1fr 1fr; } .pf-inv-quem { grid-column: 1 / -1; min-height: 0; } }
+@media (max-width: 640px) {
+  .pf-inv-topo { grid-template-columns: 1fr; }
+  .pf-inv-card { min-height: 130px; }
+  .pf-inv-abas { gap: 4px; padding: 6px; }
+  .pf-inv-abas button { padding: 10px 12px; font-size: 12px; gap: 6px; }
+  .pf-inv-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .pf-inv-item { min-height: 150px; }
+  .pf-inv-item-arte { top: 20px; height: 70px; }
+  .pf-inv-item-nome b { font-size: 12.5px; }
+}

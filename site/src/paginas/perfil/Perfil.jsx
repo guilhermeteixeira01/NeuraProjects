@@ -14,6 +14,7 @@ import { NIVEIS, NIVEL_ELITE, textoNivel } from '../../comum/niveis.js'
 import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, salvarPerfil, useAdmin, useCardDe, usePerfis, useTimeDe } from '../../comum/Moldura.jsx'
 import Premier from '../../comum/Premier.jsx'
 import InventarioDoJogador from '../../comum/InventarioDoJogador.jsx'
+import PerfilInventario from './PerfilInventario.jsx'
 import { CarregandoNP } from '../../comum/Carregando.jsx'
 import { BotaoTrocas } from '../../comum/Trocas.jsx'
 import { BarraXp, SeloNivel, useNivelDe } from '../../comum/Nivel.jsx'
@@ -651,6 +652,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
           </aside>
 
           <div className="pf-centro">
+            <PerfilInventario steamId={j.steamId} nome={j.nome} aoVerTudo={() => setVerInventario(true)} />
             <DesempenhoRecente mapas={mapas || []} nivel={nivel} eu={eu} />
 
             {pos > 0 && (

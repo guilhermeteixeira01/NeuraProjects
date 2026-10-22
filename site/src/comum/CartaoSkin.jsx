@@ -5,6 +5,7 @@
 import { useState } from 'react'
 import { LADOS_TIME, chaveEquip, descrever, urlImg } from './skins.js'
 import { useT } from './i18n.js'
+import { padraoRaro } from '../../worker/steam-login/src/loja-core.js'
 
 function Imagem({ src, classe = '' }) {
   const [erro, setErro] = useState(false)
@@ -12,6 +13,22 @@ function Imagem({ src, classe = '' }) {
 }
 
 const Marca = ({ lado }) => <i className={`inv-marca inv-marca-${lado}`} title={lado === 'ct' ? 'CT' : 'TR'} aria-label={lado === 'ct' ? 'CT' : 'TR'} />
+
+// Selo de padrão raro (blue gem etc.): gema colorida pelo tier, com o nome e quantas vezes vale mais
+export function SeloPadrao({ item, classe = '' }) {
+  const t = useT()
+  const pr = padraoRaro(item)
+  if (!pr) return null
+  return (
+    <span className={`inv-gema inv-gema-${pr.tier} ${classe}`} title={`${pr.nome} · ${t('Padrão')} ${pr.seed} · ×${pr.mult}`}>
+      <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+        <path d="M6 3h12l4 6-10 12L2 9z" fill="currentColor" opacity=".9" />
+        <path d="M2 9h20M9 3 7 9l5 12M15 3l2 6-5 12" fill="none" stroke="#fff" strokeOpacity=".55" strokeWidth="1" />
+      </svg>
+      <b>{pr.rotulo} T{pr.tier}</b>
+    </span>
+  )
+}
 
 export const nomeDoDesgaste = (f) => (f < 0.07 ? 'Factory New' : f < 0.15 ? 'Minimal Wear' : f < 0.38 ? 'Field-Tested' : f < 0.45 ? 'Well-Worn' : 'Battle-Scarred')
 
@@ -44,6 +61,7 @@ export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
           ))}
         </span>
         {item.st ? <span className="inv-st">StatTrak™</span> : null}
+        <SeloPadrao item={item} />
         {selecionado !== undefined && <i className={`inv-check${selecionado ? ' on' : ''}`} aria-hidden="true" />}
       </span>
       <span className="inv-cartao-nome">

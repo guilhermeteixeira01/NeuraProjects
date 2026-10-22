@@ -42,7 +42,7 @@ import { rotaPartidaServidor, rotaPartidasPublico } from './partidas-novas.js'
 import { Presenca, avisarPerfil, avisarSkin, rotaAmigos, rotaChat, rotaLobby, rotaPresenca, rotaServidor } from './amigos.js'
 import { rotaAdminSkin, rotaAdminSkins, rotaServidorSkins, rotaSkins, rotaSkinsExcluir, rotaSkinsInventarioPublico, rotaSkinsPresentes, rotaSkinsPublico } from './skins.js'
 import { Trocas, rotaTrocas } from './trocas.js'
-import { Loja, valorDe, rotaAdminLoja, rotaLoja, rotaLojaPublica, rotaNotificacoes } from './loja.js'
+import { Loja, valorDe, rotaAdminLoja, rotaLoja, rotaLojaPerfil, rotaLojaPublica, rotaNotificacoes } from './loja.js'
 import { Mercado, rotaDrops, rotaMercado } from './mercado.js'
 import { zerarTudo } from './zerar.js'
 import { definirConcedenteSub, rotaAdminPagamento, rotaAdminPlanosSub, rotaPagamentos, rotaWebhookAsaas } from './pagamentos.js'
@@ -238,6 +238,7 @@ async function atender(req, env, ctx) {
     if (rota === '/equipes/imagem' && req.method === 'GET') return rotaImagemEquipe(url, env) // imagem do time (pública, guardada no navegador)
     if (rota === '/pagamentos/webhook' && req.method === 'POST') return rotaWebhookAsaas(req, env) // aviso do Asaas (token próprio)
     if (rota === '/loja/drops' && req.method === 'GET') return rotaDrops(req, env, { 'Access-Control-Allow-Origin': '*' }, ctx) // carrossel de drops ao vivo da loja
+    if (rota === '/loja/perfil' && req.method === 'GET') return rotaLojaPerfil(url, env, publico) // caixa favorita e melhor queda de um jogador (perfil)
     if (rota === '/loja/caixas' && req.method === 'GET') return rotaLojaPublica(env, publico) // caixas da loja (nome, imagem, preço): o site usa para nomear as insígnias "Mestre da ..."
     if (rota === '/servidor/skins' && req.method === 'POST') return rotaServidorSkins(req, env) // plugin: inventário de skins de quem está no servidor
 

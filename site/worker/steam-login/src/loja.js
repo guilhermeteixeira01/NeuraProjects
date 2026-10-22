@@ -29,7 +29,7 @@
  *   GET  /admin/loja-saldo?id= (dono)  -> { saldo, ganhos, gastos, movimentos } de um jogador
  */
 import { avisarPerfil } from './amigos.js'
-import { BONUS_PREMIUM_PARTIDA, CONFIG_PADRAO, MODOS, definirValorador, aplicarModo, faixasDeDesgaste, precoDeMercado, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
+import { BONUS_PREMIUM_PARTIDA, CONFIG_PADRAO, MODOS, padraoRaro, definirValorador, aplicarModo, faixasDeDesgaste, precoDeMercado, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
 import { lerSkinsKv, limparSkins, novoIdItem } from './skins.js'
 import CAIXAS_INICIAIS from './caixas-iniciais.json'
 import RARIDADE_SKIN from './skins-raridade.json'
@@ -181,9 +181,10 @@ export function valorDe(it) {
   if (it.t === 'chaveiro') return { r: ENFEITES_VALOR.c[it.d] ?? 2, v: valorDoChaveiro(it.d) }
   if (!['arma', 'faca', 'luva'].includes(it.t)) return null
   const mercado = precoDeMercado(it, PRECOS.skins) // preço de mercado em R$ (1 NP = R$ 1)
-  if (it.t === 'faca') return { r: 6, v: mercado ?? valorDaFaca(it, FACAS_VALOR) } // facas: valor por modelo e acabamento (facas-valor.json)
+  const pr = padraoRaro(it)?.mult ?? 1 // padrão raro (blue gem...): vale muito mais que a mesma skin com outro padrão
+  if (it.t === 'faca') return { r: 6, v: Math.round((mercado ?? valorDaFaca(it, FACAS_VALOR)) * pr) } // facas: valor por modelo e acabamento (facas-valor.json)
   const r = it.t === 'arma' ? RARIDADE_SKIN[`${it.d}:${it.p}`] ?? 2 : 6
-  return { r, v: (mercado ?? valorDoItem(it, r)) + (it.t === 'arma' ? valorDosEnfeites(it) : 0) } // + adesivos e chaveiro colados
+  return { r, v: Math.round((mercado ?? valorDoItem(it, r)) * pr) + (it.t === 'arma' ? valorDosEnfeites(it) : 0) } // + adesivos e chaveiro colados
 }
 
 // Dificuldade pelo valor (loja-core.js: DIFICULDADE): as caixas sorteiam com o valor de mercado do item (no desgaste do meio da faixa dele)
@@ -349,6 +350,19 @@ export class Loja {
         const novo = p.doc ? juntar(atual, p.doc) : atual
         if (p.doc) await this.ctx.storage.put('notifs', novo)
         return { doc: novo }
+      }
+      case 'perfil-publico': { // resumo das aberturas para o perfil: caixa mais aberta e a melhor queda (maior valor)
+        const linhas = this.linhas()
+        const por = {}
+        let melhor = null
+        for (const l of linhas) {
+          por[l.caixa] = (por[l.caixa] || 0) + 1
+          if (!['arma', 'faca', 'luva'].includes(l.t)) continue
+          const v = valorDe({ t: l.t, d: l.d, p: l.p, f: l.f, st: 0 })?.v ?? 0
+          if (!melhor || v > melhor.v) melhor = { t: l.t, d: l.d, p: l.p, f: l.f, r: l.r, v, caixa: l.caixa, ts: l.ts }
+        }
+        const top = Object.entries(por).sort((a, b) => b[1] - a[1])[0]
+        return { abertas: linhas.length, favorita: top ? { slug: top[0], vezes: top[1] } : null, melhor }
       }
       case 'valores':
         return this.valores(id)
@@ -669,6 +683,19 @@ const objeto = (env, id) => env.LOJA.get(env.LOJA.idFromName(id))
 const chamar = (env, id, corpo) => objeto(env, id).fetch('https://loja/', { method: 'POST', body: JSON.stringify({ id, ...corpo }) })
 
 // ── rotas ──
+// GET /loja/perfil?id= (público): caixa favorita (a mais aberta) e melhor queda do jogador, para o perfil dele
+export async function rotaLojaPerfil(url, env, cors) {
+  const id = url.searchParams.get('id') || ''
+  if (!ID_STEAM.test(id)) return json({ erro: 'id' }, 400, cors)
+  const r = await chamar(env, id, { acao: 'perfil-publico' })
+  const d = await r.json().catch(() => null)
+  if (!d || d.erro) return json({ abertas: 0, favorita: null, melhor: null }, 200, { ...cors, 'Cache-Control': 'public, max-age=30' })
+  const caixas = await lerCaixas(env)
+  const c = d.favorita && caixas.find((x) => x.slug === d.favorita.slug)
+  const favorita = c ? { ...publicaDaCaixa({ id: c.id, slug: c.slug, nome: c.nome, img: c.img, cor: c.cor, tier: c.tier, preco: c.preco, ativa: c.ativa, arquivada: c.arquivada }), vezes: d.favorita.vezes } : null
+  return json({ abertas: d.abertas, favorita, melhor: d.melhor }, 200, { ...cors, 'Cache-Control': 'public, max-age=30' })
+}
+
 export async function rotaLojaPublica(env, cors) {
   const caixas = (await lerCaixas(env)).filter((c) => c.ativa).map(publicaDaCaixa)
   return json(caixas, 200, { ...cors, 'Cache-Control': 'public, max-age=60' })

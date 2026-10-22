@@ -34,3 +34,14 @@
 /* valor do item em NP (inventário) ou preço do anúncio (mercado) */
 .inv-cartao-valor { display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; color: #f5c518; font: 700 12px var(--font-body); }
 .inv-cartao-valor img { width: 14px; height: 14px; }
+
+/* selo de padrão raro (blue gem etc.) */
+.inv-gema { position: absolute; left: 6px; bottom: 6px; z-index: 3; display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px 2px 5px; border-radius: 999px; background: rgb(8 12 22 / .82); border: 1px solid currentColor; color: #4fc3ff; font: 700 10px var(--font-body); letter-spacing: .03em; box-shadow: 0 0 10px currentColor; }
+.inv-gema b { color: #fff; font-weight: 700; }
+.inv-gema-1 { color: #35d0ff; }
+.inv-gema-2 { color: #8f7bff; }
+.inv-gema-3 { color: #7fa4c8; box-shadow: none; }
+.inv-gema-info { position: static; width: max-content; margin: 4px auto 0; font-size: 12px; }
+.inv-inspecao-info .inv-gema-1 { color: #35d0ff; }
+.inv-inspecao-info .inv-gema-2 { color: #8f7bff; }
+.inv-inspecao-info .inv-gema-3 { color: #7fa4c8; }

@@ -4,7 +4,7 @@
 // que carregam os catálogos sozinhos.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { nomeDoDesgaste } from './CartaoSkin.jsx'
+import { SeloPadrao, nomeDoDesgaste } from './CartaoSkin.jsx'
 import { CONFIG } from './config.js'
 import { useT } from './i18n.js'
 import { descrever, indicar, urlImg, useCatalogo } from './skins.js'
@@ -222,6 +222,7 @@ export function Inspecionar({ item, idx, adesivos, chaveiros, mapa, aoFechar }) 
             </small>
           )}
           {item.n && <small>«{item.n}»</small>}
+          <SeloPadrao item={item} classe="inv-gema-info" />
         </div>
       </div>
     </JanelaInspecao>

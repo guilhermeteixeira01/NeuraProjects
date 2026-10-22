@@ -9,6 +9,7 @@
  * O sorteio é feito por quem chama com um gerador "rnd()" (0 <= x < 1). No worker é o gerador criptográfico (rndSeguro).
  */
 
+import PADROES from './padroes-raros.json' with { type: 'json' }
 export const RARIDADES = [
   { id: 0, nome: 'Comum', cor: '#b0c3d9' },
   { id: 1, nome: 'Incomum', cor: '#4b69ff' },
@@ -364,6 +365,23 @@ export function multiplicadorDoDesgaste(f) {
   return CURVA_DESGASTE[CURVA_DESGASTE.length - 1][1]
 }
 // Valor de venda (NP) de um item { f (float), st (StatTrak) } da raridade dada (0..6)
+// ── Padrões raros (blue gems etc.): a pintura (paint seed) de certas skins vale muito mais que a mesma skin com outro padrão ──
+// padroes-raros.json: por "<def>:<pintura>", os seeds de cada tier e o multiplicador de cada tier. Devolve null se o item não tem padrão raro.
+// { tier, rotulo, mult, nome }: o valor de venda e o de referência do mercado são multiplicados por "mult", e a tela mostra o selo.
+export function padraoRaro(item) {
+  if (!item || (item.t && item.t !== 'arma' && item.t !== 'faca')) return null
+  const reg = PADROES.padroes[`${item.d}:${item.p}`]
+  if (!reg || item.s == null) return null
+  const seed = Number(item.s)
+  for (const tier of ['1', '2', '3']) {
+    if (reg.tiers[tier]?.includes(seed)) {
+      const mult = reg.destaque?.[seed] ?? PADROES.multiplicador[tier]
+      return { tier: Number(tier), rotulo: reg.rotulo, mult, nome: `${reg.rotulo} Tier ${tier}`, arma: reg.arma, seed }
+    }
+  }
+  return null
+}
+
 export const valorDoItem = (item, raridade) => Math.max(1, Math.round(VALOR_BASE[raridade] * multiplicadorDoDesgaste(item.f) * (item.st ? 1.35 : 1)))
 
 // Preço de mercado (R$ = NP) de uma skin: tabela { "<def>:<paint>": [FN, MW, FT, WW, BS, StatTrak FN..BS] } (scripts/gerar-precos.mjs); faca lisa: [preço, preço StatTrak].
