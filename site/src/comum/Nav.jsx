@@ -374,15 +374,17 @@ export default function Nav({ pagina }) {
   // Barra de baixo (celular): páginas do site; as de fora (Inventário) vão para o "Mais"
   const menuCel = menu.filter((m) => !m.soComputador) // o que só existe no computador (▶ Jogar) fica fora da barra de baixo e do "Mais"
   const botaoEntrar = loginAtivo() && !conta
-  const vagas = 6 - (botaoEntrar ? 1 : 0) // a barra de baixo tem no máximo 6 páginas (Loja ao lado do Inventário) e o "Mais": o que passar vai para o "Mais"
+  // Na barra de baixo ficam só estas (e o "Mais"); o resto das páginas (Pick & Ban, Times...) vai para o "Mais"
+  const NA_BARRA = ['inicio', 'partidas', 'ranking', 'inventario', 'loja']
   const todasAbas = menuCel.filter((m) => !m.externo)
-  const abas = todasAbas.slice(0, vagas)
-  const extras = [...todasAbas.slice(vagas), ...menuCel.filter((m) => m.externo)].map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
+  const abas = todasAbas.filter((m) => NA_BARRA.includes(m.id))
+  const noMais = todasAbas.filter((m) => !NA_BARRA.includes(m.id))
+  const extras = [...noMais, ...menuCel.filter((m) => m.externo)].map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
   const atual = [...MENU, ITEM_ADMIN].find((m) => m.id === pagina) || OUTRAS[pagina] || MENU[0]
   const IconeAtual = ICONES_MENU[atual.icone]
   const IconePerfil = ICONES_MENU.perfil
   const IconeMais = ICONES_MENU.mais
-  const maisAtivo = pagina === 'admin' || todasAbas.slice(vagas).some((m) => m.id === pagina)
+  const maisAtivo = pagina === 'admin' || noMais.some((m) => m.id === pagina)
 
   return (
     <>

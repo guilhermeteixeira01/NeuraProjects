@@ -131,3 +131,6 @@
 @keyframes ib-brilho { 0%, 55% { left: -45%; } 85%, 100% { left: 130%; } }
 @media (prefers-reduced-motion: reduce) { .dep-ben *, .dep-ben *::after { animation: none !important; } }
 html[data-desempenho] .dep-ben *, html[data-desempenho] .dep-ben *::after { animation: none !important; }
+.dep-ben-selo { grid-column: 1 / -1; }
+.dep-ben-selo .dep-ben-emblemas { flex-wrap: nowrap; justify-content: space-between; gap: 8px; max-width: 520px; }
+@media (max-width: 520px) { .dep-ben-selo .dep-ben-emblemas { flex-wrap: wrap; justify-content: flex-start; } }
