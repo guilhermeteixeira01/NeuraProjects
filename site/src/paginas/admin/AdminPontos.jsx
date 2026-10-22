@@ -20,6 +20,7 @@ export default function AdminPontos({ usuarios }) {
   const [saldo, setSaldo] = useState(null) // { saldo, ganhos, gastos, movimentos }
   const [estado, setEstado] = useState({ texto: '', ok: true })
   const [ocupado, setOcupado] = useState(false)
+  const [bonusVersao, setBonusVersao] = useState(0) // sobe quando um bônus para todos é lançado (a lista de salvos recarrega)
   const vivo = useRef(true)
 
   // jogador escolhido: nome exato, SteamID64 ou clique na sugestão (só vale com texto digitado)
@@ -66,6 +67,7 @@ export default function AdminPontos({ usuarios }) {
       setEstado({ texto: alvo === 'todos' ? t('Pronto: vale para todos (cada um recebe ao abrir o site).') : t('Pronto: o saldo agora é {n} NP.', { n: num(r.saldo) }), ok: true })
       setValor('')
       setMotivo('')
+      if (alvo === 'todos') setBonusVersao((n) => n + 1)
       ler()
     } catch (e) {
       setEstado({ texto: t(erroTexto(e)), ok: false })
@@ -174,6 +176,7 @@ export default function AdminPontos({ usuarios }) {
         </div>
       )}
     </div>
+      <BonusSalvos versao={bonusVersao} />
       <ConfigDepositos />
     </>
   )
@@ -289,6 +292,71 @@ function ConfigDepositos() {
         {ocupado ? t('Salvando…') : t('Salvar depósitos')}
       </button>
       {estado.texto && <p className={estado.ok ? 'adm-dar-estado' : 'adm-pt-erro'}>{estado.texto}</p>}
+    </div>
+  )
+}
+
+// Bônus "para todos" que estão salvos: cada jogador recebe cada um uma vez (quem entrar depois também). Dá para apagar: quem já recebeu fica com os pontos,
+// quem ainda não recebeu (e os novos jogadores) deixa de receber.
+function BonusSalvos({ versao }) {
+  const t = useT()
+  const [lista, setLista] = useState(null)
+  const [erro, setErro] = useState('')
+  const [apagando, setApagando] = useState(null)
+
+  const carregar = useCallback(() => {
+    chamar('/admin/loja-bonus').then(
+      (d) => {
+        setLista(d.bonus || [])
+        setErro('')
+      },
+      () => setErro('Não consegui ler os bônus salvos.'),
+    )
+  }, [])
+  useEffect(() => {
+    carregar()
+  }, [carregar, versao])
+
+  const apagar = async (b) => {
+    const nome = `${b.valor > 0 ? '+' : ''}${num(b.valor)} NP${b.motivo ? ` (${b.motivo})` : ''}`
+    if (!(await confirmar(t('Apagar o bônus {nome}? Quem já recebeu fica com os pontos; quem ainda não recebeu, e os jogadores novos, não recebem mais.', { nome }), { perigo: true, ok: t('Apagar') }))) return
+    setApagando(b.id)
+    try {
+      await chamar('/admin/loja-bonus', { apagar: b.id })
+      carregar()
+    } catch {
+      setErro('Não deu para apagar agora. Tente de novo.')
+    } finally {
+      setApagando(null)
+    }
+  }
+
+  return (
+    <div className="adm-bloco adm-pontos adm-bonus">
+      <h3>{t('Bônus para todos (salvos)')}</h3>
+      <p className="adm-dar-dica">{t('Todo jogador recebe cada bônus uma vez, inclusive quem criar a conta depois. Ao receber, aparece no sino da pessoa com o motivo.')}</p>
+      {erro && <p className="adm-pt-erro">{t(erro)}</p>}
+      {lista === null ? (
+        <p className="adm-dar-dica">{t('Carregando…')}</p>
+      ) : !lista.length ? (
+        <p className="adm-dar-dica">{t('Nenhum bônus salvo. Use "Todos os jogadores" acima para lançar um.')}</p>
+      ) : (
+        <ul className="adm-bonus-lista">
+          {[...lista].reverse().map((b) => (
+            <li key={b.id}>
+              <b className={b.valor >= 0 ? 'mais' : 'menos'}>
+                {b.valor > 0 ? '+' : ''}
+                {num(b.valor)} NP
+              </b>
+              <span>{b.motivo || t('sem motivo')}</span>
+              <small>{new Date(b.ts).toLocaleString(localeAtual(), { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</small>
+              <button type="button" className="btn btn-ghost adm-perigo" disabled={apagando === b.id} onClick={() => apagar(b)}>
+                {t('Apagar')}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }

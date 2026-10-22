@@ -29,5 +29,12 @@ export function precoDasCaixas(caixasIniciais, skins, adesivos, chaveiros, simul
     precos[cx.slug] = Math.max(10, Math.round(bruto / passo) * passo)
     tabela.push({ nome: cx.nome, antes: cx.preco, depois: precos[cx.slug], esperado })
   }
+  // a caixa de luvas é sempre a mais cara da loja (mais que a de facas)
+  const luvas = tabela.find((t) => t.nome === 'Caixa de Luvas')
+  const facas = tabela.find((t) => t.nome === 'Caixa de Facas')
+  if (luvas && facas && luvas.depois <= facas.depois) {
+    luvas.depois = Math.ceil((facas.depois * 1.15) / 50) * 50
+    precos['caixa-luvas'] = luvas.depois
+  }
   return { precos, tabela }
 }

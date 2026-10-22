@@ -578,3 +578,13 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 .adm-planos-lista small { color: var(--dim); padding-bottom: 8px; }
 .adm-planos-lista .btn { margin-left: auto; }
 .adm-planos-acoes { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* Bônus para todos salvos (aba Pontos) */
+.adm-bonus { margin-top: 18px; display: grid; gap: 10px; }
+.adm-bonus h3 { margin: 0; font: 700 17px var(--font-display); }
+.adm-bonus-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.adm-bonus-lista li { display: grid; grid-template-columns: 130px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel-2); font-size: 13.5px; }
+.adm-bonus-lista b.mais { color: #6ee7a8; font-family: var(--font-mono); }
+.adm-bonus-lista b.menos { color: #ff8a8a; font-family: var(--font-mono); }
+.adm-bonus-lista small { color: var(--dim); font-family: var(--font-mono); font-size: 11.5px; }
+@media (max-width: 700px) { .adm-bonus-lista li { grid-template-columns: 1fr auto; } .adm-bonus-lista li small { grid-column: 1; } }

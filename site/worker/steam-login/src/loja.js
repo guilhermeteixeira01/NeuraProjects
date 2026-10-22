@@ -279,10 +279,27 @@ export class Loja {
     const visto = (await this.ctx.storage.get('bonusVisto')) || 0
     const novos = bonus.filter((b) => b.id > visto)
     if (!novos.length) return
+    // bônus apagado pelo dono (apagado: true) ou zerado não entra: só o contador avança, para os próximos bônus funcionarem
+    const valem = novos.filter((b) => !b.apagado && Math.round(b.valor) !== 0)
     this.ctx.storage.transactionSync(() => {
-      for (const b of novos) this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', b.ts, -Math.round(b.valor), `bônus: ${b.motivo || 'para todos'}`)
+      for (const b of valem) this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', b.ts, -Math.round(b.valor), `bônus: ${b.motivo || 'para todos'}`)
     })
     await this.ctx.storage.put('bonusVisto', Math.max(...novos.map((b) => b.id)))
+    // avisa no sino (em todos os aparelhos). Vários de uma vez (quem entra agora e recebe os bônus antigos) viram um aviso só, com os motivos
+    if (valem.length) {
+      const total = valem.reduce((a, b) => a + Math.round(b.valor), 0)
+      const motivos = [...new Set(valem.map((b) => String(b.motivo || '').trim()).filter(Boolean))]
+      const n = {
+        id: `bonus:${Math.max(...valem.map((b) => b.id))}`,
+        titulo: total >= 0 ? `Você recebeu ${total.toLocaleString('pt-BR')} NP` : `Foram retirados ${Math.abs(total).toLocaleString('pt-BR')} NP da sua conta`,
+        texto: motivos.length ? `Motivo: ${motivos.join(' · ')}` : 'Bônus para todos os jogadores.',
+        link: '/loja/',
+        quando: Date.now(),
+        lida: false,
+      }
+      const atual = (await this.ctx.storage.get('notifs')) || docVazio()
+      await this.ctx.storage.put('notifs', juntar(atual, { lista: [n], vistos: [n.id], limpoEm: 0 }))
+    }
   }
 
   async acao({ acao, id, caixas, cfg, pontos, bonus, ...p }) {
@@ -375,6 +392,13 @@ export class Loja {
         return { aberturas: this.sql.exec('SELECT ts, caixa, t, d, p, r, f FROM aberturas ORDER BY id DESC LIMIT 100').toArray() }
       case 'creditar': // valor > 0 dá NP, valor < 0 tira
         this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), -Math.round(num(p.valor, -1e7, 1e7, 0)), String(p.motivo || 'ajuste do dono').slice(0, 60))
+        if (p.aviso && Math.round(num(p.valor, -1e7, 1e7, 0)) !== 0) {
+          // ajuste feito pelo dono no painel: avisa o jogador no sino, com o motivo (se tiver)
+          const v = Math.round(num(p.valor, -1e7, 1e7, 0))
+          const n = { id: `ajuste:${Date.now()}`, titulo: v > 0 ? `Você recebeu ${v.toLocaleString('pt-BR')} NP` : `Foram retirados ${Math.abs(v).toLocaleString('pt-BR')} NP da sua conta`, texto: p.motivo ? `Motivo: ${String(p.motivo).slice(0, 60)}` : 'Ajuste feito pela administração.', link: '/loja/', quando: Date.now(), lida: false }
+          const atual = (await this.ctx.storage.get('notifs')) || docVazio()
+          await this.ctx.storage.put('notifs', juntar(atual, { lista: [n], vistos: [n.id], limpoEm: 0 }))
+        }
         return { saldo: pontos - this.gastos() }
       case 'definir': { // deixa o saldo exatamente em "valor"
         const atual = pontos - this.gastos()
@@ -699,8 +723,18 @@ export async function rotaAdminLoja(req, env, rota, cors) {
     if (!ID_STEAM.test(corpo.alvo || '')) return json({ erro: 'id' }, 400, cors)
     const pontos = await pontosGanhos(env, corpo.alvo)
     const bonus = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
-    const r = await chamar(env, corpo.alvo, { acao: corpo.acao === 'definir' ? 'definir' : 'creditar', pontos, bonus, valor: corpo.acao === 'remover' ? -valor : valor, motivo })
+    const r = await chamar(env, corpo.alvo, { acao: corpo.acao === 'definir' ? 'definir' : 'creditar', pontos, bonus, valor: corpo.acao === 'remover' ? -valor : valor, motivo, aviso: corpo.acao !== 'definir' })
     return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
+  }
+  // Bônus "para todos" salvos (GET: lista) e apagar um (POST { apagar: id }). Apagar = ninguém mais recebe (quem já recebeu fica com os pontos); o id continua na lista
+  // marcado como apagado, para um bônus novo nunca reaproveitar um número que os jogadores já "viram".
+  if (rota === '/admin/loja-bonus') {
+    const lista = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
+    if (req.method === 'GET') return json({ bonus: lista.filter((b) => !b.apagado && Math.round(b.valor) !== 0).map((b) => ({ id: b.id, ts: b.ts, valor: b.valor, motivo: b.motivo || '' })) }, 200, cors)
+    const id = Number(corpo.apagar)
+    if (!lista.some((b) => b.id === id)) return json({ erro: 'bonus' }, 404, cors)
+    await env.MOLDURAS.put('loja-bonus', JSON.stringify(lista.map((b) => (b.id === id ? { ...b, apagado: true } : b))))
+    return json({ ok: true }, 200, cors)
   }
   // Saldo de um jogador (o painel consulta de poucos em poucos segundos: "tempo real")
   if (rota === '/admin/loja-saldo') {
