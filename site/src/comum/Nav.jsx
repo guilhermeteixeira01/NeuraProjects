@@ -2,7 +2,7 @@ import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import { CONFIG, MENU } from './config.js'
 import { entrar, linkPerfil, loginAtivo, sair, useConta } from './conta.js'
 import { ICONES_MENU, IconeDiscord, IconeSteam } from './Icones.jsx'
-import { useAcessoPick, useAdmin, useNivelSub } from './Moldura.jsx'
+import { useAcessoPick, useAdmin, useNivelSub, useTimeDe } from './Moldura.jsx'
 import Configuracoes from './Configuracoes.jsx'
 import { useT } from './i18n.js'
 
@@ -32,6 +32,7 @@ function LinkMenu({ item, atual }) {
       {...(item.externo ? { target: '_blank', rel: 'noopener' } : {})}
       {...(ativo ? { 'aria-current': 'page' } : {})}
     >
+      {item.id === 'equipes' && <LogoDoTime />}
       {IconeItem && <IconeItem />}
       <span className="nx-dica">{t(item.rotulo)}</span>
       {item.selo && <span className="nx-selo">{item.selo}</span>}
@@ -186,6 +187,15 @@ function Conta() {
       )}
     </div>
   )
+}
+
+// Logo do time do jogador, por trás do ícone "Times" do menu (nada se ele não tem time ou o time não tem logo)
+function LogoDoTime() {
+  const conta = useConta()
+  const time = useTimeDe(conta?.id)
+  const [erro, setErro] = useState(false)
+  if (!time || !/^https?:\/\//.test(time.logo || '') || erro) return null
+  return <img className="nx-time-logo" src={time.logo} alt="" aria-hidden="true" loading="lazy" onError={() => setErro(true)} />
 }
 
 // Páginas que aparecem no menu sem login
@@ -436,7 +446,7 @@ export default function Nav({ pagina }) {
           const ativo = m.id === pagina
           return (
             <a key={m.id} className={`nx-aba${ativo ? ' is-active' : ''}`} href={m.href} {...(ativo ? { 'aria-current': 'page' } : {})}>
-              <i>{Icone && <Icone />}{m.id === 'equipes' && avisoTime && <span className="nx-alerta" role="status" aria-label={t('Mensagem nova no chat do time')}>!</span>}</i>
+              <i>{m.id === 'equipes' && <LogoDoTime />}{Icone && <Icone />}{m.id === 'equipes' && avisoTime && <span className="nx-alerta" role="status" aria-label={t('Mensagem nova no chat do time')}>!</span>}</i>
               <span>{t(m.rotulo)}</span>
             </a>
           )

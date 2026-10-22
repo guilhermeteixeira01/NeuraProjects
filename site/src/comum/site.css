@@ -3563,3 +3563,8 @@ html.ins-estante-aberta #root { filter: blur(10px) brightness(.5) saturate(.9); 
 .nx-aba .nx-alerta { top: -4px; right: -7px; width: 15px; height: 15px; font-size: 10px; }
 @keyframes nx-alerta-pisca { 50% { opacity: .25; transform: scale(.8); } }
 @media (prefers-reduced-motion: reduce) { .nx-alerta { animation: none; } }
+
+/* Logo do time por trás do ícone "Times" do menu */
+.nx-time-logo { position: absolute; inset: 4px; width: calc(100% - 8px); height: calc(100% - 8px); object-fit: cover; border-radius: inherit; opacity: .42; pointer-events: none; z-index: 0; }
+.nx-link .nx-time-logo + svg, .nx-aba .nx-time-logo + svg { position: relative; z-index: 1; filter: drop-shadow(0 1px 3px rgb(0 0 0 / .85)); }
+.nx-aba i .nx-time-logo { inset: -2px; width: calc(100% + 4px); height: calc(100% + 4px); border-radius: 10px; }

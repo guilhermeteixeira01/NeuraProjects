@@ -37,6 +37,7 @@ export const MENSAGENS = {
   nome: 'O nome precisa ter de 3 a 24 letras, números ou espaços.',
   tag: 'A tag tem de 2 a 5 letras ou números.',
   'nome-em-uso': 'Já existe um time com esse nome.',
+  'tag-em-uso': 'Já existe um time com essa tag.',
   'ja-tem-time': 'Você já está em um time. Saia dele antes.',
   'alvo-ja-tem-time': 'Essa pessoa já está em um time.',
   privado: 'Esse time é privado: só entra com convite.',

@@ -195,6 +195,7 @@ export class Equipes {
       if (!NOME.test(nome)) throw new Error('nome')
       if (tag && !TAG.test(tag)) throw new Error('tag')
       if (this.sql.exec('SELECT 1 FROM equipes WHERE nome = ? COLLATE NOCASE', nome).toArray().length) throw new Error('nome-em-uso')
+      if (tag && this.sql.exec('SELECT 1 FROM equipes WHERE tag = ? COLLATE NOCASE', tag).toArray().length) throw new Error('tag-em-uso')
       const descricao = String(p.descricao || '').replace(/[\u0000-\u001f<>]/g, ' ').trim().slice(0, 280)
       const pontos = await pontosGanhos(this.env, quem)
       const bonus = (await this.env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
@@ -270,6 +271,7 @@ export class Equipes {
       if (p.tag !== undefined) {
         const tag = String(p.tag).trim()
         if (tag && !TAG.test(tag)) throw new Error('tag')
+        if (tag && this.sql.exec('SELECT 1 FROM equipes WHERE tag = ? COLLATE NOCASE AND id != ?', tag, eq).toArray().length) throw new Error('tag-em-uso')
         campos.tag = tag
       }
       if (p.descricao !== undefined) campos.descricao = String(p.descricao).replace(/[\u0000-\u001f<>]/g, ' ').trim().slice(0, 280)
