@@ -18,7 +18,10 @@ async function chamar(rota, corpo) {
 }
 
 // metodo: 'pix' | 'cartao'. Devolve { id, metodo, centavos, np, pix: { payload, imagem, expira } } ou { ..., url }
-export const criarPagamento = (metodo, centavos, nome, cpf) => chamar('/pagamentos/criar', { metodo, centavos, nome, cpf })
+// extra: { tipo: 'sub', meses } para assinatura (o preço sai do plano, no servidor)
+export const criarPagamento = (metodo, centavos, nome, cpf, extra) => chamar('/pagamentos/criar', { metodo, centavos, nome, cpf, ...(extra || {}) })
+// Planos da assinatura Premium: [{ meses, centavos }]
+export const lerPlanosSub = () => chamar('/pagamentos/planos').then((d) => d.planos)
 // { estado: 'pendente' | 'pago' | 'estornado', np?, saldo? }  (o servidor confere no Asaas e credita)
 export const estadoPagamento = (id) => chamar(`/pagamentos/estado?id=${encodeURIComponent(id)}`)
 
@@ -31,6 +34,7 @@ export const MENSAGENS_PAGAMENTO = {
   nome: 'Digite seu nome completo (nome e sobrenome).',
   cpf: 'CPF inválido. Confira os 11 números.',
   'muitos-pagamentos': 'Você já criou várias cobranças seguidas. Espere um pouco ou pague uma das que estão abertas.',
+  plano: 'Esse plano não existe mais. Feche e abra de novo.',
   asaas: 'O banco recusou a cobrança agora. Tente de novo em instantes.',
   login: 'Entre com a Steam para depositar.',
 }

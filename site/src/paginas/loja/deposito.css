@@ -68,3 +68,9 @@
   .dep-corpo { padding: 4px 14px 16px; }
 }
 @media (prefers-reduced-motion: reduce) { .dep-fundo, .dep, .dep-pulsa { animation: none; } }
+
+/* Planos da assinatura Premium (modo "sub") */
+.dep-planos { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.dep-plano-meses { font: 800 34px/1 var(--font-display, inherit); color: #f5c518; }
+.dep-pacotes[hidden], .dep-campo[hidden] { display: none; }
+@media (max-width: 780px) { .dep-planos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

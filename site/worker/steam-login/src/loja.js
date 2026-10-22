@@ -38,6 +38,7 @@ import { registrarDrops } from './mercado.js'
 import FACAS_VALOR from './facas-valor.json'
 import ENFEITES_VALOR from './valor-enfeites.json'
 import PRECOS from './precos.json'
+import { registrar } from './registro.js'
 
 const ID_STEAM = /^\d{17}$/
 const ITENS_MAX = 2000
@@ -205,6 +206,14 @@ export class Loja {
     this.sql.exec('CREATE TABLE IF NOT EXISTS aberturas (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, caixa TEXT, t TEXT, d INTEGER, p INTEGER, r INTEGER, f REAL, q INTEGER)')
     // depósitos com dinheiro (Asaas): um por cobrança; "estado" = pendente | pago | estornado. É daqui que sai a garantia de creditar uma vez só
     this.sql.exec('CREATE TABLE IF NOT EXISTS depositos (pid TEXT PRIMARY KEY, ts INTEGER, centavos INTEGER, np INTEGER, metodo TEXT, estado TEXT)')
+    // depósitos também guardam assinaturas pagas: tipo ('deposito' | 'sub'), dados (JSON, ex.: { meses }) e entregue (a assinatura já foi dada?)
+    for (const coluna of ["tipo TEXT DEFAULT 'deposito'", 'dados TEXT', 'entregue INTEGER DEFAULT 1']) {
+      try {
+        this.sql.exec(`ALTER TABLE depositos ADD COLUMN ${coluna}`)
+      } catch {
+        // a coluna já existe
+      }
+    }
     this.sql.exec('CREATE TABLE IF NOT EXISTS movimentos (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, valor INTEGER, motivo TEXT)')
     this.fila = Promise.resolve()
   }
@@ -299,16 +308,25 @@ export class Loja {
         await this.ctx.storage.put(`asaasCliente:${p.amb || 'sandbox'}`, String(p.cliente || ''))
         return { ok: true }
       case 'dep-registrar':
-        this.sql.exec('INSERT OR IGNORE INTO depositos (pid, ts, centavos, np, metodo, estado) VALUES (?, ?, ?, ?, ?, ?)', String(p.pid), Date.now(), Math.round(p.centavos), Math.round(p.np), String(p.metodo), 'pendente')
+        this.sql.exec('INSERT OR IGNORE INTO depositos (pid, ts, centavos, np, metodo, estado, tipo, dados, entregue) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', String(p.pid), Date.now(), Math.round(p.centavos), Math.round(p.np), String(p.metodo), 'pendente', p.tipo === 'sub' ? 'sub' : 'deposito', p.dados ? JSON.stringify(p.dados) : null, p.tipo === 'sub' ? 0 : 1)
         return { ok: true }
       case 'dep-ler': {
         const l = this.sql.exec('SELECT pid, ts, centavos, np, metodo, estado FROM depositos WHERE pid = ?', String(p.pid)).toArray()[0]
         return { deposito: l || null }
       }
       case 'dep-creditar': { // cobrança paga: credita os NP uma única vez (por mais que o aviso chegue várias vezes)
-        const l = this.sql.exec('SELECT centavos, np, estado FROM depositos WHERE pid = ?', String(p.pid)).toArray()[0]
+        const l = this.sql.exec('SELECT centavos, np, estado, tipo, dados, entregue FROM depositos WHERE pid = ?', String(p.pid)).toArray()[0]
         if (!l) throw new Error('desconhecido')
         if (l.centavos !== Math.round(p.centavos)) throw new Error('valor')
+        if (l.tipo === 'sub') {
+          // assinatura: não mexe nos NP; marca como paga e o worker entrega os meses (dep-entregue confirma)
+          const dados = l.dados ? JSON.parse(l.dados) : {}
+          if (l.estado === 'pendente') {
+            this.sql.exec("UPDATE depositos SET estado = 'pago' WHERE pid = ?", String(p.pid))
+            return { novo: true, tipo: 'sub', dados, entregue: 0, estado: 'pago' }
+          }
+          return { novo: false, tipo: 'sub', dados, entregue: l.estado === 'pago' ? l.entregue : 1, estado: l.estado }
+        }
         if (l.estado !== 'pendente') return { novo: false, estado: l.estado, saldo: pontos - this.gastos() }
         this.ctx.storage.transactionSync(() => {
           this.sql.exec("UPDATE depositos SET estado = 'pago' WHERE pid = ?", String(p.pid))
@@ -316,14 +334,17 @@ export class Loja {
         })
         return { novo: true, np: l.np, estado: 'pago', saldo: pontos - this.gastos() }
       }
+      case 'dep-entregue':
+        this.sql.exec('UPDATE depositos SET entregue = 1 WHERE pid = ?', String(p.pid))
+        return { ok: true }
       case 'dep-estornar': { // devolução/chargeback: tira os NP de volta (o saldo pode ficar negativo; aí não dá para comprar até regularizar)
-        const l = this.sql.exec('SELECT np, estado FROM depositos WHERE pid = ?', String(p.pid)).toArray()[0]
+        const l = this.sql.exec('SELECT np, estado, tipo, dados FROM depositos WHERE pid = ?', String(p.pid)).toArray()[0]
         if (!l || l.estado !== 'pago') return { novo: false }
         this.ctx.storage.transactionSync(() => {
           this.sql.exec("UPDATE depositos SET estado = 'estornado' WHERE pid = ?", String(p.pid))
-          this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), l.np, 'depósito estornado')
+          if (l.tipo !== 'sub') this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), l.np, 'depósito estornado')
         })
-        return { novo: true }
+        return { novo: true, tipo: l.tipo, dados: l.dados ? JSON.parse(l.dados) : null }
       }
       case 'zerar': // src/zerar.js: o jogador volta para o começo (NP, aberturas, insígnias da loja e inventário)
         return this.zerar(p.bonusMax)
@@ -619,6 +640,7 @@ export async function rotaLoja(req, env, quem, cors, rota) {
   const precoModo = caixaModo ? detalhesDaCaixa(caixaModo, cfg).modos[modo].preco : undefined
   const r = await chamar(env, quem.id, { acao, caixas, cfg, pontos, bonus, caixa: corpo.caixa, qtd: corpo.qtd, ids: corpo.ids, origem: corpo.origem === 'inventario' || corpo.origem === 'auto' ? corpo.origem : 'direto', ...(modo ? { modo, precoModo } : {}) })
   const dados = await r.json().catch(() => ({ erro: 'falhou' }))
+  if (acao === 'vender' && r.ok && dados.total > 0) await registrar(env, { tipo: 'venda', quem: quem.id, texto: `vendeu ${dados.vendidos} item(ns) para a loja por ${Number(dados.total).toLocaleString('pt-BR')} NP` })
   // o que saiu da caixa entra no carrossel de drops ao vivo do topo da loja (aparece depois que a roleta termina)
   if (acao === 'abrir' && r.ok && Array.isArray(dados.resultados)) await registrarDrops(env, quem, caixas.find((c) => c.id === Number(corpo.caixa)), dados.resultados)
   // insígnias novas + as que o perfil ainda não tem (cura sozinha: nada de botão "reconferir"); aplicarInsignias só grava se faltar algo

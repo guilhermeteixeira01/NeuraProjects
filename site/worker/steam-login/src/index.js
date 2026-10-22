@@ -44,12 +44,14 @@ import { Trocas, rotaTrocas } from './trocas.js'
 import { Loja, valorDe, rotaAdminLoja, rotaLoja, rotaLojaPublica, rotaNotificacoes } from './loja.js'
 import { Mercado, rotaDrops, rotaMercado } from './mercado.js'
 import { zerarTudo } from './zerar.js'
-import { rotaAdminPagamento, rotaPagamentos, rotaWebhookAsaas } from './pagamentos.js'
+import { definirConcedenteSub, rotaAdminPagamento, rotaAdminPlanosSub, rotaPagamentos, rotaWebhookAsaas } from './pagamentos.js'
+import { Registro, registrar, rotaAdminLogs } from './registro.js'
 import { ehInsigniaLoja, ID_MESTRE } from './loja-core.js'
 export { Presenca } // Durable Object da presença (wrangler.toml)
 export { Loja } // Durable Object da loja de caixas (wrangler.toml)
 export { Trocas } // Durable Object das trocas entre jogadores (wrangler.toml)
 export { Mercado } // Durable Object do mercado entre jogadores (wrangler.toml)
+export { Registro } // Durable Object do log do painel de admin (wrangler.toml)
 
 const OPENID = 'https://steamcommunity.com/openid/login'
 const NS = 'http://specs.openid.net/auth/2.0'
@@ -66,14 +68,114 @@ export default {
   // Erro inesperado (ex.: limite diário de gravações do KV): responde com CORS e um código, senão o navegador só mostra "bloqueado por CORS"
   async fetch(req, env, ctx) {
     try {
-      return await atender(req, env, ctx)
+      const resp = await atender(req, env, ctx)
+      // log do painel: ação de admin que deu certo (quem, o quê, em quem)
+      const pedido = PEDIDOS_ADMIN.get(req)
+      if (pedido && resp.status < 400) ctx.waitUntil(registrar(env, descreverAcaoAdmin(new URL(req.url).pathname, pedido)))
+      return resp
     } catch (e) {
       console.error(e)
+      ctx.waitUntil(registrar(env, { tipo: 'erro', texto: `erro no servidor em ${new URL(req.url).pathname}: ${String(e?.message || e).slice(0, 160)}` }))
       const site = (env.SITE || 'https://neuraproject.com.br').replace(/\/$/, '')
       return json({ erro: /limit exceeded/i.test(e?.message || '') ? 'limite-diario' : 'falhou' }, 503, corsDe(req, env, site))
     }
   },
 }
+
+// Pedidos de admin (POST) guardados para o log: quem mandou e o corpo (limitado). A linha do log é escrita depois que o pedido deu certo.
+const PEDIDOS_ADMIN = new WeakMap()
+const ROTULO_ADMIN = {
+  '/admin/perfil': 'editou o perfil',
+  '/admin/config': 'mudou as configurações',
+  '/admin/selos': 'mudou os selos da equipe',
+  '/admin/admins': 'mudou administradores',
+  '/admin/skin': 'mexeu nas skins do jogador',
+  '/admin/caixas': 'mudou as caixas da loja',
+  '/admin/caixas-lista': 'mudou as caixas da loja',
+  '/admin/loja-config': 'mudou a configuração da loja',
+  '/admin/loja-pontos': 'mexeu nos pontos',
+  '/admin/loja-bonus': 'lançou um bônus de pontos',
+  '/admin/pagamento-config': 'mudou a configuração dos depósitos',
+  '/admin/assinatura-planos': 'mudou os planos de assinatura',
+  '/admin/zerar-tudo': 'ZEROU TUDO',
+}
+function descreverAcaoAdmin(rota, { quem, corpo }) {
+  let c = {}
+  try {
+    c = JSON.parse(corpo) || {}
+  } catch {
+    // corpo que não é JSON
+  }
+  const chaves = Object.keys(c).filter((k) => !['id', 'alvo'].includes(k))
+  let texto = ROTULO_ADMIN[rota] || `ação em ${rota.replace('/admin/', '')}`
+  if (rota === '/admin/perfil') texto = c.limpar ? 'apagou os dados do jogador' : c.sub === null ? 'removeu a assinatura' : `editou o perfil (${chaves.join(', ') || 'sem mudanças'})`
+  else if (rota === '/admin/admins') texto = c.admin === true ? 'promoveu a administrador' : 'removeu de administrador'
+  else if (rota === '/admin/loja-pontos') texto = `${c.acao || 'mexeu'} ${c.valor ?? ''} NP ${c.alvo === 'todos' ? 'para TODOS' : ''}${c.motivo ? ` (${String(c.motivo).slice(0, 60)})` : ''}`.replace(/ +/g, ' ').trim()
+  else if (rota === '/admin/skin') texto = c.remover ? 'tirou uma skin do jogador' : 'deu itens ao jogador'
+  else if (chaves.length && rota === '/admin/config') texto = `mudou as configurações (${chaves.join(', ')})`
+  const alvo = /^\d{17}$/.test(String(c.id || c.alvo || '')) ? String(c.id || c.alvo) : ''
+  return { tipo: 'admin', quem, alvo, texto, dados: rota === '/admin/zerar-tudo' || rota.includes('pontos') ? { rota, simular: c.simular === true } : { rota, campos: chaves.slice(0, 12) } }
+}
+
+// Dá meses de assinatura paga (pagamentos.js chama quando o Asaas confirma). Idempotente: guarda um resumo do id do pagamento no próprio perfil.
+function maisUmMesDoServidor(ms) {
+  const d = new Date(ms)
+  const dia = d.getDate()
+  d.setDate(1)
+  d.setMonth(d.getMonth() + 1)
+  d.setDate(Math.min(dia, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()))
+  return d.getTime()
+}
+function menosUmMesDoServidor(ms) {
+  const d = new Date(ms)
+  const dia = d.getDate()
+  d.setDate(1)
+  d.setMonth(d.getMonth() - 1)
+  d.setDate(Math.min(dia, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()))
+  return d.getTime()
+}
+async function resumoDoPagamento(pid) {
+  const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pid))
+  return [...new Uint8Array(h)].slice(0, 5).map((b) => b.toString(16).padStart(2, '0')).join('')
+}
+definirConcedenteSub(async (env, id, meses, pid) => {
+  const perfis = await ler(env, 'perfis')
+  const perfil = (perfis[id] ||= {})
+  const sub = perfil.sub
+  const marca = await resumoDoPagamento(pid)
+  if (sub?.pagamentos?.includes(marca)) return false
+  const agora = Date.now()
+  let novo
+  if (sub && sub.expira == null) novo = { ...sub } // assinatura sem data (infinita): não muda nada, só registra o pagamento
+  else {
+    let expira = Math.max(agora, Number(sub?.expira) || 0)
+    for (let i = 0; i < meses; i++) expira = maisUmMesDoServidor(expira)
+    novo = { inicio: sub?.inicio || agora, meses: (Number(sub?.meses) || 0) + meses, expira }
+  }
+  novo.pagamentos = [...(sub?.pagamentos || []), marca].slice(-20)
+  perfil.sub = novo
+  await gravar(env, 'perfis', perfis)
+  await avisarPerfil(env, id, perfis[id]) // quem está com o site aberto vê o emblema na hora
+  return true
+}, async (env, id, meses, pid) => {
+  // estorno/chargeback: tira de volta os meses que esse pagamento deu (só se o resumo do pagamento estiver na assinatura)
+  const perfis = await ler(env, 'perfis')
+  const sub = perfis[id]?.sub
+  const marca = await resumoDoPagamento(pid)
+  if (!sub?.pagamentos?.includes(marca)) return false
+  const resto = sub.pagamentos.filter((x) => x !== marca)
+  if (sub.expira == null) perfis[id].sub = { ...sub, pagamentos: resto } // infinita: nada a tirar
+  else {
+    let expira = Number(sub.expira)
+    for (let i = 0; i < meses; i++) expira = menosUmMesDoServidor(expira)
+    const restantes = Math.max(0, (Number(sub.meses) || 0) - meses)
+    if (restantes <= 0 || expira <= Date.now()) delete perfis[id].sub // sem meses (ou já venceria): some a assinatura
+    else perfis[id].sub = { ...sub, meses: restantes, expira, pagamentos: resto }
+  }
+  await gravar(env, 'perfis', perfis)
+  await avisarPerfil(env, id, perfis[id])
+  return true
+})
 
 async function atender(req, env, ctx) {
   {
@@ -153,12 +255,23 @@ async function atender(req, env, ctx) {
       if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
       const c = (await req.json().catch(() => null)) || {}
       if (c.confirmar !== 'ZERAR TUDO') return json({ erro: 'confirmar' }, 400, cors)
-      return json(await zerarTudo(env, c.simular === true), 200, cors)
+      const r = await zerarTudo(env, c.simular === true)
+      if (c.simular !== true) await registrar(env, { tipo: 'admin', quem: quem.id, texto: 'ZEROU TUDO (NP, insígnias, inventários, mercado e trocas de todos)' })
+      return json(r, 200, cors)
     }
     if (rota.startsWith('/admin/')) {
       const abas = await abasDe(quem.id, env, config)
       if (!abas.length) return json({ erro: 'admin' }, 403, cors)
       const pode = (...precisa) => precisa.every((a) => abas.includes(a)) // cada rota confere a aba dela
+      if (req.method === 'POST') PEDIDOS_ADMIN.set(req, { quem: quem.id, corpo: (await req.clone().text()).slice(0, 4000) }) // para o log
+      if (rota === '/admin/logs' && req.method === 'GET') {
+        if (!pode('logs')) return json({ erro: 'aba' }, 403, cors)
+        return rotaAdminLogs(url, env, cors)
+      }
+      if (rota === '/admin/assinatura-planos' && (req.method === 'GET' || req.method === 'POST')) {
+        if (!pode('assinaturas')) return json({ erro: 'aba' }, 403, cors)
+        return rotaAdminPlanosSub(req, env, cors)
+      }
       if (rota === '/admin/dados' && req.method === 'GET') return adminDados(env, config, cors)
       if (rota === '/admin/perfil' && req.method === 'POST') {
         const c = await req.clone().json().catch(() => ({}))
@@ -242,7 +355,7 @@ const ehAdmin = (id, env, config) => id === env.DONO || (config.admins || []).in
 //  - quem é admin (config.admins) tem usuarios, molduras, cards e cargos;
 //  - qualquer jogador ganha mais abas (ou só as abas) pelos CARGOS dele: cada cargo tem uma lista "acessos" que o dono marca ao editar o cargo.
 // Assinaturas, Admins, Skins, Caixas e Pontos são só do dono, a não ser que um cargo libere.
-const ABAS_ADMIN = ['usuarios', 'molduras', 'cards', 'cargos', 'assinaturas', 'skins', 'caixas', 'pontos', 'admins']
+const ABAS_ADMIN = ['usuarios', 'molduras', 'cards', 'cargos', 'assinaturas', 'skins', 'caixas', 'pontos', 'logs', 'admins']
 const ABAS_DO_ADMIN = ['usuarios', 'molduras', 'cards', 'cargos']
 async function abasDe(id, env, config) {
   if (id === env.DONO) return [...ABAS_ADMIN]
@@ -628,7 +741,7 @@ async function adminPerfil(req, env, site, config, cors) {
       const antes = (await ler(env, 'perfis'))[corpo.id]?.sub
       const inicio = s?.inicio ? Math.round(Number(s.inicio)) : antes?.inicio || Date.now()
       if (!(meses >= 0 && meses <= 1200) || (expira !== null && !(expira > 0 && expira < 4e12)) || !(inicio > 0 && inicio < 4e12)) return json({ erro: 'sub' }, 400, cors)
-      mudar.sub = { inicio, meses, expira }
+      mudar.sub = { inicio, meses, expira, ...(antes?.pagamentos ? { pagamentos: antes.pagamentos } : {}) } // mantém o resumo dos pagamentos (para um estorno poder tirar os meses certos)
     }
   }
   // Insígnias: lista das que o jogador fica tendo; as que ele já tinha mantêm a data em que ganhou

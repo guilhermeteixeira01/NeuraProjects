@@ -546,3 +546,35 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 .adm-selos .adm-cargo-linha .adm-selo-quem { min-width: 64px; }
 .adm-selos .adm-cargo-linha .btn { margin-left: auto; }
 @media (max-width: 700px) { .adm-dep-campos { grid-template-columns: 1fr; } }
+
+/* Logs (aba Logs) */
+.adm-logs { display: grid; gap: 12px; }
+.adm-logs-topo { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.adm-logs-tipos { display: flex; flex-wrap: wrap; gap: 6px; }
+.adm-logs-tipos button { background: rgb(var(--tinta) / .06); border: 1px solid var(--border-2); color: var(--dim); border-radius: 999px; padding: 6px 14px; font: 700 12px var(--font-display); letter-spacing: .05em; cursor: pointer; }
+.adm-logs-tipos button.active { background: var(--blue-2); border-color: var(--blue-2); color: #06222b; }
+.adm-logs-busca { flex: 1 1 220px; min-width: 0; background: var(--bg-soft); border: 1px solid var(--border-2); color: var(--text); border-radius: 8px; padding: 8px 12px; font: inherit; }
+.adm-logs-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 70vh; overflow-y: auto; }
+.adm-log { display: grid; grid-template-columns: 138px 92px minmax(0, 1fr); gap: 10px; align-items: baseline; padding: 7px 10px; border-radius: 8px; background: rgb(var(--tinta) / .03); border-left: 3px solid var(--border-2); font-size: 13px; }
+.adm-log time { font-family: var(--font-mono); font-size: 11.5px; color: var(--dim); }
+.adm-log-tipo { font: 700 10.5px var(--font-display); letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+.adm-log-texto { overflow-wrap: anywhere; }
+.adm-log.tipo-admin { border-left-color: #6ea8ff; }
+.adm-log.tipo-pagamento, .adm-log.tipo-assinatura { border-left-color: #b6f23a; }
+.adm-log.tipo-troca { border-left-color: #f5c542; }
+.adm-log.tipo-mercado { border-left-color: #d32ce6; }
+.adm-log.tipo-venda { border-left-color: #eb9a4b; }
+.adm-log.tipo-erro { border-left-color: #e5484d; background: rgb(229 72 77 / .08); }
+.adm-logs-mais { justify-self: center; }
+@media (max-width: 700px) { .adm-log { grid-template-columns: 1fr; gap: 2px; } }
+
+/* Planos da assinatura (aba Assinaturas) */
+.adm-planos { display: grid; gap: 12px; margin-bottom: 18px; }
+.adm-planos h3 { margin: 0; font: 700 17px var(--font-display); }
+.adm-planos-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.adm-planos-lista li { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel-2); }
+.adm-planos-lista label { display: grid; gap: 4px; font-size: 12.5px; color: var(--dim); }
+.adm-planos-lista input { width: 110px; background: var(--bg-soft); border: 1px solid var(--border-2); color: var(--text); border-radius: 8px; padding: 7px 9px; font: inherit; }
+.adm-planos-lista small { color: var(--dim); padding-bottom: 8px; }
+.adm-planos-lista .btn { margin-left: auto; }
+.adm-planos-acoes { display: flex; flex-wrap: wrap; gap: 10px; }

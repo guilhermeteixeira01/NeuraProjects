@@ -12,6 +12,7 @@
  *   POST /mercado/comprar { id }                  -> paga, recebe o item e avisa o vendedor: { ok, saldo }
  */
 import { avisarMercado } from './amigos.js'
+import { registrar } from './registro.js'
 import { lerSkins, novoIdItem } from './skins.js'
 import { mexerNoInventario } from './trocas.js'
 import { pontosGanhos, valorDe } from './loja.js'
@@ -242,5 +243,9 @@ export async function rotaMercado(req, env, quem, cors, rota) {
     pedido = { acao: 'comprar', id: corpo.id, pontos, bonus: bonus || [] }
   } else return json({ erro: 'rota' }, 404, cors)
   const r = await chamar(env, { ...pedido, quem: quem.id })
+  if (r.ok && pedido.acao !== 'listar') {
+    const texto = pedido.acao === 'anunciar' ? `anunciou um item no mercado por ${Number(pedido.preco).toLocaleString('pt-BR')} NP` : pedido.acao === 'cancelar' ? 'cancelou um anúncio do mercado' : 'comprou um anúncio do mercado'
+    await registrar(env, { tipo: 'mercado', quem: quem.id, texto, dados: { anuncio: String(pedido.id || '').slice(0, 12) } })
+  }
   return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
 }

@@ -18,6 +18,8 @@ import CartaoSkin from '../../comum/CartaoSkin.jsx'
 import { confirmar } from '../../comum/Dialogos.jsx'
 import AdminCaixas from './AdminCaixas.jsx'
 import AdminPontos from './AdminPontos.jsx'
+import AdminLogs from './AdminLogs.jsx'
+import AdminPlanos from './AdminPlanos.jsx'
 import { lerCaixasPublicas } from '../../comum/loja.js'
 import { useAvatar } from '../../comum/avatares.js'
 import SeletorMoldura from '../perfil/SeletorMoldura.jsx'
@@ -894,7 +896,7 @@ function EditarSelo({ selo, titulo, qual, mudar, aoFechar }) {
 
 const ABAS_PADRAO_ADMIN = ['usuarios', 'molduras', 'cards', 'cargos']
 // Abas do painel que um cargo pode liberar (o dono marca; o worker confere a aba em cada rota)
-const NOMES_ABAS = { usuarios: 'Usuários', molduras: 'Molduras', cards: 'Cards', cargos: 'Cargos', assinaturas: 'Assinaturas', skins: 'Skins', caixas: 'Caixas', pontos: 'Pontos', admins: 'Admins' }
+const NOMES_ABAS = { usuarios: 'Usuários', molduras: 'Molduras', cards: 'Cards', cargos: 'Cargos', assinaturas: 'Assinaturas', skins: 'Skins', caixas: 'Caixas', pontos: 'Pontos', logs: 'Logs', admins: 'Admins' }
 const DESCRICAO_ABAS = {
   usuarios: 'Ver e editar os jogadores (moldura, time, XP, cargos, insígnias, bloqueio).',
   molduras: 'Regras das molduras (nível, cargo, assinatura).',
@@ -903,7 +905,8 @@ const DESCRICAO_ABAS = {
   assinaturas: 'Assinaturas Premium: dar, renovar e tirar.',
   skins: 'Dar e tirar skins, adesivos, chaveiros e caixas dos jogadores.',
   caixas: 'Caixas da loja: taxas, preços e itens.',
-  pontos: 'Neura Pontos: adicionar, remover e definir o saldo.',
+  pontos: 'Neura Pontos: adicionar, remover e definir o saldo, e os depósitos com dinheiro.',
+  logs: 'Ver o registro de tudo que acontece (ações de admin, pagamentos, trocas, mercado, erros).',
   admins: 'Promover e remover administradores.',
 }
 
@@ -1801,6 +1804,7 @@ export default function Admin() {
       ['skins', 'Skins'],
       ['caixas', 'Caixas'],
       ['pontos', 'Pontos'],
+      ['logs', 'Logs'],
       ['admins', 'Admins'],
     ].filter(([id]) => eu.abas.includes(id))
     const abaAtual = ABAS.some(([id]) => id === aba) ? aba : ABAS[0]?.[0]
@@ -1846,10 +1850,16 @@ export default function Admin() {
             {abaAtual === 'molduras' && <Molduras key={JSON.stringify(painel.config)} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
             {abaAtual === 'cargos' && eu.dono && <SelosEquipe key={JSON.stringify(painel.config.selos || {})} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
             {abaAtual === 'cargos' && <Cargos key={JSON.stringify(painel.config.cargos || [])} souDono={eu.dono} config={painel.config} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
-            {abaAtual === 'assinaturas' && <Assinaturas key={JSON.stringify(painel.config.subMeses || {})} config={painel.config} usuarios={usuarios} aoSalvarConfig={(config) => setPainel((p) => ({ ...p, config }))} aoSalvarPerfis={(perfis) => setPainel((p) => ({ ...p, perfis }))} />}
+            {abaAtual === 'assinaturas' && (
+              <>
+                <AdminPlanos />
+                <Assinaturas key={JSON.stringify(painel.config.subMeses || {})} config={painel.config} usuarios={usuarios} aoSalvarConfig={(config) => setPainel((p) => ({ ...p, config }))} aoSalvarPerfis={(perfis) => setPainel((p) => ({ ...p, perfis }))} />
+              </>
+            )}
             {abaAtual === 'skins' && <DarSkin usuarios={usuarios} />}
             {abaAtual === 'caixas' && <AdminCaixas />}
             {abaAtual === 'pontos' && <AdminPontos usuarios={usuarios} />}
+            {abaAtual === 'logs' && <AdminLogs usuarios={usuarios} />}
             {abaAtual === 'admins' && <Admins config={painel.config} dono={painel.dono} souDono={eu.dono} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
           </div>
         </section>

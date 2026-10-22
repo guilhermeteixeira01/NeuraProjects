@@ -45,6 +45,7 @@ function Conta() {
   const [aberto, setAberto] = useState(false)
   const [erroAvatar, setErroAvatar] = useState('')
   const [depositando, setDepositando] = useState(false)
+  const [assinando, setAssinando] = useState(false)
   // A foto do token é a do dia do login (vale 30 dias): troca pela atual da Steam
   const fotoAtual = useAvatar(conta?.id)
   const caixa = useRef(null)
@@ -134,6 +135,16 @@ function Conta() {
               <small>{t('LOJA')}</small>
             </a>
           </div>
+          <button
+            type="button"
+            className="cp-premium"
+            onClick={() => {
+              setAberto(false)
+              setAssinando(true)
+            }}
+          >
+            <span aria-hidden="true">★</span> {t('ASSINAR PREMIUM')}
+          </button>
           <a className="cp-perfil" href={linkPerfil(conta.id)}>
             {t('VER PERFIL')}
           </a>
@@ -156,6 +167,11 @@ function Conta() {
       {depositando && (
         <Suspense fallback={null}>
           <Deposito aoFechar={() => setDepositando(false)} />
+        </Suspense>
+      )}
+      {assinando && (
+        <Suspense fallback={null}>
+          <Deposito modo="sub" aoFechar={() => setAssinando(false)} />
         </Suspense>
       )}
     </div>

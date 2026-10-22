@@ -52,6 +52,11 @@ class_name = "Trocas"
 name = "MERCADO"
 class_name = "Mercado"
 
+# Registro (log) do painel de admin: um objeto global com as entradas em SQLite (src/registro.js)
+[[durable_objects.bindings]]
+name = "REGISTRO"
+class_name = "Registro"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["Presenca"]
@@ -67,3 +72,7 @@ new_sqlite_classes = ["Trocas"]
 [[migrations]]
 tag = "v4"
 new_sqlite_classes = ["Mercado"]
+
+[[migrations]]
+tag = "v5"
+new_sqlite_classes = ["Registro"]

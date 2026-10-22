@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom'
 import { PAGAMENTO, bonusDoPagamento, npDoPagamento } from '../../../worker/steam-login/src/loja-core.js'
 import { useT } from '../../comum/i18n.js'
 import { avisarSaldo } from '../../comum/loja.js'
-import { MENSAGENS_PAGAMENTO, criarPagamento, estadoPagamento, formatarCpf, lerConfigPagamento } from '../../comum/pagamentos.js'
+import { MENSAGENS_PAGAMENTO, criarPagamento, estadoPagamento, formatarCpf, lerConfigPagamento, lerPlanosSub } from '../../comum/pagamentos.js'
 import './deposito.css'
 
 const numero = (n) => Number(n).toLocaleString('pt-BR')
@@ -20,8 +20,19 @@ function Moedas({ nivel }) {
   )
 }
 
-export default function Deposito({ nomeInicial = '', aoFechar, aoPagar }) {
+// modo 'deposito': compra de Neura Pontos · modo 'sub': compra de meses de assinatura Premium (mesmo Pix/cartão, mesmo fluxo)
+export default function Deposito({ nomeInicial = '', modo = 'deposito', aoFechar, aoPagar }) {
   const t = useT()
+  const sub = modo === 'sub'
+  const [planos, setPlanos] = useState([])
+  const [plano, setPlano] = useState(null)
+  useEffect(() => {
+    if (!sub) return
+    lerPlanosSub().then((l) => {
+      setPlanos(l)
+      setPlano(l.find((x) => x.meses === 3) || l[0] || null)
+    }, () => {})
+  }, [sub])
   const [metodo, setMetodo] = useState('pix')
   const [cfg, setCfg] = useState(PAGAMENTO) // valores de fábrica até o servidor responder (o dono pode ter mudado)
   const [centavos, setCentavos] = useState(PAGAMENTO.pacotes[1] * 100)
@@ -64,7 +75,7 @@ export default function Deposito({ nomeInicial = '', aoFechar, aoPagar }) {
         if (parar || !vivo.current) return
         if (r.estado === 'pago') {
           if (r.saldo != null) avisarSaldo(r.saldo)
-          setPago({ np: cobranca.np })
+          setPago({ np: cobranca.np, sub: r.tipo === 'sub' })
           aoPagar?.()
         }
       } catch {
@@ -79,17 +90,17 @@ export default function Deposito({ nomeInicial = '', aoFechar, aoPagar }) {
   }, [cobranca, pago, aoPagar])
 
   const pacoteLivre = livre !== '' ? Math.round(Number(String(livre).replace(',', '.')) * 100) : null
-  const valor = pacoteLivre ?? centavos
-  const valorOk = Number.isFinite(valor) && valor >= cfg.minCentavos && valor <= cfg.maxCentavos
-  const np = valorOk ? npDoPagamento(valor, cfg) : 0
-  const bonus = valorOk ? bonusDoPagamento(valor, cfg) : 0
+  const valor = sub ? plano?.centavos ?? 0 : pacoteLivre ?? centavos
+  const valorOk = sub ? !!plano : Number.isFinite(valor) && valor >= cfg.minCentavos && valor <= cfg.maxCentavos
+  const np = valorOk && !sub ? npDoPagamento(valor, cfg) : 0
+  const bonus = valorOk && !sub ? bonusDoPagamento(valor, cfg) : 0
   const podePagar = valorOk && nome.trim().split(/\s+/).length >= 2 && cpf.replace(/\D/g, '').length === 11 && aceito && !criando
 
   const pagar = async () => {
     setCriando(true)
     setErro('')
     try {
-      const c = await criarPagamento(metodo, valor, nome.trim(), cpf)
+      const c = await criarPagamento(metodo, valor, nome.trim(), cpf, sub ? { tipo: 'sub', meses: plano.meses } : undefined)
       setCobranca(c)
       if (c.metodo === 'cartao' && c.url) window.open(c.url, '_blank', 'noopener')
     } catch (e) {
@@ -114,10 +125,14 @@ export default function Deposito({ nomeInicial = '', aoFechar, aoPagar }) {
     corpo = (
       <div className="dep-final">
         <span className="dep-ok" aria-hidden="true">✓</span>
-        <h3>{t('Pagamento confirmado!')}</h3>
-        <p>
-          <b>+{numero(pago.np)} NP</b> {t('já estão na sua conta.')}
-        </p>
+        <h3>{pago.sub ? t('Assinatura Premium ativada!') : t('Pagamento confirmado!')}</h3>
+        {pago.sub ? (
+          <p>{t('Obrigado por apoiar a Neura! O seu emblema Premium já está no perfil.')}</p>
+        ) : (
+          <p>
+            <b>+{numero(pago.np)} NP</b> {t('já estão na sua conta.')}
+          </p>
+        )}
         <button type="button" className="dep-btn dep-btn-p" onClick={aoFechar}>
           {t('Concluir')}
         </button>
@@ -128,7 +143,7 @@ export default function Deposito({ nomeInicial = '', aoFechar, aoPagar }) {
       <div className="dep-final">
         <h3>{cobranca.metodo === 'pix' ? t('Pague com Pix') : t('Pagamento com cartão')}</h3>
         <p className="dep-resumo">
-          {reais(cobranca.centavos)} → <b>{numero(cobranca.np)} NP</b>
+          {reais(cobranca.centavos)} → {cobranca.tipo === 'sub' ? <b>{t('Assinatura Premium')}</b> : <b>{numero(cobranca.np)} NP</b>}
         </p>
         {cobranca.metodo === 'pix' ? (
           <>
@@ -148,7 +163,7 @@ export default function Deposito({ nomeInicial = '', aoFechar, aoPagar }) {
           </>
         )}
         <p className="dep-espera">
-          <i className="dep-pulsa" aria-hidden="true" /> {t('Esperando o pagamento… os NP entram sozinhos assim que confirmar.')}
+          <i className="dep-pulsa" aria-hidden="true" /> {cobranca.tipo === 'sub' ? t('Esperando o pagamento… a assinatura liga sozinha assim que confirmar.') : t('Esperando o pagamento… os NP entram sozinhos assim que confirmar.')}
         </p>
         <button type="button" className="dep-link" onClick={() => setCobranca(null)}>
           {t('Voltar')}
@@ -178,7 +193,26 @@ export default function Deposito({ nomeInicial = '', aoFechar, aoPagar }) {
         </div>
 
         <div className="dep-direita">
-          <ul className="dep-pacotes">
+          {sub && (
+            <ul className="dep-pacotes dep-planos">
+              {planos.map((pl) => {
+                const mensal = planos.find((x) => x.meses === 1)
+                const economia = mensal && pl.meses > 1 ? Math.round(100 - (pl.centavos / (mensal.centavos * pl.meses)) * 100) : 0
+                return (
+                  <li key={pl.meses}>
+                    <button type="button" className={`dep-pacote${plano?.meses === pl.meses ? ' is-ativo' : ''}`} onClick={() => setPlano(pl)}>
+                      <span className="dep-plano-meses">{pl.meses}</span>
+                      <small>{pl.meses === 1 ? t('mês') : t('meses')}</small>
+                      <b>{reais(pl.centavos)}</b>
+                      <span>{reais(pl.centavos / pl.meses)} / {t('mês')}</span>
+                      {economia > 0 ? <em>{t('{n}% de desconto', { n: economia })}</em> : <em className="dep-sem">&nbsp;</em>}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+          <ul className="dep-pacotes" hidden={sub}>
             {grade.map((g) => (
               <li key={g.r}>
                 <button type="button" className={`dep-pacote${livre === '' && centavos === g.c ? ' is-ativo' : ''}`} onClick={() => { setCentavos(g.c); setLivre('') }}>
@@ -191,7 +225,7 @@ export default function Deposito({ nomeInicial = '', aoFechar, aoPagar }) {
             ))}
           </ul>
 
-          <label className="dep-campo">
+          <label className="dep-campo" hidden={sub}>
             {t('Ou digite o valor (mínimo {min})', { min: reais(cfg.minCentavos) })}
             <input inputMode="decimal" placeholder="R$ 0,00" value={livre} onChange={(e) => setLivre(e.target.value.replace(/[^\d.,]/g, '').slice(0, 7))} />
           </label>
@@ -211,14 +245,14 @@ export default function Deposito({ nomeInicial = '', aoFechar, aoPagar }) {
 
           <label className="dep-aceite">
             <input type="checkbox" checked={aceito} onChange={(e) => setAceito(e.target.checked)} />
-            <span>{t('Entendo que Neura Pontos são virtuais, não valem dinheiro, não podem ser reembolsados (salvo quando a lei garantir) e que o site pode mudar ou fechar. Li os Termos de Uso.')}</span>
+            <span>{sub ? t('Entendo que a assinatura Premium é um benefício virtual, não renova sozinha, não pode ser reembolsada (salvo quando a lei garantir) e que o site pode mudar ou fechar. Li os Termos de Uso.') : t('Entendo que Neura Pontos são virtuais, não valem dinheiro, não podem ser reembolsados (salvo quando a lei garantir) e que o site pode mudar ou fechar. Li os Termos de Uso.')}</span>
           </label>
 
           {erro && <p className="dep-erro" role="alert">{t(erro)}</p>}
           {!valorOk && livre !== '' && <p className="dep-erro">{t('O valor precisa estar entre {a} e {b}.', { a: reais(cfg.minCentavos), b: reais(cfg.maxCentavos) })}</p>}
 
           <button type="button" className="dep-btn dep-btn-p dep-pagar" disabled={!podePagar} onClick={pagar}>
-            {criando ? t('Gerando…') : valorOk ? t('Pagar {valor} e receber {np} NP', { valor: reais(valor), np: numero(np) }) : t('Escolha um valor')}
+            {criando ? t('Gerando…') : valorOk ? (sub ? t('Pagar {valor} e ativar o Premium', { valor: reais(valor) }) : t('Pagar {valor} e receber {np} NP', { valor: reais(valor), np: numero(np) })) : t('Escolha um valor')}
           </button>
           {bonus > 0 && valorOk && <p className="dep-bonus">{t('Inclui {n}% de bônus!', { n: bonus })}</p>}
         </div>
@@ -231,8 +265,8 @@ export default function Deposito({ nomeInicial = '', aoFechar, aoPagar }) {
       <div className="dep" role="dialog" aria-modal="true" aria-label={t('Depositar saldo')} onClick={(e) => e.stopPropagation()}>
         <header className="dep-cab">
           <div>
-            <h2>{t('DEPOSITAR SALDO')}</h2>
-            <p>{t('Escolha como pagar e recarregue seus Neura Pontos. {valor} = {np} NP.', { valor: reais(cfg.minCentavos), np: numero(npDoPagamento(cfg.minCentavos, cfg)) })}</p>
+            <h2>{sub ? t('ASSINAR PREMIUM') : t('DEPOSITAR SALDO')}</h2>
+            <p>{sub ? t('Escolha o plano e como pagar. O emblema Premium aparece no perfil assim que o pagamento confirmar.') : t('Escolha como pagar e recarregue seus Neura Pontos. {valor} = {np} NP.', { valor: reais(cfg.minCentavos), np: numero(npDoPagamento(cfg.minCentavos, cfg)) })}</p>
           </div>
           <button type="button" className="dep-x" onClick={aoFechar} aria-label={t('Fechar')}>
             ×

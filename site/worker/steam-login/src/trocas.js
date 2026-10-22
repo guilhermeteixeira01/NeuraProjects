@@ -13,6 +13,7 @@
  *   estado: pendente | aceita | recusada | cancelada | vencida | falhou
  */
 import { avisarTroca } from './amigos.js'
+import { registrar } from './registro.js'
 import { limparSkins, lerSkins, mudarSkins, novoIdItem } from './skins.js'
 
 const ID_STEAM = /^\d{17}$/
@@ -220,5 +221,9 @@ export async function rotaTrocas(req, env, quem, cors, rota) {
   else if (req.method === 'POST' && ['/trocas/aceitar', '/trocas/recusar', '/trocas/cancelar'].includes(rota)) acao = rota.split('/').pop().replace(/ar$/, 'ar')
   else return json({ erro: 'rota' }, 404, cors)
   const r = await chamar(env, { acao, quem: quem.id, ...corpo })
+  if (r.ok && acao !== 'listar') {
+    const texto = acao === 'criar' ? `propôs uma troca: ${(corpo.dar || []).length} item(ns) dele(a) por ${(corpo.pedir || []).length} do outro` : `${acao === 'aceitar' ? 'aceitou' : acao === 'recusar' ? 'recusou' : 'cancelou'} a troca ${String(corpo.id || '').slice(0, 12)}`
+    await registrar(env, { tipo: 'troca', quem: quem.id, alvo: acao === 'criar' ? String(corpo.para || '') : '', texto })
+  }
   return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
 }

@@ -1,7 +1,7 @@
 // Texto dos Termos de Uso (a caixa de aceite antes do login e o PDF usam este mesmo texto).
 // Mudou algo importante? Suba a VERSAO: todo mundo vê e aceita de novo no próximo login.
 // Negrito: **assim**.
-export const VERSAO_TERMOS = '2026-10-22'
+export const VERSAO_TERMOS = '2026-10-23'
 
 export const RESUMO_TERMOS =
   '**Resumo importante:** a Neura é um projeto de comunidade, feito por diversão. Pontos, skins, caixas, trocas, ranking e níveis são virtuais, existem somente no nosso site e nos nossos servidores, não valem dinheiro e podem ser alterados ou apagados a qualquer momento. O site pode ser fechado, e não nos responsabilizamos por nenhum prejuízo, inclusive se você comprar pontos ou itens com dinheiro de verdade, da Neura ou de outro jogador.'
@@ -33,7 +33,7 @@ export const SECOES_TERMOS = [
     t: '3. Compras com dinheiro real e negociações entre jogadores: riscos',
     b: [
       {
-        p: 'A Neura permite comprar Neura Pontos (NP) com dinheiro de verdade, por Pix ou cartão (o valor em NP de cada pagamento aparece antes de você pagar), e poderá oferecer assinaturas e outros itens ou benefícios virtuais. Os pagamentos são processados pelo Asaas, que pode exigir seus dados (nome e CPF); esses dados vão direto para o Asaas e a Neura não os guarda. Além disso, jogadores podem combinar entre si, por conta própria, vender itens ou NP da Neura. Se você fizer qualquer compra, da Neura ou de outra pessoa, você declara estar ciente e de acordo com o seguinte:',
+        p: 'A Neura permite comprar Neura Pontos (NP) com dinheiro de verdade, por Pix ou cartão (o valor em NP de cada pagamento aparece antes de você pagar), e oferece a assinatura Premium (meses de benefícios virtuais, que não renovam sozinhos), além de poder oferecer outros itens ou benefícios virtuais. Os pagamentos são processados pelo Asaas, que pode exigir seus dados (nome e CPF); esses dados vão direto para o Asaas e a Neura não os guarda. Além disso, jogadores podem combinar entre si, por conta própria, vender itens ou NP da Neura. Se você fizer qualquer compra, da Neura ou de outra pessoa, você declara estar ciente e de acordo com o seguinte:',
       },
       {
         ul: [

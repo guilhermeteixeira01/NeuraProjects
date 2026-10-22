@@ -3534,3 +3534,5 @@ html.ins-estante-aberta #root { filter: blur(10px) brightness(.5) saturate(.9); 
 .ins-hex[data-lado='d'] .ins-hex-info { left: auto; right: 0; transform: translate(0, 6px); }
 .ins-hex[data-lado='d']:hover .ins-hex-info, .ins-hex[data-lado='d']:focus-visible .ins-hex-info { transform: translate(0, 0); }
 .ins-hex[data-cima='1'][data-lado='e'] .ins-hex-info, .ins-hex[data-cima='1'][data-lado='d'] .ins-hex-info { top: auto; bottom: calc(100% - 6px); }
+.nx-conta-menu.cp-card .cp-premium { width: 100%; margin: 10px 0 0; padding: 11px 12px; border: 0; border-radius: 10px; cursor: pointer; font: 800 13px var(--font-display, inherit); letter-spacing: .08em; color: #2a1d00; background: linear-gradient(135deg, #ffd54a, #f5a524); transition: filter .15s, transform .15s; }
+.nx-conta-menu.cp-card .cp-premium:hover { filter: brightness(1.08); transform: translateY(-1px); }
