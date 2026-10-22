@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import Layout from '../../comum/Layout.jsx'
 import { CONFIG } from '../../comum/config.js'
 import { entrar, linkPerfil, loginAtivo } from '../../comum/conta.js'
@@ -669,9 +669,49 @@ function useTelaPequena() {
   return pequena
 }
 
+// O lobby (e a sala de veto) nunca rola: se o conteúdo for mais alto que a tela, ele encolhe (zoom) até caber inteiro.
+// Mede com o zoom em 1, vê quanto sobra de tela embaixo e aplica a razão (mínimo 45%). A página também fica sem barra de rolagem.
+function useCabeNaTela(ref, ativo) {
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!ativo || !el) return
+    const raiz = document.documentElement
+    const antes = [raiz.style.overflow, document.body.style.overflow]
+    raiz.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden'
+    let pendente = 0
+    const ajustar = () => {
+      el.style.zoom = '1'
+      const r = el.getBoundingClientRect()
+      const zonaHtml = parseFloat(getComputedStyle(raiz).zoom) || 1
+      const sobra = window.innerHeight - r.top - 22 * zonaHtml // 22px de respiro embaixo (o padding da página)
+      const razao = r.height > 0 ? Math.min(1, Math.max(0.45, sobra / r.height)) : 1
+      el.style.zoom = razao < 0.995 ? String(razao) : ''
+    }
+    const agendar = () => {
+      cancelAnimationFrame(pendente)
+      pendente = requestAnimationFrame(ajustar)
+    }
+    ajustar()
+    const ro = new ResizeObserver(agendar)
+    ro.observe(el)
+    window.addEventListener('resize', agendar)
+    return () => {
+      cancelAnimationFrame(pendente)
+      ro.disconnect()
+      window.removeEventListener('resize', agendar)
+      el.style.zoom = ''
+      raiz.style.overflow = antes[0]
+      document.body.style.overflow = antes[1]
+    }
+  }, [ref, ativo])
+}
+
 export default function Lobby() {
   const t = useT()
   const pequena = useTelaPequena()
+  const conteudo = useRef(null)
+  useCabeNaTela(conteudo, !pequena)
   return (
     <Layout pagina="lobby" semRodape>
       <main className="lb-pagina">
@@ -684,7 +724,7 @@ export default function Lobby() {
             </a>
           </div>
           {!pequena && (
-            <div className="lb-conteudo">
+            <div className="lb-conteudo" ref={conteudo}>
               <Conteudo />
             </div>
           )}
