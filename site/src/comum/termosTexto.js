@@ -33,7 +33,7 @@ export const SECOES_TERMOS = [
     t: '3. Compras com dinheiro real e negociações entre jogadores: riscos',
     b: [
       {
-        p: 'A Neura permite comprar Neura Pontos (NP) com dinheiro de verdade, por Pix ou cartão (R$ 5,00 = 2.000 NP), e poderá oferecer assinaturas e outros itens ou benefícios virtuais. Os pagamentos são processados pelo Asaas, que pode exigir seus dados (nome e CPF); esses dados vão direto para o Asaas e a Neura não os guarda. Além disso, jogadores podem combinar entre si, por conta própria, vender itens ou NP da Neura. Se você fizer qualquer compra, da Neura ou de outra pessoa, você declara estar ciente e de acordo com o seguinte:',
+        p: 'A Neura permite comprar Neura Pontos (NP) com dinheiro de verdade, por Pix ou cartão (o valor em NP de cada pagamento aparece antes de você pagar), e poderá oferecer assinaturas e outros itens ou benefícios virtuais. Os pagamentos são processados pelo Asaas, que pode exigir seus dados (nome e CPF); esses dados vão direto para o Asaas e a Neura não os guarda. Além disso, jogadores podem combinar entre si, por conta própria, vender itens ou NP da Neura. Se você fizer qualquer compra, da Neura ou de outra pessoa, você declara estar ciente e de acordo com o seguinte:',
       },
       {
         ul: [

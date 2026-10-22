@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { chamar } from '../../comum/Moldura.jsx'
 import { localeAtual, useT } from '../../comum/i18n.js'
 import { confirmar } from '../../comum/Dialogos.jsx'
+import { bonusDoPagamento, npDoPagamento } from '../../../worker/steam-login/src/loja-core.js'
 
 const num = (n) => Number(n || 0).toLocaleString(localeAtual())
 const erroTexto = (e) => ({ login: 'Seu login venceu. Entre de novo com a Steam.', dono: 'Só o dono mexe nos pontos.', id: 'SteamID64 inválido.', valor: 'Valor inválido.' })[e.message] || 'Não deu para aplicar. Tente de novo.'
@@ -74,6 +75,7 @@ export default function AdminPontos({ usuarios }) {
   }
 
   return (
+    <>
     <div className="caixa adm-pt">
       <p className="adm-dar-dica">{t('Neura Pontos da loja: escolha quem, o que fazer e o valor. Os pontos ganhos nas partidas continuam valendo; aqui você só soma ou tira em cima deles.')}</p>
 
@@ -171,6 +173,122 @@ export default function AdminPontos({ usuarios }) {
           </ul>
         </div>
       )}
+    </div>
+      <ConfigDepositos />
+    </>
+  )
+}
+
+// Depósitos com dinheiro real (Asaas): quanto vale 1 real em NP, mínimo, máximo, pacotes e bônus. Vale na hora para o site e para o servidor.
+function ConfigDepositos() {
+  const t = useT()
+  const [cfg, setCfg] = useState(null)
+  const [estado, setEstado] = useState({ texto: '', ok: true })
+  const [ocupado, setOcupado] = useState(false)
+
+  useEffect(() => {
+    chamar('/admin/pagamento-config').then(
+      (d) => setCfg(d.cfg),
+      () => setEstado({ texto: t('Não consegui ler a configuração dos depósitos.'), ok: false }),
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  if (!cfg) return <div className="adm-bloco adm-pontos">{estado.texto && <p className="adm-pt-erro">{estado.texto}</p>}</div>
+
+  const mudar = (campo, valor) => setCfg((c) => ({ ...c, [campo]: valor }))
+  const numeroOuVazio = (v) => (v === '' ? '' : Number(v))
+  const textoPacotes = typeof cfg.pacotesTexto === 'string' ? cfg.pacotesTexto : cfg.pacotes.join(', ')
+  const pacotes = textoPacotes
+    .split(/[ ,;]+/)
+    .map((x) => Number(x))
+    .filter((x) => Number.isFinite(x) && x > 0)
+  const minReais = cfg.minReais ?? cfg.minCentavos / 100
+  const maxReais = cfg.maxReais ?? cfg.maxCentavos / 100
+  const previa = { npPorReal: Number(cfg.npPorReal) || 0, bonus: cfg.bonus }
+  const salvar = async () => {
+    setOcupado(true)
+    setEstado({ texto: '', ok: true })
+    try {
+      const d = await chamar('/admin/pagamento-config', { minCentavos: Math.round(Number(minReais) * 100), maxCentavos: Math.round(Number(maxReais) * 100), npPorReal: Number(cfg.npPorReal), pacotes, bonus: cfg.bonus })
+      setCfg(d.cfg)
+      setEstado({ texto: t('Salvo! Já vale no site e no servidor.'), ok: true })
+    } catch (e) {
+      setEstado({
+        texto:
+          e.message === 'valores'
+            ? t('Valores inválidos: o mínimo é R$ 5 (limite do Asaas) e o máximo não pode ser menor que o mínimo.')
+            : e.message === 'pacotes'
+              ? t('Coloque pelo menos um valor de pacote entre o mínimo e o máximo.')
+              : t('Não deu para salvar. Tente de novo.'),
+        ok: false,
+      })
+    } finally {
+      setOcupado(false)
+    }
+  }
+  const reais = (r) => Number(r).toLocaleString(localeAtual(), { style: 'currency', currency: 'BRL' })
+
+  return (
+    <div className="adm-bloco adm-pontos adm-depositos">
+      <h3>{t('Depósitos com dinheiro real')}</h3>
+      <p className="adm-dar-dica">{t('Pix e cartão pelo Asaas. Aqui você define quantos NP o jogador recebe por real, o valor mínimo e máximo, os pacotes que aparecem e o bônus por faixa. Vale na hora.')}</p>
+
+      <div className="adm-pt-linha adm-dep-campos">
+        <label className="adm-dep-campo">
+          {t('NP por R$ 1,00')}
+          <input type="number" min="1" step="1" value={cfg.npPorReal} onChange={(e) => mudar('npPorReal', numeroOuVazio(e.target.value))} />
+        </label>
+        <label className="adm-dep-campo">
+          {t('Mínimo (R$)')}
+          <input type="number" min="5" step="1" value={minReais} onChange={(e) => mudar('minReais', e.target.value)} />
+        </label>
+        <label className="adm-dep-campo">
+          {t('Máximo (R$)')}
+          <input type="number" min="5" step="1" value={maxReais} onChange={(e) => mudar('maxReais', e.target.value)} />
+        </label>
+      </div>
+
+      <label className="adm-dep-campo">
+        {t('Pacotes (valores em R$, separados por vírgula)')}
+        <input type="text" value={textoPacotes} onChange={(e) => mudar('pacotesTexto', e.target.value)} />
+      </label>
+
+      <div className="adm-pt-grupo">
+        <b>{t('Bônus por faixa')}</b>
+        {cfg.bonus.map((b, i) => (
+          <div key={i} className="adm-dep-bonus">
+            <span>{t('A partir de R$')}</span>
+            <input type="number" min="1" value={b[0]} onChange={(e) => mudar('bonus', cfg.bonus.map((x, k) => (k === i ? [numeroOuVazio(e.target.value), x[1]] : x)))} />
+            <span>{t('ganha')}</span>
+            <input type="number" min="0" max="500" value={b[1]} onChange={(e) => mudar('bonus', cfg.bonus.map((x, k) => (k === i ? [x[0], numeroOuVazio(e.target.value)] : x)))} />
+            <span>% {t('a mais')}</span>
+            <button type="button" className="btn btn-ghost adm-perigo" onClick={() => mudar('bonus', cfg.bonus.filter((_, k) => k !== i))} aria-label={t('Tirar faixa')}>
+              ×
+            </button>
+          </div>
+        ))}
+        <button type="button" className="btn btn-ghost" disabled={cfg.bonus.length >= 10} onClick={() => mudar('bonus', [...cfg.bonus, [100, 10]])}>
+          + {t('Adicionar faixa')}
+        </button>
+      </div>
+
+      <div className="adm-pt-grupo">
+        <b>{t('Prévia (o que o jogador vê)')}</b>
+        <ul className="adm-dep-previa">
+          {pacotes.map((r) => (
+            <li key={r}>
+              <b>{reais(r)}</b>
+              <span>{Number(npDoPagamento(r * 100, previa)).toLocaleString(localeAtual())} NP</span>
+              {bonusDoPagamento(r * 100, previa) > 0 && <em>+{bonusDoPagamento(r * 100, previa)}%</em>}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <button type="button" className="btn btn-primary adm-pt-aplicar" disabled={ocupado} onClick={salvar}>
+        {ocupado ? t('Salvando…') : t('Salvar depósitos')}
+      </button>
+      {estado.texto && <p className={estado.ok ? 'adm-dar-estado' : 'adm-pt-erro'}>{estado.texto}</p>}
     </div>
   )
 }

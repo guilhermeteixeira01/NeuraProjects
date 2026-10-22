@@ -530,3 +530,19 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 .adm-acesso small { overflow-wrap: anywhere; white-space: normal; }
 .adm-modal-corpo .adm-numerar { white-space: normal; }
 .adm-cargo-linha .btn { flex: none; }
+
+/* Depósitos (aba Pontos) */
+.adm-depositos { margin-top: 18px; display: grid; gap: 14px; }
+.adm-depositos h3 { margin: 0; font: 700 17px var(--font-display); }
+.adm-dep-campos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.adm-dep-campo { display: grid; gap: 5px; font-size: 13px; color: var(--dim); }
+.adm-dep-campo input, .adm-dep-bonus input { width: 100%; box-sizing: border-box; background: var(--bg-soft); border: 1px solid var(--border-2); color: var(--text); border-radius: 8px; padding: 8px 10px; font: inherit; }
+.adm-dep-bonus { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--dim); }
+.adm-dep-bonus input { width: 90px; }
+.adm-dep-previa { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.adm-dep-previa li { display: grid; gap: 2px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel-2); font-size: 12.5px; }
+.adm-dep-previa li span { font-family: var(--font-mono); color: #f5c542; }
+.adm-dep-previa li em { font-style: normal; color: #b6f23a; font-weight: 700; }
+.adm-selos .adm-cargo-linha .adm-selo-quem { min-width: 64px; }
+.adm-selos .adm-cargo-linha .btn { margin-left: auto; }
+@media (max-width: 700px) { .adm-dep-campos { grid-template-columns: 1fr; } }

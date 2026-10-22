@@ -773,12 +773,13 @@ function SelosEquipe({ config, aoSalvar }) {
           </button>
         </div>
       </div>
-      <ul>
+      <ul className="adm-cargos-lista">
         {[
           ['dono', tr('Dono')],
           ['admin', tr('Admins')],
         ].map(([qual, rotulo]) => (
-          <li key={qual}>
+          <li key={qual} className="adm-cargo-linha">
+            <span className="adm-cargo-cor" style={{ background: selos[qual].cor }} aria-hidden="true" />
             <b className="adm-selo-quem">{rotulo}</b>
             <SeloEquipe selo={{ ...selos[qual], nome: selos[qual].nome || '…' }} />
             <small className="adm-nota">
