@@ -15,7 +15,6 @@ import PainelNotificacoes from './PainelNotificacoes.jsx'
 import PainelPartidas from './PainelPartidas.jsx'
 import { iniciarAvisoEquipe, useAvisoEquipe } from './avisoEquipe.js'
 import { useAmigos } from './amigos.js'
-import { usePontos } from './pontos.js'
 import { useSaldo } from './loja.js'
 import { localeAtual } from './i18n.js'
 
@@ -53,9 +52,8 @@ function Conta() {
   // A foto do token é a do dia do login (vale 30 dias): troca pela atual da Steam
   const fotoAtual = useAvatar(conta?.id)
   const caixa = useRef(null)
-  const ganhos = usePontos(conta?.id)
-  const saldo = useSaldo(conta?.id, aberto) // o que sobra depois de gastar na loja (sem resposta do worker, mostra o total ganho)
-  const pontos = saldo ?? ganhos
+  const saldo = useSaldo(conta?.id, true, aberto) // o que sobra depois de gastar na loja: busca ao carregar a página e de novo ao abrir o menu; o último valor fica guardado
+  const pontos = saldo // null só na primeira vez, até o servidor responder (mostra "…" em vez de um número errado)
   const { conectado } = useAmigos()
 
   useEffect(() => {
@@ -123,7 +121,7 @@ function Conta() {
               }}
             >
               <img className="cp-logo" src="/assets/logos/logo-np-64.png" alt="" width="30" height="30" />
-              <b>{Number(pontos).toLocaleString(localeAtual())}</b>
+              <b>{pontos == null ? '…' : Number(pontos).toLocaleString(localeAtual())}</b>
               <small className="cp-pontos-rot">{t('PONTOS')}</small>
               <span className="cp-pontos-dep">
                 <i aria-hidden="true">+</i>

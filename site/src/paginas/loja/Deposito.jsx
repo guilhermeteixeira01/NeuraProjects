@@ -1,7 +1,7 @@
 // Depositar saldo: Pix (QR code + copia e cola, confirmação sozinha) ou cartão (página segura do Asaas). Mínimo R$ 5,00 = 2.000 NP.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { PAGAMENTO, bonusDoPagamento, npDoPagamento } from '../../../worker/steam-login/src/loja-core.js'
+import { BONUS_PREMIUM_PARTIDA, PAGAMENTO, bonusDoPagamento, npDoPagamento } from '../../../worker/steam-login/src/loja-core.js'
 import { confirmar } from '../../comum/Dialogos.jsx'
 import { useT } from '../../comum/i18n.js'
 import { avisarSaldo } from '../../comum/loja.js'
@@ -25,6 +25,7 @@ function Moedas({ nivel }) {
 export default function Deposito({ nomeInicial = '', modo = 'deposito', aoFechar, aoPagar }) {
   const t = useT()
   const sub = modo === 'sub'
+  const [verPlanos, setVerPlanos] = useState(false) // assinatura: primeiro a apresentação dos benefícios, depois os planos
   const [planos, setPlanos] = useState([])
   const [plano, setPlano] = useState(null)
   const [recorrente, setRecorrente] = useState(false) // renovar todo mês no cartão (só plano de 1 mês)
@@ -295,19 +296,43 @@ export default function Deposito({ nomeInicial = '', modo = 'deposito', aoFechar
     )
   }
 
+  // Apresentação do Premium (antes de escolher o plano)
+  const apresentacao = (
+    <div className="dep-ben">
+      <ul className="dep-ben-lista">
+        {[
+          ['dep-ben-np', `+${numero(BONUS_PREMIUM_PARTIDA)} NP`, t('em cada partida jogada'), t('Vitória ou derrota: todo mapa que você joga rende {n} Neura Pontos a mais, além dos pontos normais.', { n: numero(BONUS_PREMIUM_PARTIDA) })],
+          ['dep-ben-mold', t('Molduras exclusivas'), t('só para Premium'), t('Molduras animadas do avatar que ninguém mais pode usar.')],
+          ['dep-ben-card', t('Cards exclusivos'), t('só para Premium'), t('Fundos de card do perfil liberados só para quem assina.')],
+          ['dep-ben-caixa', t('Caixa exclusiva por semana'), t('em breve'), t('Uma caixa especial grátis toda semana, só para assinantes.')],
+          ['dep-ben-selo', t('Emblema Premium'), t('no perfil'), t('O emblema aparece no seu avatar em todo o site.')],
+        ].map(([cls, titulo, tag, texto]) => (
+          <li key={cls} className={`dep-ben-item ${cls}`}>
+            <b>{titulo}</b>
+            <em>{tag}</em>
+            <p>{texto}</p>
+          </li>
+        ))}
+      </ul>
+      <button type="button" className="dep-ben-ir" onClick={() => setVerPlanos(true)}>
+        {t('Ver planos')} ›
+      </button>
+    </div>
+  )
+
   return createPortal(
     <div className="dep-fundo" onClick={aoFechar}>
       <div className="dep" role="dialog" aria-modal="true" aria-label={t('Depositar saldo')} onClick={(e) => e.stopPropagation()}>
         <header className="dep-cab">
           <div>
             <h2>{sub ? t('ASSINAR PREMIUM') : t('DEPOSITAR SALDO')}</h2>
-            <p>{sub ? t('Escolha o plano e como pagar. O emblema Premium aparece no perfil assim que o pagamento confirmar.') : t('Escolha como pagar e recarregue seus Neura Pontos. {valor} = {np} NP.', { valor: reais(cfg.minCentavos), np: numero(npDoPagamento(cfg.minCentavos, cfg)) })}</p>
+            <p>{sub ? (verPlanos || cobranca || pago ? t('Escolha o plano e como pagar. O emblema Premium aparece no perfil assim que o pagamento confirmar.') : t('Veja o que você ganha sendo Premium.')) : t('Escolha como pagar e recarregue seus Neura Pontos. {valor} = {np} NP.', { valor: reais(cfg.minCentavos), np: numero(npDoPagamento(cfg.minCentavos, cfg)) })}</p>
           </div>
           <button type="button" className="dep-x" onClick={aoFechar} aria-label={t('Fechar')}>
             ×
           </button>
         </header>
-        <div className="dep-corpo">{corpo}</div>
+        <div className="dep-corpo">{sub && !verPlanos && !cobranca && !pago ? apresentacao : corpo}</div>
       </div>
     </div>,
     document.body,

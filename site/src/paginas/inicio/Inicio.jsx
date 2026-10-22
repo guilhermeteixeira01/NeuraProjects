@@ -398,7 +398,7 @@ export default function Inicio() {
                     <circle cx="100" cy="100" r="50" className="cb-r3" />
                     <path d="M100 8v22M100 170v22M8 100h22M170 100h22" className="cb-marcas" />
                   </svg>
-                  <span className="cb-nucleo">NP</span>
+                  <img className="cb-nucleo" src="/assets/logos/logo-np-64.png" alt="" width="64" height="64" loading="lazy" />
                 </div>
                 <ul className="cb-log">
                   <li><b>&gt;</b> link.discord <em>ok</em></li>

@@ -311,6 +311,9 @@ export const raridadeCsDaCor = (cor) => ({ '#b0c3d9': 0, '#5e98d9': 1, '#4b69ff'
 
 // Depósito de NP com dinheiro de verdade (Asaas: Pix e cartão). R$ 5,00 = 2.000 NP (1 real = 400 NP); valores maiores ganham bônus.
 // O servidor calcula tudo a partir do valor pago: o site só mostra.
+// Premium: NP extras por partida jogada enquanto a assinatura está valendo (creditados pelo worker, ver aplicarPremium em loja.js)
+export const BONUS_PREMIUM_PARTIDA = 350
+
 export const PAGAMENTO = {
   minCentavos: 500,
   maxCentavos: 200000,

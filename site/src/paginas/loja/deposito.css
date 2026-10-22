@@ -79,3 +79,17 @@
 .dep-recorrencia { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; padding: 10px 14px; border-radius: 10px; background: rgb(182 242 58 / .1); border: 1px solid rgb(182 242 58 / .4); font-size: 13.5px; }
 .dep-recorrencia b { color: #b6f23a; }
 .dep-recorrer { padding: 12px 14px; border-radius: 10px; background: rgb(245 197 24 / .08); border: 1px solid rgb(245 197 24 / .35); }
+
+/* Apresentação dos benefícios do Premium (antes dos planos) */
+.dep-ben { display: grid; gap: 18px; padding: 8px 0 4px; }
+.dep-ben-lista { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.dep-ben-item { position: relative; display: grid; gap: 4px; padding: 16px 16px 16px 18px; border-radius: 12px; border: 1px solid rgb(255 255 255 / .1); background: linear-gradient(135deg, rgb(255 255 255 / .05), rgb(255 255 255 / .015)); overflow: hidden; }
+.dep-ben-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(#ffd34d, #ff9d2e); }
+.dep-ben-item b { font: 800 19px var(--font-display, inherit); color: #fff; letter-spacing: .01em; }
+.dep-ben-item em { font: 700 11px var(--font-mono, monospace); letter-spacing: .12em; text-transform: uppercase; font-style: normal; color: #ffc94d; }
+.dep-ben-item p { margin: 4px 0 0; color: var(--dim, #9aa0a8); font-size: 13.5px; line-height: 1.5; }
+.dep-ben-np { grid-column: 1 / -1; background: linear-gradient(120deg, rgb(255 201 77 / .18), rgb(255 157 46 / .05)); border-color: rgb(255 201 77 / .45); }
+.dep-ben-np b { font-size: clamp(30px, 5vw, 44px); color: #ffd34d; text-shadow: 0 0 22px rgb(255 201 77 / .45); }
+.dep-ben-caixa { border-style: dashed; }
+.dep-ben-ir { justify-self: center; padding: 14px 38px; border: 0; border-radius: 10px; cursor: pointer; font: 800 15px var(--font-display, inherit); letter-spacing: .06em; text-transform: uppercase; color: #1a1200; background: linear-gradient(90deg, #ffd34d, #ff9d2e); box-shadow: 0 0 26px rgb(255 177 46 / .4); }
+.dep-ben-ir:hover { filter: brightness(1.08); }

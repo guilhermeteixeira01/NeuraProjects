@@ -1593,3 +1593,5 @@ html[data-desempenho] .tc-grupo[aria-hidden='true'] { display: none; }
   .cb-tag em,
   .cb-anel circle { animation: none !important; }
 }
+
+.cb-nucleo { width: clamp(52px, 6vw, 76px); height: auto; filter: drop-shadow(0 0 12px var(--cb-ciano)) drop-shadow(0 0 26px var(--cb-azul)); }

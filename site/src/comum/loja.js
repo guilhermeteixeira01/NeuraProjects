@@ -38,22 +38,53 @@ let publicas = null
 export const lerCaixasPublicas = () => (publicas ??= fetch(`${base()}/loja/caixas`).then((r) => (r.ok ? r.json() : [])).catch(() => []))
 
 // Saldo de NP (pontos ganhos - gastos). Avisa os outros lugares da página quando muda (evento np-saldo).
+// O último saldo fica guardado no navegador (por conta): ao abrir o menu o número já aparece, sem esperar o servidor, e se atualiza em seguida.
 let ultimo = null
-export const avisarSaldo = (saldo) => {
+let ultimoId = null
+const CHAVE_SALDO = 'np_saldo'
+const guardado = (id) => {
+  try {
+    const g = JSON.parse(localStorage.getItem(CHAVE_SALDO) || 'null')
+    return g && g.id === id && Number.isFinite(g.saldo) ? g.saldo : null
+  } catch {
+    return null
+  }
+}
+const guardar = (saldo) => {
   ultimo = saldo
+  try {
+    if (ultimoId) localStorage.setItem(CHAVE_SALDO, JSON.stringify({ id: ultimoId, saldo }))
+  } catch {
+    // sem localStorage: só não guarda
+  }
+}
+export const avisarSaldo = (saldo) => {
+  guardar(saldo)
   window.dispatchEvent(new CustomEvent('np-saldo', { detail: saldo }))
 }
-export function useSaldo(steamId, ativo = true) {
-  const [saldo, setSaldo] = useState(ultimo)
+// gatilho: muda (ex.: o menu abriu) para buscar de novo na hora
+export function useSaldo(steamId, ativo = true, gatilho = 0) {
+  const [saldo, setSaldo] = useState(() => {
+    if (steamId && ultimoId !== steamId) {
+      ultimoId = steamId
+      ultimo = guardado(steamId)
+    }
+    return ultimo
+  })
   useEffect(() => {
     if (!steamId || !ativo || !CONFIG.loginSteam) return
     let vivo = true
+    if (ultimoId !== steamId) {
+      ultimoId = steamId
+      ultimo = guardado(steamId)
+      setSaldo(ultimo)
+    }
     // Depois de buscar o saldo, pede as notificações: é a consulta do saldo que aplica um bônus novo e o aviso dele no sino (senão o sino chegava antes e só mostrava 1 min depois)
     const buscar = () =>
       lerSaldo().then(
         (r) => {
           if (!vivo) return
-          ultimo = r.saldo
+          guardar(r.saldo)
           setSaldo(r.saldo)
           window.dispatchEvent(new Event('np-notif-servidor'))
         },
@@ -64,12 +95,14 @@ export function useSaldo(steamId, ativo = true) {
     window.addEventListener('np-saldo', ouvir)
     window.addEventListener('np-mercado', buscar) // venderam um item meu: os NP entraram
     window.addEventListener('np-bonus', buscar) // bônus para todos
+    window.addEventListener('focus', buscar) // voltou para a aba: pontos de partida, bônus Premium...
     return () => {
       vivo = false
       window.removeEventListener('np-saldo', ouvir)
       window.removeEventListener('np-mercado', buscar)
       window.removeEventListener('np-bonus', buscar)
+      window.removeEventListener('focus', buscar)
     }
-  }, [steamId, ativo])
+  }, [steamId, ativo, gatilho])
   return saldo
 }

@@ -152,7 +152,9 @@ definirConcedenteSub(async (env, id, meses, pid) => {
   else {
     let expira = Math.max(agora, Number(sub?.expira) || 0)
     for (let i = 0; i < meses; i++) expira = maisUmMesDoServidor(expira)
-    novo = { inicio: sub?.inicio || agora, meses: (Number(sub?.meses) || 0) + meses, expira }
+    // periodo = começo da sequência atual de assinatura (volta a contar se ela venceu antes de renovar): o bônus de partida do Premium só vale daí em diante
+    const vencida = sub && Number(sub.expira) > 0 && Number(sub.expira) < agora
+    novo = { inicio: sub?.inicio || agora, periodo: !sub || vencida ? agora : sub.periodo || sub.inicio || agora, meses: (Number(sub?.meses) || 0) + meses, expira }
   }
   novo.pagamentos = [...(sub?.pagamentos || []), marca].slice(-20)
   perfil.sub = novo
@@ -256,7 +258,7 @@ async function atender(req, env, ctx) {
     if (rota === '/skins' && (req.method === 'GET' || req.method === 'POST')) return rotaSkins(req, env, quem, cors)
     if (rota === '/skins/presentes' && req.method === 'POST') return rotaSkinsPresentes(req, env, quem, cors)
     if (rota === '/skins/excluir' && req.method === 'POST') return rotaSkinsExcluir(req, env, quem, cors)
-    if (rota === '/loja' || rota.startsWith('/loja/')) return rotaLoja(req, env, quem, cors, rota)
+    if (rota === '/loja' || rota.startsWith('/loja/')) return rotaLoja(req, env, quem, cors, rota, (await ler(env, 'perfis'))[quem.id]?.sub)
     if (rota === '/notificacoes' && (req.method === 'GET' || req.method === 'POST')) return rotaNotificacoes(req, env, quem, cors)
     if (rota === '/trocas' || rota.startsWith('/trocas/')) return rotaTrocas(req, env, quem, cors, rota)
     if (rota.startsWith('/pagamentos/')) return rotaPagamentos(req, env, quem, cors, rota, url)

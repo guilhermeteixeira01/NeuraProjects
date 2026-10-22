@@ -29,7 +29,7 @@
  *   GET  /admin/loja-saldo?id= (dono)  -> { saldo, ganhos, gastos, movimentos } de um jogador
  */
 import { avisarPerfil } from './amigos.js'
-import { CONFIG_PADRAO, MODOS, definirValorador, aplicarModo, faixasDeDesgaste, precoDeMercado, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
+import { BONUS_PREMIUM_PARTIDA, CONFIG_PADRAO, MODOS, definirValorador, aplicarModo, faixasDeDesgaste, precoDeMercado, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
 import { lerSkinsKv, limparSkins, novoIdItem } from './skins.js'
 import CAIXAS_INICIAIS from './caixas-iniciais.json'
 import RARIDADE_SKIN from './skins-raridade.json'
@@ -303,8 +303,28 @@ export class Loja {
     }
   }
 
-  async acao({ acao, id, caixas, cfg, pontos, bonus, ...p }) {
-    if (['saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir', 'vender', 'mercado-comprar', 'dep-creditar', 'cobrar'].includes(acao)) await this.aplicarBonus(bonus)
+  // Premium: BONUS_PREMIUM_PARTIDA a mais por partida jogada com a assinatura valendo. "partidas" = [{ k (id da partida), ts }] já filtradas pelo worker;
+  // cada partida só rende uma vez (guardada em premiumFeitas). Entra como crédito no extrato e avisa no sino.
+  async aplicarPremium(partidas) {
+    if (!Array.isArray(partidas) || !partidas.length) return
+    const feitas = new Set((await this.ctx.storage.get('premiumFeitas')) || [])
+    const novas = partidas.filter((m) => m?.k && !feitas.has(String(m.k)))
+    if (!novas.length) return
+    this.ctx.storage.transactionSync(() => {
+      for (const m of novas) this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Number(m.ts) || Date.now(), -BONUS_PREMIUM_PARTIDA, 'Premium: bônus de partida')
+    })
+    await this.ctx.storage.put('premiumFeitas', [...feitas, ...novas.map((m) => String(m.k))].slice(-1500))
+    const total = novas.length * BONUS_PREMIUM_PARTIDA
+    const n = { id: `premium:${Date.now()}`, titulo: `Premium: +${total.toLocaleString('pt-BR')} NP`, texto: novas.length === 1 ? 'Bônus Premium de 1 partida jogada.' : `Bônus Premium de ${novas.length} partidas jogadas.`, link: '/loja/', quando: Date.now(), lida: false }
+    const atual = (await this.ctx.storage.get('notifs')) || docVazio()
+    await this.ctx.storage.put('notifs', juntar(atual, { lista: [n], vistos: [n.id], limpoEm: 0 }))
+  }
+
+  async acao({ acao, id, caixas, cfg, pontos, bonus, premium, ...p }) {
+    if (['saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir', 'vender', 'mercado-comprar', 'dep-creditar', 'cobrar'].includes(acao)) {
+      await this.aplicarBonus(bonus)
+      await this.aplicarPremium(premium)
+    }
     switch (acao) {
       case 'inv-ler':
         return this.invLer(id)
@@ -662,7 +682,26 @@ export async function rotaNotificacoes(req, env, quem, cors) {
   return json(await r.json().catch(() => ({ erro: 'falhou' })), r.status, cors)
 }
 
-export async function rotaLoja(req, env, quem, cors, rota) {
+// Partidas jogadas com o Premium valendo (para o bônus de partida): lê o histórico do jogador publicado no site e deixa só as que
+// começaram dentro do período da assinatura. Sem assinatura (ou sem partidas): lista vazia. O horário das partidas é o do servidor (Brasília).
+async function partidasPremium(env, id, sub) {
+  try {
+    if (!sub) return []
+    const de = Number(sub.periodo || sub.inicio) || 0
+    const ate = sub.expira == null ? Infinity : Number(sub.expira)
+    const site = (env.SITE || 'https://neuraproject.com.br').replace(/\/$/, '')
+    const r = await fetch(`${site}/perfil/historico/${id}.json`, { cf: { cacheTtl: 60 } })
+    const h = r.ok ? await r.json() : []
+    return (Array.isArray(h) ? h : [])
+      .map((m) => ({ k: String(m.caminho || ''), ts: Date.parse(String(m.data || '').replace(' ', 'T') + '-03:00') }))
+      .filter((m) => m.k && m.ts >= de && m.ts <= ate)
+      .slice(0, 300)
+  } catch {
+    return []
+  }
+}
+
+export async function rotaLoja(req, env, quem, cors, rota, sub) {
   // Página de uma caixa (não precisa do objeto do jogador): desgastes com valor e chance, e os modos Jester/Boost
   if (rota === '/loja/caixa' && req.method === 'GET') {
     const [lista, config] = await Promise.all([lerCaixas(env), lerConfigLoja(env)])
@@ -686,7 +725,8 @@ export async function rotaLoja(req, env, quem, cors, rota) {
   const modo = acao === 'abrir' && MODOS.includes(corpo.modo) ? corpo.modo : null
   const caixaModo = modo && caixas.find((c) => c.id === Number(corpo.caixa) && c.ativa)
   const precoModo = caixaModo ? detalhesDaCaixa(caixaModo, cfg).modos[modo].preco : undefined
-  const r = await chamar(env, quem.id, { acao, caixas, cfg, pontos, bonus, caixa: corpo.caixa, qtd: corpo.qtd, ids: corpo.ids, origem: corpo.origem === 'inventario' || corpo.origem === 'auto' ? corpo.origem : 'direto', ...(modo ? { modo, precoModo } : {}) })
+  const premium = await partidasPremium(env, quem.id, sub)
+  const r = await chamar(env, quem.id, { acao, caixas, cfg, pontos, bonus, premium, caixa: corpo.caixa, qtd: corpo.qtd, ids: corpo.ids, origem: corpo.origem === 'inventario' || corpo.origem === 'auto' ? corpo.origem : 'direto', ...(modo ? { modo, precoModo } : {}) })
   const dados = await r.json().catch(() => ({ erro: 'falhou' }))
   if (acao === 'vender' && r.ok && dados.total > 0) await registrar(env, { tipo: 'venda', quem: quem.id, texto: `vendeu ${dados.vendidos} item(ns) para a loja por ${Number(dados.total).toLocaleString('pt-BR')} NP` })
   // o que saiu da caixa entra no carrossel de drops ao vivo do topo da loja (aparece depois que a roleta termina)
