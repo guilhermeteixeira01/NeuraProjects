@@ -3627,3 +3627,9 @@ html[data-desempenho] .pm-niveis figure img, html[data-desempenho] .pm-destaque 
 @media (max-width: 1024px) {
   html, body { max-width: 100%; overflow-x: clip; }
 }
+
+/* Celular: a barra de baixo fica na sua própria camada (não pisca nem se mexe quando a página embaixo tem animação) e a janela nunca alarga */
+@media (max-width: 1024px) {
+  html { overflow-x: hidden; }
+  .nx-baixo { transform: translateZ(0); will-change: transform; }
+}

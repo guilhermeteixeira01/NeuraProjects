@@ -446,3 +446,12 @@ clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%);transition
 }
 @media (prefers-reduced-motion:reduce){.fl-painel::before,.fl-ponto{animation:none}}
 html[data-desempenho] .fl-painel::before,html[data-desempenho] .fl-ponto{animation:none}
+
+/* Celular: sem recortes (clip-path) nem animação contínua nos blocos e no painel; no celular isso fazia a barra de baixo piscar/falhar */
+@media (max-width:980px){
+  .serie-bloco{clip-path:none;border-radius:10px}
+  .serie-bloco::before{top:10px;bottom:10px}
+  .fl-painel::before,.fl-painel::after{display:none}
+  .serie-bloco:not(.acabou):not(.cancelada){animation:none}
+  .lista.animar>*,.lista.animar .serie-mapas .partida{animation-duration:.25s;animation-delay:0s}
+}
