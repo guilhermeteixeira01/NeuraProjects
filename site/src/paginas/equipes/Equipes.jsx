@@ -6,6 +6,7 @@ import { confirmar } from '../../comum/Dialogos.jsx'
 import { CONFIG } from '../../comum/config.js'
 import { entrar, linkPerfil, loginAtivo, tokenConta, useConta } from '../../comum/conta.js'
 import { useAvatar } from '../../comum/avatares.js'
+import { definirMudoEquipe, definirVendoChatEquipe, useAvisoEquipe } from '../../comum/avisoEquipe.js'
 import { useT } from '../../comum/i18n.js'
 import { PERMISSOES, acaoEquipe, lerChatDoTime, lerEquipes, lerMeuTime, reduzirImagem, textoErro, urlImagemEquipe } from '../../comum/equipes.js'
 
@@ -205,6 +206,12 @@ function SemTime({ dados, recarregar }) {
 // ── chat do time ──
 function ChatDoTime({ time, eu, pode }) {
   const t = useT()
+  const { mudo } = useAvisoEquipe()
+  // com o chat na tela não toca som nem acende a bolinha do menu
+  useEffect(() => {
+    definirVendoChatEquipe(true)
+    return () => definirVendoChatEquipe(false)
+  }, [])
   const [msgs, setMsgs] = useState([])
   const [texto, setTexto] = useState('')
   const [erro, setErro] = useState('')
@@ -260,6 +267,15 @@ function ChatDoTime({ time, eu, pode }) {
   }
   return (
     <div className="eq-chat">
+      <div className="eq-chat-topo">
+        <button type="button" className={`eq-sino${mudo ? ' mudo' : ''}`} onClick={() => definirMudoEquipe(!mudo)} aria-pressed={mudo} title={mudo ? t('Som das mensagens do time desligado') : t('Som das mensagens do time ligado')}>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0" />
+            {mudo && <path d="M3 3l18 18" />}
+          </svg>
+          {mudo ? t('Silenciado') : t('Som ligado')}
+        </button>
+      </div>
       <ul className="eq-chat-lista" ref={lista} onScroll={(e) => (colado.current = e.currentTarget.scrollHeight - e.currentTarget.scrollTop - e.currentTarget.clientHeight < 40)}>
         {!msgs.length && <li className="eq-vazio">{t('Ninguém falou ainda. Mande a primeira mensagem do time!')}</li>}
         {msgs.map((m) => {

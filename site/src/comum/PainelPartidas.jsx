@@ -1,6 +1,7 @@
 // Painel "Partidas" (botão VS na barra da direita): os mapas que o jogador já jogou, do mais novo para o mais antigo, como o da FACEIT.
 // Dados: perfil/historico/<SteamID>.json (gerado no deploy: scripts/ranking.mjs). Cada cartão leva para a página da partida.
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useConta } from './conta.js'
 import { lerJson } from './dados.js'
 import { localeAtual, useT } from './i18n.js'
@@ -48,7 +49,8 @@ function Cartao({ p }) {
   )
 }
 
-export default function PainelPartidas() {
+// celular: botão VS na barra de cima e lista em tela cheia (como o painel de amigos)
+export default function PainelPartidas({ celular = false }) {
   const t = useT()
   const conta = useConta()
   const [aberto, setAberto] = useState(false)
@@ -65,7 +67,7 @@ export default function PainelPartidas() {
 
   useEffect(() => {
     if (!aberto) return
-    const fora = (e) => !e.target.closest?.('.pp-painel, .nx-partidas-btn') && setAberto(false)
+    const fora = (e) => !celular && !e.target.closest?.('.pp-painel, .nx-partidas-btn') && setAberto(false)
     const tecla = (e) => e.key === 'Escape' && setAberto(false)
     document.addEventListener('pointerdown', fora)
     document.addEventListener('keydown', tecla)
@@ -76,6 +78,7 @@ export default function PainelPartidas() {
   }, [aberto])
 
   if (!conta) return null
+  const naTela = (el) => (celular ? createPortal(el, document.body) : el)
   return (
     <>
       <button type="button" className={`nx-config-btn nx-amigos-btn nx-partidas-btn${aberto ? ' ativo' : ''}`} aria-expanded={aberto} aria-label={t('Partidas')} onClick={() => setAberto((a) => !a)}>
@@ -84,8 +87,9 @@ export default function PainelPartidas() {
           {t('Partidas')}
         </span>
       </button>
-      {aberto && (
-        <aside className="am-painel pp-painel" aria-label={t('Partidas')}>
+      {aberto &&
+        naTela(
+        <aside className={`am-painel pp-painel${celular ? ' am-celular' : ''}`} aria-label={t('Partidas')}>
           <div className="am-cab">
             <b>{t('Partidas')}</b>
             <button type="button" className="am-fechar" onClick={() => setAberto(false)} aria-label={t('Fechar')}>
@@ -104,8 +108,8 @@ export default function PainelPartidas() {
               </>
             )}
           </div>
-        </aside>
-      )}
+        </aside>,
+        )}
     </>
   )
 }

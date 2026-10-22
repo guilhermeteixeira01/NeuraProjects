@@ -2539,6 +2539,8 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
 @media (max-width: 1024px) {
   html.amigos-cel-aberto { overflow: hidden; }
   .nx-nav .nx-amigos-btn { width: 38px; height: 38px; }
+  .pp-painel.am-celular { width: auto; }
+  .pp-painel.am-celular .pp-corpo { padding: 6px 12px 24px; }
   .nx-nav .nx-amigos-btn .nx-dica { display: none; }
   .am-painel.am-celular {
     position: fixed; inset: 0; z-index: 460; display: flex; flex-direction: column;
@@ -3549,3 +3551,15 @@ html.ins-estante-aberta #root { filter: blur(10px) brightness(.5) saturate(.9); 
 @media (prefers-reduced-motion: reduce) { .nx-conta-menu.cp-card .cp-premium::after { animation: none; display: none; } }
 .pp-card .pp-pontos { position: absolute; top: 12px; right: 12px; margin: 0; padding: 3px 9px; border-radius: 999px; background: rgb(12 12 14 / .72); border: 1px solid rgb(182 242 58 / .55); color: #b6f23a; font: 700 11px var(--font-mono, monospace); letter-spacing: .02em; line-height: 1.2; white-space: nowrap; backdrop-filter: blur(3px); }
 .team-pontos { color: #b6f23a; }
+
+/* Bolinha "!" piscando no ícone Times do menu (mensagem nova no chat do time, com o som silenciado) */
+.nx-link, .nx-aba i { position: relative; }
+.nx-alerta {
+  position: absolute; top: 5px; right: 5px; z-index: 2; display: grid; place-items: center;
+  width: 17px; height: 17px; border-radius: 50%; background: #ff3b3b; color: #fff;
+  font: 800 11px/1 var(--font-body); box-shadow: 0 0 0 2px var(--bg, #0c0c0e), 0 0 12px rgb(255 59 59 / .8);
+  animation: nx-alerta-pisca 1s ease-in-out infinite; pointer-events: none;
+}
+.nx-aba .nx-alerta { top: -4px; right: -7px; width: 15px; height: 15px; font-size: 10px; }
+@keyframes nx-alerta-pisca { 50% { opacity: .25; transform: scale(.8); } }
+@media (prefers-reduced-motion: reduce) { .nx-alerta { animation: none; } }

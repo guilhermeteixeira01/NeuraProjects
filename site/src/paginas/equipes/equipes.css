@@ -141,3 +141,8 @@
   .eq-cabeca h1 { font-size: 22px; }
   .eq-busca { min-width: 0; width: 100%; }
 }
+
+.eq-chat-topo { display: flex; justify-content: flex-end; }
+.eq-sino { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border-2, rgb(255 255 255 / .15)); background: none; color: var(--dim, #9aa0a8); font: 600 12px var(--font-body); cursor: pointer; }
+.eq-sino:hover { color: #fff; }
+.eq-sino.mudo { color: #ffb84d; border-color: rgb(255 184 77 / .5); }

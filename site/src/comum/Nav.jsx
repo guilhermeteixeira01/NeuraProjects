@@ -13,6 +13,7 @@ import { useAvatar } from './avatares.js'
 import PainelAmigos from './PainelAmigos.jsx'
 import PainelNotificacoes from './PainelNotificacoes.jsx'
 import PainelPartidas from './PainelPartidas.jsx'
+import { iniciarAvisoEquipe, useAvisoEquipe } from './avisoEquipe.js'
 import { useAmigos } from './amigos.js'
 import { usePontos } from './pontos.js'
 import { useSaldo } from './loja.js'
@@ -22,6 +23,7 @@ const Deposito = lazy(() => import('../paginas/loja/Deposito.jsx')) // só baixa
 
 function LinkMenu({ item, atual }) {
   const t = useT()
+  const { pendente } = useAvisoEquipe()
   const ativo = item.id === atual
   const IconeItem = item.icone ? ICONES_MENU[item.icone] : null
   return (
@@ -34,6 +36,7 @@ function LinkMenu({ item, atual }) {
       {IconeItem && <IconeItem />}
       <span className="nx-dica">{t(item.rotulo)}</span>
       {item.selo && <span className="nx-selo">{item.selo}</span>}
+      {item.id === 'equipes' && pendente && <span className="nx-alerta" role="status" aria-label={t('Mensagem nova no chat do time')}>!</span>}
     </a>
   )
 }
@@ -349,6 +352,8 @@ export default function Nav({ pagina }) {
   }, [pagina])
 
   const conta = useConta()
+  useEffect(() => iniciarAvisoEquipe(), [])
+  const { pendente: avisoTime } = useAvisoEquipe()
   const { painel: admin } = useAdmin(conta) // o botão Admin aparece para quem tem acesso a alguma aba (admin ou cargo com acesso)
   // Sem login, o menu mostra só Início e Ranking (as outras páginas continuam abrindo pelo link; só não aparecem no menu).
   // Site sem login configurado: mostra tudo.
@@ -400,6 +405,7 @@ export default function Nav({ pagina }) {
                 <span className="nx-dica">{t('Comunidade')}</span>
               </a>
             )}
+            <PainelPartidas celular />
             <PainelNotificacoes celular />
             <PainelAmigos celular />
             <Configuracoes />
@@ -432,7 +438,7 @@ export default function Nav({ pagina }) {
           const ativo = m.id === pagina
           return (
             <a key={m.id} className={`nx-aba${ativo ? ' is-active' : ''}`} href={m.href} {...(ativo ? { 'aria-current': 'page' } : {})}>
-              <i>{Icone && <Icone />}</i>
+              <i>{Icone && <Icone />}{m.id === 'equipes' && avisoTime && <span className="nx-alerta" role="status" aria-label={t('Mensagem nova no chat do time')}>!</span>}</i>
               <span>{t(m.rotulo)}</span>
             </a>
           )
