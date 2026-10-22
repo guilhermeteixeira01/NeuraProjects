@@ -113,8 +113,20 @@ const escolherPorCor = (lista, n, rnd, nota, palavras) =>
     .sort((a, b) => b.v - a.v)
     .slice(0, n)
     .map((y) => y.x)
-const facasDe = (lista) => lista.map((f) => ({ d: f.d, p: f.p, w: pesoFaca(f), min: f.min, max: f.max, l: f.l }))
+const todasLuvas = catalogo.armas.filter((a) => a.c === 'luvas').flatMap((a) => a.s.map((s) => ({ t: 'luva', d: a.d, arma: a.n, p: s[0], nome: s[1], min: s[3], max: s[4], l: s[7] ? 1 : 0 })))
+const pesoLuva = (g) => pesoPeloPreco(precoDe(g.d, g.p) || 1500)
+// o item do tier especial (o card dourado da roleta) pode ser faca ou luva: { t: 'luva', ... } quando for luva
+const facasDe = (lista) => lista.map((f) => (f.t === 'luva' ? { t: 'luva', d: f.d, p: f.p, w: pesoLuva(f), min: f.min, max: f.max, l: f.l } : { d: f.d, p: f.p, w: pesoFaca(f), min: f.min, max: f.max, l: f.l }))
 const semVanilla = todasFacas.filter((f) => f.nome !== 'Vanilla')
+// Mistura: cada caixa tem o tier especial só de facas, só de luvas ou meio a meio (sempre o mesmo para a mesma caixa)
+const modoEspecial = (slug) => [...slug].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % 3
+function especial(slug, n, escolher) {
+  const m = modoEspecial(slug)
+  if (m === 0) return escolher(semVanilla, n)
+  if (m === 1) return escolher(todasLuvas, n)
+  const a = Math.ceil(n / 2)
+  return [...escolher(semVanilla, a), ...escolher(todasLuvas, n - a)]
+}
 
 // cor do card da caixa: a cor dominante (média dos pixels vivos) da própria imagem
 const require = createRequire(import.meta.url)
@@ -173,7 +185,7 @@ for (const m of mapa) {
     piramide(itens, (it) => precoDe(it.d, it.p) || 40 * (it.r + 1) ** 2, rnd)
     for (const it of itens) it.w = pesoSkin({ d: it.d, p: it.p, nome: '', r: it.r })
     const fator = ARMA_VALIOSA[arma.d] || 1
-    novas.push({ ...base, nome: `Caixa ${arma.n}`, preco: 400, tier: fator >= 1.5 ? 'premium' : fator > 1 ? 'media' : 'barata', itens, facas: facasDe(escolherAoAcaso(semVanilla, 8, rnd)) })
+    novas.push({ ...base, nome: `Caixa ${arma.n}`, preco: 400, tier: fator >= 1.5 ? 'premium' : fator > 1 ? 'media' : 'barata', itens, facas: facasDe(especial(m.slug, 8, (l, k) => escolherAoAcaso(l, k, rnd))) })
   } else if (TEMAS[chave]) {
     const t = TEMAS[chave]
     const cfg = FAIXAS[t.tier]
@@ -187,7 +199,7 @@ for (const m of mapa) {
         itens.push({ d: s.d, p: s.p, r, w: pesoSkin(s), min: s.min, max: s.max, l: s.l })
       }
     }
-    const fx = chave === 'personalizadas-teixeira' ? escolherAoAcaso(semVanilla, cfg.facas, rnd) : escolherPorCor(semVanilla, cfg.facas, rnd, t.nota, t.palavras)
+    const fx = especial(m.slug, cfg.facas, (l, k) => (chave === 'personalizadas-teixeira' ? escolherAoAcaso(l, k, rnd) : escolherPorCor(l, k, rnd, t.nota, t.palavras)))
     novas.push({ ...base, nome: t.nome, preco: 400, tier: t.tier, itens, facas: facasDe(fx) })
   } else if (ADESIVOS[chave]) {
     const t = ADESIVOS[chave]

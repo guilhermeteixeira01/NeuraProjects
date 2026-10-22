@@ -343,36 +343,51 @@ html.lj-travado .nx-rolagem { display: none !important; }
 .lj-aviso-erro { background: rgb(231 76 60 / .12); border-color: rgb(231 76 60 / .4); }
 @media (max-width: 700px) { .lj-mercado-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 10px; } }
 
-/* ── Drops ao vivo (Drops.jsx): carrossel do topo da loja, com os mesmos cartões do inventário ── */
-.lj-drops { display: flex; gap: 12px; margin: 0 0 22px; padding: 10px 12px; border-radius: 10px; background: rgb(255 255 255 / .06); border: 1px solid rgb(255 255 255 / .1); backdrop-filter: blur(6px); overflow: hidden; }
-.lj-drops-abas { display: flex; flex-direction: column; justify-content: center; gap: 6px; flex: none; padding-right: 12px; border-right: 1px solid rgb(255 255 255 / .1); }
-.lj-drops-abas button { display: grid; place-items: center; width: 38px; height: 38px; border: 0; border-radius: 4px; background: none; color: rgb(255 255 255 / .75); cursor: pointer; }
-.lj-drops-abas button:hover { color: #fff; }
-.lj-drops-abas button.is-ativo { background: #2bb3d6; color: #06222b; }
-.lj-drops-lista { list-style: none; margin: 0; padding: 4px 0 0; display: flex; gap: 14px; min-width: 0; flex: 1; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent); mask-image: linear-gradient(90deg, #000 90%, transparent); }
-.lj-drops-lista > li { flex: none; width: 160px; min-width: 0; }
+/* ── Drops ao vivo (Drops.jsx): faixa do topo da loja ──
+ * À esquerda as abas (TUDO / BONS / TOP); depois uma fila de cartões largos, cada um tingido com a cor da raridade, com a arma grande por cima de um
+ * círculo escuro e o nome da skin embaixo. O drop novo entra pela esquerda e empurra os outros. */
+.lj-drops { display: flex; margin: 0 0 22px; height: 112px; border-radius: 8px; background: #0d0f14; border: 1px solid rgb(255 255 255 / .08); overflow: hidden; }
+.lj-drops-abas { display: flex; flex-direction: column; flex: none; width: 96px; border-right: 1px solid rgb(0 0 0 / .5); background: #12151b; }
+.lj-drops-abas button { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0 12px; border: 0; background: none; color: rgb(255 255 255 / .38); font: 700 11.5px var(--font-body); letter-spacing: .14em; text-transform: uppercase; cursor: pointer; transition: color .2s, background .2s; }
+.lj-drops-abas button + button { border-top: 1px solid rgb(255 255 255 / .06); }
+.lj-drops-abas button svg { flex: none; width: 20px; height: 20px; opacity: .85; }
+.lj-drops-abas button:hover { color: rgb(255 255 255 / .8); }
+.lj-drops-abas button.is-ativo { color: #fff; background: linear-gradient(90deg, rgb(43 179 214 / .22), transparent); box-shadow: inset 3px 0 0 #2bb3d6; }
+.lj-drops-lista { list-style: none; margin: 0; padding: 0; display: flex; min-width: 0; flex: 1; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, #000 94%, transparent); mask-image: linear-gradient(90deg, #000 94%, transparent); }
+.lj-drops-lista > li { flex: none; width: 162px; min-width: 0; }
 .lj-drops-lista > li.is-novo { animation: lj-drop-entra .7s cubic-bezier(.2, .8, .2, 1) both; }
 @keyframes lj-drop-entra {
-  from { width: 0; margin-right: -14px; opacity: 0; transform: translateX(-40px); }
+  from { width: 0; opacity: 0; transform: translateX(-40px); }
   60% { opacity: 1; }
-  to { width: 160px; margin-right: 0; opacity: 1; transform: none; }
+  to { width: 162px; opacity: 1; transform: none; }
 }
-.lj-drop { text-decoration: none; }
-.lj-drop .inv-cartao-nome b, .lj-drop .inv-cartao-nome small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lj-drop-origem { position: absolute; top: 6px; right: 6px; z-index: 2; color: rgb(255 255 255 / .5); }
-/* passar o mouse: quem ganhou (foto e nome por cima da arma) */
-.lj-drop-quem { position: absolute; inset: 0; z-index: 3; display: grid; place-content: center; justify-items: center; gap: 8px; padding: 8px; text-align: center; border-radius: 4px; background: rgb(14 16 22 / .88); opacity: 0; transition: opacity .2s; }
-.lj-drop-quem img, .lj-drop-quem i { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: rgb(255 255 255 / .1); box-shadow: 0 0 0 2px var(--cor); }
-.lj-drop-quem b { font: 700 12.5px var(--font-body); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
-.lj-drop:hover .lj-drop-quem, .lj-drop:focus-visible .lj-drop-quem { opacity: 1; }
-.lj-drops-vazio { flex: 1 !important; width: auto !important; display: grid; place-items: center; min-height: 150px; color: var(--dim); font-size: 14px; }
+.lj-tile { position: relative; display: block; height: 100%; overflow: hidden; text-decoration: none; color: #fff; border-right: 1px solid rgb(0 0 0 / .45);
+  background:
+    radial-gradient(circle at 50% 40%, rgb(0 0 0 / .3) 0 34px, transparent 35px),
+    linear-gradient(150deg, color-mix(in srgb, var(--cor) 58%, #0b0c12) 0%, color-mix(in srgb, var(--cor) 22%, #0b0c12) 100%);
+  transition: filter .2s; }
+.lj-tile:hover, .lj-tile:focus-visible { filter: brightness(1.18); }
+.lj-tile-arma { position: absolute; left: 50%; top: 10px; width: 138px; height: 62px; transform: translateX(-50%); display: grid; place-items: center; }
+.lj-tile-arma img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 6px 8px rgb(0 0 0 / .55)); }
+.lj-tile-arma .inv-sem-img { width: 50%; height: 50%; }
+.lj-tile-nome { position: absolute; left: 12px; right: 8px; bottom: 9px; font: 500 14px var(--font-body); line-height: 1.15; text-shadow: 0 1px 3px rgb(0 0 0 / .7); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lj-tile-origem { position: absolute; top: 7px; right: 7px; z-index: 2; color: rgb(255 255 255 / .45); }
+.lj-tile-st { position: absolute; top: 7px; left: 9px; z-index: 2; font: 700 9.5px var(--font-body); letter-spacing: .04em; color: #ffb64d; }
+.lj-tile-quem { position: absolute; inset: 0; z-index: 3; display: grid; place-content: center; justify-items: center; gap: 6px; padding: 8px; text-align: center; background: rgb(10 12 18 / .88); opacity: 0; transition: opacity .2s; }
+.lj-tile-quem img, .lj-tile-quem i { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; background: rgb(255 255 255 / .1); box-shadow: 0 0 0 2px var(--cor); }
+.lj-tile-quem b { font: 700 12.5px var(--font-body); max-width: 142px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lj-tile-quem small { color: rgb(255 255 255 / .55); font-size: 10.5px; }
+.lj-tile:hover .lj-tile-quem, .lj-tile:focus-visible .lj-tile-quem { opacity: 1; }
+.lj-drops-vazio { flex: 1 !important; width: auto !important; display: grid; place-items: center; color: var(--dim); font-size: 14px; }
 @media (max-width: 700px) {
-  .lj-drops { padding: 8px; gap: 8px; }
-  .lj-drops-abas { padding-right: 8px; }
-  .lj-drops-abas button { width: 32px; height: 32px; }
-  .lj-drops-lista { gap: 10px; }
-  .lj-drops-lista > li { width: 124px; }
-  @keyframes lj-drop-entra { from { width: 0; opacity: 0; } to { width: 124px; opacity: 1; } }
+  .lj-drops { height: 96px; }
+  .lj-drops-abas { width: 58px; }
+  .lj-drops-abas button { justify-content: center; padding: 0; }
+  .lj-drops-abas button span { display: none; }
+  .lj-drops-lista > li { width: 128px; }
+  .lj-tile-arma { width: 108px; height: 50px; top: 8px; }
+  .lj-tile-nome { font-size: 12px; left: 9px; bottom: 7px; }
+  @keyframes lj-drop-entra { from { width: 0; opacity: 0; } to { width: 128px; opacity: 1; } }
 }
 @media (prefers-reduced-motion: reduce) { .lj-drops-lista > li.is-novo { animation: none; } }
 
@@ -590,3 +605,13 @@ html.lj-travado .nx-rolagem { display: none !important; }
 .lj-depositar:hover { background: #c8ff4d; }
 @keyframes lj-dep-brilho { 50% { box-shadow: 0 0 0 6px rgb(182 242 58 / 0); } }
 @media (prefers-reduced-motion: reduce) { .lj-depositar { animation: none; } }
+
+/* Emblema do item raro especial (no lugar do "?") */
+.lj-emblema { width: 54px; height: 54px; color: var(--cor); filter: drop-shadow(0 0 8px var(--cor)) drop-shadow(0 0 18px color-mix(in srgb, var(--cor) 55%, transparent)); overflow: visible; }
+.lj-em-giro { transform-origin: 32px 32px; animation: lj-em-gira 14s linear infinite; }
+.lj-em-contra { transform-origin: 32px 32px; animation: lj-em-gira 9s linear infinite reverse; }
+.lj-em-pisca { animation: lj-em-pisca 1.8s ease-in-out infinite; }
+@keyframes lj-em-gira { to { transform: rotate(360deg); } }
+@keyframes lj-em-pisca { 50% { opacity: .25; } }
+@media (max-width: 760px) { .lj-faixas[data-n='4'] .lj-emblema, .lj-faixas[data-n='5'] .lj-emblema { width: 34px; height: 34px; } }
+@media (prefers-reduced-motion: reduce) { .lj-em-giro, .lj-em-contra, .lj-em-pisca { animation: none; } }

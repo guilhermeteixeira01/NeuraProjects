@@ -60,7 +60,9 @@ const num = (v, min, max, padrao) => {
 // Revisão 6: caixas rebalanceadas (skin cara sai menos, temas pela cor das skins) e chances de raridade novas: TODAS as caixas de fábrica
 //            recebem os itens e as facas novos, e as taxas salvas no painel voltam para o padrão (vermelho 2%, faca 0,5%)
 // Revisão 8: as 31 caixas antigas viram "arquivadas" (saem da loja, mas quem já tem uma fechada no inventário ainda abre); as 70 novas entram pela lista de fábrica
-const REVISAO_CAIXAS = 8 // (a caixa de luvas é nova: entra pela lista de fábrica, sem precisar de revisão)
+// Revisão 9: preços das caixas novas refeitos depois que nenhum item ficou com chance 0 (itens muito caros agora têm chance minúscula, mas real)
+// Revisão 10: o tier especial (card dourado) de várias caixas novas passa a ter luvas (ou facas e luvas misturadas) no lugar de só facas; preços refeitos
+const REVISAO_CAIXAS = 10 // (a caixa de luvas é nova: entra pela lista de fábrica, sem precisar de revisão)
 const ATUALIZAR_CAIXAS = ['caixa-kawaii', 'caixa-terror', 'caixa-lendas', 'caixa-espacial']
 export async function lerCaixas(env) {
   const salvas = await env.MOLDURAS.get('caixas', 'json').catch(() => null)
@@ -84,6 +86,7 @@ export async function lerCaixas(env) {
     }
     for (const c of salvas) if (PRECOS.caixas?.[c.slug]) c.preco = PRECOS.caixas[c.slug]
     if (revisao < 8) for (const c of salvas) if (CAIXAS_INICIAIS.find((x) => x.slug === c.slug)?.arquivada) c.arquivada = true
+    if (revisao < 10) for (const c of salvas) { const nova = CAIXAS_INICIAIS.find((x) => x.slug === c.slug); if (nova && !nova.arquivada) c.facas = nova.facas } // só o tier especial; o resto da caixa (preço, nome...) o dono mantém
     await env.MOLDURAS.put('caixas', JSON.stringify(salvas)).catch(() => {})
     await env.MOLDURAS.put('caixas-revisao', String(REVISAO_CAIXAS)).catch(() => {})
   }
@@ -133,7 +136,8 @@ function limparCaixa(c, n) {
     return t ? { ...base, t } : base
   }
   const itens = (Array.isArray(c.itens) ? c.itens : []).slice(0, 300).map(item).filter((x) => x.d && (x.p || x.t === 'adesivo' || x.t === 'chaveiro'))
-  const facas = (Array.isArray(c.facas) ? c.facas : []).slice(0, 300).map(skin).filter((x) => x.d && x.p)
+  // tier especial (card dourado): faca, ou luva quando vier com t: 'luva'
+  const facas = (Array.isArray(c.facas) ? c.facas : []).slice(0, 300).map((x) => (x?.t === 'luva' ? { ...skin(x), t: 'luva' } : skin(x))).filter((x) => x.d && x.p)
   return {
     id: Math.round(num(c.id, 1, 100000, n + 1)),
     slug,

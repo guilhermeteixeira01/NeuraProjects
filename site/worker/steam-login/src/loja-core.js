@@ -190,10 +190,11 @@ export function chancesDaCaixa(caixa, cfg) {
   const itens = caixa.itens.map(() => 0)
   porRaridade.forEach((lista, r) => {
     const soma = lista.reduce((a, x) => a + pesoDoItem(x.it, 'arma'), 0) || 1
-    for (const x of lista) itens[x.i] = Math.round(((raridades[r] * pesoDoItem(x.it, 'arma')) / soma) * 1000) / 1000
+    // 6 casas: item muito caro tem chance minúscula, mas nunca zero (com 3 casas ele virava "0%" na tela)
+    for (const x of lista) itens[x.i] = pesoDoItem(x.it, 'arma') > 0 ? Math.max(1e-6, Math.round(((raridades[r] * pesoDoItem(x.it, 'arma')) / soma) * 1e6) / 1e6) : 0
   })
   const somaF = caixa.facas.reduce((a, f) => a + pesoDoItem(f, 'faca'), 0) || 1
-  const facas = caixa.facas.map((f) => Math.round(((raridades[5] * pesoDoItem(f, 'faca')) / somaF) * 1000) / 1000)
+  const facas = caixa.facas.map((f) => (pesoDoItem(f, 'faca') > 0 ? Math.max(1e-6, Math.round(((raridades[5] * pesoDoItem(f, 'faca')) / somaF) * 1e6) / 1e6) : 0))
   return { raridades, itens, facas }
 }
 

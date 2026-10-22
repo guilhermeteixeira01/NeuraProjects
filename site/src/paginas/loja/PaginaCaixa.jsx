@@ -12,7 +12,13 @@ import { definirPreferencia, preferenciaAtual, som } from './somLoja.js'
 
 const MAX_POR_VEZ = 3 // o servidor também não deixa passar disso
 const numero = (n) => Number(n).toLocaleString('pt-BR')
-const pct = (n) => `${n >= 1 ? n.toFixed(2).replace(/\.?0+$/, '') : n >= 0.01 ? n.toFixed(3).replace(/0+$/, '') : n.toFixed(4).replace(/0+$/, '')}%`
+// Chance em %: nunca aparece "0%" para item que tem chance de verdade (item caro: "<0.0001%")
+const pct = (n) => {
+  if (!(n > 0)) return '0%'
+  if (n < 0.0001) return '<0.0001%'
+  const txt = n >= 1 ? n.toFixed(2) : n >= 0.01 ? n.toFixed(3) : n.toFixed(4)
+  return `${txt.replace(/0+$/, '').replace(/\.$/, '')}%`
+}
 const SIGLA = { 'Factory New': 'FN', 'Minimal Wear': 'MW', 'Field-Tested': 'FT', 'Well-Worn': 'WW', 'Battle-Scarred': 'BS' }
 // cor de cada modo (moldura das roletas, botão Abrir, botões ativos, partículas)
 const CORES = { normal: ['#1e90ff'], jester: ['#b14dff', '#e08cff', '#ffffff'], boost: ['#ff5f45', '#ff9a52', '#ffd27a'] }

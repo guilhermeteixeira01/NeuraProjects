@@ -9,9 +9,9 @@ import { dadosDoItem } from './Abertura.jsx'
 
 const INTERVALO = 5000
 const ABAS = [
-  ['recentes', 'Drops ao vivo', <path key="r" d="M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />],
-  ['bons', 'Drops bons (Épico para cima)', <path key="b" d="M7 11v9H4v-9h3Zm0 0 4-8a2 2 0 0 1 2 2v4h6a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.8 20H7" />],
-  ['top', 'Top drops das últimas 24 horas (vermelhos e itens raros especiais)',<path key="t" d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9L12 3Z" />],
+  ['recentes', 'Drops ao vivo', 'TUDO', <path key="r" d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" />],
+  ['bons', 'Drops bons (Épico para cima)', 'BONS', <path key="b" d="M7 11v9H4v-9h3Zm0 0 4-8a2 2 0 0 1 2 2v4h6a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.8 20H7" />],
+  ['top', 'Top drops das últimas 24 horas (vermelhos e itens raros especiais)', 'TOP', <path key="t" d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9L12 3Z" />],
 ]
 
 function tempo(t, ms) {
@@ -74,9 +74,10 @@ export default function Drops({ achar }) {
   return (
     <section className="lj-drops" aria-label={t('Drops ao vivo')}>
       <div className="lj-drops-abas" role="tablist">
-        {ABAS.map(([id, rotulo, icone]) => (
+        {ABAS.map(([id, rotulo, curto, icone]) => (
           <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'is-ativo' : ''} title={t(rotulo)} aria-label={t(rotulo)} onClick={() => setAba(id)}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <span>{curto}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               {icone}
             </svg>
           </button>
@@ -88,23 +89,17 @@ export default function Drops({ achar }) {
           const cor = RARIDADES[x.r]?.cor || RARIDADES[0].cor
           return (
             <li key={x.id} className={novos.has(x.id) ? 'is-novo' : ''}>
-              {/* mesmo cartão do inventário (comum/cartaoSkin.css): arma sem fundo, barra da raridade embaixo, nome e skin */}
-              <a className="inv-cartao lj-drop" href={`/perfil/?id=${x.quem}`} style={{ '--cor': cor }} title={`${x.nome || t('Jogador')} · ${it.nome}${it.enfeite ? '' : ` | ${it.skin}`}`}>
-                <span className="inv-cartao-arte">
-                  <span className="inv-arma-box">{it.img ? <img className="inv-arma-img" src={it.img} alt="" loading="lazy" draggable="false" /> : <span className="inv-sem-img" />}</span>
-                  <svg className="lj-drop-origem" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-label={t('Aberto numa caixa')}>
-                    <path d="M3 7h18v4H3zM5 11v9h14v-9M10 15h4" />
-                  </svg>
-                  {/* passar o mouse: quem ganhou */}
-                  <span className="lj-drop-quem">
-                    {x.avatar ? <img src={x.avatar} alt="" loading="lazy" /> : <i aria-hidden="true" />}
-                    <b>{x.nome || t('Jogador')}</b>
-                  </span>
-                </span>
-                <span className="inv-cartao-nome">
-                  <b>{it.nome}</b>
-                  <small>{it.enfeite ? t(it.skin) : it.skin}</small>
-                  <em>{tempo(t, agora + diferenca.current - x.ts)}</em>
+              <a className="lj-tile" href={`/perfil/?id=${x.quem}`} style={{ '--cor': cor }} title={`${x.nome || t('Jogador')} · ${it.nome}${it.enfeite ? '' : ` | ${it.skin}`}`}>
+                <span className="lj-tile-arma">{it.img ? <img src={it.img} alt="" loading="lazy" draggable="false" /> : <span className="inv-sem-img" />}</span>
+                <svg className="lj-tile-origem" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-label={t('Aberto numa caixa')}>
+                  <path d="M3 7h18v4H3zM5 11v9h14v-9M10 15h4" />
+                </svg>
+                <span className="lj-tile-nome">{it.enfeite ? it.nome : it.skin || it.nome}</span>
+                {/* passar o mouse: quem ganhou */}
+                <span className="lj-tile-quem">
+                  {x.avatar ? <img src={x.avatar} alt="" loading="lazy" /> : <i aria-hidden="true" />}
+                  <b>{x.nome || t('Jogador')}</b>
+                  <small>{tempo(t, agora + diferenca.current - x.ts)}</small>
                 </span>
               </a>
             </li>
