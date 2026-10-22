@@ -2,9 +2,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { PAGAMENTO, bonusDoPagamento, npDoPagamento } from '../../../worker/steam-login/src/loja-core.js'
+import { confirmar } from '../../comum/Dialogos.jsx'
 import { useT } from '../../comum/i18n.js'
 import { avisarSaldo } from '../../comum/loja.js'
-import { MENSAGENS_PAGAMENTO, criarPagamento, estadoPagamento, formatarCpf, lerConfigPagamento, lerPlanosSub } from '../../comum/pagamentos.js'
+import { MENSAGENS_PAGAMENTO, criarPagamento, estadoPagamento, formatarCpf, lerConfigPagamento, lerPlanosSub, lerRecorrencia, cancelarRecorrencia } from '../../comum/pagamentos.js'
 import './deposito.css'
 
 const numero = (n) => Number(n).toLocaleString('pt-BR')
@@ -26,8 +27,11 @@ export default function Deposito({ nomeInicial = '', modo = 'deposito', aoFechar
   const sub = modo === 'sub'
   const [planos, setPlanos] = useState([])
   const [plano, setPlano] = useState(null)
+  const [recorrente, setRecorrente] = useState(false) // renovar todo mês no cartão (só plano de 1 mês)
+  const [rec, setRec] = useState(null) // renovação automática que o jogador já tem: { ativa, valor, proxima }
   useEffect(() => {
     if (!sub) return
+    lerRecorrencia().then(setRec, () => {})
     lerPlanosSub().then((l) => {
       setPlanos(l)
       setPlano(l.find((x) => x.meses === 3) || l[0] || null)
@@ -94,13 +98,24 @@ export default function Deposito({ nomeInicial = '', modo = 'deposito', aoFechar
   const valorOk = sub ? !!plano : Number.isFinite(valor) && valor >= cfg.minCentavos && valor <= cfg.maxCentavos
   const np = valorOk && !sub ? npDoPagamento(valor, cfg) : 0
   const bonus = valorOk && !sub ? bonusDoPagamento(valor, cfg) : 0
+  const podeRecorrer = sub && metodo === 'cartao' && plano?.meses === 1 && !rec?.ativa
+  const recorrer = podeRecorrer && recorrente
+  const cancelarRenovacao = async () => {
+    if (!(await confirmar(t('Cancelar a renovação automática? O Asaas para de cobrar o seu cartão. O mês que você já pagou continua valendo até o vencimento.'), { perigo: true, ok: t('Cancelar renovação') }))) return
+    try {
+      await cancelarRecorrencia()
+      setRec({ ativa: false })
+    } catch {
+      setErro('Não deu para cancelar agora. Tente de novo.')
+    }
+  }
   const podePagar = valorOk && nome.trim().split(/\s+/).length >= 2 && cpf.replace(/\D/g, '').length === 11 && aceito && !criando
 
   const pagar = async () => {
     setCriando(true)
     setErro('')
     try {
-      const c = await criarPagamento(metodo, valor, nome.trim(), cpf, sub ? { tipo: 'sub', meses: plano.meses } : undefined)
+      const c = await criarPagamento(metodo, valor, nome.trim(), cpf, sub ? { tipo: 'sub', meses: plano.meses, ...(recorrer ? { recorrente: true } : {}) } : undefined)
       setCobranca(c)
       if (c.metodo === 'cartao' && c.url) window.open(c.url, '_blank', 'noopener')
     } catch (e) {
@@ -156,7 +171,7 @@ export default function Deposito({ nomeInicial = '', modo = 'deposito', aoFechar
           </>
         ) : (
           <>
-            <p className="dep-dica">{t('Abrimos a página segura do Asaas para você digitar o cartão. Se ela não abriu, clique abaixo. Seus dados do cartão não passam pelo nosso site.')}</p>
+            <p className="dep-dica">{t('Abrimos a página segura do Asaas para você digitar o cartão. Se ela não abriu, clique abaixo. Seus dados do cartão não passam pelo nosso site.')}{cobranca.recorrente ? ` ${t('O cartão será cobrado todo mês até você cancelar a renovação.')}` : ''}</p>
             <a className="dep-btn dep-btn-p" href={cobranca.url} target="_blank" rel="noopener noreferrer">
               {t('Abrir página de pagamento')}
             </a>
@@ -193,6 +208,17 @@ export default function Deposito({ nomeInicial = '', modo = 'deposito', aoFechar
         </div>
 
         <div className="dep-direita">
+          {sub && rec?.ativa && (
+            <div className="dep-recorrencia" role="status">
+              <span>
+                <b>{t('Renovação automática ativa')}</b> · {reais((rec.valor || 0) * 100)} {t('todo mês no cartão')}
+                {rec.proxima && <> · {t('próxima cobrança')} {new Date(`${rec.proxima}T12:00:00`).toLocaleDateString()}</>}
+              </span>
+              <button type="button" className="dep-link" onClick={cancelarRenovacao}>
+                {t('Cancelar renovação')}
+              </button>
+            </div>
+          )}
           {sub && (
             <ul className="dep-pacotes dep-planos">
               {planos.map((pl) => {
@@ -230,6 +256,15 @@ export default function Deposito({ nomeInicial = '', modo = 'deposito', aoFechar
             <input inputMode="decimal" placeholder="R$ 0,00" value={livre} onChange={(e) => setLivre(e.target.value.replace(/[^\d.,]/g, '').slice(0, 7))} />
           </label>
 
+          {podeRecorrer && (
+            <label className="dep-aceite dep-recorrer">
+              <input type="checkbox" checked={recorrente} onChange={(e) => setRecorrente(e.target.checked)} />
+              <span>
+                <b>{t('Renovar automaticamente todo mês')}</b> — {t('autorizo o Asaas a cobrar {valor} por mês neste cartão até eu cancelar. Posso cancelar quando quiser, aqui mesmo em "Assinar Premium".', { valor: reais(valor) })}
+              </span>
+            </label>
+          )}
+
           <fieldset className="dep-pagador">
             <legend>{t('Dados do pagador (Brasil)')}</legend>
             <label className="dep-campo">
@@ -252,7 +287,7 @@ export default function Deposito({ nomeInicial = '', modo = 'deposito', aoFechar
           {!valorOk && livre !== '' && <p className="dep-erro">{t('O valor precisa estar entre {a} e {b}.', { a: reais(cfg.minCentavos), b: reais(cfg.maxCentavos) })}</p>}
 
           <button type="button" className="dep-btn dep-btn-p dep-pagar" disabled={!podePagar} onClick={pagar}>
-            {criando ? t('Gerando…') : valorOk ? (sub ? t('Pagar {valor} e ativar o Premium', { valor: reais(valor) }) : t('Pagar {valor} e receber {np} NP', { valor: reais(valor), np: numero(np) })) : t('Escolha um valor')}
+            {criando ? t('Gerando…') : valorOk ? (sub ? (recorrer ? t('Assinar por {valor} todo mês', { valor: reais(valor) }) : t('Pagar {valor} e ativar o Premium', { valor: reais(valor) })) : t('Pagar {valor} e receber {np} NP', { valor: reais(valor), np: numero(np) })) : t('Escolha um valor')}
           </button>
           {bonus > 0 && valorOk && <p className="dep-bonus">{t('Inclui {n}% de bônus!', { n: bonus })}</p>}
         </div>

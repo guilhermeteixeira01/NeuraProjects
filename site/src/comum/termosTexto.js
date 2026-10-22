@@ -1,7 +1,7 @@
 // Texto dos Termos de Uso (a caixa de aceite antes do login e o PDF usam este mesmo texto).
 // Mudou algo importante? Suba a VERSAO: todo mundo vê e aceita de novo no próximo login.
 // Negrito: **assim**.
-export const VERSAO_TERMOS = '2026-10-23'
+export const VERSAO_TERMOS = '2026-10-24'
 
 export const RESUMO_TERMOS =
   '**Resumo importante:** a Neura é um projeto de comunidade, feito por diversão. Pontos, skins, caixas, trocas, ranking e níveis são virtuais, existem somente no nosso site e nos nossos servidores, não valem dinheiro e podem ser alterados ou apagados a qualquer momento. O site pode ser fechado, e não nos responsabilizamos por nenhum prejuízo, inclusive se você comprar pontos ou itens com dinheiro de verdade, da Neura ou de outro jogador.'
@@ -42,6 +42,7 @@ export const SECOES_TERMOS = [
           '**Sem reembolso.** Compras de NP e de itens virtuais não são reembolsáveis, exceto quando a lei brasileira garantir esse direito (por exemplo, o direito de arrependimento em compras online, quando se aplicar).',
           '**Sorteios não garantem nada.** Abrir caixas com NP, mesmo comprados com dinheiro, é sorteio: você pode não ganhar o item que quer. Gaste só o que você pode perder sem prejuízo.',
           '**Idade.** Compras com dinheiro real são só para maiores de 18 anos, ou para menores com autorização e acompanhamento de pai, mãe ou responsável, que assume a compra.',
+          '**Renovação automática (opcional).** Na assinatura Premium de 1 mês você pode escolher renovar todo mês no cartão. Nesse caso, o Asaas cobra o valor do plano, todo mês, no cartão que você informou, até você cancelar. Você cancela quando quiser em "Assinar Premium" (menu da conta) ou falando com a administração. O cancelamento vale para as próximas cobranças; o mês já pago continua valendo até o vencimento e não é devolvido. Se uma cobrança for recusada, a assinatura não renova e vence. O valor do plano pode mudar, e só vale para você na renovação seguinte à mudança, com aviso no site. Sem a renovação automática, a assinatura não renova sozinha.',
           '**Pagamentos de terceiros.** Os pagamentos são processados pelo Asaas (Pix e cartão), com as regras, taxas e prazos dele. Os NP são creditados depois da confirmação do pagamento. Se o pagamento for estornado ou contestado (chargeback), os NP correspondentes são retirados da conta, e ela pode ficar com saldo negativo e bloqueada para compras até regularizar.',
           '**Comprar de outro jogador é por sua conta e risco.** A Neura não participa, não intermedeia, não confere, não garante e não reembolsa negociações feitas entre jogadores, principalmente as pagas em dinheiro, Pix, itens da Steam ou qualquer outro bem. Existem golpes: o item pode não ser entregue, a pessoa pode sumir, o pagamento pode ser contestado. A Neura não dá suporte nem devolve valores nesses casos, e recomenda que você não pague dinheiro a outros jogadores.',
           '**Fraude.** Contas envolvidas em golpes, chargebacks, lavagem de itens ou pagamentos contestados podem ter itens e NP removidos e ser banidas, sem reembolso.',

@@ -74,3 +74,8 @@
 .dep-plano-meses { font: 800 34px/1 var(--font-display, inherit); color: #f5c518; }
 .dep-pacotes[hidden], .dep-campo[hidden] { display: none; }
 @media (max-width: 780px) { .dep-planos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Renovação automática (assinatura no cartão) */
+.dep-recorrencia { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; padding: 10px 14px; border-radius: 10px; background: rgb(182 242 58 / .1); border: 1px solid rgb(182 242 58 / .4); font-size: 13.5px; }
+.dep-recorrencia b { color: #b6f23a; }
+.dep-recorrer { padding: 12px 14px; border-radius: 10px; background: rgb(245 197 24 / .08); border: 1px solid rgb(245 197 24 / .35); }

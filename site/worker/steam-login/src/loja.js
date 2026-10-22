@@ -304,6 +304,12 @@ export class Loja {
         if (n >= 5) throw new Error('muitos-pagamentos')
         return { ok: true, cliente: (await this.ctx.storage.get(`asaasCliente:${p.amb || 'sandbox'}`)) || null } // um cliente por ambiente (o do sandbox não existe na produção)
       }
+      case 'dep-recorrencia': // id da assinatura recorrente do Asaas (p.set = gravar, '' apaga)
+        if (p.set !== undefined) {
+          if (p.set) await this.ctx.storage.put(`asaasAssinatura:${p.amb || 'sandbox'}`, String(p.set))
+          else await this.ctx.storage.delete(`asaasAssinatura:${p.amb || 'sandbox'}`)
+        }
+        return { id: (await this.ctx.storage.get(`asaasAssinatura:${p.amb || 'sandbox'}`)) || null }
       case 'dep-cliente':
         await this.ctx.storage.put(`asaasCliente:${p.amb || 'sandbox'}`, String(p.cliente || ''))
         return { ok: true }

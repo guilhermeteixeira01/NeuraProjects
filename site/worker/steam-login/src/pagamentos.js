@@ -180,17 +180,41 @@ async function criar(env, quem, corpo) {
         description: descricao,
         externalReference: `np:${quem.id}`,
       })
+    // Assinatura recorrente (opcional): o Asaas cobra o cartão todo mês, e cada cobrança paga soma 1 mês (conciliar). Só cartão e só o plano de 1 mês.
+    const recorrente = tipo === 'sub' && corpo.recorrente === true
+    if (recorrente && (metodo !== 'cartao' || plano.meses !== 1)) return { status: 400, dados: { erro: 'recorrencia' } }
     let cobranca
-    try {
-      cobranca = await nova(cliente)
-    } catch (e) {
-      if (!pode.cliente) throw e
-      cliente = await novoCliente() // o cliente guardado não vale mais (apagado ou de outro ambiente): cria de novo e tenta uma vez
-      cobranca = await nova(cliente)
+    let assinaturaId = null
+    const tentar = async (fn) => {
+      try {
+        return await fn(cliente)
+      } catch (e) {
+        if (!pode.cliente) throw e
+        cliente = await novoCliente() // o cliente guardado não vale mais (apagado ou de outro ambiente): cria de novo e tenta uma vez
+        return fn(cliente)
+      }
     }
-    await chamarLoja(env, quem.id, { acao: 'dep-registrar', pid: cobranca.id, centavos, np, metodo, tipo, dados: plano ? { meses: plano.meses } : null })
-    registrar(env, { tipo: 'pagamento', quem: quem.id, texto: `criou cobrança ${metodo === 'pix' ? 'Pix' : 'cartão'} de R$ ${(centavos / 100).toFixed(2).replace('.', ',')} (${tipo === 'sub' ? `assinatura ${plano.meses} mês(es)` : `${np} NP`})`, dados: { pid: cobranca.id, tipo, metodo } })
-    const base = { id: cobranca.id, metodo, centavos, np, tipo }
+    if (recorrente) {
+      const atual = (await chamarLoja(env, quem.id, { acao: 'dep-recorrencia', amb })).id
+      if (atual) {
+        const ativa = await asaas(env, `/subscriptions/${atual}`).catch(() => null)
+        if (ativa?.status === 'ACTIVE') return { status: 409, dados: { erro: 'ja-recorrente' } }
+      }
+      const assinatura = await tentar((customer) =>
+        asaas(env, '/subscriptions', 'POST', { customer, billingType: 'CREDIT_CARD', value: centavos / 100, nextDueDate: hojeSP(), cycle: 'MONTHLY', description: 'Neura Project: Assinatura Premium (renovação mensal)', externalReference: `np:${quem.id}` }),
+      )
+      assinaturaId = assinatura.id
+      // a 1ª cobrança da assinatura: é nela que o jogador digita o cartão (página segura do Asaas); as seguintes saem sozinhas
+      for (let t = 0; t < 4 && !cobranca; t++) {
+        if (t) await new Promise((r) => setTimeout(r, 700))
+        cobranca = (await asaas(env, `/subscriptions/${assinaturaId}/payments`)).data?.[0]
+      }
+      if (!cobranca) throw new Error('asaas')
+      await chamarLoja(env, quem.id, { acao: 'dep-recorrencia', amb, set: assinaturaId })
+    } else cobranca = await tentar(nova)
+    await chamarLoja(env, quem.id, { acao: 'dep-registrar', pid: cobranca.id, centavos, np, metodo, tipo, dados: plano ? { meses: plano.meses, ...(recorrente ? { recorrente: true, assinatura: assinaturaId } : {}) } : null })
+    registrar(env, { tipo: 'pagamento', quem: quem.id, texto: `${recorrente ? 'ativou a renovação automática no cartão:' : 'criou cobrança'} ${metodo === 'pix' ? 'Pix' : 'cartão'} de R$ ${(centavos / 100).toFixed(2).replace('.', ',')} (${tipo === 'sub' ? `assinatura ${plano.meses} mês(es)` : `${np} NP`})`, dados: { pid: cobranca.id, tipo, metodo } })
+    const base = { id: cobranca.id, metodo, centavos, np, tipo, recorrente }
     if (metodo === 'cartao') return { status: 200, dados: { ...base, url: cobranca.invoiceUrl } }
     const qr = await asaas(env, `/payments/${cobranca.id}/pixQrCode`)
     return { status: 200, dados: { ...base, pix: { payload: qr.payload, imagem: qr.encodedImage, expira: qr.expirationDate || null } } }
@@ -205,12 +229,19 @@ async function criar(env, quem, corpo) {
 export async function conciliar(env, pid, donoEsperado) {
   if (!env.ASAAS_API_KEY || !/^[A-Za-z0-9_-]{4,60}$/.test(String(pid))) throw new Error('pagamento')
   const c = await asaas(env, `/payments/${encodeURIComponent(pid)}`)
-  const m = /^np:(\d{17})$/.exec(String(c.externalReference || ''))
+  // cobrança de assinatura recorrente (gerada sozinha pelo Asaas a cada mês): o dono vem da própria assinatura, e a cobrança entra na lista do jogador na primeira vez que aparece
+  let ref = String(c.externalReference || '')
+  if (!/^np:\d{17}$/.test(ref) && c.subscription) ref = String((await asaas(env, `/subscriptions/${encodeURIComponent(c.subscription)}`).catch(() => null))?.externalReference || '')
+  const m = /^np:(\d{17})$/.exec(ref)
   if (!m) throw new Error('pagamento') // cobrança que não é nossa
   const id = m[1]
   if (donoEsperado && donoEsperado !== id) throw new Error('pagamento')
   const centavos = Math.round(Number(c.value) * 100)
   const pontos = await pontosGanhos(env, id)
+  if (c.subscription && PAGO.has(c.status)) {
+    const ja = await chamarLoja(env, id, { acao: 'dep-ler', pid })
+    if (!ja.deposito) await chamarLoja(env, id, { acao: 'dep-registrar', pid, centavos, np: 0, metodo: 'cartao', tipo: 'sub', dados: { meses: 1, recorrente: true, assinatura: c.subscription } })
+  }
   if (PAGO.has(c.status)) {
     const r = await chamarLoja(env, id, { acao: 'dep-creditar', pid, centavos, pontos })
     if (r.tipo === 'sub') {
@@ -254,6 +285,24 @@ export async function rotaPagamentos(req, env, quem, cors, rota, url) {
     const r = await criar(env, quem, corpo || {})
     return json(r.dados, r.status, cors)
   }
+  if (rota === '/pagamentos/recorrencia' && (req.method === 'GET' || req.method === 'POST')) {
+    // GET: a renovação automática do jogador ({ ativa, valor, proxima }) · POST: cancela (o Asaas para de cobrar; o mês já pago continua valendo)
+    const amb = /sandbox/i.test(env.ASAAS_URL || 'sandbox') ? 'sandbox' : 'prod'
+    const id = (await chamarLoja(env, quem.id, { acao: 'dep-recorrencia', amb })).id
+    if (req.method === 'GET') {
+      const a = id ? await asaas(env, `/subscriptions/${id}`).catch(() => null) : null
+      return json({ ativa: a?.status === 'ACTIVE', valor: a?.value ?? null, proxima: a?.nextDueDate ?? null }, 200, cors)
+    }
+    if (!id) return json({ erro: 'sem-recorrencia' }, 404, cors)
+    try {
+      await asaas(env, `/subscriptions/${id}`, 'DELETE')
+    } catch {
+      return json({ erro: 'asaas' }, 502, cors)
+    }
+    await chamarLoja(env, quem.id, { acao: 'dep-recorrencia', amb, set: '' })
+    registrar(env, { tipo: 'assinatura', quem: quem.id, alvo: quem.id, texto: 'cancelou a renovação automática da assinatura' })
+    return json({ ok: true }, 200, cors)
+  }
   if (rota === '/pagamentos/planos' && req.method === 'GET') return json({ planos: await lerPlanosSub(env) }, 200, cors)
   if (rota === '/pagamentos/config' && req.method === 'GET') return json({ cfg: await lerConfigPagamento(env) }, 200, cors)
   if (rota === '/pagamentos/estado' && req.method === 'GET') {
@@ -276,7 +325,7 @@ export async function rotaWebhookAsaas(req, env) {
   if (!env.ASAAS_WEBHOOK_TOKEN || dif !== 0) return json({ erro: 'rota' }, 404)
   const corpo = await req.json().catch(() => null)
   const pid = corpo?.payment?.id
-  if (pid && String(corpo.payment.externalReference || '').startsWith('np:')) {
+  if (pid && (String(corpo.payment.externalReference || '').startsWith('np:') || corpo.payment.subscription)) {
     try {
       await conciliar(env, pid)
     } catch (e) {
