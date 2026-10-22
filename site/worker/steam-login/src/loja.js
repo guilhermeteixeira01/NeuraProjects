@@ -148,22 +148,31 @@ const VALOR_ADESIVO = [4, 8, 15, 40, 100, 250]
 const VALOR_CHAVEIRO = [25, 70, 180, 450]
 
 // Raridade (0..6) e valor de venda (NP) de um item do inventário; null se não pode vender (caixa, agente). O mercado usa como preço sugerido.
+// Valor (NP) de um adesivo / chaveiro soltos: preço de mercado (precos.json) ou, sem preço, a tabela por acabamento / raridade
+function valorDoAdesivo(id) {
+  if (PRECOS.a[id]) return Math.max(1, Math.round(PRECOS.a[id]))
+  return VALOR_ADESIVO[ENFEITES_VALOR.a[id] ?? 0] ?? VALOR_ADESIVO[0]
+}
+function valorDoChaveiro(id) {
+  if (PRECOS.c[id]) return Math.max(1, Math.round(PRECOS.c[id]))
+  return VALOR_CHAVEIRO[(ENFEITES_VALOR.c[id] ?? 2) - 2] ?? VALOR_CHAVEIRO[0]
+}
+// O que está colado na arma (até 5 adesivos e 1 chaveiro) vale junto com ela: soma o valor de cada um
+function valorDosEnfeites(it) {
+  let v = 0
+  for (const ad of Array.isArray(it.a) ? it.a : []) if (ad?.i) v += valorDoAdesivo(ad.i)
+  if (it.k?.i) v += valorDoChaveiro(it.k.i)
+  return v
+}
+
 export function valorDe(it) {
-  if (it.t === 'adesivo' && PRECOS.a[it.d]) return { r: Math.min(5, (ENFEITES_VALOR.a[it.d] ?? 0) + 1), v: Math.max(1, Math.round(PRECOS.a[it.d])) }
-  if (it.t === 'chaveiro' && PRECOS.c[it.d]) return { r: ENFEITES_VALOR.c[it.d] ?? 2, v: Math.max(1, Math.round(PRECOS.c[it.d])) }
-  if (it.t === 'adesivo') {
-    const nivel = ENFEITES_VALOR.a[it.d] ?? 0 // papel 0 … gold/campeão 4-5
-    return { r: Math.min(5, nivel + 1), v: VALOR_ADESIVO[nivel] }
-  }
-  if (it.t === 'chaveiro') {
-    const r = ENFEITES_VALOR.c[it.d] ?? 2
-    return { r, v: VALOR_CHAVEIRO[r - 2] ?? VALOR_CHAVEIRO[0] }
-  }
+  if (it.t === 'adesivo') return { r: Math.min(5, (ENFEITES_VALOR.a[it.d] ?? 0) + 1), v: valorDoAdesivo(it.d) }
+  if (it.t === 'chaveiro') return { r: ENFEITES_VALOR.c[it.d] ?? 2, v: valorDoChaveiro(it.d) }
   if (!['arma', 'faca', 'luva'].includes(it.t)) return null
   const mercado = precoDeMercado(it, PRECOS.skins) // preço de mercado em R$ (1 NP = R$ 1)
   if (it.t === 'faca') return { r: 6, v: mercado ?? valorDaFaca(it, FACAS_VALOR) } // facas: valor por modelo e acabamento (facas-valor.json)
   const r = it.t === 'arma' ? RARIDADE_SKIN[`${it.d}:${it.p}`] ?? 2 : 6
-  return { r, v: mercado ?? valorDoItem(it, r) }
+  return { r, v: (mercado ?? valorDoItem(it, r)) + (it.t === 'arma' ? valorDosEnfeites(it) : 0) } // + adesivos e chaveiro colados
 }
 
 // Dificuldade pelo valor (loja-core.js: DIFICULDADE): as caixas sorteiam com o valor de mercado do item (no desgaste do meio da faixa dele)
