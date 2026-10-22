@@ -31,6 +31,11 @@ function Cartao({ p }) {
       <span className="pp-mapa">
         {nomeMapa(mapa)} • 5v5
       </span>
+      {p.pontos > 0 && (
+        <span className="pp-pontos" title={t('Neura Pontos ganhos neste mapa')}>
+          +{p.pontos} NP
+        </span>
+      )}
       <span className="pp-placar">
         <i className="pp-selo" title={p.venceu ? t('Vitória') : t('Derrota')}>
           {p.venceu ? t('V') : t('D')}

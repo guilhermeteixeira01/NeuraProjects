@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { pontosDaPartida } from '../../comum/pontos.js'
 import CarregandoPontos from '../../comum/Carregando.jsx'
 import Layout from '../../comum/Layout.jsx'
 import { useAoVivo } from '../../comum/aoVivo.js'
@@ -580,6 +581,10 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
         <div className="team-meta">
           <span>
             {tr('Média da equipe')} <RatingBadge rating={media} extra="rt-mini" />
+          </span>
+          <span className="sep" />
+          <span title={tr('Neura Pontos que cada jogador do time recebe por este mapa')}>
+            {tr('Pontos por jogador')} <b className="team-pontos">+{pontosDaPartida(vencedor === t, d.inicio)} NP</b>
           </span>
           <span className="sep" />
           <span>

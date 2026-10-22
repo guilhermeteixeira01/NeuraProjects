@@ -4,8 +4,9 @@
 // JavaScript puro: usado pelo deploy e pelo site.
 import { useEffect, useState } from 'react'
 
-export const PONTOS = { vitoria: 100, derrota: 50 }
-export const pontosDaPartida = (venceu) => (venceu ? PONTOS.vitoria : PONTOS.derrota)
+// Vitória rende 100 e derrota 40. A derrota valia 50 até 21/10/2026: mapas anteriores a essa data continuam valendo 50 (senão o saldo de todo mundo cairia de repente).
+export const PONTOS = { vitoria: 100, derrota: 40, derrotaAntiga: 50, mudouEm: '2026-10-22' }
+export const pontosDaPartida = (venceu, data) => (venceu ? PONTOS.vitoria : data && String(data) < PONTOS.mudouEm ? PONTOS.derrotaAntiga : PONTOS.derrota)
 
 // ranking.json é lido uma vez por página
 let rankingLido = null

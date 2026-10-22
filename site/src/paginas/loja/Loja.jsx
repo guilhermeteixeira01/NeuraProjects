@@ -44,7 +44,7 @@ const numero = (n) => Number(n).toLocaleString('pt-BR')
 function Saldo({ saldo }) {
   const t = useT()
   return (
-    <div className="lj-saldo" title={t('Neura Pontos: 100 por mapa vencido e 50 por mapa perdido')}>
+    <div className="lj-saldo" title={t('Neura Pontos: 100 por mapa vencido e 40 por mapa perdido')}>
       <img src="/assets/logos/logo-np-64.png" alt="" width="26" height="26" />
       <b>{saldo == null ? '…' : numero(saldo)}</b>
       <small>NP</small>

@@ -71,8 +71,8 @@ export async function gerarRanking(pasta) {
       // XP como o Elo da FACEIT: em ordem de data, vitória soma e derrota tira (nunca abaixo de 0)
       const xpMapa = xpDaPartida({ venceu, empate: !vencedor, rating: e.rating, mvp: e === mvp })
       j.xp = Math.max(0, j.xp + xpMapa)
-      // Pontos da loja: quem ganha o mapa leva 100, quem perde (ou empata) leva 50 (comum/pontos.js)
-      const pontosMapa = pontosDaPartida(venceu)
+      // Pontos da loja: quem ganha o mapa leva 100, quem perde (ou empata) leva 40 (50 nos mapas de antes de 22/10/2026; comum/pontos.js)
+      const pontosMapa = pontosDaPartida(venceu, p.data)
       j.pontos += pontosMapa
       const meu = e.time === 'A' ? 'A' : 'B'
       j.historico.push({
@@ -133,7 +133,7 @@ export async function gerarRanking(pasta) {
       kr: arred(j.kills / j.rounds),
       winRate: arred((100 * j.vitorias) / j.mapas, 1),
       xp: j.xp, // XP das partidas (o site soma o ajuste do admin, se houver)
-      pontos: j.pontos, // pontos da loja (100 por vitória, 50 por derrota)
+      pontos: j.pontos, // pontos da loja (100 por vitória, 40 por derrota)
       nivel: nivelDe(j.xp, j.mapas).nivel, // 0 = sem classificação (menos de 10 partidas)
       ultimos: j.ultimos.reverse(), // mais recente primeiro
     }))
