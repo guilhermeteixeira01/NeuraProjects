@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react'
 import Layout from '../../comum/Layout.jsx'
 import { CONFIG } from '../../comum/config.js'
 import { lerJson } from '../../comum/dados.js'
-import { Contador, useInclinar } from '../../comum/efeitos.jsx'
-import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
+import { Contador } from '../../comum/efeitos.jsx'
 import Letreiro from '../../comum/Letreiro.jsx'
 import { Icone, IconeDiscord } from '../../comum/Icones.jsx'
 import { useT } from '../../comum/i18n.js'
@@ -108,7 +107,6 @@ const PRINCIPIOS = [
 ]
 
 // Âncoras das seções do índice vertical do topo
-const SECOES = ['projetos', 'sobre', 'principios', 'comunidade']
 
 const FICHA = [
   ['ESTÚDIO', 'Neura Project'],
@@ -145,154 +143,19 @@ function useNumeros() {
 }
 
 // Seção que está na tela (acende o número no índice do topo)
-function useSecaoAtual() {
-  const [atual, setAtual] = useState(null)
-  useEffect(() => {
-    if (typeof IntersectionObserver === 'undefined') return
-    const io = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && setAtual(e.target.id)), {
-      rootMargin: '-40% 0px -55% 0px',
-    })
-    SECOES.forEach((id) => {
-      const el = document.getElementById(id)
-      if (el) io.observe(el)
-    })
-    return () => io.disconnect()
-  }, [])
-  return atual
-}
 
 export default function Inicio() {
   const verPick = useAcessoPick()
   const t = useT()
-  const painel = useInclinar(7)
   const numeros = useNumeros()
-  const secao = useSecaoAtual()
 
   return (
     <Layout pagina="inicio">
       <main className="inicio">
         {/* TOPO */}
-        <section className="hero hx hx2">
-          <FundoHero quantidade={18} />
-          <div className="hx2-diag" aria-hidden="true">
-            <i />
-            <i />
-          </div>
-          <div className="hx2-miras" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-            <i />
-          </div>
-
-          <div className="wrap hero-inner">
-            <div className="hx-texto">
-              <span className="hx2-eyebrow fx-entra" style={{ '--e': 0 }}>
-                {t('NÓS CRIAMOS')}
-                <i />
-              </span>
-              <h1 className="hx-titulo">
-                <Palavras texto={t('Jogos e ferramentas feitos por')} />
-                <span className="fx-gradiente">
-                  <Palavras texto={t('quem joga.')} inicio={5} />
-                </span>
-              </h1>
-              <p className="lead fx-entra" style={{ '--e': 4 }}>
-                {t('A Neura Project é um pequeno estúdio focado em jogos. Criamos ferramentas para a comunidade competitiva — do Pick & Ban às estatísticas, ranking e níveis das partidas do nosso servidor.')}
-              </p>
-              <div className="hero-acoes hx2-acoes fx-entra" style={{ '--e': 5 }}>
-                <a className="hx2-btn" href="#projetos">
-                  {t('Ver projetos')}
-                </a>
-                <LinkComunidade className="hx2-btn-seta" aria-label={t('Entrar na comunidade')}>
-                  {SETA}
-                </LinkComunidade>
-              </div>
-            </div>
-
-            {/* Painel com inclinação 3D e borda luminosa girando */}
-            <div className="hx-cena fx-entra" style={{ '--e': 3 }}>
-              <div className="hx-radar" aria-hidden="true">
-                <i />
-                <i />
-                <i />
-              </div>
-              <div className="hx-painel" ref={painel}>
-                <div className="painel">
-                  <div className="painel-head">
-                    <span className="mono">
-                      <span className="hx-pisca">▮</span> {t('PROJETOS NEURA')}
-                    </span>
-                    <span className="luzes" aria-hidden="true">
-                      <i />
-                      <i />
-                      <i />
-                    </span>
-                  </div>
-                  {verPick && (
-                  <a className="painel-linha spot" href="/neurapick/">
-                    <span className="ico">
-                      <Icone>{IC_PICK}</Icone>
-                    </span>
-                    <span>
-                      <b>NeuraPick</b>
-                      <small>{t('Pick & Ban de mapas do CS2')}</small>
-                    </span>
-                    <span className="estado">ONLINE</span>
-                  </a>
-                  )}
-                  <a className="painel-linha spot" href="/partidas/">
-                    <span className="ico">
-                      <Icone>{IC_PARTIDAS}</Icone>
-                    </span>
-                    <span>
-                      <b>{t('Partidas')}</b>
-                      <small>{t('Estatísticas de cada mapa jogado')}</small>
-                    </span>
-                    <span className="estado">ONLINE</span>
-                  </a>
-                  <a className="painel-linha spot" href="/ranking/">
-                    <span className="ico">
-                      <Icone>{IC_TROFEU}</Icone>
-                    </span>
-                    <span>
-                      <b>Ranking</b>
-                      <small>{t('Top 15 jogadores do servidor')}</small>
-                    </span>
-                    <span className="estado">ONLINE</span>
-                  </a>
-                  <a className="painel-linha spot" href="/perfil/">
-                    <span className="ico">
-                      <Icone>{IC_PERFIL}</Icone>
-                    </span>
-                    <span>
-                      <b>{t('Seu perfil')}</b>
-                      <small>{t('Nível, XP, moldura e time')}</small>
-                    </span>
-                    <span className="estado">ONLINE</span>
-                  </a>
-                  <div className="painel-rodape">
-                    <span className="mono">{t('FEITO NO BRASIL')}</span>
-                    <span className="mono hx-sys">
-                      <i /> {t('SISTEMAS OPERANDO')}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Índice vertical das seções (acende a que está na tela) */}
-          <ol className="hx2-indice" aria-label={t('Seções')}>
-            {SECOES.map((id, i) => (
-              <li key={id}>
-                <a className={secao === id ? 'ativo' : ''} href={`#${id}`}>
-                  {String(i + 1).padStart(2, '0')}
-                </a>
-              </li>
-            ))}
-          </ol>
-
+        <section className="inicio-banner">
+          {/* A imagem de fundo fica sozinha: sem brilho, gradiente nem efeito por cima dela. Só a faixa de baixo (missão, números e comunidade) aparece sobre ela. */}
+          <img className="inicio-banner-img" src="/assets/banners/inicio.webp" alt="" width="1726" height="911" fetchpriority="high" decoding="async" />
           {/* Faixa de baixo: missão, números ao vivo e comunidade */}
           <div className="wrap hx2-faixa-wrap">
             <div className="hx2-faixa fx-entra" style={{ '--e': 6 }}>

@@ -17,6 +17,7 @@ const PAGINAS = {
   lobby: 'lobby/index.html',
   inventario: 'inventario/index.html',
   loja: 'loja/index.html',
+  equipes: 'equipes/index.html',
   perfil: 'perfil/index.html',
   admin: 'admin/index.html',
   times: 'times/index.html',

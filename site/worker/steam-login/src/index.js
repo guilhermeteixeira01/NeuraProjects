@@ -46,12 +46,14 @@ import { Mercado, rotaDrops, rotaMercado } from './mercado.js'
 import { zerarTudo } from './zerar.js'
 import { definirConcedenteSub, rotaAdminPagamento, rotaAdminPlanosSub, rotaPagamentos, rotaWebhookAsaas } from './pagamentos.js'
 import { Registro, registrar, rotaAdminLogs } from './registro.js'
+import { Equipes, rotaEquipes, rotaImagemEquipe } from './equipes.js'
 import { ehInsigniaLoja, ID_MESTRE } from './loja-core.js'
 export { Presenca } // Durable Object da presença (wrangler.toml)
 export { Loja } // Durable Object da loja de caixas (wrangler.toml)
 export { Trocas } // Durable Object das trocas entre jogadores (wrangler.toml)
 export { Mercado } // Durable Object do mercado entre jogadores (wrangler.toml)
 export { Registro } // Durable Object do log do painel de admin (wrangler.toml)
+export { Equipes } // Durable Object dos times de jogadores (wrangler.toml)
 
 const OPENID = 'https://steamcommunity.com/openid/login'
 const NS = 'http://specs.openid.net/auth/2.0'
@@ -216,6 +218,7 @@ async function atender(req, env, ctx) {
       if (c.confirmar !== 'ZERAR TUDO') return json({ erro: 'confirmar' }, 400)
       return json(await zerarTudo(env, c.simular === true))
     }
+    if (rota === '/equipes/imagem' && req.method === 'GET') return rotaImagemEquipe(url, env) // imagem do time (pública, guardada no navegador)
     if (rota === '/pagamentos/webhook' && req.method === 'POST') return rotaWebhookAsaas(req, env) // aviso do Asaas (token próprio)
     if (rota === '/loja/drops' && req.method === 'GET') return rotaDrops(req, env, { 'Access-Control-Allow-Origin': '*' }, ctx) // carrossel de drops ao vivo da loja
     if (rota === '/loja/caixas' && req.method === 'GET') return rotaLojaPublica(env, publico) // caixas da loja (nome, imagem, preço): o site usa para nomear as insígnias "Mestre da ..."
@@ -247,6 +250,7 @@ async function atender(req, env, ctx) {
     if (rota === '/notificacoes' && (req.method === 'GET' || req.method === 'POST')) return rotaNotificacoes(req, env, quem, cors)
     if (rota === '/trocas' || rota.startsWith('/trocas/')) return rotaTrocas(req, env, quem, cors, rota)
     if (rota.startsWith('/pagamentos/')) return rotaPagamentos(req, env, quem, cors, rota, url)
+    if (rota === '/equipes' || rota.startsWith('/equipes/')) return rotaEquipes(req, env, quem, cors, rota, url)
     if (rota === '/mercado' || rota.startsWith('/mercado/')) return rotaMercado(req, env, quem, cors, rota)
     if (req.method === 'POST' && (rota === '/perfil' || rota === '/moldura')) return salvarPerfil(req, env, site, quem, admin, config, cors, rota === '/moldura')
 

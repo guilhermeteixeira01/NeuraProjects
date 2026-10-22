@@ -304,7 +304,7 @@ export class Loja {
   }
 
   async acao({ acao, id, caixas, cfg, pontos, bonus, ...p }) {
-    if (['saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir', 'vender', 'mercado-comprar', 'dep-creditar'].includes(acao)) await this.aplicarBonus(bonus)
+    if (['saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir', 'vender', 'mercado-comprar', 'dep-creditar', 'cobrar'].includes(acao)) await this.aplicarBonus(bonus)
     switch (acao) {
       case 'inv-ler':
         return this.invLer(id)
@@ -401,6 +401,14 @@ export class Loja {
           await this.ctx.storage.put('notifs', juntar(atual, { lista: [n], vistos: [n.id], limpoEm: 0 }))
         }
         return { saldo: pontos - this.gastos() }
+      case 'cobrar': { // gasta NP de verdade (ex.: criar um time): só se o saldo cobrir
+        const v = Math.round(num(p.valor, 1, 1e7, 0))
+        if (!v) throw new Error('valor')
+        const saldo = pontos - this.gastos()
+        if (saldo < v) throw new Error('saldo')
+        this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), v, String(p.motivo || 'compra').slice(0, 60))
+        return { saldo: saldo - v }
+      }
       case 'definir': { // deixa o saldo exatamente em "valor"
         const atual = pontos - this.gastos()
         const alvo = Math.round(num(p.valor, -1e7, 1e7, 0))

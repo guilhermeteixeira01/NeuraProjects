@@ -274,6 +274,13 @@ export async function avisarMercado(env, id) {
     .catch(() => {})
 }
 
+// Mensagem para as abas abertas de uma lista de jogadores (times, chat do time...)
+export async function mandarPara(env, ids, msg) {
+  await presenca(env)
+    .fetch('https://presenca/mandar', { method: 'POST', body: JSON.stringify({ ids, msg }) })
+    .catch(() => {})
+}
+
 // Mensagem para TODAS as abas abertas (ex.: bônus de pontos para todos: cada site busca o saldo e as notificações)
 export async function avisarTodos(env, msg) {
   await presenca(env)

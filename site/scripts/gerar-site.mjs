@@ -119,6 +119,7 @@ const PAGINAS = [
   ['ranking/index.html', 'ranking', ranking],
   ['inventario/index.html', 'inventario'], // skins do jogador (dados vêm do worker, com login)
   ['loja/index.html', 'loja'], // loja de caixas (dados vêm do worker, com login)
+  ['equipes/index.html', 'equipes'], // times de jogadores (dados vêm do worker, com login)
   ['lobby/index.html', 'lobby'], // grupo para jogar junto (dados vêm do worker, com login)
   ['admin/index.html', 'admin'], // painel de administrador (dados vêm do worker, com login)
   ['perfil/index.html', 'perfil'], // jogador vem do endereço (?id=), a página busca os dados no navegador

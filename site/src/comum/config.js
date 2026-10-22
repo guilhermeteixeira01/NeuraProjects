@@ -38,4 +38,6 @@ export const MENU = [
   { id: 'inventario', rotulo: 'Inventário', href: '/inventario/', icone: 'mochila' },
   // Loja de caixas (gasta os Neura Pontos)
   { id: 'loja', rotulo: 'Loja', href: '/loja/', icone: 'caixa' },
+  // Times de jogadores: criar (com NP), convidar, cargos e chat do time
+  { id: 'equipes', rotulo: 'Times', href: '/equipes/', icone: 'grupo' },
 ]

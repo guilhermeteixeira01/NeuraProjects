@@ -57,6 +57,11 @@ class_name = "Mercado"
 name = "REGISTRO"
 class_name = "Registro"
 
+# Times de jogadores (src/equipes.js): criar com NP, cargos, convites e chat do time
+[[durable_objects.bindings]]
+name = "EQUIPES"
+class_name = "Equipes"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["Presenca"]
@@ -76,3 +81,7 @@ new_sqlite_classes = ["Mercado"]
 [[migrations]]
 tag = "v5"
 new_sqlite_classes = ["Registro"]
+
+[[migrations]]
+tag = "v6"
+new_sqlite_classes = ["Equipes"]
