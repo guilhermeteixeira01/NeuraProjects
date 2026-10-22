@@ -325,34 +325,49 @@ export default function Partidas({ dados: inicial }) {
         </div>
       </section>
       <main className="wrap">
-        <section className="section">
-          <div className="filtros" role="tablist" aria-label={t('Filtrar partidas')}>
-            {['todas', ...pastas].map((id) => (
-              <button key={id} type="button" className={filtro === id ? 'active' : ''} onClick={() => escolher(id)}>
-                {id === 'todas' ? t('Todas') : nomePasta(id)} <i>{lista ? blocosDaPasta(lista, anuncios, id).length : ''}</i>
-              </button>
-            ))}
-          </div>
-          {/* key: trocar de filtro remonta a lista e a animação toca de novo */}
-          <div key={filtro} className={`lista${lista ? ' animar' : ''}`}>
-            {lista ? (
-              itens
-            ) : (
-              <>
-                <div className="esqueleto" />
-                <div className="esqueleto" />
-                <div className="esqueleto" />
-                <div className="esqueleto" />
-              </>
+        <section className="section hist-grade">
+          {/* Filtro na lateral esquerda: painel estilo HUD (no celular vira uma fileira rolável no topo) */}
+          <aside className="fl-painel" aria-label={t('Filtrar partidas')}>
+            <header className="fl-cab">
+              <span className="fl-rotulo">{t('FILTRO')}</span>
+              <b>{t('Organização')}</b>
+            </header>
+            <nav className="fl-lista" role="tablist">
+              {['todas', ...pastas].map((id, n) => (
+                <button key={id} type="button" role="tab" aria-selected={filtro === id} className={filtro === id ? 'active' : ''} onClick={() => escolher(id)}>
+                  <em className="fl-idx">{String(n + 1).padStart(2, '0')}</em>
+                  <span className="fl-nome">{id === 'todas' ? t('Todas') : nomePasta(id)}</span>
+                  <i>{lista ? blocosDaPasta(lista, anuncios, id).length : ''}</i>
+                </button>
+              ))}
+            </nav>
+            <footer className="fl-rodape">
+              <span className="fl-ponto" />
+              {lista ? t('{n} no histórico', { n: qtd }) : t('Carregando…')}
+            </footer>
+          </aside>
+          <div className="hist-conteudo">
+            {/* key: trocar de filtro remonta a lista e a animação toca de novo */}
+            <div key={filtro} className={`lista${lista ? ' animar' : ''}`}>
+              {lista ? (
+                itens
+              ) : (
+                <>
+                  <div className="esqueleto" />
+                  <div className="esqueleto" />
+                  <div className="esqueleto" />
+                  <div className="esqueleto" />
+                </>
+              )}
+            </div>
+            {lista && daVez.length === 0 && (
+              <p className="vazio">
+                {todos.length === 0
+                  ? t('Nenhuma partida por enquanto. Assim que um mapa terminar no servidor, ele aparece aqui.')
+                  : t('Nenhuma partida em {pasta} por enquanto.', { pasta: nomePasta(filtro) })}
+              </p>
             )}
           </div>
-          {lista && daVez.length === 0 && (
-            <p className="vazio">
-              {todos.length === 0
-                ? t('Nenhuma partida por enquanto. Assim que um mapa terminar no servidor, ele aparece aqui.')
-                : t('Nenhuma partida em {pasta} por enquanto.', { pasta: nomePasta(filtro) })}
-            </p>
-          )}
         </section>
       </main>
     </Layout>

@@ -396,3 +396,52 @@ background:radial-gradient(380px circle at var(--mx,50%) var(--my,50%),rgba(52,1
 .partida.pendente.ao-vivo .placar-linha{color:#ff6b77;display:inline-flex;align-items:center;gap:12px}
 .ponto-vivo{width:10px;height:10px;border-radius:50%;background:var(--red);box-shadow:0 0 0 4px rgba(255,70,85,.25);animation:piscar 1s ease-in-out infinite;flex:none}
 @media (prefers-reduced-motion:reduce){.serie-bloco.iniciando,.serie-status.iniciando i,.ponto-vivo{animation:none!important}}
+
+/* ── Filtro lateral (HUD) + visual futurista da lista ── */
+.hist-grade{display:grid;grid-template-columns:240px minmax(0,1fr);gap:26px;align-items:start}
+.hist-conteudo{min-width:0}
+.fl-painel{position:sticky;top:24px;display:flex;flex-direction:column;gap:14px;padding:18px 14px 14px;overflow:hidden;
+background:linear-gradient(180deg,rgba(26,115,232,.09),rgba(14,15,19,.9) 38%),var(--bg-soft);border:1px solid var(--border-2);
+clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px));border-radius:4px}
+/* linha de luz que varre o painel */
+.fl-painel::before{content:'';position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,var(--blue-2),transparent);animation:fl-varre 4.5s ease-in-out infinite;opacity:.8}
+.fl-painel::after{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(52,152,219,.035) 3px 4px)}
+.fl-cab{position:relative;display:flex;flex-direction:column;gap:3px;padding:0 6px 12px;border-bottom:1px solid var(--border-2)}
+.fl-cab::after{content:'';position:absolute;left:6px;bottom:-1px;width:38px;height:2px;background:var(--blue-2);box-shadow:0 0 12px var(--blue-2)}
+.fl-rotulo{font:700 10px var(--font-mono);letter-spacing:.32em;color:var(--blue-2)}
+.fl-cab b{font:700 18px var(--font-display);letter-spacing:.02em}
+.fl-lista{position:relative;z-index:1;display:flex;flex-direction:column;gap:6px}
+.fl-lista button{position:relative;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;width:100%;padding:11px 12px;text-align:left;cursor:pointer;
+font:600 13px var(--font-body);letter-spacing:.04em;text-transform:uppercase;color:var(--dim);background:rgb(var(--tinta) / .03);border:1px solid transparent;
+clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%);transition:color .2s,background .2s,border-color .2s,transform .2s}
+.fl-lista button::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--blue-2);box-shadow:0 0 14px var(--blue-2);transform:scaleY(0);transition:transform .25s}
+.fl-lista button:hover{color:var(--text);background:rgb(var(--tinta) / .06);transform:translateX(3px)}
+.fl-lista button.active{color:var(--text);border-color:rgba(52,152,219,.5);background:linear-gradient(90deg,rgba(26,115,232,.28),rgba(26,115,232,.04))}
+.fl-lista button.active::before{transform:scaleY(1)}
+.fl-idx{font:700 10px var(--font-mono);font-style:normal;letter-spacing:.1em;color:var(--dim-2)}
+.fl-lista button.active .fl-idx{color:var(--blue-2)}
+.fl-nome{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fl-lista i{font:700 10.5px var(--font-mono);font-style:normal;padding:2px 7px;border-radius:3px;background:rgb(var(--tinta) / .07);color:var(--dim-2)}
+.fl-lista button.active i{color:#fff;background:rgba(26,115,232,.55);box-shadow:0 0 12px -2px rgba(52,152,219,.9)}
+.fl-rodape{position:relative;z-index:1;display:flex;align-items:center;gap:8px;padding:10px 6px 0;border-top:1px solid var(--border-2);font:600 10px var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim-2)}
+.fl-ponto{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(61,220,132,.18),0 0 10px var(--green);animation:piscar 1.8s ease-in-out infinite}
+@keyframes fl-varre{0%,100%{transform:translateX(-60%);opacity:0}50%{transform:translateX(60%);opacity:.9}}
+/* Cards da lista: cantos cortados e barra de acento, no mesmo estilo do painel */
+.serie-bloco{position:relative;border-radius:4px;clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px))}
+.serie-bloco::before{content:'';position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:0 2px 2px 0;background:linear-gradient(var(--blue-2),transparent);opacity:.8}
+.serie-bloco.acabou::before{background:linear-gradient(var(--green),transparent)}
+.serie-bloco.cancelada::before{background:linear-gradient(var(--red),transparent)}
+.serie-bloco:not(.acabou):not(.cancelada)::before{background:linear-gradient(var(--orange),transparent)}
+.partida{border-radius:3px}
+@media (max-width:980px){
+  .hist-grade{grid-template-columns:1fr;gap:14px}
+  .fl-painel{position:static;padding:12px;gap:10px;clip-path:none;border-radius:8px}
+  .fl-cab,.fl-rodape{display:none}
+  .fl-lista{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:2px;scrollbar-width:none}
+  .fl-lista::-webkit-scrollbar{display:none}
+  .fl-lista button{flex:none;width:auto;grid-template-columns:auto auto;padding:9px 12px}
+  .fl-idx{display:none}
+  .fl-lista button:hover{transform:none}
+}
+@media (prefers-reduced-motion:reduce){.fl-painel::before,.fl-ponto{animation:none}}
+html[data-desempenho] .fl-painel::before,html[data-desempenho] .fl-ponto{animation:none}
