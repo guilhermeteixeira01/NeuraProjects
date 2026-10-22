@@ -1,5 +1,28 @@
 [
   {
+    "nome": "2026-10-22_00-01_de_dust2_time_VAC-LIFE-x-time_senna",
+    "data": "2026-10-22 00:01",
+    "mapa": "de_dust2",
+    "timeA": "time_VAC LIFE",
+    "timeB": "time_senna",
+    "placarA": 13,
+    "placarB": 8,
+    "serie": "MD1 · mapa 1/1",
+    "caminho": "neura-project/md1/2026-10-22_00-01_de_dust2_time_VAC-LIFE-x-time_senna",
+    "categoria": "md1",
+    "serieId": "2026-10-21_23-58_time_VAC-LIFE-x-time_senna",
+    "serieTimeA": "time_VAC LIFE",
+    "serieTimeB": "time_senna",
+    "serieVitoriasA": 1,
+    "serieVitoriasB": 0,
+    "serieMapas": [
+      "de_dust2"
+    ],
+    "serieCancelada": false,
+    "logoA": null,
+    "logoB": null
+  },
+  {
     "nome": "2026-10-21_23-16_de_cache_time_emptysoul-z-x-time_senna",
     "data": "2026-10-21 23:16",
     "mapa": "de_cache",
