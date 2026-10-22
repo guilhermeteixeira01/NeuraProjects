@@ -48,15 +48,27 @@ export function useSaldo(steamId, ativo = true) {
   useEffect(() => {
     if (!steamId || !ativo || !CONFIG.loginSteam) return
     let vivo = true
-    const buscar = () => lerSaldo().then((r) => vivo && (ultimo = r.saldo, setSaldo(r.saldo)), () => {})
+    // Depois de buscar o saldo, pede as notificações: é a consulta do saldo que aplica um bônus novo e o aviso dele no sino (senão o sino chegava antes e só mostrava 1 min depois)
+    const buscar = () =>
+      lerSaldo().then(
+        (r) => {
+          if (!vivo) return
+          ultimo = r.saldo
+          setSaldo(r.saldo)
+          window.dispatchEvent(new Event('np-notif-servidor'))
+        },
+        () => {},
+      )
     buscar()
     const ouvir = (e) => setSaldo(e.detail)
     window.addEventListener('np-saldo', ouvir)
     window.addEventListener('np-mercado', buscar) // venderam um item meu: os NP entraram
+    window.addEventListener('np-bonus', buscar) // bônus para todos
     return () => {
       vivo = false
       window.removeEventListener('np-saldo', ouvir)
       window.removeEventListener('np-mercado', buscar)
+      window.removeEventListener('np-bonus', buscar)
     }
   }, [steamId, ativo])
   return saldo

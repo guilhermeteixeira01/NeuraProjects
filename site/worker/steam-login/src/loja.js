@@ -39,6 +39,7 @@ import FACAS_VALOR from './facas-valor.json'
 import ENFEITES_VALOR from './valor-enfeites.json'
 import PRECOS from './precos.json'
 import { registrar } from './registro.js'
+import { avisarTodos } from './amigos.js'
 
 const ID_STEAM = /^\d{17}$/
 const ITENS_MAX = 2000
@@ -718,6 +719,7 @@ export async function rotaAdminLoja(req, env, rota, cors) {
       const lista = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
       const nova = { id: Math.max(0, ...lista.map((b) => b.id)) + 1, ts: Date.now(), valor: corpo.acao === 'remover' ? -valor : valor, motivo }
       await env.MOLDURAS.put('loja-bonus', JSON.stringify([...lista, nova].slice(-200)))
+      await avisarTodos(env, { tipo: 'bonus' }) // quem está com o site aberto busca o saldo (recebe o bônus) e depois as notificações
       return json({ ok: true, todos: true }, 200, cors)
     }
     if (!ID_STEAM.test(corpo.alvo || '')) return json({ erro: 'id' }, 400, cors)

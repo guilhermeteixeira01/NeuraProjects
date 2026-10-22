@@ -274,6 +274,13 @@ export async function avisarMercado(env, id) {
     .catch(() => {})
 }
 
+// Mensagem para TODAS as abas abertas (ex.: bônus de pontos para todos: cada site busca o saldo e as notificações)
+export async function avisarTodos(env, msg) {
+  await presenca(env)
+    .fetch('https://presenca/todos', { method: 'POST', body: JSON.stringify({ msg }) })
+    .catch(() => {})
+}
+
 export async function avisarPerfil(env, id, perfil) {
   await presenca(env)
     .fetch('https://presenca/mandar', { method: 'POST', body: JSON.stringify({ ids: [id], msg: { tipo: 'perfil', id, perfil: perfil || null } }) })
@@ -869,6 +876,21 @@ export class Presenca {
       for (const id of ids) {
         this.enviar(id, { tipo: 'lista' }) // a aba busca GET /amigos de novo
         if (this.state.getWebSockets(id).length) this.enviar(id, await this.estadoPara(id))
+      }
+      return new Response('ok')
+    }
+
+    if (url.pathname === '/todos') {
+      const { msg } = await req.json().catch(() => ({}))
+      if (msg) {
+        const texto = JSON.stringify(msg)
+        for (const ws of this.state.getWebSockets()) {
+          try {
+            ws.send(texto)
+          } catch {
+            // aba fechando
+          }
+        }
       }
       return new Response('ok')
     }

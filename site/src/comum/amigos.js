@@ -148,6 +148,8 @@ function conectar(id) {
     else if (m.tipo === 'troca') window.dispatchEvent(new Event('np-troca'))
     // Venderam um item meu no mercado: o sino busca a notificação e as listas do mercado/inventário atualizam (comum/mercado.js)
     else if (m.tipo === 'mercado') window.dispatchEvent(new Event('np-mercado'))
+    // Bônus de pontos para todos: o saldo é buscado (o servidor aplica o bônus) e depois as notificações (comum/loja.js)
+    else if (m.tipo === 'bonus') window.dispatchEvent(new Event('np-bonus'))
     // Mensagem nova no chat da sala da partida (comum/ChatSala.jsx)
     else if (m.tipo === 'chat') window.dispatchEvent(new CustomEvent('np-chat', { detail: m }))
     // Algo mudou no meu lobby (convite, alguém entrou/saiu, lobby aberto): a página do Lobby recarrega
