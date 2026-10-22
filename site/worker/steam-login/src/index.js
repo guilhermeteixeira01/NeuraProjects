@@ -38,7 +38,7 @@
  *   STEAM_API_KEY   chave da Web API da Steam (opcional; sem ela o token vai sem nome/avatar e o site
  *                   usa os do ranking)
  */
-import { Presenca, avisarPerfil, avisarSkin, rotaAmigos, rotaLobby, rotaPresenca, rotaServidor } from './amigos.js'
+import { Presenca, avisarPerfil, avisarSkin, rotaAmigos, rotaChat, rotaLobby, rotaPresenca, rotaServidor } from './amigos.js'
 import { rotaAdminSkin, rotaAdminSkins, rotaServidorSkins, rotaSkins, rotaSkinsExcluir, rotaSkinsInventarioPublico, rotaSkinsPresentes, rotaSkinsPublico } from './skins.js'
 import { Trocas, rotaTrocas } from './trocas.js'
 import { Loja, valorDe, rotaAdminLoja, rotaLoja, rotaLojaPublica, rotaNotificacoes } from './loja.js'
@@ -137,6 +137,7 @@ async function atender(req, env, ctx) {
     if (rota === '/amigos' && (req.method === 'GET' || req.method === 'POST')) return rotaAmigos(req, env, quem, cors)
     if (rota === '/usuarios/buscar' && req.method === 'GET') return buscarUsuarios(url, env, quem, cors)
     if (rota === '/lobby' && (req.method === 'GET' || req.method === 'POST')) return rotaLobby(req, env, quem, cors)
+    if (rota === '/chat' && (req.method === 'GET' || req.method === 'POST')) return rotaChat(req, env, quem, cors)
     if (rota === '/skins' && (req.method === 'GET' || req.method === 'POST')) return rotaSkins(req, env, quem, cors)
     if (rota === '/skins/presentes' && req.method === 'POST') return rotaSkinsPresentes(req, env, quem, cors)
     if (rota === '/skins/excluir' && req.method === 'POST') return rotaSkinsExcluir(req, env, quem, cors)

@@ -280,6 +280,13 @@ export async function avisarPerfil(env, id, perfil) {
     .catch(() => {})
 }
 
+// GET/POST /chat: chat da sala da partida (o objeto de presença guarda e entrega ao vivo)
+export async function rotaChat(req, env, quem, cors) {
+  const corpo = req.method === 'POST' ? await req.text() : undefined
+  const r = await presenca(env).fetch('https://presenca/chat', { method: req.method, headers: { 'X-Id': quem.id, 'Content-Type': 'application/json' }, body: corpo })
+  return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
+}
+
 // GET /lobby e POST /lobby { acao, id?, valor? }: o objeto de presença guarda e muda os lobbies (index.js confere o login)
 export async function rotaLobby(req, env, quem, cors) {
   const corpo = req.method === 'POST' ? await req.text() : undefined
@@ -401,6 +408,43 @@ export class Presenca {
   async gravarPartidas(partidas) {
     await this.state.storage.put('partidas', partidas)
     await this.sincronizarJogando(partidas)
+    await this.limparChats(partidas)
+  }
+
+  // ── Chat da sala da partida ──
+  // Duas conversas por sala: "geral" (os dois times) e "time" (só o time de quem escreveu). As mensagens ficam guardadas só enquanto a sala existe:
+  // quando ela fecha (série acabou, erro, cancelada), o chat da partida é apagado (limparChats).
+  async limparChats(partidas) {
+    const chaves = [...(await this.state.storage.list({ prefix: 'chat:' })).keys()]
+    const velhas = chaves.filter((k) => !partidas[k.slice(5)])
+    if (velhas.length) await this.state.storage.delete(velhas)
+  }
+
+  // GET /chat -> { partida, mensagens } (geral + as do meu time) · POST /chat { texto, canal } -> { ok, msg }
+  async chat(req) {
+    const eu = req.headers.get('X-Id')
+    if (!ID_STEAM.test(String(eu))) return json({ erro: 'id' }, 400)
+    const partidas = (await this.state.storage.get('partidas')) || {}
+    const p = partidaDe(partidas, eu)
+    if (!p) return json({ erro: 'sem-partida' }, 404)
+    const meuTime = p.times.A.membros.includes(eu) ? 'A' : 'B'
+    const chave = `chat:${p.id}`
+    const todas = (await this.state.storage.get(chave)) || []
+    if (req.method === 'GET') return json({ partida: p.id, mensagens: todas.filter((m) => m.canal === 'geral' || m.time === meuTime) })
+
+    const { texto, canal } = (await req.json().catch(() => null)) || {}
+    const limpo = String(texto || '').replace(/[\u0000-\u001f\u007f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 240)
+    if (!limpo || !['geral', 'time'].includes(canal)) return json({ erro: 'mensagem' }, 400)
+    const agora = Date.now()
+    if (agora - (this.ultimoChat.get(eu) || 0) < 800) return json({ erro: 'devagar' }, 429) // no máximo ~1 mensagem por segundo por pessoa
+    this.ultimoChat.set(eu, agora)
+    const info = (await nomes(this.env, [eu]))[eu] || {}
+    const msg = { id: `${agora.toString(36)}${Math.random().toString(36).slice(2, 6)}`, de: eu, nome: info.nome || eu, canal, time: meuTime, texto: limpo, ts: agora }
+    todas.push(msg)
+    await this.state.storage.put(chave, todas.slice(-200))
+    const destino = canal === 'geral' ? idsDe(p) : p.times[meuTime].membros
+    for (const id of destino) this.enviar(id, { tipo: 'chat', partida: p.id, msg })
+    return json({ ok: true, msg })
   }
 
   // online > ausente > offline, juntando todas as abas da pessoa
@@ -794,6 +838,8 @@ export class Presenca {
     return json({ elenco })
   }
 
+  ultimoChat = new Map()
+
   async fetch(req) {
     const url = new URL(req.url)
     if (!this.jogandoPronto) {
@@ -802,6 +848,7 @@ export class Presenca {
       await this.sincronizarJogando((await this.state.storage.get('partidas')) || {})
     }
     if (url.pathname === '/amigos') return this.exclusivo(() => this.amigosPedido(req))
+    if (url.pathname === '/chat') return this.exclusivo(() => this.chat(req))
     if (url.pathname === '/servidor/elenco') return this.exclusivo(() => this.servidorElenco(req))
     if (url.pathname === '/servidor/proxima') return this.exclusivo(() => this.servidorProxima())
     if (url.pathname === '/servidor/estado') return this.exclusivo(() => this.servidorEstado(req))

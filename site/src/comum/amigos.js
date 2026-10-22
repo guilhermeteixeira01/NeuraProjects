@@ -148,6 +148,8 @@ function conectar(id) {
     else if (m.tipo === 'troca') window.dispatchEvent(new Event('np-troca'))
     // Venderam um item meu no mercado: o sino busca a notificação e as listas do mercado/inventário atualizam (comum/mercado.js)
     else if (m.tipo === 'mercado') window.dispatchEvent(new Event('np-mercado'))
+    // Mensagem nova no chat da sala da partida (comum/ChatSala.jsx)
+    else if (m.tipo === 'chat') window.dispatchEvent(new CustomEvent('np-chat', { detail: m }))
     // Algo mudou no meu lobby (convite, alguém entrou/saiu, lobby aberto): a página do Lobby recarrega
     else if (m.tipo === 'lobby') window.dispatchEvent(new Event('np-lobby'))
     // O admin mudou o meu perfil (ex.: deu uma insígnia): Moldura.jsx atualiza na hora e o aviso aparece

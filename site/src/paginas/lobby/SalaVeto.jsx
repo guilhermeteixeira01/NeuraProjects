@@ -7,6 +7,7 @@ import { useAvatar } from '../../comum/avatares.js'
 import { acaoLobby, msAte, useRelogio } from '../../comum/lobby.js'
 import { getMap, mapImage } from '../../comum/mapas.js'
 import { useT } from '../../comum/i18n.js'
+import ChatSala from './ChatSala.jsx'
 import { playSound } from '../neurapick/data/sounds.js'
 import { FORMATS, SIDE_LABEL, buildSteps, deriveState } from '../neurapick/data/veto.js'
 
@@ -436,6 +437,8 @@ export default function SalaVeto({ dados }) {
 
         <Equipe lado="B" time={times.B} nome={nome('B')} naVez={!pronto && passo.team === 'B'} />
       </div>
+
+      <ChatSala partidaId={partida.id} eu={eu} nomeDoTime={nome} />
 
       {chamando && <ChamarSubstituto vagas={partida.servidor?.vagas || []} ocupado={ocupado} aoFechar={() => setChamando(false)} aoChamar={(id) => agir('substituir', undefined, id)} />}
     </section>
