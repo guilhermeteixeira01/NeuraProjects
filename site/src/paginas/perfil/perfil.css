@@ -934,8 +934,8 @@ html.sm-aberto { overflow: hidden; }
 .pf-inv-topo { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
 .pf-inv-quem, .pf-inv-card { position: relative; display: flex; border-radius: 14px; border: 1px solid rgb(255 255 255 / .07); background: linear-gradient(135deg, #191b24, #12131a); overflow: hidden; min-height: 150px; }
 .pf-inv-quem { flex-direction: column; justify-content: center; gap: 6px; padding: 18px 20px; }
-.pf-inv-quem b { font: 700 22px var(--font-display); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pf-inv-quem small { color: var(--dim); }
+.pf-inv-quem > b { font: 700 22px var(--font-display); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pf-inv-quem > small { color: var(--dim); }
 .pf-inv-rot { font: 600 11px var(--font-body); letter-spacing: .14em; color: rgb(255 255 255 / .55); }
 .pf-inv-ver { margin-top: 8px; width: max-content; padding: 7px 13px; border-radius: 8px; border: 1px solid rgb(255 255 255 / .16); background: rgb(255 255 255 / .06); color: var(--text); font: 600 12px var(--font-body); cursor: pointer; }
 .pf-inv-ver:hover { background: rgb(255 255 255 / .12); }
@@ -1024,3 +1024,10 @@ html.sm-aberto { overflow: hidden; }
 .pf-resumo-chip .pf-info-val > * { max-width: 100%; }
 .pf-resumo-chip:nth-child(2) { min-width: 176px; } .pf-resumo-chip:nth-child(2) .pf-info-val { overflow: visible; }
 .pf-resumo-chip .pf-info-val { font-size: inherit; }
+
+/* itens do inventário centralizados no círculo (o centro do círculo e o da arma batem), com espaço para os adesivos */
+.pf-inv-item { min-height: 198px; background: radial-gradient(circle at 50% 38%, rgb(0 0 0 / .22) 0 46px, transparent 47px), linear-gradient(160deg, color-mix(in srgb, var(--cor) 38%, #15161d) 0%, color-mix(in srgb, var(--cor) 10%, #12131a) 100%); }
+.pf-inv-item-arte { left: 10px; right: 10px; top: 33px; height: 84px; }
+.pf-inv-item-arte img { margin: 0 auto; }
+.pf-inv-enf { bottom: 50px; justify-content: center; }
+@media (max-width: 640px) { .pf-inv-item { min-height: 176px; } .pf-inv-item-arte { top: 30px; height: 70px; } .pf-inv-enf { bottom: 44px; } }

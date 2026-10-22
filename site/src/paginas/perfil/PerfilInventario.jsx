@@ -12,7 +12,6 @@ import { lerCaixasPublicas } from '../../comum/loja.js'
 import { descrever, indicar, urlImg, useCatalogo } from '../../comum/skins.js'
 import { padraoRaro } from '../../../worker/steam-login/src/loja-core.js'
 
-const POR_PAGINA = 21
 const GUARDADOS = new Set(['adesivo', 'chaveiro', 'caixa'])
 const base = () => CONFIG.loginSteam.replace(/\/$/, '')
 const numero = (n) => Number(n).toLocaleString('pt-BR')
@@ -34,7 +33,6 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
   const [resumo, setResumo] = useState(null)
   const [erro, setErro] = useState(false)
   const [aba, setAba] = useState('itens')
-  const [mostrar, setMostrar] = useState(POR_PAGINA)
   const [inspecionando, setInspecionando] = useState(null)
   const [caixasLoja, setCaixasLoja] = useState([])
   const armas = useCatalogo('armas')
@@ -191,7 +189,6 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
                 className={aba === id ? 'is-ativo' : ''}
                 onClick={() => {
                   setAba(id)
-                  setMostrar(POR_PAGINA)
                 }}
               >
                 {t(rotulo)} <small>{n}</small>
@@ -209,7 +206,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
             ) : (
               <>
                 <ul className="pf-inv-grade">
-                  {itens.slice(0, mostrar).map((it) => {
+                  {itens.map((it) => {
                     const d = descrever(it, idx)
                     const valor = valorDe(it)
                     const f = Number(it.f)
@@ -242,11 +239,6 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
                     )
                   })}
                 </ul>
-                {itens.length > mostrar && (
-                  <button type="button" className="pf-inv-mais" onClick={() => setMostrar((n) => n + POR_PAGINA)}>
-                    {t('Ver mais')} ({itens.length - mostrar})
-                  </button>
-                )}
               </>
             )
           ) : (

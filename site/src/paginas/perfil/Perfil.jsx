@@ -613,10 +613,6 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
           </a>
         )}
       </div>
-      <div className="pf-resumo-rodape">
-        <InsigniasDe steamId={j.steamId} classe="pf-insignias pf-resumo-insig" />
-        {desde && <small>{t('Jogando no servidor desde {data}', { data: desde })}</small>}
-      </div>
     </>
   )
   const sem = !j.mapas // ainda sem partidas: perfil aparece igual, com os números em "—"
@@ -640,22 +636,6 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
                 </h1>
                 {!eu && <StatusAmigo id={j.steamId} />}
                 <CargosDe steamId={j.steamId} max={3} classe="pf-cargos" />
-              </div>
-            </div>
-            {/* Time e Premier ficam logo abaixo do cartão do jogador */}
-            <div className="pf-infos pf-infos-lado fx-entra" style={{ '--e': 2 }}>
-              <div className="pf-info">
-                <span className="pf-info-rot">{t('TIME')}</span>
-                {/* Só o time criado em que o jogador está; sem time, "Sem time" */}
-                <span className="pf-info-val">
-                  {timeEscolhido ? <TimeEscolhido steamId={j.steamId} classe="pf-time" /> : <span className="pf-time"><span>{t('Sem time')}</span></span>}
-                </span>
-              </div>
-              <div className="pf-info">
-                <span className="pf-info-rot">PREMIER</span>
-                <span className="pf-info-val">
-                  <Premier key={premier || 0} j={{ ...j, premier }} />
-                </span>
               </div>
             </div>
             <div className="pf-acoes pf-acoes-lado fx-entra" style={{ '--e': 2 }}>
