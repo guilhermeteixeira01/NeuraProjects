@@ -132,3 +132,7 @@ button.tr-item:hover { background: rgb(255 255 255 / .06); }
 .tr-presente-botoes { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 14px; }
 .tr-presente-botoes .inv-btn { display: inline-flex; background: rgb(255 255 255 / .08); border: 1px solid rgb(255 255 255 / .14); color: var(--text); border-radius: 8px; padding: 9px 16px; font: 600 13px var(--font-body); cursor: pointer; }
 .tr-presente-botoes .inv-btn-p { background: #f5c518; border-color: #f5c518; color: #1a1a1a; }
+
+/* lupa Inspecionar sobre o item da troca */
+.tr-item-wrap { position: relative; min-width: 0; }
+.tr-item-wrap > .tr-item { width: 100%; }

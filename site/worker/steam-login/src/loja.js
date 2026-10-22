@@ -59,7 +59,8 @@ const num = (v, min, max, padrao) => {
 // Revisão 5: refeitos de novo com o preço do mercado de terceiros (CSFloat/Buff), o que os sites de caixa usam
 // Revisão 6: caixas rebalanceadas (skin cara sai menos, temas pela cor das skins) e chances de raridade novas: TODAS as caixas de fábrica
 //            recebem os itens e as facas novos, e as taxas salvas no painel voltam para o padrão (vermelho 2%, faca 0,5%)
-const REVISAO_CAIXAS = 7 // (a caixa de luvas é nova: entra pela lista de fábrica, sem precisar de revisão)
+// Revisão 8: as 31 caixas antigas viram "arquivadas" (saem da loja, mas quem já tem uma fechada no inventário ainda abre); as 70 novas entram pela lista de fábrica
+const REVISAO_CAIXAS = 8 // (a caixa de luvas é nova: entra pela lista de fábrica, sem precisar de revisão)
 const ATUALIZAR_CAIXAS = ['caixa-kawaii', 'caixa-terror', 'caixa-lendas', 'caixa-espacial']
 export async function lerCaixas(env) {
   const salvas = await env.MOLDURAS.get('caixas', 'json').catch(() => null)
@@ -82,6 +83,7 @@ export async function lerCaixas(env) {
       if (cfg) await env.MOLDURAS.put('loja-config', JSON.stringify({ ...cfg, taxas: CONFIG_PADRAO.taxas })).catch(() => {})
     }
     for (const c of salvas) if (PRECOS.caixas?.[c.slug]) c.preco = PRECOS.caixas[c.slug]
+    if (revisao < 8) for (const c of salvas) if (CAIXAS_INICIAIS.find((x) => x.slug === c.slug)?.arquivada) c.arquivada = true
     await env.MOLDURAS.put('caixas', JSON.stringify(salvas)).catch(() => {})
     await env.MOLDURAS.put('caixas-revisao', String(REVISAO_CAIXAS)).catch(() => {})
   }
@@ -137,6 +139,7 @@ function limparCaixa(c, n) {
     preco: Math.round(num(c.preco, 1, 1000000, 500)),
     tier: ['barata', 'media', 'premium'].includes(c.tier) ? c.tier : 'media',
     ativa: c.ativa !== false,
+    ...(c.arquivada ? { arquivada: true } : {}), // fora da loja; só abre quem já tem uma fechada
     cor: /^#[0-9a-f]{6}$/i.test(c.cor || '') ? c.cor : '#8aa0c0',
     itens,
     facas,
@@ -468,7 +471,8 @@ export class Loja {
     // confere agora (cura insígnia que ficou sem gravar por falha antes) e devolve as ganhas; a rota grava no perfil o que faltar
     await this.conferirInsignias(id, caixas, fechadasPor)
     const ganhas = (await this.ctx.storage.get('ganhas')) || {}
-    const ativas = caixas.filter((c) => c.ativa)
+    // à venda: ativas e não arquivadas; as arquivadas aparecem (marcadas foraDeVenda) só para quem tem uma fechada, para poder abrir
+    const ativas = caixas.filter((c) => c.ativa && (!c.arquivada || fechadasPor[c.id] > 0)).map((c) => (c.arquivada ? { ...c, foraDeVenda: true } : c))
     return {
       ganhas,
       saldo: pontos - this.gastos(),
@@ -503,7 +507,7 @@ export class Loja {
   }
 
   async comprar(id, caixas, cfg, pontos, p) {
-    const caixa = caixas.find((c) => c.id === Number(p.caixa) && c.ativa)
+    const caixa = caixas.find((c) => c.id === Number(p.caixa) && c.ativa && !c.arquivada)
     if (!caixa) throw new Error('caixa')
     const qtd = this.quantidade(p, cfg)
     const custo = caixa.preco * qtd
@@ -587,6 +591,11 @@ export class Loja {
     let caixa = caixas.find((c) => c.id === Number(p.caixa) && c.ativa)
     if (!caixa) throw new Error('caixa')
     if (!caixa.itens.length) throw new Error('caixa')
+    // caixa arquivada (fora da loja): só abre a que já está no inventário, sem pagar e sem Jester/Boost
+    if (caixa.arquivada) {
+      if (p.modo) throw new Error('caixa')
+      p = { ...p, origem: 'inventario' }
+    }
     // Jester/Boost: chances do modo e o preço dele (calculado na rota); paga sempre na hora (não usa as caixas fechadas do inventário)
     if (p.modo) {
       if (!MODOS.includes(p.modo) || !(p.precoModo > 0)) throw new Error('caixa')
@@ -723,7 +732,7 @@ export async function rotaLoja(req, env, quem, cors, rota, sub) {
   const bonus = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
   // modo Jester/Boost: o preço sai daqui (do servidor), nunca do site
   const modo = acao === 'abrir' && MODOS.includes(corpo.modo) ? corpo.modo : null
-  const caixaModo = modo && caixas.find((c) => c.id === Number(corpo.caixa) && c.ativa)
+  const caixaModo = modo && caixas.find((c) => c.id === Number(corpo.caixa) && c.ativa && !c.arquivada)
   const precoModo = caixaModo ? detalhesDaCaixa(caixaModo, cfg).modos[modo].preco : undefined
   const premium = await partidasPremium(env, quem.id, sub)
   const r = await chamar(env, quem.id, { acao, caixas, cfg, pontos, bonus, premium, caixa: corpo.caixa, qtd: corpo.qtd, ids: corpo.ids, origem: corpo.origem === 'inventario' || corpo.origem === 'auto' ? corpo.origem : 'direto', ...(modo ? { modo, precoModo } : {}) })

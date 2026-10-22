@@ -21,9 +21,10 @@ import { tocar } from '../../comum/somInventario.js'
 import { avisarSaldo, lerCaixasPublicas, lerValores, venderItens } from '../../comum/loja.js'
 import { EVENTO_MERCADO, anunciarItem, cancelarAnuncio, erroDoMercado, lerMercado } from '../../comum/mercado.js'
 import { RARIDADES_CS, raridadeCsDaCor } from '../../../worker/steam-login/src/loja-core.js'
-import Cartao from '../../comum/CartaoSkin.jsx'
+import Cartao, { nomeDoDesgaste } from '../../comum/CartaoSkin.jsx'
 import { confirmar } from '../../comum/Dialogos.jsx'
 import { BotaoTrocas } from '../../comum/Trocas.jsx'
+import { ArmaComEnfeites, Visualizador3D, idNo3d, useMapas3d, Inspecionar, useTelaPequena } from '../../comum/InspecionarSkin.jsx'
 
 // Inventário de skins, no estilo do inventário do jogo: o jogador CRIA itens (arma/faca/luva/agente com a skin que quiser), ajusta
 // cada um (desgaste, seed, StatTrak, nome, adesivos com posição) e EQUIPA no CT, no TR ou nos dois (botão direito no item).
@@ -174,146 +175,6 @@ function SeletorAdesivo({ aoEscolher, aoFechar, catalogo = 'adesivos', livres })
         {dados && !lista.length && <li className="inv-nada">{livres && !livres.size ? t(catalogo === 'chaveiros' ? 'Você não tem chaveiros disponíveis no inventário.' : 'Você não tem adesivos disponíveis no inventário.') : t('Nenhum adesivo encontrado.')}</li>}
       </ul>
     </Janela>
-  )
-}
-
-// ── Arma com adesivos e chaveiro (2D): usada nos cartões e quando o visualizador 3D não está disponível ──
-// A posição é aproximada: cada espaço de adesivo tem um ponto de partida na arma e o deslocamento escolhido move o adesivo a partir dele.
-const ANCORAS = [
-  [0.34, 0.47],
-  [0.46, 0.47],
-  [0.58, 0.47],
-  [0.7, 0.47],
-  [0.8, 0.47],
-]
-const ANCORA_CHAVEIRO = [0.82, 0.66]
-
-function ArmaComEnfeites({ item, d, adesivos, chaveiros, classe = '' }) {
-  const arma = item.t === 'arma'
-  return (
-    <span className={`inv-arma-box ${classe}`}>
-      <Imagem src={d.img} classe="inv-arma-img" />
-      {arma &&
-        (item.a || []).map((s, k) => {
-          if (!s?.i) return null
-          const [ax, ay] = ANCORAS[k] || ANCORAS[0]
-          return (
-            <img
-              key={k}
-              className="inv-previa-adesivo"
-              src={urlImg(adesivos.get(s.i)?.[2], 128)}
-              alt=""
-              style={{ left: `${(ax + (s.x || 0) * 0.3) * 100}%`, top: `${(ay + (s.y || 0) * 0.5) * 100}%`, transform: `translate(-50%, -50%) rotate(${s.r || 0}deg)`, opacity: 1 - (s.w || 0) * 0.65 }}
-            />
-          )
-        })}
-      {arma && item.k?.i > 0 && (
-        <img className="inv-previa-chaveiro" src={urlImg(chaveiros.get(item.k.i)?.[2], 128)} alt="" style={{ left: `${(ANCORA_CHAVEIRO[0] + ((item.k.x || 0) / 30) * 0.08) * 100}%`, top: `${(ANCORA_CHAVEIRO[1] - ((item.k.y || 0) / 30) * 0.1) * 100}%` }} />
-      )}
-    </span>
-  )
-}
-
-const nomeDoDesgaste = (f) => (f < 0.07 ? 'Factory New' : f < 0.15 ? 'Minimal Wear' : f < 0.38 ? 'Field-Tested' : f < 0.45 ? 'Well-Worn' : 'Battle-Scarred')
-
-// ── Visualizador 3D (3d.cstrike.app) ──
-// Serviço público de visualização do Inventory Simulator (Ian Lucas), feito para ser embutido: a página conversa com ele por postMessage
-// (protocolo v1). Dentro dele dá para girar a arma e arrastar adesivos e chaveiro; cada mudança volta para cá no evento "change".
-// O visualizador identifica os itens pelo id da biblioteca cs2-lib; mapa3d.json (ferramentas/skins/gerar-catalogo.mjs) liga ao id do jogo.
-const ORIGEM_3D = 'https://3d.cstrike.app'
-
-function useMapas3d(mapa) {
-  return useMemo(() => {
-    if (!mapa) return null
-    const par = (pares) => ({ paraLib: new Map(pares), paraJogo: new Map(pares.map(([d, id]) => [id, d])) })
-    return { skins: mapa.skins, base: mapa.base, adesivos: par(mapa.adesivos), chaveiros: par(mapa.chaveiros), agentes: par(mapa.agentes) }
-  }, [mapa])
-}
-
-// id do item no visualizador (undefined se não existir 3D para ele)
-function idNo3d(item, m) {
-  if (!m) return undefined
-  if (item.t === 'agente') return m.agentes.paraLib.get(item.d)
-  return item.p ? m.skins[`${item.d}:${item.p}`] : m.base[item.d]
-}
-
-function itemParaViewer(item, m) {
-  const v = { id: idNo3d(item, m), seed: item.s ?? 0, wear: item.f ?? 0, stickers: {} }
-  if (item.n) v.nameTag = item.n
-  if (item.t === 'arma') {
-    ;(item.a || []).forEach((s, k) => {
-      const lib = s?.i ? m.adesivos.paraLib.get(s.i) : undefined
-      if (!lib) return
-      v.stickers[k] = { id: lib, schema: s.s ?? 0, ...(s.x != null && { x: s.x }), ...(s.y != null && { y: s.y }), ...(s.r ? { rotation: s.r } : {}), ...(s.w ? { wear: s.w } : {}) }
-    })
-    const lib = item.k?.i ? m.chaveiros.paraLib.get(item.k.i) : undefined
-    if (lib) v.keychains = { 0: { id: lib, seed: item.k.s ?? 0, ...(item.k.x != null && { x: item.k.x, y: item.k.y, z: item.k.z }) } }
-  }
-  return v
-}
-
-// O que o visualizador mudou (arrastar adesivo, etc.) -> campos do nosso item
-function viewerParaItem(v, m) {
-  const a = [0, 1, 2, 3, 4].map((k) => {
-    const s = v.stickers?.[k]
-    const def = s ? m.adesivos.paraJogo.get(s.id) : undefined
-    if (!def) return null
-    return { i: def, s: s.schema ?? 0, ...(s.x != null && { x: s.x }), ...(s.y != null && { y: s.y }), r: s.rotation ?? 0, w: s.wear ?? 0 }
-  })
-  const kc = v.keychains?.[0]
-  const kdef = kc ? m.chaveiros.paraJogo.get(kc.id) : undefined
-  const k = kdef ? { i: kdef, s: kc.seed ?? 0, ...(kc.x != null && { x: kc.x, y: kc.y, z: kc.z }) } : null
-  return { a, k, s: v.seed ?? 0, f: v.wear ?? 0 }
-}
-
-// controle: ref que recebe { enviar(tipo, dados) } para o pai mandar comandos ao visualizador
-function Visualizador3D({ item, m, aoMudar, aoEstado, aoFalhar, controle, altura = 440 }) {
-  const t = useT()
-  const ref = useRef(null)
-  const inicial = useRef(null)
-  const [estado, setEstado] = useState('carregando') // 'carregando' | 'ok' | 'falhou'
-  if (!inicial.current) inicial.current = `${ORIGEM_3D}/view?item=${encodeURIComponent(JSON.stringify(itemParaViewer(item, m)))}`
-  const mudarRef = useRef(aoMudar)
-  mudarRef.current = aoMudar
-  const estadoRef = useRef(aoEstado)
-  estadoRef.current = aoEstado
-
-  useEffect(() => {
-    let contador = 0
-    if (controle)
-      controle.current = {
-        enviar: (tipo, dados = {}) => ref.current?.contentWindow?.postMessage({ source: '3d.cstrike.app', v: 1, type: tipo, data: dados, id: `np${++contador}` }, ORIGEM_3D),
-      }
-    const ouvir = (e) => {
-      if (e.origin !== ORIGEM_3D || e.source !== ref.current?.contentWindow || e.data?.source !== '3d.cstrike.app') return
-      const { type, data } = e.data
-      if (type === 'ready' || type === 'rendered') setEstado('ok')
-      if (type === 'unsupported' || type === 'error') setEstado('falhou')
-      if ((type === 'change' || type === 'state') && data?.item) {
-        mudarRef.current(viewerParaItem(data.item, m))
-        estadoRef.current?.({ selection: data.selection, activeSticker: data.activeSticker, schemaCount: data.schemaCount, keychainDefault: data.keychainDefault })
-      }
-    }
-    window.addEventListener('message', ouvir)
-    // o visualizador não respondeu (sem internet, bloqueado): cai para a visão 2D
-    const prazo = setTimeout(() => setEstado((e) => (e === 'carregando' ? 'falhou' : e)), 20000)
-    return () => {
-      window.removeEventListener('message', ouvir)
-      clearTimeout(prazo)
-      if (controle) controle.current = null
-    }
-  }, [m, controle])
-
-  useEffect(() => {
-    if (estado === 'falhou') aoFalhar?.()
-  }, [estado]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  if (estado === 'falhou') return null
-  return (
-    <div className="inv-3d" style={{ height: altura }}>
-      <iframe ref={ref} title={t('Visualização 3D')} src={inicial.current} allow="fullscreen" />
-      {estado === 'carregando' && <span className="inv-3d-carregando">{t('Carregando o 3D…')}</span>}
-    </div>
   )
 }
 
@@ -739,49 +600,6 @@ function DialogoItem({ inicial, modo, idx, adesivos, chaveiros, estoque, mapa, a
   )
 }
 
-// ── Inspecionar: o 3D do visualizador (gira com o mouse); sem ele, a imagem 2D que acompanha o mouse ──
-function Inspecionar({ item, idx, adesivos, chaveiros, mapa, aoFechar }) {
-  const t = useT()
-  const d = descrever(item, idx)
-  const m = useMapas3d(mapa)
-  const tem3d = !!m && idNo3d(item, m) !== undefined
-  const [giro, setGiro] = useState({ x: 0, y: 0 })
-  const porId = useMemo(() => new Map((adesivos.dados || []).map((s) => [s[0], s])), [adesivos.dados])
-  const chaveirosPorId = useMemo(() => new Map((chaveiros.dados || []).map((s) => [s[0], s])), [chaveiros.dados])
-  const mover = (e) => {
-    const r = e.currentTarget.getBoundingClientRect()
-    setGiro({ x: ((e.clientY - r.top) / r.height - 0.5) * -14, y: ((e.clientX - r.left) / r.width - 0.5) * 22 })
-  }
-  const [falhou3d, setFalhou3d] = useState(false)
-  const pequena = useTelaPequena()
-  return (
-    <Janela titulo={t('Inspecionar')} aoFechar={aoFechar} largura="grande" classe="inv-janela-insp">
-      <div className="inv-inspecao" onPointerMove={tem3d && !falhou3d ? undefined : mover} onPointerLeave={() => setGiro({ x: 0, y: 0 })}>
-        {tem3d && !falhou3d ? (
-          <div className="inv-inspecao-3d">
-            <Visualizador3D item={item} m={m} aoMudar={() => {}} aoFalhar={() => setFalhou3d(true)} altura={pequena ? 'min(52dvh, 400px)' : 520} />
-          </div>
-        ) : (
-          <div className="inv-inspecao-arma" style={{ '--cor': d.cor || 'var(--border-2)', transform: `perspective(900px) rotateX(${giro.x}deg) rotateY(${giro.y}deg)` }}>
-            <ArmaComEnfeites item={item} d={d} adesivos={porId} chaveiros={chaveirosPorId} />
-          </div>
-        )}
-        <div className="inv-inspecao-info">
-          <b>{d.titulo}</b>
-          <span>{d.subtitulo}</span>
-          {d.skin && (
-            <small>
-              {t(nomeDoDesgaste(Number(item.f)))} · {t('Desgaste')}: {Number(item.f).toFixed(4)} · Seed {item.s}
-              {item.st ? ' · StatTrak™' : ''}
-            </small>
-          )}
-          {item.n && <small>«{item.n}»</small>}
-        </div>
-      </div>
-    </Janela>
-  )
-}
-
 // ── Menu do botão direito ──
 // Fecha ao clicar fora, no Esc ou ao rolar, e não deixa o menu sair da tela
 function useMenuFlutuante(x, y, aoFechar) {
@@ -901,19 +719,6 @@ function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoD
       </li>
     </ul>
   )
-}
-
-// Celular e tablet (até 1024 px): a edição (3D, adesivos, chaveiro) só funciona bem no computador
-function useTelaPequena() {
-  const [pequena, setPequena] = useState(false)
-  useEffect(() => {
-    const q = window.matchMedia('(max-width: 1024px)')
-    const ler = () => setPequena(q.matches)
-    ler()
-    q.addEventListener('change', ler)
-    return () => q.removeEventListener('change', ler)
-  }, [])
-  return pequena
 }
 
 function Conteudo() {

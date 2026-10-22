@@ -80,6 +80,9 @@ function EditorCaixa({ c, armas, achar, mudar, remover }) {
         <label className="adm-cx-ativa">
           <input type="checkbox" checked={c.ativa !== false} onChange={(e) => mudar({ ativa: e.target.checked })} /> {t('À venda')}
         </label>
+        <label className="adm-cx-ativa" title={t('Fora da loja, mas quem já tem uma fechada no inventário ainda abre')}>
+          <input type="checkbox" checked={!!c.arquivada} onChange={(e) => mudar({ arquivada: e.target.checked })} /> {t('Arquivada')}
+        </label>
         <label>
           {t('Imagem')}
           <input type="text" value={c.img} onChange={(e) => mudar({ img: e.target.value })} />
@@ -219,7 +222,7 @@ export default function AdminCaixas() {
               <img src={c.img} alt="" width="46" height="46" />
               <b>{c.nome}</b>
               <em>
-                {c.tier} · {c.preco} NP · {c.itens.length} skins · {c.facas.length} facas {c.ativa === false && `· ${t('fora de venda')}`}
+                {c.tier} · {c.preco} NP · {c.itens.length} skins · {c.facas.length} facas {c.ativa === false && `· ${t('fora de venda')}`} {c.arquivada && `· ${t('arquivada')}`}
               </em>
             </summary>
             <EditorCaixa c={c} armas={armas} achar={achar} mudar={(parte) => mudarCaixa(c.id, parte)} remover={() => setCaixas((l) => l.filter((x) => x.id !== c.id))} />

@@ -1406,14 +1406,28 @@ function DarSkin({ usuarios }) {
   const listaEmb = useMemo(() => (emb ? (catEmb.dados || []).filter((s) => !filtroEmb || s[1].toLowerCase().includes(filtroEmb)) : []), [emb, catEmb.dados, filtroEmb])
   const alternar = (s) => {
     const chave = chaveDe(tipo, peca.d, s[0])
-    setSel((l) => (l.some((x) => x.chave === chave) ? l.filter((x) => x.chave !== chave) : [...l, { chave, t: tipo, d: peca.d, arma: peca.n, skin: s }]))
+    // f = float (desgaste) e seed = pattern (0 a 1000) que a skin vai ter; o admin muda antes de enviar (começa no float mínimo e pattern 0)
+    setSel((l) => (l.some((x) => x.chave === chave) ? l.filter((x) => x.chave !== chave) : [...l, { chave, t: tipo, d: peca.d, arma: peca.n, skin: s, f: Math.max(s[3], 0.0001), seed: 0 }]))
+  }
+  const limitesFloat = (skin) => [Math.max(skin[3] ?? 0, 0), Math.min(skin[4] ?? 1, 1)]
+  const mudarFloat = (chave, v) => setSel((l) => l.map((x) => (x.chave === chave ? { ...x, f: v } : x)))
+  const mudarSeed = (chave, v) => setSel((l) => l.map((x) => (x.chave === chave ? { ...x, seed: v } : x)))
+  const fixarFloat = (x) => {
+    const [min, max] = limitesFloat(x.skin)
+    mudarFloat(x.chave, String(Math.min(max, Math.max(min, Number(x.f) || min, 0.0001))))
   }
   const dar = async () => {
     if (!alvo || !sel.length) return
     setOcupado(true)
     setEstado('')
     try {
-      const itensDar = sel.map(({ t, d, q, skin: s }) => (t === 'adesivo' || t === 'chaveiro' || t === 'caixa' ? { t, d, q } : { t, d, p: s[0], f: Math.max(s[3], 0.0001), s: 0, st: st && s[5] === 1 ? 1 : 0, l: s[7] ? 1 : 0, n: '', a: [null, null, null, null, null], k: null }))
+      const itensDar = sel.map(({ t, d, q, skin: s, f, seed }) => {
+        if (t === 'adesivo' || t === 'chaveiro' || t === 'caixa') return { t, d, q }
+        const [min, max] = limitesFloat(s)
+        const fl = Math.min(max, Math.max(min, Number(f) || min, 0.0001))
+        const sd = Math.min(1000, Math.max(0, Math.round(Number(seed)) || 0))
+        return { t, d, p: s[0], f: fl, s: sd, st: st && s[5] === 1 ? 1 : 0, l: s[7] ? 1 : 0, n: '', a: [null, null, null, null, null], k: null }
+      })
       const r = await chamar('/admin/skin', { id: alvo.id, itens: itensDar })
       setItens(r.itens)
       setEstado(tr('{n} skin(s) entregue(s)! O jogador recebe o aviso na hora (ou na próxima vez que abrir o site).', { n: itensDar.length }))
@@ -1549,6 +1563,21 @@ function DarSkin({ usuarios }) {
                 {x.skin ? <img src={urlImgArma(x.skin[6], 128)} alt="" /> : <img src={srcEmb(x.t, x.img, 64)} alt="" />}
                 <span>{x.skin ? `${x.arma} | ${x.skin[1]}` : x.nome}</span>
                 {!x.skin && <input type="number" min="1" max="50" className="adm-dar-qtd" value={x.q} aria-label={tr('Quantidade')} onChange={(e) => mudarQtd(x.chave, e.target.value)} />}
+                {x.skin && x.t !== 'agente' && (
+                  <span className="adm-dar-fs">
+                    <label title={tr('Float (desgaste) da skin: entre {min} e {max}', { min: limitesFloat(x.skin)[0], max: limitesFloat(x.skin)[1] })}>
+                      Float
+                      <input type="number" step="0.0001" min={limitesFloat(x.skin)[0]} max={limitesFloat(x.skin)[1]} value={x.f} onChange={(e) => mudarFloat(x.chave, e.target.value)} onBlur={() => fixarFloat(x)} />
+                    </label>
+                    <label title={tr('Pattern (paint seed) de 0 a 1000')}>
+                      Pattern
+                      <input type="number" step="1" min="0" max="1000" value={x.seed} onChange={(e) => mudarSeed(x.chave, e.target.value)} />
+                    </label>
+                    <button type="button" className="adm-dar-sorte" title={tr('Pattern aleatório')} aria-label={tr('Pattern aleatório')} onClick={() => mudarSeed(x.chave, Math.floor(Math.random() * 1001))}>
+                      🎲
+                    </button>
+                  </span>
+                )}
                 <button type="button" aria-label={tr('Tirar da seleção')} onClick={() => setSel((l) => l.filter((y) => y.chave !== x.chave))}>
                   ×
                 </button>
@@ -1562,7 +1591,7 @@ function DarSkin({ usuarios }) {
                 {tr('StatTrak™ nas que aceitam')}
               </label>
             )}
-            <span className="adm-dar-dica">{tr('Skins chegam com o desgaste mínimo; o jogador ajusta depois. Adesivos e chaveiros ficam no inventário dele e são gastos ao colar numa arma.')}</span>
+            <span className="adm-dar-dica">{tr('Cada skin chega com o float e o pattern que você definir acima (começa no desgaste mínimo e pattern 0). Adesivos e chaveiros ficam no inventário dele e são gastos ao colar numa arma.')}</span>
             <button type="button" className="btn btn-primary" disabled={!alvo || ocupado} onClick={dar}>
               {alvo ? tr('Dar {n} skin(s) para {nome}', { n: sel.length, nome: alvo.nome || alvo.id }) : tr('Escolha o jogador')}
             </button>

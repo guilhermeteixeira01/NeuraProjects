@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import CartaoSkin from './CartaoSkin.jsx'
+import { InspecionarSkin } from './InspecionarSkin.jsx'
 import { CONFIG } from './config.js'
 import { useConta } from './conta.js'
 import { BotaoTrocas } from './Trocas.jsx'
@@ -36,6 +37,7 @@ export default function InventarioDoJogador({ steamId, nome, aoFechar }) {
   const adesivos = useCatalogo('adesivos')
   const chaveiros = useCatalogo('chaveiros')
   const [caixas, setCaixas] = useState([])
+  const [inspecionando, setInspecionando] = useState(null) // item aberto na janela Inspecionar (clique no cartão)
 
   useEffect(() => {
     let vivo = true
@@ -50,7 +52,7 @@ export default function InventarioDoJogador({ steamId, nome, aoFechar }) {
   }, [steamId])
   useEffect(() => {
     document.documentElement.classList.add('ins-estante-aberta') // mesmo fundo embaçado da estante de insígnias
-    const tecla = (e) => e.key === 'Escape' && aoFechar()
+    const tecla = (e) => e.key === 'Escape' && !document.documentElement.classList.contains('inv-travado') && aoFechar() // com o Inspecionar aberto, o Esc fecha só ele
     document.addEventListener('keydown', tecla)
     return () => {
       document.documentElement.classList.remove('ins-estante-aberta')
@@ -115,7 +117,7 @@ export default function InventarioDoJogador({ steamId, nome, aoFechar }) {
         ) : (
           <ul className="inv-itens ij-itens">
             {verCartoes.map((it) => (
-              <CartaoSkin key={it.__id} item={it} idx={idx} adesivos={mapaAd} chaveiros={mapaCh} equip={dados.equip} extra={dados.valores?.[it.__id] != null && <span className="ij-valor">{dados.valores[it.__id].toLocaleString(t.local)} NP</span>} />
+              <CartaoSkin key={it.__id} item={it} idx={idx} adesivos={mapaAd} chaveiros={mapaCh} equip={dados.equip} aoAbrirMenu={(e, item) => setInspecionando(item)} extra={dados.valores?.[it.__id] != null && <span className="ij-valor">{dados.valores[it.__id].toLocaleString(t.local)} NP</span>} />
             ))}
             {verGrupos.map((g) => {
               const d = dadosDoGrupo(g)
@@ -141,6 +143,7 @@ export default function InventarioDoJogador({ steamId, nome, aoFechar }) {
         )}
         </div>
       </div>
+      {inspecionando && <InspecionarSkin item={inspecionando} aoFechar={() => setInspecionando(null)} />}
     </div>,
     document.body,
   )

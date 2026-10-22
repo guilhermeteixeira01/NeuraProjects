@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import CartaoSkin from './CartaoSkin.jsx'
+import { BotaoInspecionar } from './InspecionarSkin.jsx'
 import './trocas.css'
 import { CONFIG } from './config.js'
 import { tokenConta, useConta } from './conta.js'
@@ -91,12 +92,19 @@ function ItemTroca({ item, id, cat, aoClicar, marcado, pequeno = false }) {
       </ul>
     )
   }
-  return aoClicar ? (
+  const principal = aoClicar ? (
     <button type="button" className={classe} onClick={aoClicar} aria-pressed={!!marcado}>
       {corpo}
     </button>
   ) : (
     <div className={classe}>{corpo}</div>
+  )
+  // a lupa "Inspecionar" fica por cima do cartão (fora do botão de escolher, que não pode conter outro botão)
+  return (
+    <div className="tr-item-wrap">
+      {principal}
+      <BotaoInspecionar item={{ ...item, __id: id }} classe="insp-canto" />
+    </div>
   )
 }
 

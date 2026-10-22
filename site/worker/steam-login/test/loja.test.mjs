@@ -210,9 +210,10 @@ test('toda insígnia do catálogo tem arte tratada e todas as secretas têm a ve
 
 test('as caixas iniciais são válidas (imagem existe, tem de tudo, pesos > 0)', () => {
   const dir = new URL('../../../public/assets/caixas/web/', import.meta.url)
-  assert.equal(CAIXAS.length, 31)
-  assert.equal(new Set(CAIXAS.map((c) => c.id)).size, 31)
-  assert.equal(new Set(CAIXAS.map((c) => c.slug)).size, 31)
+  assert.ok(CAIXAS.length >= 31)
+  assert.equal(CAIXAS.filter((c) => c.arquivada).length, 31) // as 31 antigas ficam arquivadas
+  assert.equal(new Set(CAIXAS.map((c) => c.id)).size, CAIXAS.length)
+  assert.equal(new Set(CAIXAS.map((c) => c.slug)).size, CAIXAS.length)
   for (const c of CAIXAS) {
     assert.ok(fs.existsSync(new URL(`${c.slug}.webp`, dir)), c.slug)
     assert.ok(c.preco > 0)
@@ -229,7 +230,7 @@ test('sortearPeso ignora pesos zerados', () => {
 })
 
 // ── venda ──
-import { VALOR_BASE, multiplicadorDoDesgaste, valorDaFaca, valorDoItem } from '../src/loja-core.js'
+import { VALOR_BASE, definirValorador, multiplicadorDoDesgaste, precoDeMercado, valorDaFaca, valorDoItem } from '../src/loja-core.js'
 test('valor de venda: maior com raridade maior e desgaste melhor; StatTrak vale mais', () => {
   for (let r = 1; r <= 6; r++) assert.ok(valorDoItem({ f: 0.1 }, r) > valorDoItem({ f: 0.1 }, r - 1), 'raridade ' + r)
   for (const f of [0, 0.05, 0.1, 0.2, 0.4, 0.6, 0.9]) assert.ok(valorDoItem({ f }, 3) >= valorDoItem({ f: f + 0.05 }, 3), 'desgaste ' + f)
@@ -241,7 +242,20 @@ test('vender não paga a caixa de volta (valor esperado de uma abertura fica bem
   const cfg2 = CONFIG_PADRAO
   const raridadeSkin = JSON.parse(fs.readFileSync(new URL('../src/skins-raridade.json', import.meta.url), 'utf8'))
   const facasValor = JSON.parse(fs.readFileSync(new URL('../src/facas-valor.json', import.meta.url), 'utf8'))
-  for (const c of CAIXAS) {
+  for (const c of CAIXAS.filter((x) => !x.arquivada)) {
+    // as caixas novas são precificadas pelo preço de mercado (scripts/precos-caixas.mjs: média x 1,6 ≈ 62%); o que se vende fica abaixo do preço
+    const precos = JSON.parse(fs.readFileSync(new URL('../src/precos.json', import.meta.url), 'utf8'))
+    const valor = (it) => (it.t === 'adesivo' ? precos.a[it.d] : it.t === 'chaveiro' ? precos.c[it.d] : precoDeMercado(it, precos.skins)) || 0 // igual ao scripts/precos-caixas.mjs
+    // o sorteio de verdade (loja.js) deixa o item caro mais raro pelo preço de mercado; o preço das caixas conta com isso
+    definirValorador((x) => (x.t === 'adesivo' ? precos.a[x.d] : x.t === 'chaveiro' ? precos.c[x.d] : precoDeMercado({ ...x, f: Math.min(0.45, ((x.min ?? 0) + (x.max ?? 1)) / 2), st: 0 }, precos.skins)) || 0)
+    let soma = 0
+    const N = 3000
+    for (let i = 0; i < N; i++) soma += valor(sortearAbertura(c, cfg2, rndSeguro).item)
+    definirValorador(null)
+    assert.ok(soma / N < c.preco * 0.9, // margem 1,6 (≈62%) + ruído da simulação nas caixas com skin muito cara
+       `${c.slug}: valor médio de mercado ${(soma / N).toFixed(0)} vs preço ${c.preco}`)
+  }
+  for (const c of CAIXAS.filter((x) => x.arquivada)) {
     let soma = 0
     const N = 4000
     for (let i = 0; i < N; i++) {

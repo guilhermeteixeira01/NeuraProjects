@@ -8,6 +8,7 @@ import { EVENTO_MERCADO, cancelarAnuncio, comprarAnuncio, erroDoMercado, lerMerc
 import { descrever, indicar, useCatalogo } from '../../comum/skins.js'
 import { confirmar } from '../../comum/Dialogos.jsx'
 import Cartao from '../../comum/CartaoSkin.jsx'
+import { BotaoInspecionar } from '../../comum/InspecionarSkin.jsx'
 
 const TIPOS = [
   ['todos', 'Todos'],
@@ -150,6 +151,7 @@ export default function AbaMercado({ saldo, aoMudarSaldo }) {
                     {a.vendedorAvatar ? <img src={a.vendedorAvatar} alt="" width="20" height="20" loading="lazy" /> : <i aria-hidden="true" />}
                     <span>{meu ? t('Você está vendendo') : a.vendedorNome || t('Jogador')}</span>
                   </a>
+                  <BotaoInspecionar item={{ ...a.item, __id: a.id }} classe="insp-linha" />
                   {a.ref != null && <small className="lj-anuncio-ref">{t('Referência: {n} NP', { n: numero(a.ref) })}</small>}
                   {meu ? (
                     <button type="button" className="lj-btn" disabled={ocupado === a.id} onClick={() => cancelar(a)}>

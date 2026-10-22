@@ -1,0 +1,61 @@
+/* Janela "Inspecionar" (comum/InspecionarSkin.jsx): as mesmas regras do inventário (paginas/inventario/inventario.css) para a janela funcionar também
+   no mercado, nas trocas e no "Ver inventário" do perfil, inclusive no celular. */
+.inv-sem-img { display: block; width: 60%; height: 60%; background: rgb(255 255 255 / .08); border-radius: 6px; }
+
+/* janela */
+.inv-fundo { position: fixed; inset: 0; z-index: 2600; background: rgb(5 7 10 / .7); display: grid; place-items: center; padding: 20px; overscroll-behavior: contain; touch-action: none; }
+.inv-janela { background: #16181d; border: 1px solid rgb(255 255 255 / .14); border-radius: 14px; width: min(760px, 100%); max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 24px 60px rgb(0 0 0 / .6); color: var(--text, #e8eaed); }
+.inv-janela-grande { width: min(1040px, 100%); }
+.inv-janela-cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid rgb(255 255 255 / .1); }
+.inv-janela-cab h2 { margin: 0; font-size: 16px; }
+.inv-fechar { background: none; border: 0; color: var(--dim, #9aa0a8); font-size: 26px; line-height: 1; cursor: pointer; }
+.inv-fechar:hover { color: var(--text, #e8eaed); }
+.inv-janela-corpo { padding: 16px 18px; overflow: auto; touch-action: pan-y; }
+
+/* arma com adesivos e chaveiro */
+.inv-previa-adesivo { position: absolute; width: 11%; aspect-ratio: 1; object-fit: contain; pointer-events: none; filter: drop-shadow(0 1px 2px rgb(0 0 0 / .6)); }
+.inv-previa-chaveiro { position: absolute; width: 10%; aspect-ratio: 1; object-fit: contain; pointer-events: none; transform: translate(-50%, 0); filter: drop-shadow(0 2px 3px rgb(0 0 0 / .6)); }
+.inv-arma-box { position: absolute; inset: 0; display: block; }
+.inv-arma-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 8px rgb(0 0 0 / .4)); }
+.inv-arma-box .inv-sem-img { width: 50%; height: 50%; inset: auto; left: 25%; top: 25%; }
+
+/* inspecionar */
+.inv-inspecao { display: grid; gap: 18px; justify-items: center; padding: 10px 0; }
+.inv-inspecao-arma { position: relative; width: min(720px, 100%); aspect-ratio: 4 / 3; display: block; border-bottom: 5px solid var(--cor); border-radius: 10px; background: transparent; transition: transform .12s ease-out; will-change: transform; }
+.inv-inspecao-info { display: grid; gap: 4px; text-align: center; }
+.inv-inspecao-info b { font-size: 18px; }
+.inv-inspecao-info span, .inv-inspecao-info small { color: var(--dim, #9aa0a8); }
+.inv-inspecao-3d { width: min(900px, 100%); }
+
+/* visualizador 3D (3d.cstrike.app, embutido) */
+.inv-3d { position: relative; width: 100%; border-radius: 10px; background: radial-gradient(ellipse at 50% 55%, rgb(255 255 255 / .07) 0%, transparent 75%); overflow: hidden; }
+.inv-3d iframe { width: 100%; height: 100%; border: 0; display: block; background: transparent; }
+.inv-3d-carregando { position: absolute; inset: 0; display: grid; place-items: center; color: var(--dim, #9aa0a8); font-size: 14px; pointer-events: none; }
+
+/* janela aberta: a página de trás não rola (no celular o dedo na arma 3D movia o site inteiro) */
+html.inv-travado, html.inv-travado body { overflow: hidden !important; overscroll-behavior: none; }
+html.inv-travado body { position: fixed; inset: 0; width: 100%; }
+.inv-janela-insp .inv-janela-corpo, .inv-inspecao, .inv-inspecao-3d, .inv-3d, .inv-3d iframe { touch-action: none; overscroll-behavior: none; }
+
+@media (max-width: 700px) {
+  .inv-fundo { padding: 8px; }
+  .inv-janela { max-height: calc(100dvh - 16px); }
+  .inv-janela-insp .inv-janela-corpo { overflow: hidden; padding: 8px; }
+  .inv-inspecao { gap: 8px; padding: 0; touch-action: none; }
+  .inv-inspecao-arma { width: 100%; }
+  .inv-inspecao-3d, .inv-inspecao-3d .inv-3d { touch-action: none; }
+  .inv-inspecao-info b { font-size: 16px; }
+}
+
+/* botão de lupa "Inspecionar" sobre os cartões (mercado, trocas, perfil) */
+.insp-botao { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 10px; border-radius: 8px; border: 1px solid rgb(255 255 255 / .18); background: rgb(12 14 18 / .78); color: #e8eaed; font: 600 12px var(--font-body, inherit); cursor: pointer; backdrop-filter: blur(3px); -webkit-tap-highlight-color: transparent; }
+.insp-botao:hover { background: rgb(43 179 214 / .25); border-color: #2bb3d6; color: #fff; }
+.insp-botao svg { flex: none; }
+/* sobre o cartão: só o ícone, no canto de cima, para não cobrir a arma */
+.insp-botao.insp-canto { position: absolute; top: 6px; right: 6px; z-index: 5; padding: 6px; }
+.insp-botao.insp-canto span { display: none; }
+/* em linha (mercado, abaixo do vendedor) */
+.insp-botao.insp-linha { width: 100%; }
+
+/* acima de qualquer outra janela (a estante/inventário do perfil fica em z-index 4000) */
+.inv-fundo.inv-fundo-insp { z-index: 5000; }

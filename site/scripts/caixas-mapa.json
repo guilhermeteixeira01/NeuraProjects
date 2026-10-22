@@ -1,0 +1,428 @@
+[
+ {
+  "pasta": "Adesivos",
+  "arquivo": "Anime.png",
+  "nome": "Anime",
+  "slug": "caixa-adesivos-anime"
+ },
+ {
+  "pasta": "Adesivos",
+  "arquivo": "Gold.png",
+  "nome": "Gold",
+  "slug": "caixa-adesivos-gold"
+ },
+ {
+  "pasta": "Adesivos",
+  "arquivo": "Grafite.png",
+  "nome": "Grafite",
+  "slug": "caixa-adesivos-grafite"
+ },
+ {
+  "pasta": "Adesivos",
+  "arquivo": "Holo.png",
+  "nome": "Holo",
+  "slug": "caixa-adesivos-holo"
+ },
+ {
+  "pasta": "Anime",
+  "arquivo": "Hollow.png",
+  "nome": "Hollow",
+  "slug": "caixa-anime-hollow"
+ },
+ {
+  "pasta": "Anime",
+  "arquivo": "Ichigo-final.png",
+  "nome": "Ichigo",
+  "slug": "caixa-anime-ichigo"
+ },
+ {
+  "pasta": "Anime",
+  "arquivo": "Kakashi.png",
+  "nome": "Kakashi",
+  "slug": "caixa-anime-kakashi"
+ },
+ {
+  "pasta": "Anime",
+  "arquivo": "Naruto.png",
+  "nome": "Naruto",
+  "slug": "caixa-anime-naruto"
+ },
+ {
+  "pasta": "Anime",
+  "arquivo": "Sasuke.png",
+  "nome": "Sasuke",
+  "slug": "caixa-anime-sasuke"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "AK-47.png",
+  "nome": "AK-47",
+  "slug": "caixa-arma-ak-47"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "AUG.png",
+  "nome": "AUG",
+  "slug": "caixa-arma-aug"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "AWP.png",
+  "nome": "AWP",
+  "slug": "caixa-arma-awp"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "CZ75-Auto.png",
+  "nome": "CZ75-Auto",
+  "slug": "caixa-arma-cz75-auto"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "Desert-Eagle.png",
+  "nome": "Desert-Eagle",
+  "slug": "caixa-arma-desert-eagle"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "Dual-Berettas.png",
+  "nome": "Dual-Berettas",
+  "slug": "caixa-arma-dual-berettas"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "FAMAS.png",
+  "nome": "FAMAS",
+  "slug": "caixa-arma-famas"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "Five-Seven.png",
+  "nome": "Five-Seven",
+  "slug": "caixa-arma-five-seven"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "G3SG1.png",
+  "nome": "G3SG1",
+  "slug": "caixa-arma-g3sg1"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "Galil-AR.png",
+  "nome": "Galil-AR",
+  "slug": "caixa-arma-galil-ar"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "Glock-18.png",
+  "nome": "Glock-18",
+  "slug": "caixa-arma-glock-18"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "M249.png",
+  "nome": "M249",
+  "slug": "caixa-arma-m249"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "M4A1-S.png",
+  "nome": "M4A1-S",
+  "slug": "caixa-arma-m4a1-s"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "M4A4.png",
+  "nome": "M4A4",
+  "slug": "caixa-arma-m4a4"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "MAC-10.png",
+  "nome": "MAC-10",
+  "slug": "caixa-arma-mac-10"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "MAG-7.png",
+  "nome": "MAG-7",
+  "slug": "caixa-arma-mag-7"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "MP5-SD.png",
+  "nome": "MP5-SD",
+  "slug": "caixa-arma-mp5-sd"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "MP7.png",
+  "nome": "MP7",
+  "slug": "caixa-arma-mp7"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "MP9.png",
+  "nome": "MP9",
+  "slug": "caixa-arma-mp9"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "Negev.png",
+  "nome": "Negev",
+  "slug": "caixa-arma-negev"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "Nova.png",
+  "nome": "Nova",
+  "slug": "caixa-arma-nova"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "P2000.png",
+  "nome": "P2000",
+  "slug": "caixa-arma-p2000"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "P250.png",
+  "nome": "P250",
+  "slug": "caixa-arma-p250"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "P90.png",
+  "nome": "P90",
+  "slug": "caixa-arma-p90"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "PP-Bizon.png",
+  "nome": "PP-Bizon",
+  "slug": "caixa-arma-pp-bizon"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "R8-Revolver.png",
+  "nome": "R8-Revolver",
+  "slug": "caixa-arma-r8-revolver"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "Sawed-Off.png",
+  "nome": "Sawed-Off",
+  "slug": "caixa-arma-sawed-off"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "SCAR-20.png",
+  "nome": "SCAR-20",
+  "slug": "caixa-arma-scar-20"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "SG-553.png",
+  "nome": "SG-553",
+  "slug": "caixa-arma-sg-553"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "SSG-08.png",
+  "nome": "SSG-08",
+  "slug": "caixa-arma-ssg-08"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "Tec-9.png",
+  "nome": "Tec-9",
+  "slug": "caixa-arma-tec-9"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "UMP-45.png",
+  "nome": "UMP-45",
+  "slug": "caixa-arma-ump-45"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "USP-S.png",
+  "nome": "USP-S",
+  "slug": "caixa-arma-usp-s"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "XM1014.png",
+  "nome": "XM1014",
+  "slug": "caixa-arma-xm1014"
+ },
+ {
+  "pasta": "Armas",
+  "arquivo": "Zeus-X27.png",
+  "nome": "Zeus-X27",
+  "slug": "caixa-arma-zeus-x27"
+ },
+ {
+  "pasta": "Chaveiros",
+  "arquivo": "Dragao-de-Fogo.png",
+  "nome": "Dragao-de-Fogo",
+  "slug": "caixa-chaveiros-dragao-de-fogo"
+ },
+ {
+  "pasta": "Chaveiros",
+  "arquivo": "Gato-Samurai-transparente.png",
+  "nome": "Gato-Samurai",
+  "slug": "caixa-chaveiros-gato-samurai"
+ },
+ {
+  "pasta": "Chaveiros",
+  "arquivo": "Tatico.png",
+  "nome": "Tatico",
+  "slug": "caixa-chaveiros-tatico"
+ },
+ {
+  "pasta": "Chaveiros",
+  "arquivo": "Toxic.png",
+  "nome": "Toxic",
+  "slug": "caixa-chaveiros-toxic"
+ },
+ {
+  "pasta": "Criaturas",
+  "arquivo": "Caos.png",
+  "nome": "Caos",
+  "slug": "caixa-criaturas-caos"
+ },
+ {
+  "pasta": "Criaturas",
+  "arquivo": "Ceifador.png",
+  "nome": "Ceifador",
+  "slug": "caixa-criaturas-ceifador"
+ },
+ {
+  "pasta": "Criaturas",
+  "arquivo": "Espantalho.png",
+  "nome": "Espantalho",
+  "slug": "caixa-criaturas-espantalho"
+ },
+ {
+  "pasta": "Criaturas",
+  "arquivo": "Laboratorio.png",
+  "nome": "Laboratorio",
+  "slug": "caixa-criaturas-laboratorio"
+ },
+ {
+  "pasta": "Criaturas",
+  "arquivo": "Marionete.png",
+  "nome": "Marionete",
+  "slug": "caixa-criaturas-marionete"
+ },
+ {
+  "pasta": "Criaturas",
+  "arquivo": "Pantano.png",
+  "nome": "Pantano",
+  "slug": "caixa-criaturas-pantano"
+ },
+ {
+  "pasta": "Criaturas",
+  "arquivo": "Pesadelo.png",
+  "nome": "Pesadelo",
+  "slug": "caixa-criaturas-pesadelo"
+ },
+ {
+  "pasta": "CS-Tematicas",
+  "arquivo": "Clutch.png",
+  "nome": "Clutch",
+  "slug": "caixa-cs-tematicas-clutch"
+ },
+ {
+  "pasta": "CS-Tematicas",
+  "arquivo": "Dust-II.png",
+  "nome": "Dust-II",
+  "slug": "caixa-cs-tematicas-dust-ii"
+ },
+ {
+  "pasta": "CS-Tematicas",
+  "arquivo": "Inferno.png",
+  "nome": "Inferno",
+  "slug": "caixa-cs-tematicas-inferno"
+ },
+ {
+  "pasta": "CS-Tematicas",
+  "arquivo": "Nuke.png",
+  "nome": "Nuke",
+  "slug": "caixa-cs-tematicas-nuke"
+ },
+ {
+  "pasta": "CS-Tematicas",
+  "arquivo": "Rush-B.png",
+  "nome": "Rush-B",
+  "slug": "caixa-cs-tematicas-rush-b"
+ },
+ {
+  "pasta": "Desenhos",
+  "arquivo": "Pizza-Cosmica.png",
+  "nome": "Pizza-Cosmica",
+  "slug": "caixa-desenhos-pizza-cosmica"
+ },
+ {
+  "pasta": "Desenhos",
+  "arquivo": "Robo-de-Sucata.png",
+  "nome": "Robo-de-Sucata",
+  "slug": "caixa-desenhos-robo-de-sucata"
+ },
+ {
+  "pasta": "Desenhos",
+  "arquivo": "Sapo-Executivo.png",
+  "nome": "Sapo-Executivo",
+  "slug": "caixa-desenhos-sapo-executivo"
+ },
+ {
+  "pasta": "Desenhos",
+  "arquivo": "Turno-da-Madrugada.png",
+  "nome": "Turno-da-Madrugada",
+  "slug": "caixa-desenhos-turno-da-madrugada"
+ },
+ {
+  "pasta": "Desenhos",
+  "arquivo": "TV-Pirata.png",
+  "nome": "TV-Pirata",
+  "slug": "caixa-desenhos-tv-pirata"
+ },
+ {
+  "pasta": "Halloween",
+  "arquivo": "Abobora-esquerda.png",
+  "nome": "Abobora",
+  "slug": "caixa-halloween-abobora"
+ },
+ {
+  "pasta": "Halloween",
+  "arquivo": "Bruxa.png",
+  "nome": "Bruxa",
+  "slug": "caixa-halloween-bruxa"
+ },
+ {
+  "pasta": "Halloween",
+  "arquivo": "Cemiterio.png",
+  "nome": "Cemiterio",
+  "slug": "caixa-halloween-cemiterio"
+ },
+ {
+  "pasta": "Halloween",
+  "arquivo": "Fantasma-esquerda.png",
+  "nome": "Fantasma",
+  "slug": "caixa-halloween-fantasma"
+ },
+ {
+  "pasta": "Halloween",
+  "arquivo": "Vampiro.png",
+  "nome": "Vampiro",
+  "slug": "caixa-halloween-vampiro"
+ },
+ {
+  "pasta": "Personalizadas",
+  "arquivo": "Teixeira-final.png",
+  "nome": "Teixeira",
+  "slug": "caixa-personalizadas-teixeira"
+ }
+]

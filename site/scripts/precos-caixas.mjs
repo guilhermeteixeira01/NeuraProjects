@@ -23,7 +23,8 @@ export function precoDasCaixas(caixasIniciais, skins, adesivos, chaveiros, simul
     let soma = 0
     for (let i = 0; i < simulacoes; i++) soma += valor(sortearAbertura(cx, CONFIG_PADRAO, rndSeguro).item)
     const esperado = soma / simulacoes
-    const piso = SO_AMULETOS.has(cx.slug) ? PISO_AMULETOS : PISO_POR_TIER[cx.tier] || 150
+    const soAmuletos = SO_AMULETOS.has(cx.slug) || (cx.itens.length > 0 && cx.itens.every((i) => i.t === 'adesivo' || i.t === 'chaveiro')) // caixas só de adesivo/amuleto
+    const piso = soAmuletos ? PISO_AMULETOS : PISO_POR_TIER[cx.tier] || 150
     const bruto = Math.max(piso, esperado * MARGEM)
     const passo = bruto < 1000 ? 10 : 50
     precos[cx.slug] = Math.max(10, Math.round(bruto / passo) * passo)

@@ -197,7 +197,8 @@ function Conteudo() {
     })
   }, [conta?.id, carregar])
 
-  const caixas = useMemo(() => (dados?.caixas || []).filter((c) => tier === 'todas' || c.tier === tier), [dados, tier])
+  // caixas fora da loja (arquivadas) ficam só em dados.caixas, para o "Abrir" do inventário; não entram na grade
+  const caixas = useMemo(() => (dados?.caixas || []).filter((c) => !c.foraDeVenda && (tier === 'todas' || c.tier === tier)), [dados, tier])
   const sel = dados?.caixas.find((c) => c.id === aberta) || null
   const { fav, alternar: alternarFav } = useFavoritas()
 
