@@ -53,13 +53,20 @@ function Saldo({ saldo }) {
 }
 
 // ── grade de caixas ──
+// Imagem que não abriu (rede, ou o navegador guardou uma resposta ruim): tenta uma vez de novo, com um parâmetro novo para furar o cache
+function tentarDeNovo(e) {
+  const img = e.currentTarget
+  if (img.dataset.retentou) return
+  img.dataset.retentou = '1'
+  img.src = `${img.src.split('&r=')[0]}${img.src.includes('?') ? '&' : '?'}r=${Date.now()}`
+}
 function CartaoCaixa({ c, tem, aoAbrir }) {
   const t = useT()
   return (
     <li>
       <button type="button" className={`lj-caixa lj-tier-${c.tier}`} style={{ '--cor': c.cor }} onClick={() => aoAbrir(c)}>
         <span className="lj-caixa-arte">
-          <img src={c.img} alt="" loading="lazy" draggable="false" />
+          <img src={c.img} alt="" loading="lazy" draggable="false" onError={tentarDeNovo} />
         </span>
         <b>{c.nome}</b>
         <span className="lj-caixa-preco">

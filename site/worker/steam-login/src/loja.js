@@ -116,7 +116,10 @@ export async function pontosGanhos(env, id) {
   }
 }
 
-const publicaDaCaixa = ({ itens, facas, ...resto }) => resto
+// A imagem da caixa vai com ?v=<revisão>: se o navegador guardou uma imagem quebrada (a loja abriu antes do site publicar as imagens novas) ou uma antiga,
+// ele busca de novo assim que a revisão muda. O endereço salvo no admin continua sem o ?v.
+const comVersao = (c) => (typeof c.img === 'string' && c.img.startsWith('/assets/caixas/') && !c.img.includes('?') ? { ...c, img: `${c.img}?v=${REVISAO_CAIXAS}` } : c)
+const publicaDaCaixa = ({ itens, facas, ...resto }) => comVersao(resto)
 const pesoOk = (v) => Math.max(1, Math.round(num(v, 1, 100000, 100)))
 function limparCaixa(c, n) {
   const slug = String(c?.slug || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40)
@@ -478,7 +481,7 @@ export class Loja {
       saldo: pontos - this.gastos(),
       pontos,
       cfg,
-      caixas: ativas.map((c) => ({ ...c, chances: chancesDaCaixa(c, cfg) })),
+      caixas: ativas.map((c) => ({ ...comVersao(c), chances: chancesDaCaixa(c, cfg) })),
       fechadas: fechadasPor,
       insignias: progressoInsignias(stats, caixas).map((i) => ({ id: i.id, nome: i.nome, descricao: i.descricao, cor: i.cor, secreta: !!i.secreta, grupo: i.grupo || null, nivel: i.nivel || null, meta: i.meta, atual: i.atual, ganhou: ganhas[i.id] || 0 })),
       aberturas: linhas.length,
