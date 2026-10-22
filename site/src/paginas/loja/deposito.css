@@ -93,3 +93,41 @@
 .dep-ben-caixa { border-style: dashed; }
 .dep-ben-ir { justify-self: center; padding: 14px 38px; border: 0; border-radius: 10px; cursor: pointer; font: 800 15px var(--font-display, inherit); letter-spacing: .06em; text-transform: uppercase; color: #1a1200; background: linear-gradient(90deg, #ffd34d, #ff9d2e); box-shadow: 0 0 26px rgb(255 177 46 / .4); }
 .dep-ben-ir:hover { filter: brightness(1.08); }
+
+/* Apresentação do Premium: partículas, ícones animados e a fileira de emblemas */
+.dep-ben { position: relative; }
+.dep-ben > *:not(.ppm-canvas) { position: relative; z-index: 1; }
+.dep-ben .ppm-canvas { z-index: 0; }
+.dep-ben-item { grid-template-columns: auto 1fr; column-gap: 14px; align-items: center; transition: transform .2s, border-color .2s, box-shadow .2s; }
+.dep-ben-item:hover { transform: translateY(-2px); border-color: rgb(255 201 77 / .5); box-shadow: 0 10px 30px -14px rgb(255 177 46 / .55); }
+.dep-ben-item > b, .dep-ben-item > em, .dep-ben-item > p, .dep-ben-emblemas { grid-column: 2; }
+.dep-ben-icone { grid-column: 1; grid-row: 1 / span 3; width: 52px; height: 52px; display: grid; place-items: center; border-radius: 14px; background: rgb(255 201 77 / .1); box-shadow: inset 0 0 0 1px rgb(255 201 77 / .3); }
+.dep-ben-icone svg { width: 36px; height: 36px; overflow: visible; }
+.ib-aro { fill: none; stroke: #ffd34d; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.ib-moeda { fill: rgb(255 201 77 / .18); stroke: #ffc94d; stroke-width: 2.4; stroke-linejoin: round; }
+.ib-raio { fill: #ffd34d; filter: drop-shadow(0 0 4px rgb(255 190 60 / .9)); animation: ib-pisca 1.8s ease-in-out infinite; }
+.ib-gira { transform-origin: 24px 24px; stroke-dasharray: 8 5; animation: ib-roda 8s linear infinite; }
+.dep-ben-np .ib-aro { stroke-dasharray: 6 4; transform-origin: 24px 24px; animation: ib-roda 10s linear infinite; }
+.ib-c1 { animation: ib-c1 3s ease-in-out infinite; transform-origin: 24px 24px; }
+.ib-c2 { animation: ib-c2 3s ease-in-out infinite; transform-origin: 24px 24px; }
+.ib-tampa { animation: ib-tampa 2.6s ease-in-out infinite; transform-origin: 24px 19px; }
+.dep-ben-selo .ib-moeda { animation: ib-bate 2.4s ease-in-out infinite; transform-origin: 24px 24px; }
+.dep-ben-np .dep-ben-icone { width: 64px; height: 64px; }
+.dep-ben-np .dep-ben-icone svg { width: 46px; height: 46px; }
+.dep-ben-np { grid-template-columns: auto 1fr; }
+.dep-ben-emblemas { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; }
+.dep-ben-emblemas figure { display: grid; justify-items: center; gap: 4px; margin: 0; animation: ib-flutua 3.2s ease-in-out infinite; animation-delay: calc(var(--i) * -.5s); }
+.dep-ben-emblemas img { width: 46px; height: 46px; object-fit: contain; filter: drop-shadow(0 3px 8px rgb(255 177 46 / .35)); }
+.dep-ben-emblemas figcaption { font: 600 10px var(--font-body, inherit); color: var(--dim, #9aa0a8); }
+.dep-ben-ir { position: relative; overflow: hidden; }
+.dep-ben-ir::after { content: ''; position: absolute; top: 0; bottom: 0; left: -45%; width: 30%; background: linear-gradient(100deg, transparent, rgb(255 255 255 / .6), transparent); transform: skewX(-18deg); animation: ib-brilho 3.6s ease-in-out infinite; }
+@keyframes ib-roda { to { transform: rotate(360deg); } }
+@keyframes ib-pisca { 50% { opacity: .55; } }
+@keyframes ib-c1 { 50% { transform: translate(-3px, 2px) rotate(-6deg); } }
+@keyframes ib-c2 { 50% { transform: translate(3px, -2px) rotate(6deg); } }
+@keyframes ib-tampa { 40% { transform: translateY(-5px) rotate(-5deg); } }
+@keyframes ib-bate { 50% { transform: scale(1.07); } }
+@keyframes ib-flutua { 50% { transform: translateY(-5px); } }
+@keyframes ib-brilho { 0%, 55% { left: -45%; } 85%, 100% { left: 130%; } }
+@media (prefers-reduced-motion: reduce) { .dep-ben *, .dep-ben *::after { animation: none !important; } }
+html[data-desempenho] .dep-ben *, html[data-desempenho] .dep-ben *::after { animation: none !important; }

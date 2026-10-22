@@ -4,12 +4,53 @@ import { createPortal } from 'react-dom'
 import { BONUS_PREMIUM_PARTIDA, PAGAMENTO, bonusDoPagamento, npDoPagamento } from '../../../worker/steam-login/src/loja-core.js'
 import { confirmar } from '../../comum/Dialogos.jsx'
 import { useT } from '../../comum/i18n.js'
+import { NIVEIS_SUB, urlEmblema } from '../../comum/assinatura.js'
+import ParticulasPremium from '../../comum/ParticulasPremium.jsx'
 import { avisarSaldo } from '../../comum/loja.js'
 import { MENSAGENS_PAGAMENTO, criarPagamento, estadoPagamento, formatarCpf, lerConfigPagamento, lerPlanosSub, lerRecorrencia, cancelarRecorrencia } from '../../comum/pagamentos.js'
 import './deposito.css'
 
 const numero = (n) => Number(n).toLocaleString('pt-BR')
 const reais = (centavos) => (centavos / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+
+// Ícones animados da apresentação do Premium (um por benefício)
+const ICONES_BEN = {
+  'dep-ben-np': (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <circle className="ib-aro" cx="24" cy="24" r="20" />
+      <circle className="ib-moeda" cx="24" cy="24" r="14" />
+      <path className="ib-raio" d="M26 10 17 26h7l-2 12 10-17h-7z" />
+    </svg>
+  ),
+  'dep-ben-mold': (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <rect className="ib-aro ib-gira" x="6" y="6" width="36" height="36" rx="10" />
+      <circle className="ib-moeda" cx="24" cy="19" r="6" />
+      <path className="ib-moeda" d="M12 38c1-8 7-11 12-11s11 3 12 11z" />
+    </svg>
+  ),
+  'dep-ben-card': (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <rect className="ib-aro ib-c1" x="8" y="9" width="26" height="34" rx="4" />
+      <rect className="ib-moeda ib-c2" x="14" y="5" width="26" height="34" rx="4" />
+      <path className="ib-raio" d="M20 28l5-7 4 5 3-3 4 5z" />
+    </svg>
+  ),
+  'dep-ben-caixa': (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <rect className="ib-moeda" x="9" y="22" width="30" height="20" rx="3" />
+      <g className="ib-tampa"><rect className="ib-aro" x="6" y="15" width="36" height="8" rx="3" /></g>
+      <path className="ib-aro" d="M24 15v27" />
+      <path className="ib-aro" d="M24 15c-8-8-14 0-6 0M24 15c8-8 14 0 6 0" />
+    </svg>
+  ),
+  'dep-ben-selo': (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <path className="ib-moeda" d="M24 4 41 10v13c0 10-7 17-17 21C14 40 7 33 7 23V10z" />
+      <path className="ib-raio" d="m24 14 3.2 6.6 7.2 1-5.2 5 1.2 7.2L24 30.5 17.6 33.8l1.2-7.2-5.2-5 7.2-1z" />
+    </svg>
+  ),
+}
 
 // Uma moeda só; o tamanho cresce com o pacote (nada de logo repetido)
 function Moedas({ nivel }) {
@@ -299,18 +340,30 @@ export default function Deposito({ nomeInicial = '', modo = 'deposito', aoFechar
   // Apresentação do Premium (antes de escolher o plano)
   const apresentacao = (
     <div className="dep-ben">
+      <ParticulasPremium quantidade={40} />
       <ul className="dep-ben-lista">
         {[
           ['dep-ben-np', `+${numero(BONUS_PREMIUM_PARTIDA)} NP`, t('em cada partida jogada'), t('Vitória ou derrota: todo mapa que você joga rende {n} Neura Pontos a mais, além dos pontos normais.', { n: numero(BONUS_PREMIUM_PARTIDA) })],
           ['dep-ben-mold', t('Molduras exclusivas'), t('só para Premium'), t('Molduras animadas do avatar que ninguém mais pode usar.')],
           ['dep-ben-card', t('Cards exclusivos'), t('só para Premium'), t('Fundos de card do perfil liberados só para quem assina.')],
           ['dep-ben-caixa', t('Caixa exclusiva por semana'), t('em breve'), t('Uma caixa especial grátis toda semana, só para assinantes.')],
-          ['dep-ben-selo', t('Emblema Premium'), t('no perfil'), t('O emblema aparece no seu avatar em todo o site.')],
+          ['dep-ben-selo', t('Emblema Premium'), t('no perfil'), t('O emblema evolui com o tempo de assinatura, do Subscriber ao Legend, e aparece no seu avatar em todo o site.')],
         ].map(([cls, titulo, tag, texto]) => (
           <li key={cls} className={`dep-ben-item ${cls}`}>
+            <span className="dep-ben-icone">{ICONES_BEN[cls]}</span>
             <b>{titulo}</b>
             <em>{tag}</em>
             <p>{texto}</p>
+            {cls === 'dep-ben-selo' && (
+              <span className="dep-ben-emblemas">
+                {NIVEIS_SUB.map((n, i) => (
+                  <figure key={n.id} style={{ '--i': i }}>
+                    <img src={urlEmblema(n.id)} alt="" draggable={false} loading="lazy" />
+                    <figcaption>{n.nome}</figcaption>
+                  </figure>
+                ))}
+              </span>
+            )}
           </li>
         ))}
       </ul>

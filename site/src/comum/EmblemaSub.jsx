@@ -6,11 +6,21 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { CONFIG } from './config.js'
-import { NIVEIS_SUB, tituloNivel, urlEmblema } from './assinatura.js'
+import { NIVEIS_SUB, SUB_MESES_PADRAO, tituloNivel, urlEmblema } from './assinatura.js'
+import { useConfigSite } from './Moldura.jsx'
+import ParticulasPremium from './ParticulasPremium.jsx'
 import { useT } from './i18n.js'
+
+// Cor (r,g,b) de cada nível: halo do emblema e partículas
+const COR_NIVEL = { subscriber: '140,220,60', gold: '255,200,60', platinum: '160,205,255', diamond: '70,130,255', elite: '170,120,255', legend: '255,110,60' }
 
 function JanelaPremium({ nivel, parado, aoFechar }) {
   const t = useT()
+  const { subMeses } = useConfigSite()
+  const [vendo, setVendo] = useState(nivel.id) // nível aberto no destaque (clicar nos emblemas troca)
+  const v = NIVEIS_SUB.find((n) => n.id === vendo) || nivel
+  const meses = (n) => (n.id === 'subscriber' ? 0 : Number(subMeses?.[n.id]) || SUB_MESES_PADRAO[n.id])
+  const cor = COR_NIVEL[v.id]
   useEffect(() => {
     const tecla = (e) => e.key === 'Escape' && aoFechar()
     document.addEventListener('keydown', tecla)
@@ -18,7 +28,8 @@ function JanelaPremium({ nivel, parado, aoFechar }) {
   }, [aoFechar])
   return (
     <div className="pm-fundo" onClick={aoFechar}>
-      <div className="pm-janela" role="dialog" aria-modal="true" aria-labelledby="pm-titulo" onClick={(e) => e.stopPropagation()}>
+      <div className="pm-janela" style={{ '--cn': cor }} role="dialog" aria-modal="true" aria-labelledby="pm-titulo" onClick={(e) => e.stopPropagation()}>
+        <ParticulasPremium quantidade={34} cor={cor} />
         <div className="pm-cab">
           <h2 id="pm-titulo">{t('Emblema de assinatura Premium')}</h2>
           <button type="button" className="pm-x" onClick={aoFechar} aria-label={t('Fechar')}>
@@ -27,11 +38,20 @@ function JanelaPremium({ nivel, parado, aoFechar }) {
         </div>
         <div className="pm-niveis">
           {NIVEIS_SUB.map((n) => (
-            <figure key={n.id} className={n.id === nivel.id ? 'atual' : ''} title={tituloNivel(n)}>
+            <figure key={n.id} className={`${n.id === vendo ? 'atual' : ''}${n.id === nivel.id ? ' meu' : ''}`} style={{ '--cn': COR_NIVEL[n.id] }} title={tituloNivel(n)} onClick={() => setVendo(n.id)} onMouseEnter={() => setVendo(n.id)}>
               <img src={urlEmblema(n.id, parado)} alt="" draggable={false} />
               <figcaption>{n.nome}</figcaption>
             </figure>
           ))}
+        </div>
+        <div className="pm-destaque" key={v.id}>
+          <span className="pm-halo" aria-hidden="true" />
+          <img src={urlEmblema(v.id, parado)} alt="" draggable={false} />
+          <div>
+            <b>{tituloNivel(v)}</b>
+            <small>{meses(v) === 0 ? t('Desde o 1º mês de assinatura') : t('A partir de {n} meses de assinatura', { n: meses(v) })}</small>
+            {v.id === nivel.id && <em>{t('Nível atual')}</em>}
+          </div>
         </div>
         <p className="pm-atual">
           {t('Este jogador está no nível {nivel}.', { nivel: nivel.nome })}

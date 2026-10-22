@@ -16,6 +16,7 @@ import { acaoLobby, useLobby, useRelogio } from '../../comum/lobby.js'
 import SalaVeto from './SalaVeto.jsx'
 import { playSound } from '../neurapick/data/sounds.js'
 import { useT } from '../../comum/i18n.js'
+import ParticulasPremium from '../../comum/ParticulasPremium.jsx'
 
 // Lobby (estilo FACEIT): nível e temporada em cima, o grupo (5 lugares, você no meio) e o painel de partida embaixo.
 // O líder convida, remove e deixa o grupo aberto ("Grupo público": amigos entram sozinhos).
@@ -334,7 +335,7 @@ function Painel({ dados, fazer, ocupado }) {
   const t = useT()
   const [aba, setAba] = useState('tipo')
   const nivelSub = useNivelSub(dados.eu) // a assinatura é do líder, que é quem busca
-  const [escolhido, setEscolhido] = useState('bo3')
+  const [escolhido, setEscolhido] = useState('bo1') // o MD1 vem sempre marcado, mesmo para quem tem Premium
   const [dica, setDica] = useState('')
   const efetivo = escolhido === 'bo3' && !nivelSub ? 'bo1' : escolhido // sem assinatura o MD3 não vale: fica no MD1
   const modo = dados.busca && dados.formato ? dados.formato : efetivo // buscando: vale o que o líder mandou para a fila
@@ -407,7 +408,7 @@ function Painel({ dados, fazer, ocupado }) {
           <div className="lb-modos-caixa">
           <div className="lb-modos">
             {MODOS.map((m) => (
-              <button key={m.id} type="button" className={`lb-modo${modo === m.id ? ' sel' : ''}`} disabled={!trocavel && modo !== m.id} onClick={() => {
+              <button key={m.id} type="button" className={`lb-modo${m.premium ? ' lb-modo-premium' : ''}${modo === m.id ? ' sel' : ''}`} disabled={!trocavel && modo !== m.id} onClick={() => {
                   if (!trocavel) return
                   if (travado(m)) return setDica(t('A busca de MD3 é só para o líder com assinatura Premium.'))
                   setDica('')
@@ -415,9 +416,18 @@ function Painel({ dados, fazer, ocupado }) {
                 }}
                 aria-pressed={modo === m.id}
               >
+                {m.premium && <ParticulasPremium quantidade={22} />}
                 <span className="lb-modo-cab">
+                  {m.premium && (
+                    <svg className="lb-coroa" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                      <path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z" />
+                      <circle cx="3" cy="8" r="1.4" />
+                      <circle cx="12" cy="5" r="1.4" />
+                      <circle cx="21" cy="8" r="1.4" />
+                    </svg>
+                  )}
                   <b>{t(m.nome)}</b> <small>· 5v5</small>
-                  {travado(m) && <em className="lb-premium">PREMIUM</em>}
+                  {m.premium && <em className={`lb-premium${travado(m) ? '' : ' livre'}`}>PREMIUM</em>}
                 </span>
                 <span className="lb-modo-itens">
                   {m.itens.map(([texto, icone]) => (

@@ -38,16 +38,12 @@ body{
 
 /* ---------- arte ---------- */
 .figura{
-  position:absolute;inset:-2%;
-  background:var(--foto) center 40%/cover no-repeat;
-  transform:translate3d(var(--px,0px),var(--py,0px),0) scale(1.04);
-  transition:transform .35s ease-out;
-  animation:respira 16s ease-in-out infinite alternate;
-  will-change:transform;
+  /* arte fixa, do tamanho da tela (sem zoom nem movimento) */
+  position:absolute;inset:0;
+  background:var(--foto) center/cover no-repeat;
 }
-@keyframes respira{from{scale:1}to{scale:1.035}}
 /* quando a página "falha" por um instante (glitch ocasional) */
-.figura.glitch{animation:respira 16s ease-in-out infinite alternate,glitch .22s steps(2,end) 1}
+.figura.glitch{animation:glitch .22s steps(2,end) 1}
 @keyframes glitch{
   0%{filter:none;clip-path:inset(0 0 0 0)}
   20%{filter:hue-rotate(40deg) saturate(1.6);clip-path:inset(12% 0 70% 0);translate:-8px 0}
@@ -86,13 +82,17 @@ canvas#particulas{position:absolute;inset:0;width:100%;height:100%;pointer-event
 .dica i{display:inline-block;width:6px;height:6px;margin-right:9px;border-radius:50%;background:var(--ciano);box-shadow:0 0 10px var(--ciano);animation:pisca 1.4s ease-in-out infinite}
 @keyframes pisca{50%{opacity:.25}}
 
+/* celular em pé: a arte inteira (404 visível) no alto, com ela mesma desfocada preenchendo o resto da tela */
+.cena::before{content:"";display:none;position:absolute;inset:-20px;background:var(--foto) center/cover no-repeat;filter:blur(22px) brightness(.55)}
+@media (max-width:760px) and (orientation:portrait){
+  .cena::before{display:block}
+  .figura{inset:max(8vh,env(safe-area-inset-top,0px)) 0 auto 0;height:62%;background-size:contain;background-position:center top}
+}
 @media (max-width:760px){
-  .figura{background-position:center 38%}
-  .conteudo{bottom:calc(7vh + env(safe-area-inset-bottom,0px))}
+  .conteudo{bottom:calc(9vh + env(safe-area-inset-bottom,0px))}
   .botao{padding:13px 28px;font-size:12px;letter-spacing:.16em}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-:root[data-desempenho="1"] .figura{animation:none;transition:none}
 :root[data-desempenho="1"] canvas#particulas{display:none}
 </style>
 </head>
@@ -188,9 +188,6 @@ canvas#particulas{position:absolute;inset:0;width:100%;height:100%;pointer-event
   /* parallax leve com o mouse e glitch ocasional (só no computador) */
   var fig=document.querySelector('.figura');
   if(!leve){
-    addEventListener('pointermove',function(e){
-      fig.style.setProperty('--px',((e.clientX/innerWidth-.5)*-14)+'px');
-      fig.style.setProperty('--py',((e.clientY/innerHeight-.5)*-10)+'px')});
     (function glitch(){setTimeout(function(){fig.classList.add('glitch');setTimeout(function(){fig.classList.remove('glitch')},260);glitch()},rand(6000,13000))})()}
 })();
 </script>

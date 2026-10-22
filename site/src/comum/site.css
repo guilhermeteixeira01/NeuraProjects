@@ -3568,3 +3568,33 @@ html.ins-estante-aberta #root { filter: blur(10px) brightness(.5) saturate(.9); 
 .nx-time-logo { position: absolute; inset: 4px; width: calc(100% - 8px); height: calc(100% - 8px); object-fit: cover; border-radius: inherit; opacity: .42; pointer-events: none; z-index: 0; }
 .nx-link .nx-time-logo + svg, .nx-aba .nx-time-logo + svg { position: relative; z-index: 1; filter: drop-shadow(0 1px 3px rgb(0 0 0 / .85)); }
 .nx-aba i .nx-time-logo { inset: -2px; width: calc(100% + 4px); height: calc(100% + 4px); border-radius: 10px; }
+
+/* Partículas do Premium (ParticulasPremium.jsx) */
+.ppm-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+/* Janela dos emblemas: partículas na cor do nível, halo e destaque do nível escolhido */
+.pm-janela { position: relative; }
+.pm-janela > *:not(.ppm-canvas) { position: relative; z-index: 1; }
+.pm-janela .ppm-canvas { z-index: 0; }
+.pm-janela::before { content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(70% 45% at 50% 38%, rgb(var(--cn) / .16), transparent 70%); transition: background .3s; }
+.pm-niveis figure { cursor: pointer; transition: transform .2s, background .2s, border-color .2s; }
+.pm-niveis figure img { animation: pm-flutua 3.4s ease-in-out infinite; }
+.pm-niveis figure:nth-child(2n) img { animation-delay: -1.1s; }
+.pm-niveis figure:nth-child(3n) img { animation-delay: -2.2s; }
+.pm-niveis figure:hover { transform: translateY(-2px); }
+.pm-niveis figure.atual { border-color: rgb(var(--cn) / .7); background: rgb(var(--cn) / .1); box-shadow: 0 0 18px -4px rgb(var(--cn) / .6); }
+.pm-niveis figure.atual img { filter: drop-shadow(0 0 10px rgb(var(--cn) / .8)); }
+.pm-niveis figure.meu figcaption::after { content: ' ★'; color: rgb(var(--cn)); }
+.pm-destaque { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 18px 24px 0; animation: pm-troca .3s ease both; }
+.pm-destaque > img { position: relative; width: 96px; height: 96px; object-fit: contain; animation: pm-flutua 3.4s ease-in-out infinite; filter: drop-shadow(0 0 16px rgb(var(--cn) / .75)); }
+.pm-halo { position: absolute; width: 130px; height: 130px; margin-left: -17px; border-radius: 50%; background: radial-gradient(circle, rgb(var(--cn) / .35), transparent 68%); animation: pm-pulsa 2.4s ease-in-out infinite; }
+.pm-destaque > div { display: grid; gap: 3px; text-align: left; }
+.pm-destaque b { font: 800 22px var(--font-display); color: rgb(var(--cn)); text-shadow: 0 0 18px rgb(var(--cn) / .5); }
+.pm-destaque small { font: 600 13px var(--font-body); color: var(--dim); }
+.pm-destaque em { justify-self: start; font: 800 10px var(--font-mono); font-style: normal; letter-spacing: .12em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; color: #1a1400; background: rgb(var(--cn)); }
+.pm-premium:not(.desligado) { position: relative; overflow: hidden; background: linear-gradient(90deg, #ffd34d, #ff9d2e); box-shadow: 0 0 22px rgb(255 177 46 / .4); }
+@keyframes pm-flutua { 50% { transform: translateY(-4px); } }
+@keyframes pm-pulsa { 50% { transform: scale(1.15); opacity: .7; } }
+@keyframes pm-troca { from { opacity: 0; transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) { .pm-niveis figure img, .pm-destaque > img, .pm-halo, .pm-destaque { animation: none; } }
+html[data-desempenho] .pm-niveis figure img, html[data-desempenho] .pm-destaque > img, html[data-desempenho] .pm-halo { animation: none; }
