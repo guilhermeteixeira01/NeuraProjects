@@ -22,6 +22,9 @@ export const criarPagamento = (metodo, centavos, nome, cpf) => chamar('/pagament
 // { estado: 'pendente' | 'pago' | 'estornado', np?, saldo? }  (o servidor confere no Asaas e credita)
 export const estadoPagamento = (id) => chamar(`/pagamentos/estado?id=${encodeURIComponent(id)}`)
 
+// Configuração dos depósitos (mínimo, NP por real, pacotes e bônus): o dono muda no painel, o servidor calcula com ela
+export const lerConfigPagamento = () => chamar('/pagamentos/config').then((d) => d.cfg)
+
 export const MENSAGENS_PAGAMENTO = {
   indisponivel: 'Os depósitos ainda não estão ativos. Volte em breve!',
   valor: 'Valor fora do permitido.',

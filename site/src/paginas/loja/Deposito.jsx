@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom'
 import { PAGAMENTO, bonusDoPagamento, npDoPagamento } from '../../../worker/steam-login/src/loja-core.js'
 import { useT } from '../../comum/i18n.js'
 import { avisarSaldo } from '../../comum/loja.js'
-import { MENSAGENS_PAGAMENTO, criarPagamento, estadoPagamento, formatarCpf } from '../../comum/pagamentos.js'
+import { MENSAGENS_PAGAMENTO, criarPagamento, estadoPagamento, formatarCpf, lerConfigPagamento } from '../../comum/pagamentos.js'
 import './deposito.css'
 
 const numero = (n) => Number(n).toLocaleString('pt-BR')
@@ -23,7 +23,14 @@ function Moedas({ nivel }) {
 export default function Deposito({ nomeInicial = '', aoFechar, aoPagar }) {
   const t = useT()
   const [metodo, setMetodo] = useState('pix')
+  const [cfg, setCfg] = useState(PAGAMENTO) // valores de fábrica até o servidor responder (o dono pode ter mudado)
   const [centavos, setCentavos] = useState(PAGAMENTO.pacotes[1] * 100)
+  useEffect(() => {
+    lerConfigPagamento().then((c) => {
+      setCfg(c)
+      setCentavos((atual) => (c.pacotes.includes(atual / 100) ? atual : (c.pacotes[Math.min(1, c.pacotes.length - 1)] || c.pacotes[0]) * 100))
+    }, () => {})
+  }, [])
   const [livre, setLivre] = useState('')
   const [nome, setNome] = useState(nomeInicial)
   const [cpf, setCpf] = useState('')
@@ -73,9 +80,9 @@ export default function Deposito({ nomeInicial = '', aoFechar, aoPagar }) {
 
   const pacoteLivre = livre !== '' ? Math.round(Number(String(livre).replace(',', '.')) * 100) : null
   const valor = pacoteLivre ?? centavos
-  const valorOk = Number.isFinite(valor) && valor >= PAGAMENTO.minCentavos && valor <= PAGAMENTO.maxCentavos
-  const np = valorOk ? npDoPagamento(valor) : 0
-  const bonus = valorOk ? bonusDoPagamento(valor) : 0
+  const valorOk = Number.isFinite(valor) && valor >= cfg.minCentavos && valor <= cfg.maxCentavos
+  const np = valorOk ? npDoPagamento(valor, cfg) : 0
+  const bonus = valorOk ? bonusDoPagamento(valor, cfg) : 0
   const podePagar = valorOk && nome.trim().split(/\s+/).length >= 2 && cpf.replace(/\D/g, '').length === 11 && aceito && !criando
 
   const pagar = async () => {
@@ -100,7 +107,7 @@ export default function Deposito({ nomeInicial = '', aoFechar, aoPagar }) {
       // sem permissão de área de transferência: o código está visível para copiar à mão
     }
   }
-  const grade = useMemo(() => PAGAMENTO.pacotes.map((r) => ({ r, c: r * 100, np: npDoPagamento(r * 100), b: bonusDoPagamento(r * 100) })), [])
+  const grade = useMemo(() => cfg.pacotes.map((r) => ({ r, c: r * 100, np: npDoPagamento(r * 100, cfg), b: bonusDoPagamento(r * 100, cfg) })), [cfg])
 
   let corpo
   if (pago) {
@@ -185,7 +192,7 @@ export default function Deposito({ nomeInicial = '', aoFechar, aoPagar }) {
           </ul>
 
           <label className="dep-campo">
-            {t('Ou digite o valor (mínimo {min})', { min: reais(PAGAMENTO.minCentavos) })}
+            {t('Ou digite o valor (mínimo {min})', { min: reais(cfg.minCentavos) })}
             <input inputMode="decimal" placeholder="R$ 0,00" value={livre} onChange={(e) => setLivre(e.target.value.replace(/[^\d.,]/g, '').slice(0, 7))} />
           </label>
 
@@ -208,7 +215,7 @@ export default function Deposito({ nomeInicial = '', aoFechar, aoPagar }) {
           </label>
 
           {erro && <p className="dep-erro" role="alert">{t(erro)}</p>}
-          {!valorOk && livre !== '' && <p className="dep-erro">{t('O valor precisa estar entre {a} e {b}.', { a: reais(PAGAMENTO.minCentavos), b: reais(PAGAMENTO.maxCentavos) })}</p>}
+          {!valorOk && livre !== '' && <p className="dep-erro">{t('O valor precisa estar entre {a} e {b}.', { a: reais(cfg.minCentavos), b: reais(cfg.maxCentavos) })}</p>}
 
           <button type="button" className="dep-btn dep-btn-p dep-pagar" disabled={!podePagar} onClick={pagar}>
             {criando ? t('Gerando…') : valorOk ? t('Pagar {valor} e receber {np} NP', { valor: reais(valor), np: numero(np) }) : t('Escolha um valor')}
@@ -225,7 +232,7 @@ export default function Deposito({ nomeInicial = '', aoFechar, aoPagar }) {
         <header className="dep-cab">
           <div>
             <h2>{t('DEPOSITAR SALDO')}</h2>
-            <p>{t('Escolha como pagar e recarregue seus Neura Pontos. R$ 5,00 = 2.000 NP.')}</p>
+            <p>{t('Escolha como pagar e recarregue seus Neura Pontos. {valor} = {np} NP.', { valor: reais(cfg.minCentavos), np: numero(npDoPagamento(cfg.minCentavos, cfg)) })}</p>
           </div>
           <button type="button" className="dep-x" onClick={aoFechar} aria-label={t('Fechar')}>
             ×

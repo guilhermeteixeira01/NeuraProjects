@@ -318,10 +318,30 @@ export const PAGAMENTO = {
   pacotes: [5, 10, 25, 50, 100, 250, 500, 1000], // reais
   bonus: [[25, 5], [50, 10], [100, 15], [250, 20]], // [a partir de R$, % de bônus]
 }
-export const bonusDoPagamento = (centavos) => PAGAMENTO.bonus.filter(([reais]) => centavos >= reais * 100).reduce((_, [, pc]) => pc, 0)
-export const npDoPagamento = (centavos) => {
-  const base = Math.floor((centavos * PAGAMENTO.npPorReal) / 100)
-  return base + Math.floor((base * bonusDoPagamento(centavos)) / 100)
+// Os valores acima são os de fábrica; o dono muda no painel (aba Pontos → Depósitos) e o worker guarda no KV "pagamento-config".
+export const bonusDoPagamento = (centavos, cfg = PAGAMENTO) => cfg.bonus.filter(([reais]) => centavos >= reais * 100).reduce((_, [, pc]) => pc, 0)
+export const npDoPagamento = (centavos, cfg = PAGAMENTO) => {
+  const base = Math.floor((centavos * cfg.npPorReal) / 100)
+  return base + Math.floor((base * bonusDoPagamento(centavos, cfg)) / 100)
+}
+// Confere/limpa uma configuração de depósito vinda do painel (ou do KV). Devolve { cfg } ou { erro }.
+export function limparConfigPagamento(c) {
+  const inteiro = (v, min, max) => {
+    const n = Math.round(Number(v))
+    return Number.isFinite(n) && n >= min && n <= max ? n : null
+  }
+  const minCentavos = inteiro((Number(c?.minCentavos) || 0) / 1, 500, 1000000) // o Asaas não cobra menos de R$ 5,00
+  const maxCentavos = inteiro(c?.maxCentavos, 500, 10000000)
+  const npPorReal = inteiro(c?.npPorReal, 1, 100000)
+  if (minCentavos === null || maxCentavos === null || npPorReal === null || maxCentavos < minCentavos) return { erro: 'valores' }
+  const pacotes = [...new Set((Array.isArray(c?.pacotes) ? c.pacotes : []).map((v) => inteiro(v, 1, 100000)).filter((v) => v !== null && v * 100 >= minCentavos && v * 100 <= maxCentavos))].sort((a, b) => a - b).slice(0, 12)
+  if (!pacotes.length) return { erro: 'pacotes' }
+  const bonus = (Array.isArray(c?.bonus) ? c.bonus : [])
+    .map((b) => [inteiro(b?.[0], 1, 100000), inteiro(b?.[1], 0, 500)])
+    .filter((b) => b[0] !== null && b[1] !== null && b[1] > 0)
+    .sort((a, b) => a[0] - b[0])
+    .slice(0, 10)
+  return { cfg: { minCentavos, maxCentavos, npPorReal, pacotes, bonus } }
 }
 
 // Valor base em NP de cada raridade, com o desgaste Factory New. Fica bem abaixo do preço das caixas (vender não paga a caixa de volta).

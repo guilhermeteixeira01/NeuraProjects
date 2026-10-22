@@ -44,7 +44,7 @@ import { Trocas, rotaTrocas } from './trocas.js'
 import { Loja, valorDe, rotaAdminLoja, rotaLoja, rotaLojaPublica, rotaNotificacoes } from './loja.js'
 import { Mercado, rotaDrops, rotaMercado } from './mercado.js'
 import { zerarTudo } from './zerar.js'
-import { rotaPagamentos, rotaWebhookAsaas } from './pagamentos.js'
+import { rotaAdminPagamento, rotaPagamentos, rotaWebhookAsaas } from './pagamentos.js'
 import { ehInsigniaLoja, ID_MESTRE } from './loja-core.js'
 export { Presenca } // Durable Object da presença (wrangler.toml)
 export { Loja } // Durable Object da loja de caixas (wrangler.toml)
@@ -187,6 +187,10 @@ async function atender(req, env, ctx) {
         return rotaAdminSkins(url, env, cors)
       }
       // Loja de caixas: só o dono
+      if (rota === '/admin/pagamento-config' && (req.method === 'GET' || req.method === 'POST')) {
+        if (!pode('pontos')) return json({ erro: 'aba' }, 403, cors)
+        return rotaAdminPagamento(req, env, cors)
+      }
       if (((rota === '/admin/caixas' || rota === '/admin/caixas-lista' || rota === '/admin/loja-config' || rota === '/admin/loja-pontos') && req.method === 'POST') || (rota === '/admin/loja-saldo' && req.method === 'GET')) {
         if (!pode(rota === '/admin/loja-pontos' || rota === '/admin/loja-saldo' ? 'pontos' : 'caixas')) return json({ erro: 'aba' }, 403, cors)
         return rotaAdminLoja(req, env, rota, cors)

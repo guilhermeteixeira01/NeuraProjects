@@ -16,7 +16,7 @@
  * Configuração (wrangler): ASAAS_URL (var; sandbox: https://api-sandbox.asaas.com/v3 · produção: https://api.asaas.com/v3),
  * segredos ASAAS_API_KEY e ASAAS_WEBHOOK_TOKEN (npx wrangler secret put ...). Sem ASAAS_API_KEY o depósito fica "indisponível".
  */
-import { PAGAMENTO, npDoPagamento } from './loja-core.js'
+import { PAGAMENTO, limparConfigPagamento, npDoPagamento } from './loja-core.js'
 import { pontosGanhos } from './loja.js'
 
 const json = (dados, status = 200, extra = {}) =>
@@ -24,6 +24,33 @@ const json = (dados, status = 200, extra = {}) =>
 
 const PAGO = new Set(['RECEIVED', 'CONFIRMED', 'RECEIVED_IN_CASH'])
 const ESTORNADO = new Set(['REFUNDED', 'REFUND_REQUESTED', 'REFUND_IN_PROGRESS', 'CHARGEBACK_REQUESTED', 'CHARGEBACK_DISPUTE', 'AWAITING_CHARGEBACK_REVERSAL'])
+
+// Configuração dos depósitos (o dono edita no painel). Fica no KV "pagamento-config"; lida com cache curto (muda pouco, é lida a cada depósito).
+let cfgGuardada = { cfg: null, ate: 0 }
+export async function lerConfigPagamento(env) {
+  if (cfgGuardada.cfg && cfgGuardada.ate > Date.now()) return cfgGuardada.cfg
+  let cfg = PAGAMENTO
+  try {
+    const salva = await env.MOLDURAS.get('pagamento-config', 'json')
+    const limpa = salva ? limparConfigPagamento(salva) : null
+    if (limpa?.cfg) cfg = limpa.cfg
+  } catch {
+    // KV fora: valores de fábrica
+  }
+  cfgGuardada = { cfg, ate: Date.now() + 20000 }
+  return cfg
+}
+
+// GET/POST /admin/pagamento-config (aba Pontos do painel): { cfg } ou grava e devolve { cfg }
+export async function rotaAdminPagamento(req, env, cors) {
+  if (req.method === 'GET') return json({ cfg: await lerConfigPagamento(env) }, 200, cors)
+  const corpo = await req.json().catch(() => null)
+  const r = limparConfigPagamento(corpo)
+  if (r.erro) return json({ erro: r.erro }, 400, cors)
+  await env.MOLDURAS.put('pagamento-config', JSON.stringify(r.cfg))
+  cfgGuardada = { cfg: r.cfg, ate: Date.now() + 20000 }
+  return json({ ok: true, cfg: r.cfg }, 200, cors)
+}
 
 const lojaDe = (env, id) => env.LOJA.get(env.LOJA.idFromName(id))
 const chamarLoja = async (env, id, corpo) => {
@@ -72,7 +99,8 @@ async function criar(env, quem, corpo) {
   const centavos = Math.round(Number(corpo.centavos))
   const nome = String(corpo.nome || '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 80)
   if (!metodo) return { status: 400, dados: { erro: 'metodo' } }
-  if (!Number.isFinite(centavos) || centavos < PAGAMENTO.minCentavos || centavos > PAGAMENTO.maxCentavos) return { status: 400, dados: { erro: 'valor' } }
+  const cfg = await lerConfigPagamento(env)
+  if (!Number.isFinite(centavos) || centavos < cfg.minCentavos || centavos > cfg.maxCentavos) return { status: 400, dados: { erro: 'valor' } }
   if (nome.split(/\s+/).filter(Boolean).length < 2) return { status: 400, dados: { erro: 'nome' } }
   if (!cpfValido(corpo.cpf)) return { status: 400, dados: { erro: 'cpf' } }
   const cpf = String(corpo.cpf).replace(/\D/g, '')
@@ -86,7 +114,7 @@ async function criar(env, quem, corpo) {
       return c
     }
     let cliente = pode.cliente || (await novoCliente())
-    const np = npDoPagamento(centavos)
+    const np = npDoPagamento(centavos, cfg)
     const nova = (customer) =>
       asaas(env, '/payments', 'POST', {
         customer,
@@ -147,6 +175,7 @@ export async function rotaPagamentos(req, env, quem, cors, rota, url) {
     const r = await criar(env, quem, corpo || {})
     return json(r.dados, r.status, cors)
   }
+  if (rota === '/pagamentos/config' && req.method === 'GET') return json({ cfg: await lerConfigPagamento(env) }, 200, cors)
   if (rota === '/pagamentos/estado' && req.method === 'GET') {
     try {
       const r = await conciliar(env, url.searchParams.get('id') || '', quem.id)
