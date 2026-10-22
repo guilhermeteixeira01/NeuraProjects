@@ -134,3 +134,6 @@ html[data-desempenho] .dep-ben *, html[data-desempenho] .dep-ben *::after { anim
 .dep-ben-selo { grid-column: 1 / -1; }
 .dep-ben-selo .dep-ben-emblemas { flex-wrap: nowrap; justify-content: space-between; gap: 8px; max-width: 520px; }
 @media (max-width: 520px) { .dep-ben-selo .dep-ben-emblemas { flex-wrap: wrap; justify-content: flex-start; } }
+
+/* Aberto a partir da janela dos emblemas (z-index 10001): fica por cima dela */
+.pm-fundo ~ .dep-fundo { z-index: 10002; }
