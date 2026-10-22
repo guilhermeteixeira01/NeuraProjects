@@ -64,10 +64,11 @@ const lerRapida = () => {
 }
 
 // ── botão hexagonal com a dica em cima (quantidade, Jester, Boost, Lightning, som) ──
-function Hex({ ativo, cor, titulo, dica, aoClicar, children, rotulo, desativado = false }) {
+// acende / acendeFundo: cor própria do botão quando ligado (o Lightning acende amarelo mesmo dentro do Jester roxo ou do Boost laranja)
+function Hex({ ativo, cor, acende, acendeFundo, titulo, dica, aoClicar, children, rotulo, desativado = false }) {
   return (
     <span className="lj-hex-caixa">
-      <button type="button" className={`lj-hex${ativo ? ' is-ativo' : ''}`} onClick={aoClicar} disabled={desativado} aria-pressed={ativo} aria-label={rotulo || titulo}>
+      <button type="button" className={`lj-hex${ativo ? ' is-ativo' : ''}`} style={acende ? { '--modo': acende, '--modo-fundo': acendeFundo || '#4a3b05' } : undefined} onClick={aoClicar} disabled={desativado} aria-pressed={ativo} aria-label={rotulo || titulo}>
         <span>{children}</span>
       </button>
       {titulo && (
@@ -425,7 +426,7 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado = false, ac
             {falta && <small className="lj-cx-falta">{t('Faltam {n} NP', { n: numero(custo - saldo) })}</small>}
           </div>
           <div className="lj-cx-modos">
-            <Hex ativo={rapida} cor="#f5c518" titulo="Lightning" dica={t('Acelere a animação de abertura da caixa')} aoClicar={alternarRapida}>
+            <Hex ativo={rapida} cor="#f5c518" acende="#f5c518" acendeFundo="#5a4707" titulo="Lightning" dica={t('Acelere a animação de abertura da caixa')} aoClicar={alternarRapida}>
               <Icone d={ICONES.raio} preenchido />
             </Hex>
             <Hex ativo={somLigado} rotulo={somLigado ? t('Desligar o som') : t('Ligar o som')} aoClicar={alternarSom}>

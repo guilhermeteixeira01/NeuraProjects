@@ -672,3 +672,6 @@ html.lj-travado .nx-rolagem { display: none !important; }
   .lj-tile-arma { width: 138px; height: 66px; }
   .lj-tile::before { width: 64px; height: 64px; }
 }
+
+/* Lightning ligado: borda amarela e brilho no ícone */
+.lj-hex.is-ativo[style*="--modo: #f5c518"] > span { color: #ffd84d; filter: drop-shadow(0 0 5px rgb(245 197 24 / .75)); }
