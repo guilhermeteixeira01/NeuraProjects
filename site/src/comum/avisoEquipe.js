@@ -1,7 +1,7 @@
 // Aviso de mensagem nova no chat do time (vale em qualquer página do site):
 //  - com o som ligado: toca um "plim" quando alguém do time escreve;
-//  - silenciado (botão do sino no chat do time): sem som, mas o ícone "Times" do menu fica com uma bolinha "!" piscando
-//    até a pessoa abrir o chat do time.
+//  - em qualquer caso o ícone "Times" do menu fica com uma bolinha "!" piscando até a pessoa abrir o chat do time;
+//  - silenciado (botão do sino no chat do time): só a bolinha, sem som.
 // As mensagens chegam pelo evento np-equipe-chat (comum/amigos.js, ao vivo pela presença).
 import { useEffect, useState } from 'react'
 
@@ -54,10 +54,9 @@ export function iniciarAvisoEquipe() {
   window.addEventListener('np-equipe-chat', (e) => {
     if (!e.detail?.msg) return // só mensagem nova (apagar não avisa)
     if (vendoChat && document.visibilityState === 'visible') return
-    if (mudo) {
-      pendente = true
-      avisar()
-    } else tocar()
+    pendente = true
+    avisar()
+    if (!mudo) tocar()
   })
 }
 
@@ -77,7 +76,6 @@ export function definirMudoEquipe(valor) {
   } catch {
     // sem localStorage: vale só até recarregar
   }
-  if (!mudo) pendente = false
   avisar()
 }
 
@@ -89,5 +87,5 @@ export function useAvisoEquipe() {
     window.addEventListener(EVENTO, f)
     return () => window.removeEventListener(EVENTO, f)
   }, [])
-  return { mudo, pendente: pendente && mudo }
+  return { mudo, pendente }
 }

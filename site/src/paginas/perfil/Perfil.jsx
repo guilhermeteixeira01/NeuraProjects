@@ -611,21 +611,13 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
             </div>
             {/* Time e Premier ficam logo abaixo do cartão do jogador */}
             <div className="pf-infos pf-infos-lado fx-entra" style={{ '--e': 2 }}>
-              {(timeEscolhido || j.time) && (
-                <div className="pf-info">
-                  <span className="pf-info-rot">{t('TIME')}</span>
-                  {/* Time escolhido no "Personalizar"; sem escolha, o da última partida */}
-                  <span className="pf-info-val">
-                    <TimeEscolhido steamId={j.steamId} classe="pf-time" />
-                    {!timeEscolhido && (
-                      <span className="pf-time">
-                        {urlOk(j.logoTime) && <img src={j.logoTime} alt="" />}
-                        <span>{j.time}</span>
-                      </span>
-                    )}
-                  </span>
-                </div>
-              )}
+              <div className="pf-info">
+                <span className="pf-info-rot">{t('TIME')}</span>
+                {/* Só o time criado em que o jogador está; sem time, "Sem time" */}
+                <span className="pf-info-val">
+                  {timeEscolhido ? <TimeEscolhido steamId={j.steamId} classe="pf-time" /> : <span className="pf-time"><span>{t('Sem time')}</span></span>}
+                </span>
+              </div>
               <div className="pf-info">
                 <span className="pf-info-rot">PREMIER</span>
                 <span className="pf-info-val">
