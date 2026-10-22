@@ -3633,3 +3633,4 @@ html[data-desempenho] .pm-niveis figure img, html[data-desempenho] .pm-destaque 
   html { overflow-x: hidden; }
   .nx-baixo { transform: translateZ(0); will-change: transform; }
 }
+.emblema-sub-fixo { cursor: default; }

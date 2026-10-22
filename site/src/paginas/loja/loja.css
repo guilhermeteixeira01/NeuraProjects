@@ -616,3 +616,31 @@ html.lj-travado .nx-rolagem { display: none !important; }
 @keyframes lj-em-pisca { 50% { opacity: .25; } }
 @media (max-width: 760px) { .lj-faixas[data-n='4'] .lj-emblema, .lj-faixas[data-n='5'] .lj-emblema { width: 34px; height: 34px; } }
 @media (prefers-reduced-motion: reduce) { .lj-em-giro, .lj-em-contra, .lj-em-pisca { animation: none; } }
+
+/* ── Ajustes: partículas dos modos, cartões de caixa iguais, botão de vender no celular, carrossel maior ── */
+/* partículas do Jester/Boost: canvas fixo na tela inteira (antes era um quadrado maior que a moldura que cortava as partículas e fazia a página mexer) */
+.lj-cx-particulas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 60; pointer-events: none; }
+/* todos os cartões de caixa com a mesma altura: arte quadrada, nome em até 2 linhas numa área fixa, preço e faixa sempre na mesma posição */
+.lj-grade-caixas > li { display: flex; min-width: 0; }
+.lj-caixa { height: 100%; grid-template-rows: auto minmax(2.4em, 1fr) auto auto; align-content: start; }
+.lj-caixa b { display: grid; place-items: center; line-height: 1.18; text-wrap: balance; }
+.lj-caixa .lj-tem { position: absolute; top: 8px; right: 8px; margin: 0; z-index: 2; }
+/* carrossel de drops: arma maior dentro do cartão */
+.lj-drops { height: 128px; }
+.lj-drops-lista > li { width: 178px; }
+@keyframes lj-drop-entra { from { width: 0; opacity: 0; transform: translateX(-40px); } 60% { opacity: 1; } to { width: 178px; opacity: 1; transform: none; } }
+.lj-tile { background: radial-gradient(circle at 50% 44%, rgb(0 0 0 / .3) 0 44px, transparent 45px), linear-gradient(150deg, color-mix(in srgb, var(--cor) 58%, #0b0c12) 0%, color-mix(in srgb, var(--cor) 22%, #0b0c12) 100%); }
+.lj-tile-arma { top: 8px; width: 168px; height: 84px; }
+.lj-tile-nome { font-size: 14.5px; bottom: 10px; }
+@media (max-width: 700px) {
+  .lj-drops { height: 108px; }
+  .lj-drops-lista > li { width: 142px; }
+  @keyframes lj-drop-entra { from { width: 0; opacity: 0; } to { width: 142px; opacity: 1; } }
+  .lj-tile-arma { top: 6px; width: 132px; height: 62px; }
+  .lj-tile-nome { font-size: 12.5px; }
+  /* "Vender por N NP" no canto de cima, pequeno: não cobre mais o item ganho (que fica no meio da roleta) */
+  .lj-vender-um { top: 6px !important; bottom: auto !important; right: 6px !important; left: auto !important; padding: 5px 9px !important; font-size: 11.5px !important; border-radius: 6px; max-width: 124px; line-height: 1.15; white-space: nowrap; }
+}
+.lj-grade-caixas { grid-auto-rows: 1fr; } /* todas as linhas da grade com a mesma altura */
+.lj-caixa { grid-template-rows: auto 2.4em auto auto; }
+.lj-caixa b { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; align-content: center; text-align: center; }

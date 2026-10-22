@@ -115,17 +115,23 @@ function ParticulasModo({ modo, chave }) {
     if (!cv || !modo || modo === 'normal') return
     const ctx = cv.getContext('2d')
     const dpr = Math.min(2, window.devicePixelRatio || 1)
-    const w = (cv.width = cv.clientWidth * dpr)
-    const h = (cv.height = cv.clientHeight * dpr)
+    // canvas fixo na tela inteira (não ocupa espaço nem é cortado); as partículas saem da moldura das roletas, que é o elemento pai
+    const alvo = cv.parentElement.getBoundingClientRect()
+    const w = (cv.width = window.innerWidth * dpr)
+    const h = (cv.height = window.innerHeight * dpr)
+    const L = alvo.left * dpr
+    const T = alvo.top * dpr
+    const W = alvo.width * dpr
+    const H = alvo.height * dpr
     const cores = CORES[modo]
     const n = desempenhoAtivo() ? 50 : 160
     const jester = modo === 'jester'
     // Jester: estrelinhas que estouram de toda a borda; Boost: faíscas que sobem da borda de baixo
     const ps = Array.from({ length: n }, () => {
       const lado = Math.random()
-      const x = jester ? (lado < 0.5 ? Math.random() * w : lado < 0.75 ? 0 : w) : Math.random() * w
-      const y = jester ? (lado < 0.25 ? 0 : lado < 0.5 ? h : Math.random() * h) : h - Math.random() * h * 0.15
-      const ang = jester ? Math.atan2(y - h / 2, x - w / 2) + (Math.random() - 0.5) * 1.2 : -Math.PI / 2 + (Math.random() - 0.5) * 0.7
+      const x = jester ? (lado < 0.5 ? L + Math.random() * W : lado < 0.75 ? L : L + W) : L + Math.random() * W
+      const y = jester ? (lado < 0.25 ? T : lado < 0.5 ? T + H : T + Math.random() * H) : T + H - Math.random() * H * 0.15
+      const ang = jester ? Math.atan2(y - (T + H / 2), x - (L + W / 2)) + (Math.random() - 0.5) * 1.2 : -Math.PI / 2 + (Math.random() - 0.5) * 0.7
       const v = (jester ? 1.5 + Math.random() * 4 : 3 + Math.random() * 7) * dpr
       return { x, y, vx: Math.cos(ang) * v, vy: Math.sin(ang) * v, vida: 1, tam: (jester ? 2 + Math.random() * 4 : 1.5 + Math.random() * 3) * dpr, cor: cores[Math.floor(Math.random() * cores.length)], rot: Math.random() * 6 }
     })

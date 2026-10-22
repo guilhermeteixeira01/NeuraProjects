@@ -7,7 +7,7 @@ import { Suspense, lazy, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { entrar, loginAtivo, useConta } from './conta.js'
 import { NIVEIS_SUB, SUB_MESES_PADRAO, tituloNivel, urlEmblema } from './assinatura.js'
-import { useConfigSite } from './Moldura.jsx'
+import { useConfigSite, useNivelSub } from './Moldura.jsx'
 import ParticulasPremium from './ParticulasPremium.jsx'
 import { useT } from './i18n.js'
 
@@ -84,6 +84,8 @@ function JanelaPremium({ nivel, parado, aoFechar }) {
 
 export default function EmblemaSub({ nivel, parado = false }) {
   const t = useT()
+  const conta = useConta()
+  const souPremium = !!useNivelSub(conta?.id) // quem já assina não vê a janela "Seja Premium"
   const [dica, setDica] = useState(null) // { x, y } da caixinha (tela)
   const [aberta, setAberta] = useState(false)
   const abrirDica = (e) => {
@@ -95,14 +97,14 @@ export default function EmblemaSub({ nivel, parado = false }) {
     e.preventDefault()
     e.stopPropagation()
     setDica(null)
-    setAberta(true)
+    if (!souPremium) setAberta(true)
   }
   return (
     <>
       <span
-        className="emblema-sub"
-        role="button"
-        tabIndex={0}
+        className={`emblema-sub${souPremium ? ' emblema-sub-fixo' : ''}`}
+        role={souPremium ? 'img' : 'button'}
+        tabIndex={souPremium ? -1 : 0}
         aria-label={tituloNivel(nivel)}
         onMouseEnter={abrirDica}
         onMouseLeave={() => setDica(null)}
