@@ -8,6 +8,7 @@ import { EVENTO_MERCADO, cancelarAnuncio, comprarAnuncio, erroDoMercado, lerMerc
 import { descrever, indicar, useCatalogo } from '../../comum/skins.js'
 import { confirmar } from '../../comum/Dialogos.jsx'
 import Cartao from '../../comum/CartaoSkin.jsx'
+import { CarregandoNP } from '../../comum/Carregando.jsx'
 import { BotaoInspecionar } from '../../comum/InspecionarSkin.jsx'
 
 const TIPOS = [
@@ -103,7 +104,7 @@ export default function AbaMercado({ saldo, aoMudarSaldo }) {
   }
 
   if (erro && !anuncios) return <p className="lj-dica">{t('Não consegui carregar o mercado. Tente de novo mais tarde.')}</p>
-  if (!anuncios || !catalogo.dados) return <p className="lj-dica">{t('Carregando…')}</p>
+  if (!anuncios || !catalogo.dados) return <CarregandoNP />
 
   return (
     <section className="lj-mercado" aria-label={t('Mercado')}>

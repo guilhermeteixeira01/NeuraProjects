@@ -3,6 +3,7 @@
 // Cada modo pinta a página com a cor dele (Jester roxo, Boost laranja) e entra com partículas e som. Abrir roda as roletas ali mesmo
 // (Abertura embutida). Chances, preços dos modos e valores por desgaste vêm do servidor (GET /loja/caixa).
 import { useEffect, useMemo, useRef, useState } from 'react'
+import Deposito from './Deposito.jsx'
 import { useT } from '../../comum/i18n.js'
 import { avisarSaldo, lerDetalhesCaixa, venderItens } from '../../comum/loja.js'
 import { desempenhoAtivo } from '../../comum/desempenho.js'
@@ -260,6 +261,7 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado = false, ac
   const maximo = Math.min(maxQtd, MAX_POR_VEZ)
   const [qtd, setQtd] = useState(1)
   const [modo, setModo] = useState(null) // null | 'jester' | 'boost'
+  const [depositando, setDepositando] = useState(false) // sem NP para abrir: o botão Abrir leva direto para a recarga
   const [efeito, setEfeito] = useState(0) // muda a cada troca de modo: dispara as partículas de novo
   const [rapida, setRapida] = useState(false)
   const [somLigado, setSomLigado] = useState(true)
@@ -417,13 +419,12 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado = false, ac
                 <Icone d="M12 2v12m0 0 4-4m-4 4-4-4M4 16v4h16v-4" />
                 {aVender.length ? t('Vender tudo por {n} NP', { n: numero(totalVenda) }) : t('Tudo vendido')}
               </button>
-              <button type="button" className="lj-cx-de-novo" disabled={preco == null || falta} onClick={() => abrir(qtd, modo ? 'direto' : 'auto')}>
+              <button type="button" className="lj-cx-de-novo" disabled={preco == null} onClick={() => (falta ? setDepositando(true) : abrir(qtd, modo ? 'direto' : 'auto'))}>
                 <Icone d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4" />
                 {t('Abrir de novo por {n} NP', { n: numero(custo ?? 0) })}
               </button>
             </span>
             {erroVenda && <small className="lj-cx-falta">{erroVenda}</small>}
-            {falta && <small className="lj-cx-falta">{t('Faltam {n} NP', { n: numero(custo - saldo) })}</small>}
           </div>
           <div className="lj-cx-modos">
             <Hex ativo={rapida} cor="#f5c518" acende="#f5c518" acendeFundo="#5a4707" titulo="Lightning" dica={t('Acelere a animação de abertura da caixa')} aoClicar={alternarRapida}>
@@ -448,10 +449,9 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado = false, ac
           </div>
 
           <div className="lj-cx-abrir">
-            <button type="button" className="lj-cx-btn-abrir" disabled={girando || ocupado || preco == null || falta} onClick={() => abrir(qtd, 'direto')}>
+            <button type="button" className="lj-cx-btn-abrir" disabled={girando || ocupado || preco == null} onClick={() => (falta ? setDepositando(true) : abrir(qtd, 'direto'))}>
               {girando ? t('Abrindo…') : preco == null ? t('Carregando…') : t('Abrir por {n} NP', { n: numero(custo) })}
             </button>
-            {falta && !girando && <small className="lj-cx-falta">{t('Faltam {n} NP', { n: numero(custo - saldo) })}</small>}
             {!modo && tem > 0 && (
               <span className="lj-cx-extras">
                 <button type="button" className="lj-cx-link" disabled={girando || ocupado} onClick={() => abrir(Math.min(qtd, tem), 'inventario')}>
@@ -468,7 +468,7 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado = false, ac
             <Hex ativo={modo === 'boost'} desativado={girando} cor="#ff6b5b" titulo="Boost Mode" dica={t('Chances aumentadas para itens melhores ({n} NP)', { n: det ? numero(det.modos.boost.preco) : '…' })} aoClicar={() => alternarModo('boost')}>
               <Icone d={ICONES.boost} />
             </Hex>
-            <Hex ativo={rapida} cor="#f5c518" titulo="Lightning" dica={t('Acelere a animação de abertura da caixa')} aoClicar={alternarRapida}>
+            <Hex ativo={rapida} cor="#f5c518" acende="#f5c518" acendeFundo="#5a4707" titulo="Lightning" dica={t('Acelere a animação de abertura da caixa')} aoClicar={alternarRapida}>
               <Icone d={ICONES.raio} preenchido />
             </Hex>
             <Hex ativo={somLigado} rotulo={somLigado ? t('Desligar o som') : t('Ligar o som')} aoClicar={alternarSom}>
@@ -484,6 +484,7 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado = false, ac
           <ItemConteudo key={x.chave} r={x.r} base={x.base} chance={x.chance} normal={x.normal} modo={modo} desgastes={x.desgastes} achar={achar} />
         ))}
       </ul>
+      {depositando && <Deposito aoFechar={() => setDepositando(false)} aoPagar={aoAbriu} />}
     </section>
   )
 }

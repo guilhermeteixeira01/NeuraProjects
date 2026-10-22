@@ -14,6 +14,7 @@ import { NIVEIS, NIVEL_ELITE, textoNivel } from '../../comum/niveis.js'
 import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, salvarPerfil, useAdmin, useCardDe, usePerfis, useTimeDe } from '../../comum/Moldura.jsx'
 import Premier from '../../comum/Premier.jsx'
 import InventarioDoJogador from '../../comum/InventarioDoJogador.jsx'
+import { CarregandoNP } from '../../comum/Carregando.jsx'
 import { BotaoTrocas } from '../../comum/Trocas.jsx'
 import { BarraXp, SeloNivel, useNivelDe } from '../../comum/Nivel.jsx'
 import SeletorMoldura from './SeletorMoldura.jsx'
@@ -798,7 +799,7 @@ export default function Perfil() {
   // Sem login, o perfil de um jogador aparece embaçado com o pedido para entrar (a tela "Seu perfil" já pede login)
   let travado = false
   if (idUrl === null || (id && (!dados || dados.id !== id))) {
-    conteudo = <Aviso titulo="Carregando perfil…" />
+    conteudo = <CarregandoNP />
   } else if (!id) {
     conteudo = loginAtivo() ? (
       <Aviso titulo="Seu perfil" texto="Entre com a Steam para ver suas estatísticas, seu histórico de partidas e sua posição no ranking.">

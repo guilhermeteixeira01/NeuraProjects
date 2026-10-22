@@ -22,6 +22,7 @@ import { avisarSaldo, lerCaixasPublicas, lerValores, venderItens } from '../../c
 import { EVENTO_MERCADO, anunciarItem, cancelarAnuncio, erroDoMercado, lerMercado } from '../../comum/mercado.js'
 import { RARIDADES_CS, raridadeCsDaCor } from '../../../worker/steam-login/src/loja-core.js'
 import Cartao, { nomeDoDesgaste } from '../../comum/CartaoSkin.jsx'
+import { CarregandoNP } from '../../comum/Carregando.jsx'
 import { confirmar } from '../../comum/Dialogos.jsx'
 import { BotaoTrocas } from '../../comum/Trocas.jsx'
 import { ArmaComEnfeites, Visualizador3D, idNo3d, useMapas3d, Inspecionar, useTelaPequena } from '../../comum/InspecionarSkin.jsx'
@@ -1055,7 +1056,7 @@ function Conteudo() {
       </div>
     )
   if (erroCarga) return <p className="inv-dica">{t('Não consegui carregar o seu inventário. Tente de novo mais tarde.')}</p>
-  if (!inv || !catalogo.dados) return <p className="inv-dica">{catalogo.erro ? t('Não consegui carregar o catálogo de skins.') : t('Carregando…')}</p>
+  if (!inv || !catalogo.dados) return catalogo.erro ? <p className="inv-dica">{t('Não consegui carregar o catálogo de skins.')}</p> : <CarregandoNP />
 
   const itemMenu = menu ? { ...inv.itens[menu.id], __id: menu.id } : null
   const itemJanela = janela?.id && inv.itens[janela.id] ? { ...inv.itens[janela.id], __id: janela.id } : null

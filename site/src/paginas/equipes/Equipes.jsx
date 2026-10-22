@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Layout from '../../comum/Layout.jsx'
 import { confirmar } from '../../comum/Dialogos.jsx'
+import { CarregandoNP } from '../../comum/Carregando.jsx'
 import { CONFIG } from '../../comum/config.js'
 import { entrar, linkPerfil, loginAtivo, tokenConta, useConta } from '../../comum/conta.js'
 import { useAvatar } from '../../comum/avatares.js'
@@ -724,7 +725,7 @@ function Conteudo() {
       </div>
     )
   if (erro && !dados) return <p className="eq-vazio">{t('Não consegui carregar os times agora. Tente de novo mais tarde.')}</p>
-  if (!dados) return <p className="eq-vazio">{t('Carregando…')}</p>
+  if (!dados) return <CarregandoNP />
   return dados.time ? <ComTime dados={dados} recarregar={recarregar} eu={conta.id} /> : <SemTime dados={dados} recarregar={recarregar} />
 }
 

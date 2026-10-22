@@ -8,6 +8,7 @@ import { avisarSaldo, lerLoja } from '../../comum/loja.js'
 import Abertura, { useAcharItem } from './Abertura.jsx'
 import AbaMercado from './Mercado.jsx'
 import Deposito from './Deposito.jsx'
+import { CarregandoNP } from '../../comum/Carregando.jsx'
 import Drops from './Drops.jsx'
 import PaginaCaixa, { useFavoritas } from './PaginaCaixa.jsx'
 import { prepararSons } from './somLoja.js'
@@ -250,7 +251,7 @@ function Conteudo() {
       </div>
     )
   if (erroCarga) return <p className="lj-dica">{t('Não consegui carregar a loja. Tente de novo mais tarde.')}</p>
-  if (!dados) return <p className="lj-dica">{t('Carregando…')}</p>
+  if (!dados) return <CarregandoNP />
 
   const abertura_ = abertura && <Abertura key={abertura.chave} caixa={abertura.caixa} qtd={abertura.qtd} origem={abertura.origem} maxQtd={dados.cfg.maxQtd} aoFechar={fecharAbertura} aoOutra={(n) => setAbertura({ caixa: abertura.caixa, qtd: n || 1, origem: 'auto', chave: Date.now() })} />
 

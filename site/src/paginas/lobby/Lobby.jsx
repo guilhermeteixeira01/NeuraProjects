@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import Layout from '../../comum/Layout.jsx'
+import { CarregandoNP } from '../../comum/Carregando.jsx'
 import { CONFIG } from '../../comum/config.js'
 import { entrar, linkPerfil, loginAtivo } from '../../comum/conta.js'
 import { lerJson } from '../../comum/dados.js'
@@ -510,7 +511,7 @@ function Conteudo() {
         )}
       </div>
     )
-  if (!dados) return <p className="lb-carregando">{erro ? t(ERROS[erro] || 'Não deu para carregar o lobby.') : t('Carregando lobby…')}</p>
+  if (!dados) return erro ? <p className="lb-carregando">{t(ERROS[erro] || 'Não deu para carregar o lobby.')}</p> : <CarregandoNP />
   // Os 10 aceitaram: a sala de Pick & Ban toma o lugar do lobby (o aceite em si é o botão no centro da tela, em AceitarPartida.jsx)
   if (dados.partida && dados.partida.fase !== 'aceitar') return <SalaVeto dados={dados} />
 

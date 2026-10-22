@@ -675,3 +675,6 @@ html.lj-travado .nx-rolagem { display: none !important; }
 
 /* Lightning ligado: borda amarela e brilho no ícone */
 .lj-hex.is-ativo[style*="--modo: #f5c518"] > span { color: #ffd84d; filter: drop-shadow(0 0 5px rgb(245 197 24 / .75)); }
+
+/* o carrossel de drops encosta no topo da página */
+.lj-pagina { padding-top: 0; }

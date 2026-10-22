@@ -5,6 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { nomeDoDesgaste } from './CartaoSkin.jsx'
+import { CONFIG } from './config.js'
 import { useT } from './i18n.js'
 import { descrever, indicar, urlImg, useCatalogo } from './skins.js'
 import { tocar } from './somInventario.js'
@@ -139,7 +140,7 @@ export function Visualizador3D({ item, m, aoMudar, aoEstado, aoFalhar, controle,
   const ref = useRef(null)
   const inicial = useRef(null)
   const [estado, setEstado] = useState('carregando') // 'carregando' | 'ok' | 'falhou'
-  if (!inicial.current) inicial.current = `${ORIGEM_3D}/view?item=${encodeURIComponent(JSON.stringify(itemParaViewer(item, m)))}`
+  if (!inicial.current) inicial.current = `${ORIGEM_3D}/view?item=${encodeURIComponent(JSON.stringify(itemParaViewer(item, m)))}${CONFIG.chave3d ? `&key=${encodeURIComponent(CONFIG.chave3d)}` : ''}`
   const mudarRef = useRef(aoMudar)
   mudarRef.current = aoMudar
   const estadoRef = useRef(aoEstado)

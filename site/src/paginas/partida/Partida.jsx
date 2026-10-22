@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { pontosDaPartida } from '../../comum/pontos.js'
-import CarregandoPontos from '../../comum/Carregando.jsx'
+import CarregandoPontos, { CarregandoNP } from '../../comum/Carregando.jsx'
 import Layout from '../../comum/Layout.jsx'
 import { useAoVivo } from '../../comum/aoVivo.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
@@ -833,9 +833,13 @@ export default function Partida({ dados: inicial }) {
         <Conteudo d={d} />
       ) : (
         <main className="wrap">
-          <p className="gerado" style={{ padding: '80px 0' }}>
-            {erro ? tr('Partida não encontrada.') : tr('Carregando…')}
-          </p>
+          {erro ? (
+            <p className="gerado" style={{ padding: '80px 0' }}>
+              {tr('Partida não encontrada.')}
+            </p>
+          ) : (
+            <CarregandoNP />
+          )}
         </main>
       )}
     </Layout>

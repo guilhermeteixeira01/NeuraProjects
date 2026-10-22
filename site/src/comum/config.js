@@ -9,6 +9,9 @@ export const CONFIG = {
   // Login pela Steam: endereço do worker (site/worker/steam-login). '' = sem botão de login
   // (a página de perfil continua abrindo pelos links do ranking)
   // (npm run dev:local usa o worker local: ver worker/steam-login/dev/README.md)
+  // Chave do visualizador 3D (3d.cstrike.app, assinatura "3D Viewer Key": tira a marca d'água e o limite de uso nos domínios aprovados). Vazia = versão pública com marca d'água.
+  // Pode ser posta aqui ou na variável VITE_CHAVE_3D do build. Ela aparece no endereço do iframe de propósito: só funciona nos domínios aprovados da conta.
+  chave3d: import.meta.env?.VITE_CHAVE_3D || '',
   loginSteam: import.meta.env?.VITE_LOGIN_STEAM || 'https://neura-steam-login.steam-login.workers.dev',
 
   // Página onde a pessoa vira Premium (botão SEJA PREMIUM da janela do emblema de assinatura). '' = botão desligado ("Em breve")

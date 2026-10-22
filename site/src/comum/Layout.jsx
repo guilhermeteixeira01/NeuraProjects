@@ -50,6 +50,38 @@ export function useRevelar(seletor = '.reveal', classe = 'is-visible', opcoes = 
 export default function Layout({ pagina, semRodape = false, children }) {
   useRevelar()
   useLuzCursor() // cards com a classe "spot" ganham a luz que segue o cursor
+  // Trocar de página: se a próxima demorar, aparece o carregamento da NP por cima (some sozinho quando a página nova abre).
+  // Só links do próprio site, sem Ctrl/Shift, que não abrem em outra aba nem baixam nada.
+  useEffect(() => {
+    let tela = null
+    let relogio = 0
+    const sumir = () => {
+      clearTimeout(relogio)
+      tela?.remove()
+      tela = null
+    }
+    const clicar = (e) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      const a = e.target instanceof Element ? e.target.closest('a[href]') : null
+      if (!a || a.target === '_blank' || a.hasAttribute('download')) return
+      const url = new URL(a.href, location.href)
+      if (url.origin !== location.origin || (url.pathname === location.pathname && url.search === location.search)) return
+      relogio = setTimeout(() => {
+        if (tela) return
+        tela = document.createElement('div')
+        tela.className = 'cnp-nav'
+        tela.innerHTML = '<div class="cnp cnp-tela"><div class="cnp-anel" aria-hidden="true">' + Array.from({ length: 12 }, (_, i) => '<i style="--i:' + i + '"></i>').join('') + '<img src="/assets/logos/logo-np-64.png" alt="" width="48" height="48"></div></div>'
+        document.body.appendChild(tela)
+      }, 180)
+    }
+    document.addEventListener('click', clicar)
+    window.addEventListener('pageshow', sumir) // voltar pelo navegador (a página volta do cache): tira o carregamento
+    return () => {
+      document.removeEventListener('click', clicar)
+      window.removeEventListener('pageshow', sumir)
+      sumir()
+    }
+  }, [])
   // Imagens não podem ser arrastadas (o CSS -webkit-user-drag não vale no Firefox)
   useEffect(() => {
     const bloquear = (e) => e.target instanceof HTMLImageElement && e.preventDefault()

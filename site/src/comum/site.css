@@ -3634,3 +3634,21 @@ html[data-desempenho] .pm-niveis figure img, html[data-desempenho] .pm-destaque 
   .nx-baixo { transform: translateZ(0); will-change: transform; }
 }
 .emblema-sub-fixo { cursor: default; }
+
+/* ══════════════ Carregamento da página (comum/Carregando.jsx → CarregandoNP): logo da NP com bolinhas girando em volta ══════════════ */
+.cnp { display: grid; place-items: center; min-height: 46vh; width: 100%; }
+.cnp-tela { position: fixed; inset: 0; z-index: 9000; min-height: 0; background: rgb(8 10 15 / .72); backdrop-filter: blur(3px); animation: cnp-entra .25s ease both; }
+.cnp-pq { min-height: 110px; }
+.cnp-anel { position: relative; width: 132px; height: 132px; display: grid; place-items: center; animation: cnp-gira 7s linear infinite; }
+.cnp-anel i { position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: #3b9bff; box-shadow: 0 0 10px #3b9bff;
+  transform: rotate(calc(var(--i) * 30deg)) translateY(-58px); animation: cnp-pulsa 1.2s ease-in-out infinite; animation-delay: calc(var(--i) * -0.1s); }
+.cnp-anel i:nth-child(3n) { background: #a56bff; box-shadow: 0 0 10px #a56bff; }
+.cnp-anel i:nth-child(3n + 1) { background: #35d0ff; box-shadow: 0 0 10px #35d0ff; }
+.cnp-anel img { position: relative; width: 48px; height: 48px; object-fit: contain; animation: cnp-contra 7s linear infinite, cnp-respira 2s ease-in-out infinite; filter: drop-shadow(0 0 12px rgb(59 155 255 / .7)); }
+.cnp-pq .cnp-anel { transform: scale(.7); }
+@keyframes cnp-gira { to { transform: rotate(360deg); } }
+@keyframes cnp-contra { to { rotate: -360deg; } }
+@keyframes cnp-pulsa { 0%, 100% { opacity: .2; scale: .6; } 50% { opacity: 1; scale: 1.15; } }
+@keyframes cnp-respira { 50% { scale: 1.1; } }
+@keyframes cnp-entra { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .cnp-anel, .cnp-anel img { animation: none; } .cnp-anel i { animation-duration: 2.4s; } }

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import CartaoSkin from './CartaoSkin.jsx'
+import { CarregandoNP } from './Carregando.jsx'
 import { InspecionarSkin } from './InspecionarSkin.jsx'
 import { CONFIG } from './config.js'
 import { useConta } from './conta.js'
@@ -111,7 +112,7 @@ export default function InventarioDoJogador({ steamId, nome, aoFechar }) {
         {erro ? (
           <p className="ij-vazio">{t('Não consegui carregar o inventário agora.')}</p>
         ) : !dados || !catalogo.dados ? (
-          <p className="ij-vazio">{t('Carregando…')}</p>
+          <CarregandoNP />
         ) : !verCartoes.length && !verGrupos.length ? (
           <p className="ij-vazio">{t('Nada por aqui.')}</p>
         ) : (
