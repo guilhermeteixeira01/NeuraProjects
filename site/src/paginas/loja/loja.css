@@ -737,3 +737,12 @@ html.lj-travado .nx-rolagem { display: none !important; }
 /* a rolagem do item especial fica nítida (não apagada como as outras cartas depois que a roleta para) e suas cartas internas também */
 .lj-cx-roletas .lj-parou .lj-reel.lj-venceu { opacity: 1; filter: none; border-color: #e4ae39; animation: none; }
 .lj-cx-roletas .lj-parou .lj-reel .lj-cartao { opacity: 1; filter: none; transform: none; animation: none; box-shadow: none; }
+
+/* medalha do item raro especial (imagem): sem animação de giro, só um brilho dourado */
+img.lj-emblema { width: 92px; height: auto; object-fit: contain; filter: drop-shadow(0 0 14px rgb(255 200 70 / .55)); }
+.lj-cx-medalha img.lj-emblema { width: 150px; height: auto; }
+@media (max-width: 760px) {
+  img.lj-emblema { width: 64px; }
+  .lj-faixas[data-n='4'] img.lj-emblema, .lj-faixas[data-n='5'] img.lj-emblema { width: 46px; }
+  .lj-cx-medalha img.lj-emblema { width: 104px; }
+}

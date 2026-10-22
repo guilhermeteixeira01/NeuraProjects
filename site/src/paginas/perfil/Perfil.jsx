@@ -588,6 +588,37 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   }, [j.steamId, j.premier])
   const premier = j.premier > 0 ? j.premier : premierLeetify
   const derrotas = j.mapas - j.vitorias
+  const primeiraData = mapas?.length ? mapas[mapas.length - 1].data : null
+  const desde = primeiraData ? new Date(primeiraData).toLocaleDateString(t.local, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'America/Sao_Paulo' }) : ''
+  // resumo que aparece no cartão de cima do perfil quando a aba STATUS está aberta (time, Premier, ranking, nível, tempo de servidor e insígnias)
+  const resumoStatus = (
+    <>
+      <div className="pf-resumo-chips">
+        <div className="pf-info pf-resumo-chip">
+          <span className="pf-info-rot">{t('TIME')}</span>
+          <span className="pf-info-val">{timeEscolhido ? <TimeEscolhido steamId={j.steamId} classe="pf-time" /> : <span className="pf-time"><span>{t('Sem time')}</span></span>}</span>
+        </div>
+        <div className="pf-info pf-resumo-chip">
+          <span className="pf-info-rot">PREMIER</span>
+          <span className="pf-info-val">
+            <Premier key={premier || 0} j={{ ...j, premier }} />
+          </span>
+        </div>
+        {pos > 0 && (
+          <a className="pf-info pf-info-pos pf-resumo-chip pf-resumo-pos" href="/ranking/">
+            <span className="pf-info-rot">RANKING</span>
+            <span className="pf-info-val">
+              <b>#{pos}</b> <small>{t('de {total}', { total })}</small>
+            </span>
+          </a>
+        )}
+      </div>
+      <div className="pf-resumo-rodape">
+        <InsigniasDe steamId={j.steamId} classe="pf-insignias pf-resumo-insig" />
+        {desde && <small>{t('Jogando no servidor desde {data}', { data: desde })}</small>}
+      </div>
+    </>
+  )
   const sem = !j.mapas // ainda sem partidas: perfil aparece igual, com os números em "—"
   const v = (texto) => (sem ? '—' : texto)
   return (
@@ -641,7 +672,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
                 {t('Ver ranking')}
               </a>
               {!eu && (
-                <button type="button" className="btn btn-ghost" onClick={() => setVerInventario(true)}>
+                <button type="button" className="btn btn-ghost" onClick={() => window.dispatchEvent(new CustomEvent('np-perfil-aba', { detail: 'inventario' }))}>
                   {t('Ver inventário')}
                 </button>
               )}
@@ -652,21 +683,9 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
           </aside>
 
           <div className="pf-centro">
-            <PerfilInventario steamId={j.steamId} nome={j.nome} aoVerTudo={() => setVerInventario(true)} />
+            <PerfilInventario steamId={j.steamId} nome={j.nome} resumoStatus={resumoStatus}>
             <DesempenhoRecente mapas={mapas || []} nivel={nivel} eu={eu} />
 
-            {pos > 0 && (
-              <div className="pf-infos fx-entra" style={{ '--e': 3 }}>
-              {pos > 0 && (
-                <a className="pf-info pf-info-pos" href="/ranking/">
-                  <span className="pf-info-rot">RANKING</span>
-                  <span className="pf-info-val">
-                    <b>#{pos}</b> <small>{t('de {total}', { total })}</small>
-                  </span>
-                </a>
-              )}
-              </div>
-            )}
             <div className={`pf-estats${sem ? ' vazio' : ''}`}>
               <Estat rotulo="RATING" valor={v(fmt(j.rating, 2))} sub={sem ? t('sem partidas') : t('melhor {v}', { v: fmt(j.melhorRating, 2) })} classe={sem ? 'destaque' : `destaque rt-txt-${classeRating(j.rating)}`} />
               <Estat rotulo="K/D" valor={v(fmt(j.kd, 2))} sub={t('{k} kills · {d} mortes', { k: j.kills, d: j.mortes })} />
@@ -689,6 +708,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
             {mapas?.length > 0 && <GraficoRating mapas={mapas} />}
             {mapas?.length > 0 && <Armas mapas={mapas} steamId={j.steamId} />}
             {mapas?.length > 0 && <Historico mapas={mapas} />}
+            </PerfilInventario>
           </div>
         </div>
       </section>

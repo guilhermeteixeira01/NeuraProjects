@@ -42,29 +42,9 @@ export function dadosDoItem(tipo, d, p, n, i, achar) {
   return achar(d, p)
 }
 
-// Emblema do "Item Raro Especial" (no lugar do "?"): hexágono futurista com anéis, mira e núcleo brilhando na cor da raridade
+// Medalha do "Item Raro Especial" (public/assets/caixas/rare-special-item.png), no lugar do "?" do card dourado
 export function EmblemaEspecial() {
-  return (
-    <svg className="lj-emblema" viewBox="0 0 64 64" aria-hidden="true">
-      <defs>
-        <radialGradient id="lj-em-nucleo" cx="50%" cy="50%" r="50%">
-          <stop offset="0" stopColor="#fff" stopOpacity=".95" />
-          <stop offset=".35" stopColor="currentColor" stopOpacity=".9" />
-          <stop offset="1" stopColor="currentColor" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <g className="lj-em-giro" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M32 3 56 17v30L32 61 8 47V17Z" opacity=".9" />
-        <path d="M32 10 50 20.5v23L32 54 14 43.5v-23Z" strokeDasharray="5 4" opacity=".7" />
-      </g>
-      <g className="lj-em-contra" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity=".85">
-        <circle cx="32" cy="32" r="13" strokeDasharray="14 7" />
-        <path d="M32 14v6M32 44v6M14 32h6M44 32h6" />
-      </g>
-      <path d="M32 24 38 32 32 40 26 32Z" fill="url(#lj-em-nucleo)" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-      <circle className="lj-em-pisca" cx="32" cy="32" r="2.2" fill="#fff" />
-    </svg>
-  )
+  return <img className="lj-emblema" src="/assets/caixas/rare-special-item.png" alt="" width="144" height="114" draggable="false" />
 }
 
 export function CartaoItem({ r, d, p, tipo, n, i, achar, classe = '', children }) {

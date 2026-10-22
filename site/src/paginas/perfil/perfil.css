@@ -984,3 +984,43 @@ html.sm-aberto { overflow: hidden; }
   .pf-inv-item-arte { top: 20px; height: 70px; }
   .pf-inv-item-nome b { font-size: 12.5px; }
 }
+
+/* ── abas STATUS / INVENTÁRIO e resumo do cartão de cima ── */
+.pf-topo-perfil { display: grid; gap: 16px; min-width: 0; }
+.pf-topo-perfil > .pf-inv { margin-bottom: 0; }
+.pf-resumo-chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.pf-resumo-chip { display: grid; gap: 4px; padding: 8px 12px; border-radius: 10px; border: 1px solid rgb(255 255 255 / .07); background: rgb(255 255 255 / .035); text-decoration: none; color: inherit; min-width: 0; }
+.pf-resumo-pos b { color: #5ec5ff; }
+.pf-inv-valor { color: #5fe3a1; font: 700 15px var(--font-body); }
+.pf-resumo-rodape { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; margin-top: 8px; }
+.pf-resumo-rodape small { color: var(--dim); font-size: 12px; }
+.pf-resumo-insig { display: inline-flex; gap: 6px; }
+.pf-inv-sub { display: flex; flex-wrap: wrap; gap: 8px; }
+.pf-inv-sub button { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; border: 1px solid rgb(255 255 255 / .1); background: rgb(255 255 255 / .04); color: rgb(255 255 255 / .6); font: 700 12px var(--font-body); letter-spacing: .06em; cursor: pointer; }
+.pf-inv-sub button small { padding: 2px 7px; border-radius: 6px; background: rgb(255 255 255 / .09); font-size: 11px; }
+.pf-inv-sub button:hover { color: #fff; }
+.pf-inv-sub button.is-ativo { color: #1a1208; background: #f39c54; border-color: #f39c54; }
+.pf-inv-sub button.is-ativo small { background: rgb(0 0 0 / .18); color: #1a1208; }
+/* adesivos e chaveiro colados na arma */
+.pf-inv-enf { position: absolute; left: 10px; right: 10px; bottom: 48px; z-index: 2; display: flex; align-items: center; gap: 3px; }
+.pf-inv-enf img { width: 22px; height: 22px; object-fit: contain; filter: drop-shadow(0 1px 2px rgb(0 0 0 / .7)); }
+.pf-inv-enf .pf-inv-enf-ch { width: 24px; height: 24px; margin-right: 4px; }
+.pf-inv-item { min-height: 184px; }
+@media (max-width: 640px) {
+  .pf-inv-item { min-height: 164px; }
+  .pf-inv-enf { bottom: 42px; }
+  .pf-inv-enf img { width: 18px; height: 18px; }
+  .pf-resumo-chips { gap: 6px; }
+  .pf-resumo-chip { padding: 6px 9px; }
+  .pf-inv-sub { gap: 6px; }
+  .pf-inv-sub button { padding: 7px 11px; font-size: 11px; }
+}
+/* o conteúdo da aba STATUS continua em uma coluna só, como era antes de entrar nas abas */
+.pf-centro > .pf-topo-perfil { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.pf-centro > .pf-topo-perfil > * { grid-column: 1; }
+
+.pf-resumo-chip { flex: 0 0 auto; }
+.pf-resumo-chip:nth-child(2) { min-width: 128px; }
+.pf-resumo-chip .pf-info-val > * { max-width: 100%; }
+.pf-resumo-chip:nth-child(2) { min-width: 176px; } .pf-resumo-chip:nth-child(2) .pf-info-val { overflow: visible; }
+.pf-resumo-chip .pf-info-val { font-size: inherit; }

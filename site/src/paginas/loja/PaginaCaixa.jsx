@@ -115,9 +115,14 @@ function ParticulasModo({ modo, chave }) {
   const ref = useRef(null)
   useEffect(() => {
     const cv = ref.current
-    if (!cv || !modo || modo === 'normal') return
+    if (!cv) return
     const ctx = cv.getContext('2d')
-    const dpr = Math.min(2, window.devicePixelRatio || 1)
+    const limpar = () => ctx.clearRect(0, 0, cv.width, cv.height)
+    limpar() // desligou o modo (ou trocou): tira qualquer quadro que tenha ficado desenhado
+    if (!modo || modo === 'normal') return
+    // celular: menos partículas, sem brilho (shadowBlur pesa muito), resolução 1x e nada com a aba escondida
+    const celular = window.matchMedia('(max-width: 700px), (pointer: coarse)').matches
+    const dpr = celular ? 1 : Math.min(2, window.devicePixelRatio || 1)
     // canvas fixo na tela inteira (não ocupa espaço nem é cortado); as partículas saem da moldura das roletas, que é o elemento pai
     const alvo = cv.parentElement.getBoundingClientRect()
     const w = (cv.width = window.innerWidth * dpr)
@@ -127,7 +132,7 @@ function ParticulasModo({ modo, chave }) {
     const W = alvo.width * dpr
     const H = alvo.height * dpr
     const cores = CORES[modo]
-    const n = desempenhoAtivo() ? 50 : 160
+    const n = desempenhoAtivo() ? 40 : celular ? 55 : 160
     const jester = modo === 'jester'
     // Jester: estrelinhas que estouram de toda a borda; Boost: faíscas que sobem da borda de baixo
     const ps = Array.from({ length: n }, () => {
@@ -150,6 +155,10 @@ function ParticulasModo({ modo, chave }) {
       ctx.fill()
     }
     const anima = () => {
+      if (document.hidden) {
+        quadro = requestAnimationFrame(anima)
+        return
+      }
       ctx.clearRect(0, 0, w, h)
       let vivos = 0
       for (const p of ps) {
@@ -162,8 +171,10 @@ function ParticulasModo({ modo, chave }) {
         vivos++
         ctx.globalAlpha = Math.min(1, p.vida * 1.5)
         ctx.fillStyle = p.cor
-        ctx.shadowColor = p.cor
-        ctx.shadowBlur = 8 * dpr
+        if (!celular) {
+          ctx.shadowColor = p.cor
+          ctx.shadowBlur = 8 * dpr
+        }
         if (jester) estrela(p.x, p.y, p.tam * 1.4)
         else ctx.fillRect(p.x - p.tam / 2, p.y - p.tam * 2, p.tam, p.tam * 4) // faísca comprida, subindo
       }
@@ -171,7 +182,10 @@ function ParticulasModo({ modo, chave }) {
       else ctx.clearRect(0, 0, w, h)
     }
     quadro = requestAnimationFrame(anima)
-    return () => cancelAnimationFrame(quadro)
+    return () => {
+      cancelAnimationFrame(quadro)
+      limpar() // cancelar no meio da animação não deixa partícula parada na tela
+    }
   }, [modo, chave])
   return <canvas className="lj-cx-particulas" ref={ref} aria-hidden="true" />
 }
