@@ -26,8 +26,20 @@ jobs:
           cache: npm
           cache-dependency-path: site/package-lock.json
 
+      # O build do React só muda quando o código do site muda. Partida nova (commit do plugin) mexe só em partidas/,
+      # então nesse caso o build vem do cache e pula o npm ci e o vite (a parte mais demorada).
+      - name: Cache do build
+        id: build-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            site/dist
+            site/dist-ssr
+          key: build-${{ hashFiles('site/src/**', 'site/public/**', 'site/**/*.html', '!site/dist/**', '!site/node_modules/**', 'site/worker/steam-login/src/**', 'site/package-lock.json', 'site/vite.config.js') }}
+
       # Site inteiro em React (site/): páginas + versão para gerar o HTML no servidor
       - name: Build do site
+        if: steps.build-cache.outputs.cache-hit != 'true'
         working-directory: site
         run: |
           npm ci
