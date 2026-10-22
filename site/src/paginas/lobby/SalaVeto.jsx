@@ -256,6 +256,18 @@ export default function SalaVeto({ dados }) {
   const [aviso, setAviso] = useState('')
   const [ocupado, setOcupado] = useState(false)
   const [chamando, setChamando] = useState(false)
+  const [painel, setPainel] = useState('veto') // aba do centro: o veto ou o chat da sala
+  const [chatNovas, setChatNovas] = useState(0)
+  const painelRef = useRef(painel)
+  painelRef.current = painel
+  useEffect(() => {
+    const ouvir = (e) => {
+      const { partida: id, msg } = e.detail || {}
+      if (id === partida.id && msg && msg.de !== eu && painelRef.current !== 'chat') setChatNovas((n) => n + 1)
+    }
+    window.addEventListener('np-chat', ouvir)
+    return () => window.removeEventListener('np-chat', ouvir)
+  }, [partida.id, eu])
   useRelogio(fase === 'veto')
 
   const passos = buildSteps(partida.formato, partida.primeiro)
@@ -315,6 +327,30 @@ export default function SalaVeto({ dados }) {
         <Equipe lado="A" time={times.A} nome={nome('A')} naVez={!pronto && passo.team === 'A'} />
 
         <div className="sala-meio">
+          <div className="sala-painel-abas" role="tablist">
+            <button type="button" role="tab" aria-selected={painel === 'veto'} className={painel === 'veto' ? 'is-ativo' : ''} onClick={() => setPainel('veto')}>
+              {pronto ? t('Partida') : 'Pick & Ban'}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={painel === 'chat'}
+              className={painel === 'chat' ? 'is-ativo' : ''}
+              onClick={() => {
+                setPainel('chat')
+                setChatNovas(0)
+              }}
+            >
+              Chat
+              {chatNovas > 0 && <b className="chat-novas">{chatNovas}</b>}
+            </button>
+          </div>
+
+          <div hidden={painel !== 'chat'} className="sala-painel">
+            <ChatSala partidaId={partida.id} eu={eu} nomeDoTime={nome} />
+          </div>
+
+          <div hidden={painel !== 'veto'} className="sala-painel">
           {pronto ? (
             <div className="sala-final">
               <span className="sala-etapa">{t('VETO FINALIZADO')}</span>
@@ -433,12 +469,11 @@ export default function SalaVeto({ dados }) {
               )}
             </>
           )}
+          </div>
         </div>
 
         <Equipe lado="B" time={times.B} nome={nome('B')} naVez={!pronto && passo.team === 'B'} />
       </div>
-
-      <ChatSala partidaId={partida.id} eu={eu} nomeDoTime={nome} />
 
       {chamando && <ChamarSubstituto vagas={partida.servidor?.vagas || []} ocupado={ocupado} aoFechar={() => setChamando(false)} aoChamar={(id) => agir('substituir', undefined, id)} />}
     </section>
