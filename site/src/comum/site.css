@@ -10,6 +10,21 @@
   :root { --escala-site: .95; }
   html { zoom: var(--escala-site); }
 }
+/* Telas menores (notebook, monitor antigo, Windows com ampliação de 125% ou 150%): a escala cai conforme a janela, para
+   caber o mesmo que cabe num monitor grande (sem barra de rolagem à toa). Vale o que for mais apertado: largura ou altura.
+   Cada degrau tem que vir depois do anterior (a regra de baixo ganha). Os valores são em px do CSS, já com a ampliação do Windows. */
+@media (min-width: 1025px) and (max-width: 1600px), (min-width: 1025px) and (max-height: 900px) {
+  :root { --escala-site: .9; }
+}
+@media (min-width: 1025px) and (max-width: 1440px), (min-width: 1025px) and (max-height: 800px) {
+  :root { --escala-site: .85; }
+}
+@media (min-width: 1025px) and (max-width: 1280px), (min-width: 1025px) and (max-height: 720px) {
+  :root { --escala-site: .8; }
+}
+@media (min-width: 1025px) and (max-width: 1150px), (min-width: 1025px) and (max-height: 640px) {
+  :root { --escala-site: .72; }
+}
 :root {
   --bg: #0b0c0f;
   --bg-soft: #0e0f13;
