@@ -1,31 +1,22 @@
 import { useEffect, useState } from 'react'
 import { CONFIG } from './config.js'
 
-// Lista de times (nome + logo) cadastrada na página /times/.
-// Lê pela API do GitHub (versão mais nova, na hora em que foi salva). Se a API falhar (limite de 60 leituras
-// por hora por internet), usa o raw do GitHub (até 5 min de atraso) e depois a cópia publicada no site.
+// Lista de times (nome + logo): só os times criados no site (página /equipes/), lidos do worker sem precisar de login.
 // Sempre devolve uma lista (vazia se nada funcionar).
-// Guarda a resposta por 15s para não gastar o limite da API à toa; forcar = ignora essa espera.
+// Guarda a resposta por 15s; forcar = ignora essa espera (no mínimo 5s entre leituras).
 let cache = null
 let quando = 0
 
 export function carregarTimes(forcar) {
   if (cache && !forcar && Date.now() - quando < 15000) return cache
   if (cache && forcar && Date.now() - quando < 5000) return cache
-
-  const ler = (endereco, opcoes) =>
-    fetch(endereco, { cache: 'no-store', ...opcoes }).then((r) => {
+  const anterior = cache
+  quando = Date.now()
+  cache = fetch(`${CONFIG.loginSteam}/equipes/publico`)
+    .then((r) => {
       if (!r.ok) throw new Error(r.status)
       return r.json()
     })
-  const anterior = cache
-  const { repositorio, branch, arquivoTimes } = CONFIG
-  quando = Date.now()
-  cache = ler(`https://api.github.com/repos/${repositorio}/contents/${arquivoTimes}?ref=${branch}`, {
-    headers: { Accept: 'application/vnd.github.raw+json' },
-  })
-    .catch(() => ler(`https://raw.githubusercontent.com/${repositorio}/${branch}/${arquivoTimes}?t=${Date.now()}`))
-    .catch(() => ler(`/${arquivoTimes}?t=${Date.now()}`))
     .then((dados) => (Array.isArray(dados?.times) ? dados.times : []))
     .catch(() => anterior || [])
   return cache

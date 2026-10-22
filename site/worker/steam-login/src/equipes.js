@@ -153,6 +153,11 @@ export class Equipes {
 
   // ── ações ──
   async acao({ acao, quem, ...p }) {
+    // Lista pública (sem login): só os times criados no site, para o carrossel, o Pick & Ban e o plugin
+    if (acao === 'publico') {
+      const linhas = this.sql.exec('SELECT id, nome, tag, img_ver FROM equipes ORDER BY nome COLLATE NOCASE LIMIT 500').toArray()
+      return { times: linhas.map((e) => ({ nome: e.nome, tag: e.tag, logo: e.img_ver ? `/equipes/imagem?id=${e.id}&v=${e.img_ver}` : '' })) }
+    }
     if (!ID_STEAM.test(String(quem))) throw new Error('login')
     const u = await usuarios(this.env)
     const nomeDe = (id) => u[id]?.nome || id
@@ -416,6 +421,14 @@ export async function rotaEquipes(req, env, quem, cors, rota, url) {
   } else return json({ erro: 'rota' }, 404, cors)
   const r = await chamar(env, { ...pedido, quem: quem.id })
   return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
+}
+
+// GET /equipes/publico (público): { times: [{ nome, tag, logo }] } só com os times criados; o logo vai como link completo
+export async function rotaListaPublicaEquipes(url, env) {
+  const r = await chamar(env, { acao: 'publico' })
+  const d = await r.json().catch(() => ({ times: [] }))
+  const times = (d.times || []).map((t) => ({ ...t, logo: t.logo ? url.origin + t.logo : '' }))
+  return new Response(JSON.stringify({ times }), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=30', 'Access-Control-Allow-Origin': '*' } })
 }
 
 // GET /equipes/imagem?id=&v= (público): a imagem do time; o "v" muda quando a imagem muda, então o navegador pode guardar por muito tempo

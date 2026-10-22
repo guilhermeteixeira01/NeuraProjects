@@ -120,7 +120,7 @@ export default function Summary({ teams, logos, format, picks, decider }) {
           <div className="logos-aviso">
             <span>
               {tr('O link do logo de {times} é grande demais para o console. Cadastre o time na lista de times que o servidor pega o logo sozinho.', { times: grandes.join(` ${tr('e')} `) })}{' '}
-              <a href="/times/">{tr('Gerenciar lista de times')}</a>
+              <a href="/equipes/">{tr('Criar meu time')}</a>
             </span>
           </div>
         )}

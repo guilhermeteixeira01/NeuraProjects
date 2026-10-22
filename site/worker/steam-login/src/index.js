@@ -46,7 +46,7 @@ import { Mercado, rotaDrops, rotaMercado } from './mercado.js'
 import { zerarTudo } from './zerar.js'
 import { definirConcedenteSub, rotaAdminPagamento, rotaAdminPlanosSub, rotaPagamentos, rotaWebhookAsaas } from './pagamentos.js'
 import { Registro, registrar, rotaAdminLogs } from './registro.js'
-import { Equipes, rotaEquipes, rotaImagemEquipe } from './equipes.js'
+import { Equipes, rotaEquipes, rotaImagemEquipe, rotaListaPublicaEquipes } from './equipes.js'
 import { ehInsigniaLoja, ID_MESTRE } from './loja-core.js'
 export { Presenca } // Durable Object da presença (wrangler.toml)
 export { Loja } // Durable Object da loja de caixas (wrangler.toml)
@@ -218,6 +218,7 @@ async function atender(req, env, ctx) {
       if (c.confirmar !== 'ZERAR TUDO') return json({ erro: 'confirmar' }, 400)
       return json(await zerarTudo(env, c.simular === true))
     }
+    if (rota === '/equipes/publico' && req.method === 'GET') return rotaListaPublicaEquipes(url, env) // só os times criados (carrossel, Pick & Ban, plugin)
     if (rota === '/equipes/imagem' && req.method === 'GET') return rotaImagemEquipe(url, env) // imagem do time (pública, guardada no navegador)
     if (rota === '/pagamentos/webhook' && req.method === 'POST') return rotaWebhookAsaas(req, env) // aviso do Asaas (token próprio)
     if (rota === '/loja/drops' && req.method === 'GET') return rotaDrops(req, env, { 'Access-Control-Allow-Origin': '*' }, ctx) // carrossel de drops ao vivo da loja

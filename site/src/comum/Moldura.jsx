@@ -10,6 +10,7 @@ import { EVENTO_DESEMPENHO, desempenhoAtivo } from './desempenho.js'
 import { useT } from './i18n.js'
 import { IconeCargo } from './cargos.jsx'
 import { useOrdemRanking } from './ranking.js'
+import { carregarTimes } from './times.js'
 import { urlSelo } from './selosEquipe.js'
 import { idCard } from './cardsPerfil.js'
 import EmblemaSub from './EmblemaSub.jsx'
@@ -470,17 +471,15 @@ export function useAdmin(conta) {
 }
 
 // ── Time escolhido ──
-// Lista de times (nome + logo) da cópia publicada no site (assets/data/times.json, editada em /times/).
-// Time que saiu da lista não aparece.
+// Lista de times (nome + logo): só os times criados no site (página /equipes/). Time apagado não aparece.
 let times = null
 let buscandoTimes = null
 
 export function useListaTimes() {
   const [lista, setLista] = useState(() => times || [])
   useEffect(() => {
-    buscandoTimes ??= fetch('/assets/data/times.json', { cache: 'no-store' })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => (times = Array.isArray(d?.times) ? d.times.filter((t) => t?.nome) : []))
+    buscandoTimes ??= carregarTimes()
+      .then((l) => (times = l.filter((t) => t?.nome)))
       .catch(() => (times = []))
     let vivo = true
     buscandoTimes.then((l) => vivo && setLista(l))

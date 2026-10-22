@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useListaTimes } from '../../comum/Moldura.jsx'
 import { useT } from '../../comum/i18n.js'
 
-// Carrossel dos times registrados (assets/data/times.json, editada em /times/): cartões com o logo passando sem parar
+// Carrossel dos times registrados (só os times criados em /equipes/): cartões com o logo passando sem parar
 // (para com o mouse em cima; o nome aparece no cartão). Poucos times: a lista se repete até encher a faixa, e o grupo
 // vai duplicado para a volta ficar contínua. Sem time na lista, a seção não aparece.
 const MIN_CARTOES = 12

@@ -208,7 +208,7 @@ export default function Setup({ onStart }) {
                   {times.length > 0
                     ? `${tr('{n} times na lista: digite o nome e escolha para o logo entrar sozinho.', { n: times.length })} `
                     : `${tr('Cadastre os times uma vez e o logo entra sozinho no veto.')} `}
-                  <a href="/times/">{tr('Gerenciar lista de times')}</a>
+                  <a href="/equipes/">{tr('Criar meu time')}</a>
                 </p>
                 {(logoA.trim() && !logoValido(logoA)) || (logoB.trim() && !logoValido(logoB)) ? (
                   <p className="hint warn-hint">{tr('O logo precisa ser um link https:// de imagem (até {n} caracteres).', { n: MAX_LOGO_URL })}</p>
