@@ -147,7 +147,7 @@ for (const p of lista) {
   escrever(path.join(saidaPartidas, caminho, 'index.html'), montarPagina(modelo, 'partida', d, { titulo, descricao, url }))
   urls.push(url)
 }
-fs.rmSync(modeloPartida)
+// O modelo (partidas/partida.html) fica no site: o 404.html usa ele para montar a página de uma partida recém-jogada que o deploy ainda não publicou
 console.log(`Páginas de partida: ${lista.length}`)
 
 // ── 7. Sitemap ──

@@ -112,6 +112,26 @@ canvas#particulas{position:absolute;inset:0;width:100%;height:100%;pointer-event
 </main>
 
 <script>
+/* Partida recém-jogada que o deploy ainda não publicou: o GitHub Pages cai aqui (404). Busca os dados no worker (que recebe a partida do
+   plugin na hora) e troca esta página pela página da partida, mantendo o endereço. Sem dados no worker, segue o 404 normal. */
+(function(){
+  var m=location.pathname.match(/^\/partidas\/(.+?)\/?$/);if(!m)return;
+  var c;try{c=decodeURIComponent(m[1])}catch(e){return}
+  var W='https://neura-steam-login.steam-login.workers.dev',h=document.documentElement;
+  h.style.visibility='hidden'; /* sem piscar o 404 enquanto confere */
+  var volta=function(){h.style.visibility=''};
+  Promise.all([
+    fetch(W+'/partidas/dados?c='+encodeURIComponent(c)).then(function(r){return r.ok?r.json():null}),
+    fetch('/partidas/partida.html').then(function(r){return r.ok?r.text():null})
+  ]).then(function(v){
+    var d=v[0],modelo=v[1];if(!d||!modelo)return volta();
+    d.caminho=d.caminho||c;d.xp=d.xp||{};
+    var dados='<script id="dados-pagina" type="application/json">'+JSON.stringify(d).replace(/</g,'\\u003c')+'<\/script>';
+    var pag=modelo.replace('<!--app-->','').replace('<!--dados-->',function(){return dados});
+    document.open();document.write(pag);document.close();
+  }).catch(volta);
+})();
+
 /* Botão voltar: garante a navegação para a página inicial */
 (function(){var b=document.querySelector('.botao');if(!b)return;b.addEventListener('click',function(e){e.preventDefault();location.assign('/')})})();
 

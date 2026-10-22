@@ -9,6 +9,7 @@ import { fundoMapa, getMap, idMapa, mapIcon } from '../../comum/mapas.js'
 import { dataNoIdioma, traduzir, useT } from '../../comum/i18n.js'
 import { analisarCanceladas, fimDaSerie } from '../../comum/series.js'
 import { ContagemRemocao, useRelogio } from '../../comum/ContagemSerie.jsx'
+import { juntarPartidas, useRecentes } from '../../comum/partidasRecentes.js'
 
 const NOMES_CAT = { md1: 'MD1', md3: 'MD3', md5: 'MD5', normal: 'Normais' }
 
@@ -257,9 +258,10 @@ function Resumo({ lista }) {
 // no `npm run dev` é buscado aqui). Versões antigas mandavam só a lista (array).
 export default function Partidas({ dados: inicial }) {
   const t = useT()
-  const [listaTodas, setLista] = useState(Array.isArray(inicial) ? inicial : Array.isArray(inicial?.lista) ? inicial.lista : null)
+  const [listaSite, setLista] = useState(Array.isArray(inicial) ? inicial : Array.isArray(inicial?.lista) ? inicial.lista : null)
   const [anunciosTodos, setAnuncios] = useState(Array.isArray(inicial?.series) ? inicial.series : [])
   const [filtro, setFiltro] = useState('todas')
+  const listaTodas = juntarPartidas(listaSite, useRecentes()) // partida recém-jogada aparece pelo worker, sem esperar o deploy
 
   // Ao vivo: partida nova, mapa novo de uma série ou série anunciada/mudando de status recarrega a página sozinha
   useAoVivo('/partidas/partidas.json', (l) => setLista(Array.isArray(l) ? l : []))

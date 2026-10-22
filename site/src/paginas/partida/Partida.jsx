@@ -15,6 +15,7 @@ import { nivelDe } from '../../comum/niveis.js'
 import { dataNoIdioma, useT } from '../../comum/i18n.js'
 import { fimDaSerie } from '../../comum/series.js'
 import { ContagemRemocao, useRelogio } from '../../comum/ContagemSerie.jsx'
+import { juntarPartidas, useRecentes } from '../../comum/partidasRecentes.js'
 import { useAvatar } from '../../comum/avatares.js'
 
 // Página de estatísticas de um mapa jogado no servidor.
@@ -702,7 +703,9 @@ function Conteudo({ d }) {
   const tr = useT()
   const [comecou, setComecou] = useState(false)
   // Outros mapas da mesma série: vêm com a página (deploy) e são conferidos de novo no histórico ao abrir
-  const [jogos, setJogos] = useState(d.serieJogos ?? null)
+  const [jogosSite, setJogos] = useState(d.serieJogos ?? null)
+  const recentes = useRecentes(15000, !!d.serie?.id)
+  const jogos = jogosSite && juntarPartidas(jogosSite, recentes.filter((p) => p.serieId === d.serie?.id)) // mapa novo da série aparece pelo worker
   // Anúncio da série (partidas/series.json): mapa ao vivo e cancelamento, antes de o mapa terminar
   const [anuncio, setAnuncio] = useState(null)
   useAoVivo('/partidas/series.json', (lista) => Array.isArray(lista) && setAnuncio(lista.find((a) => a.id === d.serie.id) || null), {

@@ -38,6 +38,7 @@
  *   STEAM_API_KEY   chave da Web API da Steam (opcional; sem ela o token vai sem nome/avatar e o site
  *                   usa os do ranking)
  */
+import { rotaPartidaServidor, rotaPartidasPublico } from './partidas-novas.js'
 import { Presenca, avisarPerfil, avisarSkin, rotaAmigos, rotaChat, rotaLobby, rotaPresenca, rotaServidor } from './amigos.js'
 import { rotaAdminSkin, rotaAdminSkins, rotaServidorSkins, rotaSkins, rotaSkinsExcluir, rotaSkinsInventarioPublico, rotaSkinsPresentes, rotaSkinsPublico } from './skins.js'
 import { Trocas, rotaTrocas } from './trocas.js'
@@ -215,6 +216,10 @@ async function atender(req, env, ctx) {
 
     // Plugin do servidor de CS2 (BaseComp): pega a próxima partida pronta e avisa em que fase ela está (token próprio, sem login Steam)
     if ((rota === '/servidor/proxima' || rota === '/servidor/estado' || rota === '/servidor/elenco' || (rota === '/teste/limpar' && env.MODO_TESTE === '1')) && req.method === 'POST') return rotaServidor(req, env, rota)
+
+    // Partidas recém-jogadas (o plugin manda aqui assim que o mapa termina; o site lê sem esperar o deploy): src/partidas-novas.js
+    if (rota === '/servidor/partida' && req.method === 'POST') return rotaPartidaServidor(req, env)
+    if ((rota === '/partidas/recentes' || rota === '/partidas/dados') && req.method === 'GET') return rotaPartidasPublico(url, env)
 
     if (rota === '/skins/publico' && req.method === 'GET') return rotaSkinsPublico(url, env) // skins equipadas de um jogador (perfil)
     if (rota === '/skins/inventario' && req.method === 'GET') return rotaSkinsInventarioPublico(url, env, valorDe) // inventário de um jogador (botão "Ver inventário" do perfil)
