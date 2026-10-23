@@ -1151,3 +1151,6 @@ html.sm-aberto { overflow: hidden; }
   .pf-inv-quem .pf-resumo-chip:nth-child(2) .pf-info-val { overflow: hidden; zoom: .78; }
   .pf-inv-quem .pf-time span { overflow: hidden; text-overflow: ellipsis; }
 }
+/* nome do jogador no cartão do topo: altura de linha normal (as letras não são cortadas em cima e embaixo) */
+.pf-inv-quem > b { line-height: 1.25; padding: 1px 0 2px; flex: none; }
+.pf-inv-quem > .pf-inv-rot, .pf-inv-quem > small { flex: none; }

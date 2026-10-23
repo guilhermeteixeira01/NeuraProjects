@@ -1383,4 +1383,5 @@ export default {
   "Trocar senha de segurança": "Change security password",
   "Digite a senha atual e escolha a nova.": "Enter your current password and choose a new one.",
   "Como assinante Premium, você pode trocar de apelido uma vez a cada 15 dias. O novo nome aparece no site e no servidor.": "As a Premium subscriber you can change your nickname once every 15 days. The new name shows on the site and on the server.",
+  "Abriu {n} caixas (que não estão mais na loja)": "Opened {n} crates (no longer in the shop)",
 }

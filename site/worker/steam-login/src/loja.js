@@ -370,8 +370,10 @@ export class Loja {
           const v = valorDe({ t: l.t, d: l.d, p: l.p, f: l.f, st: 0 })?.v ?? 0
           if (!melhor || v > melhor.v) melhor = { t: l.t, d: l.d, p: l.p, f: l.f, r: l.r, v, caixa: l.caixa, ts: l.ts }
         }
-        const top = Object.entries(por).sort((a, b) => b[1] - a[1])[0]
-        return { abertas: linhas.length, favorita: top ? { slug: top[0], vezes: top[1] } : null, melhor }
+        // as mais abertas em ordem: a rota escolhe a primeira que ainda existe na loja (as caixas antigas foram apagadas)
+        const ordem = Object.entries(por).sort((a, b) => b[1] - a[1]).slice(0, 60)
+        const top = ordem[0]
+        return { abertas: linhas.length, favorita: top ? { slug: top[0], vezes: top[1] } : null, ordem, melhor }
       }
       case 'valores':
         return this.valores(id)
@@ -700,8 +702,18 @@ export async function rotaLojaPerfil(url, env, cors) {
   const d = await r.json().catch(() => null)
   if (!d || d.erro) return json({ abertas: 0, favorita: null, melhor: null }, 200, { ...cors, 'Cache-Control': 'public, max-age=30' })
   const caixas = await lerCaixas(env)
-  const c = d.favorita && caixas.find((x) => x.slug === d.favorita.slug)
-  const favorita = c ? { ...publicaDaCaixa({ id: c.id, slug: c.slug, nome: c.nome, img: c.img, cor: c.cor, tier: c.tier, preco: c.preco, ativa: c.ativa, arquivada: c.arquivada }), vezes: d.favorita.vezes } : null
+  // favorita = a caixa mais aberta que ainda existe (quem abriu muito uma caixa antiga, já apagada, fica com a seguinte)
+  const ordem = Array.isArray(d.ordem) ? d.ordem : d.favorita ? [[d.favorita.slug, d.favorita.vezes]] : []
+  let c = null
+  let vezes = 0
+  for (const [slug, n] of ordem) {
+    c = caixas.find((x) => x.slug === slug)
+    if (c) {
+      vezes = n
+      break
+    }
+  }
+  const favorita = c ? { ...publicaDaCaixa({ id: c.id, slug: c.slug, nome: c.nome, img: c.img, cor: c.cor, tier: c.tier, preco: c.preco, ativa: c.ativa, arquivada: c.arquivada }), vezes } : null
   return json({ abertas: d.abertas, favorita, melhor: d.melhor }, 200, { ...cors, 'Cache-Control': 'public, max-age=30' })
 }
 
