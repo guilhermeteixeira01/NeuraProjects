@@ -62,6 +62,10 @@ Para testar local (`npm run dev`), coloque as duas linhas em `.dev.vars` (modelo
 
 Publique o site normalmente. Entre com a Steam do dono em `/admin/` e abra a aba **Servidor**.
 
+## Plugins depois de atualizar o CS2
+
+A atualização do CS2 (SteamCMD) devolve o `gameinfo.gi` da Valve, sem a linha do Metamod, e os plugins deixam de carregar. O agente corrige sozinho: antes de cada início ele confere o arquivo e, se faltar, põe `Game csgo/addons/metamod` logo acima de `Game csgo` (a cópia original fica em `gameinfo.gi.original-valve`). O botão **Corrigir plugins** da aba Servidor faz a mesma conferência na hora; a correção vale na próxima vez que o servidor abrir (reinicie se ele já estava rodando). Se a pasta `game/csgo/addons/metamod` não existir, o agente avisa no console e não mexe no arquivo.
+
 ## Erros que a aba mostra
 
 | Mensagem | Causa |

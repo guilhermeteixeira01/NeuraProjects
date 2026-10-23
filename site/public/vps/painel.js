@@ -34,11 +34,14 @@
 //   GET  /api/status[?desde=N]  -> { estado, total, desde, logs }  (só as linhas de índice >= N)
 //   POST /api/iniciar    { validar }   POST /api/parar    POST /api/reiniciar { validar }
 //   POST /api/comando    { cmd }
+//   POST /api/gameinfo   confere o gameinfo.gi e recoloca a linha do Metamod se a atualização do CS2 a apagou
+//                        (isso também roda sozinho antes de cada início; a cópia original da Valve fica em gameinfo.gi.original-valve)
 
 const http = require('http');
 const { spawn } = require('child_process');
 const path = require('path');
 const crypto = require('crypto');
+const fs = require('fs');
 
 // ===== Configuração (via variáveis de ambiente) =====
 const CFG = {
@@ -58,6 +61,8 @@ if (!CFG.token) {
 }
 
 const CS2_SH = path.join(CFG.cs2Dir, 'game', 'cs2.sh');
+const GAMEINFO = path.join(CFG.cs2Dir, 'game', 'csgo', 'gameinfo.gi');
+const PASTA_METAMOD = path.join(CFG.cs2Dir, 'game', 'csgo', 'addons', 'metamod');
 const CS2_ARGS = [
   '-dedicated', '-usercon', '-port', '27015',
   '+game_type', '0', '+game_mode', '1', '+map', 'de_dust2',
@@ -108,6 +113,36 @@ function rodarSteamcmd(validar) {
   });
 }
 
+// ===== Metamod no gameinfo.gi =====
+// Toda atualização do CS2 (SteamCMD) devolve o gameinfo.gi original da Valve, sem a linha que carrega o Metamod (e com ele o
+// CounterStrikeSharp e os plugins). Esta função confere o arquivo e, se faltar, põe a linha "Game csgo/addons/metamod" logo acima
+// de "Game csgo" (dentro de SearchPaths). É seguro rodar quantas vezes quiser: se a linha já está lá, não mexe em nada.
+function garantirMetamod() {
+  if (!fs.existsSync(GAMEINFO)) return { ok: false, alterado: false, mensagem: 'gameinfo.gi não encontrado em ' + GAMEINFO };
+  if (!fs.existsSync(PASTA_METAMOD)) return { ok: false, alterado: false, mensagem: 'Pasta do Metamod não encontrada (' + PASTA_METAMOD + '): instale o Metamod primeiro' };
+  const original = fs.readFileSync(GAMEINFO, 'utf8');
+  if (/^\s*Game\s+csgo\/addons\/metamod\s*$/m.test(original)) return { ok: true, alterado: false, mensagem: 'gameinfo.gi já carrega o Metamod' };
+  const m = /^([ \t]*)Game[ \t]+csgo[ \t]*$/m.exec(original);
+  if (!m) return { ok: false, alterado: false, mensagem: 'Não achei a linha "Game csgo" no gameinfo.gi (formato novo?): não mexi no arquivo' };
+  const eol = original.includes('\r\n') ? '\r\n' : '\n';
+  const novo = original.slice(0, m.index) + m[1] + 'Game\tcsgo/addons/metamod' + eol + original.slice(m.index);
+  const copia = GAMEINFO + '.original-valve'; // a primeira cópia (sem o Metamod) fica guardada, para voltar atrás se precisar
+  if (!fs.existsSync(copia)) fs.copyFileSync(GAMEINFO, copia);
+  fs.writeFileSync(GAMEINFO + '.tmp', novo);
+  fs.renameSync(GAMEINFO + '.tmp', GAMEINFO);
+  return { ok: true, alterado: true, mensagem: 'Linha do Metamod colocada no gameinfo.gi' };
+}
+function verificarMetamod() {
+  try {
+    const r = garantirMetamod();
+    log((r.ok ? '>> ' : '!! ') + r.mensagem);
+    return r;
+  } catch (e) {
+    log('!! gameinfo.gi: ' + e.message);
+    return { ok: false, alterado: false, mensagem: e.message };
+  }
+}
+
 // ===== Controle do servidor =====
 async function iniciar(validar) {
   if (estado !== 'parado') throw new Error(`O servidor está ${estado}`);
@@ -120,6 +155,7 @@ async function iniciar(validar) {
     throw e;
   }
 
+  verificarMetamod(); // a atualização pode ter apagado a linha do Metamod
   log('>> Iniciando CS2...');
   pararSolicitado = false;
   proc = spawn(CS2_SH, CS2_ARGS, { cwd: path.dirname(CS2_SH), detached: true });
@@ -218,6 +254,12 @@ const servidor = http.createServer(async (req, res) => {
         return json(res, 409, { erro: `O servidor está ${estado}` });
       (async () => { await parar(); await iniciar(!!body.validar); })().catch(() => {});
       return json(res, 202, { ok: true });
+
+    case '/api/gameinfo': {
+      if (estado === 'atualizando') return json(res, 409, { erro: 'O servidor está atualizando' });
+      const r = verificarMetamod();
+      return json(res, r.ok ? 200 : 409, r.ok ? r : { erro: r.mensagem });
+    }
 
     case '/api/comando':
       try {

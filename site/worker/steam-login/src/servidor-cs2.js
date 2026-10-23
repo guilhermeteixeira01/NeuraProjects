@@ -3,8 +3,9 @@
 //   GET  /admin/servidor/status?desde=N
 //   POST /admin/servidor/iniciar   { validar }     POST /admin/servidor/parar
 //   POST /admin/servidor/reiniciar { validar }     POST /admin/servidor/comando { cmd }
+//   POST /admin/servidor/gameinfo  (confere o gameinfo.gi e recoloca a linha do Metamod, se a atualização do CS2 tiver apagado)
 const TEMPO_MS = 10000
-const ACOES = { iniciar: true, parar: false, reiniciar: true, comando: false } // true = repassa "validar"
+const ACOES = { iniciar: true, parar: false, reiniciar: true, comando: false, gameinfo: false } // true = repassa "validar"
 
 const resposta = (corpo, status, cors) => new Response(JSON.stringify(corpo), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
 

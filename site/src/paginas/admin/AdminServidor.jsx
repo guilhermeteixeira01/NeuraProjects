@@ -84,6 +84,19 @@ export default function AdminServidor() {
       setOcupado(false)
     }
   }
+  const corrigirPlugins = async () => {
+    setOcupado(true)
+    setAviso('')
+    try {
+      const r = await chamar('/admin/servidor/gameinfo', {})
+      setAviso(r?.mensagem || t('Pronto.'))
+      await atualizar()
+    } catch (e) {
+      setAviso(erroTexto(e))
+    } finally {
+      setOcupado(false)
+    }
+  }
   const enviar = async (e) => {
     e.preventDefault()
     const c = cmd.trim()
@@ -109,6 +122,9 @@ export default function AdminServidor() {
           </button>
           <button type="button" className="btn btn-ghost adm-perigo" disabled={!(parado || rodando) || ocupado} onClick={() => agir('reiniciar', { validar }, t('Reiniciar o servidor? Todos os jogadores serão desconectados.'))}>
             {t('Reiniciar')}
+          </button>
+          <button type="button" className="btn btn-ghost" disabled={ocupado || estado === 'atualizando'} onClick={corrigirPlugins} title={t('Confere o gameinfo.gi e recoloca o Metamod (plugins) se a atualização do CS2 o apagou. Vale na próxima vez que o servidor abrir.')}>
+            {t('Corrigir plugins')}
           </button>
           <label className="adm-srv-validar">
             <input type="checkbox" checked={validar} onChange={(e) => setValidar(e.target.checked)} /> {t('Validar arquivos')}
