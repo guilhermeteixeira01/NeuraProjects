@@ -32,6 +32,7 @@ import { avisarPerfil } from './amigos.js'
 import { BONUS_PREMIUM_PARTIDA, CONFIG_PADRAO, MODOS, padraoRaro, definirValorador, aplicarModo, faixasDeDesgaste, precoDeMercado, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
 import { lerSkinsKv, limparSkins, novoIdItem } from './skins.js'
 import CAIXAS_INICIAIS from './caixas-iniciais.json'
+import CAIXAS_REMOVIDAS from './caixas-removidas.json' // as 31 caixas antigas, apagadas de vez (revisão 11)
 import RARIDADE_SKIN from './skins-raridade.json'
 import { docVazio, juntar } from './notif-core.js'
 import { registrarDrops } from './mercado.js'
@@ -62,7 +63,8 @@ const num = (v, min, max, padrao) => {
 // Revisão 8: as 31 caixas antigas viram "arquivadas" (saem da loja, mas quem já tem uma fechada no inventário ainda abre); as 70 novas entram pela lista de fábrica
 // Revisão 9: preços das caixas novas refeitos depois que nenhum item ficou com chance 0 (itens muito caros agora têm chance minúscula, mas real)
 // Revisão 10: o tier especial (card dourado) de várias caixas novas passa a ter luvas (ou facas e luvas misturadas) no lugar de só facas; preços refeitos
-const REVISAO_CAIXAS = 10 // (a caixa de luvas é nova: entra pela lista de fábrica, sem precisar de revisão)
+// Revisão 11: as 31 caixas antigas (arquivadas) são apagadas de vez. As fechadas que ainda estavam em inventários somem (skins.js: lerSkinsVer)
+const REVISAO_CAIXAS = 11 // (a caixa de luvas é nova: entra pela lista de fábrica, sem precisar de revisão)
 const ATUALIZAR_CAIXAS = ['caixa-kawaii', 'caixa-terror', 'caixa-lendas', 'caixa-espacial']
 export async function lerCaixas(env) {
   const salvas = await env.MOLDURAS.get('caixas', 'json').catch(() => null)
@@ -86,6 +88,13 @@ export async function lerCaixas(env) {
     }
     for (const c of salvas) if (PRECOS.caixas?.[c.slug]) c.preco = PRECOS.caixas[c.slug]
     if (revisao < 8) for (const c of salvas) if (CAIXAS_INICIAIS.find((x) => x.slug === c.slug)?.arquivada) c.arquivada = true
+    if (revisao < 11) {
+      // guarda os ids das caixas apagadas (o inventário usa para tirar as fechadas) e tira da lista
+      const ids = salvas.filter((c) => c.arquivada || CAIXAS_REMOVIDAS.includes(c.slug)).map((c) => c.id)
+      const antes = (await env.MOLDURAS.get('caixas-removidas', 'json').catch(() => null)) || []
+      await env.MOLDURAS.put('caixas-removidas', JSON.stringify([...new Set([...antes, ...ids])])).catch(() => {})
+      for (let i = salvas.length - 1; i >= 0; i--) if (salvas[i].arquivada || CAIXAS_REMOVIDAS.includes(salvas[i].slug)) salvas.splice(i, 1)
+    }
     if (revisao < 10) for (const c of salvas) { const nova = CAIXAS_INICIAIS.find((x) => x.slug === c.slug); if (nova && !nova.arquivada) c.facas = nova.facas } // só o tier especial; o resto da caixa (preço, nome...) o dono mantém
     await env.MOLDURAS.put('caixas', JSON.stringify(salvas)).catch(() => {})
     await env.MOLDURAS.put('caixas-revisao', String(REVISAO_CAIXAS)).catch(() => {})

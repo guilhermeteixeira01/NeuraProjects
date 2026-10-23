@@ -11,10 +11,10 @@ const cfg = CONFIG_PADRAO
 // ── sorteio ──
 test('simulação de 100.000 aberturas: raridades e desgastes batem com as taxas', () => {
   const N = 100000
-  const caixa = CAIXAS.find((c) => c.slug === 'caixa-dragao')
+  const caixa = CAIXAS.find((c) => c.slug === 'caixa-arma-ak-47') // caixa de arma com tier especial (as antigas foram apagadas)
   const raridades = [0, 0, 0, 0, 0, 0]
   const desgastes = {}
-  const porTipo = { faca: 0, arma: 0 }
+  const porTipo = { faca: 0, luva: 0, arma: 0 }
   for (let i = 0; i < N; i++) {
     const a = sortearAbertura(caixa, cfg, rndSeguro)
     raridades[a.raridade]++
@@ -27,7 +27,7 @@ test('simulação de 100.000 aberturas: raridades e desgastes batem com as taxas
   console.log('Desgastes (%) das skins que cobrem toda a faixa 0–1 estão no teste seguinte; aqui, geral (inclui skins com intervalo curto):')
   for (const f of cfg.desgaste) console.log(`  ${f.nome.padEnd(16)} ${(((desgastes[f.nome] || 0) / N) * 100).toFixed(2)}%`)
   cfg.taxas.forEach((t, i) => assert.ok(Math.abs((raridades[i] / N) * 100 - t) < 0.7, `raridade ${i}: ${(raridades[i] / N) * 100} vs ${t}`))
-  assert.equal(porTipo.faca, raridades[5])
+  assert.equal(porTipo.faca + porTipo.luva, raridades[5]) // o tier especial das caixas novas pode ter facas e luvas
 })
 
 test('simulação de 100.000 desgastes numa skin que vai de 0 a 1: 10/22/40/13/15 %', () => {
@@ -88,7 +88,7 @@ test('chances publicadas somam 100% por raridade e batem com as taxas', () => {
 })
 
 test('faixa da roleta: o vencedor está no alvo, "quase" só quando o vizinho é o card dourado', () => {
-  const caixa = CAIXAS[0]
+  const caixa = CAIXAS.find((c) => c.slug === 'caixa-arma-ak-47')
   let quase = 0
   for (let i = 0; i < 5000; i++) {
     const g = sortearAbertura(caixa, cfg, rndSeguro)
@@ -210,8 +210,11 @@ test('toda insígnia do catálogo tem arte tratada e todas as secretas têm a ve
 
 test('as caixas iniciais são válidas (imagem existe, tem de tudo, pesos > 0)', () => {
   const dir = new URL('../../../public/assets/caixas/web/', import.meta.url)
-  assert.ok(CAIXAS.length >= 31)
-  assert.equal(CAIXAS.filter((c) => c.arquivada).length, 31) // as 31 antigas ficam arquivadas
+  assert.equal(CAIXAS.length, 70)
+  assert.equal(CAIXAS.filter((c) => c.arquivada).length, 0) // as 31 antigas foram apagadas (revisão 11)
+  const removidas = JSON.parse(fs.readFileSync(new URL('../src/caixas-removidas.json', import.meta.url), 'utf8'))
+  assert.equal(removidas.length, 31)
+  assert.ok(CAIXAS.every((c) => !removidas.includes(c.slug)))
   assert.equal(new Set(CAIXAS.map((c) => c.id)).size, CAIXAS.length)
   assert.equal(new Set(CAIXAS.map((c) => c.slug)).size, CAIXAS.length)
   for (const c of CAIXAS) {
@@ -255,54 +258,26 @@ test('vender não paga a caixa de volta (valor esperado de uma abertura fica bem
     assert.ok(soma / N < c.preco * 0.9, // margem 1,6 (≈62%) + ruído da simulação nas caixas com skin muito cara
        `${c.slug}: valor médio de mercado ${(soma / N).toFixed(0)} vs preço ${c.preco}`)
   }
-  for (const c of CAIXAS.filter((x) => x.arquivada)) {
-    let soma = 0
-    const N = 4000
-    for (let i = 0; i < N; i++) {
-      const a = sortearAbertura(c, cfg2, rndSeguro)
-      if (a.item.t === 'adesivo' || a.item.t === 'chaveiro') continue // não se vende
-      soma += a.item.t === 'faca' ? valorDaFaca(a.item, facasValor) : valorDoItem({ f: a.item.f }, raridadeSkin[`${a.item.d}:${a.item.p}`] ?? 2)
-    }
-    assert.ok(soma / N < c.preco * 0.6, `${c.slug}: valor médio ${(soma / N).toFixed(0)} vs preço ${c.preco}`)
-  }
 })
 
-// ── caixas de facas e de amuletos/adesivos ──
-test('caixa de facas: só facas, a mais cara da loja, facas valiosas com chance menor', () => {
-  const c = CAIXAS.find((x) => x.slug === 'caixa-facas')
-  assert.ok(c.preco > CAIXAS.filter((x) => x.slug !== 'caixa-luvas').reduce((m, x) => (x.slug === 'caixa-facas' ? m : Math.max(m, x.preco)), 0))
-  assert.ok(c.itens.every((x) => x.t === 'faca') && c.facas.length === 0)
-  const facasValor = JSON.parse(fs.readFileSync(new URL('../src/facas-valor.json', import.meta.url), 'utf8'))
-  const valorMedio = (r) => { const l = c.itens.filter((x) => x.r === r); return l.reduce((a, x) => a + facasValor[x.d + ':' + x.p], 0) / l.length }
-  assert.ok(valorMedio(4) > valorMedio(2) && valorMedio(2) > valorMedio(0), 'raridade alta = faca mais valiosa')
-  const pesoMedio = (r) => { const l = c.itens.filter((x) => x.r === r); return l.reduce((a, x) => a + x.w, 0) / l.length }
-  assert.ok(pesoMedio(4) < pesoMedio(0), 'faca valiosa tem peso menor')
-  for (let i = 0; i < 2000; i++) {
-    const a = sortearAbertura(c, CONFIG_PADRAO, rndSeguro)
-    assert.equal(a.item.t, 'faca')
-    assert.ok(a.item.f >= 0 && a.item.f <= 1)
-  }
-})
-test('caixas de amuletos e adesivos: cada uma só com o tipo certo (sem arma e sem faca) e sem desgaste', () => {
-  // [slug, tipos permitidos, mínimo de itens]
-  const regras = [['caixa-fliperama', ['adesivo', 'chaveiro'], 40], ['caixa-kawaii', ['adesivo'], 40], ['caixa-terror', ['adesivo'], 40], ['caixa-espacial', ['chaveiro'], 20], ['caixa-lendas', ['chaveiro'], 20]]
-  for (const [slug, tipos, minimo] of regras) {
-    const c = CAIXAS.find((x) => x.slug === slug)
-    assert.ok(c.itens.length >= minimo && c.itens.every((x) => tipos.includes(x.t) && x.n && x.i), slug)
-    for (const tp of tipos) assert.ok(c.itens.some((x) => x.t === tp), slug + ' precisa de ' + tp)
-    assert.ok(c.preco < CAIXAS.find((x) => x.slug === 'caixa-ak47').preco, slug + ' mais barata que as de arma')
-    for (let i = 0; i < 500; i++) {
-      const a = sortearAbertura(c, CONFIG_PADRAO, rndSeguro)
-      assert.ok(tipos.includes(a.item.t))
-      assert.equal(a.item.p, 0)
+// ── caixas de adesivos, de chaveiros e de arma ──
+test('caixas de adesivos e de chaveiros: cada uma só com o tipo certo (sem arma e sem faca) e sem desgaste', () => {
+  const grupos = [['caixa-adesivos-', 'adesivo'], ['caixa-chaveiros-', 'chaveiro']]
+  for (const [prefixo, tipo] of grupos) {
+    const lista = CAIXAS.filter((x) => x.slug.startsWith(prefixo))
+    assert.ok(lista.length > 0, prefixo)
+    for (const c of lista) {
+      assert.ok(c.itens.every((x) => x.t === tipo), c.slug)
+      for (let i = 0; i < 300; i++) {
+        const a = sortearAbertura(c, CONFIG_PADRAO, rndSeguro)
+        assert.equal(a.item.t, tipo)
+        assert.equal(a.item.p, 0)
+      }
     }
-    for (const r of [0, 1, 2, 3, 4]) assert.ok(c.itens.some((x) => x.r === r), slug + ' sem raridade ' + r)
   }
-  const grupo = ['caixa-fliperama', 'caixa-kawaii', 'caixa-terror', 'caixa-espacial', 'caixa-lendas']
-  assert.equal(CAIXAS.find((x) => x.slug === 'caixa-lendas').preco, Math.max(...grupo.map((s) => CAIXAS.find((x) => x.slug === s).preco)))
 })
 test('caixas de arma: só skins daquela arma', () => {
-  const por = { 'caixa-ak47': [7], 'caixa-awp': [9], 'caixa-deagle': [1], 'caixa-m4a1': [60, 16], 'caixa-glock': [4] }
+  const por = { 'caixa-arma-ak-47': [7], 'caixa-arma-awp': [9], 'caixa-arma-desert-eagle': [1], 'caixa-arma-m4a1-s': [60], 'caixa-arma-m4a4': [16], 'caixa-arma-glock-18': [4] }
   for (const [slug, defs] of Object.entries(por)) assert.ok(CAIXAS.find((x) => x.slug === slug).itens.every((x) => defs.includes(x.d)), slug)
 })
 test('Mestre da Caixa de facas e de amuletos conta os itens certos (adesivo e chaveiro com o mesmo id não se confundem)', () => {
@@ -313,13 +288,3 @@ test('Mestre da Caixa de facas e de amuletos conta os itens certos (adesivo e ch
   assert.equal(ok([l('adesivo', 5, 0), l('chaveiro', 5, 0), l('faca', 507, 38)]), true)
 })
 
-test('caixa de luvas: só luvas, sem item raro especial, a mais cara; luvas valiosas com chance menor', () => {
-  const c = CAIXAS.find((x) => x.slug === 'caixa-luvas')
-  assert.equal(c.preco, Math.max(...CAIXAS.map((x) => x.preco)))
-  assert.ok(c.itens.length >= 90 && c.itens.every((x) => x.t === 'luva') && c.facas.length === 0)
-  for (let i = 0; i < 2000; i++) {
-    const a = sortearAbertura(c, CONFIG_PADRAO, rndSeguro)
-    assert.equal(a.item.t, 'luva')
-    assert.ok(a.raridade <= 4, 'sem tier especial')
-  }
-})

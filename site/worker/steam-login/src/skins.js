@@ -179,7 +179,20 @@ const doJogador = (env, id) => env.LOJA.get(env.LOJA.idFromName(id))
 const chamarDO = async (env, id, corpo) => (await doJogador(env, id).fetch('https://loja/', { method: 'POST', body: JSON.stringify({ id, ...corpo }) })).json()
 export async function lerSkinsVer(env, id) {
   const r = await chamarDO(env, id, { acao: 'inv-ler' })
-  return { inv: r.inv ? limparSkins(r.inv) : null, ver: r.ver || 0 }
+  const inv = r.inv ? limparSkins(r.inv) : null
+  // caixas apagadas da loja (as antigas): as fechadas somem do inventário (a próxima gravação já sai sem elas)
+  if (inv) {
+    const removidas = await caixasRemovidas(env)
+    if (removidas.size) for (const [k, it] of Object.entries(inv.itens)) if (it.t === 'caixa' && removidas.has(it.d)) delete inv.itens[k]
+  }
+  return { inv, ver: r.ver || 0 }
+}
+let removidasCache = { ate: 0, ids: new Set() }
+async function caixasRemovidas(env) {
+  if (removidasCache.ate > Date.now()) return removidasCache.ids
+  const lista = (await env.MOLDURAS.get('caixas-removidas', 'json').catch(() => null)) || []
+  removidasCache = { ate: Date.now() + 5 * 60_000, ids: new Set(lista.map(Number)) }
+  return removidasCache.ids
 }
 export const lerSkins = async (env, id) => (await lerSkinsVer(env, id)).inv
 // Lê, muda (fn(inv) devolve { inv, ...extra } ou { erro }) e grava só se mais ninguém mexeu no meio (compra/abertura da loja, presente do dono, outra aba)
