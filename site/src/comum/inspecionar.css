@@ -73,3 +73,8 @@ html.inv-travado body { position: fixed; inset: 0; width: 100%; }
 /* inspecionar adesivo/chaveiro */
 .inv-inspecao-enfeite { width: min(420px, 82%); aspect-ratio: 1; display: grid; place-items: center; border-radius: 18px; background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--cor) 32%, transparent), transparent 70%), rgb(255 255 255 / .03); border: 1px solid color-mix(in srgb, var(--cor) 45%, transparent); transition: transform .12s ease-out; will-change: transform; }
 .inv-inspecao-enfeite img { width: 82%; height: 82%; object-fit: contain; filter: drop-shadow(0 12px 18px rgb(0 0 0 / .55)); pointer-events: none; }
+
+.inv-insp-vistas { display: inline-flex; gap: 6px; padding: 4px; border-radius: 999px; background: rgb(255 255 255 / .06); }
+.inv-insp-vistas button { padding: 6px 16px; border: 0; border-radius: 999px; background: none; color: var(--dim, #9aa0a8); font: 700 12px var(--font-body, inherit); letter-spacing: .06em; cursor: pointer; }
+.inv-insp-vistas button.is-ativo { background: var(--accent, #f5c542); color: #1a1208; }
+.inv-insp-dica { display: block; margin-top: 6px; text-align: center; color: var(--dim, #9aa0a8); font-size: 12px; }

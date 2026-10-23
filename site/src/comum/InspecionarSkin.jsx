@@ -248,9 +248,21 @@ export function useTelaPequena() {
 function InspecionarEnfeite({ item, aoFechar }) {
   const t = useT()
   const catalogo = useCatalogo(item.t === 'adesivo' ? 'adesivos' : 'chaveiros')
+  const mapa3d = useCatalogo('mapa3d')
+  const m = useMapas3d(mapa3d.dados)
   const [giro, setGiro] = useState({ x: 0, y: 0 })
+  const [vista, setVista] = useState('3d') // '3d' (aplicado numa AK-47) | 'img' (imagem grande)
+  const pequena = useTelaPequena()
   const linha = useMemo(() => (catalogo.dados || []).find((s) => s[0] === item.d), [catalogo.dados, item.d])
+  // o visualizador 3D só mostra armas: o adesivo/chaveiro aparece aplicado numa AK-47 (sem pintura), que dá para girar e aproximar
+  const item3d = useMemo(() => {
+    if (!m || !m.base[7]) return null
+    const lib = (item.t === 'adesivo' ? m.adesivos : m.chaveiros).paraLib.get(item.d)
+    if (!lib) return null
+    return { t: 'arma', d: 7, p: 0, f: 0.0001, s: 0, st: 0, a: item.t === 'adesivo' ? [{ i: item.d, s: 0, r: 0, w: 0 }, null, null, null, null] : [null, null, null, null, null], k: item.t === 'chaveiro' ? { i: item.d, s: 0 } : null }
+  }, [m, item.t, item.d])
   if (!catalogo.dados) return null
+  const mostra3d = vista === '3d' && !!item3d
   const cor = corEnfeite(item.t, linha)
   const nome = linha?.[1] || `#${item.d}`
   const raridade = item.t === 'adesivo' ? `${t('Acabamento')}: ${t(acabamentoDoAdesivo(nome))}` : t(RARIDADES_NOME[raridadeCsDaCor(cor)] || 'Chaveiro')
@@ -260,10 +272,27 @@ function InspecionarEnfeite({ item, aoFechar }) {
   }
   return createPortal(
     <JanelaInspecao titulo={t('Inspecionar')} aoFechar={aoFechar} largura="media" classe="inv-janela-insp">
-      <div className="inv-inspecao" onPointerMove={mover} onPointerLeave={() => setGiro({ x: 0, y: 0 })}>
+      <div className="inv-inspecao" onPointerMove={mostra3d ? undefined : mover} onPointerLeave={() => setGiro({ x: 0, y: 0 })}>
+        {item3d && (
+          <div className="inv-insp-vistas" role="group" aria-label={t('Tipo de visualização')}>
+            <button type="button" className={mostra3d ? 'is-ativo' : ''} onClick={() => setVista('3d')}>
+              3D
+            </button>
+            <button type="button" className={!mostra3d ? 'is-ativo' : ''} onClick={() => setVista('img')}>
+              {t('Imagem')}
+            </button>
+          </div>
+        )}
+        {mostra3d ? (
+          <div className="inv-inspecao-3d">
+            <Visualizador3D key={`${item.t}${item.d}`} item={item3d} m={m} aoMudar={() => {}} aoFalhar={() => setVista('img')} altura={pequena ? 'min(52dvh, 400px)' : 480} />
+            <small className="inv-insp-dica">{item.t === 'adesivo' ? t('Adesivo aplicado numa AK-47 (o 3D só mostra armas).') : t('Chaveiro pendurado numa AK-47 (o 3D só mostra armas).')}</small>
+          </div>
+        ) : (
         <div className="inv-inspecao-enfeite" style={{ '--cor': cor, transform: `perspective(900px) rotateX(${giro.x}deg) rotateY(${giro.y}deg)` }}>
           {linha?.[2] ? <img src={urlImg(linha[2], 512)} alt="" draggable="false" /> : null}
         </div>
+        )}
         <div className="inv-inspecao-info">
           <b>{nome}</b>
           <span>{item.t === 'adesivo' ? t('Adesivo') : t('Chaveiro')}</span>
