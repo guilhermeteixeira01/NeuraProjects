@@ -5,6 +5,8 @@ import { chamar } from '../../comum/Moldura.jsx'
 import { localeAtual, useT } from '../../comum/i18n.js'
 import { confirmar } from '../../comum/Dialogos.jsx'
 import { bonusDoPagamento, npDoPagamento } from '../../../worker/steam-login/src/loja-core.js'
+import { lerCaixasPublicas } from '../../comum/loja.js'
+import { CATEGORIAS_CAIXA, categoriaDaCaixa } from '../../comum/temasCaixa.js'
 
 const num = (n) => Number(n || 0).toLocaleString(localeAtual())
 const erroTexto = (e) => ({ login: 'Seu login venceu. Entre de novo com a Steam.', dono: 'Só o dono mexe nos pontos.', id: 'SteamID64 inválido.', valor: 'Valor inválido.' })[e.message] || 'Não deu para aplicar. Tente de novo.'
@@ -22,6 +24,7 @@ export default function AdminPontos({ usuarios, fixo = null, modo = 'tudo' }) {
   const [estado, setEstado] = useState({ texto: '', ok: true })
   const [ocupado, setOcupado] = useState(false)
   const [bonusVersao, setBonusVersao] = useState(0) // sobe quando um bônus para todos é lançado (a lista de salvos recarrega)
+  const [tipo, setTipo] = useState('np') // modo 'todos': bônus de 'np' ou de 'caixa' fechada
   const vivo = useRef(true)
 
   // jogador escolhido: nome exato, SteamID64 ou clique na sugestão (só vale com texto digitado)
@@ -77,9 +80,32 @@ export default function AdminPontos({ usuarios, fixo = null, modo = 'tudo' }) {
     }
   }
 
+  const seletorTipo = modo === 'todos' && (
+    <div className="adm-pt-seg adm-pt-tipo" role="group" aria-label={t('Tipo de bônus')}>
+      <button type="button" className={tipo === 'np' ? 'active' : ''} onClick={() => setTipo('np')}>
+        {t('Neura Pontos')}
+      </button>
+      <button type="button" className={tipo === 'caixa' ? 'active' : ''} onClick={() => setTipo('caixa')}>
+        {t('Caixa fechada')}
+      </button>
+    </div>
+  )
+
+  if (modo === 'todos' && tipo === 'caixa')
+    return (
+      <>
+        <div className="caixa adm-pt">
+          {seletorTipo}
+          <BonusCaixa aoLancar={() => setBonusVersao((n) => n + 1)} />
+        </div>
+        <BonusSalvos versao={bonusVersao} />
+      </>
+    )
+
   return (
     <>
     <div className="caixa adm-pt">
+      {seletorTipo}
       <p className="adm-dar-dica">{fixo ? t('Neura Pontos da loja deste jogador. Os pontos ganhos nas partidas continuam valendo; aqui você só soma ou tira em cima deles.') : modo === 'todos' ? t('Bônus de Neura Pontos para todos os jogadores do site (cada um recebe uma vez, inclusive quem entrar depois).') : t('Neura Pontos da loja: escolha quem, o que fazer e o valor. Os pontos ganhos nas partidas continuam valendo; aqui você só soma ou tira em cima deles.')}</p>
 
       {!fixo && modo !== 'todos' && (
@@ -299,6 +325,74 @@ export function ConfigDepositos() {
   )
 }
 
+// Bônus de caixa fechada para todos: escolhe a caixa (agrupada por tema, como na loja), a quantidade e o motivo. Cada jogador recebe uma vez no inventário.
+function BonusCaixa({ aoLancar }) {
+  const t = useT()
+  const [caixas, setCaixas] = useState(null)
+  const [caixa, setCaixa] = useState('')
+  const [qtd, setQtd] = useState('1')
+  const [motivo, setMotivo] = useState('')
+  const [estado, setEstado] = useState({ texto: '', ok: true })
+  const [ocupado, setOcupado] = useState(false)
+
+  useEffect(() => {
+    lerCaixasPublicas().then((l) => setCaixas((l || []).filter((c) => !c.arquivada)))
+  }, [])
+
+  const grupos = CATEGORIAS_CAIXA.map(([id, nome]) => [id, nome, (caixas || []).filter((c) => categoriaDaCaixa(c) === id)]).filter((g) => g[2].length)
+  const escolhida = (caixas || []).find((c) => String(c.id) === caixa)
+  const n = Math.max(0, Math.min(10, Math.round(Number(qtd) || 0)))
+  const podeAplicar = !ocupado && !!escolhida && n > 0
+
+  const aplicar = async () => {
+    if (!(await confirmar(`${t('Dar {n}× {caixa} para TODOS os jogadores?', { n, caixa: escolhida.nome })}\n${t('Cada jogador recebe na próxima vez que abrir o site.')}`, { ok: t('Aplicar') }))) return
+    setOcupado(true)
+    setEstado({ texto: '', ok: true })
+    try {
+      await chamar('/admin/loja-bonus-caixa', { caixa: escolhida.id, qtd: n, motivo })
+      setEstado({ texto: t('Pronto: vale para todos (cada um recebe ao abrir o site).'), ok: true })
+      setMotivo('')
+      aoLancar()
+    } catch (e) {
+      setEstado({ texto: e.message === 'caixa' ? t('Essa caixa não existe mais.') : t(erroTexto(e)), ok: false })
+    } finally {
+      setOcupado(false)
+    }
+  }
+
+  return (
+    <>
+      <p className="adm-dar-dica">{t('Caixa fechada para todos os jogadores do site: vai direto para o inventário (cada um recebe uma vez, inclusive quem entrar depois).')}</p>
+      <div className="adm-pt-grupo">
+        <b>{t('Caixa')}</b>
+        <select value={caixa} onChange={(e) => setCaixa(e.target.value)} disabled={!caixas} aria-label={t('Caixa')}>
+          <option value="">{caixas ? t('Escolha a caixa') : t('Carregando…')}</option>
+          {grupos.map(([id, nome, lista]) => (
+            <optgroup key={id} label={t(nome)}>
+              {lista.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nome} · {num(c.preco)} NP
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </div>
+      <div className="adm-pt-grupo">
+        <b>{t('Quantidade')}</b>
+        <div className="adm-pt-linha">
+          <input type="number" min="1" max="10" step="1" inputMode="numeric" value={qtd} onChange={(e) => setQtd(e.target.value)} aria-label={t('Quantidade')} />
+          <input type="text" maxLength={60} placeholder={t('Motivo (opcional)')} value={motivo} onChange={(e) => setMotivo(e.target.value)} />
+        </div>
+      </div>
+      <button type="button" className="btn btn-primary adm-pt-aplicar" disabled={!podeAplicar} onClick={aplicar}>
+        {t('Dar caixa para todos')} {escolhida && n ? `· ${n}× ${escolhida.nome}` : ''}
+      </button>
+      {estado.texto && <p className={estado.ok ? 'adm-dar-estado' : 'adm-pt-erro'}>{estado.texto}</p>}
+    </>
+  )
+}
+
 // Bônus "para todos" que estão salvos: cada jogador recebe cada um uma vez (quem entrar depois também). Dá para apagar: quem já recebeu fica com os pontos,
 // quem ainda não recebeu (e os novos jogadores) deixa de receber.
 function BonusSalvos({ versao }) {
@@ -321,8 +415,9 @@ function BonusSalvos({ versao }) {
   }, [carregar, versao])
 
   const apagar = async (b) => {
-    const nome = `${b.valor > 0 ? '+' : ''}${num(b.valor)} NP${b.motivo ? ` (${b.motivo})` : ''}`
-    if (!(await confirmar(t('Apagar o bônus {nome}? Quem já recebeu fica com os pontos; quem ainda não recebeu, e os jogadores novos, não recebem mais.', { nome }), { perigo: true, ok: t('Apagar') }))) return
+    const nome = `${b.caixa ? `${b.qtd}× ${b.nome}` : `${b.valor > 0 ? '+' : ''}${num(b.valor)} NP`}${b.motivo ? ` (${b.motivo})` : ''}`
+    const texto = b.caixa ? 'Apagar o bônus {nome}? Quem já recebeu fica com a caixa; quem ainda não recebeu, e os jogadores novos, não recebem mais.' : 'Apagar o bônus {nome}? Quem já recebeu fica com os pontos; quem ainda não recebeu, e os jogadores novos, não recebem mais.'
+    if (!(await confirmar(t(texto, { nome }), { perigo: true, ok: t('Apagar') }))) return
     setApagando(b.id)
     try {
       await chamar('/admin/loja-bonus', { apagar: b.id })
@@ -347,10 +442,16 @@ function BonusSalvos({ versao }) {
         <ul className="adm-bonus-lista">
           {[...lista].reverse().map((b) => (
             <li key={b.id}>
-              <b className={b.valor >= 0 ? 'mais' : 'menos'}>
-                {b.valor > 0 ? '+' : ''}
-                {num(b.valor)} NP
-              </b>
+              {b.caixa ? (
+                <b className="mais">
+                  {b.qtd}× {b.nome}
+                </b>
+              ) : (
+                <b className={b.valor >= 0 ? 'mais' : 'menos'}>
+                  {b.valor > 0 ? '+' : ''}
+                  {num(b.valor)} NP
+                </b>
+              )}
               <span>{b.motivo || t('sem motivo')}</span>
               <small>{new Date(b.ts).toLocaleString(localeAtual(), { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</small>
               <button type="button" className="btn btn-ghost adm-perigo" disabled={apagando === b.id} onClick={() => apagar(b)}>

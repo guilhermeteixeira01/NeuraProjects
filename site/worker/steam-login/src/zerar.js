@@ -64,7 +64,7 @@ export async function zerarTudo(env, simular) {
   }
   await env.MOLDURAS.put('perfis', JSON.stringify(perfis))
   // 3. bônus já lançados valem 0 (os ids continuam, para os próximos bônus funcionarem) e ninguém mais na lista de quem abriu caixa
-  await env.MOLDURAS.put('loja-bonus', JSON.stringify(bonus.map((b) => ({ ...b, valor: 0 }))))
+  await env.MOLDURAS.put('loja-bonus', JSON.stringify(bonus.map((b) => ({ ...b, valor: 0, ...(b.caixa ? { qtd: 0 } : {}) }))))
   await env.MOLDURAS.put('loja-jogadores', '[]')
   // 4. inventários antigos no KV (o objeto do jogador lia daqui na primeira vez)
   for (const k of chavesSkins) await env.MOLDURAS.delete(k).catch(() => {})

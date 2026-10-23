@@ -294,18 +294,48 @@ export class Loja {
     })
   }
 
-  // Bônus de NP para todos (KV "loja-bonus": [{ id, ts, valor, motivo }], POST /admin/loja-bonus): cada jogador recebe cada bônus uma vez, na próxima vez que mexe na loja
-  async aplicarBonus(bonus) {
+  // Bônus para todos (KV "loja-bonus": [{ id, ts, valor, motivo }] de NP ou [{ id, ts, caixa, qtd, nome, motivo }] de caixa fechada, POST /admin/loja-bonus):
+  // cada jogador recebe cada bônus uma vez, na próxima vez que mexe na loja
+  async aplicarBonus(bonus, id) {
     if (!Array.isArray(bonus) || !bonus.length) return
     const visto = (await this.ctx.storage.get('bonusVisto')) || 0
     const novos = bonus.filter((b) => b.id > visto)
     if (!novos.length) return
     // bônus apagado pelo dono (apagado: true) ou zerado não entra: só o contador avança, para os próximos bônus funcionarem
-    const valem = novos.filter((b) => !b.apagado && Math.round(b.valor) !== 0)
+    const valem = novos.filter((b) => !b.apagado && !b.caixa && Math.round(b.valor) !== 0)
+    const caixasBonus = id ? novos.filter((b) => !b.apagado && b.caixa && Math.round(b.qtd) > 0) : []
     this.ctx.storage.transactionSync(() => {
       for (const b of valem) this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', b.ts, -Math.round(b.valor), `bônus: ${b.motivo || 'para todos'}`)
     })
+    // caixas fechadas entram no inventário (até o limite de itens); o contador só avança depois de gravar
+    let recebidas = 0
+    if (caixasBonus.length) {
+      const inv = (await this.invLer(id)).inv || limparSkins({})
+      const agora = Date.now()
+      for (const b of caixasBonus) {
+        for (let k = 0; k < Math.round(b.qtd) && Object.keys(inv.itens).length < ITENS_MAX; k++) {
+          const item = novoIdItem()
+          inv.itens[item] = { t: 'caixa', d: Number(b.caixa), p: 0 }
+          inv.criado[item] = agora + recebidas++
+        }
+      }
+      if (recebidas) await this.invGravar(id, inv)
+    }
     await this.ctx.storage.put('bonusVisto', Math.max(...novos.map((b) => b.id)))
+    if (recebidas) {
+      const nomes = [...new Set(caixasBonus.map((b) => String(b.nome || '').trim()).filter(Boolean))]
+      const motivos = [...new Set(caixasBonus.map((b) => String(b.motivo || '').trim()).filter(Boolean))]
+      const n = {
+        id: `bonus-caixa:${Math.max(...caixasBonus.map((b) => b.id))}`,
+        titulo: recebidas === 1 ? `Você recebeu 1 caixa${nomes.length === 1 ? `: ${nomes[0]}` : ''}` : `Você recebeu ${recebidas} caixas${nomes.length === 1 ? `: ${nomes[0]}` : ''}`,
+        texto: motivos.length ? `Motivo: ${motivos.join(' · ')}` : 'Bônus para todos os jogadores. Está no seu inventário.',
+        link: '/inventario/',
+        quando: Date.now(),
+        lida: false,
+      }
+      const atual = (await this.ctx.storage.get('notifs')) || docVazio()
+      await this.ctx.storage.put('notifs', juntar(atual, { lista: [n], vistos: [n.id], limpoEm: 0 }))
+    }
     // avisa no sino (em todos os aparelhos). Vários de uma vez (quem entra agora e recebe os bônus antigos) viram um aviso só, com os motivos
     if (valem.length) {
       const total = valem.reduce((a, b) => a + Math.round(b.valor), 0)
@@ -342,7 +372,7 @@ export class Loja {
 
   async acao({ acao, id, caixas, cfg, pontos, bonus, premium, ...p }) {
     if (['saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir', 'vender', 'mercado-comprar', 'dep-creditar', 'cobrar'].includes(acao)) {
-      await this.aplicarBonus(bonus)
+      await this.aplicarBonus(bonus, id)
       await this.aplicarPremium(premium)
     }
     switch (acao) {
@@ -806,7 +836,7 @@ export async function rotaLoja(req, env, quem, cors, rota, sub) {
 export async function rotaAdminLoja(req, env, rota, cors) {
   const corpo = await req.json().catch(() => ({}))
   if (rota === '/admin/caixas') {
-    const lista = (Array.isArray(corpo.caixas) ? corpo.caixas : []).slice(0, 60).map(limparCaixa).filter(Boolean)
+    const lista = (Array.isArray(corpo.caixas) ? corpo.caixas : []).slice(0, 150).map(limparCaixa).filter(Boolean)
     if (!lista.length || new Set(lista.map((c) => c.id)).size !== lista.length || new Set(lista.map((c) => c.slug)).size !== lista.length) return json({ erro: 'caixas' }, 400, cors)
     await env.MOLDURAS.put('caixas', JSON.stringify(lista))
     return json({ ok: true, n: lista.length }, 200, cors)
@@ -840,11 +870,23 @@ export async function rotaAdminLoja(req, env, rota, cors) {
     const r = await chamar(env, corpo.alvo, { acao: corpo.acao === 'definir' ? 'definir' : 'creditar', pontos, bonus, valor: corpo.acao === 'remover' ? -valor : valor, motivo, aviso: corpo.acao !== 'definir' })
     return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
   }
+  // Bônus de caixa fechada para todos: { caixa (id), qtd 1..10, motivo }. Entra na mesma lista dos bônus de NP (os ids seguem um contador só)
+  if (rota === '/admin/loja-bonus-caixa') {
+    const caixa = (await lerCaixas(env)).find((c) => c.id === Number(corpo.caixa) && !c.arquivada)
+    const qtd = Math.round(num(corpo.qtd, 1, 10, 0))
+    if (!caixa) return json({ erro: 'caixa' }, 400, cors)
+    if (!qtd) return json({ erro: 'valor' }, 400, cors)
+    const lista = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
+    const nova = { id: Math.max(0, ...lista.map((b) => b.id)) + 1, ts: Date.now(), valor: 0, caixa: caixa.id, qtd, nome: String(caixa.nome || caixa.slug).slice(0, 60), motivo: String(corpo.motivo || '').slice(0, 60) }
+    await env.MOLDURAS.put('loja-bonus', JSON.stringify([...lista, nova].slice(-200)))
+    await avisarTodos(env, { tipo: 'bonus' })
+    return json({ ok: true, todos: true }, 200, cors)
+  }
   // Bônus "para todos" salvos (GET: lista) e apagar um (POST { apagar: id }). Apagar = ninguém mais recebe (quem já recebeu fica com os pontos); o id continua na lista
   // marcado como apagado, para um bônus novo nunca reaproveitar um número que os jogadores já "viram".
   if (rota === '/admin/loja-bonus') {
     const lista = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
-    if (req.method === 'GET') return json({ bonus: lista.filter((b) => !b.apagado && Math.round(b.valor) !== 0).map((b) => ({ id: b.id, ts: b.ts, valor: b.valor, motivo: b.motivo || '' })) }, 200, cors)
+    if (req.method === 'GET') return json({ bonus: lista.filter((b) => !b.apagado && (b.caixa ? Math.round(b.qtd) > 0 : Math.round(b.valor) !== 0)).map((b) => ({ id: b.id, ts: b.ts, valor: b.valor, motivo: b.motivo || '', ...(b.caixa ? { caixa: b.caixa, qtd: b.qtd, nome: b.nome || '' } : {}) })) }, 200, cors)
     const id = Number(corpo.apagar)
     if (!lista.some((b) => b.id === id)) return json({ erro: 'bonus' }, 404, cors)
     await env.MOLDURAS.put('loja-bonus', JSON.stringify(lista.map((b) => (b.id === id ? { ...b, apagado: true } : b))))

@@ -1931,7 +1931,7 @@ export default function Admin() {
                 <Usuarios usuarios={usuarios} painel={painel} dono={painel.dono} editar={setEditando} />
                 {tem('pontos') && (
                   <details className="adm-dobra">
-                    <summary>{tr('Bônus de pontos para todos os jogadores')}</summary>
+                    <summary>{tr('Bônus para todos os jogadores (NP ou caixa)')}</summary>
                     <AdminPontos usuarios={usuarios} modo="todos" />
                   </details>
                 )}

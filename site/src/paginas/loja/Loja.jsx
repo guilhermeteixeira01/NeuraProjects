@@ -12,6 +12,7 @@ import { CarregandoNP } from '../../comum/Carregando.jsx'
 import Drops from './Drops.jsx'
 import PaginaCaixa, { useFavoritas } from './PaginaCaixa.jsx'
 import { prepararSons } from './somLoja.js'
+import { CATEGORIAS_CAIXA, categoriaDaCaixa } from '../../comum/temasCaixa.js'
 
 const TIERS = [
   ['todas', 'Todas'],
@@ -22,24 +23,6 @@ const TIERS = [
 const NOME_TIER = { barata: 'Barata', media: 'Média', premium: 'Premium' }
 
 // Categorias da loja (pelo que a caixa sorteia): separam as caixas temáticas das de arma, de facas, de amuletos e de adesivos
-const CATEGORIAS = [
-  ['tematicas', 'Caixas temáticas', 'Skins de várias armas, com facas raras.'],
-  ['armas', 'Caixas de arma', 'Só skins de uma arma (e as facas raras).'],
-  ['facas', 'Facas', 'Só facas: as mais valiosas saem com chance menor.'],
-  ['luvas', 'Luvas', 'Só luvas, sem item raro especial: a caixa de luxo.'],
-  ['amuletos', 'Amuletos', 'Só chaveiros, para pendurar nas suas armas.'],
-  ['adesivos', 'Adesivos', 'Só adesivos, para colar nas suas armas.'],
-  ['misto', 'Amuletos e adesivos', 'Chaveiros e adesivos juntos.'],
-]
-function categoriaDe(c) {
-  const t = new Set(c.itens.map((i) => i.t || 'arma'))
-  if (t.size === 1 && t.has('faca')) return 'facas'
-  if (t.size === 1 && t.has('luva')) return 'luvas'
-  if (t.has('chaveiro') && !t.has('adesivo') && t.size === 1) return 'amuletos'
-  if (t.has('adesivo') && !t.has('chaveiro') && t.size === 1) return 'adesivos'
-  if (t.has('chaveiro') || t.has('adesivo')) return 'misto'
-  return new Set(c.itens.map((i) => i.d)).size <= 2 ? 'armas' : 'tematicas' // uma ou duas armas (M4A1-S + M4A4) = caixa de arma
-}
 const numero = (n) => Number(n).toLocaleString('pt-BR')
 
 function Saldo({ saldo }) {
@@ -338,8 +321,8 @@ function Conteudo() {
               </ul>
             </section>
           )}
-          {CATEGORIAS.map(([id, nome, dica]) => {
-            const lista = caixas.filter((c) => categoriaDe(c) === id)
+          {CATEGORIAS_CAIXA.map(([id, nome, dica]) => {
+            const lista = caixas.filter((c) => categoriaDaCaixa(c) === id)
             if (!lista.length) return null
             return (
               <section className="lj-categoria" key={id} aria-label={t(nome)}>

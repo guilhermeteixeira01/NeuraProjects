@@ -288,3 +288,15 @@ test('Mestre da Caixa de facas e de amuletos conta os itens certos (adesivo e ch
   assert.equal(ok([l('adesivo', 5, 0), l('chaveiro', 5, 0), l('faca', 507, 38)]), true)
 })
 
+
+test('categorias da loja por franquia: Kakashi/Sasuke em Naruto, Ichigo/Hollow em Bleach, toda caixa inicial com tema', async () => {
+  const { categoriaDaCaixa } = await import('../../../src/comum/temasCaixa.js')
+  const cat = (slug) => categoriaDaCaixa(CAIXAS.find((c) => c.slug === slug))
+  for (const s of ['caixa-anime-naruto', 'caixa-anime-kakashi', 'caixa-anime-sasuke']) assert.equal(cat(s), 'naruto', s)
+  for (const s of ['caixa-anime-ichigo', 'caixa-anime-hollow']) assert.equal(cat(s), 'bleach', s)
+  assert.equal(cat('caixa-cs-tematicas-dust-ii'), 'cs')
+  assert.equal(cat('caixa-arma-awp'), 'armas')
+  assert.equal(cat('caixa-chaveiros-toxic'), 'amuletos')
+  for (const c of CAIXAS) assert.ok(!['tematicas', 'facas', 'luvas', 'misto'].includes(categoriaDaCaixa(c)), `${c.slug} sem tema`)
+  assert.equal(categoriaDaCaixa({ slug: 'caixa-nova', itens: [{ t: 'faca', d: 1 }] }), 'facas') // criada no painel: pelo conteúdo
+})

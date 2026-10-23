@@ -102,6 +102,7 @@ const ROTULO_ADMIN = {
   '/admin/loja-config': 'mudou a configuração da loja',
   '/admin/loja-pontos': 'mexeu nos pontos',
   '/admin/loja-bonus': 'apagou um bônus de pontos para todos',
+  '/admin/loja-bonus-caixa': 'deu um bônus de caixa para todos',
   '/admin/pagamento-config': 'mudou a configuração dos depósitos',
   '/admin/assinatura-planos': 'mudou os planos de assinatura',
   '/admin/zerar-tudo': 'ZEROU TUDO',
@@ -396,8 +397,8 @@ async function atender(req, env, ctx) {
         if (!pode('pontos')) return json({ erro: 'aba' }, 403, cors)
         return rotaAdminPagamento(req, env, cors)
       }
-      if (((rota === '/admin/caixas' || rota === '/admin/caixas-lista' || rota === '/admin/loja-config' || rota === '/admin/loja-pontos') && req.method === 'POST') || (rota === '/admin/loja-saldo' && req.method === 'GET') || (rota === '/admin/loja-bonus' && (req.method === 'GET' || req.method === 'POST'))) {
-        if (!pode(rota === '/admin/loja-pontos' || rota === '/admin/loja-saldo' || rota === '/admin/loja-bonus' ? 'pontos' : 'caixas')) return json({ erro: 'aba' }, 403, cors)
+      if (((rota === '/admin/caixas' || rota === '/admin/caixas-lista' || rota === '/admin/loja-config' || rota === '/admin/loja-pontos' || rota === '/admin/loja-bonus-caixa') && req.method === 'POST') || (rota === '/admin/loja-saldo' && req.method === 'GET') || (rota === '/admin/loja-bonus' && (req.method === 'GET' || req.method === 'POST'))) {
+        if (!pode(rota === '/admin/loja-pontos' || rota === '/admin/loja-saldo' || rota === '/admin/loja-bonus' || rota === '/admin/loja-bonus-caixa' ? 'pontos' : 'caixas')) return json({ erro: 'aba' }, 403, cors)
         return rotaAdminLoja(req, env, rota, cors)
       }
       if (rota === '/admin/selos' && req.method === 'POST') {
