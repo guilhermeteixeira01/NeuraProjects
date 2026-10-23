@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { pontosDaPartida } from '../../comum/pontos.js'
 import CarregandoPontos, { CarregandoNP } from '../../comum/Carregando.jsx'
 import Layout from '../../comum/Layout.jsx'
@@ -8,7 +8,7 @@ import GraficoUtil from './GraficoUtil.jsx'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { linkPerfil } from '../../comum/conta.js'
 import { fundoMapa, getMap, mapIcon, nomeMapa } from '../../comum/mapas.js'
-import { ComMoldura, usePerfis } from '../../comum/Moldura.jsx'
+import { ComMoldura, comApelidos, usePerfis } from '../../comum/Moldura.jsx'
 import { desempenhoAtivo } from '../../comum/desempenho.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { nivelDe } from '../../comum/niveis.js'
@@ -827,10 +827,12 @@ export default function Partida({ dados: inicial }) {
     if (d) document.title = `${d.timeA} ${d.placarA} x ${d.placarB} ${d.timeB} — ${nomeMapa(d.mapa)}`
   }, [d])
 
+  const perfis = usePerfis()
+  const dApelidos = useMemo(() => (d ? { ...d, jogadores: comApelidos(d.jogadores, perfis) } : d), [d, perfis]) // apelido do site no lugar do nome do jogo
   return (
     <Layout pagina="partidas">
       {d ? (
-        <Conteudo d={d} />
+        <Conteudo d={dApelidos} />
       ) : (
         <main className="wrap">
           {erro ? (

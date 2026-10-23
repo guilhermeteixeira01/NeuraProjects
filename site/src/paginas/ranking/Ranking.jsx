@@ -6,7 +6,7 @@ import { Contador } from '../../comum/efeitos.jsx'
 import { useAoVivo } from '../../comum/aoVivo.js'
 import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
 import Premier from '../../comum/Premier.jsx'
-import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, useCardDe, usePerfis } from '../../comum/Moldura.jsx'
+import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, apelidoDe, useCardDe, usePerfis } from '../../comum/Moldura.jsx'
 import { fundoCard } from '../../comum/cardsPerfil.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { nivelDe } from '../../comum/niveis.js'
@@ -277,7 +277,7 @@ export default function Ranking({ dados: inicial }) {
     // Dono/admin com "Ocultar do ranking" ligado não aparece (o próximo sobe de posição)
     const jogadores = dados.jogadores.filter((j) => !perfis[j.steamId]?.ocultoRanking).map((j) => {
       const xp = (Number(j.xp) || 0) + (Number(perfis[j.steamId]?.xp) || 0)
-      return { ...j, xp, nivel: nivelDe(xp, j.mapas).nivel }
+      return { ...j, nome: apelidoDe(perfis, j.steamId, j.nome), xp, nivel: nivelDe(xp, j.mapas).nivel }
     })
     return { ...dados, jogadores }
   }, [dados, perfis])

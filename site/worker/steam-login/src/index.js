@@ -297,6 +297,8 @@ async function atender(req, env, ctx) {
       const r = await chamarContas(env, { acao: 'nick', steam: quem.id, nick: c.nick, premium })
       if (r.ok) {
         await caches.default.delete(new Request(`https://cache.neura/jogador/${quem.id}`)).catch(() => {}) // o nome público do jogador muda na hora
+        APELIDOS.set(quem.id, { nick: r.dados.nick, ate: Date.now() + 60_000 })
+        await registrarUsuario(env, quem.id, { apelido: r.dados.nick, avatar: quem.avatar })
         await registrar(env, { tipo: 'conta', quem: quem.id, texto: `escolheu o apelido "${r.dados.nick}"` })
       }
       return json(r.dados, r.ok ? 200 : r.status, cors)
@@ -343,6 +345,10 @@ async function atender(req, env, ctx) {
         if (!ID_STEAM.test(String(c.id || ''))) return json({ erro: 'id' }, 400, cors)
         const r = rota === '/admin/nick' ? await chamarContas(env, { acao: 'nick', steam: c.id, nick: c.nick, premium: true, admin: true }) : await chamarContas(env, { acao: 'reset-senha', steam: c.id })
         if (r.ok) await caches.default.delete(new Request(`https://cache.neura/jogador/${c.id}`)).catch(() => {})
+        if (r.ok && rota === '/admin/nick') {
+          APELIDOS.delete(c.id)
+          await registrarUsuario(env, c.id, { apelido: r.dados.nick })
+        }
         return json(r.dados, r.ok ? 200 : r.status, cors)
       }
       // Painel do servidor de CS2: só o dono (derruba jogadores e roda comando de console na VPS)
@@ -430,7 +436,23 @@ function corsDe(req, env, site) {
 
 async function logado(req, env) {
   const token = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '')
-  return env.SEGREDO ? conferir(token, env.SEGREDO) : null
+  const quem = env.SEGREDO ? await conferir(token, env.SEGREDO) : null
+  // o nome do login é o da Steam (do dia em que entrou): o apelido escolhido no site vale no lugar dele em tudo (lobby, trocas, mercado, chat…)
+  if (quem?.id) {
+    const apelido = await apelidoDe(env, quem.id).catch(() => '')
+    if (apelido) quem.nome = apelido
+  }
+  return quem
+}
+
+const APELIDOS = new Map() // id -> { nick, ate }: cache na memória do worker (60 s)
+async function apelidoDe(env, id) {
+  const guardado = APELIDOS.get(id)
+  if (guardado && guardado.ate > Date.now()) return guardado.nick
+  const r = await chamarContas(env, { acao: 'nicks', ids: [id] })
+  const nick = (r.ok && r.dados[id]) || ''
+  APELIDOS.set(id, { nick, ate: Date.now() + 60_000 })
+  return nick
 }
 
 const ehAdmin = (id, env, config) => id === env.DONO || (config.admins || []).includes(id)
@@ -1094,9 +1116,12 @@ async function registrarUsuario(env, id, perfil, visita = false) {
     const usuarios = await ler(env, 'usuarios')
     const agora = new Date().toISOString()
     const antes = usuarios[id] || {}
-    const mudou = !usuarios[id] || (perfil.nome && perfil.nome !== antes.nome) || (perfil.avatar && perfil.avatar !== antes.avatar)
+    // o apelido escolhido no site (perfil.apelido, ou o já guardado) vale no lugar do nome da Steam em tudo que lê esta lista
+    const apelido = perfil.apelido || antes.apelido || ''
+    const nome = apelido || perfil.nome || antes.nome || ''
+    const mudou = !usuarios[id] || nome !== antes.nome || (perfil.avatar && perfil.avatar !== antes.avatar)
     if (visita && !mudou && Date.now() - new Date(antes.visto || 0).getTime() < 3600000) return
-    usuarios[id] = { nome: perfil.nome || antes.nome || '', avatar: perfil.avatar || antes.avatar || '', primeiro: antes.primeiro || agora, visto: agora }
+    usuarios[id] = { nome, ...(apelido ? { apelido } : {}), avatar: perfil.avatar || antes.avatar || '', primeiro: antes.primeiro || agora, visto: agora }
     await gravar(env, 'usuarios', usuarios)
   } catch {
     // não impede o login

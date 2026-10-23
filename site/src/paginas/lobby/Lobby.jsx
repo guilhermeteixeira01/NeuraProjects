@@ -5,7 +5,7 @@ import { CONFIG } from '../../comum/config.js'
 import { entrar, linkPerfil, loginAtivo } from '../../comum/conta.js'
 import { lerJson } from '../../comum/dados.js'
 import { IconeSteam } from '../../comum/Icones.jsx'
-import { ComMoldura, IconeEquipe, useCardDe, useNivelSub, usePerfis } from '../../comum/Moldura.jsx'
+import { ComMoldura, IconeEquipe, apelidoDe, useCardDe, useNivelSub, usePerfis } from '../../comum/Moldura.jsx'
 import { urlCard } from '../../comum/cardsPerfil.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { ALL_MAPS, idMapa, mapImage, nomeMapa } from '../../comum/mapas.js'
@@ -127,8 +127,10 @@ const IC_SAIR = (
 const IC_CHECK = <path d="m4 12.5 5 5L20 6.5" />
 
 // Um lugar do grupo com alguém (ou convite pendente): o fundo é o card que a pessoa escolheu no perfil
-function Pessoa({ pessoa, lider, pendente, centro, souLider, eu, aoRemover, ocupado, nivelDe: nivelDoJogador }) {
+function Pessoa({ pessoa: bruta, lider, pendente, centro, souLider, eu, aoRemover, ocupado, nivelDe: nivelDoJogador }) {
   const t = useT()
+  const perfis = usePerfis()
+  const pessoa = { ...bruta, nome: apelidoDe(perfis, bruta.id, bruta.nome) } // apelido do site
   const card = useCardDe(pessoa.id)
   const { info } = nivelDoJogador(pessoa.id)
   return (

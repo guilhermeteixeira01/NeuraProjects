@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAmigos } from '../../comum/amigos.js'
 import { linkPerfil } from '../../comum/conta.js'
-import { ComMoldura, IconeEquipe, useCardDe } from '../../comum/Moldura.jsx'
+import { ComMoldura, IconeEquipe, apelidoDe, useCardDe, usePerfis } from '../../comum/Moldura.jsx'
 import { urlCard } from '../../comum/cardsPerfil.js'
 import { useAvatar } from '../../comum/avatares.js'
 import { acaoLobby, msAte, useRelogio } from '../../comum/lobby.js'
@@ -61,8 +61,10 @@ function Foto({ p }) {
 }
 
 // Um jogador do time: card do perfil como fundo, foto com moldura e nome
-function Jogador({ pessoa, lider }) {
+function Jogador({ pessoa: bruta, lider }) {
   const t = useT()
+  const perfis = usePerfis()
+  const pessoa = { ...bruta, nome: apelidoDe(perfis, bruta.id, bruta.nome) } // apelido do site
   const card = useCardDe(pessoa.id)
   return (
     <div className={`sala-jog${lider ? ' lider' : ''}${card ? ' com-card' : ''}`} style={card ? { '--card-fundo': `url("${urlCard(card)}")` } : undefined}>

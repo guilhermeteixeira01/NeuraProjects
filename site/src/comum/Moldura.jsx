@@ -107,6 +107,11 @@ export function usePerfis() {
 }
 
 // true depois que os perfis chegaram do worker (avisos de nível/insígnia esperam isso para saber o que já foi visto)
+// Apelido escolhido no site (vem junto dos perfis do worker): vale no lugar do nome da Steam/do jogo em tudo que mostra jogadores
+export const apelidoDe = (perfis, id, padrao = '') => (id && perfis?.[id]?.nick) || padrao
+// troca o campo "nome" de uma lista de jogadores ({ steamId, nome }) pelo apelido de cada um
+export const comApelidos = (lista, perfis) => (Array.isArray(lista) ? lista.map((j) => (perfis?.[j?.steamId]?.nick ? { ...j, nome: perfis[j.steamId].nick } : j)) : lista)
+
 export function usePerfisFrescos() {
   const [ok, setOk] = useState(false)
   useEffect(() => {

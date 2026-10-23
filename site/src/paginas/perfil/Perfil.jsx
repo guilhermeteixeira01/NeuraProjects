@@ -784,7 +784,10 @@ export default function Perfil() {
   }, [id, dados, noRanking])
 
   // Nome do jogador na aba do navegador
-  const j = dados?.ranking?.jogadores?.find((x) => x.steamId === id)
+  const perfisNick = usePerfis()
+  const jRanking = dados?.ranking?.jogadores?.find((x) => x.steamId === id)
+  // apelido escolhido no site no lugar do nome do jogo
+  const j = jRanking && perfisNick[id]?.nick ? { ...jRanking, nome: perfisNick[id].nick } : jRanking
   useEffect(() => {
     if (j) document.title = `${j.nome} — ${t('Perfil')} | Neura Project`
   }, [j, t.idioma]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -821,7 +824,7 @@ export default function Perfil() {
     const eu = conta?.id === id
     const vazio = {
       steamId: id,
-      nome: (eu && conta.nome) || (steamPublico?.id === id && steamPublico.nome) || t('Jogador'),
+      nome: perfisNick[id]?.nick || (eu && conta.nome) || (steamPublico?.id === id && steamPublico.nome) || t('Jogador'),
       avatar: (eu && conta.avatar) || (steamPublico?.id === id && steamPublico.avatar) || '',
       time: '', logoTime: '', premier: null, xp: 0,
       mapas: 0, vitorias: 0, kills: 0, mortes: 0, fk: 0, fd: 0, multi: {}, mvps: 0, mvpPartida: 0, rating: 0, melhorRating: 0, adr: 0, kast: 0, hsPct: 0, kd: 0, winRate: 0,
