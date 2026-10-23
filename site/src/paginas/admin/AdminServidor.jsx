@@ -1,9 +1,10 @@
 // Aba "Servidor" do painel (só o dono): liga, desliga e reinicia o servidor de CS2 da VPS e mostra o console.
 // Dados: worker /admin/servidor/* (src/servidor-cs2.js), que repassa para o agente da VPS (public/vps/painel.js). O token da VPS fica só no worker.
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { chamar } from '../../comum/Moldura.jsx'
 import { useT } from '../../comum/i18n.js'
 import { confirmar } from '../../comum/Dialogos.jsx'
+import { ansiParaLinhas } from './ansi.js'
 
 const INTERVALO_MS = 2000
 const MAX_LINHAS = 1000
@@ -19,6 +20,7 @@ const ERROS = {
   configuracao: 'O worker ainda não tem CS2_AGENTE_URL e CS2_AGENTE_TOKEN (veja PAINEL-SERVIDOR.md).',
   timeout: 'A VPS não respondeu em 10 segundos.',
   'vps-fora': 'Não consegui falar com a VPS. Ela está ligada e o agente rodando?',
+  'agente-antigo': 'O agente da VPS está desatualizado. Envie o painel.js novo para /home/steam/painel/ e rode: systemctl restart painel-cs2',
   'token-agente': 'A VPS recusou o token. Confira CS2_AGENTE_TOKEN no worker e PAINEL_TOKEN na VPS.',
 }
 const erroTexto = (e) => ERROS[e?.message] || e?.dados?.erro || 'Não deu certo. Tente de novo.' // 409 e outros trazem a frase do próprio agente
@@ -32,6 +34,7 @@ export default function AdminServidor() {
   const [validar, setValidar] = useState(false)
   const [cmd, setCmd] = useState('')
   const [ocupado, setOcupado] = useState(false)
+  const vistas = useMemo(() => ansiParaLinhas(linhas).filter((l) => l.partes.length), [linhas]) // cores do terminal; linhas só com código de cor somem
   const proximo = useRef(0) // índice global da próxima linha que falta (?desde=)
   const consolePre = useRef(null)
   const noFim = useRef(true)
@@ -142,7 +145,18 @@ export default function AdminServidor() {
         </p>
       )}
       <pre className="adm-srv-console" ref={consolePre} onScroll={aoRolar} aria-label={t('Console do servidor')}>
-        {linhas.length ? linhas.join('\n') : t('Sem mensagens ainda.')}
+        {vistas.length
+          ? vistas.map((l, i) => (
+              <div key={i} className={`adm-srv-l${l.marca ? ` adm-srv-l-${l.marca}` : ''}`}>
+                {l.hora && <span className="adm-srv-h">{l.hora} </span>}
+                {l.partes.map((p, k) => (
+                  <span key={k} style={p.estilo || undefined}>
+                    {p.texto}
+                  </span>
+                ))}
+              </div>
+            ))
+          : t('Sem mensagens ainda.')}
       </pre>
       <form className="adm-srv-cmd" onSubmit={enviar}>
         <input type="text" value={cmd} onChange={(e) => setCmd(e.target.value)} placeholder={t('Comando do console (ex.: changelevel de_mirage)')} autoComplete="off" spellCheck="false" maxLength={500} disabled={!rodando} />

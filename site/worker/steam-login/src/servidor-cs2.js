@@ -42,5 +42,6 @@ export async function rotaAdminServidorCs2(req, env, rota, url, cors) {
   const d = await r.json().catch(() => null)
   if (r.status === 401 || r.status === 403) return resposta({ erro: 'token-agente' }, 502, cors) // o token do worker não confere com o da VPS
   if (!d) return resposta({ erro: 'vps-fora' }, 502, cors)
+  if (r.status === 404) return resposta({ erro: 'agente-antigo' }, 502, cors) // o agente da VPS não conhece essa rota: o painel.js de lá é de uma versão anterior
   return resposta(d, r.status, cors)
 }

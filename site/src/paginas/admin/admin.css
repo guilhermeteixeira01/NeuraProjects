@@ -610,3 +610,11 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 .adm-srv-cmd input { flex: 1; min-width: 0; padding: 9px 12px; border-radius: 8px; background: var(--bg-soft); border: 1px solid var(--border); color: var(--text); font: 13px ui-monospace, Consolas, monospace; }
 .adm-srv-cmd input:disabled { opacity: .5; }
 @media (max-width: 640px) { .adm-srv-console { height: 52vh; } .adm-srv-botoes .btn { flex: 1; } }
+
+/* console do servidor: cores do terminal e as mensagens do próprio agente */
+.adm-srv-l { min-height: 1.5em; }
+.adm-srv-h { color: #6e7681; }
+.adm-srv-l-aviso { color: #56d4dd; }
+.adm-srv-l-erro { color: #ff6b6b; }
+.adm-srv-l-comando { color: #e3b341; }
+.adm-srv .btn:disabled { opacity: 0.4; cursor: not-allowed; }

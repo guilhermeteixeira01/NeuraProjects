@@ -76,10 +76,24 @@ let pararSolicitado = false;
 const logs = [];
 let descartadas = 0; // linhas que já saíram do buffer: o índice global de logs[0] é "descartadas"
 
+// O console do CS2 e o SteamCMD mandam códigos de terminal. As cores (ESC[...m) ficam, porque o painel do site as desenha;
+// o resto (mover o cursor, apagar a linha, título da janela, controles soltos) é tirado, senão aparece como "�[0m" e quadradinhos.
+function limparTerminal(s) {
+  return s
+    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)?/g, '')
+    .replace(/\x1b\[[0-?]*[ -/]*[@-ln-~]/g, '')
+    .replace(/\x1b[()][0-9A-Za-z]/g, '')
+    .replace(/\x1b(?!\[[0-9;:]*m)/g, '')
+    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1a\x1c-\x1f\x7f]/g, '');
+}
+
 function log(texto) {
   const hora = new Date().toLocaleTimeString('pt-BR');
-  for (const linha of String(texto).split(/\r?\n/)) {
-    if (linha.trim()) logs.push(`[${hora}] ${linha}`);
+  for (let linha of String(texto).split(/\r?\n/)) {
+    // "\r": o programa reescreveu a mesma linha (barra de progresso do SteamCMD): vale só o último trecho
+    if (linha.includes('\r')) linha = linha.split('\r').filter(Boolean).pop() || '';
+    linha = limparTerminal(linha);
+    if (linha.replace(/\x1b\[[0-9;:]*m/g, '').trim()) logs.push(`[${hora}] ${linha}`);
   }
   if (logs.length > 1000) {
     descartadas += logs.length - 1000;
