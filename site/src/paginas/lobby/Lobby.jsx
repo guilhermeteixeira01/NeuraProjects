@@ -666,13 +666,19 @@ function useCabeNaTela(ref, ativo) {
     raiz.style.overflow = 'hidden'
     document.body.style.overflow = 'hidden'
     let pendente = 0
+    // Tudo acontece na mesma chamada (mede sem zoom e sem altura mínima, depois aplica): o tamanho final não muda de um quadro
+    // para o outro, então o ResizeObserver não entra em laço.
     const ajustar = () => {
       el.style.zoom = '1'
+      el.style.minHeight = ''
       const r = el.getBoundingClientRect()
       const zonaHtml = parseFloat(getComputedStyle(raiz).zoom) || 1
-      const sobra = window.innerHeight - r.top - 22 * zonaHtml // 22px de respiro embaixo (o padding da página)
+      const margemBaixo = 22 + (parseFloat(getComputedStyle(document.body).paddingBottom) || 0) // respiro da página + margem da moldura do conteúdo
+      const sobra = window.innerHeight - r.top - margemBaixo * zonaHtml
       const razao = r.height > 0 ? Math.min(1, Math.max(0.45, sobra / r.height)) : 1
       el.style.zoom = razao < 0.995 ? String(razao) : ''
+      // Coube com folga: o lobby estica até o fim da janela (o painel de partida cresce), sem sobrar espaço vazio embaixo
+      if (razao >= 0.995 && sobra > r.height) el.style.minHeight = `${Math.floor(sobra / zonaHtml)}px`
     }
     const agendar = () => {
       cancelAnimationFrame(pendente)
@@ -687,6 +693,7 @@ function useCabeNaTela(ref, ativo) {
       ro.disconnect()
       window.removeEventListener('resize', agendar)
       el.style.zoom = ''
+      el.style.minHeight = ''
       raiz.style.overflow = antes[0]
       document.body.style.overflow = antes[1]
     }

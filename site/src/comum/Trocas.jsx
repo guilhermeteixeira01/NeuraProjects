@@ -4,7 +4,7 @@
 //  - useTrocas + AvisoTroca: quantidade pendente, atualização ao vivo e a notificação no sino quando chega uma proposta.
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import CartaoSkin from './CartaoSkin.jsx'
+import { GemaNome, nomeDoDesgaste } from './CartaoSkin.jsx'
 import { BotaoInspecionar } from './InspecionarSkin.jsx'
 import './trocas.css'
 import { CONFIG } from './config.js'
@@ -13,7 +13,7 @@ import { useT } from './i18n.js'
 import { lerCaixasPublicas } from './loja.js'
 import { comSenha } from './seguranca.js'
 import { registrarNotificacao } from './notificacoes.js'
-import { indicar, lerInventario, urlImg, useCatalogo, corEnfeite } from './skins.js'
+import { descrever, indicar, lerInventario, urlImg, useCatalogo, corEnfeite } from './skins.js'
 
 const base = () => CONFIG.loginSteam.replace(/\/$/, '')
 async function chamar(rota, corpo) {
@@ -69,44 +69,79 @@ function useCatalogosDeItens() {
   )
 }
 
-// Um item (skin/faca/luva com adesivos, ou adesivo, chaveiro e caixa) como cartão pequeno; onClick escolhe/tira
+// Um item da troca (skin/faca/luva, adesivo, chaveiro ou caixa) num cartão único: todos com a mesma estrutura e proporção.
+//   grade da esquerda: arte 4:3 + nome em 3 linhas fixas;  quadros da direita e propostas (pequeno): só a arte, quadrada.
 function ItemTroca({ item, id, cat, aoClicar, marcado, pequeno = false }) {
   const t = useT()
-  const classe = `tr-item${marcado ? ' sel' : ''}${pequeno ? ' pq' : ''}`
-  let corpo
-  if (item.t === 'adesivo' || item.t === 'chaveiro' || item.t === 'caixa') {
-    const caixa = item.t === 'caixa' ? cat.caixas.find((c) => c.id === item.d) : null
-    const linha = item.t === 'adesivo' ? cat.adesivos.get(item.d) : item.t === 'chaveiro' ? cat.chaveiros.get(item.d) : null
-    corpo = (
-      <div className="inv-cartao inv-cartao-fixo" style={{ '--cor': caixa?.cor || (linha ? corEnfeite(item.t, linha) : '#6b6f76') }}>
-        <span className="inv-cartao-arte">
-          <span className="inv-arma-box">
-            <img className="inv-arma-img" src={caixa ? caixa.img : urlImg(linha?.[2], 256)} alt="" loading="lazy" />
-          </span>
-        </span>
-        <span className="inv-cartao-nome">
-          <b>{caixa?.nome || linha?.[1] || `#${item.d}`}</b>
-          <small>{item.t === 'adesivo' ? t('Adesivo') : item.t === 'chaveiro' ? t('Chaveiro') : t('Caixa fechada')}</small>
-        </span>
-      </div>
-    )
+  let img = ''
+  let cor = '#6b6f76'
+  let titulo = ''
+  let sub = ''
+  let extra = ''
+  let enfeites = null
+  if (item.t === 'caixa') {
+    const caixa = cat.caixas.find((c) => c.id === item.d)
+    img = caixa?.img || ''
+    cor = caixa?.cor || cor
+    titulo = caixa?.nome || `#${item.d}`
+    sub = t('Caixa fechada')
+  } else if (item.t === 'adesivo' || item.t === 'chaveiro') {
+    const linha = (item.t === 'adesivo' ? cat.adesivos : cat.chaveiros).get(item.d)
+    img = urlImg(linha?.[2], 256)
+    cor = linha ? corEnfeite(item.t, linha) : cor
+    titulo = linha?.[1] || `#${item.d}`
+    sub = item.t === 'adesivo' ? t('Adesivo') : t('Chaveiro')
   } else {
-    corpo = (
-      <ul className="tr-skin">
-        <CartaoSkin item={{ ...item, __id: id }} idx={cat.idx} adesivos={cat.adesivos} chaveiros={cat.chaveiros} equip={{ ct: {}, tr: {} }} />
-      </ul>
-    )
+    const d = descrever(item, cat.idx)
+    img = d.img
+    cor = d.cor || cor
+    titulo = item.n ? `${d.titulo} «${item.n}»` : d.titulo
+    sub = d.subtitulo
+    if (d.skin && item.f != null) extra = `${t(nomeDoDesgaste(Number(item.f)))} · ${Number(item.f).toFixed(3)}`
+    const ads = item.t === 'arma' ? (item.a || []).filter((s) => s?.i) : []
+    const ch = item.t === 'arma' && item.k?.i > 0 ? cat.chaveiros.get(item.k.i) : null
+    if (ads.length || ch)
+      enfeites = (
+        <span className="tri-enf">
+          {ch && <img src={urlImg(ch[2], 64)} alt="" loading="lazy" />}
+          {ads.map((s, k) => (
+            <img key={k} src={urlImg(cat.adesivos.get(s.i)?.[2], 64)} alt="" loading="lazy" />
+          ))}
+        </span>
+      )
   }
+  const corpo = (
+    <>
+      <span className="tri-arte">
+        {img ? <img src={img} alt="" loading="lazy" draggable="false" /> : null}
+        {item.st ? <span className="tri-st">ST™</span> : null}
+        {enfeites}
+      </span>
+      {!pequeno && (
+        <span className="tri-nome">
+          <b title={titulo}>
+            <GemaNome item={item} />
+            {titulo}
+          </b>
+          <small title={sub}>{sub}</small>
+          <em>{extra || '\u00a0'}</em>
+        </span>
+      )}
+    </>
+  )
+  const classe = `tri${pequeno ? ' tri-pq' : ''}${marcado ? ' sel' : ''}${aoClicar ? ' clicavel' : ''}`
   const principal = aoClicar ? (
-    <button type="button" className={classe} onClick={aoClicar} aria-pressed={!!marcado}>
+    <button type="button" className={classe} style={{ '--cor': cor }} onClick={aoClicar} aria-pressed={!!marcado} title={titulo}>
       {corpo}
     </button>
   ) : (
-    <div className={classe}>{corpo}</div>
+    <div className={classe} style={{ '--cor': cor }} title={titulo}>
+      {corpo}
+    </div>
   )
   // a lupa "Inspecionar" fica por cima do cartão (fora do botão de escolher, que não pode conter outro botão)
   return (
-    <div className="tr-item-wrap">
+    <div className={`tri-wrap${pequeno ? ' tri-wrap-pq' : ''}`}>
       {principal}
       <BotaoInspecionar item={{ ...item, __id: id }} classe="insp-canto" />
     </div>

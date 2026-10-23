@@ -142,3 +142,43 @@ button.tr-item:hover { background: rgb(255 255 255 / .06); }
 .tr-slot .tr-item-wrap > .tr-item, .tr-prop-itens .tr-item-wrap > .tr-item { width: 100%; height: 100%; }
 .tr-slot .tr-item-wrap > .tr-item.pq { cursor: pointer; }
 .tr-slot .insp-botao.insp-canto, .tr-prop-itens .insp-botao.insp-canto { top: 2px; right: 2px; transform: scale(.8); transform-origin: top right; }
+
+/* ══════ Cartão do item da troca (Trocas.jsx → ItemTroca): o mesmo para skin, faca, luva, adesivo, chaveiro e caixa ══════
+   Grade da esquerda: arte 4:3 + 3 linhas de nome de altura fixa → todos os cartões com o mesmo tamanho.
+   Quadros da direita e propostas: só a arte, ocupando o quadro inteiro (quadrado). */
+.tr-grade { grid-auto-rows: 1fr; align-items: stretch; }
+.tr-grade li { display: flex; }
+.tri-wrap { position: relative; min-width: 0; width: 100%; height: 100%; }
+.tri { display: flex; flex-direction: column; width: 100%; height: 100%; margin: 0; padding: 0; border: 1px solid rgb(255 255 255 / .08); border-bottom: 3px solid var(--cor); border-radius: 8px; overflow: hidden; color: inherit; text-align: left; font: inherit;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--cor) 24%, #15171d) 0%, #101217 75%); transition: border-color .15s, transform .15s; }
+.tri.clicavel { cursor: pointer; }
+.tri.clicavel:hover { border-color: color-mix(in srgb, var(--cor) 70%, #fff); border-bottom-color: var(--cor); transform: translateY(-2px); }
+.tri.sel { outline: 2px solid #2bb3d6; outline-offset: 1px; }
+.tri-arte { position: relative; display: block; flex: none; width: 100%; aspect-ratio: 4 / 3; }
+.tri-arte > img { position: absolute; inset: 8% 7%; width: 86%; height: 84%; object-fit: contain; filter: drop-shadow(0 6px 8px rgb(0 0 0 / .5)); }
+.tri-st { position: absolute; left: 7px; top: 6px; font: 800 10px var(--font-body); color: #ffb64d; letter-spacing: .02em; }
+.tri-enf { position: absolute; left: 6px; bottom: 4px; display: flex; align-items: center; gap: 2px; }
+.tri-enf img { width: 17px; height: 17px; object-fit: contain; }
+.tri-nome { display: grid; gap: 1px; padding: 6px 9px 8px; min-width: 0; }
+.tri-nome b, .tri-nome small, .tri-nome em { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.3; }
+.tri-nome b { font: 700 12.5px var(--font-body); }
+.tri-nome small { font-size: 11.5px; color: rgb(255 255 255 / .78); }
+.tri-nome em { font-style: normal; font-size: 11px; color: var(--dim); }
+.tri-nome .inv-gema-i { vertical-align: -2px; }
+
+/* quadros da direita e itens das propostas: só a arte, quadrada */
+.tr-slot.cheio { border: 0; background: none; padding: 0; display: block; overflow: visible; }
+.tr-slot .tri-wrap, .tr-prop-itens .tri-wrap { aspect-ratio: 1; height: auto; }
+.tri-pq .tri-arte { flex: 1; aspect-ratio: auto; height: 100%; }
+.tri-pq .tri-arte > img { inset: 12% 10% 16%; width: 80%; height: 72%; }
+.tri-pq .tri-st { left: 5px; top: 4px; font-size: 8px; }
+.tri-pq .tri-enf { left: 4px; bottom: 3px; gap: 1px; }
+.tri-pq .tri-enf img { width: 11px; height: 11px; }
+.tri-wrap .insp-botao.insp-canto { top: 5px; right: 5px; padding: 5px; }
+.tri-wrap-pq .insp-botao.insp-canto { top: 3px; right: 3px; padding: 3px; }
+.tri-wrap-pq .insp-botao.insp-canto svg { width: 11px; height: 11px; }
+@media (max-width: 760px) {
+  .tri-nome { padding: 5px 7px 7px; }
+  .tri-nome b { font-size: 11.5px; }
+  .tri-nome small, .tri-nome em { font-size: 10.5px; }
+}

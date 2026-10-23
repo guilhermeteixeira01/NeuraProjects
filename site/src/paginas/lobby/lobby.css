@@ -470,3 +470,12 @@ html[data-desempenho] .lb-modo-premium::before, html[data-desempenho] .lb-modo-p
 .lb-reg-online small { color: #3fb950; }
 .lb-reg-offline small { color: #f85149; }
 .lb-reg-manutencao small { color: var(--accent); }
+
+/* ── Painel de partida: as três abas (tipo, mapas, servidor) têm a MESMA altura, então trocar de aba não mexe em mais nada da tela.
+   O lobby preenche a altura da janela (o painel cresce até o fim, sem sobra e sem barra de rolagem: useCabeNaTela no Lobby.jsx). ── */
+.lb-conteudo { display: flex; flex-direction: column; box-sizing: border-box; }
+.lb-conteudo > .lb-painel { flex: 1 0 auto; display: flex; flex-direction: column; }
+.lb-painel-corpo { box-sizing: border-box; flex: 1 0 auto; height: auto; min-height: 236px; overflow: hidden; padding: 24px 28px; display: flex; flex-direction: column; justify-content: center; }
+.lb-mapas { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-auto-rows: 86px; gap: 10px; width: 100%; }
+.lb-mapas li { height: auto; }
+.lb-servidor-status { padding: 0; }
