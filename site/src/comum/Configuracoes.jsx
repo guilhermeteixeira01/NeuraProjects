@@ -23,13 +23,16 @@ function ContaSeguranca() {
   const seg = useSeguranca()
   const [janela, setJanela] = useState(null) // 'nick' | 'senha'
   if (!seg?.nick) return null // sem login (ou ainda escolhendo o apelido na janela de boas-vindas)
+  // Premium esperando os 15 dias: o botão mostra quanto falta (dias; no último dia, horas)
+  const falta = seg.premium && !seg.podeTrocarNick && seg.proximaTroca ? Math.max(0, seg.proximaTroca - Date.now()) : 0
+  const rotuloNick = !falta ? t('Trocar apelido') : falta > 864e5 ? t('Trocar em {n} dias', { n: Math.ceil(falta / 864e5) }) : t('Trocar em {n} h', { n: Math.max(1, Math.ceil(falta / 36e5)) })
   return (
     <div className="nx-config-campo nx-config-conta">
       <span>{t('Conta')}</span>
       <div className="nx-conta-linha">
         <b title={t('Apelido')}>{seg.nick}</b>
         <button type="button" className="nx-conta-acao" disabled={!seg.podeTrocarNick} onClick={() => setJanela('nick')} title={seg.podeTrocarNick ? '' : seg.premium ? t('Próxima troca em {data}', { data: new Date(seg.proximaTroca).toLocaleDateString() }) : t('Só assinantes Premium trocam de apelido (a cada 15 dias).')}>
-          {t('Trocar apelido')}
+          {rotuloNick}
         </button>
       </div>
       <div className="nx-conta-linha">

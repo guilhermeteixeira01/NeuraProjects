@@ -188,7 +188,9 @@ function JanelaConta({ aoFechar, children }) {
     <div className="bv-fundo" onClick={aoFechar}>
       <div className="bv" role="dialog" aria-modal="true" aria-labelledby="bv-titulo" onClick={(e) => e.stopPropagation()}>
         <button type="button" className="bv-fechar" onClick={aoFechar} aria-label={t('Fechar')}>
-          ×
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
         </button>
         <div className="bv-passo">{children}</div>
       </div>

@@ -39,7 +39,8 @@
 .bv-botao { display: grid; place-items: center; min-height: 48px; transition: filter .15s, transform .08s, background .25s; }
 .bv-botao.bv-feito { background: #3fb950; color: #06170e; opacity: 1; animation: bv-pulo .4s cubic-bezier(.2, 1.4, .4, 1) both; }
 .bv-spin { display: block; width: 20px; height: 20px; border-radius: 50%; border: 2.5px solid rgb(21 17 10 / .25); border-top-color: #15110a; animation: cc-gira .7s linear infinite; }
-.bv-fechar { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border: 0; border-radius: 8px; background: rgb(255 255 255 / .06); color: inherit; font: 400 22px/1 var(--font-body); cursor: pointer; }
+.bv-fechar { position: absolute; z-index: 2; top: 12px; right: 12px; display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 8px; background: rgb(255 255 255 / .06); color: inherit; cursor: pointer; transition: background .15s; }
+.bv-fechar svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
 .bv-fechar:hover { background: rgb(255 255 255 / .12); }
 .bv-fundo .bv h2 { padding-right: 34px; }
 @keyframes bv-passo { from { opacity: 0; transform: translateX(16px); } }

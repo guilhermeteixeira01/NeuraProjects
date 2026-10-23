@@ -1421,4 +1421,6 @@ export default {
   "Visual de desenho animado.": "Estilo de dibujos animados.",
   "Personalizadas": "Personalizadas",
   "Caixas feitas para a comunidade.": "Cajas hechas para la comunidad.",
+  "Trocar em {n} dias": "Cambiar en {n} días",
+  "Trocar em {n} h": "Cambiar en {n} h",
 }
