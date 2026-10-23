@@ -2832,7 +2832,7 @@ a.nt-corpo:hover b { color: var(--accent); }
 }
 
 /* Vindo da página inicial (barra aberta), a barra encolhe até os ícones e o conteúdo acompanha */
-@media (min-width: 1281px) {
+@media (min-width: 1025px) {
   html.nx-encolhe [data-site-nav] {
     overflow: hidden;
     animation: nx-encolhe-barra 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
@@ -2852,10 +2852,10 @@ a.nt-corpo:hover b { color: var(--accent); }
   }
 }
 
-/* ══════════════ Barra da esquerda aberta, estilo FACEIT (computador largo, > 1280px, só na página inicial) ══════════════
- * Ícone + nome de cada página, logo com o nome em cima e o Admin separado por uma linha. Entre 1025px e 1280px
- * continua a barra fina só com ícones (o nome aparece ao passar o mouse) para sobrar espaço ao conteúdo. */
-@media (min-width: 1281px) {
+/* ══════════════ Barra da esquerda aberta, estilo FACEIT (computador, > 1024px, só na página inicial) ══════════════
+ * Ícone + nome de cada página, logo com o nome em cima e o Admin separado por uma linha. Nas outras páginas fica a barra
+ * fina só com ícones (o nome aparece ao passar o mouse). */
+@media (min-width: 1025px) {
   html:has(.nx-aberta) {
     --nx-lateral: 244px;
   }
@@ -3413,7 +3413,7 @@ html:is([data-tema='claro'], [data-tema='branco']) .cp-caixa b { color: #111; }
 .nx-conta-menu.cp-card .cp-perfil:hover { background: var(--blue); color: #fff; }
 
 /* Barra da esquerda aberta (página inicial) e ícone do Discord: maiores no computador */
-@media (min-width: 1281px) {
+@media (min-width: 1025px) {
   .nx-aberta .nx-nav-inner { padding: 16px 14px 14px; }
   .nx-aberta .nx-brand { gap: 12px; padding: 2px 8px 14px; margin-bottom: 10px; }
   .nx-aberta .nx-brand img { width: 32px; height: 32px; }

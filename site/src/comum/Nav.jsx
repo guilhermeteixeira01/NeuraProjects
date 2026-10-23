@@ -345,7 +345,7 @@ export default function Nav({ pagina }) {
     if (pagina !== 'inicio') return
     const clicar = (e) => {
       if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
-      if (!window.matchMedia('(min-width: 1281px)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+      if (!window.matchMedia('(min-width: 1025px)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
       const a = e.target instanceof Element ? e.target.closest('a[href]') : null
       if (!a || a.target === '_blank' || a.hasAttribute('download')) return
       const url = new URL(a.href, location.href)

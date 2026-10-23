@@ -130,7 +130,7 @@ export default {
   "Sempre evoluindo": "Always evolving",
   "Os projetos recebem atualizações frequentes — e o que muda aparece primeiro na comunidade.": "Projects get frequent updates — and changes show up in the community first.",
   "CONTÍNUO": "ONGOING",
-  "Joga com a gente?": "Play with us?",
+  "Vem jogar com a Gente !": "Come play with us!",
   "Entre na nossa comunidade no Discord para jogar no servidor, participar dos campeonatos e acompanhar o que estamos criando.": "Join our community on Discord to play on the server, enter tournaments and follow what we're building.",
   "Entrar no Discord": "Join Discord",
   "Ver últimas partidas": "View latest matches",

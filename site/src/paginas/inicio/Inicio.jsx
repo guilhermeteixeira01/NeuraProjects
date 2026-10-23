@@ -399,7 +399,7 @@ export default function Inicio() {
         <section className="ix-barra" id="comunidade">
           <div className="wrap ix-barra-grade">
             <div className="ix-barra-texto">
-              <h2>{t('Joga com a gente?')}</h2>
+              <h2>{t('Vem jogar com a Gente !')}</h2>
               <p>{t('Entre na nossa comunidade no Discord para jogar no servidor, participar dos campeonatos e acompanhar o que estamos criando.')}</p>
             </div>
             <div className="ix-barra-acoes">

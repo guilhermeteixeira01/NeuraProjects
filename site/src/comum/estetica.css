@@ -265,6 +265,13 @@ textarea {
   .nx-direita::after {
     display: none;
   }
+  /* nem o tracinho aceso na borda: a página atual (e o painel aberto) fica marcada só pelo fundo do botão */
+  .nx-links .nx-link.is-active::after,
+  .nx-direita .nx-config-btn[aria-expanded='true']::before,
+  .nx-direita .nx-conta-btn[aria-expanded='true']::before,
+  .nx-direita .nx-amigos-btn.ativo::before {
+    display: none;
+  }
 }
 
 /* ── Barra da esquerda: fecha (e abre) com animação suave ──
@@ -278,7 +285,7 @@ textarea {
     transition: padding-left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
-@media (min-width: 1281px) {
+@media (min-width: 1025px) {
   html.nx-fechando:has(.nx-aberta) {
     --nx-lateral: 64px;
   }
@@ -321,7 +328,7 @@ textarea {
 }
 
 /* ── Barra da esquerda fechando: os ícones andam até a posição exata em que ficam na barra fina das outras páginas ── */
-@media (min-width: 1281px) {
+@media (min-width: 1025px) {
   .nx-aberta .nx-nav-inner,
   .nx-aberta .nx-brand,
   .nx-aberta .nx-links,
@@ -329,14 +336,15 @@ textarea {
     transition: padding 0.28s cubic-bezier(0.4, 0, 0.2, 1), width 0.28s cubic-bezier(0.4, 0, 0.2, 1), height 0.28s cubic-bezier(0.4, 0, 0.2, 1),
       margin 0.28s cubic-bezier(0.4, 0, 0.2, 1), gap 0.28s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.28s;
   }
+  /* medidas finais = as da barra fina (64px, botões de 42px e logo de 40px centralizados): sem pulo quando a página nova abre */
   html.nx-fechando .nx-aberta .nx-nav-inner {
-    padding: 14px 10.4px 14px;
+    padding: 14px 11px 14px;
   }
   html.nx-fechando .nx-aberta .nx-brand {
-    width: 100%;
+    width: 40px;
     height: 40px;
-    margin: 0 0 10px;
-    padding: 0 6px;
+    margin: 0 1px 10px;
+    padding: 0 5px;
     gap: 0;
     overflow: hidden;
     border-bottom-color: transparent;
