@@ -224,13 +224,13 @@ export default function Inicio() {
           <ul className="ix-destaques">
             {[
               ['/partidas/', '/neurapick/maps/mirage.jpg', 'Partidas', 'Placar, rounds e demo de cada mapa'],
-              ['/ranking/', '/assets/insignia/web/arsenal-afiado-diamante.webp', 'Ranking', 'Níveis, XP e o top do servidor'],
-              ['/loja/', '/assets/caixas/web/caixa-abismo.webp', 'Loja', 'Caixas de skins com Neura Pontos'],
+              ['/ranking/', '/assets/insignia/web/arsenal-afiado-diamante.webp', 'Ranking', 'Níveis, XP e o top do servidor', 'azul'],
+              ['/loja/', '/assets/caixas/web/caixa-abismo.webp', 'Loja', 'Caixas de skins com Neura Pontos', 'ouro'],
               ...(verPick ? [['/neurapick/', '/neurapick/maps/inferno.jpg', 'NeuraPick', 'Veto de mapas no padrão dos campeonatos']] : []),
-            ].map(([href, img, nome, texto]) => (
+            ].map(([href, img, nome, texto, arte]) => (
               <li key={href}>
                 <a href={href}>
-                  <span className="ix-thumb">
+                  <span className={`ix-thumb${arte ? ` ix-thumb-arte ix-thumb-${arte}` : ''}`}>
                     <img src={img} alt="" loading="lazy" decoding="async" />
                   </span>
                   <b>{t(nome)}</b>
