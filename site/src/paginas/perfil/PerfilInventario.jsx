@@ -77,13 +77,6 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
     for (const i of todosItens) c[rarDe(i)]++
     return c
   }, [todosItens, idx]) // eslint-disable-line react-hooks/exhaustive-deps
-  // raridade e contagem por raridade dos adesivos/chaveiros da aba aberta
-  const rarEnf = (d) => raridadeCsDaCor(corEnfeite(aba === 'adesivos' ? 'adesivo' : 'chaveiro', (aba === 'adesivos' ? mapaAd : mapaCh).get(d)))
-  const contagemEnf = useMemo(() => {
-    const c = Array(7).fill(0)
-    if (aba === 'adesivos' || aba === 'chaveiros') for (const g of aba === 'adesivos' ? listaAdesivos : listaChaveiros) c[rarEnf(g.d)] += 1
-    return c
-  }, [aba, listaAdesivos, listaChaveiros, mapaAd, mapaCh]) // eslint-disable-line react-hooks/exhaustive-deps
   const itens = useMemo(() => (rar === 'todas' ? todosItens : todosItens.filter((i) => rarDe(i) === rar)), [todosItens, rar, idx]) // eslint-disable-line react-hooks/exhaustive-deps
   const guardados = (tipo) => {
     const g = new Map()
@@ -92,6 +85,13 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
   }
   const listaAdesivos = useMemo(() => guardados('adesivo'), [todos]) // eslint-disable-line react-hooks/exhaustive-deps
   const listaChaveiros = useMemo(() => guardados('chaveiro'), [todos]) // eslint-disable-line react-hooks/exhaustive-deps
+  // raridade e contagem por raridade dos adesivos/chaveiros da aba aberta
+  const rarEnf = (d) => raridadeCsDaCor(corEnfeite(aba === 'adesivos' ? 'adesivo' : 'chaveiro', (aba === 'adesivos' ? mapaAd : mapaCh).get(d)))
+  const contagemEnf = useMemo(() => {
+    const c = Array(7).fill(0)
+    if (aba === 'adesivos' || aba === 'chaveiros') for (const g of aba === 'adesivos' ? listaAdesivos : listaChaveiros) c[rarEnf(g.d)] += 1
+    return c
+  }, [aba, listaAdesivos, listaChaveiros, mapaAd, mapaCh]) // eslint-disable-line react-hooks/exhaustive-deps
   const caixas = useMemo(() => guardados('caixa'), [todos]) // eslint-disable-line react-hooks/exhaustive-deps
   const valorTotal = useMemo(() => todosItens.reduce((a, i) => a + valorDe(i), 0), [todosItens, inv]) // eslint-disable-line react-hooks/exhaustive-deps
   const raros = useMemo(() => todosItens.filter((i) => padraoRaro(i)).length, [todosItens])
