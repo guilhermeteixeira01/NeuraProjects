@@ -303,8 +303,8 @@ function JanelaEspeciais({ itens, achar, aoFechar }) {
     }
   }, [aoFechar])
   return createPortal(
-    <div className="lj-chances-fundo" onClick={aoFechar}>
-      <div className="lj-chances" role="dialog" aria-modal="true" aria-label={t('Chances')} onClick={(e) => e.stopPropagation()}>
+    <div className="lj-chm-fundo" onClick={aoFechar}>
+      <div className="lj-chm" role="dialog" aria-modal="true" aria-label={t('Chances')} onClick={(e) => e.stopPropagation()}>
         <header>
           <h3>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -313,11 +313,11 @@ function JanelaEspeciais({ itens, achar, aoFechar }) {
             </svg>
             {t('Chances')}
           </h3>
-          <button type="button" className="lj-chances-x" onClick={aoFechar} aria-label={t('Fechar')}>
+          <button type="button" className="lj-chm-x" onClick={aoFechar} aria-label={t('Fechar')}>
             ×
           </button>
         </header>
-        <div className="lj-chances-cab">
+        <div className="lj-chm-cab">
           <span>{t('Item')}</span>
           <span>{t('Valor')}</span>
           <span>{t('Chance')}</span>
@@ -328,15 +328,15 @@ function JanelaEspeciais({ itens, achar, aoFechar }) {
             const valor = (x.desgastes || []).reduce((a, g) => a + g.p * g.v, 0)
             return (
               <li key={x.chave}>
-                <span className="lj-chances-item">
+                <span className="lj-chm-item">
                   {d.img ? <img src={d.img} alt="" loading="lazy" draggable="false" /> : <i />}
                   <b>
                     {d.nome}
                     {d.skin ? ` | ${d.skin}` : ''}
                   </b>
                 </span>
-                <span className="lj-chances-valor">{x.desgastes ? `${numero(Math.round(valor))} NP` : '…'}</span>
-                <span className="lj-chances-chance">{pct(x.chance)}</span>
+                <span className="lj-chm-valor">{x.desgastes ? `${numero(Math.round(valor))} NP` : '…'}</span>
+                <span className="lj-chm-chance">{pct(x.chance)}</span>
               </li>
             )
           })}

@@ -12,7 +12,7 @@ import { tokenConta, useConta } from './conta.js'
 import { useT } from './i18n.js'
 import { lerCaixasPublicas } from './loja.js'
 import { registrarNotificacao } from './notificacoes.js'
-import { indicar, lerInventario, urlImg, useCatalogo } from './skins.js'
+import { indicar, lerInventario, urlImg, useCatalogo, corEnfeite } from './skins.js'
 
 const base = () => CONFIG.loginSteam.replace(/\/$/, '')
 async function chamar(rota, corpo) {
@@ -73,7 +73,7 @@ function ItemTroca({ item, id, cat, aoClicar, marcado, pequeno = false }) {
     const caixa = item.t === 'caixa' ? cat.caixas.find((c) => c.id === item.d) : null
     const linha = item.t === 'adesivo' ? cat.adesivos.get(item.d) : item.t === 'chaveiro' ? cat.chaveiros.get(item.d) : null
     corpo = (
-      <div className="inv-cartao inv-cartao-fixo" style={{ '--cor': caixa?.cor || linha?.[3] || '#6b6f76' }}>
+      <div className="inv-cartao inv-cartao-fixo" style={{ '--cor': caixa?.cor || (linha ? corEnfeite(item.t, linha) : '#6b6f76') }}>
         <span className="inv-cartao-arte">
           <span className="inv-arma-box">
             <img className="inv-arma-img" src={caixa ? caixa.img : urlImg(linha?.[2], 256)} alt="" loading="lazy" />

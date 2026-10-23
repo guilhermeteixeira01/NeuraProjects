@@ -6,6 +6,26 @@ import { tokenConta } from './conta.js'
 
 const base = () => CONFIG.loginSteam.replace(/\/$/, '')
 
+// Cor da raridade de adesivos e chaveiros guardados: o chaveiro traz a cor no catálogo (azul, roxo, rosa, vermelho); o adesivo vale pelo acabamento
+// (papel cinza, Glitter azul, Holo roxo, Foil/Lenticular/Embroidered rosa, Gold vermelho)
+export const ACABAMENTOS_ADESIVO = [
+  ['Gold', '#eb4b4b'],
+  ['Foil', '#d32ce6'],
+  ['Lenticular', '#d32ce6'],
+  ['Embroidered', '#d32ce6'],
+  ['Holo', '#8847ff'],
+  ['Glitter', '#4b69ff'],
+]
+export const acabamentoDoAdesivo = (nome) => {
+  const m = /\((Holo|Foil|Gold|Glitter|Lenticular|Embroidered)[^)]*\)/i.exec(nome || '')
+  return m ? m[1][0].toUpperCase() + m[1].slice(1).toLowerCase() : 'Papel'
+}
+export const corEnfeite = (tipo, linha) => {
+  if (tipo === 'chaveiro') return linha?.[3] || '#4b69ff'
+  const f = acabamentoDoAdesivo(linha?.[1])
+  return ACABAMENTOS_ADESIVO.find(([n]) => n === f)?.[1] || '#b0c3d9'
+}
+
 export const IMG_BASE = 'https://community.akamai.steamstatic.com/economy/image/'
 export const urlImg = (sufixo, tamanho = 256) => (sufixo ? `${IMG_BASE}${sufixo}/${tamanho}fx${tamanho}f` : '')
 // Arma/faca/luva: imagem 4:3 (a quadrada da Steam corta a ponta da arma)

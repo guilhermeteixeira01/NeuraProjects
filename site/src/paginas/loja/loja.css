@@ -701,35 +701,35 @@ html.lj-travado .nx-rolagem { display: none !important; }
 .lj-cx-especial .lj-cx-chance { position: absolute; top: 16px; right: 18px; }
 
 /* janela de chances */
-.lj-chances-fundo { position: fixed; inset: 0; z-index: 5200; display: grid; place-items: center; padding: 20px; background: rgb(3 6 16 / .78); backdrop-filter: blur(3px); }
-.lj-chances { width: min(940px, 100%); max-height: min(86vh, 760px); display: flex; flex-direction: column; border-radius: 16px; background: #0d2147; border: 1px solid rgb(255 255 255 / .1); box-shadow: 0 30px 80px rgb(0 0 0 / .6); overflow: hidden; color: #fff; }
-.lj-chances header { display: flex; align-items: center; justify-content: space-between; padding: 22px 26px 8px; }
-.lj-chances h3 { display: flex; align-items: center; gap: 12px; margin: 0; font: 700 26px var(--font-display); color: #fff; }
-.lj-chances h3 svg { color: #3b9bff; }
-.lj-chances-x { background: none; border: 0; color: rgb(255 255 255 / .6); font-size: 30px; line-height: 1; cursor: pointer; }
-.lj-chances-x:hover { color: #fff; }
-.lj-chances-cab, .lj-chances li { display: grid; grid-template-columns: minmax(0, 1fr) 140px 90px; align-items: center; gap: 12px; padding: 0 26px; }
-.lj-chances-cab { padding-top: 10px; padding-bottom: 8px; color: rgb(255 255 255 / .45); font: 600 13px var(--font-body); }
-.lj-chances-cab span:not(:first-child) { text-align: right; }
-.lj-chances ul { list-style: none; margin: 0; padding: 0 0 12px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #2b4a85 transparent; }
-.lj-chances li { min-height: 64px; border-top: 1px solid rgb(255 255 255 / .04); }
-.lj-chances li:nth-child(odd) { background: rgb(255 255 255 / .03); }
-.lj-chances li:hover { background: rgb(255 255 255 / .07); }
-.lj-chances-item { display: flex; align-items: center; gap: 14px; min-width: 0; }
-.lj-chances-item img, .lj-chances-item i { flex: none; width: 70px; height: 46px; object-fit: contain; filter: drop-shadow(0 4px 6px rgb(0 0 0 / .5)); }
-.lj-chances-item b { font: 600 15px var(--font-body); overflow: hidden; text-overflow: ellipsis; }
-.lj-chances-valor { text-align: right; font: 700 15px var(--font-body); }
-.lj-chances-chance { text-align: right; color: rgb(255 255 255 / .6); font: 500 14px var(--font-body); }
+.lj-chm-fundo { position: fixed; inset: 0; z-index: 5200; display: grid; place-items: center; padding: 20px; background: rgb(3 6 16 / .78); backdrop-filter: blur(3px); }
+.lj-chm { width: min(940px, 100%); max-height: min(86vh, 760px); display: flex; flex-direction: column; border-radius: 16px; background: var(--panel, #121317); border: 1px solid var(--border-2, #2e2f36); box-shadow: 0 30px 80px rgb(0 0 0 / .6); overflow: hidden; color: var(--text, #fff); }
+.lj-chm header { display: flex; align-items: center; justify-content: space-between; padding: 22px 26px 8px; }
+.lj-chm h3 { display: flex; align-items: center; gap: 12px; margin: 0; font: 700 26px var(--font-display); color: var(--text, #fff); }
+.lj-chm h3 svg { color: var(--accent, #f5c542); }
+.lj-chm-x { background: none; border: 0; color: rgb(255 255 255 / .6); font-size: 30px; line-height: 1; cursor: pointer; }
+.lj-chm-x:hover { color: #fff; }
+.lj-chm-cab, .lj-chm li { display: grid; grid-template-columns: minmax(0, 1fr) 140px 90px; align-items: center; gap: 12px; padding: 0 26px; }
+.lj-chm-cab { padding-top: 10px; padding-bottom: 8px; color: var(--dim-2, #6d6e77); font: 600 13px var(--font-body); }
+.lj-chm-cab span:not(:first-child) { text-align: right; }
+.lj-chm ul { list-style: none; margin: 0; padding: 0 0 12px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border-2, #2e2f36) transparent; }
+.lj-chm li { min-height: 64px; border-top: 1px solid var(--border, #232427); }
+.lj-chm li:nth-child(odd) { background: var(--panel-2, #16171c); }
+.lj-chm li:hover { background: rgb(255 255 255 / .07); }
+.lj-chm-item { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.lj-chm-item img, .lj-chm-item i { flex: none; width: 70px; height: 46px; object-fit: contain; filter: drop-shadow(0 4px 6px rgb(0 0 0 / .5)); }
+.lj-chm-item b { font: 600 15px var(--font-body); overflow: hidden; text-overflow: ellipsis; }
+.lj-chm-valor { text-align: right; font: 700 15px var(--font-body); }
+.lj-chm-chance { text-align: right; color: rgb(255 255 255 / .6); font: 500 14px var(--font-body); }
 @media (max-width: 640px) {
-  .lj-chances-fundo { padding: 8px; }
-  .lj-chances { max-height: 92dvh; }
-  .lj-chances header { padding: 16px 16px 4px; }
-  .lj-chances h3 { font-size: 21px; }
-  .lj-chances-cab, .lj-chances li { grid-template-columns: minmax(0, 1fr) 88px 62px; gap: 8px; padding: 0 14px; }
-  .lj-chances-item img, .lj-chances-item i { width: 54px; height: 36px; }
-  .lj-chances-item b { font-size: 12.5px; white-space: normal; }
-  .lj-chances-valor { font-size: 12.5px; }
-  .lj-chances-chance { font-size: 12px; }
+  .lj-chm-fundo { padding: 8px; }
+  .lj-chm { max-height: 92dvh; }
+  .lj-chm header { padding: 16px 16px 4px; }
+  .lj-chm h3 { font-size: 21px; }
+  .lj-chm-cab, .lj-chm li { grid-template-columns: minmax(0, 1fr) 88px 62px; gap: 8px; padding: 0 14px; }
+  .lj-chm-item img, .lj-chm-item i { width: 54px; height: 36px; }
+  .lj-chm-item b { font-size: 12.5px; white-space: normal; }
+  .lj-chm-valor { font-size: 12.5px; }
+  .lj-chm-chance { font-size: 12px; }
   .lj-cx-medalha .lj-emblema { width: 84px; height: 84px; }
 }
 @media (prefers-reduced-motion: reduce) { .lj-reel-trilho { transition: none; } }
@@ -746,3 +746,10 @@ img.lj-emblema { width: 92px; height: auto; object-fit: contain; filter: drop-sh
   .lj-faixas[data-n='4'] img.lj-emblema, .lj-faixas[data-n='5'] img.lj-emblema { width: 46px; }
   .lj-cx-medalha img.lj-emblema { width: 104px; }
 }
+
+/* card Item Raro Especial: nada se mexe ao passar o mouse; a medalha fica no centro da área de cima */
+.lj-cx-especial-btn:hover .lj-cx-medalha { transform: none; }
+.lj-cx-medalha { position: absolute; left: 0; right: 0; top: 0; bottom: 52px; transform: none; transition: none; display: grid; place-items: center; }
+.lj-cx-especial .lj-cx-medalha img.lj-emblema { margin: 0 auto; }
+.lj-cx-especial-btn { transition: none; }
+.lj-cx-especial:hover { transform: none; }

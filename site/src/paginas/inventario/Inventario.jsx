@@ -5,6 +5,7 @@ import {
   CATEGORIAS,
   LADOS_TIME,
   chaveEquip,
+  corEnfeite,
   descrever,
   indicar,
   excluirItem,
@@ -25,7 +26,7 @@ import Cartao, { nomeDoDesgaste } from '../../comum/CartaoSkin.jsx'
 import { CarregandoNP } from '../../comum/Carregando.jsx'
 import { confirmar } from '../../comum/Dialogos.jsx'
 import { BotaoTrocas } from '../../comum/Trocas.jsx'
-import { ArmaComEnfeites, Visualizador3D, idNo3d, useMapas3d, Inspecionar, useTelaPequena } from '../../comum/InspecionarSkin.jsx'
+import { ArmaComEnfeites, Visualizador3D, idNo3d, useMapas3d, Inspecionar, useTelaPequena, InspecionarSkin } from '../../comum/InspecionarSkin.jsx'
 
 // Inventário de skins, no estilo do inventário do jogo: o jogador CRIA itens (arma/faca/luva/agente com a skin que quiser), ajusta
 // cada um (desgaste, seed, StatTrak, nome, adesivos com posição) e EQUIPA no CT, no TR ou nos dois (botão direito no item).
@@ -65,6 +66,8 @@ function livresParaColar(estoque, tipo, original, atual) {
 }
 const ORDENS = [
   ['equipado', 'Equipado'],
+  ['valor', 'Mais caro'],
+  ['raridade', 'Raridade'],
   ['recente', 'Mais recentes'],
   ['nome', 'Nome'],
 ]
@@ -627,11 +630,18 @@ function useMenuFlutuante(x, y, aoFechar) {
 }
 
 // Menu de adesivo/chaveiro guardado (o mesmo visual do menu das armas): vender no mercado e excluir
-function MenuGuardado({ x, y, n, valor, aoAnunciar, aoVenderAgora, aoExcluir, aoFechar }) {
+function MenuGuardado({ x, y, n, valor, aoInspecionar, aoAnunciar, aoVenderAgora, aoExcluir, aoFechar }) {
   const t = useT()
   const { ref, pos } = useMenuFlutuante(x, y, aoFechar)
   return (
     <ul className="inv-menu" ref={ref} style={{ left: pos.x, top: pos.y }} role="menu">
+      {aoInspecionar && (
+        <li>
+          <button type="button" role="menuitem" onClick={aoInspecionar}>
+            {t('Inspecionar')}
+          </button>
+        </li>
+      )}
       {valor != null && (
         <li>
           <button type="button" role="menuitem" className="inv-menu-vender" onClick={aoVenderAgora}>
@@ -729,7 +739,8 @@ function Conteudo() {
   const salvo = useRef('')
   const [aba, setAba] = useState('tudo')
   const [busca, setBusca] = useState('')
-  const [ordem, setOrdem] = useState('equipado')
+  const [ordem, setOrdem] = useState('valor')
+  const [inspEnfeite, setInspEnfeite] = useState(null) // adesivo/chaveiro aberto na janela Inspecionar
   const [rar, setRar] = useState('todas') // filtro de raridade (0..6 como no jogo) ou 'todas'
   const [modoSel, setModoSel] = useState(false) // selecionar vários itens (para vender)
   const [sel, setSel] = useState(() => new Set())
@@ -902,12 +913,15 @@ function Conteudo() {
     const equipado = (it) => (inv.equip.ct[chaveEquip(it)] === it.__id ? 1 : 0) + (inv.equip.tr[chaveEquip(it)] === it.__id ? 1 : 0)
     const nome = (it) => descrever(it, idx).titulo
     lista.sort((a, b) => {
+      const valorDe = (it) => valores[it.__id]?.v || 0
+      if (ordem === 'valor') return valorDe(b) - valorDe(a) || nome(a).localeCompare(nome(b))
+      if (ordem === 'raridade') return rarDe(b) - rarDe(a) || valorDe(b) - valorDe(a)
       if (ordem === 'equipado') return equipado(b) - equipado(a) || nome(a).localeCompare(nome(b))
       if (ordem === 'recente') return (inv.criado[b.__id] || 0) - (inv.criado[a.__id] || 0)
       return nome(a).localeCompare(nome(b))
     })
     return lista
-  }, [inv, aba, busca, ordem, idx, rar])
+  }, [inv, aba, busca, ordem, idx, rar, valores])
 
   // quantos itens de cada raridade (na aba atual) para os botões do filtro
   const contagemRar = useMemo(() => {
@@ -1108,11 +1122,11 @@ function Conteudo() {
     return (
       <li key={g.tipo + g.def}>
         {caixa ? (
-          <div className="inv-cartao inv-cartao-fixo" style={{ '--cor': g.linha?.[3] || '#6b6f76' }}>
+          <div className="inv-cartao inv-cartao-fixo" style={{ '--cor': g.linha ? corEnfeite(g.tipo, g.linha) : '#6b6f76' }}>
             {corpo}
           </div>
         ) : (
-          <button type="button" className={`inv-cartao inv-cartao-guardado${marcado ? ' inv-cartao-sel' : ''}`} aria-pressed={modoSel ? marcado : undefined} style={{ '--cor': g.linha?.[3] || '#6b6f76' }} onClick={abrir} onContextMenu={abrir}>
+          <button type="button" className={`inv-cartao inv-cartao-guardado${marcado ? ' inv-cartao-sel' : ''}`} aria-pressed={modoSel ? marcado : undefined} style={{ '--cor': g.linha ? corEnfeite(g.tipo, g.linha) : '#6b6f76' }} onClick={abrir} onContextMenu={abrir}>
             {corpo}
           </button>
         )}
@@ -1266,6 +1280,7 @@ function Conteudo() {
             n={guardadoDoMenu.n}
             valor={valores[ids[0]]?.v}
             aoFechar={fechar}
+            aoInspecionar={() => { setInspEnfeite({ t: menuGuardado.tipo, d: menuGuardado.def, p: 0 }); fechar() }}
             aoAnunciar={() => { pedirAnuncio(ids[0]); fechar() }}
             aoVenderAgora={() => { pedirVenda([ids[0]]); fechar() }}
             aoExcluir={() => { pedirExclusao(ids[0], `${guardadoDoMenu.linha?.[1] || `#${guardadoDoMenu.def}`} (1)`); fechar() }}
@@ -1276,7 +1291,7 @@ function Conteudo() {
         const item = inv.itens[anuncio.id]
         const enfeite = EMBALAGEM(item.t)
         const linha = enfeite ? (item.t === 'adesivo' ? adesivosPorId : chaveirosPorId).get(item.d) : null
-        const d = enfeite ? { img: urlImg(linha?.[2], 256), cor: linha?.[3] } : descrever(item, idx)
+        const d = enfeite ? { img: urlImg(linha?.[2], 256), cor: corEnfeite(item.t, linha) } : descrever(item, idx)
         const ref = valores[anuncio.id]?.v
         const preco = Math.round(Number(anuncio.preco)) || 0
         return (
@@ -1438,6 +1453,7 @@ function Conteudo() {
           {erroApagar && <p className="inv-excluir-erro">{erroApagar}</p>}
         </Janela>
       )}
+      {inspEnfeite && <InspecionarSkin item={inspEnfeite} aoFechar={() => setInspEnfeite(null)} />}
       {janela?.tipo === 'inspecionar' && itemJanela && <Inspecionar item={itemJanela} idx={idx} adesivos={adesivos} chaveiros={chaveiros} mapa={mapa3d.dados} aoFechar={() => setJanela(null)} />}
     </>
   )

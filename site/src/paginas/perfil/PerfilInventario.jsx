@@ -9,8 +9,8 @@ import { SeloPadrao, nomeDoDesgaste } from '../../comum/CartaoSkin.jsx'
 import { InspecionarSkin, podeInspecionar } from '../../comum/InspecionarSkin.jsx'
 import { useT } from '../../comum/i18n.js'
 import { lerCaixasPublicas } from '../../comum/loja.js'
-import { descrever, indicar, urlImg, useCatalogo } from '../../comum/skins.js'
-import { padraoRaro } from '../../../worker/steam-login/src/loja-core.js'
+import { corEnfeite, descrever, indicar, urlImg, useCatalogo } from '../../comum/skins.js'
+import { RARIDADES_CS, padraoRaro, raridadeCsDaCor } from '../../../worker/steam-login/src/loja-core.js'
 
 const GUARDADOS = new Set(['adesivo', 'chaveiro', 'caixa'])
 const base = () => CONFIG.loginSteam.replace(/\/$/, '')
@@ -33,6 +33,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
   const [resumo, setResumo] = useState(null)
   const [erro, setErro] = useState(false)
   const [aba, setAba] = useState('itens')
+  const [rar, setRar] = useState('todas') // filtro de raridade (0..6 como no jogo)
   const [inspecionando, setInspecionando] = useState(null)
   const [caixasLoja, setCaixasLoja] = useState([])
   const armas = useCatalogo('armas')
@@ -68,7 +69,15 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
 
   const todos = useMemo(() => Object.entries(inv?.itens || {}).map(([id, it]) => ({ ...it, __id: id })), [inv])
   const valorDe = (it) => inv?.valores?.[it.__id] ?? 0
-  const itens = useMemo(() => todos.filter((i) => !GUARDADOS.has(i.t) && i.t !== 'agente').sort((a, b) => valorDe(b) - valorDe(a)), [todos, inv]) // eslint-disable-line react-hooks/exhaustive-deps
+  const rarDe = (it) => (it.t === 'faca' || it.t === 'luva' ? 6 : raridadeCsDaCor(descrever(it, idx).cor))
+  // todos os itens de arma, do mais valioso para o mais barato
+  const todosItens = useMemo(() => todos.filter((i) => !GUARDADOS.has(i.t) && i.t !== 'agente').sort((a, b) => valorDe(b) - valorDe(a)), [todos, inv]) // eslint-disable-line react-hooks/exhaustive-deps
+  const contagemRar = useMemo(() => {
+    const c = Array(7).fill(0)
+    for (const i of todosItens) c[rarDe(i)]++
+    return c
+  }, [todosItens, idx]) // eslint-disable-line react-hooks/exhaustive-deps
+  const itens = useMemo(() => (rar === 'todas' ? todosItens : todosItens.filter((i) => rarDe(i) === rar)), [todosItens, rar, idx]) // eslint-disable-line react-hooks/exhaustive-deps
   const guardados = (tipo) => {
     const g = new Map()
     for (const i of todos) if (i.t === tipo) g.set(i.d, (g.get(i.d) || 0) + 1)
@@ -77,11 +86,11 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
   const listaAdesivos = useMemo(() => guardados('adesivo'), [todos]) // eslint-disable-line react-hooks/exhaustive-deps
   const listaChaveiros = useMemo(() => guardados('chaveiro'), [todos]) // eslint-disable-line react-hooks/exhaustive-deps
   const caixas = useMemo(() => guardados('caixa'), [todos]) // eslint-disable-line react-hooks/exhaustive-deps
-  const valorTotal = useMemo(() => itens.reduce((a, i) => a + valorDe(i), 0), [itens, inv]) // eslint-disable-line react-hooks/exhaustive-deps
-  const raros = useMemo(() => itens.filter((i) => padraoRaro(i)).length, [itens])
+  const valorTotal = useMemo(() => todosItens.reduce((a, i) => a + valorDe(i), 0), [todosItens, inv]) // eslint-disable-line react-hooks/exhaustive-deps
+  const raros = useMemo(() => todosItens.filter((i) => padraoRaro(i)).length, [todosItens])
 
   const subs = [
-    ['itens', 'ITENS', itens.length],
+    ['itens', 'ITENS', todosItens.length],
     ['adesivos', 'ADESIVOS', listaAdesivos.reduce((a, g) => a + g.n, 0)],
     ['chaveiros', 'CHAVEIROS', listaChaveiros.reduce((a, g) => a + g.n, 0)],
     ['caixas', 'CAIXAS', caixas.reduce((a, g) => a + g.n, 0)],
@@ -201,7 +210,20 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
           ) : !inv || !armas.dados ? (
             <CarregandoNP pequeno />
           ) : aba === 'itens' ? (
-            !itens.length ? (
+            <>
+              <div className="inv-rar pf-inv-rar" role="group" aria-label={t('Filtrar por raridade')}>
+                <button type="button" className={rar === 'todas' ? 'is-ativo' : ''} onClick={() => setRar('todas')}>
+                  {t('Todas')}
+                </button>
+                {[...RARIDADES_CS].reverse().map((r) =>
+                  contagemRar[r.id] ? (
+                    <button key={r.id} type="button" className={rar === r.id ? 'is-ativo' : ''} style={{ '--cor': r.cor }} onClick={() => setRar(rar === r.id ? 'todas' : r.id)}>
+                      <i /> {r.curto} <em>{contagemRar[r.id]}</em>
+                    </button>
+                  ) : null,
+                )}
+              </div>
+            {!itens.length ? (
               <p className="pf-inv-vazio">{t('Nada por aqui.')}</p>
             ) : (
               <>
@@ -240,25 +262,28 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
                   })}
                 </ul>
               </>
-            )
+            )}
+            </>
           ) : (
             <ul className="pf-inv-grade pf-inv-grade-pq">
-              {(aba === 'adesivos' ? listaAdesivos : aba === 'chaveiros' ? listaChaveiros : caixas).map((g) => {
+              {[...(aba === 'adesivos' ? listaAdesivos : aba === 'chaveiros' ? listaChaveiros : caixas)]
+                .sort((a, b) => aba === 'caixas' ? 0 : raridadeCsDaCor(corEnfeite(aba === 'adesivos' ? 'adesivo' : 'chaveiro', (aba === 'adesivos' ? mapaAd : mapaCh).get(b.d))) - raridadeCsDaCor(corEnfeite(aba === 'adesivos' ? 'adesivo' : 'chaveiro', (aba === 'adesivos' ? mapaAd : mapaCh).get(a.d))))
+                .map((g) => {
                 const linha = aba === 'adesivos' ? mapaAd.get(g.d) : aba === 'chaveiros' ? mapaCh.get(g.d) : null
                 const cx = aba === 'caixas' ? caixasLoja.find((c) => c.id === g.d) : null
                 const nomeG = cx ? cx.nome : linha?.[1] || `#${g.d}`
-                const cor = cx?.cor || linha?.[3] || '#6b6f76'
+                const cor = cx?.cor || (linha ? corEnfeite(aba === 'adesivos' ? 'adesivo' : 'chaveiro', linha) : '#6b6f76')
                 const imgG = cx ? cx.img : linha ? urlImg(linha[2], 256) : ''
                 return (
                   <li key={`${aba}${g.d}`}>
-                    <div className="pf-inv-item pf-inv-item-fixo" style={{ '--cor': cor }}>
+                    <button type="button" className="pf-inv-item pf-inv-item-fixo pf-inv-item-ench" style={{ '--cor': cor }} disabled={aba === 'caixas'} onClick={() => aba !== 'caixas' && setInspecionando({ t: aba === 'adesivos' ? 'adesivo' : 'chaveiro', d: g.d, p: 0 })} title={t('Inspecionar')}>
                       <span className="pf-inv-item-arte">{imgG ? <img src={imgG} alt="" loading="lazy" draggable="false" /> : null}</span>
                       <span className="pf-inv-item-preco">×{g.n}</span>
                       <span className="pf-inv-item-nome">
                         <small>{aba === 'adesivos' ? t('Adesivo') : aba === 'chaveiros' ? t('Chaveiro') : t('Caixa fechada')}</small>
                         <b>{nomeG}</b>
                       </span>
-                    </div>
+                    </button>
                   </li>
                 )
               })}

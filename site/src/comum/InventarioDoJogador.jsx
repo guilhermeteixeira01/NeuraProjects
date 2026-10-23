@@ -10,7 +10,7 @@ import { useConta } from './conta.js'
 import { BotaoTrocas } from './Trocas.jsx'
 import { useT } from './i18n.js'
 import { lerCaixasPublicas } from './loja.js'
-import { indicar, urlImg, useCatalogo } from './skins.js'
+import { corEnfeite, indicar, urlImg, useCatalogo } from './skins.js'
 
 const ABAS = [
   ['tudo', 'TUDO'],
@@ -85,7 +85,7 @@ export default function InventarioDoJogador({ steamId, nome, aoFechar }) {
       return { nome: c?.nome || `#${g.def}`, img: c?.img, sub: t('Caixa fechada'), cor: c?.cor }
     }
     const linha = (g.tipo === 'adesivo' ? mapaAd : mapaCh).get(g.def)
-    return { nome: linha?.[1] || `#${g.def}`, img: linha ? urlImg(linha[2], 256) : '', sub: g.tipo === 'adesivo' ? t('Adesivo') : t('Chaveiro'), cor: linha?.[3] }
+    return { nome: linha?.[1] || `#${g.def}`, img: linha ? urlImg(linha[2], 256) : '', sub: g.tipo === 'adesivo' ? t('Adesivo') : t('Chaveiro'), cor: corEnfeite(g.tipo, linha) }
   }
 
   return createPortal(

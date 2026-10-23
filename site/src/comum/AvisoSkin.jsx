@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { tokenConta, useConta } from './conta.js'
 import { registrarNotificacao } from './notificacoes.js'
 import { lerCaixasPublicas } from './loja.js'
-import { descrever, indicar, lerInventario, urlImg, urlImgArma, useCatalogo } from './skins.js'
+import { descrever, indicar, lerInventario, urlImg, urlImgArma, useCatalogo, corEnfeite } from './skins.js'
 import { prepararSom, tocarConquista } from './Insignias.jsx'
 import { desempenhoAtivo } from './desempenho.js'
 import { useT } from './i18n.js'
@@ -84,7 +84,7 @@ export default function AvisoSkin() {
     const cat = p.item.t === 'adesivo' ? adesivosCat.dados : chaveirosCat.dados
     const linha = cat?.find((x) => x[0] === p.item.d)
     if (!linha) return null
-    return { titulo: linha[1], subtitulo: `${p.item.t === 'adesivo' ? 'Adesivo' : 'Chaveiro'}${p.n > 1 ? ` ×${p.n}` : ''}`, img: urlImg(linha[2], 256), cor: linha[3] || '', embalagem: true }
+    return { titulo: linha[1], subtitulo: `${p.item.t === 'adesivo' ? 'Adesivo' : 'Chaveiro'}${p.n > 1 ? ` ×${p.n}` : ''}`, img: urlImg(linha[2], 256), cor: corEnfeite(p.item.t, linha), embalagem: true }
   }
   const atual = livre && idx ? pendentes[0] : null
   const d = atual && idx ? descreverAviso(atual) : null

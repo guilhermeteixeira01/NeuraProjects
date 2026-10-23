@@ -7,7 +7,8 @@ import { createPortal } from 'react-dom'
 import { SeloPadrao, nomeDoDesgaste } from './CartaoSkin.jsx'
 import { CONFIG } from './config.js'
 import { useT } from './i18n.js'
-import { descrever, indicar, urlImg, useCatalogo } from './skins.js'
+import { acabamentoDoAdesivo, corEnfeite, descrever, indicar, urlImg, useCatalogo } from './skins.js'
+import { raridadeCsDaCor } from '../../worker/steam-login/src/loja-core.js'
 import { tocar } from './somInventario.js'
 import './inspecionar.css'
 
@@ -243,8 +244,41 @@ export function useTelaPequena() {
 }
 
 
+// Adesivo ou chaveiro (não existe 3D para eles): a imagem grande, que inclina para onde o mouse/dedo vai, com nome, tipo e raridade
+function InspecionarEnfeite({ item, aoFechar }) {
+  const t = useT()
+  const catalogo = useCatalogo(item.t === 'adesivo' ? 'adesivos' : 'chaveiros')
+  const [giro, setGiro] = useState({ x: 0, y: 0 })
+  const linha = useMemo(() => (catalogo.dados || []).find((s) => s[0] === item.d), [catalogo.dados, item.d])
+  if (!catalogo.dados) return null
+  const cor = corEnfeite(item.t, linha)
+  const nome = linha?.[1] || `#${item.d}`
+  const raridade = item.t === 'adesivo' ? `${t('Acabamento')}: ${t(acabamentoDoAdesivo(nome))}` : t(RARIDADES_NOME[raridadeCsDaCor(cor)] || 'Chaveiro')
+  const mover = (e) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    setGiro({ x: ((e.clientY - r.top) / r.height - 0.5) * -22, y: ((e.clientX - r.left) / r.width - 0.5) * 26 })
+  }
+  return createPortal(
+    <JanelaInspecao titulo={t('Inspecionar')} aoFechar={aoFechar} largura="media" classe="inv-janela-insp">
+      <div className="inv-inspecao" onPointerMove={mover} onPointerLeave={() => setGiro({ x: 0, y: 0 })}>
+        <div className="inv-inspecao-enfeite" style={{ '--cor': cor, transform: `perspective(900px) rotateX(${giro.x}deg) rotateY(${giro.y}deg)` }}>
+          {linha?.[2] ? <img src={urlImg(linha[2], 512)} alt="" draggable="false" /> : null}
+        </div>
+        <div className="inv-inspecao-info">
+          <b>{nome}</b>
+          <span>{item.t === 'adesivo' ? t('Adesivo') : t('Chaveiro')}</span>
+          <small style={{ color: cor }}>{raridade}</small>
+        </div>
+      </div>
+    </JanelaInspecao>,
+    document.body,
+  )
+}
+const RARIDADES_NOME = ['Consumer Grade', 'Industrial Grade', 'Mil-Spec', 'Restricted', 'Classified', 'Covert', 'Extraordinary']
+
 // Inspecionar de qualquer página: carrega sozinho os catálogos (armas, adesivos, chaveiros e o mapa do 3D) e abre a janela
 export function InspecionarSkin({ item, aoFechar }) {
+  if (item?.t === 'adesivo' || item?.t === 'chaveiro') return <InspecionarEnfeite item={item} aoFechar={aoFechar} />
   const armas = useCatalogo('armas')
   const adesivos = useCatalogo('adesivos')
   const chaveiros = useCatalogo('chaveiros')
@@ -254,8 +288,8 @@ export function InspecionarSkin({ item, aoFechar }) {
   return createPortal(<Inspecionar item={item} idx={idx} adesivos={adesivos} chaveiros={chaveiros} mapa={mapa3d.dados} aoFechar={aoFechar} />, document.body)
 }
 
-// Só arma, faca e luva têm o que inspecionar (adesivo, chaveiro e caixa não)
-export const podeInspecionar = (item) => item?.t === 'arma' || item?.t === 'faca' || item?.t === 'luva'
+// Arma, faca e luva abrem o 3D; adesivo e chaveiro abrem a imagem grande (a caixa não tem o que inspecionar)
+export const podeInspecionar = (item) => ['arma', 'faca', 'luva', 'adesivo', 'chaveiro'].includes(item?.t)
 
 // Botão de lupa "Inspecionar" para pôr em cima de um cartão (mercado, trocas, perfil)
 export function BotaoInspecionar({ item, classe = '' }) {

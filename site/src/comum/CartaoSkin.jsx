@@ -3,7 +3,7 @@
 // item: { t, d, p, f, st, n, a, k, __id }   equip: { ct: {chave: id}, tr: {...} }   adesivos/chaveiros: Map(id do jogo -> linha do catálogo)
 // aoAbrirMenu: o que fazer ao clicar (menu do botão direito no inventário); sem ele o cartão é só para olhar. extra: algo embaixo (ex.: botão "Tirar").
 import { useState } from 'react'
-import { LADOS_TIME, chaveEquip, descrever, urlImg } from './skins.js'
+import { LADOS_TIME, chaveEquip, corEnfeite, descrever, urlImg } from './skins.js'
 import { useT } from './i18n.js'
 import { padraoRaro } from '../../worker/steam-login/src/loja-core.js'
 
@@ -38,7 +38,7 @@ export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
   // adesivo/chaveiro guardado (mercado): nome, imagem e cor vêm do catálogo dele ([id, nome, imagem, cor])
   const enfeite = item.t === 'adesivo' || item.t === 'chaveiro'
   const linha = enfeite ? (item.t === 'adesivo' ? adesivos : chaveiros)?.get(item.d) : null
-  const d = enfeite ? { titulo: linha?.[1] || `#${item.d}`, subtitulo: t(item.t === 'adesivo' ? 'Adesivo' : 'Chaveiro'), img: urlImg(linha?.[2], 256), cor: linha?.[3] || '' } : descrever(item, idx)
+  const d = enfeite ? { titulo: linha?.[1] || `#${item.d}`, subtitulo: t(item.t === 'adesivo' ? 'Adesivo' : 'Chaveiro'), img: urlImg(linha?.[2], 256), cor: corEnfeite(item.t, linha) } : descrever(item, idx)
   const chave = chaveEquip(item)
   const lados = LADOS_TIME.filter(([l]) => equip?.[l]?.[chave] === item.__id)
   const corpo = (
