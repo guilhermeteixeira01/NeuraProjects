@@ -10,10 +10,11 @@ const num = (n) => Number(n || 0).toLocaleString(localeAtual())
 const erroTexto = (e) => ({ login: 'Seu login venceu. Entre de novo com a Steam.', dono: 'Só o dono mexe nos pontos.', id: 'SteamID64 inválido.', valor: 'Valor inválido.' })[e.message] || 'Não deu para aplicar. Tente de novo.'
 const AGORA_MS = 3000 // de quanto em quanto tempo o saldo é conferido enquanto um jogador está escolhido
 
-export default function AdminPontos({ usuarios }) {
+// fixo: SteamID64 do jogador (janela do jogador: sem escolher quem); modo 'todos': só o bônus para todos e a lista dos salvos
+export default function AdminPontos({ usuarios, fixo = null, modo = 'tudo' }) {
   const t = useT()
-  const [alvo, setAlvo] = useState('jogador') // 'jogador' | 'todos'
-  const [busca, setBusca] = useState('')
+  const [alvo, setAlvo] = useState(modo === 'todos' ? 'todos' : 'jogador') // 'jogador' | 'todos'
+  const [busca, setBusca] = useState(fixo || '')
   const [acao, setAcao] = useState('adicionar') // adicionar | remover | definir
   const [valor, setValor] = useState('')
   const [motivo, setMotivo] = useState('')
@@ -79,8 +80,9 @@ export default function AdminPontos({ usuarios }) {
   return (
     <>
     <div className="caixa adm-pt">
-      <p className="adm-dar-dica">{t('Neura Pontos da loja: escolha quem, o que fazer e o valor. Os pontos ganhos nas partidas continuam valendo; aqui você só soma ou tira em cima deles.')}</p>
+      <p className="adm-dar-dica">{fixo ? t('Neura Pontos da loja deste jogador. Os pontos ganhos nas partidas continuam valendo; aqui você só soma ou tira em cima deles.') : modo === 'todos' ? t('Bônus de Neura Pontos para todos os jogadores do site (cada um recebe uma vez, inclusive quem entrar depois).') : t('Neura Pontos da loja: escolha quem, o que fazer e o valor. Os pontos ganhos nas partidas continuam valendo; aqui você só soma ou tira em cima deles.')}</p>
 
+      {!fixo && modo !== 'todos' && (
       <div className="adm-pt-grupo" role="group" aria-label={t('Quem')}>
         <b>{t('1. Quem')}</b>
         <div className="adm-pt-seg">
@@ -105,6 +107,7 @@ export default function AdminPontos({ usuarios }) {
           </>
         )}
       </div>
+      )}
 
       {alvo === 'jogador' && (
         <div className="adm-pt-saldo" aria-live="polite">
@@ -126,7 +129,7 @@ export default function AdminPontos({ usuarios }) {
       {alvo === 'todos' && <p className="adm-pt-aviso">{t('Vale para todos os jogadores do site. Cada um recebe uma vez, ao abrir o site ou a loja (inclusive quem entrar depois).')}</p>}
 
       <div className="adm-pt-grupo">
-        <b>{t('2. O que fazer')}</b>
+        <b>{fixo || modo === 'todos' ? t('O que fazer') : t('2. O que fazer')}</b>
         <div className="adm-pt-seg">
           <button type="button" className={acao === 'adicionar' ? 'active' : ''} onClick={() => setAcao('adicionar')}>
             + {t('Adicionar')}
@@ -141,7 +144,7 @@ export default function AdminPontos({ usuarios }) {
       </div>
 
       <div className="adm-pt-grupo">
-        <b>{t('3. Valor')}</b>
+        <b>{fixo || modo === 'todos' ? t('Valor') : t('3. Valor')}</b>
         <div className="adm-pt-linha">
           <input type="number" min="0" step="1" inputMode="numeric" placeholder={acao === 'definir' ? t('Novo saldo') : t('Quantidade de NP')} value={valor} onChange={(e) => setValor(e.target.value)} aria-label={t('Valor')} />
           <input type="text" maxLength={60} placeholder={t('Motivo (opcional)')} value={motivo} onChange={(e) => setMotivo(e.target.value)} />
@@ -176,14 +179,14 @@ export default function AdminPontos({ usuarios }) {
         </div>
       )}
     </div>
-      <BonusSalvos versao={bonusVersao} />
-      <ConfigDepositos />
+      {modo !== 'jogador' && <BonusSalvos versao={bonusVersao} />}
+      {modo === 'tudo' && <ConfigDepositos />}
     </>
   )
 }
 
 // Depósitos com dinheiro real (Asaas): quanto vale 1 real em NP, mínimo, máximo, pacotes e bônus. Vale na hora para o site e para o servidor.
-function ConfigDepositos() {
+export function ConfigDepositos() {
   const t = useT()
   const [cfg, setCfg] = useState(null)
   const [estado, setEstado] = useState({ texto: '', ok: true })

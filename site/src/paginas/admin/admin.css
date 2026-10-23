@@ -618,3 +618,21 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 .adm-srv-l-erro { color: #ff6b6b; }
 .adm-srv-l-comando { color: #e3b341; }
 .adm-srv .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Painel em 6 abas: seletor de partes dentro da aba, janela do jogador com abas e bônus dobrável ── */
+.adm-sub-abas { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 16px; }
+.adm-sub-abas button { padding: 8px 16px; border-radius: 999px; border: 1px solid rgb(var(--tinta) / .14); background: rgb(var(--tinta) / .04); color: var(--dim); font: 700 13px var(--font-body); cursor: pointer; transition: color .15s, border-color .15s, background .15s; }
+.adm-sub-abas button:hover { color: var(--text); }
+.adm-sub-abas button.active { color: #15110a; background: var(--accent); border-color: var(--accent); }
+.adm-ed-abas { display: flex; gap: 4px; padding: 0 20px; border-bottom: 1px solid rgb(var(--tinta) / .1); }
+.adm-ed-abas button { padding: 11px 16px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--dim); font: 700 13.5px var(--font-body); cursor: pointer; }
+.adm-ed-abas button.active { color: var(--text); border-bottom-color: var(--accent); }
+.adm-ed-sec { max-height: min(72vh, 760px); overflow-y: auto; }
+.adm-ed-sec > .caixa, .adm-ed-sec .adm-pt { border: 0; background: none; padding: 0; }
+.adm-janela.adm-janela-larga { width: min(1180px, calc(100vw - 32px)); max-width: none; }
+.adm-dobra { margin-top: 18px; border-radius: var(--raio, 6px); border: 1px solid rgb(var(--tinta) / .1); background: rgb(var(--tinta) / .02); }
+.adm-dobra > summary { padding: 14px 18px; cursor: pointer; font: 700 14px var(--font-body); list-style: none; display: flex; align-items: center; gap: 10px; }
+.adm-dobra > summary::before { content: '▸'; color: var(--accent); transition: transform .15s; }
+.adm-dobra[open] > summary::before { transform: rotate(90deg); }
+.adm-dobra > summary::-webkit-details-marker { display: none; }
+.adm-dobra > :not(summary) { margin: 0 18px 18px; }

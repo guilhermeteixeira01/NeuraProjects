@@ -17,7 +17,7 @@ import { CATEGORIAS, indicar, urlImg, urlImgArma, useCatalogo } from '../../comu
 import CartaoSkin from '../../comum/CartaoSkin.jsx'
 import { confirmar } from '../../comum/Dialogos.jsx'
 import AdminCaixas from './AdminCaixas.jsx'
-import AdminPontos from './AdminPontos.jsx'
+import AdminPontos, { ConfigDepositos } from './AdminPontos.jsx'
 import AdminLogs from './AdminLogs.jsx'
 import AdminServidor from './AdminServidor.jsx'
 import AdminPlanos from './AdminPlanos.jsx'
@@ -177,8 +177,11 @@ function Usuarios({ usuarios, painel, dono, editar }) {
 }
 
 // Janela de edição de um usuário
-function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
+// Janela do jogador: Perfil (moldura, XP, cargos, insígnias, bloqueio), Pontos (saldo e ajuste) e Itens (dar e tirar skins), conforme as abas que o admin tem
+function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar, abas = [], usuarios = [] }) {
   const tr = useT()
+  const secoes = [['perfil', 'Perfil', 'usuarios'], ['pontos', 'Pontos', 'pontos'], ['itens', 'Itens', 'skins']].filter(([, , p]) => abas.includes(p))
+  const [secao, setSecao] = useState(secoes[0]?.[0] || 'perfil')
   const [personalizando, setPersonalizando] = useState(false)
   const [moldura, setMoldura] = useState(u.perfil.moldura || '')
   const [card, setCard] = useState(u.perfil.card || '')
@@ -213,13 +216,34 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
 
   return (
     <div className="sm-fundo" onClick={fechar}>
-      <div className="adm-janela" role="dialog" aria-modal="true" aria-labelledby="adm-ed-titulo" onClick={(e) => e.stopPropagation()}>
+      <div className={`adm-janela${secao === 'itens' ? ' adm-janela-larga' : ''}`} role="dialog" aria-modal="true" aria-labelledby="adm-ed-titulo" onClick={(e) => e.stopPropagation()}>
         <div className="sm-cab">
-          <h2 id="adm-ed-titulo">{tr('Editar usuário')}</h2>
+          <h2 id="adm-ed-titulo">{u.nome || u.id}</h2>
           <button type="button" className="sm-fechar" aria-label={tr('Fechar')} onClick={fechar}>
             ×
           </button>
         </div>
+        {secoes.length > 1 && (
+          <div className="adm-ed-abas" role="tablist">
+            {secoes.map(([id, rotulo]) => (
+              <button key={id} type="button" role="tab" aria-selected={secao === id} className={secao === id ? 'active' : ''} onClick={() => setSecao(id)}>
+                {tr(rotulo)}
+              </button>
+            ))}
+          </div>
+        )}
+        {secao === 'pontos' && (
+          <div className="adm-ed-corpo adm-ed-sec">
+            <AdminPontos usuarios={usuarios} fixo={u.id} modo="jogador" />
+          </div>
+        )}
+        {secao === 'itens' && (
+          <div className="adm-ed-corpo adm-ed-sec">
+            <DarSkin usuarios={usuarios} fixo={u.id} />
+          </div>
+        )}
+        {secao === 'perfil' && (
+        <>
         <div className="adm-ed-corpo">
           <div className="adm-ed-topo">
             <span className={`moldura-box adm-ed-av${classeForma(moldura)}`}>
@@ -355,6 +379,8 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar }) {
             {estado === 'salvando' ? tr('Salvando…') : tr('Salvar')}
           </button>
         </div>
+        </>
+        )}
       </div>
     </div>
   )
@@ -1319,10 +1345,10 @@ function GradeLenta({ total, passo = 80, children }) {
 // ── Aba Skins (só o dono): dá uma skin para qualquer jogador ──
 // O jogador não cria itens no inventário: quem entrega é o dono, por aqui. A skin cai no inventário dele (/inventario/) e ele recebe o
 // aviso no meio da tela e no sino. Depois ele mesmo personaliza (desgaste, adesivos...) e equipa no CT/TR.
-function DarSkin({ usuarios }) {
+function DarSkin({ usuarios, fixo = null }) {
   const tr = useT()
   const catalogo = useCatalogo('armas')
-  const [busca, setBusca] = useState('')
+  const [busca, setBusca] = useState(fixo || '')
   const [tipo, setTipo] = useState('arma')
   const [categoria, setCategoria] = useState('rifles')
   const [def, setDef] = useState(7)
@@ -1453,8 +1479,9 @@ function DarSkin({ usuarios }) {
 
   return (
     <div className="caixa adm-dar">
-      <p className="adm-dar-dica">{tr('O jogador não cria skins sozinho: só você (dono) entrega. Escolha o jogador, a arma e a skin.')}</p>
+      {!fixo && <p className="adm-dar-dica">{tr('O jogador não cria skins sozinho: só você (dono) entrega. Escolha o jogador, a arma e a skin.')}</p>}
 
+      {!fixo && (
       <div className="adm-sub-add">
         <input list="adm-skin-usuarios" type="text" placeholder={tr('Jogador: nome exato ou SteamID64')} value={busca} onChange={(e) => setBusca(e.target.value)} aria-label={tr('Jogador')} />
         <datalist id="adm-skin-usuarios">
@@ -1467,6 +1494,7 @@ function DarSkin({ usuarios }) {
         </datalist>
         <span className="adm-cargo-info">{alvo ? `${alvo.nome || alvo.id}` : tr('Escolha um jogador da lista')}</span>
       </div>
+      )}
 
       <div className="adm-dar-tipos" role="tablist">
         {[
@@ -1718,6 +1746,29 @@ function Admins({ config, dono, souDono, usuarios, aoSalvar }) {
 }
 
 // "há 5 s" (conta sozinho)
+// Seletor de partes dentro de uma aba (ex.: Visual → Molduras | Cards). Só mostra as partes liberadas; com uma só, nem mostra o seletor.
+function SubAbas({ opcoes, children }) {
+  const tr = useT()
+  const livres = opcoes.filter(([, , ok]) => ok)
+  const [sub, setSub] = useState(livres[0]?.[0])
+  const atual = livres.some(([id]) => id === sub) ? sub : livres[0]?.[0]
+  if (!atual) return null
+  return (
+    <>
+      {livres.length > 1 && (
+        <div className="adm-sub-abas" role="tablist">
+          {livres.map(([id, rotulo]) => (
+            <button key={id} type="button" role="tab" aria-selected={atual === id} className={atual === id ? 'active' : ''} onClick={() => setSub(id)}>
+              {tr(rotulo)}
+            </button>
+          ))}
+        </div>
+      )}
+      {children(atual)}
+    </>
+  )
+}
+
 function Ha({ desde }) {
   const tr = useT()
   const [, setTique] = useState(0)
@@ -1753,7 +1804,7 @@ export default function Admin() {
   const [painel, setPainel] = useState(null)
   const [ranking, setRanking] = useState(null)
   const [erro, setErro] = useState('')
-  const [aba, setAba] = useState('usuarios')
+  const [aba, setAba] = useState('jogadores')
   const [editando, setEditando] = useState(null)
 
   useEffect(() => setMontado(true), [])
@@ -1818,19 +1869,17 @@ export default function Admin() {
       bloqueados: Object.values(painel.perfis || {}).filter((p) => p.bloqueado).length,
     }
     // Cada pessoa vê só as abas que o worker liberou (/eu → abas): o dono vê todas; admin vê Usuários, Molduras, Cards e Cargos; um cargo pode liberar mais
+    // 6 abas, cada uma juntando as funções parecidas. As permissões continuam por função (o worker confere cada rota):
+    // a aba aparece se a pessoa tem pelo menos uma das funções dela, e dentro dela só aparecem as partes liberadas.
+    const tem = (id) => eu.abas.includes(id)
     const ABAS = [
-      ['usuarios', 'Usuários'],
-      ['molduras', 'Molduras'],
-      ['cards', 'Cards'],
-      ['cargos', 'Cargos'],
-      ['assinaturas', 'Assinaturas'],
-      ['skins', 'Skins'],
-      ['caixas', 'Caixas'],
-      ['pontos', 'Pontos'],
-      ['logs', 'Logs'],
-      ['admins', 'Admins'],
-      ['servidor', 'Servidor'],
-    ].filter(([id]) => eu.abas.includes(id))
+      ['jogadores', 'Jogadores', ['usuarios', 'pontos', 'skins']],
+      ['visual', 'Visual', ['molduras', 'cards']],
+      ['equipe', 'Equipe', ['cargos', 'admins']],
+      ['loja', 'Loja', ['caixas', 'assinaturas', 'pontos']],
+      ['logs', 'Logs', ['logs']],
+      ['servidor', 'Servidor', ['servidor']],
+    ].filter(([, , precisa]) => precisa.some(tem))
     const abaAtual = ABAS.some(([id]) => id === aba) ? aba : ABAS[0]?.[0]
     conteudo = (
       <>
@@ -1869,26 +1918,67 @@ export default function Admin() {
                 ↻
               </button>
             </div>
-            {abaAtual === 'usuarios' && <Usuarios usuarios={usuarios} painel={painel} dono={painel.dono} editar={setEditando} />}
-            {abaAtual === 'cards' && <CardsRegras key={JSON.stringify(painel.config)} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
-            {abaAtual === 'molduras' && <Molduras key={JSON.stringify(painel.config)} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
-            {abaAtual === 'cargos' && eu.dono && <SelosEquipe key={JSON.stringify(painel.config.selos || {})} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
-            {abaAtual === 'cargos' && <Cargos key={JSON.stringify(painel.config.cargos || [])} souDono={eu.dono} config={painel.config} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
-            {abaAtual === 'assinaturas' && (
+            {abaAtual === 'jogadores' && (
               <>
-                <AdminPlanos />
-                <Assinaturas key={JSON.stringify(painel.config.subMeses || {})} config={painel.config} usuarios={usuarios} aoSalvarConfig={(config) => setPainel((p) => ({ ...p, config }))} aoSalvarPerfis={(perfis) => setPainel((p) => ({ ...p, perfis }))} />
+                <Usuarios usuarios={usuarios} painel={painel} dono={painel.dono} editar={setEditando} />
+                {tem('pontos') && (
+                  <details className="adm-dobra">
+                    <summary>{tr('Bônus de pontos para todos os jogadores')}</summary>
+                    <AdminPontos usuarios={usuarios} modo="todos" />
+                  </details>
+                )}
               </>
             )}
-            {abaAtual === 'skins' && <DarSkin usuarios={usuarios} />}
-            {abaAtual === 'caixas' && <AdminCaixas />}
-            {abaAtual === 'pontos' && <AdminPontos usuarios={usuarios} />}
-            {abaAtual === 'servidor' && eu.dono && <AdminServidor />}
+            {abaAtual === 'visual' && (
+              <SubAbas
+                opcoes={[
+                  ['molduras', 'Molduras', tem('molduras')],
+                  ['cards', 'Cards do perfil', tem('cards')],
+                ]}
+              >
+                {(sub) =>
+                  sub === 'molduras' ? (
+                    <Molduras key={JSON.stringify(painel.config)} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />
+                  ) : (
+                    <CardsRegras key={JSON.stringify(painel.config)} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />
+                  )
+                }
+              </SubAbas>
+            )}
+            {abaAtual === 'equipe' && (
+              <>
+                {tem('admins') && <Admins config={painel.config} dono={painel.dono} souDono={eu.dono} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
+                {tem('cargos') && eu.dono && <SelosEquipe key={JSON.stringify(painel.config.selos || {})} config={painel.config} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
+                {tem('cargos') && <Cargos key={JSON.stringify(painel.config.cargos || [])} souDono={eu.dono} config={painel.config} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
+              </>
+            )}
+            {abaAtual === 'loja' && (
+              <SubAbas
+                opcoes={[
+                  ['caixas', 'Caixas', tem('caixas')],
+                  ['assinatura', 'Assinatura Premium', tem('assinaturas')],
+                  ['depositos', 'Depósitos', tem('pontos')],
+                ]}
+              >
+                {(sub) =>
+                  sub === 'caixas' ? (
+                    <AdminCaixas />
+                  ) : sub === 'assinatura' ? (
+                    <>
+                      <AdminPlanos />
+                      <Assinaturas key={JSON.stringify(painel.config.subMeses || {})} config={painel.config} usuarios={usuarios} aoSalvarConfig={(config) => setPainel((p) => ({ ...p, config }))} aoSalvarPerfis={(perfis) => setPainel((p) => ({ ...p, perfis }))} />
+                    </>
+                  ) : (
+                    <ConfigDepositos />
+                  )
+                }
+              </SubAbas>
+            )}
             {abaAtual === 'logs' && <AdminLogs usuarios={usuarios} />}
-            {abaAtual === 'admins' && <Admins config={painel.config} dono={painel.dono} souDono={eu.dono} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
+            {abaAtual === 'servidor' && eu.dono && <AdminServidor />}
           </div>
         </section>
-        {editando && <EditarUsuario u={editando} cargos={painel.config.cargos || []} ehAdmin={editando.id === painel.dono || (painel.config.admins || []).includes(editando.id)} fechar={fecharEdicao} aoSalvar={(perfis) => setPainel((p) => ({ ...p, perfis }))} />}
+        {editando && <EditarUsuario abas={eu.abas} usuarios={usuarios} u={editando} cargos={painel.config.cargos || []} ehAdmin={editando.id === painel.dono || (painel.config.admins || []).includes(editando.id)} fechar={fecharEdicao} aoSalvar={(perfis) => setPainel((p) => ({ ...p, perfis }))} />}
       </>
     )
   }
