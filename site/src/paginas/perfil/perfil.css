@@ -1052,3 +1052,37 @@ html.sm-aberto { overflow: hidden; }
 .pf-inv-grade-pq .pf-inv-item-arte { top: 14px; height: 100px; }
 .pf-inv-grade-pq .pf-inv-item { background: radial-gradient(circle at 50% 36%, rgb(0 0 0 / .22) 0 48px, transparent 49px), linear-gradient(160deg, color-mix(in srgb, var(--cor) 38%, #15161d) 0%, color-mix(in srgb, var(--cor) 10%, #12131a) 100%); }
 @media (max-width: 640px) { .pf-inv-grade-pq .pf-inv-item { min-height: 178px; } .pf-inv-grade-pq .pf-inv-item-arte { top: 12px; height: 84px; } }
+
+/* ── Cartões do inventário organizados: cada parte numa linha fixa (topo, arte, adesivos, nome), então todos ficam iguais
+   tenham ou não adesivos/StatTrak/selo. Arma no meio sobre o logo da NP transparente, igual ao carrossel de drops da loja. ── */
+.pf-inv-grade { grid-auto-rows: 1fr; }
+.pf-inv-item,
+.pf-inv-grade-pq .pf-inv-item {
+  display: grid;
+  grid-template-rows: 18px 96px 24px auto;
+  grid-template-areas: 'topo' 'arte' 'enf' 'nome';
+  gap: 4px;
+  min-height: 0;
+  padding: 9px 10px 11px;
+  background: linear-gradient(150deg, color-mix(in srgb, var(--cor) 46%, #0b0c12) 0%, color-mix(in srgb, var(--cor) 16%, #0b0c12) 100%);
+}
+.pf-inv-grade-pq .pf-inv-item { grid-template-rows: 18px 108px auto; grid-template-areas: 'topo' 'arte' 'nome'; }
+.pf-inv-item-preco,
+.pf-inv-item-st { position: static; grid-area: topo; align-self: center; line-height: 1; }
+.pf-inv-item-preco { justify-self: end; }
+.pf-inv-item-st { justify-self: start; }
+.pf-inv .inv-gema { top: 30px; left: 8px; bottom: auto; }
+.pf-inv-item-arte,
+.pf-inv-grade-pq .pf-inv-item-arte { position: relative; inset: auto; top: auto; height: auto; grid-area: arte; min-height: 0; display: grid; place-items: center; }
+.pf-inv-item-arte::before { content: ''; position: absolute; left: 50%; top: 50%; width: 92px; height: 92px; transform: translate(-50%, -50%); background: url('/assets/logos/android-chrome-192x192.png') center / contain no-repeat; opacity: .17; filter: grayscale(.4) brightness(1.4); pointer-events: none; }
+.pf-inv-item-arte img,
+.pf-inv-grade-pq .pf-inv-item-arte img { position: relative; z-index: 1; width: 100%; height: 100%; max-width: 100%; max-height: 100%; margin: 0; object-fit: contain; }
+.pf-inv-enf { position: static; grid-area: enf; justify-content: center; align-self: center; }
+.pf-inv-item-nome { position: static; grid-area: nome; align-self: end; text-align: center; min-width: 0; }
+@media (max-width: 640px) {
+  .pf-inv-item,
+  .pf-inv-grade-pq .pf-inv-item { grid-template-rows: 16px 76px 20px auto; padding: 8px 8px 9px; }
+  .pf-inv-grade-pq .pf-inv-item { grid-template-rows: 16px 86px auto; }
+  .pf-inv .inv-gema { top: 26px; }
+  .pf-inv-item-arte::before { width: 68px; height: 68px; }
+}
