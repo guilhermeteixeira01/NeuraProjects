@@ -1315,7 +1315,6 @@ export default {
   "Senha de segurança": "Security password",
   "Bem-vindo à Neura! Escolha o seu apelido": "Welcome to Neura! Choose your nickname",
   "É o nome que os outros jogadores veem no site: nas trocas, no mercado, no lobby e nos times. Não pode ser igual ao de outra pessoa.": "This is the name other players see on the site: in trades, the market, the lobby and teams. It cannot be the same as someone else's.",
-  "Ex.: Teixeira": "E.g.: Teixeira",
   "3 a 20 caracteres: letras, números, espaço, ponto, _ ou -.": "3 to 20 characters: letters, numbers, space, dot, _ or -.",
   "Assinantes Premium": "Premium subscribers",
   "podem trocar de apelido a cada 15 dias. Para os demais, o apelido fica definitivo: pense bem antes de confirmar.": "can change their nickname every 15 days. For everyone else the nickname is permanent: think carefully before confirming.",

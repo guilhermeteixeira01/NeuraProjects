@@ -1315,7 +1315,6 @@ export default {
   "Senha de segurança": "Contraseña de seguridad",
   "Bem-vindo à Neura! Escolha o seu apelido": "¡Bienvenido a Neura! Elige tu apodo",
   "É o nome que os outros jogadores veem no site: nas trocas, no mercado, no lobby e nos times. Não pode ser igual ao de outra pessoa.": "Es el nombre que ven los demás jugadores en el sitio: en los intercambios, el mercado, el lobby y los equipos. No puede ser igual al de otra persona.",
-  "Ex.: Teixeira": "Ej.: Teixeira",
   "3 a 20 caracteres: letras, números, espaço, ponto, _ ou -.": "De 3 a 20 caracteres: letras, números, espacio, punto, _ o -.",
   "Assinantes Premium": "Suscriptores Premium",
   "podem trocar de apelido a cada 15 dias. Para os demais, o apelido fica definitivo: pense bem antes de confirmar.": "pueden cambiar de apodo cada 15 días. Para los demás, el apodo es definitivo: piénsalo bien antes de confirmar.",

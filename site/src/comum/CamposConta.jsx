@@ -72,7 +72,7 @@ export function CampoNick({ valor, aoMudar, estado, autoFocus = false, rotulo })
     <label className={`cc-campo cc-${estado.tipo}`}>
       <span className="cc-rot">{rotulo || t('Apelido')}</span>
       <span className="cc-caixa">
-        <input value={valor} onChange={(e) => aoMudar(e.target.value)} maxLength={20} placeholder={t('Ex.: Teixeira')} autoComplete="off" spellCheck="false" autoFocus={autoFocus} aria-invalid={estado.tipo === 'erro'} />
+        <input value={valor} onChange={(e) => aoMudar(e.target.value)} maxLength={20} autoComplete="off" spellCheck="false" autoFocus={autoFocus} aria-invalid={estado.tipo === 'erro'} />
         <span className="cc-estado">
           <IconeEstado tipo={estado.tipo} />
         </span>
