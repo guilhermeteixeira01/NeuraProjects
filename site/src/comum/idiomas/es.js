@@ -1303,4 +1303,11 @@ export default {
   "Veto de mapas no padrão dos campeonatos": "Veto de mapas al estilo de los torneos",
   "Números do servidor": "Números del servidor",
   "NO SERVIDOR": "EN EL SERVIDOR",
+  "CS2: saiu uma atualização do jogo. Atualize o seu CS2 para jogar no nosso servidor. Obrigado pela paciência!": "CS2: salió una actualización del juego. Actualiza tu CS2 para jugar en nuestro servidor. ¡Gracias por la paciencia!",
+  "Ver novidades": "Ver novedades",
+  "O servidor está sendo atualizado. Já volta! Agradecemos a paciência.": "El servidor se está actualizando. ¡Vuelve pronto! Gracias por la paciencia.",
+  "Servidor em manutenção. Voltamos em breve — agradecemos a paciência!": "Servidor en mantenimiento. ¡Volvemos pronto — gracias por la paciencia!",
+  "Em manutenção": "En mantenimiento",
+  "Verificando…": "Verificando…",
+  "Servidores": "Servidores",
 }

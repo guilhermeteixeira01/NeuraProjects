@@ -1303,4 +1303,11 @@ export default {
   "Veto de mapas no padrão dos campeonatos": "Map veto the tournament way",
   "Números do servidor": "Server numbers",
   "NO SERVIDOR": "ON THE SERVER",
+  "CS2: saiu uma atualização do jogo. Atualize o seu CS2 para jogar no nosso servidor. Obrigado pela paciência!": "CS2: a game update is out. Please update your CS2 to play on our server. Thank you for your patience!",
+  "Ver novidades": "See what is new",
+  "O servidor está sendo atualizado. Já volta! Agradecemos a paciência.": "The server is being updated. Back soon! Thank you for your patience.",
+  "Servidor em manutenção. Voltamos em breve — agradecemos a paciência!": "Server under maintenance. We will be back soon — thank you for your patience!",
+  "Em manutenção": "Under maintenance",
+  "Verificando…": "Checking…",
+  "Servidores": "Servers",
 }

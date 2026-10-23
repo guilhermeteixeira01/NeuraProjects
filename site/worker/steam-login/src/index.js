@@ -46,6 +46,7 @@ import { Loja, valorDe, rotaAdminLoja, rotaLoja, rotaLojaPerfil, rotaLojaPublica
 import { Mercado, rotaDrops, rotaMercado } from './mercado.js'
 import { zerarTudo } from './zerar.js'
 import { rotaAdminServidorCs2 } from './servidor-cs2.js'
+import { statusCs2 } from './status-cs2.js'
 import { definirConcedenteSub, rotaAdminPagamento, rotaAdminPlanosSub, rotaPagamentos, rotaWebhookAsaas } from './pagamentos.js'
 import { Registro, registrar, rotaAdminLogs } from './registro.js'
 import { Equipes, rotaEquipes, rotaImagemEquipe, rotaListaPublicaEquipes, timeDosJogadores } from './equipes.js'
@@ -209,6 +210,8 @@ async function atender(req, env, ctx) {
     }
     if (rota === '/config' && req.method === 'GET') return json(configPublica(await ler(env, "config"), env), 200, publico)
     if (rota === '/jogador' && req.method === 'GET') return jogadorPublico(url, env)
+    // Aviso do lobby: saiu atualização do CS2? o nosso servidor está no ar? (src/status-cs2.js)
+    if (rota === '/status/cs2' && req.method === 'GET') return json(await statusCs2(env), 200, { ...publico, 'Cache-Control': 'public, max-age=15' })
     if (rota === '/avatares' && req.method === 'GET') return avataresAtuais(url, env)
     if (rota === '/premier' && req.method === 'GET') return premierPublico(env, site, ctx)
     // Rotas antigas (só moldura): páginas que ainda estejam abertas com uma versão anterior do site

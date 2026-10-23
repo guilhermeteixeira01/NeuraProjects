@@ -15,6 +15,7 @@ import { useAmigos } from '../../comum/amigos.js'
 import { useAvatar } from '../../comum/avatares.js'
 import { acaoLobby, useLobby, useRelogio } from '../../comum/lobby.js'
 import SalaVeto from './SalaVeto.jsx'
+import { AvisosCs2, PainelServidor, useStatusCs2 } from './StatusCs2.jsx'
 import { playSound } from '../neurapick/data/sounds.js'
 import { useT } from '../../comum/i18n.js'
 import ParticulasPremium from '../../comum/ParticulasPremium.jsx'
@@ -332,7 +333,7 @@ function TempoBusca({ desde }) {
   return <>{`${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`}</>
 }
 
-function Painel({ dados, fazer, ocupado }) {
+function Painel({ dados, fazer, ocupado, status }) {
   const t = useT()
   const [aba, setAba] = useState('tipo')
   const nivelSub = useNivelSub(dados.eu) // a assinatura é do líder, que é quem busca
@@ -362,23 +363,18 @@ function Painel({ dados, fazer, ocupado }) {
   return (
     <section className="lb-painel" aria-label={t('Partida')}>
       <div className="lb-buscar-faixa">
-        <p className="lb-aviso">
-          <Marca d={<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />} tamanho={18} />
-          <span>
-            {dados.busca
-              ? t('Procurando outro time que também esteja buscando partida…')
-              : completo
-                ? dados.souLider
+        {(dados.busca || completo) && (
+          <p className="lb-aviso">
+            <Marca d={<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />} tamanho={18} />
+            <span>
+              {dados.busca
+                ? t('Procurando outro time que também esteja buscando partida…')
+                : dados.souLider
                   ? t('Grupo completo: é só buscar partida')
-                  : t('Grupo completo: o líder busca a partida')
-                : t('Complete o grupo com {n} jogadores para buscar partida', { n: dados.max })}
-          </span>
-          {CONFIG.comunidade && (
-            <a href={CONFIG.comunidade} target="_blank" rel="noopener">
-              {t('ENTRAR NO DISCORD')}
-            </a>
-          )}
-        </p>
+                  : t('Grupo completo: o líder busca a partida')}
+            </span>
+          </p>
+        )}
         {dados.busca ? (
           <button type="button" className="lb-buscar buscando" disabled={!dados.souLider || ocupado} onClick={cancelar} title={dados.souLider ? t('Cancelar busca') : undefined}>
             <TempoBusca desde={dados.busca} />
@@ -457,24 +453,13 @@ function Painel({ dados, fazer, ocupado }) {
             ))}
           </ul>
         )}
-        {aba === 'servidor' && (
-          <div className="lb-servidor">
-            <b>{t('Servidor competitivo')}</b>
-            <p>{t('CS2 com espera 5x5, round faca, séries do NeuraPick, pausa com regra e demos gravadas automaticamente. Chat com cargos.')}</p>
-            {CONFIG.comunidade && (
-              <a className="lb-btn lb-btn-p" href={CONFIG.comunidade} target="_blank" rel="noopener">
-                {t('Jogar com a gente')}
-              </a>
-            )}
-            <small>{t('{n} no seu grupo agora', { n: dados.membros.length })}</small>
-          </div>
-        )}
+        {aba === 'servidor' && <PainelServidor status={status} />}
       </div>
     </section>
   )
 }
 
-function Conteudo() {
+function Conteudo({ status }) {
   const t = useT()
   const { dados, erro, conta } = useLobby()
   const [convidando, setConvidando] = useState(false)
@@ -639,7 +624,7 @@ function Conteudo() {
         )}
       </div>
 
-      <Painel dados={dados} fazer={fazer} ocupado={ocupado} />
+      <Painel dados={dados} fazer={fazer} ocupado={ocupado} status={status} />
 
       {convidando && (
         <Convidar
@@ -712,6 +697,7 @@ export default function Lobby() {
   const t = useT()
   const pequena = useTelaPequena()
   const conteudo = useRef(null)
+  const status = useStatusCs2()
   useCabeNaTela(conteudo, !pequena)
   return (
     <Layout pagina="lobby">
@@ -724,9 +710,10 @@ export default function Lobby() {
               {t('Voltar para o início')}
             </a>
           </div>
+          {!pequena && <AvisosCs2 status={status} />}
           {!pequena && (
             <div className="lb-conteudo" ref={conteudo}>
-              <Conteudo />
+              <Conteudo status={status} />
             </div>
           )}
         </div>
