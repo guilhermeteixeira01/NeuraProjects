@@ -32,13 +32,15 @@
 //
 // Endpoints:
 //   GET  /api/status[?desde=N]  -> { estado, total, desde, logs }  (só as linhas de índice >= N)
-//   POST /api/iniciar    { validar }   POST /api/parar    POST /api/reiniciar { validar }
+//   POST /api/iniciar    { validar, plugins }   POST /api/parar    POST /api/reiniciar { validar, plugins }
 //   POST /api/comando    { cmd }
+//   POST /api/plugins    baixa e instala o Metamod e o CounterStrikeSharp mais novos (com o servidor parado; backup dos addons antes)
 //   POST /api/gameinfo   confere o gameinfo.gi e recoloca a linha do Metamod se a atualização do CS2 a apagou
 //                        (isso também roda sozinho antes de cada início; a cópia original da Valve fica em gameinfo.gi.original-valve)
 
 const http = require('http');
-const { spawn } = require('child_process');
+const { spawn, spawnSync, execFile } = require('child_process');
+const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
@@ -53,6 +55,7 @@ const CFG = {
   svPassword: process.env.SV_PASSWORD || '',
   autoReiniciar: process.env.AUTO_REINICIAR !== '0',   // reinicia se o servidor cair
   iniciarAoLigar: process.env.INICIAR_AO_LIGAR === '1', // sobe o CS2 junto com o painel
+  pty: process.env.CS2_PTY !== '0', // roda o CS2 num terminal de mentira (veja abaixo); CS2_PTY=0 desliga
 };
 
 if (!CFG.token) {
@@ -157,8 +160,119 @@ function verificarMetamod() {
   }
 }
 
+// ===== Atualizar Metamod e CounterStrikeSharp =====
+// Mesmo que o atualizar-cs2.sh: baixa o Metamod:Source mais novo (série 2.0) e a última release do CounterStrikeSharp no GitHub
+// (versão com runtime), guarda um backup da pasta addons e troca só o que é dos dois (bin, api, dotnet, gamedata do CounterStrikeSharp
+// e os arquivos do Metamod). Plugins, configs e gamedata próprio (ex.: basecomp.json) não são tocados. Só roda com o servidor parado.
+const MM_BASE = 'https://mms.alliedmods.net/mmsdrop/2.0';
+const URL_CSS = 'https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest';
+const PASTA_CSGO = path.join(CFG.cs2Dir, 'game', 'csgo');
+const PASTA_ADDONS = path.join(PASTA_CSGO, 'addons');
+
+const TAR = process.env.TAR || 'tar';
+
+function rodar(cmd, args) {
+  return new Promise((resolve, reject) => {
+    execFile(cmd, args, { maxBuffer: 16 * 1024 * 1024 }, (erro, saida, err) => (erro ? reject(new Error(`${cmd}: ${String(err || erro.message).trim().slice(0, 300)}`)) : resolve(saida)));
+  });
+}
+
+async function baixar(url, destino) {
+  const r = await fetch(url, { headers: { 'User-Agent': 'neura-painel-cs2' }, redirect: 'follow', signal: AbortSignal.timeout(120000) });
+  if (!r.ok) throw new Error(`Download falhou (${r.status}) em ${url}`);
+  fs.writeFileSync(destino, Buffer.from(await r.arrayBuffer()));
+}
+
+async function atualizarPlugins(dentroDoInicio = false) {
+  // dentroDoInicio: já está na fila de um início (estado "atualizando"); sozinho, só roda com o servidor parado
+  if (!dentroDoInicio && estado !== 'parado') throw new Error(`O servidor está ${estado}: pare o servidor antes de atualizar os plugins`);
+  if (!dentroDoInicio) estado = 'atualizando';
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'np-plugins-'));
+  try {
+    log('>> Plugins: procurando as versões mais novas...');
+    const mmArq = (await (await fetch(`${MM_BASE}/mmsource-latest-linux`, { signal: AbortSignal.timeout(30000) })).text()).trim();
+    if (!/^mmsource-[\w.\-]+\.tar\.gz$/.test(mmArq)) throw new Error('Não consegui descobrir a versão do Metamod');
+    const rel = await (await fetch(URL_CSS, { headers: { 'User-Agent': 'neura-painel-cs2', Accept: 'application/vnd.github+json' }, signal: AbortSignal.timeout(30000) })).json();
+    const ativo = (rel.assets || []).find((a) => /with-runtime.*linux/i.test(a.name));
+    if (!ativo) throw new Error('Não achei o download do CounterStrikeSharp (limite da API do GitHub? tente mais tarde)');
+    log(`>> Plugins: Metamod ${mmArq} e CounterStrikeSharp ${rel.tag_name}`);
+
+    // baixa os dois antes de mexer em qualquer arquivo: se um download falhar, nada fica pela metade
+    await baixar(`${MM_BASE}/${mmArq}`, path.join(tmp, 'metamod.tar.gz'));
+    await baixar(ativo.browser_download_url, path.join(tmp, 'css.zip'));
+
+    // backup dos addons (guarda os 5 últimos)
+    if (fs.existsSync(PASTA_ADDONS)) {
+      const pastaBk = path.join(os.homedir(), 'backups-cs2');
+      fs.mkdirSync(pastaBk, { recursive: true });
+      const nome = `addons-${new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14)}.tar.gz`;
+      await rodar(TAR, ['-czf', path.join(pastaBk, nome), '-C', PASTA_CSGO, 'addons']);
+      const antigos = fs.readdirSync(pastaBk).filter((f) => /^addons-.*\.tar\.gz$/.test(f)).sort().reverse().slice(5);
+      for (const f of antigos) fs.rmSync(path.join(pastaBk, f), { force: true });
+      log(`>> Plugins: backup dos addons em ~/backups-cs2/${nome}`);
+    }
+
+    // Metamod (o metaplugins.ini, se você mexeu nele, é devolvido depois: o pacote traz um de exemplo)
+    const iniMm = path.join(PASTA_ADDONS, 'metamod', 'metaplugins.ini');
+    const iniAntigo = fs.existsSync(iniMm) ? fs.readFileSync(iniMm) : null;
+    await rodar(TAR, ['-xzf', path.join(tmp, 'metamod.tar.gz'), '-C', PASTA_CSGO]);
+    if (iniAntigo) fs.writeFileSync(iniMm, iniAntigo);
+    verificarMetamod(); // põe a linha no gameinfo.gi, se faltar
+
+    // CounterStrikeSharp: unzip, ou o python3 (que já vem na maioria das VPS)
+    const pastaCss = path.join(tmp, 'css');
+    fs.mkdirSync(pastaCss);
+    try {
+      await rodar('unzip', ['-q', path.join(tmp, 'css.zip'), '-d', pastaCss]);
+    } catch (e) {
+      if (!/ENOENT/.test(e.message)) throw e;
+      await rodar('python3', ['-m', 'zipfile', '-e', path.join(tmp, 'css.zip'), pastaCss]);
+    }
+    const origem = path.join(pastaCss, 'addons', 'counterstrikesharp');
+    const destino = path.join(PASTA_ADDONS, 'counterstrikesharp');
+    fs.mkdirSync(destino, { recursive: true });
+    for (const d of ['bin', 'api', 'dotnet', 'gamedata']) {
+      if (fs.existsSync(path.join(origem, d))) fs.cpSync(path.join(origem, d), path.join(destino, d), { recursive: true, force: true });
+    }
+    // config nova só se ainda não existir (não sobrescreve a sua)
+    if (fs.existsSync(path.join(origem, 'configs'))) fs.cpSync(path.join(origem, 'configs'), path.join(destino, 'configs'), { recursive: true, force: false, errorOnExist: false });
+    // o arquivo que liga o CounterStrikeSharp ao Metamod
+    const vdf = path.join(pastaCss, 'addons', 'metamod', 'counterstrikesharp.vdf');
+    if (fs.existsSync(vdf)) {
+      fs.mkdirSync(path.join(PASTA_ADDONS, 'metamod'), { recursive: true });
+      fs.copyFileSync(vdf, path.join(PASTA_ADDONS, 'metamod', 'counterstrikesharp.vdf'));
+    }
+    log(`>> Plugins atualizados: Metamod ${mmArq} e CounterStrikeSharp ${rel.tag_name}. Os seus plugins e configs não foram tocados.`);
+    return { ok: true, metamod: mmArq, counterstrikesharp: rel.tag_name };
+  } catch (e) {
+    log(`!! Plugins: ${e.message}`);
+    throw e;
+  } finally {
+    if (!dentroDoInicio) estado = 'parado';
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+}
+
+// ===== Console do CS2 em tempo real =====
+// Com a saída ligada num "pipe" o CS2 junta as mensagens num bloco grande e só entrega quando enche ou quando fecha: o console do painel
+// ficava parado e as respostas dos comandos (css_plugins list, status...) só apareciam no fim, todas juntas. Dentro de um terminal de
+// mentira (pty, pelo programa "script" do Linux) o CS2 escreve linha por linha, na hora. Sem o "script" instalado, cai no modo antigo.
+const temPty = process.platform === 'linux' && CFG.pty && !spawnSync('script', ['--version'], { stdio: 'ignore' }).error;
+let usandoPty = false;
+const aspas = (a) => "'" + String(a).replace(/'/g, "'\\''") + "'"; // aspas simples do shell; uma aspa simples dentro vira '\''
+
+function lancarCs2() {
+  usandoPty = temPty;
+  const opcoes = { cwd: path.dirname(CS2_SH), detached: true };
+  if (!temPty) return spawn(CS2_SH, CS2_ARGS, opcoes);
+  log('>> Console em tempo real (terminal de mentira ligado)');
+  const linha = [CS2_SH, ...CS2_ARGS].map(aspas).join(' ');
+  // -q sem avisos, -e devolve o código de saída do CS2, -f grava a cada escrita; stty -echo para não repetir o que você digita
+  return spawn('script', ['-qefc', 'stty -echo 2>/dev/null; exec ' + linha, '/dev/null'], opcoes);
+}
+
 // ===== Controle do servidor =====
-async function iniciar(validar) {
+async function iniciar(validar, plugins) {
   if (estado !== 'parado') throw new Error(`O servidor está ${estado}`);
   estado = 'atualizando';
   try {
@@ -168,11 +282,18 @@ async function iniciar(validar) {
     estado = 'parado';
     throw e;
   }
+  if (plugins) {
+    try {
+      await atualizarPlugins(true);
+    } catch {
+      // o motivo já está no console; o servidor sobe com os plugins que já estavam instalados
+    }
+  }
 
   verificarMetamod(); // a atualização pode ter apagado a linha do Metamod
   log('>> Iniciando CS2...');
   pararSolicitado = false;
-  proc = spawn(CS2_SH, CS2_ARGS, { cwd: path.dirname(CS2_SH), detached: true });
+  proc = lancarCs2();
   estado = 'rodando';
 
   proc.stdout.on('data', log);
@@ -195,7 +316,11 @@ function parar() {
     pararSolicitado = true;
     estado = 'parando';
     const p = proc;
-    const matar = sinal => { try { process.kill(-p.pid, sinal); } catch {} };
+    const matar = sinal => {
+      try { process.kill(-p.pid, sinal); } catch {}
+      // no terminal de mentira o CS2 fica numa sessão própria, fora do grupo do "script": encerra ele também
+      if (usandoPty) execFile('pkill', ['-' + sinal.replace('SIG', ''), '-f', path.join(CFG.cs2Dir, 'game', 'bin', 'linuxsteamrt64', 'cs2')], () => {});
+    };
 
     const t1 = setTimeout(() => { log('>> Enviando SIGTERM...'); matar('SIGTERM'); }, 15000);
     const t2 = setTimeout(() => { log('>> Forçando encerramento...'); matar('SIGKILL'); }, 25000);
@@ -255,7 +380,7 @@ const servidor = http.createServer(async (req, res) => {
   switch (url) {
     case '/api/iniciar':
       if (estado !== 'parado') return json(res, 409, { erro: `O servidor está ${estado}` });
-      iniciar(!!body.validar).catch(() => {});
+      iniciar(!!body.validar, !!body.plugins).catch(() => {});
       return json(res, 202, { ok: true });
 
     case '/api/parar':
@@ -266,7 +391,12 @@ const servidor = http.createServer(async (req, res) => {
     case '/api/reiniciar':
       if (estado === 'atualizando' || estado === 'parando')
         return json(res, 409, { erro: `O servidor está ${estado}` });
-      (async () => { await parar(); await iniciar(!!body.validar); })().catch(() => {});
+      (async () => { await parar(); await iniciar(!!body.validar, !!body.plugins); })().catch(() => {});
+      return json(res, 202, { ok: true });
+
+    case '/api/plugins':
+      if (estado !== 'parado') return json(res, 409, { erro: estado === 'rodando' ? 'Pare o servidor antes de atualizar os plugins' : `O servidor está ${estado}` });
+      atualizarPlugins().catch(() => {});
       return json(res, 202, { ok: true });
 
     case '/api/gameinfo': {

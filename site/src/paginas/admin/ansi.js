@@ -74,6 +74,73 @@ const estiloDe = (e) => {
 // "[hh:mm:ss] texto" → hora + texto; as mensagens do próprio agente começam com ">>" (aviso), "!!" (erro) ou ">" (comando enviado)
 const RE_HORA = /^(\[\d{2}:\d{2}:\d{2}\]) ?([\s\S]*)$/
 
+// ── Cores automáticas ──
+// O CS2 e os plugins (CounterStrikeSharp, Metamod…) escrevem texto puro, sem códigos de cor. Aqui as partes sem cor ganham destaque por tipo:
+// níveis ([ERROR], [WARN], [INFO]), etiquetas dos programas, plugins carregados ([#1:LOADED]), textos entre aspas, arquivos de config
+// (core.json, server.cfg…), versões (1.0.378) e as linhas "chave = valor" / "chave": valor das configs.
+const GRUPOS = [
+  ['#ff6b6b', true], // 1 erro
+  ['#e3b341', true], // 2 aviso
+  ['#56d4dd', false], // 3 info/debug
+  ['#3fb950', true], // 4 carregado
+  ['#8b949e', false], // 5 descarregado
+  ['#d2a8ff', true], // 6 etiquetas dos programas
+  ['#a5d6a7', false], // 7 texto entre aspas
+  ['#79c0ff', false], // 8 arquivo
+  ['#ffa657', false], // 9 versão
+]
+const RE_REALCE = new RegExp(
+  [
+    String.raw`(\[(?:ERROR|ERR|FATAL|CRITICAL|FAIL)\]|\b(?:error|exception|failed|falha|fatal)\b)`,
+    String.raw`(\[(?:WARN|WARNING)\]|\bwarning\b)`,
+    String.raw`(\[(?:INFO|DEBUG|TRACE)\])`,
+    String.raw`(\[#\d+:LOADED\]|\bLOADED\b)`,
+    String.raw`(\[#\d+:(?:UNLOADED|DISABLED)\]|\bUNLOADED\b)`,
+    String.raw`(\[(?:CSSharp|CounterStrikeSharp|Metamod[^\]]*|SourceMod|MetaMod[^\]]*)\])`,
+    String.raw`("[^"\n]*")`,
+    String.raw`([\w./\\-]+\.(?:json|cfg|ini|toml|vdf|gi|dll|so|txt))`,
+    String.raw`(\bv?\d+\.\d+(?:\.\d+)+(?:-[\w.]+)?\b)`,
+  ].join('|'),
+  'gi',
+)
+const RE_CHAVE = /^(\s*)("?[\w.\-]+"?)(\s*[=:]\s*)(.+)$/ // chave = valor  /  "chave": valor
+const COR_CHAVE = '#79c0ff'
+const COR_VALOR = { true: '#3fb950', false: '#ff6b6b', numero: '#ffa657', texto: '#a5d6a7' }
+
+function realcarTrecho(texto) {
+  const saida = []
+  let ultimo = 0
+  let m
+  RE_REALCE.lastIndex = 0
+  while ((m = RE_REALCE.exec(texto))) {
+    if (m.index > ultimo) saida.push({ texto: texto.slice(ultimo, m.index), estilo: null })
+    const g = m.findIndex((x, i) => i > 0 && x !== undefined) - 1
+    const [cor, negrito] = GRUPOS[g]
+    saida.push({ texto: m[0], estilo: negrito ? { color: cor, fontWeight: 700 } : { color: cor } })
+    ultimo = RE_REALCE.lastIndex
+  }
+  if (ultimo < texto.length) saida.push({ texto: texto.slice(ultimo), estilo: null })
+  return saida
+}
+
+function realcar(partes) {
+  // só as linhas sem nenhuma cor do próprio programa
+  if (partes.some((p) => p.estilo)) return partes
+  const todo = partes.map((p) => p.texto).join('')
+  const kv = RE_CHAVE.exec(todo)
+  if (kv && /[=]|^\s*"[^"]+"\s*:/.test(todo) && !/^\s*\[/.test(todo)) {
+    const valor = kv[4].trim().replace(/,$/, '')
+    const cor = /^true$/i.test(valor) ? COR_VALOR.true : /^false$/i.test(valor) ? COR_VALOR.false : /^-?[\d.]+$/.test(valor) ? COR_VALOR.numero : COR_VALOR.texto
+    return [
+      { texto: kv[1], estilo: null },
+      { texto: kv[2], estilo: { color: COR_CHAVE } },
+      { texto: kv[3], estilo: { color: '#8b949e' } },
+      { texto: kv[4], estilo: { color: cor } },
+    ]
+  }
+  return realcarTrecho(todo)
+}
+
 export function ansiParaLinhas(linhas) {
   const estado = { fg: null, bg: null, neg: false, fraco: false, suj: false, it: false } // a cor continua de uma linha para a próxima
   return linhas.map((bruta) => {
@@ -98,6 +165,6 @@ export function ansiParaLinhas(linhas) {
       ultimo = re.lastIndex
     }
     if (ultimo < texto.length) partes.push({ texto: texto.slice(ultimo), estilo: estiloDe(estado) })
-    return { hora, marca, partes }
+    return { hora, marca, partes: marca ? partes : realcar(partes) }
   })
 }

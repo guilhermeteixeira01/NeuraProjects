@@ -32,6 +32,7 @@ export default function AdminServidor() {
   const [erro, setErro] = useState('') // falha de conexão (some quando volta)
   const [aviso, setAviso] = useState('') // resposta de uma ação (409 etc.)
   const [validar, setValidar] = useState(false)
+  const [plugins, setPlugins] = useState(false) // baixar o Metamod e o CounterStrikeSharp mais novos ao iniciar/reiniciar
   const [cmd, setCmd] = useState('')
   const [ocupado, setOcupado] = useState(false)
   const vistas = useMemo(() => ansiParaLinhas(linhas).filter((l) => l.partes.length), [linhas]) // cores do terminal; linhas só com código de cor somem
@@ -117,18 +118,24 @@ export default function AdminServidor() {
           <i /> {estado ? t(rotulo) : t('Conectando…')}
         </span>
         <div className="adm-srv-botoes">
-          <button type="button" className="btn btn-primary" disabled={!parado || ocupado} onClick={() => agir('iniciar', { validar })}>
+          <button type="button" className="btn btn-primary" disabled={!parado || ocupado} onClick={() => agir('iniciar', { validar, plugins })}>
             {t('Iniciar')}
           </button>
           <button type="button" className="btn btn-ghost adm-perigo" disabled={!rodando || ocupado} onClick={() => agir('parar', {}, t('Parar o servidor? Todos os jogadores serão desconectados.'))}>
             {t('Parar')}
           </button>
-          <button type="button" className="btn btn-ghost adm-perigo" disabled={!(parado || rodando) || ocupado} onClick={() => agir('reiniciar', { validar }, t('Reiniciar o servidor? Todos os jogadores serão desconectados.'))}>
+          <button type="button" className="btn btn-ghost adm-perigo" disabled={!(parado || rodando) || ocupado} onClick={() => agir('reiniciar', { validar, plugins }, t('Reiniciar o servidor? Todos os jogadores serão desconectados.'))}>
             {t('Reiniciar')}
           </button>
-          <button type="button" className="btn btn-ghost" disabled={ocupado || estado === 'atualizando'} onClick={corrigirPlugins} title={t('Confere o gameinfo.gi e recoloca o Metamod (plugins) se a atualização do CS2 o apagou. Vale na próxima vez que o servidor abrir.')}>
-            {t('Corrigir plugins')}
+          <button type="button" className="btn btn-ghost" disabled={!parado || ocupado} onClick={() => agir('plugins', {}, t('Baixar e instalar o Metamod e o CounterStrikeSharp mais novos? Os seus plugins e configs não são tocados (a pasta addons ganha um backup antes). Acompanhe pelo console.'))} title={t('Baixa a última versão do Metamod e do CounterStrikeSharp e instala. Só com o servidor parado.')}>
+            {t('Atualizar plugins')}
           </button>
+          <button type="button" className="btn btn-ghost" disabled={ocupado || estado === 'atualizando'} onClick={corrigirPlugins} title={t('Confere o gameinfo.gi e recoloca o Metamod (plugins) se a atualização do CS2 o apagou. Vale na próxima vez que o servidor abrir.')}>
+            {t('Corrigir Metamod')}
+          </button>
+          <label className="adm-srv-validar">
+            <input type="checkbox" checked={plugins} onChange={(e) => setPlugins(e.target.checked)} /> {t('Atualizar plugins')}
+          </label>
           <label className="adm-srv-validar">
             <input type="checkbox" checked={validar} onChange={(e) => setValidar(e.target.checked)} /> {t('Validar arquivos')}
           </label>

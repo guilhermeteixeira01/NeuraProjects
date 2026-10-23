@@ -103,7 +103,7 @@ const ROTULO_ADMIN = {
   '/admin/assinatura-planos': 'mudou os planos de assinatura',
   '/admin/zerar-tudo': 'ZEROU TUDO',
 }
-const ROTULO_SERVIDOR = { iniciar: 'iniciou o servidor de CS2', parar: 'parou o servidor de CS2', reiniciar: 'reiniciou o servidor de CS2', comando: 'mandou comando ao servidor de CS2', gameinfo: 'conferiu o gameinfo.gi (Metamod) do servidor de CS2' }
+const ROTULO_SERVIDOR = { iniciar: 'iniciou o servidor de CS2', parar: 'parou o servidor de CS2', reiniciar: 'reiniciou o servidor de CS2', comando: 'mandou comando ao servidor de CS2', gameinfo: 'conferiu o gameinfo.gi (Metamod) do servidor de CS2', plugins: 'atualizou o Metamod e o CounterStrikeSharp do servidor de CS2' }
 function descreverAcaoAdmin(rota, { quem, corpo }) {
   let c = {}
   try {
@@ -114,7 +114,7 @@ function descreverAcaoAdmin(rota, { quem, corpo }) {
   if (rota.startsWith('/admin/servidor/')) {
     const acao = rota.replace('/admin/servidor/', '')
     // o comando de console pode ter senha (sv_password, rcon): só a primeira palavra vai para o log
-    const extra = acao === 'comando' ? ` (${String(c.cmd || '').trim().split(/s+/)[0].slice(0, 40)})` : c.validar ? ' (validando arquivos)' : ''
+    const extra = acao === 'comando' ? ` (${String(c.cmd || '').trim().split(/\s+/)[0].slice(0, 40)})` : [c.validar ? 'validando arquivos' : '', c.plugins ? 'atualizando plugins' : ''].filter(Boolean).map((x) => ` (${x})`).join('')
     return { tipo: 'admin', quem, alvo: '', texto: (ROTULO_SERVIDOR[acao] || 'ação no servidor de CS2') + extra, dados: { rota } }
   }
   const chaves = Object.keys(c).filter((k) => !['id', 'alvo'].includes(k))

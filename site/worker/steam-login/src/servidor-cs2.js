@@ -1,11 +1,11 @@
 // Painel do servidor de CS2 (só o dono): proxy do site para o agente da VPS (public/vps/painel.js).
 // A URL e o token do agente ficam só aqui, como segredos do worker (CS2_AGENTE_URL, CS2_AGENTE_TOKEN): nunca vão para o navegador.
 //   GET  /admin/servidor/status?desde=N
-//   POST /admin/servidor/iniciar   { validar }     POST /admin/servidor/parar
-//   POST /admin/servidor/reiniciar { validar }     POST /admin/servidor/comando { cmd }
+//   POST /admin/servidor/iniciar   { validar, plugins }     POST /admin/servidor/parar
+//   POST /admin/servidor/reiniciar { validar, plugins }     POST /admin/servidor/plugins (atualiza só os plugins, servidor parado)     POST /admin/servidor/comando { cmd }
 //   POST /admin/servidor/gameinfo  (confere o gameinfo.gi e recoloca a linha do Metamod, se a atualização do CS2 tiver apagado)
 const TEMPO_MS = 10000
-const ACOES = { iniciar: true, parar: false, reiniciar: true, comando: false, gameinfo: false } // true = repassa "validar"
+const ACOES = { iniciar: true, parar: false, reiniciar: true, comando: false, gameinfo: false, plugins: false } // true = repassa "validar"
 
 const resposta = (corpo, status, cors) => new Response(JSON.stringify(corpo), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
 
@@ -22,7 +22,10 @@ export async function rotaAdminServidorCs2(req, env, rota, url, cors) {
   } else if (req.method === 'POST' && Object.hasOwn(ACOES, acao)) {
     const c = (await req.json().catch(() => null)) || {}
     const corpo = {}
-    if (ACOES[acao]) corpo.validar = c.validar === true
+    if (ACOES[acao]) {
+      corpo.validar = c.validar === true
+      corpo.plugins = c.plugins === true // baixa e instala o Metamod e o CounterStrikeSharp mais novos antes de abrir
+    }
     if (acao === 'comando') {
       corpo.cmd = String(c.cmd ?? '').trim().slice(0, 500)
       if (!corpo.cmd) return resposta({ erro: 'Comando vazio' }, 400, cors)
