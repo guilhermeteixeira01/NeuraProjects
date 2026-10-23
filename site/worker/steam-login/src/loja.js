@@ -131,6 +131,11 @@ export async function pontosGanhos(env, id) {
 // A imagem da caixa vai com ?v=<revisão>: se o navegador guardou uma imagem quebrada (a loja abriu antes do site publicar as imagens novas) ou uma antiga,
 // ele busca de novo assim que a revisão muda. O endereço salvo no admin continua sem o ?v.
 const comVersao = (c) => (typeof c.img === 'string' && c.img.startsWith('/assets/caixas/') && !c.img.includes('?') ? { ...c, img: `${c.img}?v=${REVISAO_CAIXAS}` } : c)
+// imagem do aviso de bônus de caixa (a da última caixa do lote): a salva no bônus ou, nos bônus antigos, a da caixa na lista atual
+const imagemBonus = (lote, caixas) => {
+  const b = lote[lote.length - 1]
+  return b?.img || (Array.isArray(caixas) && comVersao(caixas.find((c) => c.id === Number(b?.caixa)) || {}).img) || ''
+}
 const publicaDaCaixa = ({ itens, facas, ...resto }) => comVersao(resto)
 const pesoOk = (v) => Math.max(1, Math.round(num(v, 1, 100000, 100)))
 function limparCaixa(c, n) {
@@ -296,7 +301,7 @@ export class Loja {
 
   // Bônus para todos (KV "loja-bonus": [{ id, ts, valor, motivo }] de NP ou [{ id, ts, caixa, qtd, nome, motivo }] de caixa fechada, POST /admin/loja-bonus):
   // cada jogador recebe cada bônus uma vez, na próxima vez que mexe na loja
-  async aplicarBonus(bonus, id) {
+  async aplicarBonus(bonus, id, caixas = []) {
     if (!Array.isArray(bonus) || !bonus.length) return
     const visto = (await this.ctx.storage.get('bonusVisto')) || 0
     const novos = bonus.filter((b) => b.id > visto)
@@ -329,6 +334,7 @@ export class Loja {
         id: `bonus-caixa:${Math.max(...caixasBonus.map((b) => b.id))}`,
         titulo: recebidas === 1 ? `Você recebeu 1 caixa${nomes.length === 1 ? `: ${nomes[0]}` : ''}` : `Você recebeu ${recebidas} caixas${nomes.length === 1 ? `: ${nomes[0]}` : ''}`,
         texto: motivos.length ? `Motivo: ${motivos.join(' · ')}` : 'Bônus para todos os jogadores. Está no seu inventário.',
+        imagem: imagemBonus(caixasBonus, caixas),
         link: '/inventario/',
         quando: Date.now(),
         lida: false,
@@ -372,7 +378,7 @@ export class Loja {
 
   async acao({ acao, id, caixas, cfg, pontos, bonus, premium, ...p }) {
     if (['saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir', 'vender', 'mercado-comprar', 'dep-creditar', 'cobrar'].includes(acao)) {
-      await this.aplicarBonus(bonus, id)
+      await this.aplicarBonus(bonus, id, caixas)
       await this.aplicarPremium(premium)
     }
     switch (acao) {
@@ -877,7 +883,7 @@ export async function rotaAdminLoja(req, env, rota, cors) {
     if (!caixa) return json({ erro: 'caixa' }, 400, cors)
     if (!qtd) return json({ erro: 'valor' }, 400, cors)
     const lista = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
-    const nova = { id: Math.max(0, ...lista.map((b) => b.id)) + 1, ts: Date.now(), valor: 0, caixa: caixa.id, qtd, nome: String(caixa.nome || caixa.slug).slice(0, 60), motivo: String(corpo.motivo || '').slice(0, 60) }
+    const nova = { id: Math.max(0, ...lista.map((b) => b.id)) + 1, ts: Date.now(), valor: 0, caixa: caixa.id, qtd, nome: String(caixa.nome || caixa.slug).slice(0, 60), img: comVersao(caixa).img || '', motivo: String(corpo.motivo || '').slice(0, 60) }
     await env.MOLDURAS.put('loja-bonus', JSON.stringify([...lista, nova].slice(-200)))
     await avisarTodos(env, { tipo: 'bonus' })
     return json({ ok: true, todos: true }, 200, cors)

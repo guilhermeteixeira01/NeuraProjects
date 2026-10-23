@@ -12,6 +12,7 @@ import { SeloNivel } from './Nivel.jsx'
 import { ComMoldura, SeloCargo, useConfigSite, usePerfis, usePerfisFrescos } from './Moldura.jsx'
 import { miniaturaInsignia } from './insignias.js'
 import { useT } from './i18n.js'
+import { lerCaixasPublicas } from './loja.js'
 
 export function IconeSino({ tamanho = 20 }) {
   return (
@@ -82,9 +83,26 @@ function useAvisoCargos(id) {
   }, [id, frescos, chave, cargos.length]) // eslint-disable-line react-hooks/exhaustive-deps
 }
 
-// Imagem pequena da notificação: gema do nível, arte da insígnia ou selo do cargo
+// Bônus de caixa que chegou sem imagem (avisos de antes da imagem ir junto): acha a caixa pelo nome no título
+function useImagemCaixa(n) {
+  const [img, setImg] = useState('')
+  const nome = !n.imagem && String(n.id || '').startsWith('bonus-caixa:') ? (String(n.titulo || '').split(': ')[1] || '').trim() : ''
+  useEffect(() => {
+    if (!nome) return
+    let vivo = true
+    lerCaixasPublicas().then((l) => vivo && setImg((l || []).find((c) => c.nome === nome)?.img || ''))
+    return () => {
+      vivo = false
+    }
+  }, [nome])
+  return img
+}
+
+// Imagem pequena da notificação: gema do nível, arte da insígnia, selo do cargo ou a imagem que veio junto (skin, caixa)
 function Emblema({ n, cargos }) {
+  const imgCaixa = useImagemCaixa(n)
   if (n.nivel != null) return <SeloNivel nivel={n.nivel} tamanho={34} />
+  if (imgCaixa) return <img className="nt-ins nt-skin" src={imgCaixa} alt="" width="34" height="34" loading="lazy" draggable="false" />
   if (n.imagem) return <img className="nt-ins nt-skin" src={n.imagem} alt="" width="34" height="34" loading="lazy" draggable="false" />
   if (n.insignia) return <img className="nt-ins" src={miniaturaInsignia(n.insignia)} alt="" width="34" height="34" loading="lazy" draggable="false" />
   const c = n.cargo && cargos.find((x) => x.id === n.cargo)
