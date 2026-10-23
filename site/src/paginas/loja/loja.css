@@ -753,3 +753,29 @@ img.lj-emblema { width: 92px; height: auto; object-fit: contain; filter: drop-sh
 .lj-cx-especial .lj-cx-medalha img.lj-emblema { margin: 0 auto; }
 .lj-cx-especial-btn { transition: none; }
 .lj-cx-especial:hover { transform: none; }
+
+/* ── Grade de caixas no estilo "vitrine": sem cartão, a arte grande solta no fundo com um brilho na cor da caixa, nome e preço numa pílula ── */
+.lj-grade-caixas { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); grid-auto-rows: auto; gap: 30px 18px; }
+.lj-caixa { grid-template-rows: auto auto auto; gap: 8px; padding: 0 4px 6px; background: none; border: 0; border-radius: 0; box-shadow: none; isolation: isolate; }
+.lj-caixa:hover { transform: none; box-shadow: none; }
+.lj-caixa-arte { position: relative; }
+/* brilho atrás da arte: aparece mais no hover */
+.lj-caixa-arte::before { content: ''; position: absolute; inset: 14% 10% 8%; z-index: -1; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--cor) 55%, transparent), transparent); filter: blur(22px); opacity: .55; transition: opacity .25s, transform .25s; }
+.lj-caixa:hover .lj-caixa-arte::before { opacity: 1; transform: scale(1.08); }
+.lj-caixa-arte img { filter: drop-shadow(0 14px 18px rgb(0 0 0 / .6)); transition: transform .3s cubic-bezier(.2, .8, .3, 1); }
+.lj-caixa:hover .lj-caixa-arte img { transform: translateY(-8px) scale(1.05); }
+.lj-caixa b { display: block; min-height: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 100%; font: 600 17px/1.2 var(--font-body); letter-spacing: .01em; color: #fff; }
+.lj-caixa-preco { justify-self: center; gap: 6px; padding: 6px 16px; border-radius: 6px; background: #f5c518; color: #15110a; font: 700 15px var(--font-body); box-shadow: 0 6px 18px -8px #f5c518; transition: filter .15s, transform .15s; }
+.lj-caixa-preco img { filter: brightness(0) saturate(100%) opacity(.85); }
+.lj-caixa:hover .lj-caixa-preco { filter: brightness(1.08); transform: translateY(-1px); }
+.lj-caixa:focus-visible { outline: 2px solid #f5c518; outline-offset: 4px; border-radius: 10px; }
+.lj-caixa .lj-tem { top: 4px; right: 6px; }
+.lj-categoria + .lj-categoria { border-top: 0; padding-top: 0; margin-top: 44px; }
+.lj-categoria > p { margin-bottom: 18px; }
+@media (max-width: 700px) {
+  .lj-grade-caixas { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 10px; }
+  .lj-caixa { padding: 0 0 4px; }
+  .lj-caixa b { font-size: 14.5px; }
+  .lj-caixa-preco { padding: 5px 12px; font-size: 14px; }
+}
+@media (prefers-reduced-motion: reduce) { .lj-caixa-arte img, .lj-caixa-arte::before { transition: none; } }

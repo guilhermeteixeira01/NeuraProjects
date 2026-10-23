@@ -8,8 +8,7 @@
 --font-mono:'JetBrains Mono','Consolas',monospace}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{overflow-x:clip}
-body{background:repeating-linear-gradient(0deg,transparent,transparent 42px,rgb(var(--tinta) / .012) 42px,rgb(var(--tinta) / .012) 43px),
-repeating-linear-gradient(90deg,transparent,transparent 42px,rgb(var(--tinta) / .012) 42px,rgb(var(--tinta) / .012) 43px),var(--bg);
+body{background:var(--bg);
 color:var(--text);font-family:var(--font-body);line-height:1.5;min-height:calc(100vh / var(--escala-site, 1))}
 a{color:inherit;text-decoration:none}
 img{max-width:100%;display:block}

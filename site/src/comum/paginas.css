@@ -16,10 +16,7 @@ body {
   overflow-x: clip;
 }
 body {
-  background:
-    repeating-linear-gradient(0deg, transparent, transparent 42px, rgb(var(--tinta) / 0.012) 42px, rgb(var(--tinta) / 0.012) 43px),
-    repeating-linear-gradient(90deg, transparent, transparent 42px, rgb(var(--tinta) / 0.012) 42px, rgb(var(--tinta) / 0.012) 43px),
-    var(--bg);
+  background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
   line-height: 1.5;

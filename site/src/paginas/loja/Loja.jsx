@@ -14,15 +14,7 @@ import PaginaCaixa, { useFavoritas } from './PaginaCaixa.jsx'
 import { prepararSons } from './somLoja.js'
 import { CATEGORIAS_CAIXA, categoriaDaCaixa } from '../../comum/temasCaixa.js'
 
-const TIERS = [
-  ['todas', 'Todas'],
-  ['barata', 'Baratas'],
-  ['media', 'Médias'],
-  ['premium', 'Premium'],
-]
-const NOME_TIER = { barata: 'Barata', media: 'Média', premium: 'Premium' }
-
-// Categorias da loja (pelo que a caixa sorteia): separam as caixas temáticas das de arma, de facas, de amuletos e de adesivos
+// Categorias da loja: por franquia/tema (src/comum/temasCaixa.js)
 const numero = (n) => Number(n).toLocaleString('pt-BR')
 
 function Saldo({ saldo }) {
@@ -36,7 +28,7 @@ function Saldo({ saldo }) {
   )
 }
 
-// ── grade de caixas ──
+// ── grade de caixas: arte grande solta no fundo (brilho na cor da caixa), nome e o preço numa pílula ──
 // Imagem que não abriu (rede, ou o navegador guardou uma resposta ruim): tenta uma vez de novo, com um parâmetro novo para furar o cache
 function tentarDeNovo(e) {
   const img = e.currentTarget
@@ -48,7 +40,7 @@ function CartaoCaixa({ c, tem, aoAbrir }) {
   const t = useT()
   return (
     <li>
-      <button type="button" className={`lj-caixa lj-tier-${c.tier}`} style={{ '--cor': c.cor }} onClick={() => aoAbrir(c)}>
+      <button type="button" className="lj-caixa" style={{ '--cor': c.cor }} onClick={() => aoAbrir(c)}>
         <span className="lj-caixa-arte">
           <img src={c.img} alt="" loading="lazy" draggable="false" onError={tentarDeNovo} />
         </span>
@@ -56,7 +48,6 @@ function CartaoCaixa({ c, tem, aoAbrir }) {
         <span className="lj-caixa-preco">
           <img src="/assets/logos/logo-np-64.png" alt="" width="16" height="16" /> {numero(c.preco)}
         </span>
-        <small>{t(NOME_TIER[c.tier])}</small>
         {tem > 0 && <em className="lj-tem">{t('Você tem {n}', { n: tem })}</em>}
       </button>
     </li>
@@ -153,7 +144,6 @@ function Conteudo() {
   const [dados, setDados] = useState(null)
   const [erroCarga, setErroCarga] = useState(false)
   const [aba, setAba] = useState(() => (typeof location !== 'undefined' && new URLSearchParams(location.search).get('aba') === 'mercado' ? 'mercado' : 'caixas'))
-  const [tier, setTier] = useState('todas')
   const [aberta, setAberta] = useState(null) // id da caixa com a página aberta
   const [abertura, setAbertura] = useState(null) // { caixa, qtd, origem }
   const [aviso, setAviso] = useState('')
@@ -189,7 +179,7 @@ function Conteudo() {
   }, [conta?.id, carregar])
 
   // caixas fora da loja (arquivadas) ficam só em dados.caixas, para o "Abrir" do inventário; não entram na grade
-  const caixas = useMemo(() => (dados?.caixas || []).filter((c) => !c.foraDeVenda && (tier === 'todas' || c.tier === tier)), [dados, tier])
+  const caixas = useMemo(() => (dados?.caixas || []).filter((c) => !c.foraDeVenda), [dados])
   const sel = dados?.caixas.find((c) => c.id === aberta) || null
   const { fav, alternar: alternarFav } = useFavoritas()
 
@@ -300,14 +290,6 @@ function Conteudo() {
 
       {aba === 'caixas' ? (
         <>
-          <div className="lj-filtros">
-            {TIERS.map(([id, nome]) => (
-              <button key={id} type="button" className={tier === id ? 'is-ativo' : ''} onClick={() => setTier(id)}>
-                {t(nome)}
-              </button>
-            ))}
-            <span className="lj-total-caixas">{t('{n} caixas', { n: caixas.length })}</span>
-          </div>
           {favoritas.length > 0 && (
             <section className="lj-categoria" aria-label={t('Favoritas')}>
               <h2>

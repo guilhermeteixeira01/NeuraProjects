@@ -5,10 +5,7 @@
 /* ══════════════ Lobby (src/paginas/lobby/Lobby.jsx): grupo + painel de partida, no estilo da FACEIT, com a paleta do site ══════════════ */
 .lb-pagina {
   position: relative; box-sizing: border-box; min-height: calc(100vh / var(--escala-site, 1) - 64px); padding: 0 0 22px; /* sem rodapé: a página fecha na tela */
-  background:
-    radial-gradient(70% 38% at 50% 0%, rgb(var(--tinta) / .045), transparent 70%),
-    repeating-linear-gradient(135deg, transparent 0 22px, rgb(var(--tinta) / .018) 22px 23px),
-    var(--bg);
+  background: none; /* o fundo vem do site inteiro (comum/estetica.css) */
 }
 .lb-wrap { max-width: 1480px; padding-top: 22px; }
 
@@ -119,7 +116,7 @@
 .lb-badge { position: absolute; top: 10px; right: 10px; min-width: 22px; height: 22px; padding: 0 6px; display: grid; place-items: center; border-radius: 999px; font: 800 12px var(--font-body); color: #1a1400; background: var(--accent); }
 
 /* painel de partida */
-.lb-painel { position: relative; margin-top: 14px; padding-top: 0; border-radius: 12px 12px 0 0; border: 1px solid rgb(var(--tinta) / .07); border-bottom: 0; background: #0d0e10; }
+.lb-painel { position: relative; margin-top: 14px; padding-top: 0; border-radius: 12px 12px 0 0; border: 1px solid rgb(var(--tinta) / .07); border-bottom: 0; background: rgb(13 14 16 / .78); backdrop-filter: blur(6px); }
 /* aviso + botão Buscar: dentro do painel, no fluxo normal (antes ficavam por cima dos lugares do grupo e tampavam o link do perfil) */
 .lb-buscar-faixa { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; padding: 14px 12px 12px; }
 .lb-buscar-faixa .lb-aviso { max-width: 100%; flex-wrap: wrap; justify-content: center; }
