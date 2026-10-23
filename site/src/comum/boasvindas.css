@@ -30,3 +30,18 @@
 @keyframes bv-entra { from { opacity: 0; transform: translateY(10px) scale(.98); } }
 @media (max-width: 520px) { .bv { padding: 18px 16px 16px; } .bv h2 { font-size: 22px; } .bv-passos { flex-direction: column; } }
 @media (prefers-reduced-motion: reduce) { .bv-fundo, .bv { animation: none; } }
+
+/* passos com transição, botão com estados (girando / pronto) e janelas de trocar apelido e senha */
+.bv { position: relative; }
+.bv-passo { animation: bv-passo .28s cubic-bezier(.2, .8, .3, 1) both; }
+.bv-passos li i { transition: background .25s, transform .25s; }
+.bv-passos li.feito i { animation: bv-pulo .4s cubic-bezier(.2, 1.4, .4, 1) both; }
+.bv-botao { display: grid; place-items: center; min-height: 48px; transition: filter .15s, transform .08s, background .25s; }
+.bv-botao.bv-feito { background: #3fb950; color: #06170e; opacity: 1; animation: bv-pulo .4s cubic-bezier(.2, 1.4, .4, 1) both; }
+.bv-spin { display: block; width: 20px; height: 20px; border-radius: 50%; border: 2.5px solid rgb(21 17 10 / .25); border-top-color: #15110a; animation: cc-gira .7s linear infinite; }
+.bv-fechar { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border: 0; border-radius: 8px; background: rgb(255 255 255 / .06); color: inherit; font: 400 22px/1 var(--font-body); cursor: pointer; }
+.bv-fechar:hover { background: rgb(255 255 255 / .12); }
+.bv-fundo .bv h2 { padding-right: 34px; }
+@keyframes bv-passo { from { opacity: 0; transform: translateX(16px); } }
+@keyframes bv-pulo { 0% { transform: scale(.85); } 60% { transform: scale(1.06); } }
+@keyframes cc-gira { to { transform: rotate(360deg); } }

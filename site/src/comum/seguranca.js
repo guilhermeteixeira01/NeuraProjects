@@ -43,6 +43,7 @@ export function textoErroConta(e) {
       'nick-invalido': 'O apelido precisa ter de 3 a 20 caracteres: letras, números, espaço, ponto, _ ou -.',
       'nick-em-uso': 'Esse apelido já está em uso. Escolha outro.',
       'nick-reservado': 'Esse apelido não pode ser usado. Escolha outro.',
+      'nick-improprio': 'Esse apelido tem palavra imprópria. Escolha outro.',
       'so-premium': 'Só assinantes Premium trocam de apelido (uma vez a cada 15 dias).',
       'senha-curta': 'A senha precisa ter de 6 a 64 caracteres.',
       'senha-fraca': 'Escolha uma senha que não tenha o seu ID da Steam.',

@@ -1,0 +1,51 @@
+/* Campos de apelido e senha com validação ao vivo (CamposConta.jsx) */
+.cc-campo { position: relative; display: grid; gap: 6px; margin: 0 0 14px; }
+.cc-rot { font: 700 12px var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--dim, #9a9ba3); }
+.cc-caixa { position: relative; display: flex; align-items: center; border-radius: 9px; border: 1.5px solid rgb(255 255 255 / .18); background: rgb(0 0 0 / .35); transition: border-color .2s, box-shadow .2s, background .2s; }
+.cc-caixa:focus-within { border-color: var(--accent, #f5c542); box-shadow: 0 0 0 3px rgb(245 197 66 / .18); }
+.cc-caixa input { flex: 1; min-width: 0; padding: 12px 12px; border: 0; outline: 0; background: none; color: inherit; font: 600 16px var(--font-body); }
+.cc-ok .cc-caixa { border-color: #3fb950; box-shadow: 0 0 0 3px rgb(63 185 80 / .16); }
+.cc-erro .cc-caixa { border-color: #f85149; box-shadow: 0 0 0 3px rgb(248 81 73 / .16); animation: cc-treme .32s ease; }
+.cc-estado { display: grid; place-items: center; width: 34px; height: 34px; flex: none; }
+.cc-olho { display: grid; place-items: center; width: 40px; height: 40px; margin-right: 2px; flex: none; border: 0; border-radius: 8px; background: none; color: var(--dim, #9a9ba3); cursor: pointer; transition: color .15s, background .15s; }
+.cc-olho:hover { color: #fff; background: rgb(255 255 255 / .07); }
+.cc-olho svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ícones animados: o círculo e o traço se desenham */
+.cc-ico { width: 22px; height: 22px; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; animation: cc-pop .35s cubic-bezier(.2, 1.4, .4, 1) both; }
+.cc-ico circle { stroke-dasharray: 63; stroke-dashoffset: 63; animation: cc-desenha .4s ease forwards; }
+.cc-ico path { stroke-dasharray: 24; stroke-dashoffset: 24; animation: cc-desenha .3s .25s ease forwards; }
+.cc-ico-ok { stroke: #3fb950; }
+.cc-ico-erro { stroke: #f85149; }
+.cc-spin { width: 18px; height: 18px; border-radius: 50%; border: 2.2px solid rgb(255 255 255 / .18); border-top-color: var(--accent, #f5c542); animation: cc-gira .7s linear infinite; }
+
+.cc-msg { min-height: 16px; font-size: 12.5px; color: var(--dim, #9a9ba3); animation: cc-sobe .22s ease both; }
+.cc-ok > .cc-msg, .cc-msg-ok { color: #56d364; }
+.cc-erro > .cc-msg, .cc-msg-erro { color: #ff8e8e; }
+.cc-contador { position: absolute; right: 2px; top: 0; font-size: 11px; color: var(--dim-2, #6d6e77); }
+
+/* força da senha */
+.cc-forca { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 2px; }
+.cc-forca i { height: 5px; border-radius: 3px; background: rgb(255 255 255 / .1); transition: background .3s, transform .3s; transform-origin: left; }
+.cc-forca i.on { animation: cc-enche .35s ease both; }
+.cc-forca-0 i.on, .cc-forca-1 i.on { background: #f85149; }
+.cc-forca-2 i.on { background: #f0a020; }
+.cc-forca-3 i.on { background: #a3d14b; }
+.cc-forca-4 i.on { background: #3fb950; box-shadow: 0 0 8px rgb(63 185 80 / .5); }
+.cc-msg b { color: #fff; }
+.cc-req { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 5px 12px; margin: 2px 0 0; padding: 0; }
+.cc-req li { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--dim, #9a9ba3); transition: color .25s; }
+.cc-req li i { display: grid; place-items: center; width: 16px; height: 16px; flex: none; border-radius: 50%; border: 1.5px solid rgb(255 255 255 / .25); transition: background .25s, border-color .25s, transform .25s; }
+.cc-req li svg { width: 11px; height: 11px; fill: none; stroke: #06170e; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 20; stroke-dashoffset: 20; transition: stroke-dashoffset .3s .05s; }
+.cc-req li.ok { color: #c9f1cf; }
+.cc-req li.ok i { background: #3fb950; border-color: #3fb950; transform: scale(1.1); }
+.cc-req li.ok svg { stroke-dashoffset: 0; }
+
+@keyframes cc-desenha { to { stroke-dashoffset: 0; } }
+@keyframes cc-pop { from { transform: scale(.4); opacity: 0; } }
+@keyframes cc-gira { to { transform: rotate(360deg); } }
+@keyframes cc-sobe { from { opacity: 0; transform: translateY(-3px); } }
+@keyframes cc-enche { from { transform: scaleX(0); } }
+@keyframes cc-treme { 20%, 60% { transform: translateX(-4px); } 40%, 80% { transform: translateX(4px); } }
+@media (max-width: 420px) { .cc-req { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .cc-campo *, .cc-caixa { animation: none !important; transition: none !important; } .cc-ico circle, .cc-ico path { stroke-dashoffset: 0; } }

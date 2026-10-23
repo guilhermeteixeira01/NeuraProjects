@@ -5,8 +5,8 @@ import { EVENTO_DESEMPENHO, desempenhoAtivo } from './desempenho.js'
 import { IDIOMAS, useT } from './i18n.js'
 import { escolherDesempenho, escolherIdioma, escolherTema } from './preferencias.js'
 import { EVENTO_TEMA, TEMAS, temaAtual } from './tema.js'
-import { perguntar, perguntarSenha } from './Dialogos.jsx'
-import { avisarMudancaConta, definirSenha, escolherNick, textoErroConta, useSeguranca } from './seguranca.js'
+import { useSeguranca } from './seguranca.js'
+import { TrocarNick, TrocarSenha } from './BoasVindas.jsx'
 
 function IconeEngrenagem() {
   return (
@@ -17,57 +17,31 @@ function IconeEngrenagem() {
   )
 }
 
-// Conta: apelido (Premium troca a cada 15 dias) e senha de segurança (trocas e mercado)
+// Conta: apelido (Premium troca a cada 15 dias) e senha de segurança (trocas e mercado). As janelas ficam em BoasVindas.jsx.
 function ContaSeguranca() {
   const t = useT()
   const seg = useSeguranca()
-  const [msg, setMsg] = useState({ texto: '', ok: true })
+  const [janela, setJanela] = useState(null) // 'nick' | 'senha'
   if (!seg?.nick) return null // sem login (ou ainda escolhendo o apelido na janela de boas-vindas)
-  const trocarNick = async () => {
-    const novo = await perguntar(t('Novo apelido (3 a 20 caracteres):'), { titulo: t('Trocar apelido'), ok: t('Trocar') })
-    if (!novo) return
-    try {
-      await escolherNick(novo)
-      avisarMudancaConta()
-      setMsg({ texto: t('Apelido trocado!'), ok: true })
-    } catch (e) {
-      setMsg({ texto: t(textoErroConta(e)), ok: false })
-    }
-  }
-  const trocarSenha = async () => {
-    const atual = await perguntarSenha(t('Digite a sua senha de segurança atual.'), { titulo: t('Trocar senha'), ok: t('Continuar') })
-    if (!atual) return
-    const nova = await perguntarSenha(t('Nova senha (6 a 64 caracteres).'), { titulo: t('Trocar senha'), ok: t('Continuar') })
-    if (!nova) return
-    const repete = await perguntarSenha(t('Repita a nova senha.'), { titulo: t('Trocar senha'), ok: t('Trocar') })
-    if (!repete) return
-    if (nova !== repete) return setMsg({ texto: t('As duas senhas não são iguais.'), ok: false })
-    try {
-      await definirSenha(nova, atual)
-      avisarMudancaConta()
-      setMsg({ texto: t('Senha trocada!'), ok: true })
-    } catch (e) {
-      setMsg({ texto: t(textoErroConta(e)), ok: false })
-    }
-  }
   return (
     <div className="nx-config-campo nx-config-conta">
       <span>{t('Conta')}</span>
       <div className="nx-conta-linha">
         <b title={t('Apelido')}>{seg.nick}</b>
-        <button type="button" className="nx-conta-acao" disabled={!seg.podeTrocarNick} onClick={trocarNick} title={seg.podeTrocarNick ? '' : seg.premium ? t('Próxima troca em {data}', { data: new Date(seg.proximaTroca).toLocaleDateString() }) : t('Só assinantes Premium trocam de apelido (a cada 15 dias).')}>
+        <button type="button" className="nx-conta-acao" disabled={!seg.podeTrocarNick} onClick={() => setJanela('nick')} title={seg.podeTrocarNick ? '' : seg.premium ? t('Próxima troca em {data}', { data: new Date(seg.proximaTroca).toLocaleDateString() }) : t('Só assinantes Premium trocam de apelido (a cada 15 dias).')}>
           {t('Trocar apelido')}
         </button>
       </div>
       <div className="nx-conta-linha">
         <small>{seg.temSenha ? t('Senha de segurança criada') : t('Senha de segurança: ainda não criada')}</small>
         {seg.temSenha && (
-          <button type="button" className="nx-conta-acao" onClick={trocarSenha}>
+          <button type="button" className="nx-conta-acao" onClick={() => setJanela('senha')}>
             {t('Trocar senha')}
           </button>
         )}
       </div>
-      {msg.texto && <small className={msg.ok ? 'nx-conta-ok' : 'nx-conta-erro'}>{msg.texto}</small>}
+      {janela === 'nick' && <TrocarNick atual={seg.nick} aoFechar={() => setJanela(null)} />}
+      {janela === 'senha' && <TrocarSenha aoFechar={() => setJanela(null)} />}
     </div>
   )
 }
@@ -96,7 +70,7 @@ export default function Configuracoes() {
   // Fecha clicando fora ou com Esc
   useEffect(() => {
     if (!aberto) return
-    const fora = (e) => !caixa.current?.contains(e.target) && setAberto(false)
+    const fora = (e) => !caixa.current?.contains(e.target) && !e.target.closest?.('.bv-fundo') && setAberto(false) // clique nas janelas de trocar apelido/senha não fecha o painel
     const tecla = (e) => e.key === 'Escape' && setAberto(false)
     document.addEventListener('pointerdown', fora)
     document.addEventListener('keydown', tecla)

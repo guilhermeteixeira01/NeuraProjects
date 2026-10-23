@@ -14,24 +14,17 @@
  *   GET  /nicks?ids=a,b,c     (público) -> { "<SteamID64>": "apelido" }
  *   POST /admin/senha-reset   (dono) { id }   ·   POST /admin/nick (dono) { id, nick }
  */
+import { chaveDoNick, erroDoNick } from './nick-filtro.js'
+export { chaveDoNick }
+
 export const DIAS_TROCA_NICK = 15
 const TROCA_MS = DIAS_TROCA_NICK * 24 * 3600 * 1000
 const MAX_ERROS = 5
 const BLOQUEIO_MS = 15 * 60 * 1000
 const ITERACOES = 100000 // o máximo que o Workers aceita no PBKDF2
-const NICK = /^[\p{L}\p{N}][\p{L}\p{N} ._-]{1,18}[\p{L}\p{N}]$/u
-const RESERVADOS = new Set(['admin', 'administrador', 'moderador', 'moderacao', 'suporte', 'staff', 'neura', 'neuraproject', 'neurapick', 'dono', 'owner', 'system', 'sistema', 'steam', 'valve', 'null', 'undefined'])
 const ID_STEAM = /^\d{17}$/
 
 const json = (dados, status = 200) => new Response(JSON.stringify(dados), { status, headers: { 'Content-Type': 'application/json; charset=utf-8' } })
-
-// "João_Silva 99" e "joao silva99" são o mesmo apelido para quem confere repetidos
-export const chaveDoNick = (n) =>
-  String(n || '')
-    .normalize('NFD')
-    .replace(/\p{M}/gu, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '')
 
 const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('')
 const deHex = (h) => new Uint8Array((h.match(/../g) || []).map((x) => parseInt(x, 16)))
@@ -98,6 +91,14 @@ export class Contas {
     }
     if (!ID_STEAM.test(c.steam || '')) throw new Error('id')
     if (a === 'estado') return this.estado(c.steam, !!c.premium)
+    if (a === 'livre') {
+      // validação ao vivo do campo de apelido: o mesmo que definirNick confere, sem gravar
+      const nick = String(c.nick ?? '').trim().replace(/\s+/g, ' ')
+      const erro = erroDoNick(nick)
+      if (erro) return { livre: false, erro }
+      const dono = this.sql.exec('SELECT steam FROM contas WHERE chave = ?', chaveDoNick(nick)).toArray()[0]
+      return dono && dono.steam !== c.steam ? { livre: false, erro: 'nick-em-uso' } : { livre: true, seu: !!dono }
+    }
     if (a === 'nick') return this.definirNick(c.steam, c.nick, !!c.premium, !!c.admin)
     if (a === 'senha') return this.definirSenha(c.steam, String(c.senha ?? ''), c.atual == null ? null : String(c.atual))
     if (a === 'verificar') return this.verificar(c.steam, String(c.senha ?? ''))
@@ -124,9 +125,9 @@ export class Contas {
 
   definirNick(steam, bruto, premium, admin) {
     const nick = String(bruto ?? '').trim().replace(/\s+/g, ' ')
-    if (!NICK.test(nick) || nick.length > 20) throw new Error('nick-invalido')
+    const invalido = erroDoNick(nick) // formato, reservado ou impróprio
+    if (invalido) throw new Error(invalido)
     const chave = chaveDoNick(nick)
-    if (chave.length < 3 || RESERVADOS.has(chave)) throw new Error(chave.length < 3 ? 'nick-invalido' : 'nick-reservado')
     const l = this.conta(steam)
     const agora = Date.now()
     if (l?.nick && !admin) {

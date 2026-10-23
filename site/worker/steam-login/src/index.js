@@ -286,6 +286,11 @@ async function atender(req, env, ctx) {
       const r = await chamarContas(env, { acao: 'estado', steam: quem.id, premium })
       return json(r.dados, r.ok ? 200 : r.status, cors)
     }
+    // validação ao vivo do campo de apelido (formato, palavra imprópria, já em uso)
+    if (rota === '/conta/nick-livre' && req.method === 'GET') {
+      const r = await chamarContas(env, { acao: 'livre', steam: quem.id, nick: url.searchParams.get('nick') || '' })
+      return json(r.dados, r.ok ? 200 : r.status, cors)
+    }
     if (rota === '/conta/nick' && req.method === 'POST') {
       const c = (await req.json().catch(() => null)) || {}
       const premium = indiceSub((await ler(env, 'perfis'))[quem.id]?.sub, config) >= 0
