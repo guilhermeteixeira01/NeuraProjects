@@ -1,0 +1,5 @@
+/* CSS da página numa peça só, na ordem certa (base do site, depois estetica.css, depois o resto).
+   Juntar aqui com @import garante a mesma ordem no dev e no build: importado direto do .jsx, o estetica.css
+   virava um pedaço compartilhado entre as páginas e carregava antes do CSS da página, perdendo dela. */
+@import '../paginas/lobby/lobby.css';
+@import '../comum/estetica.css';
