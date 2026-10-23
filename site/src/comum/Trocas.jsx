@@ -220,7 +220,8 @@ export function JanelaTroca({ para, aoFechar, aoEnviada }) {
     }
   }
   const slots = (ids, dono, remover) => {
-    const total = Math.max(8, Math.ceil((ids.length + 1) / 4) * 4)
+    // sempre uma fileira com espaço livre para o próximo item, menos quando já chegou no limite (20): aí não sobra quadro vazio
+    const total = Math.min(20, Math.max(8, Math.ceil((ids.length + 1) / 4) * 4))
     return (
       <div className="tr-slots">
         {Array.from({ length: total }, (_, k) => {
