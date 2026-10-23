@@ -162,7 +162,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
                   </a>
                 </>
               ) : (
-                <small>{!resumo ? '…' : resumo.abertas > 0 ? t('Abriu {n} caixas (que não estão mais na loja)', { n: numero(resumo.abertas) }) : t('Ainda não abriu caixas')}</small>
+                <small>{resumo ? t('Ainda não abriu caixas') : '…'}</small>
               )}
             </div>
             {fav && <img src={fav.img} alt="" loading="lazy" draggable="false" />}
