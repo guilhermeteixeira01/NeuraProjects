@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CONFIG } from '../../comum/config.js'
 import { CarregandoNP } from '../../comum/Carregando.jsx'
-import { SeloPadrao, nomeDoDesgaste } from '../../comum/CartaoSkin.jsx'
+import { GemaNome, nomeDoDesgaste } from '../../comum/CartaoSkin.jsx'
 import { InspecionarSkin, podeInspecionar } from '../../comum/InspecionarSkin.jsx'
 import { useT } from '../../comum/i18n.js'
 import { lerCaixasPublicas } from '../../comum/loja.js'
@@ -249,7 +249,6 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
                           <span className="pf-inv-item-arte">{d.img ? <img src={d.img} alt="" loading="lazy" draggable="false" /> : null}</span>
                           <span className="pf-inv-item-preco">{numero(valor)} NP</span>
                           {it.st ? <span className="pf-inv-item-st">StatTrak™</span> : null}
-                          <SeloPadrao item={it} />
                           {(adesivosColados.length > 0 || charm) && (
                             <span className="pf-inv-enf">
                               {charm && <img className="pf-inv-enf-ch" src={urlImg(charm[2], 64)} alt="" loading="lazy" />}
@@ -259,7 +258,10 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
                             </span>
                           )}
                           <span className="pf-inv-item-nome">
-                            <small>{it.n ? `${d.titulo} «${it.n}»` : d.titulo}</small>
+                            <span className="pf-inv-nome-linha">
+                              <GemaNome item={it} />
+                              <small>{it.n ? `${d.titulo} «${it.n}»` : d.titulo}</small>
+                            </span>
                             <b>
                               <em title={t(nomeDoDesgaste(f))}>({sigla(f)})</em> {d.subtitulo}
                             </b>

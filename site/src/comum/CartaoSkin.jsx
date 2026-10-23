@@ -30,6 +30,22 @@ export function SeloPadrao({ item, classe = '' }) {
   )
 }
 
+// Só o diamante (na frente do nome da arma): ao passar o mouse mostra o nome do padrão, o tier e quanto vale a mais
+export function GemaNome({ item }) {
+  const t = useT()
+  const pr = padraoRaro(item)
+  if (!pr) return null
+  const dica = `${pr.rotulo} T${pr.tier} · ${t('Padrão')} ${pr.seed} · ×${pr.mult}`
+  return (
+    <span className={`inv-gema-i inv-gema-${pr.tier}`} data-dica={dica} role="img" aria-label={dica} tabIndex={0}>
+      <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+        <path d="M6 3h12l4 6-10 12L2 9z" fill="currentColor" opacity=".92" />
+        <path d="M2 9h20M9 3 7 9l5 12M15 3l2 6-5 12" fill="none" stroke="#fff" strokeOpacity=".55" strokeWidth="1" />
+      </svg>
+    </span>
+  )
+}
+
 export const nomeDoDesgaste = (f) => (f < 0.07 ? 'Factory New' : f < 0.15 ? 'Minimal Wear' : f < 0.38 ? 'Field-Tested' : f < 0.45 ? 'Well-Worn' : 'Battle-Scarred')
 
 // valor: NP do item (aparece embaixo do nome; no mercado, o preço do anúncio)
@@ -61,11 +77,13 @@ export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
           ))}
         </span>
         {item.st ? <span className="inv-st">StatTrak™</span> : null}
-        <SeloPadrao item={item} />
         {selecionado !== undefined && <i className={`inv-check${selecionado ? ' on' : ''}`} aria-hidden="true" />}
       </span>
       <span className="inv-cartao-nome">
-        <b>{item.n ? `${d.titulo} «${item.n}»` : d.titulo}</b>
+        <b>
+          <GemaNome item={item} />
+          {item.n ? `${d.titulo} «${item.n}»` : d.titulo}
+        </b>
         <small>{d.subtitulo}</small>
         {d.skin && (
           <em>

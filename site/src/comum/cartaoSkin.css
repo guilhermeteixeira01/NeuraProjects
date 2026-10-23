@@ -45,3 +45,12 @@
 .inv-inspecao-info .inv-gema-1 { color: #35d0ff; }
 .inv-inspecao-info .inv-gema-2 { color: #8f7bff; }
 .inv-inspecao-info .inv-gema-3 { color: #7fa4c8; }
+
+/* diamante do padrão raro na frente do nome da arma (só o ícone; o nome, o tier e o valor aparecem ao passar o mouse) */
+.inv-gema-i { position: relative; display: inline-flex; align-items: center; margin-right: 4px; vertical-align: -2px; color: #4fc3ff; cursor: help; filter: drop-shadow(0 0 5px currentColor); }
+.inv-gema-i svg { display: block; }
+.inv-gema-i::after { content: attr(data-dica); position: absolute; left: 50%; bottom: calc(100% + 7px); z-index: 20; transform: translate(-50%, 4px); width: max-content; max-width: 190px; padding: 5px 9px; border-radius: 6px; background: #0a0e1a; border: 1px solid currentColor; color: #fff; font: 600 11px/1.35 var(--font-body); letter-spacing: 0; text-align: center; white-space: normal; opacity: 0; pointer-events: none; transition: opacity .12s, transform .12s; }
+.inv-gema-i:hover::after, .inv-gema-i:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
+.inv-gema-i.inv-gema-1 { color: #35d0ff; }
+.inv-gema-i.inv-gema-2 { color: #8f7bff; }
+.inv-gema-i.inv-gema-3 { color: #7fa4c8; filter: none; }
