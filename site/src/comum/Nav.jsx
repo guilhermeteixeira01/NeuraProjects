@@ -339,24 +339,28 @@ export default function Nav({ pagina }) {
     return () => window.removeEventListener('scroll', ver)
   }, [])
 
-  // Só a página inicial mostra a barra da esquerda aberta (ícone + nome). Quem vem dela para outra página vê a barra
-  // encolher até os ícones (animação em site.css: html.nx-encolhe). O sessionStorage guarda que a última foi a inicial.
+  // Só a página inicial mostra a barra da esquerda aberta (ícone + nome). Ao clicar em outra página ela encolhe até os ícones com
+  // animação (classe nx-fechando, regras em estetica.css) e só depois a página nova abre, já com a barra do tamanho final.
   useEffect(() => {
-    try {
-      if (pagina === 'inicio') {
-        sessionStorage.setItem('np_nav_larga', '1')
-        return
-      }
-      if (sessionStorage.getItem('np_nav_larga') !== '1') return
-      sessionStorage.removeItem('np_nav_larga')
+    if (pagina !== 'inicio') return
+    const clicar = (e) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
       if (!window.matchMedia('(min-width: 1281px)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+      const a = e.target instanceof Element ? e.target.closest('a[href]') : null
+      if (!a || a.target === '_blank' || a.hasAttribute('download')) return
+      const url = new URL(a.href, location.href)
+      if (url.origin !== location.origin || url.pathname === location.pathname) return
+      e.preventDefault()
       const h = document.documentElement
-      h.classList.add('nx-encolhe')
-      const fim = setTimeout(() => h.classList.remove('nx-encolhe'), 650)
-      return () => clearTimeout(fim)
-    } catch {
-      // sem sessionStorage: a barra só aparece fina
+      h.classList.add('nx-fechando')
+      setTimeout(() => {
+        location.href = a.href
+      }, 290)
+      // voltar pelo navegador (a página volta do cache já fechada): reabre
+      window.addEventListener('pageshow', () => h.classList.remove('nx-fechando'), { once: true })
     }
+    document.addEventListener('click', clicar)
+    return () => document.removeEventListener('click', clicar)
   }, [pagina])
 
   const conta = useConta()

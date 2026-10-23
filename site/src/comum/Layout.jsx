@@ -9,7 +9,6 @@ import { AvisoTroca } from './Trocas.jsx'
 import AvisoPontos from './AvisoPontos.jsx'
 import { useLuzCursor } from './efeitos.jsx'
 import Nav from './Nav.jsx'
-import Rodape from './Rodape.jsx'
 import { SincronizarPreferencias } from './preferencias.js'
 import { MostrarAposIdioma } from './i18n.js'
 
@@ -46,8 +45,8 @@ export function useRevelar(seletor = '.reveal', classe = 'is-visible', opcoes = 
   }, [seletor, classe])
 }
 
-// Estrutura de toda página: menu, conteúdo, rodapé (semRodape: página que ocupa só a tela, como o lobby) e avisos de novidade
-export default function Layout({ pagina, semRodape = false, children }) {
+// Estrutura de toda página: menu, conteúdo e avisos de novidade (o site não tem mais rodapé)
+export default function Layout({ pagina, children }) {
   useRevelar()
   useLuzCursor() // cards com a classe "spot" ganham a luz que segue o cursor
   // Trocar de página: se a próxima demorar, aparece o carregamento da NP por cima (some sozinho quando a página nova abre).
@@ -92,7 +91,6 @@ export default function Layout({ pagina, semRodape = false, children }) {
     <>
       <Nav pagina={pagina} />
       {children}
-      {!semRodape && <Rodape />}
       <Avisos />
       <AvisoConvite />
       <AceitarPartida />

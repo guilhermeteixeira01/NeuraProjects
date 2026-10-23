@@ -1301,4 +1301,6 @@ export default {
   "Níveis, XP e o top do servidor": "Niveles, XP y el top del servidor",
   "Caixas de skins com Neura Pontos": "Cajas de skins con Neura Puntos",
   "Veto de mapas no padrão dos campeonatos": "Veto de mapas al estilo de los torneos",
+  "Números do servidor": "Números del servidor",
+  "NO SERVIDOR": "EN EL SERVIDOR",
 }

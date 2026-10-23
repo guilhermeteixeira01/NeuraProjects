@@ -154,10 +154,10 @@ export default function Inicio() {
       <main className="inicio">
         {/* TOPO */}
         <section className="ix-hero">
-          {/* A imagem do site fica de fundo; só uma sombra à esquerda dá leitura ao texto */}
-          <img className="ix-hero-img" src="/assets/banners/inicio.webp" alt="" width="1726" height="911" fetchpriority="high" decoding="async" />
-          <div className="ix-hero-vu" aria-hidden="true" />
-          <div className="wrap ix-hero-grade">
+          <div className="wrap">
+          <div className="ix-hero-card">
+            <img className="ix-fundo" src="/assets/banners/inicio.webp" alt="" width="1726" height="911" fetchpriority="high" decoding="async" />
+            <div className="ix-fundo-vu" aria-hidden="true" />
             <div className="ix-hero-texto">
               <span className="kicker fx-entra" style={{ '--e': 1 }}>{t('SERVIDOR COMPETITIVO DE CS2')}</span>
               <h1 className="fx-entra" style={{ '--e': 2 }}>
@@ -168,7 +168,28 @@ export default function Inicio() {
               <p className="ix-lead fx-entra" style={{ '--e': 3 }}>
                 {t('Pick & Ban de CS2, servidor competitivo, estatísticas de cada mapa, ranking e níveis. Tudo feito por jogadores, para quem joga de verdade.')}
               </p>
-              <dl className="ix-numeros fx-entra" style={{ '--e': 4 }}>
+              <div className="ix-acoes fx-entra" style={{ '--e': 4 }}>
+                <LinkComunidade className="btn btn-primary btn-lg">
+                  <IconeDiscord tamanho={18} /> {t('Entrar no Discord')}
+                </LinkComunidade>
+                <a className="btn btn-ghost btn-lg" href="/partidas/">
+                  {t('Ver partidas')} {SETA}
+                </a>
+              </div>
+            </div>
+          </div>
+          </div>
+        </section>
+
+        {/* FAIXA: números do servidor */}
+        <section className="wrap ix-faixa-sec" aria-label={t('Números do servidor')}>
+          <div className="ix-quadro fx-entra" style={{ '--e': 5 }}>
+            <div className="ix-quadro-in">
+              <div className="ix-faixa-titulo">
+                <span className="kicker">{t('NO SERVIDOR')}</span>
+                <b>{t('Jogue. Compita. Evolua.')}</b>
+              </div>
+              <dl className="ix-numeros">
                 <div>
                   <dd>
                     <Contador valor={numeros.mapas} />
@@ -188,36 +209,36 @@ export default function Inicio() {
                   <dt>KILLS</dt>
                 </div>
               </dl>
+              <a className="btn btn-ghost ix-faixa-botao" href="/ranking/">
+                {t('Ver ranking')}
+              </a>
             </div>
-            <aside className="ix-hero-cta fx-entra" style={{ '--e': 5 }}>
-              <h2>
-                {t('Pronto pra jogar?')} <span>{t('Entre na comunidade.')}</span>
-              </h2>
-              <p>{t('Servidor, campeonatos e novidades acontecem no nosso Discord.')}</p>
-              <LinkComunidade className="btn btn-primary btn-lg">{t('Entrar no Discord')}</LinkComunidade>
-            </aside>
-            <nav className="ix-destaques fx-entra" style={{ '--e': 6 }} aria-label={t('Em destaque')}>
-              <span className="kicker">{t('EM DESTAQUE')}</span>
-              <ul>
-                {[
-                  ['/partidas/', '/neurapick/maps/mirage.jpg', 'Partidas', 'Placar, rounds e demo de cada mapa'],
-                  ['/ranking/', '/assets/insignia/web/arsenal-afiado-diamante.webp', 'Ranking', 'Níveis, XP e o top do servidor'],
-                  ['/loja/', '/assets/caixas/web/caixa-abismo.webp', 'Loja', 'Caixas de skins com Neura Pontos'],
-                  ...(verPick ? [['/neurapick/', '/neurapick/maps/inferno.jpg', 'NeuraPick', 'Veto de mapas no padrão dos campeonatos']] : []),
-                ].map(([href, img, nome, texto]) => (
-                  <li key={href}>
-                    <a href={href}>
-                      <span className="ix-thumb">
-                        <img src={img} alt="" loading="lazy" decoding="async" />
-                      </span>
-                      <b>{t(nome)}</b>
-                      <small>{t(texto)}</small>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </nav>
           </div>
+        </section>
+
+        {/* EM DESTAQUE */}
+        <section className="wrap ix-dest-sec" aria-label={t('Em destaque')}>
+          <h2 className="ix-titulo-linha">
+            {t('Em destaque')}
+          </h2>
+          <ul className="ix-destaques">
+            {[
+              ['/partidas/', '/neurapick/maps/mirage.jpg', 'Partidas', 'Placar, rounds e demo de cada mapa'],
+              ['/ranking/', '/assets/insignia/web/arsenal-afiado-diamante.webp', 'Ranking', 'Níveis, XP e o top do servidor'],
+              ['/loja/', '/assets/caixas/web/caixa-abismo.webp', 'Loja', 'Caixas de skins com Neura Pontos'],
+              ...(verPick ? [['/neurapick/', '/neurapick/maps/inferno.jpg', 'NeuraPick', 'Veto de mapas no padrão dos campeonatos']] : []),
+            ].map(([href, img, nome, texto]) => (
+              <li key={href}>
+                <a href={href}>
+                  <span className="ix-thumb">
+                    <img src={img} alt="" loading="lazy" decoding="async" />
+                  </span>
+                  <b>{t(nome)}</b>
+                  <small>{t(texto)}</small>
+                </a>
+              </li>
+            ))}
+          </ul>
         </section>
 
         {/* LETREIRO */}
@@ -331,103 +352,63 @@ export default function Inicio() {
           </div>
         </section>
 
-        {/* SOBRE */}
-        <section className="secao" id="sobre">
-          <div className="wrap sobre">
-            <div className="sobre-texto reveal">
-              <div className="secao-head" style={{ marginBottom: 22 }}>
-                <span className="kicker">
-                  <b>02</b> {t('SOBRE A NEURA')}
-                </span>
-                <h2>{t('Um estúdio pequeno, feito por jogadores')}</h2>
-              </div>
+        {/* SOBRE: banda com imagem e a ficha do estúdio */}
+        <section className="ix-banda" id="sobre">
+          <div className="wrap ix-banda-grade">
+            <figure className="ix-banda-arte reveal">
+              <img src="/assets/banners/inicio.webp" alt="" width="1726" height="911" loading="lazy" decoding="async" />
+            </figure>
+            <div className="ix-banda-texto reveal" style={{ '--d': '.08s' }}>
+              <span className="kicker">{t('SOBRE A NEURA')}</span>
+              <h2>{t('Um estúdio pequeno, feito por jogadores')}</h2>
               <p>{t('A Neura Project nasceu da vontade de ter ferramentas melhores para jogar: veto de mapas sem planilha, servidor com estatística de verdade e os jogos organizados num só lugar. Então começamos a construir as ferramentas que a gente queria usar.')}</p>
               <p>{t('Hoje somos um estúdio independente focado em jogos — pequeno de propósito. Isso deixa a gente perto de quem usa: ideia que chega na comunidade do Discord vira recurso, bug reportado vira correção.')}</p>
               <p>{t('O objetivo é simples: tornar o competitivo mais organizado, justo e divertido, para campeonatos de amigos e para a comunidade inteira.')}</p>
-            </div>
-            <div className="hud-frame reveal" style={{ '--d': '.1s' }}>
-              <div className="ficha">
-                <div className="ficha-scan" aria-hidden="true" />
+              <dl className="ix-ficha">
                 {FICHA.map(([rotulo, valor]) => (
-                  <div key={rotulo} className="ficha-linha">
-                    <span className="mono">{t(rotulo)}</span>
-                    <span>{t(valor)}</span>
+                  <div key={rotulo}>
+                    <dt>{t(rotulo)}</dt>
+                    <dd>{t(valor)}</dd>
                   </div>
                 ))}
-              </div>
+              </dl>
             </div>
           </div>
         </section>
 
-        {/* COMO TRABALHAMOS */}
-        <section className="secao" id="principios">
+        {/* COMO TRABALHAMOS: quatro colunas */}
+        <section className="ix-banda ix-banda-colunas" id="principios">
           <div className="wrap">
-            <div className="secao-head reveal">
-              <span className="kicker">
-                <b>03</b> {t('COMO TRABALHAMOS')}
-              </span>
-              <h2>{t('O que guia cada projeto')}</h2>
-            </div>
-            <ol className="trilha">
+            <h2 className="ix-titulo-linha">{t('O que guia cada projeto')}</h2>
+            <ol className="ix-principios">
               {PRINCIPIOS.map(([icone, titulo, texto, tag], i) => (
-                <li key={titulo} className="trilha-item spot reveal" style={{ '--d': `${i * 0.08}s`, '--n': i }}>
-                  <span className="trilha-no">
-                    <Icone>{icone}</Icone>
+                <li key={titulo} className="reveal" style={{ '--d': `${i * 0.07}s` }}>
+                  <span className="ix-pico">
+                    <Icone tamanho={26}>{icone}</Icone>
                   </span>
-                  <div className="trilha-corpo">
-                    <span className="mono">
-                      {String(i + 1).padStart(2, '0')} · {t(tag)}
-                    </span>
-                    <h3>{t(titulo)}</h3>
-                    <p>{t(texto)}</p>
-                  </div>
+                  <small>{t(tag)}</small>
+                  <h3>{t(titulo)}</h3>
+                  <p>{t(texto)}</p>
                 </li>
               ))}
             </ol>
           </div>
         </section>
 
-        {/* COMUNIDADE */}
-        <section className="cta cta-painel" id="comunidade">
-          <div className="wrap">
-            <div className="cb reveal">
-              <i className="cb-canto cb-c1" />
-              <i className="cb-canto cb-c2" />
-              <i className="cb-canto cb-c3" />
-              <i className="cb-canto cb-c4" />
-              <div className="cb-texto">
-                <span className="cb-tag">
-                  <b>04</b> {t('COMUNIDADE')} <em>// online</em>
-                </span>
-                <h2 className="cb-titulo" data-glitch={t('Joga com a gente?')}>
-                  {t('Joga com a gente?')}
-                </h2>
-                <p className="cb-lead">{t('Entre na nossa comunidade no Discord para jogar no servidor, participar dos campeonatos e acompanhar o que estamos criando.')}</p>
-                <div className="cb-acoes">
-                  <LinkComunidade className="cb-botao cb-botao-discord">
-                    <IconeDiscord tamanho={20} /> <span>{t('Entrar no Discord')}</span>
-                  </LinkComunidade>
-                  <a className="cb-botao cb-botao-fantasma" href="/partidas/">
-                    <span>{t('Ver últimas partidas')}</span>
-                  </a>
-                </div>
-              </div>
-              <div className="cb-hud" aria-hidden="true">
-                <div className="cb-anel">
-                  <svg viewBox="0 0 200 200">
-                    <circle cx="100" cy="100" r="92" className="cb-r1" />
-                    <circle cx="100" cy="100" r="72" className="cb-r2" />
-                    <circle cx="100" cy="100" r="50" className="cb-r3" />
-                    <path d="M100 8v22M100 170v22M8 100h22M170 100h22" className="cb-marcas" />
-                  </svg>
-                  <img className="cb-nucleo" src="/assets/logos/logo-np-64.png" alt="" width="64" height="64" loading="lazy" />
-                </div>
-                <ul className="cb-log">
-                  <li><b>&gt;</b> link.discord <em>ok</em></li>
-                  <li><b>&gt;</b> servidor.cs2 <em>online</em></li>
-                  <li><b>&gt;</b> campeonatos <em>abertos</em></li>
-                </ul>
-              </div>
+        {/* COMUNIDADE: barra de cor cheia */}
+        <section className="ix-barra" id="comunidade">
+          <div className="wrap ix-barra-grade">
+            <div className="ix-barra-texto">
+              <h2>{t('Joga com a gente?')}</h2>
+              <p>{t('Entre na nossa comunidade no Discord para jogar no servidor, participar dos campeonatos e acompanhar o que estamos criando.')}</p>
+            </div>
+            <div className="ix-barra-acoes">
+              <LinkComunidade className="ix-barra-botao">
+                <IconeDiscord tamanho={20} /> <span>{t('Entrar no Discord')}</span>
+              </LinkComunidade>
+              <a className="ix-barra-link" href="/partidas/">
+                {t('Ver últimas partidas')} {SETA}
+              </a>
             </div>
           </div>
         </section>

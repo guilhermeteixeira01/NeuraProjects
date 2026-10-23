@@ -1596,14 +1596,14 @@ html:is([data-tema='claro'], [data-tema='branco']) .nx-footer {
   pointer-events: none;
   user-select: none;
   display: block;
-  width: 100%;
+  width: min(100%, 280px);
   height: auto;
   margin-top: 28px;
   overflow: visible;
 }
 .nx-fgigante text {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 800;
   font-size: 236px;
   fill: #dde7ff;
 }
@@ -2843,12 +2843,12 @@ a.nt-corpo:hover b { color: var(--accent); }
 }
 @keyframes nx-encolhe-barra {
   from {
-    width: 300px;
+    width: 244px;
   }
 }
 @keyframes nx-encolhe-corpo {
   from {
-    padding-left: 300px;
+    padding-left: 244px;
   }
 }
 
@@ -2857,27 +2857,27 @@ a.nt-corpo:hover b { color: var(--accent); }
  * continua a barra fina só com ícones (o nome aparece ao passar o mouse) para sobrar espaço ao conteúdo. */
 @media (min-width: 1281px) {
   html:has(.nx-aberta) {
-    --nx-lateral: 300px;
+    --nx-lateral: 244px;
   }
   .nx-aberta .nx-nav-inner {
     align-items: stretch;
-    padding: 18px 12px 16px;
+    padding: 14px 10px 12px;
   }
   .nx-aberta .nx-brand {
     width: auto;
     height: auto;
     justify-content: flex-start;
-    gap: 12px;
-    margin: 0 0 12px;
-    padding: 2px 10px 18px;
+    gap: 10px;
+    margin: 0 0 8px;
+    padding: 2px 8px 12px;
     border-bottom: 1px solid var(--border);
   }
   .nx-aberta .nx-brand > span {
     display: block;
   }
   .nx-aberta .nx-brand img {
-    width: 34px;
-    height: 34px;
+    width: 28px;
+    height: 28px;
   }
   .nx-aberta .nx-links {
     align-items: stretch;
@@ -2888,17 +2888,17 @@ a.nt-corpo:hover b { color: var(--accent); }
   }
   .nx-nav.nx-aberta .nx-links .nx-link {
     width: 100%;
-    height: 44px;
-    padding: 0 14px;
-    gap: 14px;
+    height: 36px;
+    padding: 0 10px;
+    gap: 10px;
     justify-content: flex-start;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 600;
+    border-radius: 4px;
+    font-size: 13.5px;
+    font-weight: 700;
   }
   .nx-nav.nx-aberta .nx-links .nx-link .nx-icone {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
     flex: none;
   }
   /* o nome deixa de ser "balãozinho" e vira o texto do item */
@@ -3390,22 +3390,22 @@ html:is([data-tema='claro'], [data-tema='branco']) .cp-caixa b { color: #111; }
 
 /* ══════════════ Barras laterais maiores no computador (esquerda e direita) ══════════════ */
 @media (min-width: 1025px) {
-  :root { --nx-lateral: 92px; --nx-direita: 84px; }
-  .nx-brand { width: 60px; height: 60px; margin-bottom: 14px; }
-  .nx-brand img { width: 46px; height: 46px; }
-  .nx-links { gap: 8px; }
-  .nx-links-sep { width: 32px; }
-  .nx-acoes { gap: 12px; }
+  :root { --nx-lateral: 64px; --nx-direita: 64px; }
+  .nx-brand { width: 40px; height: 40px; margin-bottom: 10px; }
+  .nx-brand img { width: 30px; height: 30px; }
+  .nx-links { gap: 6px; }
+  .nx-links-sep { width: 24px; }
+  .nx-acoes { gap: 8px; }
   .nx-link, .nx-acoes .nx-btn, .nx-config-btn, .nx-conta-btn,
-  .nx-direita .nx-btn, .nx-direita .nx-config-btn, .nx-direita .nx-conta-btn { width: 60px; height: 60px; border-radius: 15px; }
-  .nx-link .nx-icone, .nx-config-btn svg, .nx-direita .nx-btn svg, .nx-direita .nx-config-btn svg { width: 29px; height: 29px; }
-  .nx-conta-btn img, .nx-conta-ini, .nx-direita .nx-conta-btn img, .nx-direita .nx-conta-ini { width: 46px; height: 46px; }
-  .nx-links .nx-link.is-active::after { left: -16px; height: auto; top: 12px; bottom: 12px; }
-  .nx-direita { gap: 8px; padding: 16px 0; }
+  .nx-direita .nx-btn, .nx-direita .nx-config-btn, .nx-direita .nx-conta-btn { width: 42px; height: 42px; border-radius: 10px; }
+  .nx-link .nx-icone, .nx-config-btn svg, .nx-direita .nx-btn svg, .nx-direita .nx-config-btn svg { width: 21px; height: 21px; }
+  .nx-conta-btn img, .nx-conta-ini, .nx-direita .nx-conta-btn img, .nx-direita .nx-conta-ini { width: 40px; height: 40px; }
+  .nx-links .nx-link.is-active::after { left: -11px; height: auto; top: 9px; bottom: 9px; }
+  .nx-direita { gap: 6px; padding: 12px 0; }
   .nx-direita .nx-config-btn[aria-expanded='true']::before, .nx-direita .nx-conta-btn[aria-expanded='true']::before, .nx-direita .nx-amigos-btn.ativo::before { left: -12px; top: 12px; bottom: 12px; }
-  .nx-direita-sep { width: 34px; }
-  .nx-vs { font-size: 18px; }
-  .nx-direita .nx-amigos-on, .nx-direita .nx-amigos-pedidos { transform: scale(1.1); }
+  .nx-direita-sep { width: 26px; }
+  .nx-vs { font-size: 15px; }
+  .nx-direita .nx-amigos-on, .nx-direita .nx-amigos-pedidos { transform: none; }
   .am-painel { width: 340px; }
   .nx-dica { font-size: 14px; }
 }
@@ -3414,17 +3414,17 @@ html:is([data-tema='claro'], [data-tema='branco']) .cp-caixa b { color: #111; }
 
 /* Barra da esquerda aberta (página inicial) e ícone do Discord: maiores no computador */
 @media (min-width: 1281px) {
-  .nx-aberta .nx-nav-inner { padding: 22px 16px 18px; }
-  .nx-aberta .nx-brand { gap: 14px; padding: 2px 12px 22px; margin-bottom: 14px; }
-  .nx-aberta .nx-brand img { width: 46px; height: 46px; }
-  .nx-aberta .nx-brand > span { font-size: 18px; }
-  .nx-nav.nx-aberta .nx-links .nx-link { height: 58px; padding: 0 18px; gap: 16px; font-size: 18px; border-radius: 12px; }
-  .nx-nav.nx-aberta .nx-links .nx-link .nx-icone { width: 28px; height: 28px; }
-  .nx-aberta .nx-links { gap: 4px; }
+  .nx-aberta .nx-nav-inner { padding: 16px 14px 14px; }
+  .nx-aberta .nx-brand { gap: 12px; padding: 2px 8px 14px; margin-bottom: 10px; }
+  .nx-aberta .nx-brand img { width: 32px; height: 32px; }
+  .nx-aberta .nx-brand > span { font-size: 16px; }
+  .nx-nav.nx-aberta .nx-links .nx-link { height: 44px; padding: 0 14px; gap: 14px; font-size: 16px; font-weight: 500; border-radius: 8px; }
+  .nx-nav.nx-aberta .nx-links .nx-link .nx-icone { width: 22px; height: 22px; }
+  .nx-aberta .nx-links { gap: 6px; }
 }
 @media (min-width: 1025px) {
-  .nx-direita .ic-discord, .nx-direita .nx-comunidade img { width: 34px !important; height: 34px !important; }
-  .nx-direita .nx-steam svg { width: 32px; height: 32px; }
+  .nx-direita .ic-discord, .nx-direita .nx-comunidade img { width: 26px !important; height: 26px !important; }
+  .nx-direita .nx-steam svg { width: 24px; height: 24px; }
 }
 
 .cp-logo { width: 26px; height: 26px; object-fit: contain; margin-bottom: 4px; }

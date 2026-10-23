@@ -139,12 +139,10 @@ textarea {
 
 /* ── Menu ── */
 .nx-link {
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  border-radius: var(--raio);
+  font-family: var(--font-body);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
 }
 .nx-links .nx-link.is-active::after {
   background: var(--accent);
@@ -184,7 +182,7 @@ textarea {
 .hero h1 {
   font-family: var(--font-impact);
   font-weight: 400;
-  font-size: clamp(52px, 7vw, 108px);
+  font-size: clamp(40px, 4.8vw, 68px);
   line-height: 0.94;
   letter-spacing: 0.005em;
 }
@@ -202,7 +200,7 @@ textarea {
 }
 @media (max-width: 640px) {
   .hero h1 {
-    font-size: clamp(46px, 14vw, 72px);
+    font-size: clamp(40px, 12vw, 56px);
   }
 }
 
@@ -216,4 +214,155 @@ textarea {
 [class*='-btn']:not([class*='nx-']):not([class*='-btn-ico']):not([class*='-btn-x']),
 .cb-botao {
   border-radius: var(--raio);
+}
+
+/* ── Painel do conteúdo (como na FACEIT): o conteúdo fica dentro de um quadro de cantos arredondados, com margem em cima e embaixo
+   e uma borda com o brilho azul e amarelo das barras. A sombra enorme na cor do fundo esconde os cantos retos do que rola por baixo. ── */
+@media (min-width: 1025px) {
+  body {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  body::before,
+  body::after {
+    content: '';
+    position: fixed;
+    top: 8px;
+    bottom: 8px;
+    left: var(--nx-lateral, 64px);
+    right: var(--nx-direita, 64px);
+    border-radius: 16px;
+    pointer-events: none;
+    transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1); /* acompanha a barra da esquerda abrindo e fechando */
+  }
+  body::before {
+    z-index: 289;
+    box-shadow: 0 0 0 100vmax var(--bg);
+  }
+  body::after {
+    z-index: 290;
+    border: 1.5px solid transparent;
+    background: linear-gradient(160deg, rgb(52 152 219 / 0.95), rgb(52 152 219 / 0.12) 38%, rgb(245 197 66 / 0.12) 62%, rgb(245 197 66 / 0.95)) border-box;
+    -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) padding-box exclude, linear-gradient(#000 0 0);
+  }
+}
+
+/* ── Barras laterais sem linha na borda: o fundo delas é o mesmo da página, então tudo parece uma peça só ── */
+@media (min-width: 1025px) {
+  [data-site-nav],
+  .nx-nav,
+  .nx-nav.is-scrolled,
+  html[data-tema] .nx-nav,
+  .nx-direita {
+    border-left: 0;
+    border-right: 0;
+    box-shadow: none;
+    background: var(--bg);
+  }
+  .nx-nav::after,
+  .nx-direita::after {
+    display: none;
+  }
+}
+
+/* ── Barra da esquerda: fecha (e abre) com animação suave ──
+   Na página inicial, ao clicar em outra página a barra encolhe até os ícones ainda na tela atual (classe nx-fechando, posta pelo Nav.jsx)
+   e só então a página nova abre, já com a barra do tamanho final: sem salto nem recarga visível. */
+@media (min-width: 1025px) {
+  [data-site-nav] {
+    transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  body {
+    transition: padding-left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+@media (min-width: 1281px) {
+  html.nx-fechando:has(.nx-aberta) {
+    --nx-lateral: 64px;
+  }
+  /* os nomes somem antes de a barra apertar, para não ficarem espremidos */
+  html.nx-fechando [data-site-nav] {
+    overflow: hidden;
+  }
+  html.nx-fechando .nx-nav.nx-aberta .nx-links .nx-link .nx-dica,
+  html.nx-fechando .nx-nav.nx-aberta .nx-brand > span,
+  html.nx-fechando .nx-nav.nx-aberta .nx-selo {
+    opacity: 0;
+    transition: opacity 0.12s;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-site-nav],
+  body {
+    transition: none;
+  }
+}
+
+/* ── Entrada das páginas: rápida e discreta (antes o conteúdo ficava até ~1 s invisível e "piscava" a cada troca de página) ── */
+.fx-entra {
+  animation: nx-entra 0.32s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  animation-delay: calc(var(--e, 0) * 0.035s);
+}
+.fx-palavra {
+  animation: nx-entra 0.3s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  animation-delay: calc(var(--w, 0) * 0.03s);
+}
+.fx-gradiente .fx-palavra {
+  animation: nx-entra 0.3s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  animation-delay: calc(var(--w, 0) * 0.03s);
+}
+@keyframes nx-entra {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* ── Barra da esquerda fechando: os ícones andam até a posição exata em que ficam na barra fina das outras páginas ── */
+@media (min-width: 1281px) {
+  .nx-aberta .nx-nav-inner,
+  .nx-aberta .nx-brand,
+  .nx-aberta .nx-links,
+  .nx-nav.nx-aberta .nx-links .nx-link {
+    transition: padding 0.28s cubic-bezier(0.4, 0, 0.2, 1), width 0.28s cubic-bezier(0.4, 0, 0.2, 1), height 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+      margin 0.28s cubic-bezier(0.4, 0, 0.2, 1), gap 0.28s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.28s;
+  }
+  html.nx-fechando .nx-aberta .nx-nav-inner {
+    padding: 14px 10.4px 14px;
+  }
+  html.nx-fechando .nx-aberta .nx-brand {
+    width: 100%;
+    height: 40px;
+    margin: 0 0 10px;
+    padding: 0 6px;
+    gap: 0;
+    overflow: hidden;
+    border-bottom-color: transparent;
+  }
+  html.nx-fechando .nx-aberta .nx-brand img {
+    width: 30px;
+    height: 30px;
+  }
+  html.nx-fechando .nx-aberta .nx-links {
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    gap: 6px;
+  }
+  html.nx-fechando .nx-nav.nx-aberta .nx-links .nx-link {
+    width: 42px;
+    height: 42px;
+    padding: 0 0 0 10.5px;
+    gap: 0;
+    overflow: hidden;
+    border-radius: 10px;
+  }
+  html.nx-fechando .nx-nav.nx-aberta .nx-links .nx-link .nx-icone {
+    width: 21px;
+    height: 21px;
+  }
+  html.nx-fechando .nx-nav.nx-aberta .nx-links-sep {
+    margin: 6px 8px;
+  }
 }

@@ -1,57 +1,86 @@
-/* Página inicial no visual novo (vem depois de inicio.css e de comum/estetica.css) */
+/* Página inicial no visual novo (vem depois de inicio.css e de comum/estetica.css).
+   Mistura duas ideias: painéis de cantos cortados com borda fina e faixa de números (estilo "esports"),
+   e bandas largas que se alternam, com colunas de ícones e uma barra de cor cheia no fim.
+   Imagens sempre na proporção original (nada esticado) e tamanhos contidos. */
+
+/* cantos cortados: usado nos painéis com borda de 1px (a borda é o fundo do contêiner, o miolo é recortado igual) */
+
+.ix-quadro,
+.ix-quadro-in {
+  --corte: 18px;
+  clip-path: polygon(0 0, calc(100% - var(--corte)) 0, 100% var(--corte), 100% 100%, var(--corte) 100%, 0 calc(100% - var(--corte)));
+}
+
+/* título de bloco com traço: "EM DESTAQUE ———" */
+.ix-titulo-linha {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0 0 22px;
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2vw, 28px);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+.ix-titulo-linha::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background: var(--accent);
+  transform: rotate(45deg);
+  flex: none;
+}
+.ix-titulo-linha::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgb(245 197 66 / 0.7), transparent 70%);
+}
 
 /* ══════════ TOPO ══════════ */
 .ix-hero {
+  padding: 28px 0 8px;
+}
+/* quadro do topo: a imagem do site preenche o quadro inteiro como fundo (cover: corta, nunca estica) */
+.ix-hero-card {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  min-height: min(calc(100dvh / var(--escala-site, 1)), 980px);
   display: flex;
-  background: var(--bg);
-  border-bottom: 1px solid rgb(var(--tinta) / 0.1);
+  align-items: center;
+  min-height: clamp(400px, 38vw, 520px);
+  padding: clamp(30px, 4.5vw, 64px);
+  border: 1px solid rgb(245 197 66 / 0.4);
+  border-radius: 4px;
+  background: #000;
+  box-shadow: 0 0 40px -14px rgb(52 152 219 / 0.45);
 }
-.ix-hero-img {
+.ix-fundo {
   position: absolute;
   inset: 0;
   z-index: -2;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 68% 38%;
+  object-position: 72% 40%;
 }
-/* só uma sombra: escurece a esquerda (onde fica o texto) e a base (onde ficam os destaques) */
-.ix-hero-vu {
+/* sombra só do lado do texto, para ler bem; o resto da imagem fica à mostra */
+.ix-fundo-vu {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background:
-    linear-gradient(90deg, rgb(var(--fundo) / 0.96) 0%, rgb(var(--fundo) / 0.84) 30%, rgb(var(--fundo) / 0.2) 62%, transparent 82%),
-    linear-gradient(0deg, rgb(var(--fundo) / 0.95) 0%, rgb(var(--fundo) / 0.55) 22%, transparent 48%);
-}
-.ix-hero-grade {
-  width: 100%;
-  display: grid;
-  grid-template-columns: minmax(0, 2.3fr) minmax(0, 1fr);
-  grid-template-areas:
-    'texto texto'
-    'dest cta';
-  grid-template-rows: 1fr auto;
-  align-items: end;
-  gap: 44px 56px;
-  padding-top: 72px;
-  padding-bottom: 44px;
+  background: linear-gradient(90deg, rgb(var(--fundo) / 0.94) 0%, rgb(var(--fundo) / 0.8) 30%, rgb(var(--fundo) / 0.18) 62%, transparent 80%);
 }
 .ix-hero-texto {
-  grid-area: texto;
-  align-self: start;
-  max-width: 760px;
+  max-width: 520px;
 }
 .ix-hero h1 {
-  margin: 18px 0 22px;
+  margin: 16px 0 18px;
   font-family: var(--font-impact);
   font-weight: 400;
-  font-size: clamp(60px, 9vw, 148px);
-  line-height: 0.92;
+  font-size: clamp(46px, 5.6vw, 82px);
+  line-height: 0.95;
   letter-spacing: 0.005em;
   color: #fff;
 }
@@ -62,16 +91,60 @@
   color: var(--accent);
 }
 .ix-lead {
-  max-width: 46ch;
-  margin: 0 0 30px;
+  max-width: 44ch;
+  margin: 0 0 26px;
   font-size: 16px;
   line-height: 1.65;
-  color: rgb(var(--tinta) / 0.8);
+  color: rgb(var(--tinta) / 0.86);
+}
+.ix-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.ix-acoes .btn {
+  padding: 14px 26px;
+}
+.ix-acoes .btn-ghost {
+  background: rgb(var(--fundo) / 0.45);
+  border-color: rgb(var(--tinta) / 0.4);
+}
+.ix-acoes svg {
+  flex: none;
+}
+
+/* ══════════ FAIXA DE NÚMEROS ══════════ */
+.ix-faixa-sec {
+  padding-top: 28px;
+}
+.ix-quadro {
+  padding: 1px;
+  background: linear-gradient(120deg, rgb(245 197 66 / 0.8), rgb(var(--tinta) / 0.12) 40%, rgb(52 152 219 / 0.7));
+}
+.ix-quadro-in {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) auto auto;
+  align-items: center;
+  gap: 28px 44px;
+  padding: 22px 30px;
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+}
+.ix-faixa-titulo {
+  display: grid;
+  gap: 6px;
+}
+.ix-faixa-titulo b {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.2vw, 30px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 .ix-numeros {
   display: flex;
   flex-wrap: wrap;
-  gap: 18px 44px;
+  gap: 14px 40px;
   margin: 0;
 }
 .ix-numeros div {
@@ -82,72 +155,51 @@
 .ix-numeros dd {
   margin: 0;
   font-family: var(--font-impact);
-  font-size: clamp(34px, 3.6vw, 52px);
+  font-size: clamp(30px, 3vw, 42px);
   line-height: 1;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
 }
 .ix-numeros dt {
   font-family: var(--font-display);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  color: rgb(var(--tinta) / 0.75);
+  letter-spacing: 0.16em;
+  color: rgb(var(--tinta) / 0.7);
 }
 
-/* chamada no canto de baixo */
-.ix-hero-cta {
-  grid-area: cta;
-  max-width: 360px;
-  justify-self: end;
+/* ══════════ EM DESTAQUE ══════════ */
+.ix-dest-sec {
+  padding-top: 44px;
+  padding-bottom: 8px;
 }
-.ix-hero-cta h2 {
-  margin: 0 0 12px;
-  font-size: clamp(30px, 2.8vw, 40px);
-  line-height: 0.98;
-  color: #fff;
-}
-.ix-hero-cta h2 span {
-  display: block;
-  color: var(--accent);
-}
-.ix-hero-cta p {
-  margin: 0 0 20px;
-  font-size: 14px;
-  color: rgb(var(--tinta) / 0.72);
-}
-
-/* projetos em destaque */
 .ix-destaques {
-  grid-area: dest;
-  min-width: 0;
-}
-.ix-destaques .kicker {
-  margin-bottom: 14px;
-}
-.ix-destaques ul {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 18px;
-  max-width: 920px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
 }
 .ix-destaques a {
   display: grid;
   gap: 3px;
+  height: 100%;
+  padding: 10px 10px 14px;
   color: inherit;
   text-decoration: none;
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border: 1px solid rgb(var(--tinta) / 0.12);
+  border-radius: var(--raio);
+  transition: border-color 0.2s, transform 0.2s;
 }
 .ix-thumb {
   display: block;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
-  margin-bottom: 8px;
-  background: var(--panel);
-  border: 1px solid rgb(var(--tinta) / 0.22);
-  transition: border-color 0.2s;
+  margin-bottom: 10px;
+  background: #000;
+  border-radius: 2px;
 }
 .ix-thumb img {
   display: block;
@@ -156,98 +208,52 @@
   object-fit: cover;
   transition: transform 0.5s cubic-bezier(0.16, 0.84, 0.44, 1);
 }
-.ix-destaques a:hover .ix-thumb,
-.ix-destaques a:focus-visible .ix-thumb {
+.ix-destaques a:hover,
+.ix-destaques a:focus-visible {
   border-color: var(--accent);
+  transform: translateY(-2px);
 }
 .ix-destaques a:hover .ix-thumb img {
-  transform: scale(1.06);
+  transform: scale(1.05);
 }
 .ix-destaques b {
+  padding: 0 4px;
   font-family: var(--font-display);
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 .ix-destaques small {
+  padding: 0 4px;
   font-size: 12.5px;
+  line-height: 1.4;
   color: var(--dim);
-  line-height: 1.35;
 }
 
-@media (max-width: 1100px) {
-  .ix-hero-grade {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'texto' 'cta' 'dest';
-    grid-template-rows: auto;
-    gap: 36px;
-  }
-  .ix-hero-cta {
-    justify-self: start;
-    max-width: 440px;
-  }
-  .ix-hero-vu {
-    background:
-      linear-gradient(90deg, rgb(var(--fundo) / 0.93) 0%, rgb(var(--fundo) / 0.7) 55%, rgb(var(--fundo) / 0.3) 100%),
-      linear-gradient(0deg, rgb(var(--fundo) / 0.95) 0%, transparent 55%);
-  }
-}
-@media (max-width: 640px) {
-  .ix-hero {
-    min-height: 0;
-  }
-  .ix-hero-img {
-    object-position: 74% 20%;
-  }
-  .ix-hero-grade {
-    padding-top: 64px;
-    padding-bottom: 32px;
-    gap: 30px;
-  }
-  .ix-hero h1 {
-    font-size: clamp(58px, 19vw, 92px);
-  }
-  .ix-lead {
-    font-size: 15px;
-  }
-  .ix-numeros {
-    gap: 14px 30px;
-  }
-  .ix-destaques ul {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px 14px;
-  }
-  .ix-destaques b {
-    font-size: 15px;
-  }
-  .ix-hero-cta .btn {
-    width: 100%;
-  }
-}
-
-/* ══════════ SEÇÕES ══════════ */
+/* ══════════ SEÇÕES JÁ EXISTENTES (live, times, projetos) ══════════ */
 .inicio .secao {
-  padding-block: clamp(64px, 9vw, 130px);
+  padding-block: clamp(44px, 5.5vw, 76px);
 }
 .inicio .secao + .secao {
   border-top: 0;
 }
-.inicio .secao-head h2 {
-  font-family: var(--font-impact);
-  font-weight: 400;
-  letter-spacing: 0.005em;
-  line-height: 0.96;
-  font-size: clamp(40px, 5.6vw, 80px);
+.inicio .secao-head {
+  margin-bottom: 28px;
 }
-
-/* projetos: quadros retos, número grande e título condensado */
+.inicio .secao-head h2 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  font-size: clamp(30px, 3.4vw, 46px);
+}
 .projetos {
-  gap: 18px;
+  gap: 16px;
 }
 .projeto {
-  min-height: 300px;
-  padding: 28px 28px 26px;
+  min-height: 240px;
+  padding: 24px 24px 22px;
   border-radius: var(--raio);
   border: 1px solid rgb(var(--tinta) / 0.14);
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
@@ -261,21 +267,21 @@
   box-shadow: none;
 }
 .projeto-num {
-  right: 22px;
-  bottom: 14px;
+  right: 20px;
+  bottom: 12px;
   font-family: var(--font-impact);
   font-weight: 400;
-  font-size: 96px;
+  font-size: 72px;
   -webkit-text-stroke: 1px rgb(var(--tinta) / 0.12);
 }
 .projeto .ico {
-  width: 46px;
-  height: 46px;
+  width: 42px;
+  height: 42px;
   border-radius: var(--raio);
 }
 .projeto h3 {
   font-family: var(--font-display);
-  font-size: clamp(28px, 2.6vw, 36px);
+  font-size: clamp(24px, 2.2vw, 30px);
   font-weight: 800;
   text-transform: uppercase;
   line-height: 1;
@@ -288,108 +294,276 @@
   text-transform: uppercase;
 }
 
-/* sobre e princípios */
-.ficha,
-.hud-frame {
+/* ══════════ BANDAS (estilo faixa larga alternada) ══════════ */
+.ix-banda {
+  padding: clamp(40px, 5.5vw, 72px) 0;
+  background: #090a0d;
+  border-block: 1px solid rgb(var(--tinta) / 0.08);
+}
+.ix-banda-grade {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  align-items: center;
+  gap: clamp(28px, 4vw, 56px);
+}
+.ix-banda-arte {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgb(var(--tinta) / 0.14);
   border-radius: var(--raio);
+  background: #000;
 }
-.hud-frame::before,
-.hud-frame::after {
-  border-color: var(--accent);
+.ix-banda-arte img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  object-position: 18% 50%;
 }
-.trilha-item {
-  border-radius: var(--raio);
+.ix-banda-texto {
+  display: grid;
+  gap: 14px;
+  align-content: center;
 }
-.trilha-corpo h3 {
-  font-family: var(--font-display);
-  font-size: 26px;
-  font-weight: 800;
-  text-transform: uppercase;
+.ix-banda-texto h2 {
+  margin: 0;
+  font-size: clamp(28px, 3vw, 42px);
   line-height: 1;
 }
-
-/* chamada final: bloco chapado com a imagem do site à direita */
-.cta-painel .cb {
-  display: block;
-  padding: clamp(40px, 6vw, 84px) clamp(24px, 5vw, 72px);
-  min-height: clamp(340px, 38vw, 480px);
-  clip-path: none;
-  box-shadow: none;
-  border: 1px solid rgb(var(--tinta) / 0.16);
-  border-radius: var(--raio);
-  background:
-    linear-gradient(90deg, rgb(var(--fundo) / 0.97) 0%, rgb(var(--fundo) / 0.88) 42%, rgb(var(--fundo) / 0.25) 80%),
-    url('/assets/banners/inicio.webp') 78% 40% / cover no-repeat,
-    var(--bg);
+.ix-banda-texto p {
+  max-width: 58ch;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--dim);
 }
-.cta-painel .cb::before,
-.cta-painel .cb::after,
-.cta-painel .cb-canto,
-.cta-painel .cb-hud {
-  display: none;
+.ix-ficha {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 14px 20px;
+  margin: 8px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid rgb(var(--tinta) / 0.12);
 }
-.cta-painel .cb-texto {
-  max-width: 600px;
-}
-.cta-painel .cb-tag {
+.ix-ficha dt {
   font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.22em;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
   color: var(--accent);
-  text-shadow: none;
 }
-.cta-painel .cb-tag b {
-  background: none;
-  color: var(--accent);
+.ix-ficha dd {
+  margin: 2px 0 0;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+/* colunas com ícone em círculo */
+.ix-banda-colunas {
+  background: #0b0c10;
+}
+.ix-principios {
+  list-style: none;
+  margin: 0;
   padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
-.cta-painel .cb-tag em {
-  display: none;
+.ix-principios li {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 4px 26px;
 }
-.cta-painel .cb-titulo {
-  margin: 14px 0 16px;
+.ix-principios li:first-child {
+  padding-left: 0;
+}
+.ix-principios li + li {
+  border-left: 1px solid rgb(var(--tinta) / 0.12);
+}
+.ix-pico {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 6px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+}
+.ix-principios small {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+}
+.ix-principios h3 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 1.02;
+}
+.ix-principios p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--dim);
+}
+
+/* barra de cor cheia no fim */
+.ix-barra {
+  background: var(--accent);
+  color: #15110a;
+}
+.ix-barra-grade {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px 40px;
+  padding-top: 30px;
+  padding-bottom: 30px;
+}
+.ix-barra h2 {
+  display: inline-block;
+  margin: 0 0 6px;
   font-family: var(--font-impact);
   font-weight: 400;
-  font-size: clamp(48px, 7vw, 104px);
-  line-height: 0.94;
-  color: #fff;
-  text-shadow: none;
+  font-size: clamp(30px, 3.6vw, 48px);
+  line-height: 1;
+  color: #15110a;
+  transform: skewX(-6deg);
 }
-.cta-painel .cb-titulo::before,
-.cta-painel .cb-titulo::after {
-  display: none;
+.ix-barra p {
+  max-width: 62ch;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: rgb(21 17 10 / 0.82);
 }
-.cta-painel .cb-lead {
-  max-width: 48ch;
-  font-size: 16px;
-  color: rgb(var(--tinta) / 0.8);
+.ix-barra-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 22px;
 }
-.cta-painel .cb-botao {
+.ix-barra-botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 28px;
+  border-radius: var(--raio);
+  background: #15110a;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: transform 0.15s, background 0.15s;
+}
+.ix-barra-botao:hover {
+  background: #000;
+  transform: translateY(-1px);
+}
+.ix-barra-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #15110a;
   font-family: var(--font-display);
   font-size: 16px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  border-radius: var(--raio);
-  clip-path: none;
-  box-shadow: none;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
-.cta-painel .cb-botao-discord {
-  background: var(--accent);
-  color: #15110a;
-  border: 0;
-}
-.cta-painel .cb-botao-fantasma {
-  background: transparent;
-  color: #fff;
-  border: 1px solid rgb(var(--tinta) / 0.35);
+
+/* ══════════ TELAS MENORES ══════════ */
+@media (max-width: 980px) {
+  .ix-fundo-vu {
+    background: linear-gradient(90deg, rgb(var(--fundo) / 0.93) 0%, rgb(var(--fundo) / 0.7) 55%, rgb(var(--fundo) / 0.3) 100%);
+  }
+  .ix-quadro-in {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ix-faixa-botao {
+    justify-self: start;
+  }
+  .ix-banda-grade {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ix-banda-arte {
+    max-width: 560px;
+  }
+  .ix-principios {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px 0;
+  }
+  .ix-principios li:nth-child(odd) {
+    padding-left: 0;
+  }
+  .ix-principios li:nth-child(3) {
+    border-left: 0;
+  }
+  .ix-barra-grade {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 @media (max-width: 640px) {
-  .cta-painel .cb {
-    background:
-      linear-gradient(0deg, rgb(var(--fundo) / 0.97) 30%, rgb(var(--fundo) / 0.55) 100%),
-      url('/assets/banners/inicio.webp') 80% 30% / cover no-repeat,
-      var(--bg);
+  .ix-hero-card {
+    min-height: 0;
+    padding: 32px 20px;
+  }
+  .ix-fundo {
+    object-position: 76% 30%;
+  }
+  .ix-fundo-vu {
+    background: linear-gradient(0deg, rgb(var(--fundo) / 0.96) 30%, rgb(var(--fundo) / 0.4) 100%);
+  }
+  .ix-hero h1 {
+    font-size: clamp(46px, 15vw, 68px);
+  }
+  .ix-lead {
+    font-size: 15px;
+  }
+  .ix-acoes .btn {
+    flex: 1 1 100%;
+  }
+  .ix-quadro-in {
+    padding: 18px 18px;
+  }
+  .ix-numeros {
+    gap: 12px 28px;
+  }
+  .ix-destaques {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .ix-destaques b {
+    font-size: 16px;
+  }
+  .ix-destaques small {
+    display: none;
+  }
+  .ix-principios {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ix-principios li,
+  .ix-principios li:first-child {
+    padding: 0;
+  }
+  .ix-principios li + li {
+    border-left: 0;
+    border-top: 1px solid rgb(var(--tinta) / 0.12);
+    padding-top: 22px;
+  }
+  .ix-barra-botao {
+    width: 100%;
+    justify-content: center;
   }
 }

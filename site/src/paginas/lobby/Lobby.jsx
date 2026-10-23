@@ -714,7 +714,7 @@ export default function Lobby() {
   const conteudo = useRef(null)
   useCabeNaTela(conteudo, !pequena)
   return (
-    <Layout pagina="lobby" semRodape>
+    <Layout pagina="lobby">
       <main className="lb-pagina">
         <div className="wrap lb-wrap">
           <div className="lb-bloqueio" role="status">
