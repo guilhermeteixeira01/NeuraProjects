@@ -136,3 +136,9 @@ button.tr-item:hover { background: rgb(255 255 255 / .06); }
 /* lupa Inspecionar sobre o item da troca */
 .tr-item-wrap { position: relative; min-width: 0; }
 .tr-item-wrap > .tr-item { width: 100%; }
+
+/* o invólucro da lupa precisa ocupar o quadro inteiro: sem altura ele encolhia e o item sumia (e não dava para clicar para tirar) */
+.tr-slot .tr-item-wrap, .tr-prop-itens .tr-item-wrap { width: 100%; height: 100%; display: block; }
+.tr-slot .tr-item-wrap > .tr-item, .tr-prop-itens .tr-item-wrap > .tr-item { width: 100%; height: 100%; }
+.tr-slot .tr-item-wrap > .tr-item.pq { cursor: pointer; }
+.tr-slot .insp-botao.insp-canto, .tr-prop-itens .insp-botao.insp-canto { top: 2px; right: 2px; transform: scale(.8); transform-origin: top right; }
