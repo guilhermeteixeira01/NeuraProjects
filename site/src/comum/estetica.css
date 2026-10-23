@@ -385,3 +385,7 @@ textarea {
 .nx-conta-acao:disabled { opacity: .45; cursor: not-allowed; }
 .nx-conta-ok { color: #3fb950; }
 .nx-conta-erro { color: #ff8e8e; }
+
+/* ── Carregamento da NP (CarregandoNP): sempre no meio da tela, fixo, em todas as páginas; o lugar dele continua reservado no conteúdo.
+   As versões pequenas (dentro de listas e janelas) ficam onde estão. ── */
+.cnp:not(.cnp-pq):not(.cnp-tela) .cnp-anel { position: fixed; left: 50%; top: 50%; margin: -66px 0 0 -66px; z-index: 50; }

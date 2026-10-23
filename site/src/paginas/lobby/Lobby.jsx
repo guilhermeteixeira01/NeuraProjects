@@ -673,7 +673,7 @@ function useCabeNaTela(ref, ativo) {
       el.style.minHeight = ''
       const r = el.getBoundingClientRect()
       const zonaHtml = parseFloat(getComputedStyle(raiz).zoom) || 1
-      const margemBaixo = 22 + (parseFloat(getComputedStyle(document.body).paddingBottom) || 0) // respiro da página + margem da moldura do conteúdo
+      const margemBaixo = parseFloat(getComputedStyle(document.body).paddingBottom) || 0 // o painel de partida encosta na borda de baixo (só a margem da moldura)
       const sobra = window.innerHeight - r.top - margemBaixo * zonaHtml
       const razao = r.height > 0 ? Math.min(1, Math.max(0.45, sobra / r.height)) : 1
       el.style.zoom = razao < 0.995 ? String(razao) : ''

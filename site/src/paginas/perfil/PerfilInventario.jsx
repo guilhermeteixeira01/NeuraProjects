@@ -8,6 +8,8 @@ import { CarregandoNP } from '../../comum/Carregando.jsx'
 import { GemaNome, nomeDoDesgaste } from '../../comum/CartaoSkin.jsx'
 import { InspecionarSkin, podeInspecionar } from '../../comum/InspecionarSkin.jsx'
 import { useT } from '../../comum/i18n.js'
+import { useConta } from '../../comum/conta.js'
+import { BotaoTrocas } from '../../comum/Trocas.jsx'
 import { lerCaixasPublicas } from '../../comum/loja.js'
 import { corEnfeite, descrever, indicar, urlImg, useCatalogo } from '../../comum/skins.js'
 import { RARIDADES_CS, padraoRaro, raridadeCsDaCor } from '../../../worker/steam-login/src/loja-core.js'
@@ -27,6 +29,7 @@ const abaInicial = () => {
 }
 
 export default function PerfilInventario({ steamId, nome, resumoStatus, children }) {
+  const conta = useConta()
   const t = useT()
   const [topo, setTopo] = useState(abaInicial) // 'status' | 'inventario'
   const [inv, setInv] = useState(null)
@@ -188,6 +191,12 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
           <button type="button" role="tab" aria-selected={topo === 'inventario'} className={topo === 'inventario' ? 'is-ativo' : ''} onClick={() => trocar('inventario')}>
             {t('INVENTÁRIO')} <small>{inv ? todos.length : '…'}</small>
           </button>
+          {/* perfil de outro jogador (logado): propor troca direto daqui */}
+          {conta && conta.id !== steamId && (
+            <span className="pf-inv-troca">
+              <BotaoTrocas para={{ id: steamId, nome }} classe="inv-btn inv-btn-p" />
+            </span>
+          )}
         </nav>
       </section>
 
