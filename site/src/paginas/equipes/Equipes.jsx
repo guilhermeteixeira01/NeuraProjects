@@ -626,7 +626,7 @@ function ComTime({ dados, recarregar, eu }) {
       <header className="eq-cabeca">
         <Escudo equipe={time} tamanho={88} />
         <div className="eq-cabeca-txt">
-          <h1>
+          <h1 className="nome-proprio">
             {time.nome} {time.tag && <em>[{time.tag}]</em>}
           </h1>
           <p>

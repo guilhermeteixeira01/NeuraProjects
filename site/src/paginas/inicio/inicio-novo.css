@@ -1,0 +1,395 @@
+/* Página inicial no visual novo (vem depois de inicio.css e de comum/estetica.css) */
+
+/* ══════════ TOPO ══════════ */
+.ix-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: min(calc(100dvh / var(--escala-site, 1)), 980px);
+  display: flex;
+  background: var(--bg);
+  border-bottom: 1px solid rgb(var(--tinta) / 0.1);
+}
+.ix-hero-img {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 68% 38%;
+}
+/* só uma sombra: escurece a esquerda (onde fica o texto) e a base (onde ficam os destaques) */
+.ix-hero-vu {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgb(var(--fundo) / 0.96) 0%, rgb(var(--fundo) / 0.84) 30%, rgb(var(--fundo) / 0.2) 62%, transparent 82%),
+    linear-gradient(0deg, rgb(var(--fundo) / 0.95) 0%, rgb(var(--fundo) / 0.55) 22%, transparent 48%);
+}
+.ix-hero-grade {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 2.3fr) minmax(0, 1fr);
+  grid-template-areas:
+    'texto texto'
+    'dest cta';
+  grid-template-rows: 1fr auto;
+  align-items: end;
+  gap: 44px 56px;
+  padding-top: 72px;
+  padding-bottom: 44px;
+}
+.ix-hero-texto {
+  grid-area: texto;
+  align-self: start;
+  max-width: 760px;
+}
+.ix-hero h1 {
+  margin: 18px 0 22px;
+  font-family: var(--font-impact);
+  font-weight: 400;
+  font-size: clamp(60px, 9vw, 148px);
+  line-height: 0.92;
+  letter-spacing: 0.005em;
+  color: #fff;
+}
+.ix-hero h1 span {
+  display: block;
+}
+.ix-hero h1 .ix-destaque {
+  color: var(--accent);
+}
+.ix-lead {
+  max-width: 46ch;
+  margin: 0 0 30px;
+  font-size: 16px;
+  line-height: 1.65;
+  color: rgb(var(--tinta) / 0.8);
+}
+.ix-numeros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 44px;
+  margin: 0;
+}
+.ix-numeros div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 4px;
+}
+.ix-numeros dd {
+  margin: 0;
+  font-family: var(--font-impact);
+  font-size: clamp(34px, 3.6vw, 52px);
+  line-height: 1;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.ix-numeros dt {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: rgb(var(--tinta) / 0.75);
+}
+
+/* chamada no canto de baixo */
+.ix-hero-cta {
+  grid-area: cta;
+  max-width: 360px;
+  justify-self: end;
+}
+.ix-hero-cta h2 {
+  margin: 0 0 12px;
+  font-size: clamp(30px, 2.8vw, 40px);
+  line-height: 0.98;
+  color: #fff;
+}
+.ix-hero-cta h2 span {
+  display: block;
+  color: var(--accent);
+}
+.ix-hero-cta p {
+  margin: 0 0 20px;
+  font-size: 14px;
+  color: rgb(var(--tinta) / 0.72);
+}
+
+/* projetos em destaque */
+.ix-destaques {
+  grid-area: dest;
+  min-width: 0;
+}
+.ix-destaques .kicker {
+  margin-bottom: 14px;
+}
+.ix-destaques ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 18px;
+  max-width: 920px;
+}
+.ix-destaques a {
+  display: grid;
+  gap: 3px;
+  color: inherit;
+  text-decoration: none;
+}
+.ix-thumb {
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  margin-bottom: 8px;
+  background: var(--panel);
+  border: 1px solid rgb(var(--tinta) / 0.22);
+  transition: border-color 0.2s;
+}
+.ix-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(0.16, 0.84, 0.44, 1);
+}
+.ix-destaques a:hover .ix-thumb,
+.ix-destaques a:focus-visible .ix-thumb {
+  border-color: var(--accent);
+}
+.ix-destaques a:hover .ix-thumb img {
+  transform: scale(1.06);
+}
+.ix-destaques b {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.ix-destaques small {
+  font-size: 12.5px;
+  color: var(--dim);
+  line-height: 1.35;
+}
+
+@media (max-width: 1100px) {
+  .ix-hero-grade {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'texto' 'cta' 'dest';
+    grid-template-rows: auto;
+    gap: 36px;
+  }
+  .ix-hero-cta {
+    justify-self: start;
+    max-width: 440px;
+  }
+  .ix-hero-vu {
+    background:
+      linear-gradient(90deg, rgb(var(--fundo) / 0.93) 0%, rgb(var(--fundo) / 0.7) 55%, rgb(var(--fundo) / 0.3) 100%),
+      linear-gradient(0deg, rgb(var(--fundo) / 0.95) 0%, transparent 55%);
+  }
+}
+@media (max-width: 640px) {
+  .ix-hero {
+    min-height: 0;
+  }
+  .ix-hero-img {
+    object-position: 74% 20%;
+  }
+  .ix-hero-grade {
+    padding-top: 64px;
+    padding-bottom: 32px;
+    gap: 30px;
+  }
+  .ix-hero h1 {
+    font-size: clamp(58px, 19vw, 92px);
+  }
+  .ix-lead {
+    font-size: 15px;
+  }
+  .ix-numeros {
+    gap: 14px 30px;
+  }
+  .ix-destaques ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 14px;
+  }
+  .ix-destaques b {
+    font-size: 15px;
+  }
+  .ix-hero-cta .btn {
+    width: 100%;
+  }
+}
+
+/* ══════════ SEÇÕES ══════════ */
+.inicio .secao {
+  padding-block: clamp(64px, 9vw, 130px);
+}
+.inicio .secao + .secao {
+  border-top: 0;
+}
+.inicio .secao-head h2 {
+  font-family: var(--font-impact);
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  line-height: 0.96;
+  font-size: clamp(40px, 5.6vw, 80px);
+}
+
+/* projetos: quadros retos, número grande e título condensado */
+.projetos {
+  gap: 18px;
+}
+.projeto {
+  min-height: 300px;
+  padding: 28px 28px 26px;
+  border-radius: var(--raio);
+  border: 1px solid rgb(var(--tinta) / 0.14);
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+}
+.projeto::before {
+  border-radius: 0;
+}
+.projeto:hover {
+  transform: none;
+  border-color: var(--cor, var(--accent));
+  box-shadow: none;
+}
+.projeto-num {
+  right: 22px;
+  bottom: 14px;
+  font-family: var(--font-impact);
+  font-weight: 400;
+  font-size: 96px;
+  -webkit-text-stroke: 1px rgb(var(--tinta) / 0.12);
+}
+.projeto .ico {
+  width: 46px;
+  height: 46px;
+  border-radius: var(--raio);
+}
+.projeto h3 {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 2.6vw, 36px);
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+.projeto-link {
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* sobre e princípios */
+.ficha,
+.hud-frame {
+  border-radius: var(--raio);
+}
+.hud-frame::before,
+.hud-frame::after {
+  border-color: var(--accent);
+}
+.trilha-item {
+  border-radius: var(--raio);
+}
+.trilha-corpo h3 {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+/* chamada final: bloco chapado com a imagem do site à direita */
+.cta-painel .cb {
+  display: block;
+  padding: clamp(40px, 6vw, 84px) clamp(24px, 5vw, 72px);
+  min-height: clamp(340px, 38vw, 480px);
+  clip-path: none;
+  box-shadow: none;
+  border: 1px solid rgb(var(--tinta) / 0.16);
+  border-radius: var(--raio);
+  background:
+    linear-gradient(90deg, rgb(var(--fundo) / 0.97) 0%, rgb(var(--fundo) / 0.88) 42%, rgb(var(--fundo) / 0.25) 80%),
+    url('/assets/banners/inicio.webp') 78% 40% / cover no-repeat,
+    var(--bg);
+}
+.cta-painel .cb::before,
+.cta-painel .cb::after,
+.cta-painel .cb-canto,
+.cta-painel .cb-hud {
+  display: none;
+}
+.cta-painel .cb-texto {
+  max-width: 600px;
+}
+.cta-painel .cb-tag {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: var(--accent);
+  text-shadow: none;
+}
+.cta-painel .cb-tag b {
+  background: none;
+  color: var(--accent);
+  padding: 0;
+}
+.cta-painel .cb-tag em {
+  display: none;
+}
+.cta-painel .cb-titulo {
+  margin: 14px 0 16px;
+  font-family: var(--font-impact);
+  font-weight: 400;
+  font-size: clamp(48px, 7vw, 104px);
+  line-height: 0.94;
+  color: #fff;
+  text-shadow: none;
+}
+.cta-painel .cb-titulo::before,
+.cta-painel .cb-titulo::after {
+  display: none;
+}
+.cta-painel .cb-lead {
+  max-width: 48ch;
+  font-size: 16px;
+  color: rgb(var(--tinta) / 0.8);
+}
+.cta-painel .cb-botao {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: var(--raio);
+  clip-path: none;
+  box-shadow: none;
+}
+.cta-painel .cb-botao-discord {
+  background: var(--accent);
+  color: #15110a;
+  border: 0;
+}
+.cta-painel .cb-botao-fantasma {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgb(var(--tinta) / 0.35);
+}
+@media (max-width: 640px) {
+  .cta-painel .cb {
+    background:
+      linear-gradient(0deg, rgb(var(--fundo) / 0.97) 30%, rgb(var(--fundo) / 0.55) 100%),
+      url('/assets/banners/inicio.webp') 80% 30% / cover no-repeat,
+      var(--bg);
+  }
+}

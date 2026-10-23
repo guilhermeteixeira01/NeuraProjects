@@ -630,7 +630,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
               </ComMoldura>
               <div className="pf-id">
                 {eu && <span className="pf-voce pf-voce-cartao">{t('VOCÊ')}</span>}
-                <h1>
+                <h1 className="nome-proprio">
                   {j.nome}
                   <IconeEquipe steamId={j.steamId} />
                 </h1>

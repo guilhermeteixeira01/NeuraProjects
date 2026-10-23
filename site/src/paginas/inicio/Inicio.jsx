@@ -153,48 +153,70 @@ export default function Inicio() {
     <Layout pagina="inicio">
       <main className="inicio">
         {/* TOPO */}
-        <section className="inicio-banner">
-          {/* A imagem de fundo fica sozinha: sem brilho, gradiente nem efeito por cima dela. Só a faixa de baixo (missão, números e comunidade) aparece sobre ela. */}
-          <img className="inicio-banner-img" src="/assets/banners/inicio.webp" alt="" width="1726" height="911" fetchpriority="high" decoding="async" />
-          {/* Faixa de baixo: missão, números ao vivo e comunidade */}
-          <div className="wrap hx2-faixa-wrap">
-            <div className="hx2-faixa fx-entra" style={{ '--e': 6 }}>
-              <div className="hx2-cel hx2-missao">
-                <span className="hx2-rot">{t('NOSSA MISSÃO')}</span>
-                <b>{t('Jogue. Compita. Evolua.')}</b>
-              </div>
-              <dl className="hx2-cel hx2-numeros">
+        <section className="ix-hero">
+          {/* A imagem do site fica de fundo; só uma sombra à esquerda dá leitura ao texto */}
+          <img className="ix-hero-img" src="/assets/banners/inicio.webp" alt="" width="1726" height="911" fetchpriority="high" decoding="async" />
+          <div className="ix-hero-vu" aria-hidden="true" />
+          <div className="wrap ix-hero-grade">
+            <div className="ix-hero-texto">
+              <span className="kicker fx-entra" style={{ '--e': 1 }}>{t('SERVIDOR COMPETITIVO DE CS2')}</span>
+              <h1 className="fx-entra" style={{ '--e': 2 }}>
+                <span>{t('Jogue.')}</span>
+                <span className="ix-destaque">{t('Compita.')}</span>
+                <span>{t('Evolua.')}</span>
+              </h1>
+              <p className="ix-lead fx-entra" style={{ '--e': 3 }}>
+                {t('Pick & Ban de CS2, servidor competitivo, estatísticas de cada mapa, ranking e níveis. Tudo feito por jogadores, para quem joga de verdade.')}
+              </p>
+              <dl className="ix-numeros fx-entra" style={{ '--e': 4 }}>
                 <div>
-                  <dt>{t('MAPAS JOGADOS')}</dt>
                   <dd>
                     <Contador valor={numeros.mapas} />
                   </dd>
+                  <dt>{t('MAPAS JOGADOS')}</dt>
                 </div>
                 <div>
-                  <dt>{t('JOGADORES')}</dt>
                   <dd>
                     <Contador valor={numeros.jogadores} />
                   </dd>
+                  <dt>{t('JOGADORES')}</dt>
                 </div>
                 <div>
-                  <dt>KILLS</dt>
                   <dd>
                     <Contador valor={numeros.kills} />
                   </dd>
+                  <dt>KILLS</dt>
                 </div>
               </dl>
-              <a
-                className="hx2-cel hx2-comunidade"
-                href={CONFIG.comunidade || '#projetos'}
-                {...(CONFIG.comunidade ? { target: '_blank', rel: 'noopener' } : {})}
-              >
-                <span>
-                  <span className="hx2-rot">{t('COMUNIDADE')}</span>
-                  <b>{t('Entre na comunidade')}</b>
-                </span>
-                <span className="hx2-quadro">{SETA}</span>
-              </a>
             </div>
+            <aside className="ix-hero-cta fx-entra" style={{ '--e': 5 }}>
+              <h2>
+                {t('Pronto pra jogar?')} <span>{t('Entre na comunidade.')}</span>
+              </h2>
+              <p>{t('Servidor, campeonatos e novidades acontecem no nosso Discord.')}</p>
+              <LinkComunidade className="btn btn-primary btn-lg">{t('Entrar no Discord')}</LinkComunidade>
+            </aside>
+            <nav className="ix-destaques fx-entra" style={{ '--e': 6 }} aria-label={t('Em destaque')}>
+              <span className="kicker">{t('EM DESTAQUE')}</span>
+              <ul>
+                {[
+                  ['/partidas/', '/neurapick/maps/mirage.jpg', 'Partidas', 'Placar, rounds e demo de cada mapa'],
+                  ['/ranking/', '/assets/insignia/web/arsenal-afiado-diamante.webp', 'Ranking', 'Níveis, XP e o top do servidor'],
+                  ['/loja/', '/assets/caixas/web/caixa-abismo.webp', 'Loja', 'Caixas de skins com Neura Pontos'],
+                  ...(verPick ? [['/neurapick/', '/neurapick/maps/inferno.jpg', 'NeuraPick', 'Veto de mapas no padrão dos campeonatos']] : []),
+                ].map(([href, img, nome, texto]) => (
+                  <li key={href}>
+                    <a href={href}>
+                      <span className="ix-thumb">
+                        <img src={img} alt="" loading="lazy" decoding="async" />
+                      </span>
+                      <b>{t(nome)}</b>
+                      <small>{t(texto)}</small>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
           </div>
         </section>
 
