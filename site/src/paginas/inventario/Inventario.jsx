@@ -878,6 +878,8 @@ function Conteudo() {
   const adesivosPorId = useMemo(() => new Map((adesivos.dados || []).map((s) => [s[0], s])), [adesivos.dados])
   const chaveirosPorId = useMemo(() => new Map((chaveiros.dados || []).map((s) => [s[0], s])), [chaveiros.dados])
 
+  // raridade de adesivo/chaveiro (caixa fechada não tem: -1)
+  const rarEnf = (g) => (g.tipo === 'caixa' || !g.linha ? -1 : raridadeCsDaCor(corEnfeite(g.tipo, g.linha)))
   // adesivos e chaveiros guardados: def -> quantidade
   const estoque = useMemo(() => {
     const r = { adesivo: new Map(), chaveiro: new Map(), caixa: new Map() }
@@ -894,8 +896,9 @@ function Conteudo() {
     return (aba === 'tudo' ? ['adesivo', 'chaveiro', 'caixa'] : [aba])
       .flatMap((tipo) => [...estoque[tipo].entries()].map(([def, n]) => ({ tipo, def, n, linha: tipo === 'caixa' ? caixaPor(def) : (tipo === 'adesivo' ? adesivosPorId : chaveirosPorId).get(def) })))
       .filter((g) => !q || (g.linha?.[1] || '').toLowerCase().includes(q))
-      .sort((a, b) => (a.linha?.[1] || '').localeCompare(b.linha?.[1] || ''))
-  }, [aba, busca, estoque, adesivosPorId, chaveirosPorId, caixasLoja])
+      .filter((g) => rar === 'todas' || (g.tipo !== 'caixa' && rarEnf(g) === rar))
+      .sort((a, b) => rarEnf(b) - rarEnf(a) || (a.linha?.[1] || '').localeCompare(b.linha?.[1] || ''))
+  }, [aba, busca, estoque, adesivosPorId, chaveirosPorId, caixasLoja, rar])
 
   const itens = useMemo(() => {
     if (!inv) return []
@@ -926,10 +929,16 @@ function Conteudo() {
   // quantos itens de cada raridade (na aba atual) para os botões do filtro
   const contagemRar = useMemo(() => {
     const c = Array(7).fill(0)
-    for (const it of Object.values(inv?.itens || {})) if ((it.t === 'arma' || it.t === 'faca' || it.t === 'luva') && (aba === 'tudo' || it.t === aba)) c[rarDe(it)]++
+    for (const it of Object.values(inv?.itens || {})) {
+      if ((it.t === 'arma' || it.t === 'faca' || it.t === 'luva') && (aba === 'tudo' || it.t === aba)) c[rarDe(it)]++
+      else if ((it.t === 'adesivo' || it.t === 'chaveiro') && (aba === 'tudo' || it.t === aba)) {
+        const linha = (it.t === 'adesivo' ? adesivosPorId : chaveirosPorId).get(it.d)
+        if (linha) c[raridadeCsDaCor(corEnfeite(it.t, linha))]++
+      }
+    }
     return c
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inv, aba, idx])
+  }, [inv, aba, idx, adesivosPorId, chaveirosPorId])
 
   const mudar = useCallback((f) => setInv((i) => f(i)), [])
   const mudarItem = (id, parte) => mudar((i) => ({ ...i, itens: { ...i.itens, [id]: { ...i.itens[id], ...parte } } }))
@@ -1183,7 +1192,7 @@ function Conteudo() {
         </select>
       </div>
 
-      {['tudo', 'arma', 'faca', 'luva'].includes(aba) && total > 0 && (
+      {['tudo', 'arma', 'faca', 'luva', 'adesivo', 'chaveiro'].includes(aba) && total > 0 && (
         <div className="inv-rar" role="group" aria-label={t('Filtrar por raridade')}>
           <button type="button" className={rar === 'todas' ? 'is-ativo' : ''} onClick={() => setRar('todas')}>
             {t('Todas')}

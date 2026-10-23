@@ -77,6 +77,13 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
     for (const i of todosItens) c[rarDe(i)]++
     return c
   }, [todosItens, idx]) // eslint-disable-line react-hooks/exhaustive-deps
+  // raridade e contagem por raridade dos adesivos/chaveiros da aba aberta
+  const rarEnf = (d) => raridadeCsDaCor(corEnfeite(aba === 'adesivos' ? 'adesivo' : 'chaveiro', (aba === 'adesivos' ? mapaAd : mapaCh).get(d)))
+  const contagemEnf = useMemo(() => {
+    const c = Array(7).fill(0)
+    if (aba === 'adesivos' || aba === 'chaveiros') for (const g of aba === 'adesivos' ? listaAdesivos : listaChaveiros) c[rarEnf(g.d)] += 1
+    return c
+  }, [aba, listaAdesivos, listaChaveiros, mapaAd, mapaCh]) // eslint-disable-line react-hooks/exhaustive-deps
   const itens = useMemo(() => (rar === 'todas' ? todosItens : todosItens.filter((i) => rarDe(i) === rar)), [todosItens, rar, idx]) // eslint-disable-line react-hooks/exhaustive-deps
   const guardados = (tipo) => {
     const g = new Map()
@@ -198,6 +205,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
                 className={aba === id ? 'is-ativo' : ''}
                 onClick={() => {
                   setAba(id)
+                  setRar('todas')
                 }}
               >
                 {t(rotulo)} <small>{n}</small>
@@ -265,9 +273,25 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
             )}
             </>
           ) : (
+            <>
+            {aba !== 'caixas' && contagemEnf.some(Boolean) && (
+              <div className="inv-rar pf-inv-rar" role="group" aria-label={t('Filtrar por raridade')}>
+                <button type="button" className={rar === 'todas' ? 'is-ativo' : ''} onClick={() => setRar('todas')}>
+                  {t('Todas')}
+                </button>
+                {[...RARIDADES_CS].reverse().map((r) =>
+                  contagemEnf[r.id] ? (
+                    <button key={r.id} type="button" className={rar === r.id ? 'is-ativo' : ''} style={{ '--cor': r.cor }} onClick={() => setRar(rar === r.id ? 'todas' : r.id)}>
+                      <i /> {r.curto} <em>{contagemEnf[r.id]}</em>
+                    </button>
+                  ) : null,
+                )}
+              </div>
+            )}
             <ul className="pf-inv-grade pf-inv-grade-pq">
               {[...(aba === 'adesivos' ? listaAdesivos : aba === 'chaveiros' ? listaChaveiros : caixas)]
-                .sort((a, b) => aba === 'caixas' ? 0 : raridadeCsDaCor(corEnfeite(aba === 'adesivos' ? 'adesivo' : 'chaveiro', (aba === 'adesivos' ? mapaAd : mapaCh).get(b.d))) - raridadeCsDaCor(corEnfeite(aba === 'adesivos' ? 'adesivo' : 'chaveiro', (aba === 'adesivos' ? mapaAd : mapaCh).get(a.d))))
+                .filter((g) => aba === 'caixas' || rar === 'todas' || rarEnf(g.d) === rar)
+                .sort((a, b) => aba === 'caixas' ? 0 : rarEnf(b.d) - rarEnf(a.d))
                 .map((g) => {
                 const linha = aba === 'adesivos' ? mapaAd.get(g.d) : aba === 'chaveiros' ? mapaCh.get(g.d) : null
                 const cx = aba === 'caixas' ? caixasLoja.find((c) => c.id === g.d) : null
@@ -289,6 +313,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
               })}
               {!(aba === 'adesivos' ? listaAdesivos : aba === 'chaveiros' ? listaChaveiros : caixas).length && <li className="pf-inv-vazio">{t('Nada por aqui.')}</li>}
             </ul>
+            </>
           )}
         </section>
       )}

@@ -328,3 +328,6 @@ html.inv-travado body { position: fixed; inset: 0; width: 100%; }
 @media (max-width: 560px) { .inv-anuncio { grid-template-columns: 1fr; } }
 .inv-menu button:disabled { opacity: .5; cursor: default; }
 .inv-menu button:disabled:hover { background: none; }
+
+/* adesivos, chaveiros e caixas: arte um pouco mais para cima */
+.inv-cartao-guardado .inv-arma-img, .inv-cartao-fixo .inv-arma-img { inset: -7% 6% 7% 6%; width: 88%; height: 100%; }

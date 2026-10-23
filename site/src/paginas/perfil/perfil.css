@@ -1046,3 +1046,9 @@ html.sm-aberto { overflow: hidden; }
 .pf-inv-rar button i { width: 9px; height: 9px; border-radius: 50%; background: var(--cor); box-shadow: 0 0 8px var(--cor); }
 .pf-inv-rar button em { font-style: normal; font-size: 11px; opacity: .7; }
 .pf-inv-rar button.is-ativo { color: #fff; border-color: var(--cor, #2bb3d6); background: color-mix(in srgb, var(--cor, #2bb3d6) 22%, transparent); }
+
+/* adesivos, chaveiros e caixas: arte mais para cima, sem encostar no nome */
+.pf-inv-grade-pq .pf-inv-item { min-height: 206px; }
+.pf-inv-grade-pq .pf-inv-item-arte { top: 14px; height: 100px; }
+.pf-inv-grade-pq .pf-inv-item { background: radial-gradient(circle at 50% 36%, rgb(0 0 0 / .22) 0 48px, transparent 49px), linear-gradient(160deg, color-mix(in srgb, var(--cor) 38%, #15161d) 0%, color-mix(in srgb, var(--cor) 10%, #12131a) 100%); }
+@media (max-width: 640px) { .pf-inv-grade-pq .pf-inv-item { min-height: 178px; } .pf-inv-grade-pq .pf-inv-item-arte { top: 12px; height: 84px; } }
