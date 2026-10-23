@@ -19,6 +19,7 @@ import { confirmar } from '../../comum/Dialogos.jsx'
 import AdminCaixas from './AdminCaixas.jsx'
 import AdminPontos from './AdminPontos.jsx'
 import AdminLogs from './AdminLogs.jsx'
+import AdminServidor from './AdminServidor.jsx'
 import AdminPlanos from './AdminPlanos.jsx'
 import { lerCaixasPublicas } from '../../comum/loja.js'
 import { useAvatar } from '../../comum/avatares.js'
@@ -1828,6 +1829,7 @@ export default function Admin() {
       ['pontos', 'Pontos'],
       ['logs', 'Logs'],
       ['admins', 'Admins'],
+      ['servidor', 'Servidor'],
     ].filter(([id]) => eu.abas.includes(id))
     const abaAtual = ABAS.some(([id]) => id === aba) ? aba : ABAS[0]?.[0]
     conteudo = (
@@ -1881,6 +1883,7 @@ export default function Admin() {
             {abaAtual === 'skins' && <DarSkin usuarios={usuarios} />}
             {abaAtual === 'caixas' && <AdminCaixas />}
             {abaAtual === 'pontos' && <AdminPontos usuarios={usuarios} />}
+            {abaAtual === 'servidor' && eu.dono && <AdminServidor />}
             {abaAtual === 'logs' && <AdminLogs usuarios={usuarios} />}
             {abaAtual === 'admins' && <Admins config={painel.config} dono={painel.dono} souDono={eu.dono} usuarios={usuarios} aoSalvar={(config) => setPainel((p) => ({ ...p, config }))} />}
           </div>

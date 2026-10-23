@@ -45,6 +45,7 @@ import { Trocas, rotaTrocas } from './trocas.js'
 import { Loja, valorDe, rotaAdminLoja, rotaLoja, rotaLojaPerfil, rotaLojaPublica, rotaNotificacoes } from './loja.js'
 import { Mercado, rotaDrops, rotaMercado } from './mercado.js'
 import { zerarTudo } from './zerar.js'
+import { rotaAdminServidorCs2 } from './servidor-cs2.js'
 import { definirConcedenteSub, rotaAdminPagamento, rotaAdminPlanosSub, rotaPagamentos, rotaWebhookAsaas } from './pagamentos.js'
 import { Registro, registrar, rotaAdminLogs } from './registro.js'
 import { Equipes, rotaEquipes, rotaImagemEquipe, rotaListaPublicaEquipes, timeDosJogadores } from './equipes.js'
@@ -102,12 +103,19 @@ const ROTULO_ADMIN = {
   '/admin/assinatura-planos': 'mudou os planos de assinatura',
   '/admin/zerar-tudo': 'ZEROU TUDO',
 }
+const ROTULO_SERVIDOR = { iniciar: 'iniciou o servidor de CS2', parar: 'parou o servidor de CS2', reiniciar: 'reiniciou o servidor de CS2', comando: 'mandou comando ao servidor de CS2' }
 function descreverAcaoAdmin(rota, { quem, corpo }) {
   let c = {}
   try {
     c = JSON.parse(corpo) || {}
   } catch {
     // corpo que não é JSON
+  }
+  if (rota.startsWith('/admin/servidor/')) {
+    const acao = rota.replace('/admin/servidor/', '')
+    // o comando de console pode ter senha (sv_password, rcon): só a primeira palavra vai para o log
+    const extra = acao === 'comando' ? ` (${String(c.cmd || '').trim().split(/s+/)[0].slice(0, 40)})` : c.validar ? ' (validando arquivos)' : ''
+    return { tipo: 'admin', quem, alvo: '', texto: (ROTULO_SERVIDOR[acao] || 'ação no servidor de CS2') + extra, dados: { rota } }
   }
   const chaves = Object.keys(c).filter((k) => !['id', 'alvo'].includes(k))
   let texto = ROTULO_ADMIN[rota] || `ação em ${rota.replace('/admin/', '')}`
@@ -255,6 +263,7 @@ async function atender(req, env, ctx) {
       const abas = await abasDe(quem.id, env, config)
       // Toda página com login chama /eu: registra a visita (nome/avatar do próprio login) para o painel
       await registrarUsuario(env, quem.id, { nome: quem.nome, avatar: quem.avatar }, true)
+      if (quem.id === env.DONO) abas.push('servidor') // aba só do dono (fora de ABAS_ADMIN: nenhum cargo libera)
       return json({ id: quem.id, admin, dono: quem.id === env.DONO, painel: abas.length > 0, abas }, 200, cors)
     }
     if (rota === '/amigos' && (req.method === 'GET' || req.method === 'POST')) return rotaAmigos(req, env, quem, cors)
@@ -286,6 +295,11 @@ async function atender(req, env, ctx) {
       if (!abas.length) return json({ erro: 'admin' }, 403, cors)
       const pode = (...precisa) => precisa.every((a) => abas.includes(a)) // cada rota confere a aba dela
       if (req.method === 'POST') PEDIDOS_ADMIN.set(req, { quem: quem.id, corpo: (await req.clone().text()).slice(0, 4000) }) // para o log
+      // Painel do servidor de CS2: só o dono (derruba jogadores e roda comando de console na VPS)
+      if (rota.startsWith('/admin/servidor/')) {
+        if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
+        return rotaAdminServidorCs2(req, env, rota, url, cors)
+      }
       if (rota === '/admin/logs' && req.method === 'GET') {
         if (!pode('logs')) return json({ erro: 'aba' }, 403, cors)
         return rotaAdminLogs(url, env, cors)

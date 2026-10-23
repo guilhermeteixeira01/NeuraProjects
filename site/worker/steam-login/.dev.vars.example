@@ -1,0 +1,3 @@
+# Painel do servidor de CS2 (aba Servidor, só o dono). Em produção: npx wrangler secret put CS2_AGENTE_URL / CS2_AGENTE_TOKEN
+CS2_AGENTE_URL=http://127.0.0.1:8080
+CS2_AGENTE_TOKEN=troque-por-openssl-rand-hex-32
