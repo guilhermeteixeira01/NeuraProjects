@@ -9,6 +9,7 @@ import { useT } from './i18n.js'
 // Aba do painel de administrador (só aparece para admin; o worker confere de novo em toda ação)
 const ITEM_ADMIN = { id: 'admin', rotulo: 'Admin', href: '/admin/', icone: 'escudo' }
 import { ComMoldura } from './Moldura.jsx'
+import { useSeguranca } from './seguranca.js'
 import { useAvatar } from './avatares.js'
 import PainelAmigos from './PainelAmigos.jsx'
 import PainelNotificacoes from './PainelNotificacoes.jsx'
@@ -56,6 +57,7 @@ function Conta() {
   const saldo = useSaldo(conta?.id, true, aberto) // o que sobra depois de gastar na loja: busca ao carregar a página e de novo ao abrir o menu; o último valor fica guardado
   const pontos = saldo // null só na primeira vez, até o servidor responder (mostra "…" em vez de um número errado)
   const { conectado } = useAmigos()
+  const seg = useSeguranca() // o apelido escolhido no site vale no lugar do nome da Steam
 
   useEffect(() => {
     if (!aberto) return
@@ -78,7 +80,7 @@ function Conta() {
       </button>
     )
 
-  const nome = conta.nome || t('Minha conta')
+  const nome = seg?.nick || conta.nome || t('Minha conta')
   const avatar = fotoAtual || conta.avatar
   return (
     <div className="nx-conta" ref={caixa}>

@@ -25,6 +25,7 @@ import { RARIDADES_CS, raridadeCsDaCor } from '../../../worker/steam-login/src/l
 import Cartao, { nomeDoDesgaste } from '../../comum/CartaoSkin.jsx'
 import { CarregandoNP } from '../../comum/Carregando.jsx'
 import { confirmar } from '../../comum/Dialogos.jsx'
+import { comSenha } from '../../comum/seguranca.js'
 import { BotaoTrocas } from '../../comum/Trocas.jsx'
 import { ArmaComEnfeites, Visualizador3D, idNo3d, useMapas3d, Inspecionar, useTelaPequena, InspecionarSkin } from '../../comum/InspecionarSkin.jsx'
 
@@ -1033,7 +1034,9 @@ function Conteudo() {
     if (!(preco >= 1 && preco <= 10_000_000)) return setErroAnuncio(t(erroDoMercado('preco')))
     setAnunciando(true)
     try {
-      await anunciarItem(anuncio.id, preco, nomeDoItem(inv.itens[anuncio.id]))
+      // colocar à venda pede a senha de segurança (evita golpe)
+      const r = await comSenha(t('Para colocar o item à venda, digite a sua senha de segurança.'), (senha) => anunciarItem(anuncio.id, preco, nomeDoItem(inv.itens[anuncio.id]), senha))
+      if (r.cancelado) return
       tocar('criado')
       setAnuncio(null)
       setAvisoVenda(t('Anunciado no mercado por {n} NP! Você acompanha (e pode cancelar) na aba À VENDA.', { n: preco.toLocaleString('pt-BR') }))

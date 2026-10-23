@@ -374,3 +374,14 @@ textarea {
     margin: 6px 8px;
   }
 }
+
+/* Configurações → Conta (apelido e senha de segurança) */
+.nx-config-conta { gap: 8px; }
+.nx-conta-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.nx-conta-linha b { font: 700 14px var(--font-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.nx-conta-linha small { color: var(--dim); font-size: 12px; }
+.nx-conta-acao { flex: none; padding: 6px 11px; border-radius: 6px; border: 1px solid rgb(var(--tinta) / .22); background: rgb(var(--tinta) / .05); color: inherit; font: 600 12px var(--font-body); cursor: pointer; }
+.nx-conta-acao:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.nx-conta-acao:disabled { opacity: .45; cursor: not-allowed; }
+.nx-conta-ok { color: #3fb950; }
+.nx-conta-erro { color: #ff8e8e; }

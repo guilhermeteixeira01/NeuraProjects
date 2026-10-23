@@ -1,0 +1,32 @@
+/* Janela de boas-vindas (BoasVindas.jsx): apelido + senha de segurança. Fica acima de tudo e não fecha sozinha. */
+.bv-fundo { position: fixed; inset: 0; z-index: 8000; display: grid; place-items: center; padding: 16px; background: rgb(4 6 10 / .86); backdrop-filter: blur(4px); animation: bv-fundo .2s ease both; overflow-y: auto; }
+.bv { width: min(520px, 100%); margin: auto; background: #14171d; border: 1px solid rgb(var(--tinta, 255 255 255) / .16); border-radius: 12px; padding: 22px 24px 20px; color: var(--text, #e8eaed); box-shadow: 0 24px 70px rgb(0 0 0 / .6); animation: bv-entra .22s ease both; }
+.bv-passos { list-style: none; display: flex; gap: 8px; margin: 0 0 18px; padding: 0; }
+.bv-passos li { flex: 1; display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 6px; background: rgb(var(--tinta, 255 255 255) / .05); color: var(--dim, #9a9ba3); font: 700 12.5px var(--font-body); letter-spacing: .02em; }
+.bv-passos li i { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: rgb(var(--tinta, 255 255 255) / .12); font-style: normal; font-size: 11px; }
+.bv-passos li.ativo { color: var(--text, #fff); background: rgb(245 197 66 / .14); box-shadow: inset 0 0 0 1px rgb(245 197 66 / .5); }
+.bv-passos li.ativo i { background: var(--accent, #f5c542); color: #15110a; }
+.bv-passos li.feito { color: #3fb950; }
+.bv-passos li.feito i { background: #3fb950; color: #06170e; }
+.bv h2 { margin: 0 0 8px; font: 800 26px/1.05 var(--font-display); letter-spacing: .01em; text-transform: none; }
+.bv p { margin: 0 0 14px; font-size: 14px; line-height: 1.55; color: rgb(var(--tinta, 255 255 255) / .8); }
+.bv-campo { display: grid; gap: 5px; margin: 0 0 14px; }
+.bv-campo > span { font: 700 12px var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--dim, #9a9ba3); }
+.bv-campo input { width: 100%; box-sizing: border-box; padding: 11px 12px; border-radius: 8px; border: 1px solid rgb(var(--tinta, 255 255 255) / .2); background: rgb(0 0 0 / .35); color: inherit; font: 600 16px var(--font-body); }
+.bv-campo input:focus { outline: 2px solid var(--accent, #f5c542); outline-offset: 1px; border-color: transparent; }
+.bv-campo small { color: var(--dim, #9a9ba3); font-size: 12px; }
+.bv-aviso { display: grid; gap: 3px; margin: 0 0 14px; padding: 11px 13px; border-radius: 8px; background: rgb(245 197 66 / .1); border: 1px solid rgb(245 197 66 / .4); font-size: 13px; line-height: 1.5; }
+.bv-aviso b { color: var(--accent, #f5c542); font-size: 13.5px; }
+.bv-aviso-atencao { background: rgb(52 152 219 / .1); border-color: rgb(52 152 219 / .45); }
+.bv-aviso-atencao b { color: #5cb6f0; }
+.bv-erro { margin: 0 0 12px !important; padding: 9px 12px; border-radius: 8px; background: rgb(248 81 73 / .12); border: 1px solid rgb(248 81 73 / .4); color: #ffb4ae !important; font-size: 13px !important; }
+.bv-botao { width: 100%; padding: 13px 16px; border: 0; border-radius: 8px; background: var(--accent, #f5c542); color: #15110a; font: 800 16px var(--font-display); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: filter .15s, transform .08s; }
+.bv-botao:hover:not(:disabled) { filter: brightness(1.08); }
+.bv-botao:active:not(:disabled) { transform: translateY(1px); }
+.bv-botao:disabled { opacity: .45; cursor: not-allowed; }
+.bv-link { display: block; margin: 12px auto 0; background: none; border: 0; color: var(--dim, #9a9ba3); font: 600 13px var(--font-body); text-decoration: underline; cursor: pointer; }
+.bv-rodape { display: block; margin-top: 14px; text-align: center; color: var(--dim-2, #6d6e77); font-size: 12px; }
+@keyframes bv-fundo { from { opacity: 0; } }
+@keyframes bv-entra { from { opacity: 0; transform: translateY(10px) scale(.98); } }
+@media (max-width: 520px) { .bv { padding: 18px 16px 16px; } .bv h2 { font-size: 22px; } .bv-passos { flex-direction: column; } }
+@media (prefers-reduced-motion: reduce) { .bv-fundo, .bv { animation: none; } }

@@ -62,6 +62,11 @@ class_name = "Registro"
 name = "EQUIPES"
 class_name = "Equipes"
 
+# Contas: apelido único e senha de segurança (src/contas.js)
+[[durable_objects.bindings]]
+name = "CONTAS"
+class_name = "Contas"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["Presenca"]
@@ -85,3 +90,8 @@ new_sqlite_classes = ["Registro"]
 [[migrations]]
 tag = "v6"
 new_sqlite_classes = ["Equipes"]
+
+# Contas: apelido único e senha de segurança dos jogadores (src/contas.js)
+[[migrations]]
+tag = "v7"
+new_sqlite_classes = ["Contas"]

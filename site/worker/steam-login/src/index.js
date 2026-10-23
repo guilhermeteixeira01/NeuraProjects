@@ -47,6 +47,7 @@ import { Mercado, rotaDrops, rotaMercado } from './mercado.js'
 import { zerarTudo } from './zerar.js'
 import { rotaAdminServidorCs2 } from './servidor-cs2.js'
 import { statusCs2 } from './status-cs2.js'
+import { Contas, chamarContas } from './contas.js'
 import { definirConcedenteSub, rotaAdminPagamento, rotaAdminPlanosSub, rotaPagamentos, rotaWebhookAsaas } from './pagamentos.js'
 import { Registro, registrar, rotaAdminLogs } from './registro.js'
 import { Equipes, rotaEquipes, rotaImagemEquipe, rotaListaPublicaEquipes, timeDosJogadores } from './equipes.js'
@@ -56,6 +57,7 @@ export { Loja } // Durable Object da loja de caixas (wrangler.toml)
 export { Trocas } // Durable Object das trocas entre jogadores (wrangler.toml)
 export { Mercado } // Durable Object do mercado entre jogadores (wrangler.toml)
 export { Registro } // Durable Object do log do painel de admin (wrangler.toml)
+export { Contas } // Durable Object do apelido único e da senha de segurança (wrangler.toml)
 export { Equipes } // Durable Object dos times de jogadores (wrangler.toml)
 
 const OPENID = 'https://steamcommunity.com/openid/login'
@@ -103,6 +105,8 @@ const ROTULO_ADMIN = {
   '/admin/pagamento-config': 'mudou a configuração dos depósitos',
   '/admin/assinatura-planos': 'mudou os planos de assinatura',
   '/admin/zerar-tudo': 'ZEROU TUDO',
+  '/admin/senha-reset': 'apagou a senha de segurança do jogador',
+  '/admin/nick': 'trocou o apelido do jogador',
 }
 const ROTULO_SERVIDOR = { iniciar: 'iniciou o servidor de CS2', parar: 'parou o servidor de CS2', reiniciar: 'reiniciou o servidor de CS2', comando: 'mandou comando ao servidor de CS2', gameinfo: 'conferiu o gameinfo.gi (Metamod) do servidor de CS2', plugins: 'atualizou o Metamod e o CounterStrikeSharp do servidor de CS2' }
 function descreverAcaoAdmin(rota, { quem, corpo }) {
@@ -206,7 +210,14 @@ async function atender(req, env, ctx) {
         saida[id] = doTime[id] ? { ...resto, time: doTime[id] } : resto
       }
       for (const [id, nome] of Object.entries(doTime)) if (!saida[id]) saida[id] = { time: nome }
+      const nicks = await chamarContas(env, { acao: 'todos-nicks' }).then((r) => (r.ok ? r.dados : {})).catch(() => ({}))
+      for (const [id, nick] of Object.entries(nicks)) saida[id] = { ...(saida[id] || {}), nick }
       return json(saida, 200, publico)
+    }
+    if (rota === '/nicks' && req.method === 'GET') {
+      const ids = (url.searchParams.get('ids') || '').split(',').filter((x) => ID_STEAM.test(x)).slice(0, 100)
+      const r = ids.length ? await chamarContas(env, { acao: 'nicks', ids }) : { ok: true, dados: {} }
+      return json(r.ok ? r.dados : {}, 200, { ...publico, 'Cache-Control': 'public, max-age=30' })
     }
     if (rota === '/config' && req.method === 'GET') return json(configPublica(await ler(env, "config"), env), 200, publico)
     if (rota === '/jogador' && req.method === 'GET') return jogadorPublico(url, env)
@@ -269,6 +280,28 @@ async function atender(req, env, ctx) {
       if (quem.id === env.DONO) abas.push('servidor') // aba só do dono (fora de ABAS_ADMIN: nenhum cargo libera)
       return json({ id: quem.id, admin, dono: quem.id === env.DONO, painel: abas.length > 0, abas }, 200, cors)
     }
+    // Conta: apelido único e senha de segurança (src/contas.js)
+    if (rota === '/conta/seguranca' && req.method === 'GET') {
+      const premium = indiceSub((await ler(env, 'perfis'))[quem.id]?.sub, config) >= 0
+      const r = await chamarContas(env, { acao: 'estado', steam: quem.id, premium })
+      return json(r.dados, r.ok ? 200 : r.status, cors)
+    }
+    if (rota === '/conta/nick' && req.method === 'POST') {
+      const c = (await req.json().catch(() => null)) || {}
+      const premium = indiceSub((await ler(env, 'perfis'))[quem.id]?.sub, config) >= 0
+      const r = await chamarContas(env, { acao: 'nick', steam: quem.id, nick: c.nick, premium })
+      if (r.ok) {
+        await caches.default.delete(new Request(`https://cache.neura/jogador/${quem.id}`)).catch(() => {}) // o nome público do jogador muda na hora
+        await registrar(env, { tipo: 'conta', quem: quem.id, texto: `escolheu o apelido "${r.dados.nick}"` })
+      }
+      return json(r.dados, r.ok ? 200 : r.status, cors)
+    }
+    if (rota === '/conta/senha' && req.method === 'POST') {
+      const c = (await req.json().catch(() => null)) || {}
+      const r = await chamarContas(env, { acao: 'senha', steam: quem.id, senha: c.senha, atual: c.atual })
+      if (r.ok) await registrar(env, { tipo: 'conta', quem: quem.id, texto: c.atual != null ? 'trocou a senha de segurança' : 'criou a senha de segurança' })
+      return json(r.dados, r.ok ? 200 : r.status, cors)
+    }
     if (rota === '/amigos' && (req.method === 'GET' || req.method === 'POST')) return rotaAmigos(req, env, quem, cors)
     if (rota === '/usuarios/buscar' && req.method === 'GET') return buscarUsuarios(url, env, quem, cors)
     if (rota === '/lobby' && (req.method === 'GET' || req.method === 'POST')) return rotaLobby(req, env, quem, cors)
@@ -298,6 +331,15 @@ async function atender(req, env, ctx) {
       if (!abas.length) return json({ erro: 'admin' }, 403, cors)
       const pode = (...precisa) => precisa.every((a) => abas.includes(a)) // cada rota confere a aba dela
       if (req.method === 'POST') PEDIDOS_ADMIN.set(req, { quem: quem.id, corpo: (await req.clone().text()).slice(0, 4000) }) // para o log
+      // Conta de um jogador (só o dono): apagar a senha de segurança (ele cria outra) ou trocar o apelido (ofensivo, golpe)
+      if (rota === '/admin/senha-reset' || rota === '/admin/nick') {
+        if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
+        const c = (await req.json().catch(() => null)) || {}
+        if (!ID_STEAM.test(String(c.id || ''))) return json({ erro: 'id' }, 400, cors)
+        const r = rota === '/admin/nick' ? await chamarContas(env, { acao: 'nick', steam: c.id, nick: c.nick, premium: true, admin: true }) : await chamarContas(env, { acao: 'reset-senha', steam: c.id })
+        if (r.ok) await caches.default.delete(new Request(`https://cache.neura/jogador/${c.id}`)).catch(() => {})
+        return json(r.dados, r.ok ? 200 : r.status, cors)
+      }
       // Painel do servidor de CS2: só o dono (derruba jogadores e roda comando de console na VPS)
       if (rota.startsWith('/admin/servidor/')) {
         if (quem.id !== env.DONO) return json({ erro: 'dono' }, 403, cors)
@@ -1068,7 +1110,8 @@ async function jogadorPublico(url, env) {
   const usuario = (await ler(env, 'usuarios'))[id]
   // Steam primeiro (nome e foto atuais); a cópia do login (usuarios) só se a Steam não responder
   const steam = await perfilSteam(id, env)
-  const resposta = json({ nome: steam.nome || usuario?.nome || '', avatar: steam.avatar || usuario?.avatar || '' }, 200, {
+  const apelido = await chamarContas(env, { acao: 'nicks', ids: [id] }).then((r) => (r.ok ? r.dados[id] : '')).catch(() => '')
+  const resposta = json({ nome: apelido || steam.nome || usuario?.nome || '', avatar: steam.avatar || usuario?.avatar || '' }, 200, {
     'Access-Control-Allow-Origin': '*',
     'Cache-Control': 'public, max-age=3600',
   })

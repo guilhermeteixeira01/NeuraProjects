@@ -6,7 +6,7 @@ import { createRoot } from 'react-dom/client'
 import { useT } from './i18n.js'
 import './dialogos.css'
 
-function Caixa({ texto, titulo, ok, cancelar, perigo, campo, aoResponder }) {
+function Caixa({ texto, titulo, ok, cancelar, perigo, campo, senha, aoResponder }) {
   const t = useT()
   const [valor, setValor] = useState('')
   const entrada = useRef(null)
@@ -32,17 +32,19 @@ function Caixa({ texto, titulo, ok, cancelar, perigo, campo, aoResponder }) {
           <input
             ref={entrada}
             className="dlg-campo"
+            type={senha ? 'password' : 'text'}
+            autoComplete={senha ? 'current-password' : 'off'}
             value={valor}
-            maxLength={60}
+            maxLength={senha ? 64 : 60}
             onChange={(e) => setValor(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && valor.trim() && confirmar()}
+            onKeyDown={(e) => e.key === 'Enter' && (senha ? valor : valor.trim()) && confirmar()}
           />
         )}
         <div className="dlg-botoes">
           <button type="button" className="dlg-btn" onClick={() => aoResponder(campo ? null : false)}>
             {cancelar || t('Cancelar')}
           </button>
-          <button type="button" className={`dlg-btn ${perigo ? 'dlg-btn-perigo' : 'dlg-btn-p'}`} disabled={campo && !valor.trim()} onClick={confirmar}>
+          <button type="button" className={`dlg-btn ${perigo ? 'dlg-btn-perigo' : 'dlg-btn-p'}`} disabled={campo && !(senha ? valor : valor.trim())} onClick={confirmar}>
             {ok || t('Continuar')}
           </button>
         </div>
@@ -66,4 +68,6 @@ function abrir(props) {
 }
 
 export const confirmar = (texto, opcoes = {}) => abrir({ texto, ...opcoes })
-export const perguntar = (texto, opcoes = {}) => abrir({ texto, campo: true, ...opcoes }).then((v) => (v == null ? null : String(v).trim() || null))
+// Pede uma senha (campo escondido); devolve o texto exato (sem cortar espaços) ou null se cancelou
+export const perguntarSenha = (texto, opcoes = {}) => abrir({ texto, campo: true, senha: true, ...opcoes }).then((v) => (v == null || v === '' ? null : String(v)))
+export const perguntar =(texto, opcoes = {}) => abrir({ texto, campo: true, ...opcoes }).then((v) => (v == null ? null : String(v).trim() || null))

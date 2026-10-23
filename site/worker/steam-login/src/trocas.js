@@ -13,6 +13,7 @@
  *   estado: pendente | aceita | recusada | cancelada | vencida | falhou
  */
 import { avisarTroca } from './amigos.js'
+import { exigirSenha } from './contas.js'
 import { registrar } from './registro.js'
 import { limparSkins, lerSkins, mudarSkins, novoIdItem } from './skins.js'
 
@@ -220,7 +221,13 @@ export async function rotaTrocas(req, env, quem, cors, rota) {
   else if (rota === '/trocas' && req.method === 'POST') acao = 'criar'
   else if (req.method === 'POST' && ['/trocas/aceitar', '/trocas/recusar', '/trocas/cancelar'].includes(rota)) acao = rota.split('/').pop().replace(/ar$/, 'ar')
   else return json({ erro: 'rota' }, 404, cors)
-  const r = await chamar(env, { acao, quem: quem.id, ...corpo })
+  // Propor e aceitar troca pedem a senha de segurança (evita golpe: alguém usando a conta aberta no computador de outra pessoa)
+  const { senha, ...resto } = corpo
+  if (acao === 'criar' || acao === 'aceitar') {
+    const falha = await exigirSenha(env, quem.id, senha, cors)
+    if (falha) return falha
+  }
+  const r = await chamar(env, { acao, quem: quem.id, ...resto })
   if (r.ok && acao !== 'listar') {
     const texto = acao === 'criar' ? `propôs uma troca: ${(corpo.dar || []).length} item(ns) dele(a) por ${(corpo.pedir || []).length} do outro` : `${acao === 'aceitar' ? 'aceitou' : acao === 'recusar' ? 'recusou' : 'cancelou'} a troca ${String(corpo.id || '').slice(0, 12)}`
     await registrar(env, { tipo: 'troca', quem: quem.id, alvo: acao === 'criar' ? String(corpo.para || '') : '', texto })

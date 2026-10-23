@@ -15,13 +15,13 @@ async function chamar(rota, corpo) {
     body: corpo ? JSON.stringify(corpo) : undefined,
   })
   const d = await r.json().catch(() => null)
-  if (!r.ok || d?.erro) throw new Error(d?.erro || 'falhou')
+  if (!r.ok || d?.erro) throw Object.assign(new Error(d?.erro || 'falhou'), { dados: d || {} })
   return d
 }
 
 // { anuncios: [{ id, vendedor, vendedorNome, vendedorAvatar, item, preco, ref, criado }] } (ref = valor de referência do item em NP)
 export const lerMercado = () => chamar('/mercado')
-export const anunciarItem = (id, preco, nome) => chamar('/mercado/anunciar', { id, preco, nome })
+export const anunciarItem = (id, preco, nome, senha) => chamar('/mercado/anunciar', { id, preco, nome, senha })
 export const cancelarAnuncio = (id) => chamar('/mercado/cancelar', { id })
 export const comprarAnuncio = (id) => chamar('/mercado/comprar', { id })
 export const avisarMercado = () => window.dispatchEvent(new Event(EVENTO_MERCADO))
@@ -36,4 +36,7 @@ export const erroDoMercado = (codigo) =>
     'nao-achou': 'Esse anúncio não está mais no mercado.',
     proprio: 'Esse anúncio é seu.',
     'item-invalido': 'Esse item não está mais no seu inventário.',
+    bloqueado: 'Muitas tentativas erradas: aguarde 15 minutos e tente de novo.',
+    'sem-senha': 'Crie a sua senha de segurança para continuar.',
+    'senha-errada': 'Senha incorreta.',
   })[codigo] || 'Não deu agora. Tente de novo.'

@@ -4,13 +4,13 @@
 
 /* ══════════════ Lobby (src/paginas/lobby/Lobby.jsx): grupo + painel de partida, no estilo da FACEIT, com a paleta do site ══════════════ */
 .lb-pagina {
-  position: relative; box-sizing: border-box; min-height: calc(100vh / var(--escala-site, 1) - 64px); padding: 22px 0; /* sem rodapé: a página fecha na tela */
+  position: relative; box-sizing: border-box; min-height: calc(100vh / var(--escala-site, 1) - 64px); padding: 0 0 22px; /* sem rodapé: a página fecha na tela */
   background:
     radial-gradient(70% 38% at 50% 0%, rgb(var(--tinta) / .045), transparent 70%),
     repeating-linear-gradient(135deg, transparent 0 22px, rgb(var(--tinta) / .018) 22px 23px),
     var(--bg);
 }
-.lb-wrap { max-width: 1480px; }
+.lb-wrap { max-width: 1480px; padding-top: 22px; }
 
 /* pílula da fila, no centro */
 .lb-fila { display: flex; justify-content: center; margin-bottom: 26px; }
@@ -439,8 +439,8 @@ a.sala-entrar { display: inline-flex; align-items: center; justify-content: cent
 html[data-desempenho] .lb-modo-premium::before, html[data-desempenho] .lb-modo-premium::after, html[data-desempenho] .lb-coroa { animation: none; }
 
 /* ── avisos do CS2 no topo (atualização do jogo / servidor em manutenção) ── */
-.lb-faixas { display: grid; gap: 8px; margin: 0 0 14px; }
-.lb-faixa { position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 11px 44px 11px 16px; border-radius: 8px; font: 700 14px/1.35 var(--font-body); text-align: center; }
+.lb-faixas { display: grid; gap: 0; margin: 0; } /* de ponta a ponta, colada no topo */
+.lb-faixa { position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 11px 52px 11px 24px; border-radius: 0; font: 700 14px/1.35 var(--font-body); text-align: center; }
 .lb-faixa svg { flex: none; }
 .lb-faixa a { color: inherit; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
 .lb-faixa-azul { background: #1a9bff; color: #04111f; }

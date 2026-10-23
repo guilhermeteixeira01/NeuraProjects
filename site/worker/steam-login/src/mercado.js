@@ -12,6 +12,7 @@
  *   POST /mercado/comprar { id }                  -> paga, recebe o item e avisa o vendedor: { ok, saldo }
  */
 import { avisarMercado } from './amigos.js'
+import { exigirSenha } from './contas.js'
 import { registrar } from './registro.js'
 import { lerSkins, novoIdItem } from './skins.js'
 import { mexerNoInventario } from './trocas.js'
@@ -234,6 +235,11 @@ export async function rotaDrops(req, env, cors, ctx) {
 // Rotas /mercado (login)
 export async function rotaMercado(req, env, quem, cors, rota) {
   const corpo = req.method === 'POST' ? await req.json().catch(() => ({})) : {}
+  // Colocar algo à venda pede a senha de segurança (evita golpe)
+  if (rota === '/mercado/anunciar' && req.method === 'POST') {
+    const falha = await exigirSenha(env, quem.id, corpo.senha, cors)
+    if (falha) return falha
+  }
   let pedido
   if (rota === '/mercado' && req.method === 'GET') pedido = { acao: 'listar' }
   else if (rota === '/mercado/anunciar' && req.method === 'POST') pedido = { acao: 'anunciar', id: corpo.id, preco: corpo.preco, nome: corpo.nome }

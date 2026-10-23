@@ -5,6 +5,8 @@ import { EVENTO_DESEMPENHO, desempenhoAtivo } from './desempenho.js'
 import { IDIOMAS, useT } from './i18n.js'
 import { escolherDesempenho, escolherIdioma, escolherTema } from './preferencias.js'
 import { EVENTO_TEMA, TEMAS, temaAtual } from './tema.js'
+import { perguntar, perguntarSenha } from './Dialogos.jsx'
+import { avisarMudancaConta, definirSenha, escolherNick, textoErroConta, useSeguranca } from './seguranca.js'
 
 function IconeEngrenagem() {
   return (
@@ -12,6 +14,61 @@ function IconeEngrenagem() {
       <circle cx="12" cy="12" r="3" />
       <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" />
     </svg>
+  )
+}
+
+// Conta: apelido (Premium troca a cada 15 dias) e senha de segurança (trocas e mercado)
+function ContaSeguranca() {
+  const t = useT()
+  const seg = useSeguranca()
+  const [msg, setMsg] = useState({ texto: '', ok: true })
+  if (!seg?.nick) return null // sem login (ou ainda escolhendo o apelido na janela de boas-vindas)
+  const trocarNick = async () => {
+    const novo = await perguntar(t('Novo apelido (3 a 20 caracteres):'), { titulo: t('Trocar apelido'), ok: t('Trocar') })
+    if (!novo) return
+    try {
+      await escolherNick(novo)
+      avisarMudancaConta()
+      setMsg({ texto: t('Apelido trocado!'), ok: true })
+    } catch (e) {
+      setMsg({ texto: t(textoErroConta(e)), ok: false })
+    }
+  }
+  const trocarSenha = async () => {
+    const atual = await perguntarSenha(t('Digite a sua senha de segurança atual.'), { titulo: t('Trocar senha'), ok: t('Continuar') })
+    if (!atual) return
+    const nova = await perguntarSenha(t('Nova senha (6 a 64 caracteres).'), { titulo: t('Trocar senha'), ok: t('Continuar') })
+    if (!nova) return
+    const repete = await perguntarSenha(t('Repita a nova senha.'), { titulo: t('Trocar senha'), ok: t('Trocar') })
+    if (!repete) return
+    if (nova !== repete) return setMsg({ texto: t('As duas senhas não são iguais.'), ok: false })
+    try {
+      await definirSenha(nova, atual)
+      avisarMudancaConta()
+      setMsg({ texto: t('Senha trocada!'), ok: true })
+    } catch (e) {
+      setMsg({ texto: t(textoErroConta(e)), ok: false })
+    }
+  }
+  return (
+    <div className="nx-config-campo nx-config-conta">
+      <span>{t('Conta')}</span>
+      <div className="nx-conta-linha">
+        <b title={t('Apelido')}>{seg.nick}</b>
+        <button type="button" className="nx-conta-acao" disabled={!seg.podeTrocarNick} onClick={trocarNick} title={seg.podeTrocarNick ? '' : seg.premium ? t('Próxima troca em {data}', { data: new Date(seg.proximaTroca).toLocaleDateString() }) : t('Só assinantes Premium trocam de apelido (a cada 15 dias).')}>
+          {t('Trocar apelido')}
+        </button>
+      </div>
+      <div className="nx-conta-linha">
+        <small>{seg.temSenha ? t('Senha de segurança criada') : t('Senha de segurança: ainda não criada')}</small>
+        {seg.temSenha && (
+          <button type="button" className="nx-conta-acao" onClick={trocarSenha}>
+            {t('Trocar senha')}
+          </button>
+        )}
+      </div>
+      {msg.texto && <small className={msg.ok ? 'nx-conta-ok' : 'nx-conta-erro'}>{msg.texto}</small>}
+    </div>
   )
 }
 
@@ -81,6 +138,8 @@ export default function Configuracoes() {
               ))}
             </div>
           </div>
+
+          <ContaSeguranca />
 
           <label className="nx-config-switch">
             <input type="checkbox" checked={desempenho} onChange={(e) => escolherDesempenho(e.target.checked)} />

@@ -11,6 +11,7 @@ import { CONFIG } from './config.js'
 import { tokenConta, useConta } from './conta.js'
 import { useT } from './i18n.js'
 import { lerCaixasPublicas } from './loja.js'
+import { comSenha } from './seguranca.js'
 import { registrarNotificacao } from './notificacoes.js'
 import { indicar, lerInventario, urlImg, useCatalogo, corEnfeite } from './skins.js'
 
@@ -24,7 +25,7 @@ async function chamar(rota, corpo) {
     body: corpo === undefined ? undefined : JSON.stringify(corpo),
   })
   const d = await r.json().catch(() => null)
-  if (!r.ok || d?.erro) throw new Error(d?.erro || 'falhou')
+  if (!r.ok || d?.erro) throw Object.assign(new Error(d?.erro || 'falhou'), { dados: d || {} })
   return d
 }
 export const lerTrocas = () => chamar('/trocas')
@@ -40,6 +41,10 @@ const MENSAGENS = {
   'seu-item-mudou': 'Você não tem mais algum dos itens pedidos.',
   cheio: 'O inventário de um dos dois está cheio.',
   login: 'Entre com a Steam.',
+  'senha-errada': 'Senha incorreta.',
+  bloqueado: 'Muitas tentativas erradas: aguarde 15 minutos e tente de novo.',
+  'sem-senha': 'Crie a sua senha de segurança para continuar.',
+  'senha-pedir': 'Digite a sua senha de segurança.',
 }
 const textoErro = (e) => MENSAGENS[e?.message] || 'Não deu para concluir agora. Tente de novo.'
 
@@ -169,7 +174,8 @@ export function JanelaTroca({ para, aoFechar, aoEnviada }) {
     setEnviando(true)
     setErro('')
     try {
-      await chamar('/trocas', { para: para.id, dar, pedir, msg })
+      const r = await comSenha(t('Para propor a troca, digite a sua senha de segurança.'), (senha) => chamar('/trocas', { para: para.id, dar, pedir, msg, senha }))
+      if (r.cancelado) return
       aoEnviada?.()
       aoFechar()
     } catch (e) {
@@ -346,7 +352,10 @@ function CartaoProposta({ p, eu, cat, aoMudar }) {
     setOcupado(true)
     setErro('')
     try {
-      await chamar(`/trocas/${acao}`, { id: p.id })
+      if (acao === 'aceitar') {
+        const r = await comSenha(t('Para aceitar a troca, digite a sua senha de segurança.'), (senha) => chamar('/trocas/aceitar', { id: p.id, senha }))
+        if (r.cancelado) return
+      } else await chamar(`/trocas/${acao}`, { id: p.id })
       setConfirmando(false)
       aoMudar()
     } catch (e) {

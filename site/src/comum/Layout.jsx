@@ -9,6 +9,7 @@ import { AvisoTroca } from './Trocas.jsx'
 import AvisoPontos from './AvisoPontos.jsx'
 import { useLuzCursor } from './efeitos.jsx'
 import Nav from './Nav.jsx'
+import BoasVindas from './BoasVindas.jsx'
 import { SincronizarPreferencias } from './preferencias.js'
 import { MostrarAposIdioma } from './i18n.js'
 
@@ -91,6 +92,7 @@ export default function Layout({ pagina, children }) {
     <>
       <Nav pagina={pagina} />
       {children}
+      <BoasVindas />
       <Avisos />
       <AvisoConvite />
       <AceitarPartida />

@@ -702,6 +702,7 @@ export default function Lobby() {
   return (
     <Layout pagina="lobby">
       <main className="lb-pagina">
+        {!pequena && <AvisosCs2 status={status} />}
         <div className="wrap lb-wrap">
           <div className="lb-bloqueio" role="status">
             <h1>{t('O lobby é só no computador')}</h1>
@@ -710,7 +711,6 @@ export default function Lobby() {
               {t('Voltar para o início')}
             </a>
           </div>
-          {!pequena && <AvisosCs2 status={status} />}
           {!pequena && (
             <div className="lb-conteudo" ref={conteudo}>
               <Conteudo status={status} />

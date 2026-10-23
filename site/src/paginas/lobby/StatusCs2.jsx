@@ -34,13 +34,15 @@ const guardada = (gid) => {
   }
 }
 
-// Faixas no topo: azul quando saiu atualização do CS2 (dá para fechar), amarela quando o servidor está em manutenção
+// Faixas coladas no topo da página, de ponta a ponta (como o carrossel de drops da loja): azul quando saiu atualização do CS2 e o
+// servidor está no ar (dá para fechar), amarela quando o servidor está em manutenção
 export function AvisosCs2({ status }) {
   const t = useT()
   const [fechado, setFechado] = useState(null)
   const gid = status?.atualizacao?.gid
-  const mostrarAtualizacao = !!gid && fechado !== gid && !guardada(gid)
   const srv = status?.servidor
+  // o aviso de atualização só faz sentido com o servidor no ar (se ele está fora, vale só o aviso de manutenção)
+  const mostrarAtualizacao = !!gid && srv?.online === true && fechado !== gid && !guardada(gid)
   const manutencao = srv && srv.online === false
   if (!mostrarAtualizacao && !manutencao) return null
   return (
