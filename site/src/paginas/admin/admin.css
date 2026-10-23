@@ -636,3 +636,11 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 .adm-dobra[open] > summary::before { transform: rotate(90deg); }
 .adm-dobra > summary::-webkit-details-marker { display: none; }
 .adm-dobra > :not(summary) { margin: 0 18px 18px; }
+
+/* coleções de molduras que abrem e fecham */
+.adm-colecao-abrir { display: inline-flex; align-items: center; gap: 10px; margin-right: auto; padding: 4px 6px; border: 0; background: none; color: inherit; cursor: pointer; text-align: left; }
+.adm-colecao-abrir h3 { margin: 0; }
+.adm-colecao-abrir i { font-style: normal; color: var(--accent); transition: transform .15s; }
+.adm-colecao-abrir[aria-expanded='true'] i { transform: rotate(90deg); }
+.adm-colecao-abrir small { padding: 2px 8px; border-radius: 999px; background: rgb(var(--tinta) / .08); color: var(--dim); font-size: 12px; }
+.adm-colecao.fechada { padding-bottom: 0; }

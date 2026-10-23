@@ -535,6 +535,7 @@ function CardsRegras({ config, aoSalvar }) {
 // ── Aba Molduras: liberar por nível ──
 function Molduras({ config, aoSalvar }) {
   const tr = useT()
+  const [abertas, setAbertas] = useState(() => new Set()) // coleções abertas (as molduras só são montadas com a coleção aberta: a aba não trava)
   const [porNivel, setPorNivel] = useState(!!config.molduraPorNivel)
   const [niveis, setNiveis] = useState(() => ({ ...config.nivelMoldura }))
   const [exclusiva, setExclusiva] = useState(() => ({ ...config.molduraCargo }))
@@ -591,12 +592,17 @@ function Molduras({ config, aoSalvar }) {
         {tr('Assinatura: a moldura só pode ser usada por assinantes Premium a partir do nível escolhido (Subscriber = qualquer assinante). Quem perde a assinatura, ou cai de nível, perde a moldura. Dono e admins não têm trava.')}
       </p>
       <div className="adm-colecoes">
-        {COLECOES.map((c) => {
+        {COLECOES.map((c, ic) => {
           const daColecao = MOLDURAS.filter((m) => m.colecao === c)
+          const aberta = abertas.has(c)
           return (
-            <section key={c} className="adm-colecao">
+            <section key={c} className={`adm-colecao${aberta ? '' : ' fechada'}`}>
               <div className="adm-colecao-cab">
-                <h3>{c}</h3>
+                <button type="button" className="adm-colecao-abrir" aria-expanded={aberta} onClick={() => setAbertas((s) => { const n = new Set(s); aberta ? n.delete(c) : n.add(c); return n })}>
+                  <i aria-hidden="true">▸</i>
+                  <h3>{c}</h3>
+                  <small>{daColecao.length}</small>
+                </button>
                 {cargos.length > 0 && (
                   <label>
                     {tr('Exclusiva:')}
@@ -627,6 +633,7 @@ function Molduras({ config, aoSalvar }) {
                   </select>
                 </label>
               </div>
+              {aberta && (
               <div className="adm-molduras">
                 {daColecao.map((m) => (
                   <div key={m.id} className={`adm-mold${cargoDe(m.id) ? ' exclusiva' : ''}`} style={cargoDe(m.id) ? { '--cg': cargoDe(m.id).cor } : undefined}>
@@ -656,6 +663,7 @@ function Molduras({ config, aoSalvar }) {
                   </div>
                 ))}
               </div>
+              )}
             </section>
           )
         })}

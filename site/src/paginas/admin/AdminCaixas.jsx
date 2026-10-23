@@ -134,6 +134,18 @@ function EditorCaixa({ c, armas, achar, mudar, remover }) {
   )
 }
 
+// <details> que só monta o conteúdo (o editor da caixa, pesado) quando está aberto: abrir a aba Loja não trava mais
+function CaixaDobravel({ children }) {
+  const [aberta, setAberta] = useState(false)
+  const [resumo, conteudo] = children
+  return (
+    <details className="adm-cx-caixa" onToggle={(e) => setAberta(e.currentTarget.open)}>
+      {resumo}
+      {conteudo(aberta)}
+    </details>
+  )
+}
+
 export default function AdminCaixas() {
   const t = useT()
   const catalogo = useCatalogo('armas')
@@ -217,7 +229,7 @@ export default function AdminCaixas() {
       <section className="adm-cx-bloco">
         <h3>{t('Caixas')} ({caixas.length})</h3>
         {caixas.map((c) => (
-          <details key={c.id} className="adm-cx-caixa">
+          <CaixaDobravel key={c.id}>
             <summary style={{ '--cor': c.cor }}>
               <img src={c.img} alt="" width="46" height="46" />
               <b>{c.nome}</b>
@@ -225,8 +237,8 @@ export default function AdminCaixas() {
                 {c.tier} · {c.preco} NP · {c.itens.length} skins · {c.facas.length} facas {c.ativa === false && `· ${t('fora de venda')}`} {c.arquivada && `· ${t('arquivada')}`}
               </em>
             </summary>
-            <EditorCaixa c={c} armas={armas} achar={achar} mudar={(parte) => mudarCaixa(c.id, parte)} remover={() => setCaixas((l) => l.filter((x) => x.id !== c.id))} />
-          </details>
+            {(aberta) => aberta && <EditorCaixa c={c} armas={armas} achar={achar} mudar={(parte) => mudarCaixa(c.id, parte)} remover={() => setCaixas((l) => l.filter((x) => x.id !== c.id))} />}
+          </CaixaDobravel>
         ))}
         <div className="adm-cx-barra">
           <button type="button" className="btn btn-ghost" onClick={nova}>
