@@ -204,7 +204,8 @@ export function valorDe(it) {
 // Dificuldade pelo valor (loja-core.js: DIFICULDADE): as caixas sorteiam com o valor de mercado do item (no desgaste do meio da faixa dele)
 definirValorador((x) => {
   if (x.t === 'adesivo' || x.t === 'chaveiro') return valorDe({ t: x.t, d: x.d })?.v ?? 0
-  const f = Math.min(0.45, ((Number.isFinite(x.min) ? x.min : 0) + (Number.isFinite(x.max) ? x.max : 1)) / 2)
+  // f: um desgaste específico (a abertura especial pede o valor em cada faixa); sem ele, o do meio da faixa da skin
+  const f = Number.isFinite(x.f) ? x.f : Math.min(0.45, ((Number.isFinite(x.min) ? x.min : 0) + (Number.isFinite(x.max) ? x.max : 1)) / 2)
   return valorDe({ t: x.t, d: x.d, p: x.p, f, st: 0 })?.v ?? 0
 })
 
