@@ -1423,4 +1423,8 @@ export default {
   "Caixas feitas para a comunidade.": "Cajas hechas para la comunidad.",
   "Trocar em {n} dias": "Cambiar en {n} días",
   "Trocar em {n} h": "Cambiar en {n} h",
+  "Abertura especial": "Apertura especial",
+  "A próxima caixa é especial!": "¡La próxima caja es especial!",
+  "Abertura especial em {n} caixas": "Apertura especial en {n} cajas",
+  "A cada {n} caixas abertas, uma sai entre as skins mais caras da caixa.": "Cada {n} cajas abiertas, una sale entre las skins más caras de la caja.",
 }

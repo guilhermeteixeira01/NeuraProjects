@@ -78,6 +78,37 @@ const pesoDoItem = (it, tipo) => {
   return w / (1 + Math.pow(v / DIFICULDADE.v0, DIFICULDADE.expo))
 }
 
+// Piso de chance: o peso da caixa e a dificuldade pelo valor juntos deixavam a skin mais cara 1 em centenas de milhares (impossível).
+// Dentro da raridade, nenhuma skin fica abaixo de PISO.fatia (3%) das chances da raridade, com uma trava: a skin não pode somar mais que
+// PISO.retorno (15%) do preço da caixa no valor esperado (chance × valor), para nunca dar para "farmar" NP abrindo e vendendo.
+// Devolve as fatias (somam 1) de cada item da lista, usadas pelo sorteio e pelas chances mostradas (sempre iguais).
+export const PISO = { fatia: 0.03, retorno: 0.15 }
+function fatiasDaRaridade(itens, tipo, fracaoRaridade, preco) {
+  const pesos = itens.map((it) => pesoDoItem(it, tipo))
+  const soma = pesos.reduce((a, b) => a + b, 0)
+  if (soma <= 0) return pesos.map(() => 0)
+  const fatias = pesos.map((p) => p / soma)
+  if (!valoradorDeItem || !(preco > 0) || !(fracaoRaridade > 0) || itens.some((it) => it.igual)) return fatias
+  // fatia mínima de cada item: o piso, ou menos se o item for caro demais para o preço da caixa
+  const minimas = itens.map((it, i) => {
+    if (!(pesos[i] > 0)) return 0
+    const v = Number(valoradorDeItem(it.t ? it : { ...it, t: tipo })) || 0
+    return v > 0 ? Math.min(PISO.fatia, (PISO.retorno * preco) / v / fracaoRaridade) : PISO.fatia
+  })
+  const sobe = fatias.map((f, i) => minimas[i] > f)
+  const fixo = minimas.reduce((a, m, i) => a + (sobe[i] ? m : 0), 0)
+  const resto = fatias.reduce((a, f, i) => a + (sobe[i] ? 0 : f), 0)
+  if (fixo >= 1 || resto <= 0) return fatias
+  // quem subiu fica no mínimo; os outros dividem o que sobrou na mesma proporção de antes
+  return fatias.map((f, i) => (sobe[i] ? minimas[i] : (f / resto) * (1 - fixo)))
+}
+// fração (0..1) de cada raridade na caixa: só as raridades que ela tem
+const fracoesDasRaridades = (caixa, cfg) => {
+  const taxas = cfg.taxas.map((t, r) => (r === 5 ? (caixa.facas.length ? t : 0) : caixa.itens.some((it) => it.r === r) ? t : 0))
+  const total = taxas.reduce((a, b) => a + b, 0) || 1
+  return taxas.map((t) => t / total)
+}
+
 // Índice sorteado por pesos (pesos <= 0 nunca saem)
 export function sortearPeso(pesos, rnd) {
   let total = 0
@@ -123,7 +154,7 @@ export function sortearAbertura(caixa, cfg, rnd) {
     origem = caixa.facas[indice]
     t = 'faca'
   } else {
-    const k = sortearPeso(porRaridade[raridade].map((x) => pesoDoItem(x.it, 'arma')), rnd)
+    const k = sortearPeso(fatiasDaRaridade(porRaridade[raridade].map((x) => x.it), 'arma', fracoesDasRaridades(caixa, cfg)[raridade], caixa.preco), rnd)
     indice = porRaridade[raridade][k].i
     origem = caixa.itens[indice]
     t = 'arma'
@@ -132,6 +163,34 @@ export function sortearAbertura(caixa, cfg, rnd) {
   if (origem.t === 'adesivo' || origem.t === 'chaveiro') return { raridade, indice, item: { t: origem.t, d: origem.d, p: 0, f: 0.5, s: 0, l: 0, faixa: null, n: origem.n || '', i: origem.i || '' } }
   const { f, faixa } = sortearDesgaste(cfg, origem.min, origem.max, rnd)
   return { raridade, indice, item: { t: origem.t === 'faca' || origem.t === 'luva' ? origem.t : t, d: origem.d, p: origem.p, f, s: Math.floor(rnd() * 1001), l: origem.l ? 1 : 0, faixa } }
+}
+
+// Abertura especial: a cada ESPECIAL.cada caixas abertas (somando todas), o item sai entre as ESPECIAL.top skins mais caras da caixa.
+// Entre elas, as mais baratas saem mais (peso 1/valor^a). O valor médio da especial fica até ESPECIAL.teto × o preço da caixa: se passar,
+// o expoente "a" sobe até caber, para a especial nunca virar um jeito de farmar NP.
+export const ESPECIAL = { cada: 100, top: 5, teto: 10 }
+export const ehEspecial = (numeroDaAbertura) => numeroDaAbertura > 0 && numeroDaAbertura % ESPECIAL.cada === 0
+export function sortearEspecial(caixa, cfg, rnd) {
+  const valor = (it) => (valoradorDeItem ? Number(valoradorDeItem({ ...it, t: it.t || 'arma' })) || 0 : 0)
+  const top = caixa.itens
+    .map((it, i) => ({ it, i, v: valor(it) }))
+    .filter((x) => x.it.w > 0)
+    .sort((a, b) => b.v - a.v)
+    .slice(0, ESPECIAL.top)
+  if (!top.length) return sortearAbertura(caixa, cfg, rnd)
+  const teto = ESPECIAL.teto * (caixa.preco > 0 ? caixa.preco : 1)
+  let pesos = top.map(() => 1)
+  for (let a = 0.5; a <= 4; a += 0.5) {
+    pesos = top.map((x) => 1 / Math.pow(Math.max(1, x.v), a))
+    const soma = pesos.reduce((s, p) => s + p, 0)
+    if (top.reduce((s, x, k) => s + (pesos[k] / soma) * x.v, 0) <= teto) break
+  }
+  const escolhido = top[sortearPeso(pesos, rnd)]
+  const origem = escolhido.it
+  const raridade = Math.max(0, Math.min(4, origem.r ?? 4))
+  if (origem.t === 'adesivo' || origem.t === 'chaveiro') return { raridade, indice: escolhido.i, especial: true, item: { t: origem.t, d: origem.d, p: 0, f: 0.5, s: 0, l: 0, faixa: null, n: origem.n || '', i: origem.i || '' } }
+  const { f, faixa } = sortearDesgaste(cfg, origem.min, origem.max, rnd)
+  return { raridade, indice: escolhido.i, especial: true, item: { t: origem.t === 'faca' || origem.t === 'luva' ? origem.t : 'arma', d: origem.d, p: origem.p, f, s: Math.floor(rnd() * 1001), l: origem.l ? 1 : 0, faixa } }
 }
 
 // Faixa da roleta horizontal: itens de enchimento nas proporções das raridades, com alguns cards dourados "?", e o vencedor em `alvo`.
@@ -189,10 +248,11 @@ export function chancesDaCaixa(caixa, cfg) {
   const total = taxas.reduce((a, b) => a + b, 0) || 1
   const raridades = taxas.map((t) => Math.round((t / total) * 10000) / 100)
   const itens = caixa.itens.map(() => 0)
+  const fracoes = fracoesDasRaridades(caixa, cfg)
   porRaridade.forEach((lista, r) => {
-    const soma = lista.reduce((a, x) => a + pesoDoItem(x.it, 'arma'), 0) || 1
+    const fatias = fatiasDaRaridade(lista.map((x) => x.it), 'arma', fracoes[r], caixa.preco)
     // 6 casas: item muito caro tem chance minúscula, mas nunca zero (com 3 casas ele virava "0%" na tela)
-    for (const x of lista) itens[x.i] = pesoDoItem(x.it, 'arma') > 0 ? Math.max(1e-6, Math.round(((raridades[r] * pesoDoItem(x.it, 'arma')) / soma) * 1e6) / 1e6) : 0
+    lista.forEach((x, k) => (itens[x.i] = fatias[k] > 0 ? Math.max(1e-6, Math.round(raridades[r] * fatias[k] * 1e6) / 1e6) : 0))
   })
   const somaF = caixa.facas.reduce((a, f) => a + pesoDoItem(f, 'faca'), 0) || 1
   const facas = caixa.facas.map((f) => (pesoDoItem(f, 'faca') > 0 ? Math.max(1e-6, Math.round(((raridades[5] * pesoDoItem(f, 'faca')) / somaF) * 1e6) / 1e6) : 0))

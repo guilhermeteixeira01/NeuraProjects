@@ -10,6 +10,7 @@ import { CATEGORIAS_CAIXA, categoriaDaCaixa } from '../../comum/temasCaixa.js'
 
 const num = (n) => Number(n || 0).toLocaleString(localeAtual())
 const erroTexto = (e) => ({ login: 'Seu login venceu. Entre de novo com a Steam.', dono: 'Só o dono mexe nos pontos.', id: 'SteamID64 inválido.', valor: 'Valor inválido.' })[e.message] || 'Não deu para aplicar. Tente de novo.'
+const QTD_MAX_BONUS = 2000 // bônus de caixa para todos: até o limite de itens do inventário (ITENS_MAX no worker)
 const AGORA_MS = 3000 // de quanto em quanto tempo o saldo é conferido enquanto um jogador está escolhido
 
 // fixo: SteamID64 do jogador (janela do jogador: sem escolher quem); modo 'todos': só o bônus para todos e a lista dos salvos
@@ -341,7 +342,7 @@ function BonusCaixa({ aoLancar }) {
 
   const grupos = CATEGORIAS_CAIXA.map(([id, nome]) => [id, nome, (caixas || []).filter((c) => categoriaDaCaixa(c) === id)]).filter((g) => g[2].length)
   const escolhida = (caixas || []).find((c) => String(c.id) === caixa)
-  const n = Math.max(0, Math.min(10, Math.round(Number(qtd) || 0)))
+  const n = Math.max(0, Math.min(QTD_MAX_BONUS, Math.round(Number(qtd) || 0)))
   const podeAplicar = !ocupado && !!escolhida && n > 0
 
   const aplicar = async () => {
@@ -381,7 +382,7 @@ function BonusCaixa({ aoLancar }) {
       <div className="adm-pt-grupo">
         <b>{t('Quantidade')}</b>
         <div className="adm-pt-linha">
-          <input type="number" min="1" max="10" step="1" inputMode="numeric" value={qtd} onChange={(e) => setQtd(e.target.value)} aria-label={t('Quantidade')} />
+          <input type="number" min="1" max={QTD_MAX_BONUS} step="1" inputMode="numeric" value={qtd} onChange={(e) => setQtd(e.target.value)} aria-label={t('Quantidade')} />
           <input type="text" maxLength={60} placeholder={t('Motivo (opcional)')} value={motivo} onChange={(e) => setMotivo(e.target.value)} />
         </div>
       </div>

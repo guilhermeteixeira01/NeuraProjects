@@ -244,6 +244,7 @@ function Conteudo() {
           saldo={dados.saldo}
           tem={dados.fechadas[sel.id] || 0}
           maxQtd={dados.cfg.maxQtd}
+          aberturas={dados.aberturas || 0}
           achar={achar}
           favorita={fav.includes(sel.slug)}
           aoFavoritar={() => alternarFav(sel.slug)}

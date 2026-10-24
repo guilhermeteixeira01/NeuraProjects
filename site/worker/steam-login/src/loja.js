@@ -29,7 +29,7 @@
  *   GET  /admin/loja-saldo?id= (dono)  -> { saldo, ganhos, gastos, movimentos } de um jogador
  */
 import { avisarPerfil } from './amigos.js'
-import { BONUS_PREMIUM_PARTIDA, CONFIG_PADRAO, MODOS, padraoRaro, definirValorador, aplicarModo, faixasDeDesgaste, precoDeMercado, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura } from './loja-core.js'
+import { BONUS_PREMIUM_PARTIDA, CONFIG_PADRAO, MODOS, padraoRaro, definirValorador, aplicarModo, faixasDeDesgaste, precoDeMercado, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura, ehEspecial, sortearEspecial } from './loja-core.js'
 import { lerSkinsKv, limparSkins, novoIdItem } from './skins.js'
 import CAIXAS_INICIAIS from './caixas-iniciais.json'
 import CAIXAS_REMOVIDAS from './caixas-removidas.json' // as 31 caixas antigas, apagadas de vez (revisão 11)
@@ -690,8 +690,11 @@ export class Loja {
     const agora = Date.now()
     const resultados = []
     const linhas = []
+    // abertura especial (loja-core.js: ESPECIAL): a 100ª, 200ª... caixa aberta pelo jogador sai entre as skins mais caras da caixa
+    const jaAbertas = Number(this.sql.exec('SELECT COUNT(*) AS n FROM aberturas').one().n) || 0
     for (let k = 0; k < qtd; k++) {
-      const ganhou = sortearAbertura(caixa, cfg, rndSeguro)
+      const especial = ehEspecial(jaAbertas + k + 1)
+      const ganhou = especial ? sortearEspecial(caixa, cfg, rndSeguro) : sortearAbertura(caixa, cfg, rndSeguro)
       const faixa = gerarFaixa(caixa, cfg, ganhou, rndSeguro)
       const item = novoIdItem()
       const { faixa: nomeFaixa, n: nomeItem, i: imgItem, ...base } = ganhou.item
@@ -707,6 +710,7 @@ export class Loja {
         faixa: faixa.itens,
         alvo: faixa.alvo,
         quase: faixa.quase,
+        especial,
         facas: ganhou.raridade === 5 ? gerarFaixaFacas(caixa, ganhou, rndSeguro) : null,
         v: valorDe(inv.itens[item])?.v ?? 0, // por quanto vende (botões "Vender por X" do resultado)
       })
@@ -722,7 +726,7 @@ export class Loja {
     const novas = await this.conferirInsignias(id, caixas, await this.fechadas(id))
     // quantas dessa caixa ainda sobram no inventário (a tela "Abrir outra" usa para contar o que já tem antes de cobrar)
     const restantes = Object.values(limpo.itens).filter((it) => it.t === 'caixa' && it.d === caixa.id).length
-    return { saldo: pontos - this.gastos(), resultados, restantes, insignias: novas.ids, insigniasTs: novas.ts }
+    return { saldo: pontos - this.gastos(), resultados, restantes, aberturas: jaAbertas + qtd, insignias: novas.ids, insigniasTs: novas.ts }
   }
 }
 
@@ -876,10 +880,10 @@ export async function rotaAdminLoja(req, env, rota, cors) {
     const r = await chamar(env, corpo.alvo, { acao: corpo.acao === 'definir' ? 'definir' : 'creditar', pontos, bonus, valor: corpo.acao === 'remover' ? -valor : valor, motivo, aviso: corpo.acao !== 'definir' })
     return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
   }
-  // Bônus de caixa fechada para todos: { caixa (id), qtd 1..10, motivo }. Entra na mesma lista dos bônus de NP (os ids seguem um contador só)
+  // Bônus de caixa fechada para todos: { caixa (id), qtd 1..ITENS_MAX, motivo }. Entra na mesma lista dos bônus de NP (os ids seguem um contador só)
   if (rota === '/admin/loja-bonus-caixa') {
     const caixa = (await lerCaixas(env)).find((c) => c.id === Number(corpo.caixa) && !c.arquivada)
-    const qtd = Math.round(num(corpo.qtd, 1, 10, 0))
+    const qtd = Math.round(num(corpo.qtd, 1, ITENS_MAX, 0))
     if (!caixa) return json({ erro: 'caixa' }, 400, cors)
     if (!qtd) return json({ erro: 'valor' }, 400, cors)
     const lista = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []

@@ -779,3 +779,13 @@ img.lj-emblema { width: 92px; height: auto; object-fit: contain; filter: drop-sh
   .lj-caixa-preco { padding: 5px 12px; font-size: 14px; }
 }
 @media (prefers-reduced-motion: reduce) { .lj-caixa-arte img, .lj-caixa-arte::before { transition: none; } }
+
+/* ── Abertura especial (a cada 100 caixas): barrinha de progresso embaixo do Abrir e selo dourado no item que saiu nela ── */
+.lj-cx-especial { display: grid; gap: 5px; width: min(260px, 100%); font: 600 12.5px var(--font-body); color: var(--dim); text-align: center; }
+.lj-cx-especial i { display: block; height: 4px; border-radius: 4px; background: rgb(255 255 255 / .1); overflow: hidden; }
+.lj-cx-especial u { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #b8860b, #f5c518); transition: width .4s ease; }
+.lj-cx-especial.is-proxima { color: #f5c518; animation: lj-especial-pulsa 1.4s ease-in-out infinite; }
+@keyframes lj-especial-pulsa { 50% { opacity: .65; } }
+.lj-especial-selo { position: absolute; top: 6px; left: 6px; z-index: 3; padding: 3px 8px; border-radius: 5px; background: linear-gradient(90deg, #b8860b, #f5c518); color: #1a1400; font: 800 11px var(--font-body); letter-spacing: .03em; text-transform: uppercase; box-shadow: 0 4px 14px -4px #f5c518; pointer-events: none; }
+.lj-rev-cartao { position: relative; }
+@media (prefers-reduced-motion: reduce) { .lj-cx-especial.is-proxima { animation: none; } }

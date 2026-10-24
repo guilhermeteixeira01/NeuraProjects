@@ -110,6 +110,22 @@ function IconeSom({ ligado }) {
   )
 }
 
+// ── abertura especial: a cada 100 caixas abertas (todas somadas) o item sai entre as skins mais caras da caixa (worker: loja-core.js ESPECIAL) ──
+const CADA_ESPECIAL = 100
+function ProgressoEspecial({ aberturas }) {
+  const t = useT()
+  const feitas = aberturas % CADA_ESPECIAL
+  const faltam = CADA_ESPECIAL - feitas
+  return (
+    <span className={`lj-cx-especial${faltam === 1 ? ' is-proxima' : ''}`} title={t('A cada {n} caixas abertas, uma sai entre as skins mais caras da caixa.', { n: CADA_ESPECIAL })}>
+      <span>{faltam === 1 ? `★ ${t('A próxima caixa é especial!')}` : t('Abertura especial em {n} caixas', { n: faltam })}</span>
+      <i aria-hidden="true">
+        <u style={{ width: `${(feitas / CADA_ESPECIAL) * 100}%` }} />
+      </i>
+    </span>
+  )
+}
+
 // ── partículas ao ligar um modo: saem das molduras das roletas, na cor do modo (canvas por cima, não pega clique) ──
 function ParticulasModo({ modo, chave }) {
   const ref = useRef(null)
@@ -347,7 +363,7 @@ function JanelaEspeciais({ itens, achar, aoFechar }) {
   )
 }
 
-export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado = false, achar, favorita, aoFavoritar, aoVoltar, aoAbriu }) {
+export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, ocupado = false, achar, favorita, aoFavoritar, aoVoltar, aoAbriu }) {
   const t = useT()
   const maximo = Math.min(maxQtd, MAX_POR_VEZ)
   const [qtd, setQtd] = useState(1)
@@ -547,6 +563,7 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, ocupado = false, ac
             <button type="button" className="lj-cx-btn-abrir" disabled={girando || ocupado || preco == null} onClick={() => (falta ? setDepositando(true) : abrir(qtd, 'direto'))}>
               {girando ? t('Abrindo…') : preco == null ? t('Carregando…') : t('Abrir por {n} NP', { n: numero(custo) })}
             </button>
+            <ProgressoEspecial aberturas={aberturas} />
             {!modo && tem > 0 && (
               <span className="lj-cx-extras">
                 <button type="button" className="lj-cx-link" disabled={girando || ocupado} onClick={() => abrir(Math.min(qtd, tem), 'inventario')}>

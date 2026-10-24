@@ -325,6 +325,12 @@ function Particulas({ r }) {
 }
 
 // ── revelação: brilho, raios, flash, partículas e tremida, crescendo com a raridade ──
+// selo da abertura especial (a cada 100 caixas: item entre os mais caros da caixa)
+function SeloEspecial() {
+  const t = useT()
+  return <span className="lj-especial-selo">★ {t('Abertura especial')}</span>
+}
+
 function Revelacao({ resultado, achar }) {
   const t = useT()
   const r = resultado.raridade
@@ -337,6 +343,7 @@ function Revelacao({ resultado, achar }) {
       {r >= 4 && <span className="lj-flash" aria-hidden="true" />}
       <Particulas r={r} />
       <div className="lj-rev-cartao">
+        {resultado.especial && <SeloEspecial />}
         <span className="lj-rev-raridade">{t(RARIDADES[r].nome)}</span>
         <img src={x.imgGrande || x.img} alt="" draggable="false" />
         <b>{x.nome}</b>
@@ -572,9 +579,14 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
                 especial={ativa ? { itens: r.facas.itens, alvo: r.facas.alvo, lista: caixa.facas, rapida, aoParar: () => { som('parar'); setTimeout(proximaFaca, 1000) } } : undefined}
                 extra={
                   pronto ? (
-                    <button type="button" className={`lj-vender-um${vendido ? ' is-vendido' : ''}`} disabled={vendido || vendendo} onClick={() => aoVender?.([r.id])}>
-                      {vendido ? t('Vendido') : t('Vender por {n} NP', { n: (r.v || 0).toLocaleString('pt-BR') })}
-                    </button>
+                    <>
+                      {r.especial && <SeloEspecial />}
+                      <button type="button" className={`lj-vender-um${vendido ? ' is-vendido' : ''}`} disabled={vendido || vendendo} onClick={() => aoVender?.([r.id])}>
+                        {vendido ? t('Vendido') : t('Vender por {n} NP', { n: (r.v || 0).toLocaleString('pt-BR') })}
+                      </button>
+                    </>
+                  ) : r.especial ? (
+                    <SeloEspecial />
                   ) : null
                 }
               />

@@ -233,7 +233,7 @@ test('sortearPeso ignora pesos zerados', () => {
 })
 
 // ── venda ──
-import { VALOR_BASE, definirValorador, multiplicadorDoDesgaste, precoDeMercado, valorDaFaca, valorDoItem } from '../src/loja-core.js'
+import { VALOR_BASE, definirValorador, faixasDeDesgaste, multiplicadorDoDesgaste, precoDeMercado, valorDaFaca, valorDoItem } from '../src/loja-core.js'
 test('valor de venda: maior com raridade maior e desgaste melhor; StatTrak vale mais', () => {
   for (let r = 1; r <= 6; r++) assert.ok(valorDoItem({ f: 0.1 }, r) > valorDoItem({ f: 0.1 }, r - 1), 'raridade ' + r)
   for (const f of [0, 0.05, 0.1, 0.2, 0.4, 0.6, 0.9]) assert.ok(valorDoItem({ f }, 3) >= valorDoItem({ f: f + 0.05 }, 3), 'desgaste ' + f)
@@ -251,12 +251,12 @@ test('vender não paga a caixa de volta (valor esperado de uma abertura fica bem
     const valor = (it) => (it.t === 'adesivo' ? precos.a[it.d] : it.t === 'chaveiro' ? precos.c[it.d] : precoDeMercado(it, precos.skins)) || 0 // igual ao scripts/precos-caixas.mjs
     // o sorteio de verdade (loja.js) deixa o item caro mais raro pelo preço de mercado; o preço das caixas conta com isso
     definirValorador((x) => (x.t === 'adesivo' ? precos.a[x.d] : x.t === 'chaveiro' ? precos.c[x.d] : precoDeMercado({ ...x, f: Math.min(0.45, ((x.min ?? 0) + (x.max ?? 1)) / 2), st: 0 }, precos.skins)) || 0)
-    let soma = 0
-    const N = 3000
-    for (let i = 0; i < N; i++) soma += valor(sortearAbertura(c, cfg2, rndSeguro).item)
+    // valor esperado exato (chances × valor em cada faixa de desgaste): sorteando, uma skin caríssima rara fazia o teste falhar às vezes
+    const ch = chancesDaCaixa(c, cfg2)
+    const medio = (it, t) => (it.t === 'adesivo' || it.t === 'chaveiro' ? valor(it) : faixasDeDesgaste(cfg2, it.min, it.max).reduce((a, fx) => a + fx.p * valor({ ...it, t: it.t || t, f: fx.f, st: 0 }), 0))
+    const esperado = c.itens.reduce((a, it, i) => a + (ch.itens[i] / 100) * medio(it, 'arma'), 0) + c.facas.reduce((a, it, i) => a + (ch.facas[i] / 100) * medio(it, 'faca'), 0)
     definirValorador(null)
-    assert.ok(soma / N < c.preco * 0.9, // margem 1,6 (≈62%) + ruído da simulação nas caixas com skin muito cara
-       `${c.slug}: valor médio de mercado ${(soma / N).toFixed(0)} vs preço ${c.preco}`)
+    assert.ok(esperado < c.preco * 0.9, `${c.slug}: valor médio de mercado ${esperado.toFixed(0)} vs preço ${c.preco}`)
   }
 })
 
@@ -299,4 +299,44 @@ test('categorias da loja por franquia: Kakashi/Sasuke em Naruto, Ichigo/Hollow e
   assert.equal(cat('caixa-chaveiros-toxic'), 'amuletos')
   for (const c of CAIXAS) assert.ok(!['tematicas', 'facas', 'luvas', 'misto'].includes(categoriaDaCaixa(c)), `${c.slug} sem tema`)
   assert.equal(categoriaDaCaixa({ slug: 'caixa-nova', itens: [{ t: 'faca', d: 1 }] }), 'facas') // criada no painel: pelo conteúdo
+})
+
+test('piso de chance: a skin mais cara da raridade nunca fica impossível, mas também não paga a caixa', async () => {
+  const { definirValorador, PISO } = await import('../src/loja-core.js')
+  // caixa com uma skin barata comum e, no vermelho, duas baratas e uma caríssima com peso minúsculo
+  const valores = { 1: 5, 2: 300, 3: 300, 4: 40000 }
+  definirValorador((x) => valores[x.d] || 0)
+  const caixa = { preco: 250, facas: [], itens: [{ d: 1, p: 1, r: 0, w: 10000 }, { d: 2, p: 1, r: 4, w: 600 }, { d: 3, p: 1, r: 4, w: 600 }, { d: 4, p: 1, r: 4, w: 50 }] }
+  const ch = chancesDaCaixa(caixa, cfg)
+  const fracVermelho = cfg.taxas[4] / (cfg.taxas[0] + cfg.taxas[4])
+  const minimo = Math.min(PISO.fatia, (PISO.retorno * caixa.preco) / valores[4] / fracVermelho) * fracVermelho * 100
+  assert.ok(Math.abs(ch.itens[3] - minimo) < 1e-4, `chance ${ch.itens[3]} deveria ser ${minimo}`)
+  assert.ok(Math.abs(ch.itens.reduce((a, b) => a + b, 0) - 100) < 1e-3) // continua somando 100%
+  assert.ok((ch.itens[3] / 100) * valores[4] <= PISO.retorno * caixa.preco + 1e-6) // a skin cara não passa de 15% do preço no valor esperado
+  // o sorteio segue as mesmas chances
+  let n = 0
+  const N = 200000
+  for (let i = 0; i < N; i++) if (sortearAbertura(caixa, cfg, rndSeguro).indice === 3) n++
+  assert.ok(Math.abs((n / N) * 100 - ch.itens[3]) < 0.08, `sorteio ${(n / N) * 100}% vs ${ch.itens[3]}%`)
+  definirValorador(null)
+})
+
+test('abertura especial: a cada 100 caixas, o item sai só entre as 5 skins mais caras da caixa, sem passar do teto de valor', async () => {
+  const { definirValorador, ehEspecial, sortearEspecial, ESPECIAL } = await import('../src/loja-core.js')
+  assert.deepEqual([1, 99, 100, 150, 200, 300].map(ehEspecial), [false, false, true, false, true, true])
+  const valores = { 1: 5, 2: 10, 3: 300, 4: 400, 5: 500, 6: 900, 7: 40000 }
+  definirValorador((x) => valores[x.d] || 0)
+  const caixa = { preco: 250, facas: [], itens: Object.keys(valores).map((d) => ({ d: Number(d), p: 1, r: Number(d) > 5 ? 4 : 2, w: 100 })) }
+  const vistos = new Set()
+  let soma = 0
+  const N = 20000
+  for (let i = 0; i < N; i++) {
+    const g = sortearEspecial(caixa, cfg, rndSeguro)
+    assert.ok(g.especial)
+    vistos.add(caixa.itens[g.indice].d)
+    soma += valores[caixa.itens[g.indice].d]
+  }
+  assert.ok(![1, 2].some((d) => vistos.has(d)), 'as baratas nunca saem na especial')
+  assert.ok(soma / N <= ESPECIAL.teto * caixa.preco * 1.1, `valor médio ${soma / N}`)
+  definirValorador(null)
 })
