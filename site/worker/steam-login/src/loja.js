@@ -302,13 +302,14 @@ export class Loja {
   // Bônus para todos (KV "loja-bonus": [{ id, ts, valor, motivo }] de NP ou [{ id, ts, caixa, qtd, nome, motivo }] de caixa fechada, POST /admin/loja-bonus):
   // cada jogador recebe cada bônus uma vez, na próxima vez que mexe na loja
   async aplicarBonus(bonus, id, caixas = []) {
-    if (!Array.isArray(bonus) || !bonus.length) return
+    // sem o id não dá para pôr caixa no inventário: não aplica nada (nem avança o contador), fica para a próxima chamada
+    if (!id || !Array.isArray(bonus) || !bonus.length) return
     const visto = (await this.ctx.storage.get('bonusVisto')) || 0
     const novos = bonus.filter((b) => b.id > visto)
     if (!novos.length) return
     // bônus apagado pelo dono (apagado: true) ou zerado não entra: só o contador avança, para os próximos bônus funcionarem
     const valem = novos.filter((b) => !b.apagado && !b.caixa && Math.round(b.valor) !== 0)
-    const caixasBonus = id ? novos.filter((b) => !b.apagado && b.caixa && Math.round(b.qtd) > 0) : []
+    const caixasBonus = novos.filter((b) => !b.apagado && b.caixa && Math.round(b.qtd) > 0)
     this.ctx.storage.transactionSync(() => {
       for (const b of valem) this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', b.ts, -Math.round(b.valor), `bônus: ${b.motivo || 'para todos'}`)
     })
