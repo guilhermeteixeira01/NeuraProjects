@@ -5,7 +5,7 @@
 // Aberto/fechado e a última aba ficam guardados no navegador. Amigos e presença: comum/amigos.js. Chat: comum/mensagens.js.
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { seForErroApi } from './api.js'
+import { lerApi, seForErroApi } from './api.js'
 import { acaoAmizade, buscarJogadores, relacaoCom, tempoDesde, useAmigos } from './amigos.js'
 import { carregarMensagens, definirConversaAberta, enviarMensagem, horaOuData, useConversas } from './mensagens.js'
 import { useAvatar } from './avatares.js'
@@ -89,7 +89,8 @@ function Grupo({ titulo, n, children, classe = '' }) {
 const extrairId = (txt) => /(?<!\d)(\d{17})(?!\d)/.exec(txt)?.[1] || null
 const semAcento = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
-// Adicionar amigo: por SteamID / link do perfil, ou pelo nome (quem já jogou no servidor, lista do ranking)
+// Adicionar amigo: por nome (quem já jogou ou visitou o site), SteamID, link do perfil ou nome de usuário da Steam (/id/<isto>).
+// As três últimas formas acham a pessoa pela própria Steam (GET /jogador, público): funciona mesmo com quem nunca entrou no site.
 function AdicionarAmigo({ lista, eu }) {
   const t = useT()
   const [busca, setBusca] = useState('')
@@ -117,13 +118,35 @@ function AdicionarAmigo({ lista, eu }) {
       clearTimeout(espera)
     }
   }, [termo, id])
+  // Achar pela Steam direto: sempre que tem um SteamID/link exato, ou (sem achar ninguém por nome) o texto tem cara de nome de
+  // usuário da Steam ou de link do perfil — assim dá para adicionar quem nunca entrou no site, só por esses dados.
+  const [porLink, setPorLink] = useState(null)
+  useEffect(() => {
+    setPorLink(null)
+    const pareceVanity = /steamcommunity\.com\//i.test(termo) || /^[\w-]{2,32}$/.test(termo)
+    const alvo = id || (pareceVanity ? termo : '')
+    if (!alvo) return
+    let vivo = true
+    const espera = setTimeout(() => {
+      lerApi(`/jogador?${id ? 'id' : 'perfil'}=${encodeURIComponent(alvo)}`)
+        .then((d) => vivo && setPorLink(d?.id ? d : null))
+        .catch(seForErroApi(() => vivo && setPorLink(null)))
+    }, 350)
+    return () => {
+      vivo = false
+      clearTimeout(espera)
+    }
+  }, [termo, id])
   let achados = []
-  if (id) achados = id === eu ? [] : [{ id, nome: (jogadores || []).find((j) => j.steamId === id)?.nome || '', avatar: (jogadores || []).find((j) => j.steamId === id)?.avatar || '' }]
+  if (id) achados = id === eu ? [] : [{ id, nome: porLink?.nome || '', avatar: porLink?.avatar || '' }]
   else if (termo.length >= 2) {
     const q = semAcento(termo)
     const doRanking = (jogadores || []).filter((j) => j.steamId !== eu && semAcento(j.nome).includes(q)).map((j) => ({ id: j.steamId, nome: j.nome, avatar: j.avatar }))
     const vistos = new Set()
     achados = [...doRanking, ...doSite.filter((j) => j.id !== eu)].filter((a) => !vistos.has(a.id) && vistos.add(a.id)).slice(0, 8)
+    // ninguém com esse nome entre quem já visitou: se também parece um link ou nome de usuário da Steam, usa quem ela achou
+    // marcado "porSteam": pode não ser quem a pessoa está pensando (achado só pelo nome de usuário da Steam, não pelo nome no site)
+    if (!achados.length && porLink && porLink.id !== eu) achados = [{ ...porLink, porSteam: true }]
   }
 
   const fazer = async (acao, alvo) => {
@@ -143,8 +166,8 @@ function AdicionarAmigo({ lista, eu }) {
       <input
         type="search"
         value={busca}
-        placeholder={t('Adicionar por nome ou SteamID')}
-        aria-label={t('Adicionar amigo por nome ou SteamID')}
+        placeholder={t('Nome, SteamID ou link do perfil')}
+        aria-label={t('Adicionar amigo por nome, SteamID ou link do perfil')}
         onFocus={carregar}
         onChange={(e) => setBusca(e.target.value)}
         autoComplete="off"
@@ -156,6 +179,7 @@ function AdicionarAmigo({ lista, eu }) {
             const rel = relacaoCom(lista, a.id)
             return (
               <Linha key={a.id} a={a} st="pedido">
+                {a.porSteam && <small className="am-achado-steam" title={t('Achado pelo nome de usuário da Steam, não pelo nome no site: confira se é mesmo quem você procura.')}>{t('Steam')}</small>}
                 {rel === 'amigo' && <span className="am-ja">{t('Amigos')} ✓</span>}
                 {rel === 'enviado' && <span className="am-ja">{t('Pedido enviado')}</span>}
                 {rel === 'recebido' && (
@@ -173,7 +197,7 @@ function AdicionarAmigo({ lista, eu }) {
           })}
         </ul>
       )}
-      {termo.length >= 2 && !id && jogadores !== null && achados.length === 0 && <p className="am-vazio">{t('Ninguém encontrado. Tente o SteamID ou o link do perfil.')}</p>}
+      {termo.length >= 2 && !id && jogadores !== null && achados.length === 0 && <p className="am-vazio">{t('Ninguém encontrado. Tente o SteamID, o link do perfil ou o nome de usuário da Steam (o que vem depois de steamcommunity.com/id/).')}</p>}
       {erro && <p className="am-erro">{erro}</p>}
     </div>
   )

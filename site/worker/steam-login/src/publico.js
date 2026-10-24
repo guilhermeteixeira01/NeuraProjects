@@ -16,7 +16,7 @@ import { timeDosJogadores } from './equipes.js'
 import { semDerrubar } from './objetos.js'
 import { configPublica, lerConfig, lerPerfis } from './perfis.js'
 import { lerRanking } from './ranking.js'
-import { avatarAnimado, perfilSteam, resumosSteam } from './steam.js'
+import { avatarAnimado, perfilSteam, resolverVanity, resumosSteam } from './steam.js'
 import { lerUsuarios } from './usuarios.js'
 
 const ID_STEAM = /^\d{17}$/
@@ -40,16 +40,33 @@ export async function rotaNicks(url, env) {
 
 export const rotaConfig = async (env) => json(configPublica(await lerConfig(env), env), 200, publico)
 
-// GET /jogador?id= -> { nome, avatar }: Steam primeiro (atuais); a cópia do login (usuarios) só se a Steam não responder.
+// Link do perfil ou nome de usuário colado (ex.: "steamcommunity.com/id/fulano", "steamcommunity.com/profiles/765...", só "fulano"
+// ou só o SteamID64) -> { id } (já é um SteamID64) ou { vanity } (nome de usuário: precisa perguntar à Steam qual é o SteamID64)
+function doTextoDoPerfil(texto) {
+  const t = String(texto || '').trim()
+  const id = /(\d{17})/.exec(t)?.[1]
+  if (id) return { id }
+  const vanity = /steamcommunity\.com\/id\/([\w-]{2,32})/i.exec(t)?.[1] || (/^[\w-]{2,32}$/.test(t) ? t : '')
+  return vanity ? { vanity } : null
+}
+
+// GET /jogador?id=<SteamID64> ou ?perfil=<link do perfil ou nome de usuário> -> { id, nome, avatar }: Steam primeiro (atuais);
+// a cópia do login (usuarios) só se a Steam não responder. Com "perfil", acha o SteamID64 de quem nunca entrou no site (para
+// adicionar amigo por link ou nome de usuário da Steam, não só por quem já jogou ou visitou).
 // Guardado 1 hora no cache da Cloudflare (poupa a API); trocar o apelido apaga a cópia (esquecerJogador)
 const chaveJogador = (id) => new Request(`https://cache.neura/jogador/${id}`)
 export async function rotaJogador(url, env) {
-  const id = url.searchParams.get('id') || ''
+  let id = url.searchParams.get('id') || ''
+  const perfil = url.searchParams.get('perfil') || ''
+  if (!ID_STEAM.test(id) && perfil) {
+    const alvo = doTextoDoPerfil(perfil)
+    id = alvo?.id || (alvo?.vanity ? await resolverVanity(env, alvo.vanity) : '')
+  }
   if (!ID_STEAM.test(id)) throw new ErroPedido('id')
   const guardado = await caches.default.match(chaveJogador(id))
   if (guardado) return guardado
   const [usuario, steam, nicks] = await Promise.all([lerUsuarios(env).then((u) => u[id]), perfilSteam(env, id), chamarContas(env, { acao: 'nicks', ids: [id] })])
-  const resposta = json({ nome: nicks[id] || steam.nome || usuario?.nome || '', avatar: steam.avatar || usuario?.avatar || '' }, 200, { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=3600' })
+  const resposta = json({ id, nome: nicks[id] || steam.nome || usuario?.nome || '', avatar: steam.avatar || usuario?.avatar || '' }, 200, { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=3600' })
   await caches.default.put(chaveJogador(id), resposta.clone())
   return resposta
 }

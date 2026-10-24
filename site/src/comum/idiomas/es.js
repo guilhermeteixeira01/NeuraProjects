@@ -1455,4 +1455,9 @@ export default {
   "Vocês não são mais amigos: dá para ver as mensagens antigas, mas não para mandar novas.": "Ya no son amigos: puedes ver los mensajes antiguos, pero no enviar nuevos.",
   "Não deu para enviar. Tente de novo.": "No se pudo enviar. Inténtalo de nuevo.",
   "Não deu para carregar a conversa.": "No se pudo cargar la conversación.",
+  "Nome, SteamID ou link do perfil": "Nombre, SteamID o enlace del perfil",
+  "Adicionar amigo por nome, SteamID ou link do perfil": "Agregar amigo por nombre, SteamID o enlace del perfil",
+  "Ninguém encontrado. Tente o SteamID, o link do perfil ou o nome de usuário da Steam (o que vem depois de steamcommunity.com/id/).": "No se encontró a nadie. Prueba con el SteamID, el enlace del perfil o el nombre de usuario de Steam (lo que va después de steamcommunity.com/id/).",
+  "Achado pelo nome de usuário da Steam, não pelo nome no site: confira se é mesmo quem você procura.": "Encontrado por el nombre de usuario de Steam, no por el nombre en el sitio: confirma que sea realmente quien buscas.",
+  "Steam": "Steam",
 }

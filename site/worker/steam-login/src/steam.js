@@ -41,3 +41,16 @@ export async function avatarAnimado(id) {
   const img = d?.response?.avatar?.image_small
   return /\.gif$/i.test(img || '') ? CDN_ITENS + img : ''
 }
+
+// "Nome de usuário" (vanity URL, o /id/<isto> do perfil) -> SteamID64, ou '' se não existir. Quem tem perfil só com /profiles/<id>
+// (nunca escolheu um nome de usuário) não passa por aqui: o SteamID64 já veio direto do link ou foi digitado.
+export async function resolverVanity(env, vanity) {
+  if (!env.STEAM_API_KEY || !/^[\w-]{2,32}$/.test(vanity)) return ''
+  try {
+    const d = await pedirSteam(`${API}/ISteamUser/ResolveVanityURL/v1/?key=${env.STEAM_API_KEY}&vanityurl=${encodeURIComponent(vanity)}`, 4000)
+    return d?.response?.success === 1 && /^\d{17}$/.test(d.response.steamid) ? d.response.steamid : ''
+  } catch (e) {
+    if (!(e instanceof ErroServico)) throw e
+    return ''
+  }
+}

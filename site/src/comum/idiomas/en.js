@@ -1455,4 +1455,9 @@ export default {
   "Vocês não são mais amigos: dá para ver as mensagens antigas, mas não para mandar novas.": "You are no longer friends: you can see old messages, but not send new ones.",
   "Não deu para enviar. Tente de novo.": "Could not send. Try again.",
   "Não deu para carregar a conversa.": "Could not load the conversation.",
+  "Nome, SteamID ou link do perfil": "Name, SteamID or profile link",
+  "Adicionar amigo por nome, SteamID ou link do perfil": "Add friend by name, SteamID or profile link",
+  "Ninguém encontrado. Tente o SteamID, o link do perfil ou o nome de usuário da Steam (o que vem depois de steamcommunity.com/id/).": "Nobody found. Try the SteamID, the profile link, or the Steam username (what comes after steamcommunity.com/id/).",
+  "Achado pelo nome de usuário da Steam, não pelo nome no site: confira se é mesmo quem você procura.": "Found by Steam username, not by the name on the site: make sure it's really who you're looking for.",
+  "Steam": "Steam",
 }
