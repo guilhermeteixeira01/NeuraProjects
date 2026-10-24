@@ -446,13 +446,19 @@ function Painel({ dados, fazer, ocupado, status }) {
           </div>
         )}
         {aba === 'mapas' && (
-          <ul className="lb-mapas">
-            {ALL_MAPS.map((m) => (
-              <li key={m.id} style={{ '--img': `url('${mapImage(m.id)}')`, '--c1': m.colors[0], '--c2': m.colors[1] }}>
-                <b>{m.name}</b>
-              </li>
-            ))}
-          </ul>
+          // como na FACEIT: a pool de mapas numa fileira de cartões pequenos (os mapas da partida saem do Pick & Ban, depois do aceite)
+          <div className="lb-pool">
+            <small className="lb-pool-titulo">{t('POOL DE MAPAS ATIVO')}</small>
+            <ul className="lb-pool-mapas">
+              {ALL_MAPS.map((m) => (
+                <li key={m.id}>
+                  <span className="lb-pool-img" style={{ '--img': `url('${mapImage(m.id)}')`, '--c1': m.colors[0], '--c2': m.colors[1] }} />
+                  <b>{m.name}</b>
+                </li>
+              ))}
+            </ul>
+            <p className="lb-pool-dica">{t('Os mapas da partida são escolhidos no Pick & Ban, depois que os 10 aceitarem.')}</p>
+          </div>
         )}
         {aba === 'servidor' && <PainelServidor status={status} />}
       </div>
@@ -656,30 +662,22 @@ function useTelaPequena() {
   return pequena
 }
 
-// O lobby (e a sala de veto) nunca rola: se o conteúdo for mais alto que a tela, ele encolhe (zoom) até caber inteiro.
-// Mede com o zoom em 1, vê quanto sobra de tela embaixo e aplica a razão (mínimo 45%). A página também fica sem barra de rolagem.
-function useCabeNaTela(ref, ativo) {
+// O lobby fica sempre no tamanho real (antes encolhia com zoom até caber na tela e ficava tudo pequeno): se for mais alto que a
+// janela, a página rola, como na FACEIT. Se sobrar espaço, ele estica até o fim da janela (o painel de partida cresce, sem vazio embaixo).
+function usePreencheTela(ref, ativo) {
   useLayoutEffect(() => {
     const el = ref.current
     if (!ativo || !el) return
     const raiz = document.documentElement
-    const antes = [raiz.style.overflow, document.body.style.overflow]
-    raiz.style.overflow = 'hidden'
-    document.body.style.overflow = 'hidden'
     let pendente = 0
-    // Tudo acontece na mesma chamada (mede sem zoom e sem altura mínima, depois aplica): o tamanho final não muda de um quadro
-    // para o outro, então o ResizeObserver não entra em laço.
+    // Mede sem a altura mínima e aplica na mesma chamada: o tamanho final não muda de um quadro para o outro (o ResizeObserver não entra em laço)
     const ajustar = () => {
-      el.style.zoom = '1'
       el.style.minHeight = ''
       const r = el.getBoundingClientRect()
       const zonaHtml = parseFloat(getComputedStyle(raiz).zoom) || 1
       const margemBaixo = parseFloat(getComputedStyle(document.body).paddingBottom) || 0 // o painel de partida encosta na borda de baixo (só a margem da moldura)
-      const sobra = window.innerHeight - r.top - margemBaixo * zonaHtml
-      const razao = r.height > 0 ? Math.min(1, Math.max(0.45, sobra / r.height)) : 1
-      el.style.zoom = razao < 0.995 ? String(razao) : ''
-      // Coube com folga: o lobby estica até o fim da janela (o painel de partida cresce), sem sobrar espaço vazio embaixo
-      if (razao >= 0.995 && sobra > r.height) el.style.minHeight = `${Math.floor(sobra / zonaHtml)}px`
+      const sobra = window.innerHeight - (r.top + window.scrollY) - margemBaixo * zonaHtml
+      if (sobra > r.height) el.style.minHeight = `${Math.floor(sobra / zonaHtml)}px`
     }
     const agendar = () => {
       cancelAnimationFrame(pendente)
@@ -693,10 +691,7 @@ function useCabeNaTela(ref, ativo) {
       cancelAnimationFrame(pendente)
       ro.disconnect()
       window.removeEventListener('resize', agendar)
-      el.style.zoom = ''
       el.style.minHeight = ''
-      raiz.style.overflow = antes[0]
-      document.body.style.overflow = antes[1]
     }
   }, [ref, ativo])
 }
@@ -706,7 +701,7 @@ export default function Lobby() {
   const pequena = useTelaPequena()
   const conteudo = useRef(null)
   const status = useStatusCs2()
-  useCabeNaTela(conteudo, !pequena)
+  usePreencheTela(conteudo, !pequena)
   return (
     <Layout pagina="lobby">
       <main className="lb-pagina">

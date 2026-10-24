@@ -1433,4 +1433,6 @@ export default {
   "Você tem {n} no inventário": "You have {n} in your inventory",
   "Você tem {n} no inventário (os modos sempre cobram NP)": "You have {n} in your inventory (modes always cost NP)",
   "Os itens equipados ficam de fora": "Equipped items are left out",
+  "POOL DE MAPAS ATIVO": "ACTIVE MAP POOL",
+  "Os mapas da partida são escolhidos no Pick & Ban, depois que os 10 aceitarem.": "The match maps are chosen in the Pick & Ban, after all 10 players accept.",
 }
