@@ -244,13 +244,19 @@ function Conversa({ id, eu, aoFechar }) {
 
   useEffect(() => {
     let vivo = true
+    // sem nome ainda (cache do worker pode levar até 30s para pegar um apelido escolhido na hora): tenta de novo uma vez
     carregarMensagens(id)
-      .then((com) => vivo && setInfo(com))
+      .then((com) => {
+        if (!vivo) return
+        setInfo(com)
+        if (!com.nome) setTimeout(() => vivo && carregarMensagens(id).then((deNovo) => vivo && setInfo((atual) => (atual?.nome ? atual : deNovo))), 2000)
+      })
       .catch(() => vivo && setErro(t('Não deu para carregar a conversa.')))
     return () => {
       vivo = false
     }
-  }, [id, t])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id])
 
   useEffect(() => {
     fimRef.current?.scrollIntoView({ block: 'end' })
