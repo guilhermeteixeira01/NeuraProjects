@@ -408,7 +408,15 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
 
   const preco = modo ? det?.modos?.[modo]?.preco ?? null : c.preco
   const chances = modo ? det?.modos?.[modo]?.chances ?? c.chances : c.chances
-  const custo = preco == null ? null : preco * qtd
+  // as caixas que já estão no inventário abrem primeiro (sem NP); só as que faltarem para a quantidade escolhida são pagas.
+  // Jester/Boost sempre pagam (o worker não usa as do inventário nos modos)
+  const doInventario = modo ? 0 : Math.min(qtd, tem)
+  const custo = preco == null ? null : preco * (qtd - doInventario)
+  const rotuloAbrir = (deNovo) => {
+    if (doInventario === qtd) return qtd === 1 ? t('Abrir do inventário') : t('Abrir {n} do inventário', { n: qtd })
+    const pago = t(deNovo ? 'Abrir de novo por {n} NP' : 'Abrir por {n} NP', { n: numero(custo ?? 0) })
+    return doInventario ? `${pago} + ${t('{n} do inventário', { n: doInventario })}` : pago
+  }
   const falta = custo != null && saldo != null && custo > saldo
 
   const conteudo = useMemo(() => {
@@ -554,7 +562,7 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
               </button>
               <button type="button" className="lj-cx-de-novo" disabled={preco == null} onClick={() => (falta ? setDepositando(true) : abrir(qtd, modo ? 'direto' : 'auto'))}>
                 <Icone d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4" />
-                {t('Abrir de novo por {n} NP', { n: numero(custo ?? 0) })}
+                {rotuloAbrir(true)}
               </button>
             </span>
             {erroVenda && <small className="lj-cx-falta">{erroVenda}</small>}
@@ -582,15 +590,13 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
           </div>
 
           <div className="lj-cx-abrir">
-            <button type="button" className="lj-cx-btn-abrir" disabled={girando || ocupado || preco == null} onClick={() => (falta ? setDepositando(true) : abrir(qtd, 'direto'))}>
-              {girando ? t('Abrindo…') : preco == null ? t('Carregando…') : t('Abrir por {n} NP', { n: numero(custo) })}
+            <button type="button" className="lj-cx-btn-abrir" disabled={girando || ocupado || preco == null} onClick={() => (falta ? setDepositando(true) : abrir(qtd, modo ? 'direto' : 'auto'))}>
+              {girando ? t('Abrindo…') : preco == null ? t('Carregando…') : rotuloAbrir(false)}
             </button>
             {!soEnfeites && <ProgressoEspecial aberturas={aberturas} />}
-            {!modo && tem > 0 && (
+            {tem > 0 && (
               <span className="lj-cx-extras">
-                <button type="button" className="lj-cx-link" disabled={girando || ocupado} onClick={() => abrir(Math.min(qtd, tem), 'inventario')}>
-                  {t('Abrir do inventário ({n})', { n: tem })}
-                </button>
+                <small className="lj-cx-tem">{modo ? t('Você tem {n} no inventário (os modos sempre cobram NP)', { n: tem }) : t('Você tem {n} no inventário', { n: tem })}</small>
               </span>
             )}
           </div>

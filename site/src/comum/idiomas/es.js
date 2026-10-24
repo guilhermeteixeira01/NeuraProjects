@@ -1428,4 +1428,8 @@ export default {
   "Abertura especial em {n} caixas": "Apertura especial en {n} cajas",
   "A cada {n} caixas abertas, uma sai entre as skins mais caras da caixa.": "Cada {n} cajas abiertas, una sale entre las skins más caras de la caja.",
   "Faltam {n} caixas": "Faltan {n} cajas",
+  "Abrir do inventário": "Abrir del inventario",
+  "Abrir {n} do inventário": "Abrir {n} del inventario",
+  "Você tem {n} no inventário": "Tienes {n} en el inventario",
+  "Você tem {n} no inventário (os modos sempre cobram NP)": "Tienes {n} en el inventario (los modos siempre cobran NP)",
 }

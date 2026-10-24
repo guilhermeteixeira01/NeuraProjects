@@ -798,3 +798,4 @@ img.lj-emblema { width: 92px; height: auto; object-fit: contain; filter: drop-sh
 .lj-especial-selo { position: absolute; top: 6px; left: 6px; z-index: 3; padding: 3px 8px; border-radius: 5px; background: linear-gradient(90deg, #b8860b, #f5c518); color: #1a1400; font: 800 11px var(--font-body); letter-spacing: .03em; text-transform: uppercase; box-shadow: 0 4px 14px -4px #f5c518; pointer-events: none; }
 .lj-rev-cartao { position: relative; }
 @media (prefers-reduced-motion: reduce) { .lj-esp-progresso.is-proxima, .lj-cx-esp-barra u::after { animation: none; } }
+.lj-cx-tem { color: rgb(255 255 255 / .55); font: 500 12.5px var(--font-body); }

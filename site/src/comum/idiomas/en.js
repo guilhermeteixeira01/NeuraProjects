@@ -1428,4 +1428,8 @@ export default {
   "Abertura especial em {n} caixas": "Special opening in {n} cases",
   "A cada {n} caixas abertas, uma sai entre as skins mais caras da caixa.": "Every {n} cases opened, one drops from the most expensive skins in the case.",
   "Faltam {n} caixas": "{n} cases to go",
+  "Abrir do inventário": "Open from inventory",
+  "Abrir {n} do inventário": "Open {n} from inventory",
+  "Você tem {n} no inventário": "You have {n} in your inventory",
+  "Você tem {n} no inventário (os modos sempre cobram NP)": "You have {n} in your inventory (modes always cost NP)",
 }
