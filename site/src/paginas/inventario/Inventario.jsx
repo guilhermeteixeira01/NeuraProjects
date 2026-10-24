@@ -1091,6 +1091,9 @@ function Conteudo() {
   const idsGuardados = (tipo, def) => Object.keys(inv.itens).filter((k) => inv.itens[k].t === tipo && inv.itens[k].d === def)
   // tudo que dá para selecionar (e vender) no filtro atual: skins/facas/luvas e as unidades de adesivo e chaveiro
   const idsVisiveis = [...itens.map((i) => i.__id), ...guardados.filter((g) => g.tipo !== 'caixa').flatMap((g) => idsGuardados(g.tipo, g.def))]
+  // "Selecionar todos" deixa de fora o que está equipado (CT ou TR): ninguém vende a arma que usa sem querer (um por um ainda dá para marcar)
+  const equipadoEmAlgum = (it) => inv.equip.ct[chaveEquip(it)] === it.__id || inv.equip.tr[chaveEquip(it)] === it.__id
+  const idsParaTodos = [...itens.filter((i) => !equipadoEmAlgum(i)).map((i) => i.__id), ...guardados.filter((g) => g.tipo !== 'caixa').flatMap((g) => idsGuardados(g.tipo, g.def))]
   const cartaoGuardado = (g) => {
     const caixa = g.tipo === 'caixa'
     const v = caixa ? undefined : valores[idsGuardados(g.tipo, g.def)[0]]?.v
@@ -1396,8 +1399,8 @@ function Conteudo() {
               </em>
             )}
           </span>
-          <button type="button" className="inv-btn" onClick={() => setSel(new Set(idsVisiveis))}>
-            {t('Selecionar todos ({n})', { n: idsVisiveis.length })}
+          <button type="button" className="inv-btn" onClick={() => setSel(new Set(idsParaTodos))} title={idsParaTodos.length < idsVisiveis.length ? t('Os itens equipados ficam de fora') : undefined}>
+            {t('Selecionar todos ({n})', { n: idsParaTodos.length })}
           </button>
           {sel.size > 0 && (
             <button type="button" className="inv-btn" onClick={() => setSel(new Set())}>

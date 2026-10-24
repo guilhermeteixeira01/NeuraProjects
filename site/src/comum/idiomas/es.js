@@ -1432,4 +1432,5 @@ export default {
   "Abrir {n} do inventário": "Abrir {n} del inventario",
   "Você tem {n} no inventário": "Tienes {n} en el inventario",
   "Você tem {n} no inventário (os modos sempre cobram NP)": "Tienes {n} en el inventario (los modos siempre cobran NP)",
+  "Os itens equipados ficam de fora": "Los ítems equipados quedan fuera",
 }

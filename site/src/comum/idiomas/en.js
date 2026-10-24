@@ -1432,4 +1432,5 @@ export default {
   "Abrir {n} do inventário": "Open {n} from inventory",
   "Você tem {n} no inventário": "You have {n} in your inventory",
   "Você tem {n} no inventário (os modos sempre cobram NP)": "You have {n} in your inventory (modes always cost NP)",
+  "Os itens equipados ficam de fora": "Equipped items are left out",
 }
