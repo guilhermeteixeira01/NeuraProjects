@@ -500,6 +500,9 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
   return (
     <section className="lj-cx" data-modo={modo || 'normal'} aria-label={c.nome}>
       <header className="lj-cx-topo">
+        {/* Bordas sazonais (Halloween): os mesmos dois personagens em todas as caixas, como o tema do carrossel nos sites de caixa */}
+        <img className="lj-cx-borda lj-cx-borda-esq" src="/assets/caixas/carrocel/jason-esquerda.webp" alt="" aria-hidden="true" draggable="false" />
+        <img className="lj-cx-borda lj-cx-borda-dir" src="/assets/caixas/carrocel/ghostface-direita.webp" alt="" aria-hidden="true" draggable="false" />
         <button type="button" className="lj-cx-voltar" onClick={aoVoltar}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="m15 18-6-6 6-6" />

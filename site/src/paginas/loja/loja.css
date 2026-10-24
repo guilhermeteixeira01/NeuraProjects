@@ -337,7 +337,7 @@ html.lj-travado .nx-rolagem { display: none !important; }
 .lj-cx { --modo: #1e90ff; --modo-2: #4aa8ff; --modo-fundo: #123063; padding-bottom: 30px; }
 .lj-cx[data-modo="jester"] { --modo: #a944f5; --modo-2: #d07bff; --modo-fundo: #3a1a63; }
 .lj-cx[data-modo="boost"] { --modo: #ff5a45; --modo-2: #ff9d55; --modo-fundo: #5a2418; }
-.lj-cx-topo { display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; gap: 12px; margin: 6px 0 22px; }
+.lj-cx-topo { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; gap: 12px; margin: 6px 0 22px; }
 .lj-cx-voltar { justify-self: start; display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; background: none; border: 0; color: rgb(255 255 255 / .75); font: 500 17px var(--font-body); cursor: pointer; padding: 4px 0; }
 .lj-cx-voltar:hover { color: #fff; }
 .lj-cx-titulo { text-align: center; }
@@ -450,7 +450,7 @@ html.lj-travado .nx-rolagem { display: none !important; }
 
 /* ══════ Página da caixa: ajustes para celular e tablet ══════ */
 /* as partículas dos modos passam um pouco da moldura: cortadas aqui, sem criar rolagem para o lado */
-.lj-cx { overflow-x: clip; }
+.lj-cx-roletas { overflow-x: clip; } /* a cortada agora é só a área da roleta: a borda sazonal do topo pode sangrar para fora */
 .lj-cx-roletas { min-width: 0; }
 /* a roleta embutida não tem barra de cima (nome, som e "pular" ficam na página) */
 .lj-embutida .lj-abertura-topo { display: none; }
@@ -733,3 +733,26 @@ img.lj-emblema { width: 92px; height: auto; object-fit: contain; filter: drop-sh
 .lj-rev-cartao { position: relative; }
 @media (prefers-reduced-motion: reduce) { .lj-esp-progresso.is-proxima, .lj-cx-esp-barra u::after { animation: none; } }
 .lj-cx-tem { color: rgb(255 255 255 / .55); font: 500 12.5px var(--font-body); }
+
+/* ── Borda sazonal (Halloween): os dois personagens emolduram o topo de TODA página de caixa, sangrando para fora da área central
+   (como o "Carnival of Madness" dos sites de caixa): fixos, iguais em todas as caixas, atrás do título. Trocar/tirar: ver os <img> em PaginaCaixa.jsx. ── */
+.lj-cx-borda { position: absolute; top: 50%; z-index: -1; width: clamp(200px, 20vw, 380px); height: auto; pointer-events: none; user-select: none;
+  filter: drop-shadow(0 10px 30px rgb(0 0 0 / .55)); opacity: .95; transform: translateY(-48%); }
+.lj-cx-borda-esq { right: calc(100% + 18px); transform: translateY(-48%) scaleX(-1); } /* vira a arte: a mão fica sempre apontada para o centro */
+.lj-cx-borda-dir { left: calc(100% + 18px); }
+@media (max-width: 1480px) {
+  .lj-cx-borda { width: clamp(160px, 15vw, 280px); }
+  .lj-cx-borda-esq { right: calc(100% - 20px); }
+  .lj-cx-borda-dir { left: calc(100% - 20px); }
+}
+@media (max-width: 1024px) {
+  .lj-cx-borda { width: clamp(130px, 22vw, 220px); opacity: .85; }
+  .lj-cx-borda-esq { right: calc(100% - 48px); }
+  .lj-cx-borda-dir { left: calc(100% - 48px); }
+}
+@media (max-width: 700px) {
+  .lj-cx-borda { width: 34vw; max-width: 160px; top: 0; transform: translateY(0); opacity: .8; }
+  .lj-cx-borda-esq { right: auto; left: -14px; transform: scaleX(-1); }
+  .lj-cx-borda-dir { left: auto; right: -14px; }
+  .lj-cx-topo { padding-top: 4px; }
+}
