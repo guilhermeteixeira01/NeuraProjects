@@ -12,7 +12,8 @@ import { useConta } from '../../comum/conta.js'
 import { BotaoTrocas } from '../../comum/Trocas.jsx'
 import { lerCaixasPublicas } from '../../comum/loja.js'
 import { corEnfeite, descrever, indicar, urlImg, useCatalogo } from '../../comum/skins.js'
-import { RARIDADES_CS, padraoRaro, raridadeCsDaCor } from '../../../worker/steam-login/src/loja-core.js'
+import { RARIDADES_CS, raridadeCsDaCor } from '../../../worker/steam-login/src/loja-core.js'
+import { padraoRaro } from '../../../worker/steam-login/src/padroes.js'
 
 const GUARDADOS = new Set(['adesivo', 'chaveiro', 'caixa'])
 const base = () => CONFIG.loginSteam.replace(/\/$/, '')

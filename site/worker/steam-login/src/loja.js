@@ -29,7 +29,8 @@
  *   GET  /admin/loja-saldo?id= (dono)  -> { saldo, ganhos, gastos, movimentos } de um jogador
  */
 import { avisarPerfil } from './amigos.js'
-import { BONUS_PREMIUM_PARTIDA, CONFIG_PADRAO, MODOS, padraoRaro, definirValorador, aplicarModo, faixasDeDesgaste, precoDeMercado, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura, ehEspecial, sortearEspecial } from './loja-core.js'
+import { padraoRaro } from './padroes.js'
+import { BONUS_PREMIUM_PARTIDA, CONFIG_PADRAO, MODOS, definirValorador, aplicarModo, faixasDeDesgaste, precoDeMercado, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura, ehEspecial, sortearEspecial } from './loja-core.js'
 import { lerSkinsKv, limparSkins, novoIdItem } from './skins.js'
 import CAIXAS_INICIAIS from './caixas-iniciais.json'
 import CAIXAS_REMOVIDAS from './caixas-removidas.json' // as 31 caixas antigas, apagadas de vez (revisão 11)

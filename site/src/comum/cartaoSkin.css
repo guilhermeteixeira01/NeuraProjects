@@ -41,10 +41,12 @@
 .inv-gema-1 { color: #35d0ff; }
 .inv-gema-2 { color: #8f7bff; }
 .inv-gema-3 { color: #7fa4c8; box-shadow: none; }
+.inv-gema-4 { color: #8a96a6; box-shadow: none; }
 .inv-gema-info { position: static; width: max-content; margin: 4px auto 0; font-size: 12px; }
 .inv-inspecao-info .inv-gema-1 { color: #35d0ff; }
 .inv-inspecao-info .inv-gema-2 { color: #8f7bff; }
 .inv-inspecao-info .inv-gema-3 { color: #7fa4c8; }
+.inv-inspecao-info .inv-gema-4 { color: #8a96a6; }
 
 /* diamante do padrão raro na frente do nome da arma (só o ícone; o nome, o tier e o valor aparecem ao passar o mouse) */
 .inv-gema-i { position: relative; display: inline-flex; align-items: center; margin-right: 4px; vertical-align: -2px; color: #4fc3ff; cursor: help; filter: drop-shadow(0 0 5px currentColor); }
@@ -54,3 +56,4 @@
 .inv-gema-i.inv-gema-1 { color: #35d0ff; }
 .inv-gema-i.inv-gema-2 { color: #8f7bff; }
 .inv-gema-i.inv-gema-3 { color: #7fa4c8; filter: none; }
+.inv-gema-i.inv-gema-4 { color: #8a96a6; filter: none; }

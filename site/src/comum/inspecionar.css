@@ -65,10 +65,12 @@ html.inv-travado body { position: fixed; inset: 0; width: 100%; }
 .inv-gema-1 { color: #35d0ff; }
 .inv-gema-2 { color: #8f7bff; }
 .inv-gema-3 { color: #7fa4c8; box-shadow: none; }
+.inv-gema-4 { color: #8a96a6; box-shadow: none; }
 .inv-gema-info { position: static; width: max-content; margin: 4px auto 0; font-size: 12px; }
 .inv-inspecao-info .inv-gema-1 { color: #35d0ff; }
 .inv-inspecao-info .inv-gema-2 { color: #8f7bff; }
 .inv-inspecao-info .inv-gema-3 { color: #7fa4c8; }
+.inv-inspecao-info .inv-gema-4 { color: #8a96a6; }
 
 /* inspecionar adesivo/chaveiro */
 .inv-inspecao-enfeite { width: min(420px, 82%); aspect-ratio: 1; display: grid; place-items: center; border-radius: 18px; background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--cor) 32%, transparent), transparent 70%), rgb(255 255 255 / .03); border: 1px solid color-mix(in srgb, var(--cor) 45%, transparent); transition: transform .12s ease-out; will-change: transform; }

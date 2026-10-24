@@ -5,7 +5,7 @@
 import { useState } from 'react'
 import { LADOS_TIME, chaveEquip, corEnfeite, descrever, urlImg } from './skins.js'
 import { useT } from './i18n.js'
-import { padraoRaro } from '../../worker/steam-login/src/loja-core.js'
+import { padraoRaro } from '../../worker/steam-login/src/padroes.js'
 
 function Imagem({ src, classe = '' }) {
   const [erro, setErro] = useState(false)
@@ -25,7 +25,7 @@ export function SeloPadrao({ item, classe = '' }) {
         <path d="M6 3h12l4 6-10 12L2 9z" fill="currentColor" opacity=".9" />
         <path d="M2 9h20M9 3 7 9l5 12M15 3l2 6-5 12" fill="none" stroke="#fff" strokeOpacity=".55" strokeWidth="1" />
       </svg>
-      <b>{pr.rotulo} T{pr.tier}</b>
+      <b>{pr.curto}</b>
     </span>
   )
 }
@@ -35,7 +35,7 @@ export function GemaNome({ item }) {
   const t = useT()
   const pr = padraoRaro(item)
   if (!pr) return null
-  const dica = `${pr.rotulo} T${pr.tier} · ${t('Padrão')} ${pr.seed} · ×${pr.mult}`
+  const dica = `${pr.curto} · ${t('Padrão')} ${pr.seed} · ×${pr.mult}`
   return (
     <span className={`inv-gema-i inv-gema-${pr.tier}`} data-dica={dica} role="img" aria-label={dica} tabIndex={0}>
       <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
