@@ -150,12 +150,15 @@ function ParticulasModo({ modo, chave }) {
     // celular: menos partículas, sem brilho (shadowBlur pesa muito), resolução 1x e nada com a aba escondida
     const celular = window.matchMedia('(max-width: 700px), (pointer: coarse)').matches
     const dpr = celular ? 1 : Math.min(2, window.devicePixelRatio || 1)
-    // canvas fixo na tela inteira (não ocupa espaço nem é cortado); as partículas saem da moldura das roletas, que é o elemento pai
+    // canvas fixo na tela inteira (não ocupa espaço nem é cortado); as partículas saem da moldura das roletas, que é o elemento pai.
+    // Tudo medido pelo retângulo do próprio canvas: com o zoom do site no computador, as duas medidas ficam na mesma unidade
+    // e a moldura cai no lugar certo do desenho.
+    const tela = cv.getBoundingClientRect()
     const alvo = cv.parentElement.getBoundingClientRect()
-    const w = (cv.width = window.innerWidth * dpr)
-    const h = (cv.height = window.innerHeight * dpr)
-    const L = alvo.left * dpr
-    const T = alvo.top * dpr
+    const w = (cv.width = Math.round(tela.width * dpr))
+    const h = (cv.height = Math.round(tela.height * dpr))
+    const L = (alvo.left - tela.left) * dpr
+    const T = (alvo.top - tela.top) * dpr
     const W = alvo.width * dpr
     const H = alvo.height * dpr
     const cores = CORES[modo]

@@ -618,8 +618,9 @@ html.lj-travado .nx-rolagem { display: none !important; }
 @media (prefers-reduced-motion: reduce) { .lj-em-giro, .lj-em-contra, .lj-em-pisca { animation: none; } }
 
 /* ── Ajustes: partículas dos modos, cartões de caixa iguais, botão de vender no celular, carrossel maior ── */
-/* partículas do Jester/Boost: canvas fixo na tela inteira (antes era um quadrado maior que a moldura que cortava as partículas e fazia a página mexer) */
-.lj-cx-particulas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 60; pointer-events: none; }
+/* partículas do Jester/Boost: canvas fixo na tela inteira (antes era um quadrado maior que a moldura que cortava as partículas e fazia a página mexer).
+   No computador o html tem zoom (--escala-site): 100vw/100vh encolhiam junto e o canvas cobria só parte da janela, então divide pela escala. */
+.lj-cx-particulas { position: fixed; inset: 0; width: calc(100vw / var(--escala-site, 1)); height: calc(100vh / var(--escala-site, 1)); z-index: 60; pointer-events: none; }
 /* todos os cartões de caixa com a mesma altura: arte quadrada, nome em até 2 linhas numa área fixa, preço e faixa sempre na mesma posição */
 .lj-grade-caixas > li { display: flex; min-width: 0; }
 .lj-caixa { height: 100%; grid-template-rows: auto minmax(2.4em, 1fr) auto auto; align-content: start; }
