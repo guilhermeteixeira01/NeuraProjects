@@ -1,11 +1,13 @@
-// Lista de amigos (computador): botão na barra da direita e painel encostado nela, no estilo da lista de membros do
-// Discord: Pedidos, Online, Ausente e Offline, com a contagem de cada grupo. Clicar no amigo abre o perfil.
+// Painel "Social" (computador): botão na barra da direita e painel encostado nela, com duas abas:
+//   AMIGOS — a lista no estilo do Discord (Pedidos, Online, Ausente, Offline); o balão ao lado de cada amigo abre o chat direto com ele.
+//   CHATS  — as conversas (prévia da última mensagem, hora e não lidas); clicar abre a conversa (mensagens.js: histórico e envio).
 // Abre por cima do site (não empurra a página); fecha com Esc ou clicando fora.
-// Aberto/fechado fica guardado no navegador. Dados e presença: comum/amigos.js.
-import { useEffect, useState } from 'react'
+// Aberto/fechado e a última aba ficam guardados no navegador. Amigos e presença: comum/amigos.js. Chat: comum/mensagens.js.
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { seForErroApi } from './api.js'
 import { acaoAmizade, buscarJogadores, relacaoCom, tempoDesde, useAmigos } from './amigos.js'
+import { carregarMensagens, definirConversaAberta, enviarMensagem, horaOuData, useConversas } from './mensagens.js'
 import { useAvatar } from './avatares.js'
 import { linkPerfil } from './conta.js'
 import { lerJson } from './dados.js'
@@ -32,7 +34,15 @@ function Foto({ a }) {
   return src && erro !== src ? <img src={src} alt="" loading="lazy" onError={() => setErro(src)} /> : <span className="am-ini">{(a.nome || '?').slice(0, 2).toUpperCase()}</span>
 }
 
-function Linha({ a, st, visto, children }) {
+function IconeBalao({ tamanho = 16 }) {
+  return (
+    <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M21 12a8 8 0 0 1-11.65 7.11L4 20l1.3-4.74A8 8 0 1 1 21 12Z" />
+    </svg>
+  )
+}
+
+function Linha({ a, st, visto, aoConversar, children }) {
   const t = useT()
   return (
     <li className={`am-linha am-${st}`}>
@@ -53,6 +63,11 @@ function Linha({ a, st, visto, children }) {
           {st === 'jogando' ? <small className="am-jogando">{t('Jogando')}</small> : st === 'offline' && visto ? <small>{t('visto {quando}', { quando: tempoDesde(visto, t) })}</small> : <CargosDe steamId={a.id} max={1} classe="am-cargos" />}
         </span>
       </a>
+      {aoConversar && (
+        <button type="button" className="am-conversar" onClick={() => aoConversar(a.id)} title={t('Conversar')} aria-label={t('Conversar com {nome}', { nome: a.nome || a.id })}>
+          <IconeBalao />
+        </button>
+      )}
       {children}
     </li>
   )
@@ -164,13 +179,150 @@ function AdicionarAmigo({ lista, eu }) {
   )
 }
 
+// ── Aba CHATS: a lista de conversas (prévia, hora, não lidas) ──
+function ItemChat({ c, eu, aoAbrir }) {
+  const t = useT()
+  return (
+    <li className={`am-linha am-chat-item am-${c.st}${c.naoLidas ? ' am-chat-naolida' : ''}`}>
+      <button type="button" className="am-pessoa am-chat-btn" onClick={() => aoAbrir(c.id)} title={c.nome || c.id}>
+        <span className="am-av">
+          <ComMoldura steamId={c.id}>
+            <Foto a={c} />
+          </ComMoldura>
+          <i className="am-bolinha" />
+        </span>
+        <span className="am-txt">
+          <span className="am-nome am-chat-linha1">
+            <b>{c.nome || c.id}</b>
+            <small className="am-chat-hora">{horaOuData(c.ts)}</small>
+          </span>
+          <span className="am-chat-linha2">
+            <small className="am-chat-prevista">
+              {c.de === eu ? `${t('Você')}: ` : ''}
+              {c.texto}
+            </small>
+            {c.naoLidas > 0 && <em className="am-chat-badge">{c.naoLidas > 9 ? '9+' : c.naoLidas}</em>}
+          </span>
+        </span>
+      </button>
+    </li>
+  )
+}
+
+function ListaChats({ conversas, eu, aoAbrir }) {
+  const t = useT()
+  if (conversas === null) return <p className="am-vazio">{t('Carregando…')}</p>
+  if (!conversas.length) return <p className="am-vazio">{t('Nenhuma conversa ainda. Na aba Amigos, clique no balão ao lado de alguém para começar.')}</p>
+  return (
+    <ul className="am-chats-lista">
+      {conversas.map((c) => (
+        <ItemChat key={c.id} c={c} eu={eu} aoAbrir={aoAbrir} />
+      ))}
+    </ul>
+  )
+}
+
+// ── Conversa aberta: histórico + caixa de mandar mensagem ──
+function MensagemConversa({ m, minha }) {
+  return (
+    <li className={`am-dm-msg${minha ? ' am-dm-minha' : ''}`}>
+      <span className="am-dm-bolha">{m.texto}</span>
+      <small className="am-dm-ts">{horaOuData(m.ts)}</small>
+    </li>
+  )
+}
+
+function Conversa({ id, eu, aoFechar }) {
+  const t = useT()
+  const { msgs } = useConversas()
+  const [info, setInfo] = useState(null)
+  const [texto, setTexto] = useState('')
+  const [enviando, setEnviando] = useState(false)
+  const [erro, setErro] = useState('')
+  const fimRef = useRef(null)
+  const mensagens = msgs[id] || []
+
+  useEffect(() => {
+    let vivo = true
+    carregarMensagens(id)
+      .then((com) => vivo && setInfo(com))
+      .catch(() => vivo && setErro(t('Não deu para carregar a conversa.')))
+    return () => {
+      vivo = false
+    }
+  }, [id, t])
+
+  useEffect(() => {
+    fimRef.current?.scrollIntoView({ block: 'end' })
+  }, [mensagens.length])
+
+  const bloqueado = !!info && !info.amigo
+
+  const enviar = async (e) => {
+    e.preventDefault()
+    const limpo = texto.trim()
+    if (!limpo || enviando || bloqueado) return
+    setEnviando(true)
+    setErro('')
+    try {
+      await enviarMensagem(id, limpo)
+      setTexto('')
+    } catch {
+      setErro(t('Não deu para enviar. Tente de novo.'))
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  return (
+    <>
+      <div className="am-dm-cab">
+        <button type="button" className="am-dm-voltar" onClick={aoFechar} aria-label={t('Voltar')}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+        </button>
+        <a className={`am-pessoa am-dm-pessoa am-${info?.st || 'offline'}`} href={linkPerfil(id)}>
+          <span className="am-av">
+            <ComMoldura steamId={id}>
+              <Foto a={info || { id }} />
+            </ComMoldura>
+            <i className="am-bolinha" />
+          </span>
+          <b>{info?.nome || id}</b>
+        </a>
+      </div>
+      <ul className="am-dm-lista">
+        {mensagens.map((m) => (
+          <MensagemConversa key={m.id} m={m} minha={m.de === eu} />
+        ))}
+        {!mensagens.length && info && <p className="am-vazio">{t('Nenhuma mensagem ainda. Diga oi!')}</p>}
+        <li ref={fimRef} aria-hidden="true" />
+      </ul>
+      {bloqueado && <p className="am-dm-aviso">{t('Vocês não são mais amigos: dá para ver as mensagens antigas, mas não para mandar novas.')}</p>}
+      <form className="am-dm-form" onSubmit={enviar}>
+        <input type="text" value={texto} onChange={(e) => setTexto(e.target.value)} placeholder={t('Mensagem')} maxLength={1000} disabled={enviando || bloqueado} autoComplete="off" aria-label={t('Mensagem')} />
+        <button type="submit" disabled={!texto.trim() || enviando || bloqueado} aria-label={t('Enviar')}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="m3 12 18-9-5 9 5 9-18-9Zm0 0h11" />
+          </svg>
+        </button>
+      </form>
+      {erro && <p className="am-erro">{erro}</p>}
+    </>
+  )
+}
+
 // celular: botão na barra de cima e lista em tela cheia (não guarda aberto/fechado nem mexe no computador)
 export default function PainelAmigos({ celular = false }) {
   const t = useT()
   const { lista, status, eu } = useAmigos()
+  const { conversas, naoLidas } = useConversas()
   const [aberto, setAberto] = useState(false)
   const [ocupado, setOcupado] = useState(null)
   const [verEnviados, setVerEnviados] = useState(false)
+  const [aba, setAba] = useState('amigos') // 'amigos' | 'chats'
+  const [conversaCom, setConversaCom] = useState(null) // id do amigo cuja conversa está aberta (substitui o conteúdo do painel)
 
   useEffect(() => {
     if (celular) return
@@ -207,6 +359,14 @@ export default function PainelAmigos({ celular = false }) {
     }
   }, [aberto])
 
+  // A conversa "aberta" (para o worker marcar como lida sozinho e não contar não-lida) só vale com o painel aberto e nessa conversa
+  useEffect(() => {
+    definirConversaAberta(aberto ? conversaCom : null)
+  }, [aberto, conversaCom])
+  useEffect(() => {
+    if (!aberto) setConversaCom(null) // fechou o painel: a próxima vez que abrir volta para a lista (não para o meio de uma conversa)
+  }, [aberto])
+
   if (!eu) return null
   const amigos = lista?.amigos || []
   const st = (a) => status[a.id]?.st || 'offline'
@@ -232,11 +392,19 @@ export default function PainelAmigos({ celular = false }) {
     }
   }
 
+  // Clicou no balão de um amigo (aba Amigos) ou numa conversa (aba Chats): abre essa conversa
+  const abrirConversa = (id) => {
+    setAba('chats')
+    setConversaCom(id)
+  }
+
+  const alertas = recebidos.length + naoLidas // selo no botão da barra: pedidos de amizade + mensagens não lidas
+
   return (
     <>
       <button type="button" className={`nx-config-btn nx-amigos-btn${aberto ? ' ativo' : ''}`} aria-expanded={aberto} aria-label={t('Amigos')} onClick={() => setAberto((a) => !a)}>
         <IconeAmigos />
-        {recebidos.length > 0 && <span className="nx-amigos-pedidos">{recebidos.length}</span>}
+        {alertas > 0 && <span className="nx-amigos-pedidos">{alertas > 99 ? '99+' : alertas}</span>}
         {online.length > 0 && (
           <span className="nx-amigos-on" aria-hidden="true">
             <b>{online.length}</b>
@@ -247,16 +415,37 @@ export default function PainelAmigos({ celular = false }) {
         </span>
       </button>
       {aberto && naTela(
-        <aside className={`am-painel${celular ? ' am-celular' : ''}`} aria-label={t('Amigos')} onClick={(e) => celular && e.target.closest('a') && setAberto(false)}>
+        <aside className={`am-painel${celular ? ' am-celular' : ''}${conversaCom ? ' am-painel-dm' : ''}`} aria-label={t('Social')} onClick={(e) => celular && e.target.closest('a') && setAberto(false)}>
           <div className="am-cab">
-            <b>{t('Amigos')}</b>
-            <span className="mono">
-              {jogando.length + online.length + ausentes.length}/{amigos.length}
-            </span>
+            <b>{t('Social')}</b>
+            {!conversaCom && (
+              <span className="mono">
+                {jogando.length + online.length + ausentes.length}/{amigos.length}
+              </span>
+            )}
             <button type="button" className="am-fechar" onClick={() => setAberto(false)} aria-label={t('Fechar')}>
               ×
             </button>
           </div>
+          {!conversaCom && (
+            <div className="am-abas" role="tablist">
+              <button type="button" role="tab" aria-selected={aba === 'amigos'} className={aba === 'amigos' ? 'am-aba-ativa' : ''} onClick={() => setAba('amigos')}>
+                {t('AMIGOS')}
+              </button>
+              <button type="button" role="tab" aria-selected={aba === 'chats'} className={aba === 'chats' ? 'am-aba-ativa' : ''} onClick={() => setAba('chats')}>
+                {t('CHATS')}
+                {naoLidas > 0 && <em className="am-aba-badge">{naoLidas > 9 ? '9+' : naoLidas}</em>}
+              </button>
+            </div>
+          )}
+          {conversaCom ? (
+            <Conversa id={conversaCom} eu={eu} aoFechar={() => setConversaCom(null)} />
+          ) : aba === 'chats' ? (
+            <div className="am-rolagem">
+              <ListaChats conversas={conversas} eu={eu} aoAbrir={abrirConversa} />
+            </div>
+          ) : (
+          <>
           <AdicionarAmigo lista={lista} eu={eu} />
           <div className="am-rolagem">
             {lista === null && <p className="am-vazio">{t('Carregando…')}</p>}
@@ -276,22 +465,22 @@ export default function PainelAmigos({ celular = false }) {
             </Grupo>
             <Grupo titulo={t('JOGANDO')} n={jogando.length}>
               {jogando.map((a) => (
-                <Linha key={a.id} a={a} st="jogando" />
+                <Linha key={a.id} a={a} st="jogando" aoConversar={abrirConversa} />
               ))}
             </Grupo>
             <Grupo titulo={t('ONLINE')} n={online.length}>
               {online.map((a) => (
-                <Linha key={a.id} a={a} st="online" />
+                <Linha key={a.id} a={a} st="online" aoConversar={abrirConversa} />
               ))}
             </Grupo>
             <Grupo titulo={t('AUSENTE')} n={ausentes.length}>
               {ausentes.map((a) => (
-                <Linha key={a.id} a={a} st="ausente" />
+                <Linha key={a.id} a={a} st="ausente" aoConversar={abrirConversa} />
               ))}
             </Grupo>
             <Grupo titulo={t('OFFLINE')} n={offline.length} classe="am-off">
               {offline.map((a) => (
-                <Linha key={a.id} a={a} st="offline" visto={status[a.id]?.visto} />
+                <Linha key={a.id} a={a} st="offline" visto={status[a.id]?.visto} aoConversar={abrirConversa} />
               ))}
             </Grupo>
             {lista && !amigos.length && !recebidos.length && (
@@ -316,6 +505,8 @@ export default function PainelAmigos({ celular = false }) {
               </section>
             )}
           </div>
+          </>
+          )}
         </aside>,
       )}
     </>

@@ -138,6 +138,8 @@ function conectar(id) {
     else if (m.tipo === 'bonus') window.dispatchEvent(new Event('np-bonus'))
     // Mensagem nova no chat da sala da partida (comum/ChatSala.jsx)
     else if (m.tipo === 'chat') window.dispatchEvent(new CustomEvent('np-chat', { detail: m }))
+    // Mensagem nova no chat direto com um amigo (comum/mensagens.js)
+    else if (m.tipo === 'dm') window.dispatchEvent(new CustomEvent('np-dm', { detail: m }))
     // Algo mudou no meu lobby (convite, alguém entrou/saiu, lobby aberto): a página do Lobby recarrega
     else if (m.tipo === 'lobby') window.dispatchEvent(new Event('np-lobby'))
     // O admin mudou o meu perfil (ex.: deu uma insígnia): Moldura.jsx atualiza na hora e o aviso aparece

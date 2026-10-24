@@ -25,7 +25,7 @@
  *   ASAAS_API_KEY, ASAAS_WEBHOOK_TOKEN, CS2_AGENTE_URL, CS2_AGENTE_TOKEN, ZERAR_TOKEN (ver pagamentos.js, servidor-cs2.js, zerar.js)
  */
 import { rotaAdmin } from './admin.js'
-import { rotaAmigos, rotaChat, rotaLobby, rotaPresenca, rotaServidor } from './amigos.js'
+import { rotaAmigos, rotaChat, rotaDm, rotaLobby, rotaPresenca, rotaServidor } from './amigos.js'
 import { conferirToken, exigirLogin, login, origensPermitidas, retorno } from './auth.js'
 import { ErroApi, ErroLogin, ErroNaoEncontrado, ErroPedido, ErroPermissao, ErroServico } from './erros.js'
 import { rotaEquipes, rotaImagemEquipe, rotaListaPublicaEquipes } from './equipes.js'
@@ -120,6 +120,7 @@ const COM_LOGIN = [
   ['/usuarios/buscar', so('GET', (c) => rotaBuscarUsuarios(c.url, c.env, c.quem, c.cors))],
   ['/lobby', (c) => rotaLobby(c.req, c.env, c.quem, c.cors)],
   ['/chat', (c) => rotaChat(c.req, c.env, c.quem, c.cors)],
+  ['/dm', (c) => rotaDm(c.req, c.env, c.quem, c.cors, c.url)],
   ['/skins', (c) => rotaSkins(c.req, c.env, c.quem, c.cors)],
   ['/skins/presentes', so('POST', (c) => rotaSkinsPresentes(c.req, c.env, c.quem, c.cors))],
   ['/skins/excluir', so('POST', (c) => rotaSkinsExcluir(c.req, c.env, c.quem, c.cors))],

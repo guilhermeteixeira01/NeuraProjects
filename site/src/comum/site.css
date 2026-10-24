@@ -2534,6 +2534,88 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
 .am-pedidos h4 { color: var(--blue-2); }
 .am-vazio { padding: 14px 10px; font-size: 13px; color: var(--dim); line-height: 1.5; }
 
+/* ══════════════ Chat direto (comum/mensagens.js): abas "AMIGOS"/"CHATS" no mesmo painel, e a conversa aberta no lugar da lista ══════════════ */
+.am-abas { display: flex; gap: 2px; flex: none; padding: 8px 10px 0; }
+.am-abas button {
+  position: relative; flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; height: 32px; border: 0; border-radius: 0;
+  border-bottom: 2px solid transparent; background: none; color: var(--dim); font: 700 11.5px var(--font-body); letter-spacing: .06em; cursor: pointer;
+}
+.am-abas button:hover { color: var(--text); }
+.am-abas button.am-aba-ativa { color: var(--text); border-bottom-color: var(--accent); }
+.am-aba-badge {
+  min-width: 16px; height: 16px; padding: 0 4px; display: inline-grid; place-items: center; border-radius: 999px;
+  font: 800 10px var(--font-body); font-style: normal; color: #fff; background: var(--red);
+}
+
+/* balão de conversar nas linhas de amigo (aparece no hover, como o "x" de remover) */
+.am-conversar {
+  flex: none; width: 28px; height: 28px; margin-right: 4px; display: grid; place-items: center; border-radius: 8px; border: 1px solid transparent;
+  background: none; color: var(--dim); cursor: pointer; opacity: 0; transition: opacity .15s, color .15s, border-color .15s, background .15s;
+}
+.am-linha:hover .am-conversar, .am-conversar:focus-visible { opacity: 1; }
+.am-conversar:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, transparent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+@media (hover: none) { .am-conversar { opacity: 1; } }
+
+/* lista de conversas (aba CHATS) */
+.am-chats-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.am-chat-btn { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 7px 8px; border: 0; background: none; color: inherit; text-align: left; cursor: pointer; font-family: inherit; }
+.am-chat-linha1 { display: flex; align-items: baseline; gap: 6px; width: 100%; }
+.am-chat-linha1 b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.am-chat-hora { flex: none; font-size: 10.5px; color: var(--dim-2); }
+.am-chat-linha2 { display: flex; align-items: center; gap: 6px; }
+.am-chat-prevista { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dim); }
+.am-chat-naolida .am-chat-prevista { color: var(--text); font-weight: 600; }
+.am-chat-naolida .am-chat-linha1 b { font-weight: 800; }
+.am-chat-badge {
+  flex: none; min-width: 17px; height: 17px; padding: 0 5px; display: inline-grid; place-items: center; border-radius: 999px;
+  font: 800 10.5px var(--font-mono); font-style: normal; color: #fff; background: var(--red);
+}
+
+/* conversa aberta: cabeçalho (voltar + pessoa), lista de mensagens com balões e a caixa de escrever */
+.am-painel-dm { display: flex; flex-direction: column; }
+.am-dm-cab { display: flex; align-items: center; gap: 4px; flex: none; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.am-dm-voltar { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; border: 0; background: none; color: var(--dim); cursor: pointer; }
+.am-dm-voltar:hover { color: var(--text); background: rgb(var(--tinta) / .07); }
+.am-dm-pessoa { flex: 1; min-width: 0; padding: 2px 6px; border-radius: 8px; }
+.am-dm-pessoa:hover { background: rgb(var(--tinta) / .05); }
+.am-dm-pessoa .am-av { width: 32px; height: 32px; }
+.am-dm-pessoa .am-av img, .am-dm-pessoa .am-av .am-ini { width: 32px; height: 32px; }
+.am-dm-pessoa b { font-size: 14px; }
+.am-dm-lista { flex: 1; min-height: 0; list-style: none; margin: 0; padding: 12px; display: flex; flex-direction: column; gap: 3px; overflow-y: auto; overscroll-behavior: contain; }
+.am-dm-msg { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; max-width: 86%; }
+.am-dm-msg.am-dm-minha { align-self: flex-end; align-items: flex-end; }
+.am-dm-bolha { padding: 7px 11px; border-radius: 14px 14px 14px 4px; background: rgb(var(--tinta) / .08); color: var(--text); font-size: 13.5px; line-height: 1.4; overflow-wrap: anywhere; white-space: pre-wrap; }
+.am-dm-minha .am-dm-bolha { border-radius: 14px 14px 4px 14px; background: var(--accent); color: #fff; }
+.am-dm-ts { font-size: 10px; color: var(--dim-2); padding: 0 4px; }
+.am-dm-aviso { margin: 0; padding: 8px 12px; font-size: 12px; color: var(--dim); text-align: center; border-top: 1px solid var(--border); }
+.am-dm-form { flex: none; display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--border); }
+.am-dm-form input {
+  flex: 1; min-width: 0; height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border-2); background: var(--panel);
+  color: var(--text); font: 500 13px var(--font-body); outline: none;
+}
+.am-dm-form input:focus { border-color: var(--accent); }
+.am-dm-form input:disabled { opacity: .55; }
+.am-dm-form button {
+  flex: none; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; border: 0; background: var(--accent);
+  color: #fff; cursor: pointer; transition: filter .15s, opacity .15s;
+}
+.am-dm-form button:hover:not(:disabled) { filter: brightness(1.08); }
+.am-dm-form button:disabled { opacity: .4; cursor: default; }
+
+@media (max-width: 1024px) {
+  .am-abas { padding: 10px 14px 0; }
+  .am-abas button { height: 38px; font-size: 12.5px; }
+  .am-conversar { opacity: 1; width: 34px; height: 34px; }
+  .am-dm-cab { padding: 12px 14px; }
+  .am-dm-pessoa .am-av { width: 38px; height: 38px; }
+  .am-dm-pessoa .am-av img, .am-dm-pessoa .am-av .am-ini { width: 38px; height: 38px; }
+  .am-dm-pessoa b { font-size: 15.5px; }
+  .am-dm-lista { padding: 12px 14px; }
+  .am-dm-form { padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px)); }
+  .am-dm-form input { height: 40px; font-size: 14px; }
+  .am-dm-form button { width: 40px; height: 40px; }
+}
+
 /* Amigos no celular (PainelAmigos celular): botão na barra de cima e lista em tela cheia, acima das abas de baixo.
  * No computador a barra de cima não aparece, então nada disto muda o computador. */
 @media (max-width: 1024px) {

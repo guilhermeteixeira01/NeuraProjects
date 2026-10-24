@@ -20,6 +20,8 @@ import { nomesDe } from './usuarios.js'
 const ID_STEAM = /^\d{17}$/
 const MAX_AMIGOS = 300
 const ACOES = ['pedir', 'aceitar', 'recusar', 'cancelar', 'remover']
+const DM_MAX = 500 // mensagens guardadas por conversa (as mais antigas somem)
+const DM_PREVIA_MAX = 80 // tamanho da prévia na lista de conversas
 
 // Lobby (grupo para jogar junto, como o da FACEIT): o líder + até 4 membros. Fica no armazenamento do próprio objeto de presença
 // (consistente, sem KV): lobbies = { "<SteamID do líder>": { membros: [ids], convites: [ids], publico: bool } }.
@@ -231,6 +233,14 @@ export async function rotaChat(req, env, quem, cors) {
   return reenviar(await presenca(env).fetch('https://presenca/chat', { method: req.method, headers: { 'X-Id': quem.id }, body: corpo }), cors)
 }
 
+// GET /dm -> lista de conversas · GET /dm?com=<id> -> histórico com um amigo (marca como lida) · POST /dm { com, texto } -> envia
+// Chat direto entre amigos (o objeto de presença guarda e entrega ao vivo, igual ao chat da sala de partida)
+export async function rotaDm(req, env, quem, cors, url) {
+  const corpo = req.method === 'POST' ? JSON.stringify(await lerCorpo(req)) : undefined
+  const com = url.searchParams.get('com') || ''
+  return reenviar(await presenca(env).fetch(`https://presenca/dm${com ? `?com=${encodeURIComponent(com)}` : ''}`, { method: req.method, headers: { 'X-Id': quem.id }, body: corpo }), cors)
+}
+
 // GET /lobby e POST /lobby { acao, id?, valor? }: o objeto de presença guarda e muda os lobbies (index.js confere o login)
 export async function rotaLobby(req, env, quem, cors) {
   const corpo = req.method === 'POST' ? JSON.stringify(await lerCorpo(req)) : undefined
@@ -388,6 +398,75 @@ export class Presenca {
     await this.state.storage.put(chave, todas.slice(-200))
     const destino = canal === 'geral' ? idsDe(p) : p.times[meuTime].membros
     for (const id of destino) this.enviar(id, { tipo: 'chat', partida: p.id, msg })
+    return { ok: true, msg }
+  }
+
+  // ── Chat direto entre amigos ──
+  // Uma conversa por par de amigos, guardada enquanto os dois não a apagarem (sem prazo, diferente do chat da sala de partida):
+  // "dm:<a_b>" (ids em ordem) = [{ id, de, texto, ts }] (até DM_MAX mensagens). "dmLista:<id>" = { "<outro>": { ts, texto, de, naoLidas } },
+  // a prévia de cada conversa (evita reler a conversa inteira só para montar a lista). Só dá para começar uma conversa com quem é amigo;
+  // depois de desfazer a amizade a conversa continua existindo (como no Discord), só não dá para mandar mensagem de novo.
+  ultimoDm = new Map()
+  dmParChave(a, b) {
+    return [a, b].sort().join('_')
+  }
+
+  // GET /dm (sem "com"): lista de conversas; GET /dm?com=<id>: histórico com uma pessoa (marca como lida); POST: envia
+  async dm(req) {
+    const eu = req.headers.get('X-Id')
+    if (!ID_STEAM.test(String(eu))) throw new ErroPedido('id')
+    const url = new URL(req.url)
+    const com = url.searchParams.get('com')
+
+    if (req.method === 'GET' && !com) {
+      const minhaLista = (await this.state.storage.get(`dmLista:${eu}`)) || {}
+      const ids = Object.keys(minhaLista)
+      const info = ids.length ? await nomesDe(this.env, ids) : {}
+      const amigosEu = new Set((await this.listaAmigos())[eu]?.amigos || [])
+      const conversas = ids
+        .map((id) => ({ id, nome: info[id]?.nome || '', avatar: info[id]?.avatar || '', st: this.statusVisivel(id), amigo: amigosEu.has(id), ...minhaLista[id] }))
+        .sort((a, b) => b.ts - a.ts)
+      return { conversas }
+    }
+
+    if (req.method === 'GET') {
+      if (!ID_STEAM.test(String(com))) throw new ErroPedido('id')
+      const chave = `dm:${this.dmParChave(eu, com)}`
+      const mensagens = (await this.state.storage.get(chave)) || []
+      const minhaLista = (await this.state.storage.get(`dmLista:${eu}`)) || {}
+      if (minhaLista[com]?.naoLidas) {
+        minhaLista[com] = { ...minhaLista[com], naoLidas: 0 }
+        await this.state.storage.put(`dmLista:${eu}`, minhaLista)
+      }
+      const info = (await nomesDe(this.env, [com]))[com] || {}
+      const amigo = ((await this.listaAmigos())[eu]?.amigos || []).includes(com)
+      return { com: { id: com, nome: info.nome || '', avatar: info.avatar || '', st: this.statusVisivel(com), amigo }, mensagens }
+    }
+
+    const { com: para, texto } = await lerCorpo(req)
+    if (!ID_STEAM.test(String(para)) || para === eu) throw new ErroPedido('id')
+    const amigosEu = (await this.listaAmigos())[eu]?.amigos || []
+    if (!amigosEu.includes(para)) throw new ErroPermissao('nao-amigo')
+    const limpo = String(texto || '').replace(/[\u0000-\u001f\u007f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 1000)
+    if (!limpo) throw new ErroPedido('mensagem')
+    const agora = Date.now()
+    if (agora - (this.ultimoDm.get(eu) || 0) < 500) throw new ErroLimite('devagar') // no máximo ~2 mensagens por segundo
+    this.ultimoDm.set(eu, agora)
+    const chave = `dm:${this.dmParChave(eu, para)}`
+    const todas = (await this.state.storage.get(chave)) || []
+    const msg = { id: `${agora.toString(36)}${Math.random().toString(36).slice(2, 6)}`, de: eu, texto: limpo, ts: agora }
+    todas.push(msg)
+    await this.state.storage.put(chave, todas.slice(-DM_MAX))
+    const previa = limpo.length > DM_PREVIA_MAX ? `${limpo.slice(0, DM_PREVIA_MAX)}…` : limpo
+    const minhaLista = (await this.state.storage.get(`dmLista:${eu}`)) || {}
+    minhaLista[para] = { ts: agora, texto: previa, de: eu, naoLidas: 0 }
+    await this.state.storage.put(`dmLista:${eu}`, minhaLista)
+    const listaDele = (await this.state.storage.get(`dmLista:${para}`)) || {}
+    listaDele[eu] = { ts: agora, texto: previa, de: eu, naoLidas: (listaDele[eu]?.naoLidas || 0) + 1 }
+    await this.state.storage.put(`dmLista:${para}`, listaDele)
+    const payload = { tipo: 'dm', de: eu, para, msg }
+    this.enviar(para, payload)
+    this.enviar(eu, payload) // outras abas minhas (celular, outra janela) também recebem
     return { ok: true, msg }
   }
 
@@ -822,6 +901,7 @@ export class Presenca {
     const rotas = {
       '/amigos': () => this.amigosPedido(req),
       '/chat': () => this.chat(req),
+      '/dm': () => this.dm(req),
       '/lobby': () => this.lobby(req),
       '/servidor/elenco': () => this.servidorElenco(req),
       '/servidor/proxima': () => this.servidorProxima(),
