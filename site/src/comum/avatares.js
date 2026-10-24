@@ -8,10 +8,10 @@
 //  - jogador ainda desconhecido: AVATAR_VAZIO (imagem transparente, o círculo fica vazio) até o worker responder;
 //    sem resposta em ESPERA_MAX, mostra a foto que veio da partida (padrao).
 // No HTML gerado (sem JS) também sai AVATAR_VAZIO, igual à primeira renderização no navegador.
-// Avatar animado (Loja de Pontos) vem como GIF; com "Melhorar desempenho", a foto parada.
+// Avatar animado (Loja de Pontos) vem como GIF; com "Melhorar desempenho" ou no celular, a foto parada.
 import { useEffect, useLayoutEffect, useState } from 'react'
 import { CONFIG } from './config.js'
-import { EVENTO_DESEMPENHO, desempenhoAtivo } from './desempenho.js'
+import { EVENTO_DESEMPENHO, desempenhoAtivo, ehCelular } from './desempenho.js'
 
 export const AVATAR_VAZIO = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
 const EVENTO = 'np-avatares'
@@ -95,7 +95,7 @@ const ativo = (id) => Boolean(CONFIG.loginSteam) && ID.test(String(id || ''))
 function valor(id, padrao) {
   if (!ativo(id)) return padrao
   const chave = String(id)
-  if (desempenhoAtivo() && parados.has(chave)) return parados.get(chave)
+  if ((desempenhoAtivo() || ehCelular()) && parados.has(chave)) return parados.get(chave)
   if (atuais.has(chave)) return atuais.get(chave)
   return desistiu.has(chave) ? padrao : AVATAR_VAZIO
 }

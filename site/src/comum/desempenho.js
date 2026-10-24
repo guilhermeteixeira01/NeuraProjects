@@ -18,3 +18,8 @@ export function aplicarDesempenho(ligado) {
   }
   window.dispatchEvent(new Event(EVENTO_DESEMPENHO))
 }
+
+// Celular/tablet (tela estreita ou toque): mesmo sem "Melhorar desempenho", as partes mais pesadas ficam paradas
+// (molduras APNG de até 10 MB, avatares GIF, partículas em canvas). O CSS usa a mesma consulta (fim de estetica.css).
+export const CONSULTA_CELULAR = '(max-width: 1024px), (pointer: coarse)'
+export const ehCelular = () => typeof window !== 'undefined' && !!window.matchMedia?.(CONSULTA_CELULAR).matches

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import Avisos from './Avisos.jsx'
 import AvisoConvite from './AvisoConvite.jsx'
 import AceitarPartida from './AceitarPartida.jsx'
@@ -9,9 +9,23 @@ import { AvisoTroca } from './Trocas.jsx'
 import AvisoPontos from './AvisoPontos.jsx'
 import { useLuzCursor } from './efeitos.jsx'
 import Nav from './Nav.jsx'
-import BoasVindas from './BoasVindas.jsx'
+import { useSeguranca } from './seguranca.js'
 import { SincronizarPreferencias } from './preferencias.js'
 import { MostrarAposIdioma } from './i18n.js'
+
+const BoasVindas = lazy(() => import('./BoasVindas.jsx'))
+
+// A janela de boas-vindas (apelido + senha, com a validação dos campos) só baixa para quem ainda precisa dela:
+// logado e sem apelido ou sem senha (as mesmas condições em que BoasVindas abre).
+function PortaoBoasVindas() {
+  const seg = useSeguranca()
+  if (!seg || (seg.nick && seg.temSenha)) return null
+  return (
+    <Suspense fallback={null}>
+      <BoasVindas />
+    </Suspense>
+  )
+}
 
 // Elementos com a classe `seletor` ganham `classe` quando aparecem na tela (entram suavemente).
 // Também pega os que surgem depois (lista que carrega da internet, troca de filtro...).
@@ -92,7 +106,7 @@ export default function Layout({ pagina, children }) {
     <>
       <Nav pagina={pagina} />
       {children}
-      <BoasVindas />
+      <PortaoBoasVindas />
       <Avisos />
       <AvisoConvite />
       <AceitarPartida />

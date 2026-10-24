@@ -1,12 +1,14 @@
 // Botão ⚙ Configurações do topo: idioma, tema e "Melhorar desempenho". Vale para todas as páginas e fica
 // guardado no navegador e, com login, na conta (vale nos outros aparelhos; preferencias.js).
-import { useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { EVENTO_DESEMPENHO, desempenhoAtivo } from './desempenho.js'
 import { IDIOMAS, useT } from './i18n.js'
 import { escolherDesempenho, escolherIdioma, escolherTema } from './preferencias.js'
 import { EVENTO_TEMA, TEMAS, temaAtual } from './tema.js'
 import { useSeguranca } from './seguranca.js'
-import { TrocarNick, TrocarSenha } from './BoasVindas.jsx'
+
+const TrocarNick = lazy(() => import('./BoasVindas.jsx').then((m) => ({ default: m.TrocarNick }))) // só baixa no clique
+const TrocarSenha = lazy(() => import('./BoasVindas.jsx').then((m) => ({ default: m.TrocarSenha })))
 
 function IconeEngrenagem() {
   return (
@@ -43,8 +45,10 @@ function ContaSeguranca() {
           </button>
         )}
       </div>
-      {janela === 'nick' && <TrocarNick atual={seg.nick} aoFechar={() => setJanela(null)} />}
-      {janela === 'senha' && <TrocarSenha aoFechar={() => setJanela(null)} />}
+      <Suspense fallback={null}>
+        {janela === 'nick' && <TrocarNick atual={seg.nick} aoFechar={() => setJanela(null)} />}
+        {janela === 'senha' && <TrocarSenha aoFechar={() => setJanela(null)} />}
+      </Suspense>
     </div>
   )
 }

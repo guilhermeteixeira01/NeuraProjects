@@ -7,7 +7,7 @@
 import arquivos, { animados } from 'virtual:cards-perfil'
 import minis from 'virtual:cards-mini'
 import meds from 'virtual:cards-med'
-import { desempenhoAtivo } from './desempenho.js'
+import { desempenhoAtivo, ehCelular } from './desempenho.js'
 
 export const CARDS = arquivos
 // Animado: nome terminando em "-anim" ou imagem animada de verdade (AVIF/WebP/GIF/APNG em sequência: o vite.config.js confere o arquivo)
@@ -30,13 +30,13 @@ export const TEMAS_CARD = [...new Set(arquivos.map(temaCard))].filter(Boolean)
 
 const semMovimento = () => {
   try {
-    return desempenhoAtivo() || window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    return desempenhoAtivo() || ehCelular() || window.matchMedia('(prefers-reduced-motion: reduce)').matches
   } catch {
     return false
   }
 }
 // Card parado (raster, 200 a 600 KB no original): o site mostra a versão de 400 px em webp (cards/med/, 2 a 65 KB).
-// Card ANIMADO usa o próprio arquivo (a versão webp seria uma imagem parada); com "Melhorar desempenho" ou movimento reduzido
+// Card ANIMADO usa o próprio arquivo (a versão webp seria uma imagem parada); com "Melhorar desempenho", movimento reduzido ou no celular
 // cai na miniatura parada (raster) ou na versão parada (SVG).
 export const urlCard = (nome) => {
   const id = idCard(nome)

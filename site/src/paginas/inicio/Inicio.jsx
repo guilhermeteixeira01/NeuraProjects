@@ -156,7 +156,11 @@ export default function Inicio() {
         <section className="ix-hero">
           <div className="wrap">
           <div className="ix-hero-card">
-            <img className="ix-fundo" src="/assets/banners/inicio.webp" alt="" width="1726" height="911" fetchpriority="high" decoding="async" />
+            {/* celular: versão de 860 px (94 KB no lugar de 380 KB); fica atrás do texto com sombra, a diferença não aparece */}
+            <picture>
+              <source media="(max-width: 760px)" srcSet="/assets/banners/inicio-860.webp" />
+              <img className="ix-fundo" src="/assets/banners/inicio.webp" alt="" width="1726" height="911" fetchPriority="high" decoding="async" />
+            </picture>
             <div className="ix-fundo-vu" aria-hidden="true" />
             <div className="ix-hero-texto">
               <span className="kicker fx-entra" style={{ '--e': 1 }}>{t('SERVIDOR COMPETITIVO DE CS2')}</span>
@@ -356,7 +360,7 @@ export default function Inicio() {
         <section className="ix-banda" id="sobre">
           <div className="wrap ix-banda-grade">
             <figure className="ix-banda-arte reveal">
-              <img src="/assets/banners/inicio.webp" alt="" width="1726" height="911" loading="lazy" decoding="async" />
+              <img src="/assets/banners/inicio.webp" srcSet="/assets/banners/inicio-860.webp 860w, /assets/banners/inicio.webp 1726w" sizes="(max-width: 900px) 100vw, 50vw" alt="" width="1726" height="911" loading="lazy" decoding="async" />
             </figure>
             <div className="ix-banda-texto reveal" style={{ '--d': '.08s' }}>
               <span className="kicker">{t('SOBRE A NEURA')}</span>

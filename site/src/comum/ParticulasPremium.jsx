@@ -1,7 +1,8 @@
 // Partículas do sistema Premium: faíscas que sobem com brilho aditivo, em tons dourados (ou na cor passada em `cor`, "r,g,b").
 // Vai dentro de um elemento position: relative; o canvas cobre tudo e não pega clique. Fica parado com "Melhorar desempenho"
-// ou movimento reduzido (mesma regra do HeroFundo).
+// ou movimento reduzido, e no celular (mesma regra do HeroFundo).
 import { useEffect, useRef } from 'react'
+import { ehCelular } from './desempenho.js'
 
 const TONS = ['255,211,77', '255,157,46', '255,236,170']
 
@@ -11,7 +12,7 @@ export default function ParticulasPremium({ quantidade = 26, cor, estrelas = tru
     const c = ref.current
     if (!c) return
     const html = document.documentElement
-    if (html.hasAttribute('data-desempenho') || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    if (html.hasAttribute('data-desempenho') || ehCelular() || matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const x = c.getContext('2d')
     const dpr = Math.min(devicePixelRatio || 1, 2)
     let W = 0

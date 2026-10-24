@@ -417,3 +417,32 @@ html:is([data-tema='escuro'], [data-tema='claro']) body {
 html[data-desempenho] body {
   background: var(--bg) !important;
 }
+
+/* ── Celular/tablet: sem o que mais pesa ao rolar a página (mesma consulta de CONSULTA_CELULAR em comum/desempenho.js) ──
+   O fundo fixo com textura de ruído (SVG com filtro) era redesenhado na tela inteira a cada quadro de rolagem; o desfoque
+   de fundo (backdrop-filter) e os brilhos com blur de 110px custam caro na GPU do celular; a grade do topo animava o
+   background-position sem parar. As animações leves (transform/opacity) continuam. */
+@media (max-width: 1024px), (pointer: coarse) {
+  body,
+  html:is([data-tema='escuro'], [data-tema='claro']) body {
+    background:
+      radial-gradient(90vw 50vh at 20% 0%, rgb(52 152 219 / 0.06), transparent 70%),
+      var(--bg) !important;
+    background-attachment: scroll !important;
+  }
+  html:is([data-tema='claro'], [data-tema='branco']) body {
+    background: var(--bg) !important;
+  }
+  *,
+  *::before,
+  *::after {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  .hero-glow {
+    display: none !important;
+  }
+  .fx-chao {
+    animation: none !important;
+  }
+}
