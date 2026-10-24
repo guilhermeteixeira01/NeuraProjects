@@ -299,6 +299,7 @@
 .sala-mapas .tag { position: absolute; top: 8px; left: 8px; padding: 2px 8px; border-radius: 4px; font: 800 10.5px var(--font-mono); font-style: normal; letter-spacing: .5px; background: rgba(0, 0, 0, .7); }
 .sala-mapas .tag.ban { color: var(--red); }
 .sala-mapas .tag.pick { color: #3ddc84; }
+.sala-mapas .tag.garantido { color: #fff; background: #1f6fff; box-shadow: 0 0 10px rgb(31 111 255 / .5); }
 
 .sala-historico { list-style: none; margin: 0; padding: 4px 14px; max-height: 190px; overflow-y: auto; border-radius: 12px; border: 1px solid var(--border-2); background: #0e0f12; }
 .sala-historico li { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid rgb(var(--tinta) / .06); font-size: 13.5px; }
@@ -469,12 +470,43 @@ html[data-desempenho] .lb-modo-premium::before, html[data-desempenho] .lb-modo-p
 .lb-pool { display: grid; justify-items: center; gap: 12px; }
 .lb-pool-titulo { justify-self: center; font: 700 11.5px var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); }
 .lb-pool-mapas { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-.lb-pool-mapas li { display: grid; justify-items: center; gap: 7px; width: clamp(92px, 7.4vw, 124px); padding: 5px 5px 9px; border-radius: 6px; border: 1px solid rgb(var(--tinta) / .1); background: rgb(var(--tinta) / .03); transition: border-color .15s, background .15s; }
-.lb-pool-mapas li:hover { border-color: rgb(var(--tinta) / .35); background: rgb(var(--tinta) / .06); }
+.lb-pool-mapas button {
+  position: relative; display: grid; justify-items: center; gap: 7px; width: clamp(92px, 7.4vw, 124px); padding: 5px 5px 9px; border-radius: 6px;
+  border: 1px solid rgb(var(--tinta) / .1); background: rgb(var(--tinta) / .03); color: inherit; font: inherit; cursor: pointer;
+  transition: border-color .15s, background .15s, box-shadow .15s;
+}
+.lb-pool-mapas button:disabled { cursor: default; }
+.lb-pool-mapas button:not(:disabled):hover { border-color: rgb(var(--tinta) / .35); background: rgb(var(--tinta) / .06); }
+.lb-pool-mapas button:focus-visible { outline: 2px solid #3d8bff; outline-offset: 2px; }
 .lb-pool-img { display: block; width: 100%; aspect-ratio: 16 / 10; border-radius: 4px; background: var(--img) center / cover, linear-gradient(135deg, var(--c1), var(--c2)); filter: saturate(.8) brightness(.85); transition: filter .15s; }
-.lb-pool-mapas li:hover .lb-pool-img { filter: none; }
+.lb-pool-mapas button:not(:disabled):hover .lb-pool-img, .lb-pool-mapas li.sel .lb-pool-img { filter: none; }
 .lb-pool-mapas b { font: 700 clamp(12.5px, .85vw, 14.5px) var(--font-body); color: var(--text); }
-.lb-pool-dica { margin: 2px 0 0; font: 500 12.5px var(--font-body); color: var(--dim); text-align: center; }
+.lb-pool-dica { margin: 2px 0 0; font: 500 12.5px var(--font-body); color: var(--dim); text-align: center; max-width: 640px; }
+.lb-pool-dica.lb-dica-premium { color: var(--accent); font-weight: 600; }
+/* Mapa garantido (marcado pelo líder Premium): borda azul e o check no canto */
+.lb-pool-mapas li.sel button { border-color: #3d8bff; background: rgb(61 139 255 / .1); box-shadow: 0 0 0 1px #3d8bff inset, 0 0 14px rgb(61 139 255 / .25); }
+.lb-pool-check {
+  position: absolute; top: 9px; right: 9px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
+  background: #3d8bff; color: #fff; box-shadow: 0 2px 6px rgb(0 0 0 / .4);
+}
+.lb-pool-conta { margin-left: 8px; font: 800 11px var(--font-mono); font-style: normal; color: #3d8bff; letter-spacing: .04em; }
+/* Sem Premium: os mapas ficam apagados atrás do cadeado azul (como na FACEIT) */
+.lb-pool-area { position: relative; display: grid; justify-items: center; }
+.lb-pool-travado .lb-pool-mapas { filter: grayscale(.7) brightness(.45); pointer-events: none; user-select: none; }
+.lb-pool-cadeado { position: absolute; inset: 0; display: grid; place-items: center; padding: 8px; }
+.lb-pool-selo {
+  display: flex; align-items: center; gap: 14px; max-width: 100%; padding: 10px 20px 10px 10px; border-radius: 999px; text-align: left;
+  background: rgb(8 12 20 / .88); border: 1px solid rgb(61 139 255 / .45); box-shadow: 0 8px 30px rgb(0 0 0 / .55), 0 0 24px rgb(31 111 255 / .2);
+}
+.lb-pool-selo > span:last-child { display: grid; gap: 2px; }
+.lb-cadeado {
+  flex: none; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; color: #fff;
+  background: radial-gradient(circle at 35% 30%, #6aa8ff, #1f6fff 60%, #1450c8); box-shadow: 0 0 0 4px rgb(61 139 255 / .22), 0 4px 16px rgb(31 111 255 / .55);
+}
+.lb-pool-selo b { font: 800 13.5px var(--font-body); letter-spacing: .05em; text-transform: uppercase; color: #fff; }
+.lb-pool-selo small { font: 600 12.5px var(--font-body); color: #b9cff5; }
+@media (max-width: 560px) { .lb-pool-selo { border-radius: 16px; padding: 10px 14px 10px 10px; } }
+.lb-abas-painel small svg { vertical-align: -2px; color: #3d8bff; }
 
 /* ── Tamanhos que acompanham a tela (o lobby não encolhe mais com zoom): maiores em telas grandes, sem estourar nas menores ── */
 .lb-fila span { font-size: clamp(14px, .95vw, 16px); padding: 7px 20px; }

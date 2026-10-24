@@ -1435,4 +1435,13 @@ export default {
   "Os itens equipados ficam de fora": "Los ítems equipados quedan fuera",
   "POOL DE MAPAS ATIVO": "POOL DE MAPAS ACTIVO",
   "Os mapas da partida são escolhidos no Pick & Ban, depois que os 10 aceitarem.": "Los mapas de la partida se eligen en el Pick & Ban, después de que los 10 acepten.",
+  "Pool de mapas Premium": "Pool de mapas Premium",
+  "Assine o Premium para garantir até {n} mapas no Pick & Ban.": "Suscríbete a Premium para garantizar hasta {n} mapas en el Pick & Ban.",
+  "Você já marcou {n} mapas: desmarque um para trocar.": "Ya marcaste {n} mapas: desmarca uno para cambiar.",
+  "Só o líder marca o pool garantido do grupo.": "Solo el líder marca el pool garantizado del grupo.",
+  "Buscando partida: o pool fica travado até cancelar a busca.": "Buscando partida: el pool queda bloqueado hasta cancelar la búsqueda.",
+  "Marque até {n} mapas: eles entram com certeza no Pick & Ban. Se o time adversário também marcar, os mapas dos dois entram e o resto completa os 7.": "Marca hasta {n} mapas: entran seguro en el Pick & Ban. Si el equipo rival también marca, entran los mapas de los dos y el resto completa los 7.",
+  "O pool de mapas garantido é só para quem tem assinatura Premium.": "El pool de mapas garantizado es solo para suscriptores Premium.",
+  "Escolha de mapas inválida.": "Selección de mapas inválida.",
+  "GARANTIDO": "GARANTIZADO",
 }

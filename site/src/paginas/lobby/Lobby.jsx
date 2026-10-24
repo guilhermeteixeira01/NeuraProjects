@@ -36,6 +36,8 @@ const ERROS = {
   'em-partida': 'Você está numa partida: o grupo fica travado até ela acabar.',
   incompleto: 'O grupo precisa de 5 jogadores para buscar partida.',
   'sem-sub': 'A busca de MD3 é só para o líder com assinatura Premium.',
+  'sem-sub-pool': 'O pool de mapas garantido é só para quem tem assinatura Premium.',
+  mapas: 'Escolha de mapas inválida.',
   login: 'Seu login venceu. Entre de novo com a Steam.',
 }
 const fmt = (v, t) => Number(v || 0).toLocaleString(t.local)
@@ -124,6 +126,12 @@ const IC_SAIR = (
   </>
 )
 const IC_CHECK = <path d="m4 12.5 5 5L20 6.5" />
+const IC_CADEADO = (
+  <>
+    <rect x="5" y="11" width="14" height="10" rx="2" />
+    <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+  </>
+)
 
 // Um lugar do grupo com alguém (ou convite pendente): o fundo é o card que a pessoa escolheu no perfil
 function Pessoa({ pessoa: bruta, lider, pendente, centro, souLider, eu, aoRemover, ocupado, nivelDe: nivelDoJogador }) {
@@ -345,6 +353,29 @@ function Painel({ dados, fazer, ocupado, status }) {
   const trocavel = dados.souLider && !dados.busca
   const travado = (m) => m.premium && !nivelSub && dados.souLider // MD3 trancado para o líder sem assinatura
 
+  // Pool garantido (Premium): o líder marca até poolMax mapas que entram com certeza no Pick & Ban (o worker junta com os do adversário).
+  // Sem assinatura, a aba mostra os mapas trancados com o cadeado.
+  const premium = !!nivelSub
+  const meuPool = dados.pool || []
+  const poolMax = dados.poolMax || 3
+  const poolEditavel = premium && dados.souLider && !dados.busca
+  const [dicaPool, setDicaPool] = useState('')
+  const marcarMapa = (id) => {
+    if (!poolEditavel || ocupado) return
+    const marcado = meuPool.includes(id)
+    if (!marcado && meuPool.length >= poolMax) return setDicaPool(t('Você já marcou {n} mapas: desmarque um para trocar.', { n: poolMax }))
+    setDicaPool('')
+    playSound(marcado ? 'lado' : 'pick')
+    fazer('pool', undefined, { mapas: marcado ? meuPool.filter((m) => m !== id) : [...meuPool, id] })
+  }
+  const textoPool = !premium
+    ? t('Os mapas da partida são escolhidos no Pick & Ban, depois que os 10 aceitarem.')
+    : !dados.souLider
+      ? t('Só o líder marca o pool garantido do grupo.')
+      : dados.busca
+        ? t('Buscando partida: o pool fica travado até cancelar a busca.')
+        : t('Marque até {n} mapas: eles entram com certeza no Pick & Ban. Se o time adversário também marcar, os mapas dos dois entram e o resto completa os 7.', { n: poolMax })
+
   // Som de busca: o líder ouve na hora do clique; o resto do grupo ouve quando a busca começa e quando para
   const buscando = !!dados.busca
   const antes = useRef(buscando)
@@ -392,7 +423,7 @@ function Painel({ dados, fazer, ocupado, status }) {
       <div className="lb-abas-painel" role="tablist">
         {[
           ['tipo', t('TIPO DE PARTIDA'), null],
-          ['mapas', t('MAPAS'), `${ALL_MAPS.length}/${ALL_MAPS.length}`],
+          ['mapas', t('MAPAS'), premium ? `${meuPool.length}/${poolMax}` : <Marca d={IC_CADEADO} tamanho={13} />],
           ['servidor', t('SERVIDOR'), '1/1'],
         ].map(([id, rotulo, n]) => (
           <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'ativa' : ''} onClick={() => setAba(id)}>
@@ -446,18 +477,48 @@ function Painel({ dados, fazer, ocupado, status }) {
           </div>
         )}
         {aba === 'mapas' && (
-          // como na FACEIT: a pool de mapas numa fileira de cartões pequenos (os mapas da partida saem do Pick & Ban, depois do aceite)
-          <div className="lb-pool">
-            <small className="lb-pool-titulo">{t('POOL DE MAPAS ATIVO')}</small>
-            <ul className="lb-pool-mapas">
-              {ALL_MAPS.map((m) => (
-                <li key={m.id}>
-                  <span className="lb-pool-img" style={{ '--img': `url('${mapImage(m.id)}')`, '--c1': m.colors[0], '--c2': m.colors[1] }} />
-                  <b>{m.name}</b>
-                </li>
-              ))}
-            </ul>
-            <p className="lb-pool-dica">{t('Os mapas da partida são escolhidos no Pick & Ban, depois que os 10 aceitarem.')}</p>
+          // como na FACEIT: a pool de mapas numa fileira de cartões pequenos; Premium marca os garantidos, sem assinatura fica o cadeado azul
+          <div className={`lb-pool${premium ? '' : ' lb-pool-travado'}`}>
+            <small className="lb-pool-titulo">
+              {t('POOL DE MAPAS ATIVO')}
+              {premium && <em className="lb-pool-conta">{`${meuPool.length}/${poolMax}`}</em>}
+            </small>
+            <div className="lb-pool-area">
+              <ul className="lb-pool-mapas">
+                {ALL_MAPS.map((m) => {
+                  const sel = premium && meuPool.includes(m.id)
+                  return (
+                    <li key={m.id} className={sel ? 'sel' : undefined}>
+                      <button type="button" disabled={!poolEditavel || ocupado} aria-pressed={sel} onClick={() => marcarMapa(m.id)} tabIndex={premium ? undefined : -1}>
+                        <span className="lb-pool-img" style={{ '--img': `url('${mapImage(m.id)}')`, '--c1': m.colors[0], '--c2': m.colors[1] }} />
+                        {sel && (
+                          <i className="lb-pool-check" aria-hidden="true">
+                            <Marca d={IC_CHECK} tamanho={13} />
+                          </i>
+                        )}
+                        <b>{m.name}</b>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+              {!premium && (
+                <div className="lb-pool-cadeado">
+                  <div className="lb-pool-selo">
+                    <span className="lb-cadeado">
+                      <Marca d={IC_CADEADO} tamanho={24} />
+                    </span>
+                    <span>
+                      <b>{t('Pool de mapas Premium')}</b>
+                      <small>{t('Assine o Premium para garantir até {n} mapas no Pick & Ban.', { n: poolMax })}</small>
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+            <p className={`lb-pool-dica${dicaPool ? ' lb-dica-premium' : ''}`} role="status">
+              {dicaPool || textoPool}
+            </p>
           </div>
         )}
         {aba === 'servidor' && <PainelServidor status={status} />}

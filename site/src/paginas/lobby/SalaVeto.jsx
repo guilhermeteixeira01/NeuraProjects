@@ -440,6 +440,12 @@ export default function SalaVeto({ dados }) {
                               {s.state === 'banned' ? t('BANIDO') : `${t('PICK')} ${s.order}`}
                             </em>
                           )}
+                          {/* Mapa que um líder Premium garantiu no pool (some quando o mapa é banido ou escolhido) */}
+                          {s.state === 'available' && ['A', 'B'].some((tm) => partida.garantidos?.[tm]?.includes(id)) && (
+                            <em className="tag garantido" title={['A', 'B'].filter((tm) => partida.garantidos[tm].includes(id)).map(nome).join(' · ')}>
+                              {t('GARANTIDO')}
+                            </em>
+                          )}
                           <b>{m.name}</b>
                           {s.state !== 'available' && <small>{nome(s.team)}</small>}
                           {s.side && (

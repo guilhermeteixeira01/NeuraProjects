@@ -1435,4 +1435,13 @@ export default {
   "Os itens equipados ficam de fora": "Equipped items are left out",
   "POOL DE MAPAS ATIVO": "ACTIVE MAP POOL",
   "Os mapas da partida são escolhidos no Pick & Ban, depois que os 10 aceitarem.": "The match maps are chosen in the Pick & Ban, after all 10 players accept.",
+  "Pool de mapas Premium": "Premium map pool",
+  "Assine o Premium para garantir até {n} mapas no Pick & Ban.": "Subscribe to Premium to guarantee up to {n} maps in the Pick & Ban.",
+  "Você já marcou {n} mapas: desmarque um para trocar.": "You already picked {n} maps: unselect one to swap.",
+  "Só o líder marca o pool garantido do grupo.": "Only the leader picks the group's guaranteed pool.",
+  "Buscando partida: o pool fica travado até cancelar a busca.": "Searching for a match: the pool is locked until you cancel the search.",
+  "Marque até {n} mapas: eles entram com certeza no Pick & Ban. Se o time adversário também marcar, os mapas dos dois entram e o resto completa os 7.": "Pick up to {n} maps: they are guaranteed in the Pick & Ban. If the opposing team also picks, both teams' maps go in and the rest fills up the 7.",
+  "O pool de mapas garantido é só para quem tem assinatura Premium.": "The guaranteed map pool is only for Premium subscribers.",
+  "Escolha de mapas inválida.": "Invalid map selection.",
+  "GARANTIDO": "GUARANTEED",
 }

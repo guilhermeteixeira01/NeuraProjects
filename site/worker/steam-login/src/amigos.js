@@ -8,7 +8,7 @@
 // quando alguém entra, sai ou fica ausente, avisa só os AMIGOS dessa pessoa. "Visto por último" fica no armazenamento
 // do próprio objeto. Rotas (com login, em index.js): GET /amigos, POST /amigos { acao, id }.
 
-import { DEFAULT_POOL } from '../../../src/paginas/neurapick/data/maps.js'
+import { ALL_MAPS, DEFAULT_POOL, POOL_SIZE } from '../../../src/paginas/neurapick/data/maps.js'
 import { FORMATS, buildSteps, deriveState, other } from '../../../src/paginas/neurapick/data/veto.js'
 import { ErroConflito, ErroLimite, ErroNaoEncontrado, ErroPedido, ErroPermissao } from './erros.js'
 import { exigirBearer, lerCorpo, reenviar, respostaDeErro } from './http.js'
@@ -29,7 +29,7 @@ const SEM_SINAL_MS = 150 * 1000 // o site manda "ping" a cada 20 s; sem nenhum s
 const LOBBY_OFFLINE_MS = 10 * 60 * 1000 // membro offline há mais que isso sai sozinho
 const novoLobby = () => ({ membros: [], convites: [], publico: false, busca: null })
 const lobbyVazio = (lb) => !lb.membros.length && !lb.convites.length && !lb.publico
-const ACOES_LOBBY = ['convidar', 'remover', 'entrar', 'recusar', 'sair', 'publico', 'buscar', 'cancelar-busca', 'aceitar', 'recusar-partida', 'veto', 'substituir']
+const ACOES_LOBBY = ['convidar', 'remover', 'entrar', 'recusar', 'sair', 'publico', 'pool', 'buscar', 'cancelar-busca', 'aceitar', 'recusar-partida', 'veto', 'substituir']
 // Ações que continuam valendo com a partida montada (as outras mexem no grupo, que fica travado)
 const ACOES_PARTIDA = ['aceitar', 'recusar-partida', 'veto', 'substituir'] // depois do veto não há como cancelar nem encerrar a sala: ela se resolve sozinha (prazos T)
 
@@ -72,12 +72,29 @@ const vagasDe = (p, time) => {
 const passoDe = (p) => buildSteps(p.formato, p.primeiro)[p.historico.length] || null
 const sorteio = (lista) => lista[Math.floor(Math.random() * lista.length)]
 
+// Pool garantido (Premium): o líder assinante marca até POOL_GARANTIDO_MAX mapas que entram com certeza no Pick & Ban. A escolha é
+// de cada jogador (armazenamento "pools" = { "<SteamID>": [ids] }, vale em qualquer lobby que ele lidere) e é copiada para lb.pool
+// quando a busca começa.
+// Com os dois times no máximo ainda sobra vaga (3 + 3 < 7), então o garantido de cada um sempre entra. Os 7 mapas do veto:
+// os garantidos dos dois (repetidos contam uma vez); o resto sai sorteado do pool do Premier e, se faltar, dos outros mapas.
+const POOL_GARANTIDO_MAX = 3
+const embaralhar = (lista) => lista.map((v) => [Math.random(), v]).sort((x, y) => x[0] - y[0]).map((x) => x[1])
+const poolValido = (mapas) => Array.isArray(mapas) && mapas.length <= POOL_GARANTIDO_MAX && new Set(mapas).size === mapas.length && mapas.every((m) => ALL_MAPS.some((x) => x.id === m))
+export function montarPool(garantidosA = [], garantidosB = []) {
+  const escolhidos = new Set([...garantidosA, ...garantidosB])
+  const resto = [...embaralhar(DEFAULT_POOL), ...embaralhar(ALL_MAPS.map((m) => m.id))].filter((m) => !escolhidos.has(m))
+  const pool = new Set(escolhidos)
+  for (const m of resto) if (pool.size < POOL_SIZE) pool.add(m)
+  return ALL_MAPS.map((m) => m.id).filter((m) => pool.has(m)) // na ordem de sempre dos mapas
+}
+
 function criarPartida(todos, partidas, a, b) {
   const id = crypto.randomUUID()
   const time = (lider) => ({ lider, membros: [lider, ...todos[lider].membros] })
+  const garantidos = { A: todos[a].pool || [], B: todos[b].pool || [] }
   partidas[id] = {
     id, fase: 'aceitar', prazo: Date.now() + ACEITE_SEG * 1000, times: { A: time(a), B: time(b) }, aceitos: [],
-    formato: todos[a].formato, pool: DEFAULT_POOL, primeiro: Math.random() < 0.5 ? 'A' : 'B', historico: [],
+    formato: todos[a].formato, pool: montarPool(garantidos.A, garantidos.B), garantidos, primeiro: Math.random() < 0.5 ? 'A' : 'B', historico: [],
   }
   todos[a].busca = null
   todos[b].busca = null
@@ -412,6 +429,7 @@ export class Presenca {
     if (!ID_STEAM.test(String(eu))) throw new ErroPedido('id')
     const todos = (await this.state.storage.get('lobbies')) || {}
     const partidas = (await this.state.storage.get('partidas')) || {}
+    const pools = (await this.state.storage.get('pools')) || {}
     const amigosEu = (await this.listaAmigos())[eu]?.amigos || []
     const achar = (id) => (todos[id] ? id : Object.keys(todos).find((l) => todos[l].membros.includes(id)) || null)
     const lideres = new Set() // lobbies mexidos: se forem públicos, os amigos do líder também recarregam a lista de lobbies abertos
@@ -537,12 +555,24 @@ export class Presenca {
         lb.publico = valor === true
         lideres.add(eu)
         avisar(lb.membros)
+      } else if (acao === 'pool') {
+        // Pool garantido: só o líder com Premium marca os mapas (valor.mapas), e não durante a busca
+        if (!eLider) throw new ErroPermissao('lider')
+        if (todos[eu]?.busca) throw new ErroConflito('buscando')
+        if (!poolValido(valor?.mapas)) throw new ErroPedido('mapas')
+        if (!(await temSubAtiva(this.env, eu))) throw new ErroPermissao('sem-sub-pool')
+        if (valor.mapas.length) pools[eu] = valor.mapas
+        else delete pools[eu]
+        await this.state.storage.put('pools', pools)
+        avisar(todos[eu]?.membros || [])
       } else if (acao === 'buscar') {
         const lb = todos[eu]
         if (!eLider || !lb || 1 + lb.membros.length < LOBBY_MAX) throw new ErroPedido('incompleto')
         if (!FORMATOS_FILA.includes(valor?.formato) || !FORMATS[valor.formato]) throw new ErroPedido('formato')
         if (valor.formato === 'bo3' && !(await temSubAtiva(this.env, eu))) throw new ErroPermissao('sem-sub')
         if (!lb.busca) {
+          // O pool garantido vai junto para a fila (só com a assinatura ainda ativa: vencida, ele deixa de valer)
+          lb.pool = pools[eu]?.length && (await temSubAtiva(this.env, eu)) ? pools[eu] : []
           lb.convites = []
           lb.formato = valor.formato
           lb.busca = Date.now()
@@ -619,9 +649,11 @@ export class Presenca {
       max: LOBBY_MAX,
       busca: lb.busca || null,
       formato: lb.formato || null,
+      pool: pools[lider] || [], // pool garantido do líder (Premium)
+      poolMax: POOL_GARANTIDO_MAX,
       partida: minhaPartida && {
         id: minhaPartida.id, fase: minhaPartida.fase, prazo: minhaPartida.prazo, agora: Date.now(), formato: minhaPartida.formato,
-        pool: minhaPartida.pool, primeiro: minhaPartida.primeiro, historico: minhaPartida.historico, aceitos: minhaPartida.aceitos,
+        pool: minhaPartida.pool, garantidos: minhaPartida.garantidos || { A: [], B: [] }, primeiro: minhaPartida.primeiro, historico: minhaPartida.historico, aceitos: minhaPartida.aceitos,
         meuTime: minhaPartida.times.A.membros.includes(eu) ? 'A' : 'B',
         servidor: minhaPartida.servidor && {
           estado: minhaPartida.servidor.estado,
