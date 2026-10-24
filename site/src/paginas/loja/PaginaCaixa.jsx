@@ -110,18 +110,29 @@ function IconeSom({ ligado }) {
   )
 }
 
-// ── abertura especial: a cada 100 caixas abertas (todas somadas) o item sai entre as skins mais caras da caixa (worker: loja-core.js ESPECIAL) ──
+// ── abertura especial: a cada 100 caixas abertas (as de adesivo/chaveiro não contam) o item sai entre as skins mais caras da caixa (worker: loja-core.js ESPECIAL) ──
 const CADA_ESPECIAL = 100
 function ProgressoEspecial({ aberturas }) {
   const t = useT()
   const feitas = aberturas % CADA_ESPECIAL
   const faltam = CADA_ESPECIAL - feitas
   return (
-    <span className={`lj-cx-especial${faltam === 1 ? ' is-proxima' : ''}`} title={t('A cada {n} caixas abertas, uma sai entre as skins mais caras da caixa.', { n: CADA_ESPECIAL })}>
-      <span>{faltam === 1 ? `★ ${t('A próxima caixa é especial!')}` : t('Abertura especial em {n} caixas', { n: faltam })}</span>
-      <i aria-hidden="true">
-        <u style={{ width: `${(feitas / CADA_ESPECIAL) * 100}%` }} />
+    <span className={`lj-esp-progresso${faltam === 1 ? ' is-proxima' : ''}`} title={t('A cada {n} caixas abertas, uma sai entre as skins mais caras da caixa.', { n: CADA_ESPECIAL })}>
+      <span className="lj-cx-esp-topo">
+        <b>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m12 2.5 2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" />
+          </svg>
+          {t('Abertura especial')}
+        </b>
+        <em>
+          {feitas}/{CADA_ESPECIAL}
+        </em>
+      </span>
+      <i className="lj-cx-esp-barra" aria-hidden="true">
+        <u style={{ width: `${Math.max(2, (feitas / CADA_ESPECIAL) * 100)}%` }} />
       </i>
+      <small>{faltam === 1 ? t('A próxima caixa é especial!') : t('Faltam {n} caixas', { n: faltam })}</small>
     </span>
   )
 }
@@ -363,7 +374,7 @@ function JanelaEspeciais({ itens, achar, aoFechar }) {
   )
 }
 
-export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, ocupado = false, achar, favorita, aoFavoritar, aoVoltar, aoAbriu }) {
+export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abrirDoInventario = false, aoAbrirDoInventario, ocupado = false, achar, favorita, aoFavoritar, aoVoltar, aoAbriu }) {
   const t = useT()
   const maximo = Math.min(maxQtd, MAX_POR_VEZ)
   const [qtd, setQtd] = useState(1)
@@ -375,6 +386,8 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, ocup
   const [somLigado, setSomLigado] = useState(true)
   const [det, setDet] = useState(null) // GET /loja/caixa
   const [abrindo, setAbrindo] = useState(null) // { qtd, origem, chave }
+  // caixa só de adesivos/chaveiros: não conta para a abertura especial (nem tem)
+  const soEnfeites = c.itens.length > 0 && c.itens.every((it) => it.t === 'adesivo' || it.t === 'chaveiro')
   const [resultado, setResultado] = useState(null) // o que saiu (depois que as roletas pararam): [{ id, v, ... }]
   const [vendidos, setVendidos] = useState(() => new Set())
   const [vendendo, setVendendo] = useState(false)
@@ -433,6 +446,15 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, ocup
     setErroVenda('')
     setAbrindo({ qtd: q, origem, chave: Date.now() })
   }
+  // veio do botão "Abrir" do inventário: abre uma das caixas que já tem aqui mesmo, na roleta da página (uma vez só)
+  const abriuDoInventario = useRef(false)
+  useEffect(() => {
+    if (!abrirDoInventario || abriuDoInventario.current || tem <= 0) return
+    abriuDoInventario.current = true
+    aoAbrirDoInventario?.()
+    abrir(1, 'inventario')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [abrirDoInventario, tem])
   const voltarParaCaixa = () => {
     setAbrindo(null)
     setResultado(null)
@@ -563,7 +585,7 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, ocup
             <button type="button" className="lj-cx-btn-abrir" disabled={girando || ocupado || preco == null} onClick={() => (falta ? setDepositando(true) : abrir(qtd, 'direto'))}>
               {girando ? t('Abrindo…') : preco == null ? t('Carregando…') : t('Abrir por {n} NP', { n: numero(custo) })}
             </button>
-            <ProgressoEspecial aberturas={aberturas} />
+            {!soEnfeites && <ProgressoEspecial aberturas={aberturas} />}
             {!modo && tem > 0 && (
               <span className="lj-cx-extras">
                 <button type="button" className="lj-cx-link" disabled={girando || ocupado} onClick={() => abrir(Math.min(qtd, tem), 'inventario')}>

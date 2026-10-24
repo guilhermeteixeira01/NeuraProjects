@@ -781,11 +781,20 @@ img.lj-emblema { width: 92px; height: auto; object-fit: contain; filter: drop-sh
 @media (prefers-reduced-motion: reduce) { .lj-caixa-arte img, .lj-caixa-arte::before { transition: none; } }
 
 /* ── Abertura especial (a cada 100 caixas): barrinha de progresso embaixo do Abrir e selo dourado no item que saiu nela ── */
-.lj-cx-especial { display: grid; gap: 5px; width: min(260px, 100%); font: 600 12.5px var(--font-body); color: var(--dim); text-align: center; }
-.lj-cx-especial i { display: block; height: 4px; border-radius: 4px; background: rgb(255 255 255 / .1); overflow: hidden; }
-.lj-cx-especial u { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #b8860b, #f5c518); transition: width .4s ease; }
-.lj-cx-especial.is-proxima { color: #f5c518; animation: lj-especial-pulsa 1.4s ease-in-out infinite; }
-@keyframes lj-especial-pulsa { 50% { opacity: .65; } }
+.lj-esp-progresso { position: relative; display: grid; gap: 6px; width: min(300px, 100%); box-sizing: border-box; margin-top: 4px; padding: 9px 12px 8px; border-radius: 10px; overflow: hidden;
+  background: linear-gradient(180deg, rgb(245 197 24 / .09), rgb(245 197 24 / .03)); border: 1px solid rgb(245 197 24 / .22); color: var(--text); font-family: var(--font-body); text-align: left; }
+.lj-cx-esp-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.lj-cx-esp-topo b { display: inline-flex; align-items: center; gap: 6px; font: 700 12px var(--font-body); letter-spacing: .06em; text-transform: uppercase; color: #f5c518; }
+.lj-cx-esp-topo svg { width: 14px; height: 14px; fill: #f5c518; filter: drop-shadow(0 0 4px rgb(245 197 24 / .6)); }
+.lj-cx-esp-topo em { font: 700 12.5px var(--font-body); font-style: normal; color: var(--text); font-variant-numeric: tabular-nums; }
+.lj-cx-esp-barra { position: relative; display: block; height: 7px; border-radius: 99px; background: rgb(255 255 255 / .08); box-shadow: inset 0 1px 2px rgb(0 0 0 / .45); overflow: hidden; }
+.lj-cx-esp-barra u { position: relative; display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #a87408, #f5c518 70%, #ffe27a); box-shadow: 0 0 10px rgb(245 197 24 / .55); transition: width .6s cubic-bezier(.2, .8, .3, 1); overflow: hidden; }
+.lj-cx-esp-barra u::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 20%, rgb(255 255 255 / .55) 50%, transparent 80%); transform: translateX(-100%); animation: lj-esp-brilho 2.6s ease-in-out infinite; }
+@keyframes lj-esp-brilho { 60%, 100% { transform: translateX(100%); } }
+.lj-esp-progresso small { font: 500 11.5px var(--font-body); color: var(--dim); }
+.lj-esp-progresso.is-proxima { border-color: rgb(245 197 24 / .6); box-shadow: 0 0 22px -6px rgb(245 197 24 / .7); animation: lj-especial-pulsa 1.6s ease-in-out infinite; }
+.lj-esp-progresso.is-proxima small { color: #f5c518; font-weight: 700; }
+@keyframes lj-especial-pulsa { 50% { box-shadow: 0 0 30px -4px rgb(245 197 24 / .9); } }
 .lj-especial-selo { position: absolute; top: 6px; left: 6px; z-index: 3; padding: 3px 8px; border-radius: 5px; background: linear-gradient(90deg, #b8860b, #f5c518); color: #1a1400; font: 800 11px var(--font-body); letter-spacing: .03em; text-transform: uppercase; box-shadow: 0 4px 14px -4px #f5c518; pointer-events: none; }
 .lj-rev-cartao { position: relative; }
-@media (prefers-reduced-motion: reduce) { .lj-cx-especial.is-proxima { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .lj-esp-progresso.is-proxima, .lj-cx-esp-barra u::after { animation: none; } }

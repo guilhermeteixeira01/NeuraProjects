@@ -1427,4 +1427,5 @@ export default {
   "A próxima caixa é especial!": "¡La próxima caja es especial!",
   "Abertura especial em {n} caixas": "Apertura especial en {n} cajas",
   "A cada {n} caixas abertas, uma sai entre as skins mais caras da caixa.": "Cada {n} cajas abiertas, una sale entre las skins más caras de la caja.",
+  "Faltam {n} caixas": "Faltan {n} cajas",
 }

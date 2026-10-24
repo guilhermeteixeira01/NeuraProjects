@@ -284,6 +284,10 @@ export class Loja {
   gastos() {
     return Number(this.sql.exec('SELECT COALESCE(SUM(valor),0) AS s FROM movimentos').one().s) || 0
   }
+  // aberturas que contam para a abertura especial: as que deram arma/faca/luva (caixa de adesivo/chaveiro só dá adesivo/chaveiro)
+  abertasParaEspecial() {
+    return Number(this.sql.exec("SELECT COUNT(*) AS n FROM aberturas WHERE t NOT IN ('adesivo', 'chaveiro')").one().n) || 0
+  }
   linhas() {
     return this.sql.exec('SELECT ts, caixa, t, d, p, r, f, q FROM aberturas ORDER BY id').toArray()
   }
@@ -552,6 +556,7 @@ export class Loja {
       fechadas: fechadasPor,
       insignias: progressoInsignias(stats, caixas).map((i) => ({ id: i.id, nome: i.nome, descricao: i.descricao, cor: i.cor, secreta: !!i.secreta, grupo: i.grupo || null, nivel: i.nivel || null, meta: i.meta, atual: i.atual, ganhou: ganhas[i.id] || 0 })),
       aberturas: linhas.length,
+      aberturasEspecial: this.abertasParaEspecial(),
       recentes: this.sql.exec('SELECT ts, caixa, t, d, p, r, f FROM aberturas ORDER BY id DESC LIMIT 12').toArray(),
     }
   }
@@ -692,10 +697,12 @@ export class Loja {
     const agora = Date.now()
     const resultados = []
     const linhas = []
-    // abertura especial (loja-core.js: ESPECIAL): a 100ª, 200ª... caixa aberta pelo jogador sai entre as skins mais caras da caixa
-    const jaAbertas = Number(this.sql.exec('SELECT COUNT(*) AS n FROM aberturas').one().n) || 0
+    // abertura especial (loja-core.js: ESPECIAL): a 100ª, 200ª... caixa aberta pelo jogador sai entre as skins mais caras da caixa.
+    // Caixas só de adesivos/chaveiros não contam nem dão especial
+    const soEnfeites = caixa.itens.every((it) => it.t === 'adesivo' || it.t === 'chaveiro')
+    const jaAbertas = this.abertasParaEspecial()
     for (let k = 0; k < qtd; k++) {
-      const especial = ehEspecial(jaAbertas + k + 1)
+      const especial = !soEnfeites && ehEspecial(jaAbertas + k + 1)
       const ganhou = especial ? sortearEspecial(caixa, cfg, rndSeguro) : sortearAbertura(caixa, cfg, rndSeguro)
       const faixa = gerarFaixa(caixa, cfg, ganhou, rndSeguro)
       const item = novoIdItem()
@@ -728,7 +735,7 @@ export class Loja {
     const novas = await this.conferirInsignias(id, caixas, await this.fechadas(id))
     // quantas dessa caixa ainda sobram no inventário (a tela "Abrir outra" usa para contar o que já tem antes de cobrar)
     const restantes = Object.values(limpo.itens).filter((it) => it.t === 'caixa' && it.d === caixa.id).length
-    return { saldo: pontos - this.gastos(), resultados, restantes, aberturas: jaAbertas + qtd, insignias: novas.ids, insigniasTs: novas.ts }
+    return { saldo: pontos - this.gastos(), resultados, restantes, aberturasEspecial: jaAbertas + (soEnfeites ? 0 : qtd), insignias: novas.ids, insigniasTs: novas.ts }
   }
 }
 

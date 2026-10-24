@@ -5,7 +5,7 @@ import Layout from '../../comum/Layout.jsx'
 import { entrar, loginAtivo, useConta } from '../../comum/conta.js'
 import { useT } from '../../comum/i18n.js'
 import { avisarSaldo, lerLoja } from '../../comum/loja.js'
-import Abertura, { useAcharItem } from './Abertura.jsx'
+import { useAcharItem } from './Abertura.jsx'
 import AbaMercado from './Mercado.jsx'
 import Deposito from './Deposito.jsx'
 import { CarregandoNP } from '../../comum/Carregando.jsx'
@@ -145,7 +145,7 @@ function Conteudo() {
   const [erroCarga, setErroCarga] = useState(false)
   const [aba, setAba] = useState(() => (typeof location !== 'undefined' && new URLSearchParams(location.search).get('aba') === 'mercado' ? 'mercado' : 'caixas'))
   const [aberta, setAberta] = useState(null) // id da caixa com a página aberta
-  const [abertura, setAbertura] = useState(null) // { caixa, qtd, origem }
+  const [abrirAuto, setAbrirAuto] = useState(null) // id da caixa que veio do inventário para abrir: abre na página dela (roleta embutida)
   const [aviso, setAviso] = useState('')
   const [depositando, setDepositando] = useState(false)
 
@@ -169,8 +169,11 @@ function Conteudo() {
       const abrir = Number(q.get('abrir'))
       if (d && abrir) {
         const c = d.caixas.find((x) => x.id === abrir)
-        history.replaceState(null, '', location.pathname)
-        if (c && d.fechadas[abrir] > 0) setAbertura({ caixa: c, qtd: 1, origem: 'inventario', chave: Date.now() })
+        if (c && d.fechadas[abrir] > 0) {
+          history.replaceState(null, '', `${location.pathname}?caixa=${c.slug}`) // sem estado: o "Voltar às caixas" vai para a lista (não volta ao inventário)
+          setAberta(c.id)
+          setAbrirAuto(c.id)
+        } else history.replaceState(null, '', location.pathname)
       } else if (d && q.get('caixa')) {
         const c = d.caixas.find((x) => x.slug === q.get('caixa'))
         if (c) setAberta(c.id)
@@ -206,11 +209,6 @@ function Conteudo() {
     return () => window.removeEventListener('popstate', ouvir)
   }, [dados])
 
-  const fecharAbertura = () => {
-    setAbertura(null)
-    carregar()
-  }
-
   if (!loginAtivo() || !conta)
     return (
       <div className="lj-bloqueio" role="status">
@@ -225,8 +223,6 @@ function Conteudo() {
     )
   if (erroCarga) return <p className="lj-dica">{t('Não consegui carregar a loja. Tente de novo mais tarde.')}</p>
   if (!dados) return <CarregandoNP />
-
-  const abertura_ = abertura && <Abertura key={abertura.chave} caixa={abertura.caixa} qtd={abertura.qtd} origem={abertura.origem} maxQtd={dados.cfg.maxQtd} aoFechar={fecharAbertura} aoOutra={(n) => setAbertura({ caixa: abertura.caixa, qtd: n || 1, origem: 'auto', chave: Date.now() })} />
 
   // Página de uma caixa: o carrossel de drops continua em cima
   if (sel)
@@ -244,14 +240,15 @@ function Conteudo() {
           saldo={dados.saldo}
           tem={dados.fechadas[sel.id] || 0}
           maxQtd={dados.cfg.maxQtd}
-          aberturas={dados.aberturas || 0}
+          aberturas={dados.aberturasEspecial ?? dados.aberturas ?? 0}
+          abrirDoInventario={abrirAuto === sel.id}
+          aoAbrirDoInventario={() => setAbrirAuto(null)}
           achar={achar}
           favorita={fav.includes(sel.slug)}
           aoFavoritar={() => alternarFav(sel.slug)}
           aoVoltar={voltarCaixas}
           aoAbriu={carregar}
         />
-        {abertura_}
       </>
     )
 
@@ -328,7 +325,6 @@ function Conteudo() {
         <AbaInsignias lista={dados.insignias} />
       )}
 
-      {abertura_}
     </>
   )
 }
