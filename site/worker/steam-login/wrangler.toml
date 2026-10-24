@@ -67,6 +67,11 @@ class_name = "Equipes"
 name = "CONTAS"
 class_name = "Contas"
 
+# Dados compartilhados (perfis, usuarios, config, bônus, caixas...): um objeto global com uma linha por registro e versão (src/dados.js)
+[[durable_objects.bindings]]
+name = "DADOS"
+class_name = "Dados"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["Presenca"]
@@ -95,3 +100,8 @@ new_sqlite_classes = ["Equipes"]
 [[migrations]]
 tag = "v7"
 new_sqlite_classes = ["Contas"]
+
+# Dados: perfis, usuarios e docs saem do KV (lidos de lá uma vez, na primeira leitura de cada um)
+[[migrations]]
+tag = "v8"
+new_sqlite_classes = ["Dados"]

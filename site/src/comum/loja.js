@@ -1,22 +1,8 @@
 // Loja de caixas (worker: src/loja.js): chamadas e o saldo de Neura Pontos que o menu da conta mostra.
 import { useEffect, useState } from 'react'
-import { CONFIG } from './config.js'
-import { tokenConta } from './conta.js'
+import { ErroApi, chamarApi, lerApi, enderecoApi } from './api.js'
 
-const base = () => CONFIG.loginSteam.replace(/\/$/, '')
-
-async function chamar(rota, corpo) {
-  const token = tokenConta()
-  if (!token) throw new Error('login')
-  const r = await fetch(`${base()}${rota}`, {
-    method: corpo ? 'POST' : 'GET',
-    headers: { Authorization: `Bearer ${token}`, ...(corpo ? { 'Content-Type': 'application/json' } : {}) },
-    body: corpo ? JSON.stringify(corpo) : undefined,
-  })
-  const d = await r.json().catch(() => null)
-  if (!r.ok || d?.erro) throw new Error(d?.erro || 'falhou')
-  return d
-}
+const chamar = chamarApi
 
 export const lerLoja = () => chamar('/loja')
 export const lerSaldo = () => chamar('/loja/saldo')
@@ -31,11 +17,19 @@ export const lerValores = async () => (await chamar('/loja/valores')).valores ||
 export const venderItens = (ids) => chamar('/loja/vender', { ids })
 
 // Carrossel de drops ao vivo (público): { agora, recentes, bons, top }, cada drop { id, ts, r, v, t, d, p, n?, i?, quem, nome, avatar, caixa }
-export const lerDrops = () => fetch(`${base()}/loja/drops`).then((r) => (r.ok ? r.json() : Promise.reject(new Error('drops'))))
+export const lerDrops = () => lerApi('/loja/drops')
 
 // Caixas (nome, imagem, preço) sem a lista de itens: público, serve para dar nome às caixas fechadas do inventário
+// Os nomes são enfeite: sem resposta, a lista fica vazia (sem guardar a falha: a próxima chamada tenta de novo)
 let publicas = null
-export const lerCaixasPublicas = () => (publicas ??= fetch(`${base()}/loja/caixas`).then((r) => (r.ok ? r.json() : [])).catch(() => []))
+export function lerCaixasPublicas() {
+  publicas ??= lerApi('/loja/caixas').catch((e) => {
+    publicas = null
+    if (!(e instanceof ErroApi)) throw e
+    return []
+  })
+  return publicas
+}
 
 // Saldo de NP (pontos ganhos - gastos). Avisa os outros lugares da página quando muda (evento np-saldo).
 // O último saldo fica guardado no navegador (por conta): ao abrir o menu o número já aparece, sem esperar o servidor, e se atualiza em seguida.
@@ -72,7 +66,7 @@ export function useSaldo(steamId, ativo = true, gatilho = 0) {
     return ultimo
   })
   useEffect(() => {
-    if (!steamId || !ativo || !CONFIG.loginSteam) return
+    if (!steamId || !ativo || !enderecoApi()) return
     let vivo = true
     if (ultimoId !== steamId) {
       ultimoId = steamId

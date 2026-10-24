@@ -3,7 +3,7 @@
 //  • INVENTÁRIO  → grade com os itens dele (cor da raridade, desgaste, preço em NP, adesivos, chaveiro e selo de padrão raro).
 // Clicar num item abre o Inspecionar (3D). Dados públicos: GET /skins/inventario?id= e GET /loja/perfil?id=.
 import { useEffect, useMemo, useState } from 'react'
-import { CONFIG } from '../../comum/config.js'
+import { lerApi, seForErroApi } from '../../comum/api.js'
 import { CarregandoNP } from '../../comum/Carregando.jsx'
 import { GemaNome, nomeDoDesgaste } from '../../comum/CartaoSkin.jsx'
 import { InspecionarSkin, podeInspecionar } from '../../comum/InspecionarSkin.jsx'
@@ -16,11 +16,9 @@ import { RARIDADES_CS, raridadeCsDaCor } from '../../../worker/steam-login/src/l
 import { padraoRaro } from '../../../worker/steam-login/src/padroes.js'
 
 const GUARDADOS = new Set(['adesivo', 'chaveiro', 'caixa'])
-const base = () => CONFIG.loginSteam.replace(/\/$/, '')
 const numero = (n) => Number(n).toLocaleString('pt-BR')
 // FN / MW / FT / WW / BS
 const sigla = (f) => (f < 0.07 ? 'FN' : f < 0.15 ? 'MW' : f < 0.38 ? 'FT' : f < 0.45 ? 'WW' : 'BS')
-const lerJson = (rota) => fetch(`${base()}${rota}`).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
 const abaInicial = () => {
   try {
     return location.hash === '#inventario' ? 'inventario' : 'status'
@@ -49,8 +47,8 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
     setInv(null)
     setResumo(null)
     setErro(false)
-    lerJson(`/skins/inventario?id=${encodeURIComponent(steamId)}`).then((d) => vivo && setInv(d), () => vivo && setErro(true))
-    lerJson(`/loja/perfil?id=${encodeURIComponent(steamId)}`).then((d) => vivo && setResumo(d), () => {})
+    lerApi(`/skins/inventario?id=${encodeURIComponent(steamId)}`).then((d) => vivo && setInv(d), seForErroApi(() => vivo && setErro(true)))
+    lerApi(`/loja/perfil?id=${encodeURIComponent(steamId)}`).then((d) => vivo && setResumo(d), seForErroApi())
     lerCaixasPublicas().then((c) => vivo && setCaixasLoja(c))
     return () => {
       vivo = false

@@ -2,6 +2,7 @@
 // O que já foi avisado fica na conta (o worker marca em skins:<id>.presentes). Com o site aberto o aviso chega na hora pela conexão ao vivo
 // (evento np-skin, amigos.js); sem ela, é conferido ao abrir o site, ao voltar para a aba e a cada minuto.
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { chamarApi, seForErroApi, enderecoApi } from './api.js'
 import { tokenConta, useConta } from './conta.js'
 import { registrarNotificacao } from './notificacoes.js'
 import { lerCaixasPublicas } from './loja.js'
@@ -9,14 +10,11 @@ import { descrever, indicar, lerInventario, urlImg, urlImgArma, useCatalogo, cor
 import { prepararSom, tocarConquista } from './Insignias.jsx'
 import { desempenhoAtivo } from './desempenho.js'
 import { useT } from './i18n.js'
-import { CONFIG } from './config.js'
 
-const base = () => CONFIG.loginSteam.replace(/\/$/, '')
-
+// Avisos de skin nova já vistos; se não gravar agora, o aviso só aparece de novo na próxima visita
 async function marcarVistos(ids) {
-  const token = tokenConta()
-  if (!token || !ids.length) return
-  await fetch(`${base()}/skins/presentes`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ vistos: ids }) }).catch(() => {})
+  if (!tokenConta() || !ids.length) return
+  await chamarApi('/skins/presentes', { vistos: ids }).catch(seForErroApi())
 }
 
 export default function AvisoSkin() {
@@ -26,7 +24,7 @@ export default function AvisoSkin() {
   const [livre, setLivre] = useState(false)
   const tocou = useRef('')
   const catalogo = useCatalogo('armas', pendentes.length > 0)
-  const ativo = !!conta?.id && !!CONFIG.loginSteam
+  const ativo = !!conta?.id && !!enderecoApi()
   const temAdesivo = pendentes.some((p) => p.item.t === 'adesivo')
   const temChaveiro = pendentes.some((p) => p.item.t === 'chaveiro')
   const temCaixa = pendentes.some((p) => p.item.t === 'caixa')

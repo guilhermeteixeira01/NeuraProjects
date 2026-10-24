@@ -3,14 +3,11 @@
 //               apelido está livre (spinner → ✓ verde ou ✕ vermelho com o motivo). O botão só libera com o ✓.
 //   CampoSenha: olho para mostrar/ocultar, barra de força animada e lista de requisitos que se marcam conforme a pessoa digita.
 import { useEffect, useState } from 'react'
-import { CONFIG } from './config.js'
-import { tokenConta } from './conta.js'
 import { useT } from './i18n.js'
 import { textoErroConta } from './seguranca.js'
 import { erroDoNick } from '../../worker/steam-login/src/nick-filtro.js'
 import './camposconta.css'
-
-const base = () => CONFIG.loginSteam.replace(/\/$/, '')
+import { ErroApi, chamarApi } from './api.js'
 
 // estado: 'vazio' | 'digitando' | 'conferindo' | 'ok' | 'erro'
 export function useValidacaoNick(nick, atual = '') {
@@ -25,11 +22,10 @@ export function useValidacaoNick(nick, atual = '') {
     let vivo = true
     const id = setTimeout(async () => {
       try {
-        const r = await fetch(`${base()}/conta/nick-livre?nick=${encodeURIComponent(limpo)}`, { headers: { Authorization: `Bearer ${tokenConta()}` } })
-        const d = await r.json()
-        if (!vivo) return
-        setEstado(d.livre ? { tipo: 'ok', erro: '' } : { tipo: 'erro', erro: d.erro || 'falhou' })
-      } catch {
+        const d = await chamarApi(`/conta/nick-livre?nick=${encodeURIComponent(limpo)}`)
+        if (vivo) setEstado(d.livre ? { tipo: 'ok', erro: '' } : { tipo: 'erro', erro: d.erro || 'falhou' })
+      } catch (e) {
+        if (!(e instanceof ErroApi)) throw e
         if (vivo) setEstado({ tipo: 'ok', erro: '' }) // sem resposta: o worker confere de novo ao salvar
       }
     }, 450)

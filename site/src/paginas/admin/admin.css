@@ -62,7 +62,6 @@
 .adm-nivel small { font-family: var(--font-mono); font-size: 10.5px; }
 .adm-nivel small.mais { color: var(--green); }
 .adm-nivel small.menos { color: #ff6b6b; }
-.adm-nada { color: var(--dim-2); }
 .adm-tags { display: inline-flex; flex-wrap: wrap; gap: 4px; }
 .adm-tags i, .adm-admins i {
   font-style: normal; font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 1px; padding: 3px 7px; border-radius: 5px;
@@ -113,13 +112,6 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 }
 .adm-personalizar:hover { border-color: var(--accent); }
 .adm-personalizar-ir { margin-left: auto; color: var(--accent); }
-.adm-galeria { border: 1px solid var(--border); border-radius: 12px; background: rgb(var(--tinta) / .02); overflow: hidden; }
-.adm-galeria-topo { display: flex; flex-direction: column; border-bottom: 1px solid var(--border); }
-.adm-galeria-topo .sm-colecoes { border-bottom: 0; padding: 12px 12px 8px; }
-.adm-galeria-topo .sm-colecoes small { font-family: var(--font-mono); font-size: 10px; color: var(--dim-2); margin-left: 2px; }
-.adm-galeria-busca { margin: 0 12px 12px; }
-.adm-galeria-grade { max-height: 320px; padding: 12px; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
-.adm-galeria-grade .sm-item img { width: 64px; height: 64px; }
 .adm-janela .sm-rodape .btn:disabled { opacity: .5; cursor: default; }
 
 /* Molduras por nível */
@@ -181,7 +173,6 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 .adm-cargos li { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: rgb(var(--tinta) / .02); }
 .adm-cargos li.adm-vazio { justify-content: center; }
 .adm-cargos input[type=color], .adm-novo-admin input[type=color] { width: 38px; height: 34px; padding: 2px; border-radius: 8px; border: 1px solid var(--border-2); background: var(--bg-soft); cursor: pointer; flex: none; }
-.adm-cargo-nome { width: 180px; font: inherit; font-size: 13.5px; color: var(--text); background: var(--bg-soft); border: 1px solid var(--border-2); border-radius: 8px; padding: 7px 10px; -webkit-user-select: text; user-select: text; }
 .adm-cargo-info { flex: 1; display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--dim); min-width: 180px; }
 .adm-cargo-membros { display: flex; gap: 4px; }
 .adm-av.mini { width: 24px; height: 24px; font-size: 9px; }

@@ -1,7 +1,7 @@
 // Amigos (pedido e aceite, como na FACEIT) e presença em tempo real (online / ausente / offline no site).
 //
-// Lista de amizades: KV "amigos" = { "<SteamID64>": { amigos: [ids], recebidos: [ids], enviados: [ids] } }.
-// Só muda quando alguém pede, aceita, recusa, cancela ou remove (poucas gravações: cabe no KV grátis).
+// Lista de amizades: no armazenamento do objeto de presença ("amigosV2" = { "<SteamID64>": { amigos: [ids], recebidos: [ids], enviados: [ids] } }),
+// consistente na hora. Na primeira vez veio do KV "amigos" (formato antigo, só lido).
 //
 // Presença: Durable Object "Presenca" (uma instância só, "global"). Cada aba do site com login abre um WebSocket
 // (GET /presenca?t=<token>); o objeto guarda as conexões (API de hibernação: não cobra enquanto ninguém fala) e,
@@ -10,6 +10,12 @@
 
 import { DEFAULT_POOL } from '../../../src/paginas/neurapick/data/maps.js'
 import { FORMATS, buildSteps, deriveState, other } from '../../../src/paginas/neurapick/data/veto.js'
+import { ErroConflito, ErroLimite, ErroNaoEncontrado, ErroPedido, ErroPermissao } from './erros.js'
+import { exigirBearer, lerCorpo, reenviar, respostaDeErro } from './http.js'
+import { lerJsonKv } from './kv.js'
+import { Fila, objetoGlobal, responder, semDerrubar } from './objetos.js'
+import { lerPerfil, subAtiva } from './perfis.js'
+import { nomesDe } from './usuarios.js'
 
 const ID_STEAM = /^\d{17}$/
 const MAX_AMIGOS = 300
@@ -50,16 +56,8 @@ const T = { fila: 10 * 60 * 1000, entrega: 90 * 1000, serie: 6 * 60 * 60 * 1000,
 const ORDEM_SERVIDOR = { fila: 0, entregue: 1, carregada: 2, jogando: 3, encerrada: 4, erro: 4 } // o plugin só avança (aviso atrasado não volta a sala)
 const ESTADOS_SERVIDOR = ['carregada', 'jogando', 'encerrada', 'erro']
 const FORMATOS_FILA = ['bo1', 'bo3'] // formatos que o líder pode buscar; só lobbies do mesmo formato se enfrentam
-// Assinatura Premium ativa de quem busca (perfis[id].sub, KV; ver src/comum/assinatura.js): sem data = infinita, vencida não vale.
-// A busca de MD3 é só para o líder assinante; o MD1 é livre.
-async function temSubAtiva(env, id) {
-  try {
-    const sub = ((await env.MOLDURAS.get('perfis', 'json')) || {})[id]?.sub
-    return !!sub && (sub.expira == null || Number(sub.expira) > Date.now())
-  } catch {
-    return false
-  }
-}
+// Assinatura Premium ativa de quem busca (perfil.sub; ver src/comum/assinatura.js). A busca de MD3 é só para o líder assinante; o MD1 é livre.
+const temSubAtiva = async (env, id) => subAtiva((await lerPerfil(env, id))?.sub)
 const idsDe = (p) => [...p.times.A.membros, ...p.times.B.membros]
 const partidaDe = (partidas, id) => Object.values(partidas).find((p) => idsDe(p).includes(id)) || null
 // Quem do time já esteve no servidor e agora não está (caiu): as vagas que um substituto pode ocupar
@@ -172,66 +170,17 @@ function autoVeto(p) {
   else registrarPasso(p, { ...passo, map: sorteio(deriveState(p.pool, p.historico).remaining), auto: true })
 }
 
-const json = (dados, status = 200, extra = {}) =>
-  new Response(JSON.stringify(dados), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...extra } })
-
 const vazio = () => ({ amigos: [], recebidos: [], enviados: [] })
 const tira = (lista, id) => (lista || []).filter((x) => x !== id)
 const poe = (lista, id) => [...new Set([...(lista || []), id])]
 
-async function lerAmigos(env) {
-  try {
-    return (await env.MOLDURAS.get('amigos', 'json')) || {}
-  } catch {
-    return {}
-  }
-}
-
 // Presença: o objeto único que guarda as conexões
-const presenca = (env) => env.PRESENCA.get(env.PRESENCA.idFromName('global'))
-
-// Nome e foto: quem já entrou no site (lista "usuarios"); os outros, pela Web API da Steam numa chamada só
-// "usuarios" fica 20 s na memória e o que veio da Steam 10 min: o lobby pergunta nomes a cada pedido, e uma ida à Steam (ou ao KV) parava a fila inteira
-let usuariosGuardados = { texto: null, ate: 0 }
-const steamGuardados = new Map() // id -> { nome, avatar, ate }
-async function lerUsuarios(env) {
-  if (usuariosGuardados.ate < Date.now()) {
-    const texto = await env.MOLDURAS.get('usuarios', 'text').catch(() => null)
-    if (texto) usuariosGuardados = { texto, ate: Date.now() + 20_000 }
-    else return {}
-  }
-  try {
-    return JSON.parse(usuariosGuardados.texto) || {}
-  } catch {
-    return {}
-  }
-}
-async function nomes(env, ids) {
-  const usuarios = await lerUsuarios(env)
-  const agora = Date.now()
-  const fora = ids.filter((id) => !usuarios[id]?.nome && !(steamGuardados.get(id)?.ate > agora))
-  if (fora.length && env.STEAM_API_KEY) {
-    try {
-      const r = await fetch(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${env.STEAM_API_KEY}&steamids=${fora.slice(0, 100).join(',')}`, { signal: AbortSignal.timeout(2500) })
-      const achados = new Set()
-      for (const p of (await r.json())?.response?.players || []) {
-        steamGuardados.set(p.steamid, { nome: p.personaname || '', avatar: p.avatarfull || '', ate: agora + 10 * 60_000 })
-        achados.add(p.steamid)
-      }
-      for (const id of fora) if (!achados.has(id)) steamGuardados.set(id, { nome: '', avatar: '', ate: agora + 60_000 })
-    } catch {
-      // sem nome: o site mostra o SteamID (e não pergunta de novo por 30 s)
-      for (const id of fora) steamGuardados.set(id, { nome: '', avatar: '', ate: agora + 30_000 })
-    }
-  }
-  const steam = Object.fromEntries(ids.map((id) => [id, steamGuardados.get(id)]))
-  return Object.fromEntries(ids.map((id) => [id, { nome: usuarios[id]?.nome || steam[id]?.nome || '', avatar: usuarios[id]?.avatar || steam[id]?.avatar || '' }]))
-}
+const presenca = (env) => objetoGlobal(env.PRESENCA)
 
 async function minhaLista(env, eu, todos) {
   const m = todos[eu] || vazio()
   const ids = [...new Set([...m.amigos, ...m.recebidos, ...m.enviados])]
-  const info = await nomes(env, ids)
+  const info = await nomesDe(env, ids)
   const com = (l) => l.map((id) => ({ id, ...info[id] }))
   return { amigos: com(m.amigos), recebidos: com(m.recebidos), enviados: com(m.enviados) }
 }
@@ -239,85 +188,42 @@ async function minhaLista(env, eu, todos) {
 // GET /amigos e POST /amigos { acao, id }
 // Pedidos e amizades vivem no objeto de presença (consistência na hora): no KV (eventual) o pedido novo levava até 1 min para a outra pessoa enxergar.
 export async function rotaAmigos(req, env, quem, cors) {
-  let corpo = {}
-  if (req.method === 'POST') {
-    try {
-      corpo = await req.json()
-    } catch {
-      return json({ erro: 'corpo' }, 400, cors)
-    }
-  }
-  const r = await presenca(env).fetch('https://presenca/amigos', { method: 'POST', body: JSON.stringify({ metodo: req.method, quem: quem.id, acao: corpo?.acao, id: corpo?.id }) })
-  return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
+  const corpo = req.method === 'POST' ? await lerCorpo(req) : {}
+  const r = await presenca(env).fetch('https://presenca/amigos', { method: 'POST', body: JSON.stringify({ metodo: req.method, quem: quem.id, acao: corpo.acao, id: corpo.id }) })
+  return reenviar(r, cors)
 }
 
-// Perfil mudou (admin deu insígnia, moldura...): manda o perfil novo para as abas abertas da pessoa, na hora
-// (o site mostra o aviso de insígnia nova sem esperar a releitura dos perfis). Sem aba aberta, não faz nada.
-// Skin nova no inventário de alguém (o dono deu): quem está com o site aberto mostra o aviso na hora
-export async function avisarSkin(env, id) {
-  await presenca(env)
-    .fetch('https://presenca/mandar', { method: 'POST', body: JSON.stringify({ ids: [id], msg: { tipo: 'skin' } }) })
-    .catch(() => {})
-}
-
-// Troca nova (ou aceita/recusada) envolvendo a pessoa: o site dela recarrega as trocas na hora (comum/Trocas.jsx)
-export async function avisarTroca(env, id) {
-  await presenca(env)
-    .fetch('https://presenca/mandar', { method: 'POST', body: JSON.stringify({ ids: [id], msg: { tipo: 'troca' } }) })
-    .catch(() => {})
-}
-
-// Venderam um item meu no mercado: o sino busca a notificação nova e a lista do mercado atualiza na hora (comum/mercado.js)
-export async function avisarMercado(env, id) {
-  await presenca(env)
-    .fetch('https://presenca/mandar', { method: 'POST', body: JSON.stringify({ ids: [id], msg: { tipo: 'mercado' } }) })
-    .catch(() => {})
-}
-
+// Avisos ao vivo para as abas abertas (sem aba aberta, não faz nada). Não derrubam a ação que avisa: a falha vai para o log.
+const mandar = (env, caminho, corpo, oQue) => semDerrubar(presenca(env).fetch(`https://presenca${caminho}`, { method: 'POST', body: JSON.stringify(corpo) }), oQue)
 // Mensagem para as abas abertas de uma lista de jogadores (times, chat do time...)
-export async function mandarPara(env, ids, msg) {
-  await presenca(env)
-    .fetch('https://presenca/mandar', { method: 'POST', body: JSON.stringify({ ids, msg }) })
-    .catch(() => {})
-}
-
-// Mensagem para TODAS as abas abertas (ex.: bônus de pontos para todos: cada site busca o saldo e as notificações)
-export async function avisarTodos(env, msg) {
-  await presenca(env)
-    .fetch('https://presenca/todos', { method: 'POST', body: JSON.stringify({ msg }) })
-    .catch(() => {})
-}
-
-export async function avisarPerfil(env, id, perfil) {
-  await presenca(env)
-    .fetch('https://presenca/mandar', { method: 'POST', body: JSON.stringify({ ids: [id], msg: { tipo: 'perfil', id, perfil: perfil || null } }) })
-    .catch(() => {})
-}
+export const mandarPara = (env, ids, msg) => mandar(env, '/mandar', { ids, msg }, `aviso "${msg.tipo}"`)
+// Mensagem para TODAS as abas abertas (ex.: bônus para todos: cada site busca o saldo e as notificações)
+export const avisarTodos = (env, msg) => mandar(env, '/todos', { msg }, `aviso "${msg.tipo}" para todos`)
+// Skin nova no inventário (o dono deu): o aviso aparece na hora
+export const avisarSkin = (env, id) => mandarPara(env, [id], { tipo: 'skin' })
+// Troca nova (ou aceita/recusada): o site recarrega as trocas na hora (comum/Trocas.jsx)
+export const avisarTroca = (env, id) => mandarPara(env, [id], { tipo: 'troca' })
+// Venderam um item meu no mercado: o sino busca a notificação nova e a lista do mercado atualiza
+export const avisarMercado = (env, id) => mandarPara(env, [id], { tipo: 'mercado' })
+// Perfil mudou (insígnia, moldura, assinatura...): o perfil novo vai para as abas abertas da pessoa
+export const avisarPerfil = (env, id, perfil) => mandarPara(env, [id], { tipo: 'perfil', id, perfil: perfil || null })
 
 // GET/POST /chat: chat da sala da partida (o objeto de presença guarda e entrega ao vivo)
 export async function rotaChat(req, env, quem, cors) {
-  const corpo = req.method === 'POST' ? await req.text() : undefined
-  const r = await presenca(env).fetch('https://presenca/chat', { method: req.method, headers: { 'X-Id': quem.id, 'Content-Type': 'application/json' }, body: corpo })
-  return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
+  const corpo = req.method === 'POST' ? JSON.stringify(await lerCorpo(req)) : undefined
+  return reenviar(await presenca(env).fetch('https://presenca/chat', { method: req.method, headers: { 'X-Id': quem.id }, body: corpo }), cors)
 }
 
 // GET /lobby e POST /lobby { acao, id?, valor? }: o objeto de presença guarda e muda os lobbies (index.js confere o login)
 export async function rotaLobby(req, env, quem, cors) {
-  const corpo = req.method === 'POST' ? await req.text() : undefined
-  const r = await presenca(env).fetch('https://presenca/lobby', { method: req.method, headers: { 'X-Id': quem.id, 'Content-Type': 'application/json' }, body: corpo })
-  return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
+  const corpo = req.method === 'POST' ? JSON.stringify(await lerCorpo(req)) : undefined
+  return reenviar(await presenca(env).fetch('https://presenca/lobby', { method: req.method, headers: { 'X-Id': quem.id }, body: corpo }), cors)
 }
 
 // POST /servidor/proxima e /servidor/estado: só o plugin do servidor de CS2 (Authorization: Bearer <SERVIDOR_TOKEN>)
 export async function rotaServidor(req, env, rota) {
-  const cab = req.headers.get('Authorization') || ''
-  const dado = new TextEncoder().encode(cab.startsWith('Bearer ') ? cab.slice(7).trim() : '')
-  const certo = new TextEncoder().encode(env.SERVIDOR_TOKEN || '')
-  let dif = dado.length ^ certo.length // compara tudo, sem parar no primeiro byte diferente
-  for (let i = 0; i < certo.length; i++) dif |= (dado[i] ?? 0) ^ certo[i]
-  if (!env.SERVIDOR_TOKEN || dif !== 0) return json({ erro: 'token' }, 401)
-  const r = await presenca(env).fetch(new Request(`https://presenca${rota}`, { method: 'POST', body: await req.text() }))
-  return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8' } })
+  exigirBearer(req, env.SERVIDOR_TOKEN)
+  return reenviar(await presenca(env).fetch(`https://presenca${rota}`, { method: 'POST', body: JSON.stringify(await lerCorpo(req)) }))
 }
 
 // GET /presenca?t=<token> (WebSocket): o index.js confere o token e manda para o objeto com o SteamID em X-Id
@@ -327,6 +233,15 @@ export function rotaPresenca(req, env, id) {
   return presenca(env).fetch(r)
 }
 
+// Manda para uma aba; a aba que está fechando (send lança TypeError) já não precisa da mensagem
+function enviarSeguro(ws, texto) {
+  try {
+    ws.send(texto)
+  } catch (e) {
+    if (!(e instanceof TypeError)) throw e
+  }
+}
+
 export class Presenca {
   constructor(state, env) {
     this.state = state
@@ -334,7 +249,7 @@ export class Presenca {
     this.amigos = null // cache do KV "amigos" (some quando o objeto hiberna; relê na volta)
     // ping/pong de manutenção respondido sem acordar o objeto
     state.setWebSocketAutoResponse(new WebSocketRequestResponsePair('ping', 'pong'))
-    this.fila = Promise.resolve() // ver exclusivo()
+    this.fila = new Fila() // ver a nota da fila abaixo
     // Só o ambiente de teste local define isto (TEMPOS_TESTE="fila=4000,encerrada=3000"): prazos curtos para testar sem esperar minutos
     for (const par of String(env.TEMPOS_TESTE || '').split(',')) {
       const [k, v] = par.split('=')
@@ -342,19 +257,17 @@ export class Presenca {
     }
   }
 
-  // Uma coisa de cada vez: lobby, fila, aceite, veto, alarme e o plugin mudam o mesmo estado (lido, mexido e gravado). Sem isto, dois pedidos
-  // juntos (os 10 jogadores clicando em ACEITAR) liam o mesmo estado e o último a gravar apagava o aceite do outro.
+  // Fila: uma coisa de cada vez. Lobby, fila de partida, aceite, veto, alarme e o plugin mudam o mesmo estado (lido, mexido e gravado); sem ela,
+  // dois pedidos juntos (os 10 jogadores clicando em ACEITAR) liam o mesmo estado e o último a gravar apagava o aceite do outro.
   exclusivo(fn) {
-    const r = this.fila.then(fn)
-    this.fila = r.then(() => {}, () => {})
-    return r
+    return this.fila.rodar(fn)
   }
 
-  async listaAmigos(recarregar = false) {
-    if (!this.amigos || recarregar) {
+  async listaAmigos() {
+    if (!this.amigos) {
       this.amigos = await this.state.storage.get('amigosV2')
       if (!this.amigos) {
-        this.amigos = await lerAmigos(this.env) // primeira vez: traz o que estava no KV
+        this.amigos = (await lerJsonKv(this.env, 'amigos')) || {} // primeira vez: traz o que estava no KV
         await this.state.storage.put('amigosV2', this.amigos)
       }
     }
@@ -363,15 +276,15 @@ export class Presenca {
 
   // GET/POST /amigos (rotaAmigos): lista, pedir, aceitar, recusar, cancelar, remover. Tudo aqui dentro, um pedido de cada vez
   async amigosPedido(req) {
-    const { metodo, quem, acao, id } = (await req.json().catch(() => null)) || {}
+    const { metodo, quem, acao, id } = await lerCorpo(req)
     const todos = await this.listaAmigos()
-    if (metodo === 'GET') return json(await minhaLista(this.env, quem, todos))
-    if (!ACOES.includes(acao) || !ID_STEAM.test(String(id)) || id === quem) return json({ erro: 'amigos' }, 400)
+    if (metodo === 'GET') return (minhaLista(this.env, quem, todos))
+    if (!ACOES.includes(acao) || !ID_STEAM.test(String(id)) || id === quem) throw new ErroPedido('amigos')
     const eu = (todos[quem] ??= vazio())
     const ele = (todos[id] ??= vazio())
     if (acao === 'pedir') {
-      if (eu.amigos.includes(id)) return json(await minhaLista(this.env, quem, todos))
-      if (eu.amigos.length >= MAX_AMIGOS) return json({ erro: 'limite' }, 400)
+      if (eu.amigos.includes(id)) return (minhaLista(this.env, quem, todos))
+      if (eu.amigos.length >= MAX_AMIGOS) throw new ErroConflito('limite')
       if (eu.recebidos.includes(id)) {
         // ele já tinha pedido: vira amizade direto
         eu.recebidos = tira(eu.recebidos, id); ele.enviados = tira(ele.enviados, quem)
@@ -380,8 +293,8 @@ export class Presenca {
         eu.enviados = poe(eu.enviados, id); ele.recebidos = poe(ele.recebidos, quem)
       }
     } else if (acao === 'aceitar') {
-      if (!eu.recebidos.includes(id)) return json({ erro: 'pedido' }, 400)
-      if (eu.amigos.length >= MAX_AMIGOS) return json({ erro: 'limite' }, 400)
+      if (!eu.recebidos.includes(id)) throw new ErroPedido('pedido')
+      if (eu.amigos.length >= MAX_AMIGOS) throw new ErroConflito('limite')
       eu.recebidos = tira(eu.recebidos, id); ele.enviados = tira(ele.enviados, quem)
       eu.amigos = poe(eu.amigos, id); ele.amigos = poe(ele.amigos, quem)
     } else if (acao === 'recusar') {
@@ -399,7 +312,7 @@ export class Presenca {
       this.enviar(k, { tipo: 'lista' })
       if (this.state.getWebSockets(k).length) this.enviar(k, await this.estadoPara(k))
     }
-    return json(await minhaLista(this.env, quem, todos))
+    return (minhaLista(this.env, quem, todos))
   }
 
   // "jogando": quem está numa partida do site com o servidor carregado/ao vivo (e o plugin diz que está lá, quando ele informa quem está presente).
@@ -437,28 +350,28 @@ export class Presenca {
   // GET /chat -> { partida, mensagens } (geral + as do meu time) · POST /chat { texto, canal } -> { ok, msg }
   async chat(req) {
     const eu = req.headers.get('X-Id')
-    if (!ID_STEAM.test(String(eu))) return json({ erro: 'id' }, 400)
+    if (!ID_STEAM.test(String(eu))) throw new ErroPedido('id')
     const partidas = (await this.state.storage.get('partidas')) || {}
     const p = partidaDe(partidas, eu)
-    if (!p) return json({ erro: 'sem-partida' }, 404)
+    if (!p) throw new ErroNaoEncontrado('sem-partida')
     const meuTime = p.times.A.membros.includes(eu) ? 'A' : 'B'
     const chave = `chat:${p.id}`
     const todas = (await this.state.storage.get(chave)) || []
-    if (req.method === 'GET') return json({ partida: p.id, mensagens: todas.filter((m) => m.canal === 'geral' || m.time === meuTime) })
+    if (req.method === 'GET') return { partida: p.id, mensagens: todas.filter((m) => m.canal === 'geral' || m.time === meuTime) }
 
-    const { texto, canal } = (await req.json().catch(() => null)) || {}
+    const { texto, canal } = await lerCorpo(req)
     const limpo = String(texto || '').replace(/[\u0000-\u001f\u007f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 240)
-    if (!limpo || !['geral', 'time'].includes(canal)) return json({ erro: 'mensagem' }, 400)
+    if (!limpo || !['geral', 'time'].includes(canal)) throw new ErroPedido('mensagem')
     const agora = Date.now()
-    if (agora - (this.ultimoChat.get(eu) || 0) < 800) return json({ erro: 'devagar' }, 429) // no máximo ~1 mensagem por segundo por pessoa
+    if (agora - (this.ultimoChat.get(eu) || 0) < 800) throw new ErroLimite('devagar') // no máximo ~1 mensagem por segundo por pessoa
     this.ultimoChat.set(eu, agora)
-    const info = (await nomes(this.env, [eu]))[eu] || {}
+    const info = (await nomesDe(this.env, [eu]))[eu] || {}
     const msg = { id: `${agora.toString(36)}${Math.random().toString(36).slice(2, 6)}`, de: eu, nome: info.nome || eu, canal, time: meuTime, texto: limpo, ts: agora }
     todas.push(msg)
     await this.state.storage.put(chave, todas.slice(-200))
     const destino = canal === 'geral' ? idsDe(p) : p.times[meuTime].membros
     for (const id of destino) this.enviar(id, { tipo: 'chat', partida: p.id, msg })
-    return json({ ok: true, msg })
+    return { ok: true, msg }
   }
 
   // online > ausente > offline, juntando todas as abas da pessoa
@@ -475,13 +388,7 @@ export class Presenca {
 
   enviar(id, msg) {
     const texto = JSON.stringify(msg)
-    for (const ws of this.state.getWebSockets(id)) {
-      try {
-        ws.send(texto)
-      } catch {
-        // aba fechando
-      }
-    }
+    for (const ws of this.state.getWebSockets(id)) enviarSeguro(ws, texto)
   }
 
   // Estado completo para uma pessoa: status (e "visto por último") de cada amigo
@@ -502,12 +409,11 @@ export class Presenca {
   // GET /lobby (X-Id = quem pergunta) devolve o lobby dele; POST { acao, id?, valor? } muda e devolve o lobby novo.
   async lobby(req) {
     const eu = req.headers.get('X-Id')
-    if (!ID_STEAM.test(String(eu))) return json({ erro: 'id' }, 400)
+    if (!ID_STEAM.test(String(eu))) throw new ErroPedido('id')
     const todos = (await this.state.storage.get('lobbies')) || {}
     const partidas = (await this.state.storage.get('partidas')) || {}
     const amigosEu = (await this.listaAmigos())[eu]?.amigos || []
     const achar = (id) => (todos[id] ? id : Object.keys(todos).find((l) => todos[l].membros.includes(id)) || null)
-    const publicosAntes = new Set(Object.keys(todos).filter((l) => todos[l].publico)) // abertos antes da ação (se fecharem, os amigos também recarregam)
     const lideres = new Set() // lobbies mexidos: se forem públicos, os amigos do líder também recarregam a lista de lobbies abertos
     const avisados = new Set([eu])
     let mudou = req.method === 'POST' // só grava e avisa se algo mudou (a limpeza de membros offline também conta)
@@ -552,33 +458,33 @@ export class Presenca {
     }
 
     if (req.method === 'POST') {
-      const { acao, id, valor } = (await req.json().catch(() => null)) || {}
-      if (!ACOES_LOBBY.includes(acao)) return json({ erro: 'acao' }, 400)
+      const { acao, id, valor } = await lerCorpo(req)
+      if (!ACOES_LOBBY.includes(acao)) throw new ErroPedido('acao')
       const meuLider = achar(eu)
       const eLider = !meuLider || meuLider === eu
       const alvoOk = ID_STEAM.test(String(id)) && id !== eu
       const minha = partidaDe(partidas, eu)
-      if (minha && !ACOES_PARTIDA.includes(acao)) return json({ erro: 'em-partida' }, 409)
-      if (!minha && ACOES_PARTIDA.includes(acao)) return json({ erro: 'sem-partida' }, 404)
-      if (todos[meuLider || eu]?.busca && (acao === 'convidar' || acao === 'remover')) return json({ erro: 'buscando' }, 409)
+      if (minha && !ACOES_PARTIDA.includes(acao)) throw new ErroConflito('em-partida')
+      if (!minha && ACOES_PARTIDA.includes(acao)) throw new ErroNaoEncontrado('sem-partida')
+      if (todos[meuLider || eu]?.busca && (acao === 'convidar' || acao === 'remover')) throw new ErroConflito('buscando')
       if (acao === 'convidar') {
         // qualquer membro do lobby convida (o convite entra no lobby do líder); só o líder remove
-        if (!alvoOk || !amigosEu.includes(id)) return json({ erro: 'amigo' }, 400)
-        if (this.statusDe(id) === 'offline') return json({ erro: 'offline' }, 409)
+        if (!alvoOk || !amigosEu.includes(id)) throw new ErroPedido('amigo')
+        if (this.statusDe(id) === 'offline') throw new ErroConflito('offline')
         const dono = meuLider || eu
-        if (dono === id) return json({ erro: 'amigo' }, 400)
-        if (partidaDe(partidas, id)) return json({ erro: 'convidado-em-partida' }, 409)
-        if (emLobbyComGente(id) && achar(id) !== dono) return json({ erro: 'em-lobby' }, 409) // já está num lobby: não dá para convidar
+        if (dono === id) throw new ErroPedido('amigo')
+        if (partidaDe(partidas, id)) throw new ErroConflito('convidado-em-partida')
+        if (emLobbyComGente(id) && achar(id) !== dono) throw new ErroConflito('em-lobby') // já está num lobby: não dá para convidar
         const lb = (todos[dono] ??= novoLobby())
         if (!lb.membros.includes(id) && !lb.convites.includes(id)) {
-          if (1 + lb.membros.length + lb.convites.length >= LOBBY_MAX) return json({ erro: 'cheio' }, 400)
+          if (1 + lb.membros.length + lb.convites.length >= LOBBY_MAX) throw new ErroConflito('cheio')
           lb.convites = poe(lb.convites, id)
         }
         lideres.add(dono)
         avisar(dono)
         avisar(id, lb.membros)
       } else if (acao === 'remover') {
-        if (!alvoOk || !todos[eu] || !eLider) return json({ erro: 'lider' }, 403)
+        if (!alvoOk || !todos[eu] || !eLider) throw new ErroPermissao('lider')
         const lb = todos[eu]
         lb.membros = tira(lb.membros, id)
         lb.convites = tira(lb.convites, id)
@@ -591,9 +497,9 @@ export class Presenca {
         const saiu = vagasDe(p, time)[0]
         if (!saiu) {
           delete p.chamados[eu]
-          return json({ erro: 'sem-vaga' }, 409)
+          throw new ErroConflito('sem-vaga')
         }
-        if (todos[eu]?.membros.length) return json({ erro: 'ocupado' }, 400)
+        if (todos[eu]?.membros.length) throw new ErroConflito('ocupado')
         sairDe(eu) // sai do grupo em que estava
         time.membros = time.membros.map((m) => (m === saiu ? eu : m))
         if (time.lider === saiu) time.lider = eu
@@ -603,12 +509,12 @@ export class Presenca {
         avisar(idsDe(p), saiu)
       } else if (acao === 'entrar') {
         const lb = alvoOk ? todos[id] : null
-        if (!lb) return json({ erro: 'sem-lobby' }, 404)
-        if (lb.busca) return json({ erro: 'buscando' }, 409)
+        if (!lb) throw new ErroNaoEncontrado('sem-lobby')
+        if (lb.busca) throw new ErroConflito('buscando')
         if (!lb.membros.includes(eu)) {
-          if (!lb.convites.includes(eu) && !(lb.publico && amigosEu.includes(id))) return json({ erro: 'negado' }, 403)
-          if (1 + lb.membros.length >= LOBBY_MAX) return json({ erro: 'cheio' }, 400)
-          if (todos[eu]?.membros.length) return json({ erro: 'ocupado' }, 400) // líder com gente: saia/passe a liderança antes
+          if (!lb.convites.includes(eu) && !(lb.publico && amigosEu.includes(id))) throw new ErroPermissao('negado')
+          if (1 + lb.membros.length >= LOBBY_MAX) throw new ErroConflito('cheio')
+          if (todos[eu]?.membros.length) throw new ErroConflito('ocupado') // líder com gente: saia/passe a liderança antes
           sairDe(eu) // sai do lobby em que estava (o próprio, vazio, ou o de outro líder)
           lb.convites = tira(lb.convites, eu)
           lb.membros = poe(lb.membros, eu)
@@ -626,16 +532,16 @@ export class Presenca {
       } else if (acao === 'sair') {
         sairDe(eu)
       } else if (acao === 'publico') {
-        if (!eLider) return json({ erro: 'lider' }, 403)
+        if (!eLider) throw new ErroPermissao('lider')
         const lb = (todos[eu] ??= novoLobby())
         lb.publico = valor === true
         lideres.add(eu)
         avisar(lb.membros)
       } else if (acao === 'buscar') {
         const lb = todos[eu]
-        if (!eLider || !lb || 1 + lb.membros.length < LOBBY_MAX) return json({ erro: 'incompleto' }, 400)
-        if (!FORMATOS_FILA.includes(valor?.formato) || !FORMATS[valor.formato]) return json({ erro: 'formato' }, 400)
-        if (valor.formato === 'bo3' && !(await temSubAtiva(this.env, eu))) return json({ erro: 'sem-sub' }, 403)
+        if (!eLider || !lb || 1 + lb.membros.length < LOBBY_MAX) throw new ErroPedido('incompleto')
+        if (!FORMATOS_FILA.includes(valor?.formato) || !FORMATS[valor.formato]) throw new ErroPedido('formato')
+        if (valor.formato === 'bo3' && !(await temSubAtiva(this.env, eu))) throw new ErroPermissao('sem-sub')
         if (!lb.busca) {
           lb.convites = []
           lb.formato = valor.formato
@@ -643,11 +549,11 @@ export class Presenca {
         }
         avisar(lb.membros)
       } else if (acao === 'cancelar-busca') {
-        if (!eLider || !todos[eu]) return json({ erro: 'lider' }, 403)
+        if (!eLider || !todos[eu]) throw new ErroPermissao('lider')
         todos[eu].busca = null
         avisar(todos[eu].membros)
       } else if (acao === 'aceitar') {
-        if (minha.fase !== 'aceitar') return json({ erro: 'fase' }, 409)
+        if (minha.fase !== 'aceitar') throw new ErroConflito('fase')
         minha.aceitos = poe(minha.aceitos, eu)
         if (minha.aceitos.length === idsDe(minha).length) {
           minha.fase = 'veto'
@@ -655,27 +561,27 @@ export class Presenca {
         }
         avisar(idsDe(minha))
       } else if (acao === 'recusar-partida') {
-        if (minha.fase !== 'aceitar') return json({ erro: 'fase' }, 409)
+        if (minha.fase !== 'aceitar') throw new ErroConflito('fase')
         cancelarPartida(todos, partidas, minha)
         avisar(idsDe(minha))
       } else if (acao === 'substituir') {
         // Alguém do time caiu no meio da partida: um membro chama um amigo (online/ausente) para o lugar dele
         const sv = minha.servidor
-        if (minha.fase !== 'pronto' || !['carregada', 'jogando'].includes(sv?.estado)) return json({ erro: 'fase' }, 409)
-        if (!alvoOk || !amigosEu.includes(id)) return json({ erro: 'amigo' }, 400)
-        if (this.statusDe(id) === 'offline') return json({ erro: 'offline' }, 409)
-        if (partidaDe(partidas, id)) return json({ erro: 'em-partida' }, 409)
-        if (todos[id]?.membros.length) return json({ erro: 'ocupado' }, 400) // líder de grupo com gente: ele precisa desfazer o grupo antes
+        if (minha.fase !== 'pronto' || !['carregada', 'jogando'].includes(sv?.estado)) throw new ErroConflito('fase')
+        if (!alvoOk || !amigosEu.includes(id)) throw new ErroPedido('amigo')
+        if (this.statusDe(id) === 'offline') throw new ErroConflito('offline')
+        if (partidaDe(partidas, id)) throw new ErroConflito('em-partida')
+        if (todos[id]?.membros.length) throw new ErroConflito('ocupado') // líder de grupo com gente: ele precisa desfazer o grupo antes
         const time = minha.times.A.membros.includes(eu) ? minha.times.A : minha.times.B
         const vagas = vagasDe(minha, time)
         const saiu = vagas.includes(valor?.saiu) ? valor.saiu : vagas[0]
-        if (!saiu) return json({ erro: 'sem-vaga' }, 409)
+        if (!saiu) throw new ErroConflito('sem-vaga')
         // Só vira substituto se aceitar (o convite aparece para ele como o de lobby; vale por 1 minuto)
         minha.chamados = { ...(minha.chamados || {}), [id]: { por: eu, ate: Date.now() + CHAMADO_MS } }
         avisar(id)
       } else if (acao === 'veto') {
         const erro = agirVeto(minha, eu, valor)
-        if (erro) return json({ erro }, 409)
+        if (erro) throw new ErroConflito(erro)
         avisar(idsDe(minha))
       }
       for (const p of procurar(todos, partidas)) avisar(idsDe(p))
@@ -703,9 +609,9 @@ export class Presenca {
     const minhaPartida = partidaDe(partidas, eu)
     const chamadosPor = minhaPartida ? [] : [...new Set(Object.values(partidas).flatMap((x) => (x.chamados?.[eu] && x.chamados[eu].ate > Date.now() && vagasDe(x, x.times.A.membros.includes(x.chamados[eu].por) ? x.times.A : x.times.B).length ? [x.chamados[eu].por] : [])))]
     const ids = [...new Set([lider, ...lb.membros, ...lb.convites, ...convitesRecebidos, ...chamadosPor, ...abertos, ...(minhaPartida ? idsDe(minhaPartida) : [])])]
-    const info = await nomes(this.env, ids)
+    const info = await nomesDe(this.env, ids)
     const pessoa = (id) => ({ id, ...info[id], st: this.statusVisivel(id) })
-    return json({
+    return {
       eu,
       lider,
       souLider: lider === eu,
@@ -737,7 +643,7 @@ export class Presenca {
       // amigos que não dá para convidar agora: já estão num lobby com gente, ou numa partida
       emLobby: amigosEu.filter((a) => a !== lider && emLobbyComGente(a) && achar(a) !== lider),
       emPartida: amigosEu.filter((a) => partidaDe(partidas, a)),
-    })
+    }
   }
 
   // Um alarme só, no prazo mais próximo entre as partidas (fim do aceite, vez do veto, sala velha)
@@ -800,7 +706,7 @@ export class Presenca {
       .sort((a, b) => a.servidor.desde - b.servidor.desde)[0]
     let resposta = { nenhuma: true }
     if (p) {
-      const info = await nomes(this.env, idsDe(p))
+      const info = await nomesDe(this.env, idsDe(p))
       resposta = montarSerie(p, (id) => info[id]?.nome || id)
       p.servidor = { ...p.servidor, estado: 'entregue', entregueEm: agora }
       prazoServidor(p, agora)
@@ -811,33 +717,33 @@ export class Presenca {
       await this.agendar(partidas)
       for (const a of avisados) this.enviar(a, { tipo: 'lobby' })
     }
-    return json(resposta)
+    return resposta
   }
 
   // POST /servidor/estado { partidaId, estado, detalhe?, placar? }: o plugin conta em que fase a série está
   async servidorEstado(req) {
-    const { partidaId, estado, detalhe, placar } = (await req.json().catch(() => null)) || {}
-    if (!ESTADOS_SERVIDOR.includes(estado)) return json({ erro: 'estado' }, 400)
+    const { partidaId, estado, detalhe, placar } = await lerCorpo(req)
+    if (!ESTADOS_SERVIDOR.includes(estado)) throw new ErroPedido('estado')
     const partidas = (await this.state.storage.get('partidas')) || {}
     const p = partidas[String(partidaId)]
-    if (!p?.servidor) return json({ erro: 'sem-partida' }, 404) // sala fechada pelos jogadores: o plugin segue o jogo mesmo assim
+    if (!p?.servidor) throw new ErroNaoEncontrado('sem-partida') // sala fechada pelos jogadores: o plugin segue o jogo mesmo assim
     // aviso atrasado (tentativa repetida) ou depois do fim não volta a sala para trás
-    if (ORDEM_SERVIDOR[estado] < ORDEM_SERVIDOR[p.servidor.estado] || ORDEM_SERVIDOR[p.servidor.estado] >= 4) return json({ ok: true, ignorado: true })
+    if (ORDEM_SERVIDOR[estado] < ORDEM_SERVIDOR[p.servidor.estado] || ORDEM_SERVIDOR[p.servidor.estado] >= 4) return { ok: true, ignorado: true }
     p.servidor = { ...p.servidor, estado, detalhe: String(detalhe || '').slice(0, 200), placar: String(placar || '').slice(0, 40) }
     prazoServidor(p)
     await this.gravarPartidas(partidas)
     await this.agendar(partidas)
     for (const i of idsDe(p)) this.enviar(i, { tipo: 'lobby' })
-    return json({ ok: true })
+    return { ok: true }
   }
 
   // POST /servidor/elenco { partidaId, presentes }: o plugin diz quem do elenco está no servidor e recebe o elenco atual
   // (muda quando um membro chama um substituto). Sem partida (já fechada): { erro }.
   async servidorElenco(req) {
-    const { partidaId, presentes } = (await req.json().catch(() => null)) || {}
+    const { partidaId, presentes } = await lerCorpo(req)
     const partidas = (await this.state.storage.get('partidas')) || {}
     const p = partidas[String(partidaId)]
-    if (!p?.servidor) return json({ erro: 'sem-partida' }, 404)
+    if (!p?.servidor) throw new ErroNaoEncontrado('sem-partida')
     const elenco = Object.fromEntries(['A', 'B'].flatMap((t) => p.times[t].membros.map((id) => [id, t])))
     if (['carregada', 'jogando'].includes(p.servidor.estado) && Array.isArray(presentes)) {
       const agora = presentes.map(String).filter((id) => elenco[id])
@@ -849,10 +755,30 @@ export class Presenca {
         for (const i of idsDe(p)) this.enviar(i, { tipo: 'lobby' })
       }
     }
-    return json({ elenco })
+    return { elenco }
   }
 
   ultimoChat = new Map()
+
+  async limparTeste(req) {
+    const { apenasPartidas } = await lerCorpo(req)
+    await this.state.storage.delete(apenasPartidas ? ['partidas'] : ['lobbies', 'partidas'])
+    if (!apenasPartidas) await this.state.storage.delete([...(await this.state.storage.list({ prefix: 'visto:' })).keys()]) // "visto offline" antigo expulsaria o jogador de teste do grupo
+    await this.state.storage.deleteAlarm()
+    return { ok: true }
+  }
+
+  // /mandar: mensagem para as abas de uma lista de jogadores · /todos: para todas as abas abertas
+  async avisar(caminho, req) {
+    const { ids = [], msg } = await lerCorpo(req)
+    if (!msg) throw new ErroPedido('msg')
+    if (caminho === '/mandar') for (const id of ids) this.enviar(id, msg)
+    else {
+      const texto = JSON.stringify(msg)
+      for (const ws of this.state.getWebSockets()) enviarSeguro(ws, texto)
+    }
+    return { ok: true }
+  }
 
   async fetch(req) {
     const url = new URL(req.url)
@@ -861,56 +787,22 @@ export class Presenca {
       this.jogandoAgora = new Set()
       await this.sincronizarJogando((await this.state.storage.get('partidas')) || {})
     }
-    if (url.pathname === '/amigos') return this.exclusivo(() => this.amigosPedido(req))
-    if (url.pathname === '/chat') return this.exclusivo(() => this.chat(req))
-    if (url.pathname === '/servidor/elenco') return this.exclusivo(() => this.servidorElenco(req))
-    if (url.pathname === '/servidor/proxima') return this.exclusivo(() => this.servidorProxima())
-    if (url.pathname === '/servidor/estado') return this.exclusivo(() => this.servidorEstado(req))
-    if (url.pathname === '/lobby') return this.exclusivo(() => this.lobby(req))
-    if (url.pathname === '/teste/limpar') {
+    const rotas = {
+      '/amigos': () => this.amigosPedido(req),
+      '/chat': () => this.chat(req),
+      '/lobby': () => this.lobby(req),
+      '/servidor/elenco': () => this.servidorElenco(req),
+      '/servidor/proxima': () => this.servidorProxima(),
+      '/servidor/estado': () => this.servidorEstado(req),
       // só o ambiente de teste local liga isto (index.js exige MODO_TESTE): apaga as partidas (e os lobbies, sem { apenasPartidas: true })
-      const { apenasPartidas } = (await req.json().catch(() => null)) || {}
-      return this.exclusivo(async () => {
-        await this.state.storage.delete(apenasPartidas ? ['partidas'] : ['lobbies', 'partidas'])
-        if (!apenasPartidas) await this.state.storage.delete([...(await this.state.storage.list({ prefix: 'visto:' })).keys()]) // "visto offline" antigo expulsaria o jogador de teste do grupo
-        await this.state.storage.deleteAlarm()
-        return json({ ok: true })
-      })
+      '/teste/limpar': () => this.limparTeste(req),
     }
-    if (url.pathname === '/avisar') {
-      const { ids = [] } = await req.json().catch(() => ({}))
-      await this.listaAmigos(true)
-      for (const id of ids) {
-        this.enviar(id, { tipo: 'lista' }) // a aba busca GET /amigos de novo
-        if (this.state.getWebSockets(id).length) this.enviar(id, await this.estadoPara(id))
-      }
-      return new Response('ok')
-    }
+    if (rotas[url.pathname]) return responder(() => this.exclusivo(rotas[url.pathname]))
+    if (url.pathname === '/todos' || url.pathname === '/mandar') return responder(() => this.avisar(url.pathname, req))
 
-    if (url.pathname === '/todos') {
-      const { msg } = await req.json().catch(() => ({}))
-      if (msg) {
-        const texto = JSON.stringify(msg)
-        for (const ws of this.state.getWebSockets()) {
-          try {
-            ws.send(texto)
-          } catch {
-            // aba fechando
-          }
-        }
-      }
-      return new Response('ok')
-    }
-
-    if (url.pathname === '/mandar') {
-      const { ids = [], msg } = await req.json().catch(() => ({}))
-      if (msg) for (const id of ids) this.enviar(id, msg)
-      return new Response('ok')
-    }
-
-    if (req.headers.get('Upgrade') !== 'websocket') return new Response('websocket', { status: 426 })
+    if (req.headers.get('Upgrade') !== 'websocket') return respostaDeErro(new ErroNaoEncontrado('rota'))
     const id = req.headers.get('X-Id')
-    if (!ID_STEAM.test(String(id))) return new Response('id', { status: 400 })
+    if (!ID_STEAM.test(String(id))) return respostaDeErro(new ErroPedido('id'))
     const antes = this.statusDe(id)
     const [cliente, servidor] = Object.values(new WebSocketPair())
     this.state.acceptWebSocket(servidor, [id])
@@ -946,10 +838,12 @@ export class Presenca {
 
   async webSocketClose(ws, codigo) {
     await this.saiu(ws)
+    // 1005, 1006 e 1015 são reservados (querem dizer "não veio código"): não podem ser mandados de volta, então a resposta é 1000 (normal)
+    const resposta = [1005, 1006, 1015].includes(codigo) ? 1000 : codigo
     try {
-      ws.close(codigo, 'tchau')
-    } catch {
-      // já fechado
+      ws.close(resposta, 'tchau')
+    } catch (e) {
+      if (!(e instanceof TypeError)) throw e // já estava fechada
     }
   }
 

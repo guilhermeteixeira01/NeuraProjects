@@ -317,35 +317,46 @@ export const diaSP = (ts) => new Date(ts - 3 * 3600 * 1000).toISOString().slice(
 // Identifica um item de caixa: skin/faca por arma+pintura; adesivo e chaveiro pelo id do jogo (que se repete entre os dois tipos)
 export const chaveDoItem = (t, d, p) => (t === 'adesivo' ? `a${d}` : t === 'chaveiro' ? `c${d}` : `${d}:${p}`)
 
-export function calcularStats(linhas, fechadas = 0) {
-  const s = { abertas: linhas.length, maxDia: 0, facas: 0, facasDif: 0, seqLend: 0, seqComum: 0, fabrica: 0, cicatriz: 0, quase: 0, raridades: 0, fechadas, porCaixa: {} }
-  const dias = {}
-  const raridades = new Set()
-  const facas = new Set()
-  let lend = 0
-  let comum = 0
-  for (const l of linhas) {
-    const dia = diaSP(l.ts)
-    dias[dia] = (dias[dia] || 0) + 1
-    raridades.add(l.r)
-    if (l.t === 'faca') {
-      s.facas++
-      facas.add(`${l.d}:${l.p}`)
-    }
-    ;(s.porCaixa[l.caixa] ??= new Set()).add(chaveDoItem(l.t, l.d, l.p)) // o Mestre da Caixa só olha a lista de itens da caixa (as facas do tier especial não entram)
-    lend = l.r >= 4 ? lend + 1 : 0
-    s.seqLend = Math.max(s.seqLend, lend)
-    comum = l.r === 0 ? comum + 1 : 0
-    s.seqComum = Math.max(s.seqComum, comum)
-    if (l.f < 0.01) s.fabrica = 1
-    if (l.f > 0.99) s.cicatriz = 1
-    if (l.q) s.quase = 1
+// Estatísticas das aberturas, acumuladas em ordem: o objeto do jogador guarda o acumulado e só soma as aberturas novas
+// (antes relia o histórico inteiro a cada compra/abertura). calcularStats = acumular tudo de uma vez.
+export const novoAcumulado = () => ({ abertas: 0, dias: new Map(), raridades: new Set(), facas: 0, facasDif: new Set(), lend: 0, comum: 0, seqLend: 0, seqComum: 0, fabrica: 0, cicatriz: 0, quase: 0, porCaixa: {} })
+
+export function acumular(a, l) {
+  a.abertas++
+  const dia = diaSP(l.ts)
+  a.dias.set(dia, (a.dias.get(dia) || 0) + 1)
+  a.raridades.add(l.r)
+  if (l.t === 'faca') {
+    a.facas++
+    a.facasDif.add(`${l.d}:${l.p}`)
   }
-  s.maxDia = Math.max(0, ...Object.values(dias))
-  s.facasDif = facas.size
-  s.raridades = raridades.size
-  return s
+  ;(a.porCaixa[l.caixa] ??= new Set()).add(chaveDoItem(l.t, l.d, l.p)) // o Mestre da Caixa só olha a lista de itens da caixa (as facas do tier especial não entram)
+  a.lend = l.r >= 4 ? a.lend + 1 : 0
+  a.seqLend = Math.max(a.seqLend, a.lend)
+  a.comum = l.r === 0 ? a.comum + 1 : 0
+  a.seqComum = Math.max(a.seqComum, a.comum)
+  if (l.f < 0.01) a.fabrica = 1
+  if (l.f > 0.99) a.cicatriz = 1
+  if (l.q) a.quase = 1
+  return a
 }
+
+export const statsDoAcumulado = (a, fechadas = 0) => ({
+  abertas: a.abertas,
+  maxDia: Math.max(0, ...a.dias.values()),
+  facas: a.facas,
+  facasDif: a.facasDif.size,
+  seqLend: a.seqLend,
+  seqComum: a.seqComum,
+  fabrica: a.fabrica,
+  cicatriz: a.cicatriz,
+  quase: a.quase,
+  raridades: a.raridades.size,
+  fechadas,
+  porCaixa: a.porCaixa,
+})
+
+export const calcularStats = (linhas, fechadas = 0) => statsDoAcumulado(linhas.reduce(acumular, novoAcumulado()), fechadas)
 
 // Progresso de cada insígnia: [{ ...insígnia, atual, ok }]. "caixas" = lista de caixas (para as Mestre da Caixa)
 export function progressoInsignias(stats, caixas = []) {

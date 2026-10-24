@@ -17,12 +17,6 @@ const SETA = (
 )
 
 // Ícones dos projetos (os mesmos no painel do topo e nos cards)
-const IC_PERFIL = (
-  <>
-    <circle cx="12" cy="8" r="4" />
-    <path d="M4 21a8 8 0 0 1 16 0" />
-  </>
-)
 const IC_TROFEU = (
   <>
     <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z" />

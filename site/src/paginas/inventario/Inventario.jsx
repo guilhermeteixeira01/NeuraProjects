@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { seForErroApi } from '../../comum/api.js'
 import Layout from '../../comum/Layout.jsx'
 import { entrar, loginAtivo, useConta } from '../../comum/conta.js'
 import {
-  CATEGORIAS,
   LADOS_TIME,
   chaveEquip,
   corEnfeite,
@@ -11,10 +11,8 @@ import {
   excluirItem,
   inventarioNovo,
   lerInventario,
-  novoIdItem,
   salvarInventario,
   urlImg,
-  urlImgArma,
   useCatalogo,
 } from '../../comum/skins.js'
 import { useT } from '../../comum/i18n.js'
@@ -115,43 +113,6 @@ function Janela({ titulo, aoFechar, largura = 'media', classe = '', children, ro
 }
 
 // Grade de skins de uma arma (mais a opção "sem skin"/"padrão")
-function GradeSkins({ skins, paint, aoEscolher, rotuloVazio }) {
-  const t = useT()
-  const [busca, setBusca] = useState('')
-  const lista = useMemo(() => {
-    const q = busca.trim().toLowerCase()
-    return q ? skins.filter((s) => s[1].toLowerCase().includes(q)) : skins
-  }, [skins, busca])
-  return (
-    <div className="inv-grade-caixa">
-      <input type="search" className="inv-busca" placeholder={t('Pesquisar skin')} value={busca} onChange={(e) => setBusca(e.target.value)} />
-      <ul className="inv-grade">
-        {rotuloVazio && (
-          <li>
-            <button type="button" className={`inv-skin inv-skin-vazio${!paint ? ' is-ativo' : ''}`} onClick={() => aoEscolher(null)}>
-              <span className="inv-skin-img">
-                <span className="inv-vazio-x">∅</span>
-              </span>
-              <b>{t(rotuloVazio)}</b>
-            </button>
-          </li>
-        )}
-        {lista.map((s) => (
-          <li key={s[0]}>
-            <button type="button" className={`inv-skin${paint === s[0] ? ' is-ativo' : ''}`} style={{ '--cor': s[2] || 'var(--border-2)' }} onClick={() => aoEscolher(s)} title={s[1]}>
-              <span className="inv-skin-img">
-                <Imagem src={urlImgArma(s[6], 256)} />
-              </span>
-              <b>{s[1]}</b>
-            </button>
-          </li>
-        ))}
-        {!lista.length && <li className="inv-nada">{t('Nenhuma skin encontrada.')}</li>}
-      </ul>
-    </div>
-  )
-}
-
 // Escolher um adesivo (10 mil: filtra pelo nome e mostra os primeiros)
 function SeletorAdesivo({ aoEscolher, aoFechar, catalogo = 'adesivos', livres }) {
   const t = useT()
@@ -480,25 +441,12 @@ function DialogoItem({ inicial, modo, idx, adesivos, chaveiros, estoque, mapa, a
   const controle = useRef(null)
   const m = useMapas3d(mapa)
   const d = descrever(rasc, idx)
-  const skin = d.skin
   const porId = useMemo(() => new Map((adesivos.dados || []).map((s) => [s[0], s])), [adesivos.dados])
   const chaveirosPorId = useMemo(() => new Map((chaveiros.dados || []).map((s) => [s[0], s])), [chaveiros.dados])
   const tem3d = !!m && idNo3d(rasc, m) !== undefined
   const [sem3d, setSem3d] = useState(false)
-  const temSkin = rasc.t !== 'agente' && skin
-  const [min, max] = skin ? [skin[3], skin[4]] : [0, 1]
-  const f = Math.min(max, Math.max(min, rasc.f ?? min))
   const mudar = (p) => setRasc((r) => ({ ...r, ...p }))
-  const enviar = (tipo, dados) => controle.current?.enviar(tipo, dados)
   const comEnfeites = rasc.t === 'arma'
-  const mudarSeed = (s) => {
-    mudar({ s })
-    enviar('setSeed', { seed: s })
-  }
-  const mudarDesgaste = (w) => {
-    mudar({ f: w })
-    enviar('setWear', { wear: w })
-  }
   // Não dá para mexer em desgaste, padrão, StatTrak nem nome: só colar adesivos/chaveiro e, se quiser, voltar a skin ao original (sem enfeites)
   const voltarAoOriginal = async () => {
     const colados = (rasc.a || []).filter(Boolean).length + (rasc.k?.i ? 1 : 0)
@@ -506,8 +454,6 @@ function DialogoItem({ inicial, modo, idx, adesivos, chaveiros, estoque, mapa, a
     setRasc((r) => ({ ...r, a: [null, null, null, null, null], k: null }))
     setVersao((v) => v + 1)
   }
-  const aleatorio = (a, b) => a + Math.random() * (b - a)
-  const slider = (valor, mn, mx, passo) => ({ min: mn, max: mx, step: passo, value: valor })
 
   return (
     <Janela titulo={modo === 'criar' ? t('Confirmar criação') : t('Editar item')} aoFechar={aoFechar} largura="media">
@@ -827,13 +773,13 @@ function Conteudo() {
         const base = { ...inventarioNovo(), ...d }
         salvo.current = JSON.stringify(base)
         setInv(base)
-      }, () => {}),
+      }, seForErroApi()),
     [],
   )
   const carregarAnuncios = useCallback(() => {
     const eu = conta?.id
     if (!eu) return Promise.resolve()
-    return lerMercado().then((r) => setAnuncios(r.anuncios.filter((a) => a.vendedor === eu)), () => {})
+    return lerMercado().then((r) => setAnuncios(r.anuncios.filter((a) => a.vendedor === eu)), seForErroApi())
   }, [conta?.id])
   useEffect(() => {
     carregarAnuncios()
@@ -866,7 +812,7 @@ function Conteudo() {
   useEffect(() => {
     if (!inv) return
     let vivo = true
-    const id = setTimeout(() => lerValores().then((v) => vivo && setValores(v), () => {}), 300)
+    const id = setTimeout(() => lerValores().then((v) => vivo && setValores(v), seForErroApi()), 300)
     return () => {
       vivo = false
       clearTimeout(id)
@@ -942,7 +888,6 @@ function Conteudo() {
   }, [inv, aba, idx, adesivosPorId, chaveirosPorId])
 
   const mudar = useCallback((f) => setInv((i) => f(i)), [])
-  const mudarItem = (id, parte) => mudar((i) => ({ ...i, itens: { ...i.itens, [id]: { ...i.itens[id], ...parte } } }))
   const equipar = (id, lado) => {
     tocar('equipar')
     mudar((i) => {

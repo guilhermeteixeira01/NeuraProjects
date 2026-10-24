@@ -1,5 +1,4 @@
 /* Ordem: base do site, base das páginas e depois o desta página (o desta página ganha) */
-@import '../../comum/site.css';
 @import '../../comum/paginas.css';
 @import '../../comum/premier.css';
 @import '../../comum/cartaoSkin.css'; /* cartões de item do "Ver inventário" */
@@ -7,14 +6,7 @@
 /* ── Topo ── */
 .pf-hero { padding: 56px 0 40px; }
 /* Grade: foto à esquerda; à direita, em linhas, nome + selos, quadros de informação e XP + botões */
-.pf-topo {
-  display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'av id' 'av infos' 'av baixo';
-  column-gap: 32px; row-gap: 16px; align-items: start; position: relative;
-}
-.pf-topo > :first-child { grid-area: av; align-self: center; }
 .pf-id { grid-area: id; }
-.pf-infos { grid-area: infos; display: flex; flex-wrap: wrap; gap: 10px; }
-.pf-baixo { grid-area: baixo; display: flex; flex-direction: column; gap: 16px; }
 .pf-info {
   display: flex; flex-direction: column; justify-content: center; gap: 6px; min-width: 120px; min-height: 66px; padding: 10px 14px;
   border-radius: 12px; border: 1px solid var(--border); background: rgb(var(--fundo) / .55); color: var(--text); text-decoration: none;
@@ -43,21 +35,14 @@
   margin-left: 10px; padding: 2px 8px; border-radius: 999px; font-size: 10px; letter-spacing: 1px; color: #fff;
   background: linear-gradient(90deg, var(--blue), var(--blue-2));
 }
-.pf-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; }
 .pf-time { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; color: var(--dim); }
 .pf-time img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; max-width: none; border: 1px solid var(--border-2); }
-.pf-pos {
-  font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--blue-2);
-  padding: 2px 12px; border-radius: 8px; border: 1px solid rgba(52,152,219,.4); background: rgba(26,115,232,.08);
-}
-.pf-pos small { font-family: var(--font-body); font-size: 12px; font-weight: 600; color: var(--dim); }
 .pf-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .pf-acoes .btn { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-family: inherit; }
 .pf-aviso h1 { font-family: var(--font-display); font-size: clamp(30px, 5vw, 48px); margin: 8px 0 12px; }
 .pf-aviso .lead { max-width: 560px; }
 
 /* ── Números ── */
-.pf-secao { padding-top: 28px; }
 .pf-estats { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; margin-bottom: 18px; }
 .pf-estat {
   display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border-radius: 12px;
@@ -105,8 +90,8 @@
 .pf-tip .mono { font-size: 10.5px; color: var(--dim-2); }
 .pf-vd { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 56px); justify-content: start; gap: 2px; margin: 8px 0 0 34px; }
 .pf-vd span { text-align: center; font-family: var(--font-mono); font-size: 11px; font-weight: 700; }
-.pf-vd .v, .pf-res.v { color: var(--green); }
-.pf-vd .d, .pf-res.d { color: #ff6b6b; }
+.pf-vd .v { color: var(--green); }
+.pf-vd .d { color: #ff6b6b; }
 
 /* Histórico: uma linha (cartão) por mapa, faixa verde/vermelha na esquerda; no celular some Partida, XP e K/D/A */
 .pf-hist { --cols: 1.1fr 1.1fr 1.7fr .9fr .9fr 1.3fr 1.2fr; display: flex; flex-direction: column; gap: 6px; }
@@ -176,14 +161,12 @@
 
 @media (max-width: 720px) {
   /* Celular: foto ao lado do nome; quadros em 2 colunas; botões ocupando a largura */
-  .pf-topo { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'av id' 'infos infos' 'baixo baixo'; column-gap: 16px; row-gap: 16px; }
   .pf-av { width: 84px; height: 84px; border-radius: 16px; }
   .pf-id h1 { font-size: 28px; margin: 4px 0 8px; }
   /* "PERFIL DO JOGADOR" + VOCÊ numa linha só (sem o tracinho do fim, que empurrava o VOCÊ) */
   .pf-id .kicker { font-size: 9.5px; letter-spacing: 1.4px; gap: 8px; white-space: nowrap; }
   .pf-id .kicker::after { display: none; }
   .pf-voce { margin-left: 2px; }
-  .pf-infos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .pf-info { min-width: 0; min-height: 60px; padding: 8px 12px; }
   .pf-info-val .time-escolhido span, .pf-info-val .pf-time span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pf-xp { max-width: none; }
@@ -278,21 +261,9 @@ html.sm-aberto { overflow: hidden; }
 }
 .sm-abas button:hover { color: var(--text); }
 .sm-abas button.active { color: var(--blue-2); background: rgba(26,115,232,.16); box-shadow: inset 0 0 0 1px rgba(26,115,232,.55); }
-.sm-rolagem .sm-grade-times { padding-top: 16px; }
-.sm-time-logo { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; max-width: none; border: 1px solid var(--border-2); }
-.sm-logo-ini { display: grid; place-items: center; background: var(--panel-2); font-family: var(--font-display); font-weight: 700; color: var(--dim); }
-.sm-time-logo.sm-logo-ini { font-size: 24px; }
-.sm-time-previa { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; color: var(--text); }
-.sm-logo { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; max-width: none; border: 1px solid var(--border-2); }
-.sm-logo.sm-logo-ini { font-size: 11px; }
 .sm-vazio { grid-column: 1 / -1; font-size: 13px; color: var(--dim); }
-@media (max-width: 720px) {
-  .sm-time-logo { width: 54px; height: 54px; }
-}
 
 /* Nível e XP (estilo FACEIT) */
-.pf-nivel { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 1.5px; color: var(--dim); }
-.pf-nivel b { font-family: var(--font-display); font-size: 22px; letter-spacing: 0; color: var(--text); }
 .pf-xp { max-width: 560px; }
 .pf-xp-mapa { color: var(--green); }
 .pf-xp-mapa.perdeu { color: #ff6b6b; }
@@ -539,7 +510,6 @@ html.sm-aberto { overflow: hidden; }
   top: 5px; right: 5px; gap: 3px; padding: 2px 5px; border-radius: 999px; font-size: 9.5px; font-weight: 700; line-height: 1;
   background: rgb(var(--fundo) / .85); border: 1px solid var(--border-2); color: var(--cg, var(--dim));
 }
-.sm-exige-nv { font-family: var(--font-mono); color: var(--dim); }
 .sm-item.presa { opacity: .62; }
 .sm-item.presa > .sm-nome { color: var(--dim-2); }
 
@@ -558,7 +528,6 @@ html.sm-aberto { overflow: hidden; }
   .sm-grupo-cab { margin: 0 -12px; padding: 10px 12px 6px; font-size: 14px; }
   .sm-rolagem .sm-grade { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 }
-.sm-rolagem .sm-grade.sm-grade-times { padding-top: 16px; }
 
 /* Coleções do Personalizar: barra de rolagem horizontal fina visível (antes ficava escondida) */
 .sm-ferramentas .sm-colecoes {
@@ -592,12 +561,6 @@ html.sm-aberto { overflow: hidden; }
 .sm-item.presa > img { opacity: .35; filter: grayscale(.5); }
 .sm-item.presa > .sm-nome { opacity: .55; }
 .sm-item.presa:hover { transform: none; }
-.sm-cadeado {
-  position: absolute; left: 50%; top: 44px; transform: translate(-50%, -50%); display: grid; place-items: center;
-  width: 38px; height: 38px; border-radius: 50%; color: var(--text); background: rgb(var(--fundo) / .82); border: 1px solid var(--border-2);
-  pointer-events: none; transition: border-color .15s, color .15s;
-}
-.sm-item.presa:hover .sm-cadeado { border-color: var(--blue-2); color: var(--blue-2); }
 .sm-requisitos {
   position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; justify-content: center; align-items: stretch; gap: 6px;
   padding: 8px; border-radius: 12px; text-align: left; background: rgb(var(--fundo) / .94); border: 1px solid var(--blue-2);
@@ -606,7 +569,6 @@ html.sm-aberto { overflow: hidden; }
 .sm-requisitos b { display: flex; align-items: center; gap: 5px; font-size: 11px; letter-spacing: .5px; text-transform: uppercase; color: var(--blue-2); }
 .sm-requisitos > span { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; font-size: 11.5px; font-weight: 700; color: var(--text); line-height: 1.25; }
 .sm-requisitos small { width: 100%; padding-left: 23px; font-size: 10px; font-weight: 500; color: var(--dim); }
-.pf-sem-nivel { color: var(--dim-2); }
 
 /* Armas mais usadas: versão compacta (cartões do top 3 em linha, lista mais fina) */
 .pf-armas-card { padding: 16px 16px 12px; }
@@ -653,7 +615,6 @@ html.sm-aberto { overflow: hidden; }
   color: var(--rq); border: 1px solid color-mix(in srgb, var(--rq) 50%, transparent); background: color-mix(in srgb, var(--rq) 10%, transparent);
 }
 .sm-req .selo-nivel { flex: none; }
-.sm-item.presa > .sm-cadeado { display: none; }
 /* aviso "Para usar" com a mesma cara */
 .sm-requisitos { border-style: solid; border-color: var(--border-2); background: rgb(var(--fundo) / .97); }
 /* "Para usar": uma linha por requisito (rótulo pequeno + gema/selo + texto) */
@@ -700,8 +661,6 @@ html.sm-aberto { overflow: hidden; }
 .pf-voce-cartao { margin: 0; }
 .pf-acoes-lado { flex-direction: column; align-items: stretch; }
 .pf-acoes-lado .btn { justify-content: center; }
-.pf-centro .pf-infos { margin-bottom: 14px; }
-.pf-centro .pf-baixo { margin-bottom: 18px; }
 @media (max-width: 980px) {
   .pf-layout { grid-template-columns: minmax(0, 1fr); }
   .pf-lado { position: static; }
@@ -751,25 +710,16 @@ html.sm-aberto { overflow: hidden; }
 .pf-ci { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--text); text-decoration: none; }
 .pf-ci-rot { height: 14px; font-size: 11px; font-weight: 700; color: var(--dim-2); line-height: 14px; }
 .pf-ci-baixo { min-height: 14px; font-size: 11px; font-weight: 700; color: var(--dim-2); line-height: 14px; text-align: center; }
-.pf-ci-nivel { gap: 6px; }
-.pf-ci-nivel .pf-ci-baixo { color: var(--text); font-size: 12px; }
-.pf-ci-bola { display: grid; place-items: center; width: var(--c); height: var(--c); border-radius: 50%; border: 1px solid var(--border-2); background: var(--panel-2); font: 800 13px var(--font-body); }
 .pf-ci + .pf-ci::before { content: ''; position: absolute; top: calc(20px + var(--c) / 2); left: calc(-50% + var(--c) / 2 + 3px); right: calc(50% + var(--c) / 2 + 3px); height: 1px; background: var(--border-2); }
-.pf-ci.v .pf-ci-bola { color: var(--green); border-color: var(--green); background: rgba(61, 220, 132, .12); }
-.pf-ci.d .pf-ci-bola { color: var(--red); border-color: var(--red); background: rgba(255, 70, 85, .12); }
 .pf-ci.v .pf-ci-baixo { color: var(--green); }
 .pf-ci.d .pf-ci-baixo { color: var(--red); }
-.pf-ci.vazio .pf-ci-bola { border-style: dashed; background: none; }
-.pf-ci:is(a):hover .pf-ci-bola { filter: brightness(1.25); }
 .pf-desemp .barra-xp { margin: 0; }
 /* quadros Time / Premier / Ranking: mesma largura, uma fileira */
-.pf-centro .pf-infos { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 14px; }
 .pf-centro .pf-info { min-width: 0; }
 /* estatísticas: 3 colunas iguais (3 × 3) */
 .pf-centro .pf-estats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 @media (max-width: 760px) {
   .pf-class-trilha { --c: 22px; grid-template-columns: 56px repeat(10, minmax(0, 1fr)); }
-  .pf-ci-bola { font-size: 10px; }
   .pf-ci-rot, .pf-ci-baixo { font-size: 9px; }
   .pf-centro .pf-estats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -843,26 +793,13 @@ html.sm-aberto { overflow: hidden; }
 .sm-item.de-cargo .sm-anim { top: auto; right: 8px; }
 
 /* Time e Premier abaixo do cartão do jogador (coluna da esquerda): um embaixo do outro, na largura do cartão */
-.pf-infos.pf-infos-lado { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 0; }
-.pf-infos-lado .pf-info { width: 100%; min-width: 0; }
 /* Time e Premier lado a lado (um só ocupa a largura toda) */
-.pf-infos.pf-infos-lado { grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); }
-.pf-infos-lado .pf-info-val { min-width: 0; }
-.pf-infos-lado .pf-time { min-width: 0; max-width: 100%; }
-.pf-infos-lado .pf-time span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Time e Premier: nunca cortam o nome. Cada um ocupa o que precisa; se não couberem lado a lado, o Premier desce para a linha de baixo */
-.pf-infos.pf-infos-lado { display: flex; flex-wrap: wrap; gap: 10px; }
-.pf-infos-lado .pf-info { flex: 1 1 auto; width: auto; min-width: 0; }
-.pf-infos-lado .pf-info:last-child:not(:only-child) { flex: 0 1 auto; }
-.pf-infos-lado .pf-time span { overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; }
 /* celular/tablet: a coluna do jogador fica centralizada na tela */
 @media (max-width: 900px) {
   .pf-lado { width: 100%; max-width: 560px; margin-inline: auto; }
   .pf-lado .pf-cartao { margin-inline: auto; }
-  .pf-infos.pf-infos-lado { justify-content: center; }
-  .pf-infos-lado .pf-info { text-align: center; justify-items: center; }
-  .pf-infos-lado .pf-info-val { justify-content: center; }
   .pf-lado .pf-lado-bloco h3 { text-align: center; }
   .pf-lado .pf-desde { text-align: center; }
   .pf-lado .pf-insig-lado .ins-lista { justify-content: center; }
@@ -870,14 +807,6 @@ html.sm-aberto { overflow: hidden; }
 @media (max-width: 900px) { .pf-lado .pf-cartao { width: 100%; max-width: none; margin-inline: 0; } }
 
 /* FINAL: Time e Premier SEMPRE lado a lado. O Time ocupa o que sobra e o nome quebra de linha (nunca é cortado); o Premier tem a largura dele */
-.pf-infos.pf-infos-lado { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: stretch; }
-.pf-infos-lado .pf-info { padding: 10px 12px; width: auto; min-width: 0; flex: none; }
-.pf-infos-lado .pf-info:only-child { grid-column: 1 / -1; }
-.pf-infos-lado .pf-time { display: inline-flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%; }
-.pf-infos-lado .pf-time img { flex: none; }
-.pf-infos-lado .pf-time span { min-width: 0; overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; line-height: 1.15; }
-.pf-infos-lado .pf-info:last-child:not(:only-child) .pf-info-val { zoom: .9; }
-@media (max-width: 900px) { .pf-infos.pf-infos-lado { justify-content: stretch; } .pf-infos-lado .pf-info { text-align: left; justify-items: start; } .pf-infos-lado .pf-info-val { justify-content: flex-start; } }
 
 /* a seção do perfil ocupa a tela toda (mesmo com pouca coisa) e não corta a dica das insígnias (só o lado é cortado, por causa do fundo) */
 .pf-pagina { overflow-x: clip; overflow-y: visible; min-height: 100dvh; padding-bottom: 150px; }
@@ -937,8 +866,6 @@ html.sm-aberto { overflow: hidden; }
 .pf-inv-quem > b { font: 700 22px var(--font-display); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pf-inv-quem > small { color: var(--dim); }
 .pf-inv-rot { font: 600 11px var(--font-body); letter-spacing: .14em; color: rgb(255 255 255 / .55); }
-.pf-inv-ver { margin-top: 8px; width: max-content; padding: 7px 13px; border-radius: 8px; border: 1px solid rgb(255 255 255 / .16); background: rgb(255 255 255 / .06); color: var(--text); font: 600 12px var(--font-body); cursor: pointer; }
-.pf-inv-ver:hover { background: rgb(255 255 255 / .12); }
 .pf-inv-card { align-items: center; justify-content: space-between; gap: 6px; padding: 16px 8px 16px 20px; }
 .pf-inv-card-txt { display: grid; gap: 4px; align-content: center; min-width: 0; z-index: 1; }
 .pf-inv-card-txt b { font: 700 17px var(--font-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -970,8 +897,6 @@ html.sm-aberto { overflow: hidden; }
 .pf-inv-item-nome small { color: rgb(255 255 255 / .62); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pf-inv-item-nome b { font: 600 14px var(--font-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pf-inv-item-nome em { font-style: normal; color: rgb(255 255 255 / .6); font-size: 12px; font-weight: 500; }
-.pf-inv-mais { justify-self: center; padding: 11px 26px; border-radius: 10px; border: 1px solid rgb(255 255 255 / .16); background: rgb(255 255 255 / .06); color: var(--text); font: 700 13px var(--font-body); cursor: pointer; }
-.pf-inv-mais:hover { background: rgb(255 255 255 / .12); }
 .pf-inv-vazio { margin: 0; padding: 28px 8px; text-align: center; color: var(--dim); }
 @media (max-width: 1100px) { .pf-inv-topo { grid-template-columns: 1fr 1fr; } .pf-inv-quem { grid-column: 1 / -1; min-height: 0; } }
 @media (max-width: 640px) {
@@ -992,9 +917,6 @@ html.sm-aberto { overflow: hidden; }
 .pf-resumo-chip { display: grid; gap: 4px; padding: 8px 12px; border-radius: 10px; border: 1px solid rgb(255 255 255 / .07); background: rgb(255 255 255 / .035); text-decoration: none; color: inherit; min-width: 0; }
 .pf-resumo-pos b { color: #5ec5ff; }
 .pf-inv-valor { color: #5fe3a1; font: 700 15px var(--font-body); }
-.pf-resumo-rodape { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; margin-top: 8px; }
-.pf-resumo-rodape small { color: var(--dim); font-size: 12px; }
-.pf-resumo-insig { display: inline-flex; gap: 6px; }
 .pf-inv-sub { display: flex; flex-wrap: wrap; gap: 8px; }
 .pf-inv-sub button { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; border: 1px solid rgb(255 255 255 / .1); background: rgb(255 255 255 / .04); color: rgb(255 255 255 / .6); font: 700 12px var(--font-body); letter-spacing: .06em; cursor: pointer; }
 .pf-inv-sub button small { padding: 2px 7px; border-radius: 6px; background: rgb(255 255 255 / .09); font-size: 11px; }
@@ -1113,8 +1035,6 @@ html.sm-aberto { overflow: hidden; }
 .pf-inv-quem .pf-resumo-chips { flex-wrap: nowrap; gap: 8px; margin-top: 6px; min-width: 0; }
 .pf-inv-quem .pf-resumo-chip { padding: 6px 11px; min-width: 0; }
 .pf-inv-quem .pf-resumo-chip:nth-child(2) { min-width: 0; }
-.pf-inv-quem .pf-resumo-rodape { margin-top: 2px; gap: 6px 12px; }
-.pf-inv-quem .pf-resumo-rodape small { font-size: 11.5px; }
 @media (max-width: 1100px) {
   .pf-inv-topo { grid-auto-rows: auto; }
   .pf-inv-quem { height: 168px; }

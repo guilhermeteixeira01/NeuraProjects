@@ -4,6 +4,7 @@
 // Aberto/fechado fica guardado no navegador. Dados e presença: comum/amigos.js.
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { seForErroApi } from './api.js'
 import { acaoAmizade, buscarJogadores, relacaoCom, tempoDesde, useAmigos } from './amigos.js'
 import { useAvatar } from './avatares.js'
 import { linkPerfil } from './conta.js'
@@ -94,7 +95,7 @@ function AdicionarAmigo({ lista, eu }) {
     const espera = setTimeout(() => {
       buscarJogadores(termo)
         .then((l) => vivo && setDoSite(l))
-        .catch(() => vivo && setDoSite([]))
+        .catch(seForErroApi(() => vivo && setDoSite([])))
     }, 250)
     return () => {
       vivo = false

@@ -1,5 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
+// Base visual de todas as páginas (cores, barras, rodapé, efeitos): no pedaço de CSS compartilhado, que o navegador guarda e reaproveita
+// de uma página para outra. Carrega antes do CSS da página (src/entradas/<página>.css), que vem depois e ganha dele.
+import './site.css'
 
 // Liga a página no navegador.
 // No site publicado o HTML já vem pronto (gerado no deploy, bom para o Google) e o React só "assume" ele;

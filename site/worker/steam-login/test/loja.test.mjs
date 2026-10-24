@@ -233,7 +233,7 @@ test('sortearPeso ignora pesos zerados', () => {
 })
 
 // ── venda ──
-import { VALOR_BASE, definirValorador, faixasDeDesgaste, multiplicadorDoDesgaste, precoDeMercado, valorDaFaca, valorDoItem } from '../src/loja-core.js'
+import { definirValorador, faixasDeDesgaste, multiplicadorDoDesgaste, precoDeMercado, valorDoItem } from '../src/loja-core.js'
 test('valor de venda: maior com raridade maior e desgaste melhor; StatTrak vale mais', () => {
   for (let r = 1; r <= 6; r++) assert.ok(valorDoItem({ f: 0.1 }, r) > valorDoItem({ f: 0.1 }, r - 1), 'raridade ' + r)
   for (const f of [0, 0.05, 0.1, 0.2, 0.4, 0.6, 0.9]) assert.ok(valorDoItem({ f }, 3) >= valorDoItem({ f: f + 0.05 }, 3), 'desgaste ' + f)
@@ -243,8 +243,6 @@ test('valor de venda: maior com raridade maior e desgaste melhor; StatTrak vale 
 })
 test('vender não paga a caixa de volta (valor esperado de uma abertura fica bem abaixo do preço)', () => {
   const cfg2 = CONFIG_PADRAO
-  const raridadeSkin = JSON.parse(fs.readFileSync(new URL('../src/skins-raridade.json', import.meta.url), 'utf8'))
-  const facasValor = JSON.parse(fs.readFileSync(new URL('../src/facas-valor.json', import.meta.url), 'utf8'))
   for (const c of CAIXAS.filter((x) => !x.arquivada)) {
     // as caixas novas são precificadas pelo preço de mercado (scripts/precos-caixas.mjs: média x 1,6 ≈ 62%); o que se vende fica abaixo do preço
     const precos = JSON.parse(fs.readFileSync(new URL('../src/precos.json', import.meta.url), 'utf8'))

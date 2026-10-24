@@ -1,7 +1,7 @@
 // Skins equipadas de um jogador (worker: GET /skins/publico?id=), para o perfil mostrar cada arma com a skin que ele usa.
 // A skin do TR vale primeiro (a maioria das armas de rifle é de TR); sem ela, a do CT. A imagem vem do catálogo (public/assets/skins/armas.json).
 import { createContext, useContext, useEffect, useState } from 'react'
-import { CONFIG } from './config.js'
+import { lerApi, seForErroApi, enderecoApi } from './api.js'
 import { DEF_ARMA } from './armas.js'
 import { urlImgArma } from './skins.js'
 
@@ -16,10 +16,9 @@ export const useSkinDaArma = () => useContext(SkinsDoJogador)
 export function useSkinsEquipadas(steamId) {
   const [estado, setEstado] = useState(null)
   useEffect(() => {
-    if (!steamId || !CONFIG.loginSteam) return setEstado(null)
+    if (!steamId || !enderecoApi()) return setEstado(null)
     let vivo = true
-    const base = CONFIG.loginSteam.replace(/\/$/, '')
-    cache[steamId] ??= fetch(`${base}/skins/publico?id=${encodeURIComponent(steamId)}`).then((r) => (r.ok ? r.json() : null)).catch(() => null)
+    cache[steamId] ??= lerApi(`/skins/publico?id=${encodeURIComponent(steamId)}`).catch(seForErroApi(() => null)) // sem resposta: o perfil mostra a arma padrão
     Promise.all([cache[steamId], lerCatalogo()]).then(([equip, cat]) => {
       if (!vivo || !equip || !cat) return
       const porDef = new Map(cat.armas.map((a) => [a.d, a]))

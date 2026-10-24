@@ -1422,12 +1422,6 @@ function DarSkin({ usuarios, fixo = null }) {
     }
     return Object.values(g)
   }, [itens, adesivosMap, chaveirosMap, caixasLoja])
-  const nomeItem = (it) => {
-    const a = armas.find((x) => x.d === it.d)
-    const s = a?.s.find((x) => x[0] === it.p)
-    return `${a?.n || `#${it.d}`}${s ? ` | ${s[1]}` : ''}`
-  }
-
   const chaveDe = (t, d, p) => `${t}:${d}:${p}`
   const marcada = (p) => sel.some((x) => x.chave === chaveDe(tipo, peca?.d, p))
   // adesivo/chaveiro: marca com quantidade (cada unidade vira um item no inventário dele)

@@ -9,6 +9,7 @@ import ParticulasPremium from '../../comum/ParticulasPremium.jsx'
 import { avisarSaldo } from '../../comum/loja.js'
 import { MENSAGENS_PAGAMENTO, criarPagamento, estadoPagamento, formatarCpf, lerConfigPagamento, lerPlanosSub, lerRecorrencia, cancelarRecorrencia } from '../../comum/pagamentos.js'
 import './deposito.css'
+import { seForErroApi } from '../../comum/api.js'
 
 const numero = (n) => Number(n).toLocaleString('pt-BR')
 const reais = (centavos) => (centavos / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -73,11 +74,11 @@ export default function Deposito({ nomeInicial = '', modo = 'deposito', aoFechar
   const [rec, setRec] = useState(null) // renovação automática que o jogador já tem: { ativa, valor, proxima }
   useEffect(() => {
     if (!sub) return
-    lerRecorrencia().then(setRec, () => {})
+    lerRecorrencia().then(setRec, seForErroApi())
     lerPlanosSub().then((l) => {
       setPlanos(l)
       setPlano(l.find((x) => x.meses === 3) || l[0] || null)
-    }, () => {})
+    }, seForErroApi())
   }, [sub])
   const [metodo, setMetodo] = useState('pix')
   const [cfg, setCfg] = useState(PAGAMENTO) // valores de fábrica até o servidor responder (o dono pode ter mudado)
@@ -86,7 +87,7 @@ export default function Deposito({ nomeInicial = '', modo = 'deposito', aoFechar
     lerConfigPagamento().then((c) => {
       setCfg(c)
       setCentavos((atual) => (c.pacotes.includes(atual / 100) ? atual : (c.pacotes[Math.min(1, c.pacotes.length - 1)] || c.pacotes[0]) * 100))
-    }, () => {})
+    }, seForErroApi())
   }, [])
   const [livre, setLivre] = useState('')
   const [nome, setNome] = useState(nomeInicial)

@@ -1,5 +1,4 @@
 /* Ordem: base do site, base das páginas e depois o desta página (o desta página ganha) */
-@import '../../comum/site.css';
 @import '../../comum/paginas.css';
 @import '../../comum/premier.css';
 
@@ -164,7 +163,7 @@
 
 @media (max-width: 1080px) {
   .linha { grid-template-columns: 44px minmax(0, 2.2fr) minmax(110px, 1fr) 66px 58px 58px 112px; }
-  .c-hs, .c-mapas { display: none; }
+  .c-hs { display: none; }
 }
 @media (max-width: 900px) {
   .hero-inner { grid-template-columns: 1fr; }
@@ -174,7 +173,7 @@
   .pod-valor b, .p1 .pod-valor b { font-size: 42px; }
   .pod.esq-pod, .pod.esq-pod.p1 { height: 300px; }
   /* Cartões um embaixo do outro: não precisa guardar espaço para alinhar */
-  .pod-linha-cargos, .pod-linha-time { min-height: 0; }
+  .pod-linha-cargos { min-height: 0; }
   .pod-linha:empty { display: none; }
 }
 @media (max-width: 720px) {
@@ -190,7 +189,6 @@
   .metricas button { flex: 1 0 auto; padding: 8px 10px; }
   .hero h1 { font-size: 34px; }
 }
-
 
 /* ── Visual futurista ── */
 /* Pódio: luz da cor da medalha seguindo o cursor */
@@ -266,7 +264,6 @@
 /* Pódio: linhas com altura guardada (cargo e time), mesmo quando o jogador não tem */
 .pod-linha { display: flex; justify-content: center; align-items: center; width: 100%; min-width: 0; }
 .pod-linha-cargos { min-height: 22px; margin-top: -4px; }
-.pod-linha-time { min-height: 20px; margin-top: -4px; }
 .pod-meta { margin-top: -2px; }
 /* Nível (estilo FACEIT) ao lado do Premier */
 .selos { display: inline-flex; align-items: center; gap: 8px; }
@@ -353,7 +350,6 @@
   background-image: var(--card-fundo) !important;
 }
 .pod.com-card .pod-nome { text-shadow: 0 2px 12px rgba(0, 0, 0, .85); }
-
 
 /* Pódio no formato do card (5:7, o mesmo das imagens dos cards do perfil): a arte aparece inteira, sem esticar nem dar zoom.
  * O do 1º lugar fica um pouco mais largo (e portanto maior, na mesma proporção). Se o conteúdo precisar de mais altura, o card cresce. */

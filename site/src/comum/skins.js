@@ -1,10 +1,7 @@
 // Skins do jogador: catálogo (public/assets/skins/*.json, gerado por ferramentas/skins/gerar-catalogo.mjs) e inventário salvo no worker
 // (GET/POST /skins). O plugin BaseComp lê o mesmo inventário e aplica no servidor de CS2.
 import { useEffect, useState } from 'react'
-import { CONFIG } from './config.js'
-import { tokenConta } from './conta.js'
-
-const base = () => CONFIG.loginSteam.replace(/\/$/, '')
+import { chamarApi } from './api.js'
 
 // Cor da raridade de adesivos e chaveiros guardados: o chaveiro traz a cor no catálogo (azul, roxo, rosa, vermelho); o adesivo vale pelo acabamento
 // (papel cinza, Glitter azul, Holo roxo, Foil/Lenticular/Embroidered rosa, Gold vermelho)
@@ -71,31 +68,11 @@ export function useCatalogo(nome, ativo = true) {
   return estado
 }
 
-async function chamar(metodo, corpo) {
-  const token = tokenConta()
-  if (!token) throw new Error('login')
-  const r = await fetch(`${base()}/skins`, {
-    method: metodo,
-    headers: { Authorization: `Bearer ${token}`, ...(corpo ? { 'Content-Type': 'application/json' } : {}) },
-    body: corpo ? JSON.stringify(corpo) : undefined,
-  })
-  const d = await r.json().catch(() => null)
-  if (!r.ok || d?.erro) throw new Error(d?.erro || 'falhou')
-  return d
-}
-
-export const lerInventario = () => chamar('GET')
-export const salvarInventario = (inv) => chamar('POST', inv)
+export const lerInventario = () => chamarApi('/skins')
+export const salvarInventario = (inv) => chamarApi('/skins', inv)
 
 // Exclui um item do inventário (o worker devolve o inventário já sem ele)
-export async function excluirItem(id) {
-  const token = tokenConta()
-  if (!token) throw new Error('login')
-  const r = await fetch(`${base()}/skins/excluir`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
-  const d = await r.json().catch(() => null)
-  if (!r.ok || d?.erro) throw new Error(d?.erro || 'falhou')
-  return d
-}
+export const excluirItem = (id) => chamarApi('/skins/excluir', { id })
 
 // ── Inventário (modelo igual ao do jogo: itens criados + o que está equipado em cada time) ──
 export const inventarioNovo = () => ({ v: 2, itens: {}, equip: { ct: {}, tr: {} }, criado: {} })

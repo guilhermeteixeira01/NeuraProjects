@@ -25,8 +25,7 @@
 .premier.sem { --pc: #5d6470; box-shadow: inset 0 0 0 1px rgb(var(--tinta) / .12); }
 .premier.sem::after { content: none; }
 .premier.sem b { letter-spacing: 2px; }
-.premier.t1 { --pc: #b0c3d9; } .premier.t2 { --pc: #8cc6ff; } .premier.t3 { --pc: #6a7dff; }
-.premier.t4 { --pc: #c166ff; } .premier.t5 { --pc: #f03cff; } .premier.t6 { --pc: #eb4b4b; } .premier.t7 { --pc: #ffd700; }
+.premier.t1 { --pc: #b0c3d9; } .premier.t2 { --pc: #8cc6ff; }
 @keyframes premier-brilho { 0%, 55% { left: -60%; } 100% { left: 130%; } }
 @keyframes premier-pop { from { opacity: 0; transform: skewX(-14deg) scale(.5); } }
 @media (prefers-reduced-motion: reduce) { .premier::after { content: none; } }

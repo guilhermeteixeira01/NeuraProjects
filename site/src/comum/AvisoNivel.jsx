@@ -3,6 +3,7 @@
 // O último nível visto fica no navegador (localStorage np_nivel_<SteamID>); primeira vez neste navegador: guarda
 // sem avisar se ainda está sem classificação, e mostra "nível desbloqueado" se já tem nível.
 import { useEffect, useRef, useState } from 'react'
+import { seForErroApi } from './api.js'
 import { useConta } from './conta.js'
 import { lerJson } from './dados.js'
 import { salvarPerfil, usePerfis, usePerfisFrescos } from './Moldura.jsx'
@@ -92,7 +93,7 @@ export default function AvisoNivel() {
     const doServidor = perfis[conta.id]?.vistos?.nivel
     const visto = Number.isInteger(doServidor) ? doServidor : ler(conta.id)
     guardar(conta.id, atual)
-    if (doServidor !== atual) salvarPerfil({ vistos: { nivel: atual } }).catch(() => {}) // na conta: os outros aparelhos não avisam de novo
+    if (doServidor !== atual) salvarPerfil({ vistos: { nivel: atual } }).catch(seForErroApi()) // na conta: os outros aparelhos não avisam de novo
     if (atual === 0 || visto === atual) return
     if (visto === null || visto === 0) setAviso({ tipo: 'revela', de: 0, para: atual })
     else setAviso({ tipo: atual > visto ? 'sobe' : 'desce', de: visto, para: atual })

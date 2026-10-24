@@ -1,23 +1,10 @@
 // Mercado entre jogadores (worker: src/mercado.js): anunciar uma skin pelo preço que quiser, cancelar (volta para o inventário) e comprar.
 // Quando vendem um item meu, o worker manda "mercado" pela presença (amigos.js): o evento np-mercado atualiza o sino e as listas na hora.
-import { CONFIG } from './config.js'
-import { tokenConta } from './conta.js'
+import { chamarApi } from './api.js'
 
-const base = () => CONFIG.loginSteam.replace(/\/$/, '')
 export const EVENTO_MERCADO = 'np-mercado'
 
-async function chamar(rota, corpo) {
-  const token = tokenConta()
-  if (!token) throw new Error('login')
-  const r = await fetch(`${base()}${rota}`, {
-    method: corpo ? 'POST' : 'GET',
-    headers: { Authorization: `Bearer ${token}`, ...(corpo ? { 'Content-Type': 'application/json' } : {}) },
-    body: corpo ? JSON.stringify(corpo) : undefined,
-  })
-  const d = await r.json().catch(() => null)
-  if (!r.ok || d?.erro) throw Object.assign(new Error(d?.erro || 'falhou'), { dados: d || {} })
-  return d
-}
+const chamar = chamarApi
 
 // { anuncios: [{ id, vendedor, vendedorNome, vendedorAvatar, item, preco, ref, criado }] } (ref = valor de referência do item em NP)
 export const lerMercado = () => chamar('/mercado')

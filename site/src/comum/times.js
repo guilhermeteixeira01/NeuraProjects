@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CONFIG } from './config.js'
+import { lerApi, seForErroApi } from './api.js'
 
 // Lista de times (nome + logo): só os times criados no site (página /equipes/), lidos do worker sem precisar de login.
 // Sempre devolve uma lista (vazia se nada funcionar).
@@ -12,13 +12,9 @@ export function carregarTimes(forcar) {
   if (cache && forcar && Date.now() - quando < 5000) return cache
   const anterior = cache
   quando = Date.now()
-  cache = fetch(`${CONFIG.loginSteam}/equipes/publico`)
-    .then((r) => {
-      if (!r.ok) throw new Error(r.status)
-      return r.json()
-    })
+  cache = lerApi('/equipes/publico')
     .then((dados) => (Array.isArray(dados?.times) ? dados.times : []))
-    .catch(() => anterior || [])
+    .catch(seForErroApi(() => anterior || [])) // worker fora: fica a lista anterior
   return cache
 }
 

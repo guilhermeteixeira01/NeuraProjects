@@ -1,20 +1,20 @@
 /*
- * Loja: o jogador gasta Neura Pontos (NP) para comprar e abrir caixas de skins. Sem dinheiro de verdade.
+ * Loja: o jogador gasta Neura Pontos (NP) para comprar e abrir caixas de skins.
  *
  *   Saldo = pontos ganhos (ranking.json do site: 100 por vitória, 50 por derrota) - o que já gastou (Durable Object "Loja", um por jogador).
- *   Caixa fechada = item { t: 'caixa', d: <id da caixa> } no inventário de skins (skins:<id>); ao abrir sai da lista e entra a skin ganha.
+ *   Caixa fechada = item { t: 'caixa', d: <id da caixa> } no inventário de skins; ao abrir sai da lista e entra a skin ganha.
  *
- * Por que um Durable Object: o KV não tem transação. O objeto do jogador roda um pedido de cada vez (fila `exclusivo`) e guarda em SQLite o
- * histórico de aberturas e os gastos; compra/abertura grava tudo junto e, se o inventário (KV) não gravar, desfaz. Assim não existe meio-termo
- * (descontou sem dar o item) nem clique duplo/compras simultâneas furando o saldo.
- * O resultado do sorteio sai SEMPRE daqui, antes da animação (o site só anima até o item já definido): src/loja-core.js (crypto.getRandomValues).
- * As insígnias das caixas saem do histórico (calcularStats) e são conferidas logo depois de cada compra/abertura; por serem calculadas do
- * histórico, o /admin/loja-retro refaz tudo para quem já tinha aberturas.
+ * Por que um Durable Object por jogador: ele roda um pedido de cada vez (Fila) e guarda em SQLite o histórico de aberturas, os movimentos do
+ * saldo e os depósitos; compra/abertura grava tudo junto e, se o inventário não gravar, desfaz. Sem meio-termo (descontou sem dar o item) e sem
+ * clique duplo furando o saldo. O resultado do sorteio sai SEMPRE daqui, antes da animação (src/loja-core.js, crypto.getRandomValues).
+ * O objeto busca sozinho o que precisa para o saldo e as caixas (ranking, bônus, assinatura, lista de caixas, configuração): quem chama só diz a ação.
+ * As insígnias das caixas saem do histórico (acumulado em memória: só as aberturas novas entram na conta) e são conferidas a cada compra/abertura.
  *
- * KV MOLDURAS:  caixas (lista de caixas; vazia = caixas-iniciais.json), loja-config ({ taxas, desgaste, maxQtd } ou o padrão), loja-jogadores ([ids que já abriram])
+ * Docs (objeto Dados): caixas (vazia = caixas-iniciais.json), loja-config ({ taxas, desgaste, maxQtd }), loja-bonus, loja-jogadores ([ids que já abriram])
  *
  *   GET  /loja/caixas            (público)  -> caixas ativas, sem a lista de itens (nome, imagem, preço)
  *   GET  /loja/drops             (público)  -> carrossel de drops ao vivo: { recentes, bons, top } (src/mercado.js)
+ *   GET  /loja/perfil?id=        (público)  -> caixa favorita e melhor queda de um jogador
  *   GET  /loja/valores           (login)    -> { valores: { <id do item>: { r: raridade 0..6, v: valor de venda em NP } } }
  *   POST /loja/vender {ids}      (login)    -> vende itens (skin/faca/luva) por NP: { saldo, total, vendidos, inv }
  *   GET  /loja/saldo             (login)    -> { saldo } (menu da conta)
@@ -28,89 +28,81 @@
  *   POST /admin/loja-pontos {alvo: 'todos'|<SteamID64>, acao: 'adicionar'|'remover'|'definir', valor, motivo?} (dono)
  *   GET  /admin/loja-saldo?id= (dono)  -> { saldo, ganhos, gastos, movimentos } de um jogador
  */
-import { avisarPerfil } from './amigos.js'
-import { padraoRaro } from './padroes.js'
-import { BONUS_PREMIUM_PARTIDA, CONFIG_PADRAO, MODOS, definirValorador, aplicarModo, faixasDeDesgaste, precoDeMercado, valorDaFaca, valorDoItem, calcularStats, chancesDaCaixa, gerarFaixa, gerarFaixaFacas, ehInsigniaLoja, insigniasNovas, INSIGNIAS_LOJA, progressoInsignias, rndSeguro, sortearAbertura, ehEspecial, sortearEspecial } from './loja-core.js'
-import { lerSkinsKv, limparSkins, novoIdItem } from './skins.js'
+import { avisarTodos } from './amigos.js'
 import CAIXAS_INICIAIS from './caixas-iniciais.json'
 import CAIXAS_REMOVIDAS from './caixas-removidas.json' // as 31 caixas antigas, apagadas de vez (revisão 11)
-import RARIDADE_SKIN from './skins-raridade.json'
-import { docVazio, juntar } from './notif-core.js'
+import { gravarDoc, lerDoc, lerItem, mudar, mudarDoc } from './dados.js'
+import { ErroConflito, ErroLimite, ErroNaoEncontrado, ErroPedido, ErroServico } from './erros.js'
+import { migrarEsquema } from './esquema.js'
+import { json, lerCorpo } from './http.js'
+import { BONUS_PREMIUM_PARTIDA, CONFIG_PADRAO, MODOS, acumular, aplicarModo, chancesDaCaixa, ehEspecial, faixasDeDesgaste, gerarFaixa, gerarFaixaFacas, insigniasNovas, novoAcumulado, progressoInsignias, rndSeguro, sortearAbertura, sortearEspecial, statsDoAcumulado } from './loja-core.js'
 import { registrarDrops } from './mercado.js'
-import FACAS_VALOR from './facas-valor.json'
-import ENFEITES_VALOR from './valor-enfeites.json'
-import PRECOS from './precos.json'
+import { docVazio, juntar } from './notif-core.js'
+import { Fila, pedirAoJogador, responder } from './objetos.js'
+import { darInsignias } from './perfis.js'
+import { enderecoDoSite, pontosGanhos } from './ranking.js'
 import { registrar } from './registro.js'
-import { avisarTodos } from './amigos.js'
+import { lerSkinsKv, limparSkins, novoIdItem, tirarItem } from './skins.js'
+import { valorDe, valoresDe } from './valor.js'
 
 const ID_STEAM = /^\d{17}$/
 const ITENS_MAX = 2000
-const MAX_POR_VEZ = 3 // caixas por compra/abertura
+const MAX_POR_VEZ = 3 // caixas por compra/abertura (as 3 roletas da página da caixa)
 
-const json = (dados, status = 200, extra = {}) =>
-  new Response(JSON.stringify(dados), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...extra } })
 const num = (v, min, max, padrao) => {
   const n = Number(v)
   return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : padrao
 }
 
-// ── caixas e configuração (KV) ──
-// Revisão 2: Kawaii e Terror só com adesivos; Lendas e Espacial só com amuletos (chaveiros)
-// Revisão 3: preço das caixas = valor de mercado esperado do que sai nelas + margem (precos.json, scripts/gerar-precos.mjs); depois disso o dono ajusta à vontade
-// Revisão 4: preços das caixas refeitos depois que as skins caras (facas, luvas, Dopplers, acima de US$ 2.000) passaram a ter o preço real do mercado
-// Revisão 5: refeitos de novo com o preço do mercado de terceiros (CSFloat/Buff), o que os sites de caixa usam
-// Revisão 6: caixas rebalanceadas (skin cara sai menos, temas pela cor das skins) e chances de raridade novas: TODAS as caixas de fábrica
-//            recebem os itens e as facas novos, e as taxas salvas no painel voltam para o padrão (vermelho 2%, faca 0,5%)
-// Revisão 8: as 31 caixas antigas viram "arquivadas" (saem da loja, mas quem já tem uma fechada no inventário ainda abre); as 70 novas entram pela lista de fábrica
-// Revisão 9: preços das caixas novas refeitos depois que nenhum item ficou com chance 0 (itens muito caros agora têm chance minúscula, mas real)
-// Revisão 10: o tier especial (card dourado) de várias caixas novas passa a ter luvas (ou facas e luvas misturadas) no lugar de só facas; preços refeitos
-// Revisão 11: as 31 caixas antigas (arquivadas) são apagadas de vez. As fechadas que ainda estavam em inventários somem (skins.js: lerSkinsVer)
-const REVISAO_CAIXAS = 11 // (a caixa de luvas é nova: entra pela lista de fábrica, sem precisar de revisão)
+// ── Caixas e configuração ──
+// Revisão das caixas de fábrica: quando sobe, as caixas salvas recebem o conteúdo novo de caixas-iniciais.json (o que o dono mudou fica):
+//   2: Kawaii e Terror só com adesivos; Lendas e Espacial só com amuletos · 6: itens e facas novos em todas e taxas de volta ao padrão
+//   8: as 31 antigas viram arquivadas · 10: tier especial com luvas · 11: as 31 antigas apagadas de vez (as fechadas somem dos inventários)
+const REVISAO_CAIXAS = 11
 const ATUALIZAR_CAIXAS = ['caixa-kawaii', 'caixa-terror', 'caixa-lendas', 'caixa-espacial']
+const DOCS_CAIXAS = ['caixas', 'caixas-revisao', 'caixas-vistas', 'caixas-removidas', 'loja-config']
+
 export async function lerCaixas(env) {
-  const salvas = await env.MOLDURAS.get('caixas', 'json').catch(() => null)
+  const [salvas, revisao, vistas] = await Promise.all([lerDoc(env, 'caixas'), lerDoc(env, 'caixas-revisao', 0), lerDoc(env, 'caixas-vistas', [])])
   if (!Array.isArray(salvas) || !salvas.length) return CAIXAS_INICIAIS
-  // caixas de fábrica novas (incluídas depois que o dono já tinha salvo a lista): entram uma vez; as que ele apagar não voltam
-  // revisão do conteúdo de fábrica: quando sobe, as caixas listadas recebem os itens novos (preço, nome e imagem que o dono mudou ficam)
-  const revisao = Number(await env.MOLDURAS.get('caixas-revisao').catch(() => 0)) || 0
-  if (revisao < REVISAO_CAIXAS) {
-    for (const slug of ATUALIZAR_CAIXAS) {
-      const nova = CAIXAS_INICIAIS.find((c) => c.slug === slug)
-      const i = salvas.findIndex((c) => c.slug === slug)
-      if (nova && i >= 0 && revisao < 2) salvas[i] = { ...salvas[i], itens: nova.itens, facas: nova.facas }
-    }
-    if (revisao < 6) {
-      for (const [i, c] of salvas.entries()) {
-        const nova = CAIXAS_INICIAIS.find((x) => x.slug === c.slug)
-        if (nova) salvas[i] = { ...c, itens: nova.itens, facas: nova.facas }
-      }
-      const cfg = await env.MOLDURAS.get('loja-config', 'json').catch(() => null)
-      if (cfg) await env.MOLDURAS.put('loja-config', JSON.stringify({ ...cfg, taxas: CONFIG_PADRAO.taxas })).catch(() => {})
-    }
-    for (const c of salvas) if (PRECOS.caixas?.[c.slug]) c.preco = PRECOS.caixas[c.slug]
-    if (revisao < 8) for (const c of salvas) if (CAIXAS_INICIAIS.find((x) => x.slug === c.slug)?.arquivada) c.arquivada = true
-    if (revisao < 11) {
-      // guarda os ids das caixas apagadas (o inventário usa para tirar as fechadas) e tira da lista
-      const ids = salvas.filter((c) => c.arquivada || CAIXAS_REMOVIDAS.includes(c.slug)).map((c) => c.id)
-      const antes = (await env.MOLDURAS.get('caixas-removidas', 'json').catch(() => null)) || []
-      await env.MOLDURAS.put('caixas-removidas', JSON.stringify([...new Set([...antes, ...ids])])).catch(() => {})
-      for (let i = salvas.length - 1; i >= 0; i--) if (salvas[i].arquivada || CAIXAS_REMOVIDAS.includes(salvas[i].slug)) salvas.splice(i, 1)
-    }
-    if (revisao < 10) for (const c of salvas) { const nova = CAIXAS_INICIAIS.find((x) => x.slug === c.slug); if (nova && !nova.arquivada) c.facas = nova.facas } // só o tier especial; o resto da caixa (preço, nome...) o dono mantém
-    await env.MOLDURAS.put('caixas', JSON.stringify(salvas)).catch(() => {})
-    await env.MOLDURAS.put('caixas-revisao', String(REVISAO_CAIXAS)).catch(() => {})
-  }
-  const vistas = (await env.MOLDURAS.get('caixas-vistas', 'json').catch(() => null)) || []
-  const novas = CAIXAS_INICIAIS.filter((c) => !vistas.includes(c.slug) && !salvas.some((x) => x.slug === c.slug))
-  if (!novas.length && vistas.length) return salvas
-  let id = Math.max(0, ...salvas.map((c) => c.id))
-  const lista = [...salvas, ...novas.map((c) => ({ ...c, id: ++id }))]
-  await env.MOLDURAS.put('caixas', JSON.stringify(lista)).catch(() => {})
-  await env.MOLDURAS.put('caixas-vistas', JSON.stringify(CAIXAS_INICIAIS.map((c) => c.slug))).catch(() => {})
-  return lista
+  const novas = CAIXAS_INICIAIS.some((c) => !vistas.includes(c.slug) && !salvas.some((x) => x.slug === c.slug))
+  if (Number(revisao) >= REVISAO_CAIXAS && !novas && vistas.length) return salvas
+  return atualizarCaixas(env)
 }
+
+// Aplica a revisão de fábrica e acrescenta as caixas de fábrica novas (uma vez; as que o dono apagar não voltam), tudo numa gravação só
+async function atualizarCaixas(env) {
+  const { mapa } = await mudar(env, 'docs', DOCS_CAIXAS, (d) => {
+    const salvas = d.caixas
+    const revisao = Number(d['caixas-revisao']) || 0
+    const deFabrica = (slug) => CAIXAS_INICIAIS.find((c) => c.slug === slug)
+    if (revisao < REVISAO_CAIXAS) {
+      for (const [i, c] of salvas.entries()) {
+        const nova = deFabrica(c.slug)
+        if (!nova) continue
+        if (revisao < 6 || (revisao < 2 && ATUALIZAR_CAIXAS.includes(c.slug))) salvas[i] = { ...c, itens: nova.itens, facas: nova.facas }
+        else if (revisao < 10 && !nova.arquivada) salvas[i] = { ...c, facas: nova.facas } // só o tier especial
+        if (revisao < 8 && nova.arquivada) salvas[i].arquivada = true
+      }
+      if (revisao < 6 && d['loja-config']) d['loja-config'] = { ...d['loja-config'], taxas: CONFIG_PADRAO.taxas }
+      if (revisao < 11) {
+        const fora = salvas.filter((c) => c.arquivada || CAIXAS_REMOVIDAS.includes(c.slug))
+        d['caixas-removidas'] = [...new Set([...(d['caixas-removidas'] || []), ...fora.map((c) => c.id)])]
+        d.caixas = salvas.filter((c) => !fora.includes(c))
+      }
+      d['caixas-revisao'] = REVISAO_CAIXAS
+    }
+    const vistas = d['caixas-vistas'] || []
+    let id = Math.max(0, ...d.caixas.map((c) => c.id))
+    const novas = CAIXAS_INICIAIS.filter((c) => !vistas.includes(c.slug) && !d.caixas.some((x) => x.slug === c.slug)).map((c) => ({ ...c, id: ++id }))
+    d.caixas = [...d.caixas, ...novas]
+    d['caixas-vistas'] = CAIXAS_INICIAIS.map((c) => c.slug)
+  })
+  return mapa.caixas
+}
+
 export async function lerConfigLoja(env) {
-  const c = await env.MOLDURAS.get('loja-config', 'json').catch(() => null)
+  const c = await lerDoc(env, 'loja-config')
   return {
     taxas: Array.isArray(c?.taxas) && c.taxas.length === 6 ? c.taxas.map((t) => num(t, 0, 100, 0)) : CONFIG_PADRAO.taxas,
     desgaste: Array.isArray(c?.desgaste) && c.desgaste.length === 5 ? c.desgaste : CONFIG_PADRAO.desgaste,
@@ -118,26 +110,14 @@ export async function lerConfigLoja(env) {
   }
 }
 
-export async function pontosGanhos(env, id) {
-  const site = (env.SITE || 'https://neuraproject.com.br').replace(/\/$/, '')
-  try {
-    const r = await fetch(`${site}/ranking/ranking.json`, { cf: { cacheTtl: 60 } })
-    const j = r.ok ? await r.json() : null
-    return Math.max(0, Math.floor(j?.jogadores?.find((x) => x.steamId === id)?.pontos || 0))
-  } catch {
-    return 0
-  }
-}
-
-// A imagem da caixa vai com ?v=<revisão>: se o navegador guardou uma imagem quebrada (a loja abriu antes do site publicar as imagens novas) ou uma antiga,
-// ele busca de novo assim que a revisão muda. O endereço salvo no admin continua sem o ?v.
+// A imagem da caixa vai com ?v=<revisão>: se o navegador guardou uma imagem quebrada ou antiga, ele busca de novo quando a revisão muda
 const comVersao = (c) => (typeof c.img === 'string' && c.img.startsWith('/assets/caixas/') && !c.img.includes('?') ? { ...c, img: `${c.img}?v=${REVISAO_CAIXAS}` } : c)
-// imagem do aviso de bônus de caixa (a da última caixa do lote): a salva no bônus ou, nos bônus antigos, a da caixa na lista atual
-const imagemBonus = (lote, caixas) => {
-  const b = lote[lote.length - 1]
-  return b?.img || (Array.isArray(caixas) && comVersao(caixas.find((c) => c.id === Number(b?.caixa)) || {}).img) || ''
-}
 const publicaDaCaixa = ({ itens, facas, ...resto }) => comVersao(resto)
+// imagem do aviso de bônus de caixa (a da última caixa do lote): a salva no bônus ou, nos bônus antigos, a da caixa na lista atual
+async function imagemBonus(env, lote) {
+  const b = lote[lote.length - 1]
+  return b.img || comVersao((await lerCaixas(env)).find((c) => c.id === Number(b.caixa)) || {}).img || ''
+}
 const pesoOk = (v) => Math.max(1, Math.round(num(v, 1, 100000, 100)))
 function limparCaixa(c, n) {
   const slug = String(c?.slug || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40)
@@ -168,48 +148,6 @@ function limparCaixa(c, n) {
   }
 }
 
-// ── Durable Object do jogador ──
-// Valor de venda (NP) de adesivos (por acabamento: papel, glitter, holo, foil, gold, campeão) e de chaveiros (por raridade: azul, roxo, rosa, vermelho)
-const VALOR_ADESIVO = [4, 8, 15, 40, 100, 250]
-const VALOR_CHAVEIRO = [25, 70, 180, 450]
-
-// Raridade (0..6) e valor de venda (NP) de um item do inventário; null se não pode vender (caixa, agente). O mercado usa como preço sugerido.
-// Valor (NP) de um adesivo / chaveiro soltos: preço de mercado (precos.json) ou, sem preço, a tabela por acabamento / raridade
-function valorDoAdesivo(id) {
-  if (PRECOS.a[id]) return Math.max(1, Math.round(PRECOS.a[id]))
-  return VALOR_ADESIVO[ENFEITES_VALOR.a[id] ?? 0] ?? VALOR_ADESIVO[0]
-}
-function valorDoChaveiro(id) {
-  if (PRECOS.c[id]) return Math.max(1, Math.round(PRECOS.c[id]))
-  return VALOR_CHAVEIRO[(ENFEITES_VALOR.c[id] ?? 2) - 2] ?? VALOR_CHAVEIRO[0]
-}
-// O que está colado na arma (até 5 adesivos e 1 chaveiro) vale junto com ela: soma o valor de cada um
-function valorDosEnfeites(it) {
-  let v = 0
-  for (const ad of Array.isArray(it.a) ? it.a : []) if (ad?.i) v += valorDoAdesivo(ad.i)
-  if (it.k?.i) v += valorDoChaveiro(it.k.i)
-  return v
-}
-
-export function valorDe(it) {
-  if (it.t === 'adesivo') return { r: Math.min(5, (ENFEITES_VALOR.a[it.d] ?? 0) + 1), v: valorDoAdesivo(it.d) }
-  if (it.t === 'chaveiro') return { r: ENFEITES_VALOR.c[it.d] ?? 2, v: valorDoChaveiro(it.d) }
-  if (!['arma', 'faca', 'luva'].includes(it.t)) return null
-  const mercado = precoDeMercado(it, PRECOS.skins) // preço de mercado em R$ (1 NP = R$ 1)
-  const pr = padraoRaro(it)?.mult ?? 1 // padrão raro (blue gem...): vale muito mais que a mesma skin com outro padrão
-  if (it.t === 'faca') return { r: 6, v: Math.round((mercado ?? valorDaFaca(it, FACAS_VALOR)) * pr) } // facas: valor por modelo e acabamento (facas-valor.json)
-  const r = it.t === 'arma' ? RARIDADE_SKIN[`${it.d}:${it.p}`] ?? 2 : 6
-  return { r, v: Math.round((mercado ?? valorDoItem(it, r)) * pr) + (it.t === 'arma' ? valorDosEnfeites(it) : 0) } // + adesivos e chaveiro colados
-}
-
-// Dificuldade pelo valor (loja-core.js: DIFICULDADE): as caixas sorteiam com o valor de mercado do item (no desgaste do meio da faixa dele)
-definirValorador((x) => {
-  if (x.t === 'adesivo' || x.t === 'chaveiro') return valorDe({ t: x.t, d: x.d })?.v ?? 0
-  // f: um desgaste específico (a abertura especial pede o valor em cada faixa); sem ele, o do meio da faixa da skin
-  const f = Number.isFinite(x.f) ? x.f : Math.min(0.45, ((Number.isFinite(x.min) ? x.min : 0) + (Number.isFinite(x.max) ? x.max : 1)) / 2)
-  return valorDe({ t: x.t, d: x.d, p: x.p, f, st: 0 })?.v ?? 0
-})
-
 // Página de uma caixa: valor (NP) e chance de cada desgaste de cada item, e os modos Jester/Boost com preço e chances.
 // O preço do modo = preço da caixa × (valor esperado no modo ÷ valor esperado normal): a margem que o dono escolheu continua a mesma.
 export function detalhesDaCaixa(caixa, cfg) {
@@ -235,46 +173,133 @@ export function detalhesDaCaixa(caixa, cfg) {
   return { itens, facas, modos }
 }
 
+// Partidas jogadas com o Premium valendo (para o bônus de partida): o histórico do jogador publicado no site, só as que começaram dentro do
+// período da assinatura. Sem assinatura: lista vazia. O horário das partidas é o do servidor (Brasília).
+async function partidasPremium(env, id) {
+  const sub = (await lerItem(env, 'perfis', id))?.sub
+  if (!sub) return []
+  const de = Number(sub.periodo || sub.inicio) || 0
+  const ate = sub.expira == null ? Infinity : Number(sub.expira)
+  let r
+  try {
+    r = await fetch(`${enderecoDoSite(env)}/perfil/historico/${id}.json`, { cf: { cacheTtl: 60 } })
+  } catch (e) {
+    throw new ErroServico('historico', undefined, { indisponivel: true, causa: e })
+  }
+  if (r.status === 404) return [] // jogador sem partidas publicadas
+  if (!r.ok) throw new ErroServico('historico', { status: r.status }, { indisponivel: true })
+  const h = await r.json()
+  return (Array.isArray(h) ? h : [])
+    .map((m) => ({ k: String(m.caminho || ''), ts: Date.parse(String(m.data || '').replace(' ', 'T') + '-03:00') }))
+    .filter((m) => m.k && m.ts >= de && m.ts <= ate)
+    .slice(0, 300)
+}
+
+// Ações que mexem no saldo ou mostram o saldo: antes delas entram os bônus para todos e o bônus Premium de partida
+const COM_SALDO = new Set(['saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir', 'vender', 'mercado-comprar', 'dep-creditar', 'cobrar'])
+const COM_CAIXAS = new Set(['estado', 'comprar', 'abrir'])
+const novaNotif = (id, titulo, texto, link, extra = {}) => ({ id, titulo, texto, link, quando: Date.now(), lida: false, ...extra })
+
+// ── Durable Object do jogador ──
 export class Loja {
   constructor(ctx, env) {
     this.ctx = ctx
     this.env = env
     this.sql = ctx.storage.sql
     this.sql.exec('CREATE TABLE IF NOT EXISTS aberturas (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, caixa TEXT, t TEXT, d INTEGER, p INTEGER, r INTEGER, f REAL, q INTEGER)')
-    // depósitos com dinheiro (Asaas): um por cobrança; "estado" = pendente | pago | estornado. É daqui que sai a garantia de creditar uma vez só
-    this.sql.exec('CREATE TABLE IF NOT EXISTS depositos (pid TEXT PRIMARY KEY, ts INTEGER, centavos INTEGER, np INTEGER, metodo TEXT, estado TEXT)')
-    // depósitos também guardam assinaturas pagas: tipo ('deposito' | 'sub'), dados (JSON, ex.: { meses }) e entregue (a assinatura já foi dada?)
-    for (const coluna of ["tipo TEXT DEFAULT 'deposito'", 'dados TEXT', 'entregue INTEGER DEFAULT 1']) {
-      try {
-        this.sql.exec(`ALTER TABLE depositos ADD COLUMN ${coluna}`)
-      } catch {
-        // a coluna já existe
-      }
-    }
+    // depósitos com dinheiro (Asaas): um por cobrança; estado = pendente | pago | estornado. É daqui que sai a garantia de creditar uma vez só.
+    // Também guardam assinaturas pagas: tipo ('deposito' | 'sub'), dados (JSON, ex.: { meses }) e entregue (a assinatura já foi dada?)
+    this.sql.exec("CREATE TABLE IF NOT EXISTS depositos (pid TEXT PRIMARY KEY, ts INTEGER, centavos INTEGER, np INTEGER, metodo TEXT, estado TEXT, tipo TEXT DEFAULT 'deposito', dados TEXT, entregue INTEGER DEFAULT 1)")
     this.sql.exec('CREATE TABLE IF NOT EXISTS movimentos (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, valor INTEGER, motivo TEXT)')
-    this.fila = Promise.resolve()
+    // Totais mantidos na mesma transação de cada movimento/abertura (saldo e contador da abertura especial sem percorrer o histórico)
+    this.sql.exec('CREATE TABLE IF NOT EXISTS resumo (chave TEXT PRIMARY KEY, valor INTEGER NOT NULL)')
+    migrarEsquema(ctx, [
+      // 1: colunas de assinatura em "depositos" (objetos criados antes delas)
+      (sql) => {
+        const colunas = new Set(sql.exec('PRAGMA table_info(depositos)').toArray().map((c) => c.name))
+        for (const [nome, tipo] of [['tipo', "TEXT DEFAULT 'deposito'"], ['dados', 'TEXT'], ['entregue', 'INTEGER DEFAULT 1']]) if (!colunas.has(nome)) sql.exec(`ALTER TABLE depositos ADD COLUMN ${nome} ${tipo}`)
+      },
+      // 2: totais da tabela "resumo" a partir do histórico que já existia
+      () => this.recalcularResumo(),
+      // 3: aberturas de arma eram gravadas sem tipo (t NULL): a melhor queda do perfil não as via
+      (sql) => sql.exec("UPDATE aberturas SET t = 'arma' WHERE t IS NULL"),
+    ])
+    this.fila = new Fila()
+    this.acumulado = null // estatísticas das aberturas até o id "acumuladoAte" (memória: refeito do SQL quando o objeto acorda)
+    this.acumuladoAte = 0
+    this.melhor = null // melhor queda (maior valor) entre as aberturas acumuladas
   }
 
-  // uma coisa de cada vez (compra, abertura, leitura)
-  exclusivo(fn) {
-    const r = this.fila.then(fn)
-    this.fila = r.then(() => {}, () => {})
-    return r
+  recalcularResumo() {
+    const gasto = this.sql.exec('SELECT COALESCE(SUM(valor), 0) AS s FROM movimentos').one().s
+    const especial = this.sql.exec("SELECT COUNT(*) AS n FROM aberturas WHERE t NOT IN ('adesivo', 'chaveiro')").one().n
+    this.sql.exec('INSERT OR REPLACE INTO resumo (chave, valor) VALUES (?, ?), (?, ?)', 'gasto', gasto, 'especial', especial)
+    this.acumulado = null
+    this.melhor = null
+  }
+
+  total(chave) {
+    return this.sql.exec('SELECT valor FROM resumo WHERE chave = ?', chave).one().valor
+  }
+  gastos() {
+    return this.total('gasto')
+  }
+  // aberturas que contam para a abertura especial: as que deram arma/faca/luva (caixa de adesivo/chaveiro só dá adesivo/chaveiro)
+  abertasParaEspecial() {
+    return this.total('especial')
+  }
+
+  // Movimento do saldo (valor > 0 = gastou, < 0 = recebeu). Chame dentro de transactionSync: o total muda junto com a linha
+  movimentar(ts, valor, motivo) {
+    this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', ts, valor, String(motivo).slice(0, 60))
+    this.sql.exec("UPDATE resumo SET valor = valor + ? WHERE chave = 'gasto'", valor)
+  }
+  registrarAbertura(linha) {
+    this.sql.exec('INSERT INTO aberturas (ts, caixa, t, d, p, r, f, q) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', ...linha)
+    if (linha[2] !== 'adesivo' && linha[2] !== 'chaveiro') this.sql.exec("UPDATE resumo SET valor = valor + 1 WHERE chave = 'especial'")
+  }
+
+  // Estatísticas das aberturas e melhor queda: soma só as linhas novas ao acumulado da memória
+  stats(fechadas = 0) {
+    if (!this.acumulado) {
+      this.acumulado = novoAcumulado()
+      this.acumuladoAte = 0
+      this.melhor = null
+    }
+    for (const l of this.sql.exec('SELECT id, ts, caixa, t, d, p, r, f, q FROM aberturas WHERE id > ? ORDER BY id', this.acumuladoAte)) {
+      acumular(this.acumulado, l)
+      this.acumuladoAte = l.id
+      if (!['arma', 'faca', 'luva'].includes(l.t)) continue
+      const v = valorDe({ t: l.t, d: l.d, p: l.p, f: l.f, st: 0 })?.v ?? 0
+      if (!this.melhor || v > this.melhor.v) this.melhor = { t: l.t, d: l.d, p: l.p, f: l.f, r: l.r, v, caixa: l.caixa, ts: l.ts }
+    }
+    return statsDoAcumulado(this.acumulado, fechadas)
   }
 
   // Inventário de skins do jogador: a versão de verdade fica só aqui (o plugin do servidor e o perfil público também leem daqui).
-  // O KV (skins:<id>) não é mais espelhado a cada mudança: o plano grátis só permite 1.000 gravações no KV por dia e o inventário muda o tempo todo.
-  // Ele só é lido na primeira vez, para trazer o inventário de quem é anterior a este objeto. Quem está no meio de uma mudança (ver) é barrado se mexeram antes.
+  // Na primeira vez traz o que estava no KV (skins:<id>, formato antigo). "ver" barra quem está no meio de uma mudança se mexeram antes.
   async invLer(id) {
-    let inv = (await this.ctx.storage.get('inv')) || null
-    const ver = (await this.ctx.storage.get('invv')) || 0
-    if (!inv) inv = await lerSkinsKv(this.env, id) // primeira vez: traz o que já estava no KV
-    return { inv, ver }
+    const [inv, ver] = await Promise.all([this.ctx.storage.get('inv'), this.ctx.storage.get('invv')])
+    return { inv: inv || (await lerSkinsKv(this.env, id)), ver: ver || 0 }
   }
-  async invGravar(id, inv) {
+  async invGravar(inv) {
     const ver = ((await this.ctx.storage.get('invv')) || 0) + 1
     await this.ctx.storage.put({ inv, invv: ver })
     return ver
+  }
+  async invOuVazio(id) {
+    return (await this.invLer(id)).inv || limparSkins({})
+  }
+  async fechadas(id) {
+    const inv = await this.invOuVazio(id)
+    const por = {}
+    for (const it of Object.values(inv.itens)) if (it.t === 'caixa') por[it.d] = (por[it.d] || 0) + 1
+    return por
+  }
+
+  async notificar(n) {
+    const atual = (await this.ctx.storage.get('notifs')) || docVazio()
+    await this.ctx.storage.put('notifs', juntar(atual, { lista: [n], vistos: [n.id], limpoEm: 0 }))
   }
 
   // últimas movimentações do saldo (delta > 0 = recebeu, < 0 = gastou)
@@ -282,34 +307,17 @@ export class Loja {
     return this.sql.exec('SELECT ts, valor, motivo FROM movimentos ORDER BY id DESC LIMIT 8').toArray().map((m) => ({ ts: m.ts, delta: -m.valor, motivo: m.motivo }))
   }
 
-  gastos() {
-    return Number(this.sql.exec('SELECT COALESCE(SUM(valor),0) AS s FROM movimentos').one().s) || 0
-  }
-  // aberturas que contam para a abertura especial: as que deram arma/faca/luva (caixa de adesivo/chaveiro só dá adesivo/chaveiro)
-  abertasParaEspecial() {
-    return Number(this.sql.exec("SELECT COUNT(*) AS n FROM aberturas WHERE t NOT IN ('adesivo', 'chaveiro')").one().n) || 0
-  }
-  linhas() {
-    return this.sql.exec('SELECT ts, caixa, t, d, p, r, f, q FROM aberturas ORDER BY id').toArray()
-  }
-
-  async fetch(req) {
-    const corpo = await req.json().catch(() => ({}))
-    return this.exclusivo(async () => {
-      try {
-        const r = await this.acao(corpo)
-        return json(r)
-      } catch (e) {
-        return json({ erro: e?.message && /^[a-z-]{2,30}$/.test(e.message) ? e.message : 'falhou' }, e?.message && /^[a-z-]{2,30}$/.test(e.message) ? 400 : 500)
-      }
+  fetch(req) {
+    return responder(async () => {
+      const corpo = await lerCorpo(req)
+      if (!ID_STEAM.test(String(corpo.id))) throw new ErroPedido('id')
+      return this.fila.rodar(() => this.acao(corpo))
     })
   }
 
-  // Bônus para todos (KV "loja-bonus": [{ id, ts, valor, motivo }] de NP ou [{ id, ts, caixa, qtd, nome, motivo }] de caixa fechada, POST /admin/loja-bonus):
+  // Bônus para todos (doc "loja-bonus": [{ id, ts, valor, motivo }] de NP ou [{ id, ts, caixa, qtd, nome, img, motivo }] de caixa fechada):
   // cada jogador recebe cada bônus uma vez, na próxima vez que mexe na loja
-  async aplicarBonus(bonus, id, caixas = []) {
-    // sem o id não dá para pôr caixa no inventário: não aplica nada (nem avança o contador), fica para a próxima chamada
-    if (!id || !Array.isArray(bonus) || !bonus.length) return
+  async aplicarBonus(id, bonus) {
     const visto = (await this.ctx.storage.get('bonusVisto')) || 0
     const novos = bonus.filter((b) => b.id > visto)
     if (!novos.length) return
@@ -317,12 +325,12 @@ export class Loja {
     const valem = novos.filter((b) => !b.apagado && !b.caixa && Math.round(b.valor) !== 0)
     const caixasBonus = novos.filter((b) => !b.apagado && b.caixa && Math.round(b.qtd) > 0)
     this.ctx.storage.transactionSync(() => {
-      for (const b of valem) this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', b.ts, -Math.round(b.valor), `bônus: ${b.motivo || 'para todos'}`)
+      for (const b of valem) this.movimentar(b.ts, -Math.round(b.valor), `bônus: ${b.motivo || 'para todos'}`)
     })
     // caixas fechadas entram no inventário (até o limite de itens); o contador só avança depois de gravar
     let recebidas = 0
     if (caixasBonus.length) {
-      const inv = (await this.invLer(id)).inv || limparSkins({})
+      const inv = await this.invOuVazio(id)
       const agora = Date.now()
       for (const b of caixasBonus) {
         for (let k = 0; k < Math.round(b.qtd) && Object.keys(inv.itens).length < ITENS_MAX; k++) {
@@ -331,221 +339,198 @@ export class Loja {
           inv.criado[item] = agora + recebidas++
         }
       }
-      if (recebidas) await this.invGravar(id, inv)
+      if (recebidas) await this.invGravar(inv)
     }
     await this.ctx.storage.put('bonusVisto', Math.max(...novos.map((b) => b.id)))
+    const motivos = (lote) => [...new Set(lote.map((b) => String(b.motivo || '').trim()).filter(Boolean))]
     if (recebidas) {
       const nomes = [...new Set(caixasBonus.map((b) => String(b.nome || '').trim()).filter(Boolean))]
-      const motivos = [...new Set(caixasBonus.map((b) => String(b.motivo || '').trim()).filter(Boolean))]
-      const n = {
-        id: `bonus-caixa:${Math.max(...caixasBonus.map((b) => b.id))}`,
-        titulo: recebidas === 1 ? `Você recebeu 1 caixa${nomes.length === 1 ? `: ${nomes[0]}` : ''}` : `Você recebeu ${recebidas} caixas${nomes.length === 1 ? `: ${nomes[0]}` : ''}`,
-        texto: motivos.length ? `Motivo: ${motivos.join(' · ')}` : 'Bônus para todos os jogadores. Está no seu inventário.',
-        imagem: imagemBonus(caixasBonus, caixas),
-        link: '/inventario/',
-        quando: Date.now(),
-        lida: false,
-      }
-      const atual = (await this.ctx.storage.get('notifs')) || docVazio()
-      await this.ctx.storage.put('notifs', juntar(atual, { lista: [n], vistos: [n.id], limpoEm: 0 }))
+      const qual = nomes.length === 1 ? `: ${nomes[0]}` : ''
+      const m = motivos(caixasBonus)
+      await this.notificar(novaNotif(`bonus-caixa:${Math.max(...caixasBonus.map((b) => b.id))}`, recebidas === 1 ? `Você recebeu 1 caixa${qual}` : `Você recebeu ${recebidas} caixas${qual}`, m.length ? `Motivo: ${m.join(' · ')}` : 'Bônus para todos os jogadores. Está no seu inventário.', '/inventario/', { imagem: await imagemBonus(this.env, caixasBonus) }))
     }
-    // avisa no sino (em todos os aparelhos). Vários de uma vez (quem entra agora e recebe os bônus antigos) viram um aviso só, com os motivos
+    // vários de uma vez (quem entra agora e recebe os bônus antigos) viram um aviso só, com os motivos
     if (valem.length) {
       const total = valem.reduce((a, b) => a + Math.round(b.valor), 0)
-      const motivos = [...new Set(valem.map((b) => String(b.motivo || '').trim()).filter(Boolean))]
-      const n = {
-        id: `bonus:${Math.max(...valem.map((b) => b.id))}`,
-        titulo: total >= 0 ? `Você recebeu ${total.toLocaleString('pt-BR')} NP` : `Foram retirados ${Math.abs(total).toLocaleString('pt-BR')} NP da sua conta`,
-        texto: motivos.length ? `Motivo: ${motivos.join(' · ')}` : 'Bônus para todos os jogadores.',
-        link: '/loja/',
-        quando: Date.now(),
-        lida: false,
-      }
-      const atual = (await this.ctx.storage.get('notifs')) || docVazio()
-      await this.ctx.storage.put('notifs', juntar(atual, { lista: [n], vistos: [n.id], limpoEm: 0 }))
+      const m = motivos(valem)
+      await this.notificar(novaNotif(`bonus:${Math.max(...valem.map((b) => b.id))}`, total >= 0 ? `Você recebeu ${total.toLocaleString('pt-BR')} NP` : `Foram retirados ${Math.abs(total).toLocaleString('pt-BR')} NP da sua conta`, m.length ? `Motivo: ${m.join(' · ')}` : 'Bônus para todos os jogadores.', '/loja/'))
     }
   }
 
-  // Premium: BONUS_PREMIUM_PARTIDA a mais por partida jogada com a assinatura valendo. "partidas" = [{ k (id da partida), ts }] já filtradas pelo worker;
-  // cada partida só rende uma vez (guardada em premiumFeitas). Entra como crédito no extrato e avisa no sino.
+  // Premium: BONUS_PREMIUM_PARTIDA a mais por partida jogada com a assinatura valendo; cada partida só rende uma vez (premiumFeitas)
   async aplicarPremium(partidas) {
-    if (!Array.isArray(partidas) || !partidas.length) return
+    if (!partidas.length) return
     const feitas = new Set((await this.ctx.storage.get('premiumFeitas')) || [])
-    const novas = partidas.filter((m) => m?.k && !feitas.has(String(m.k)))
+    const novas = partidas.filter((m) => !feitas.has(m.k))
     if (!novas.length) return
     this.ctx.storage.transactionSync(() => {
-      for (const m of novas) this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Number(m.ts) || Date.now(), -BONUS_PREMIUM_PARTIDA, 'Premium: bônus de partida')
+      for (const m of novas) this.movimentar(Number(m.ts) || Date.now(), -BONUS_PREMIUM_PARTIDA, 'Premium: bônus de partida')
     })
-    await this.ctx.storage.put('premiumFeitas', [...feitas, ...novas.map((m) => String(m.k))].slice(-1500))
+    await this.ctx.storage.put('premiumFeitas', [...feitas, ...novas.map((m) => m.k)].slice(-1500))
     const total = novas.length * BONUS_PREMIUM_PARTIDA
-    const n = { id: `premium:${Date.now()}`, titulo: `Premium: +${total.toLocaleString('pt-BR')} NP`, texto: novas.length === 1 ? 'Bônus Premium de 1 partida jogada.' : `Bônus Premium de ${novas.length} partidas jogadas.`, link: '/loja/', quando: Date.now(), lida: false }
-    const atual = (await this.ctx.storage.get('notifs')) || docVazio()
-    await this.ctx.storage.put('notifs', juntar(atual, { lista: [n], vistos: [n.id], limpoEm: 0 }))
+    await this.notificar(novaNotif(`premium:${Date.now()}`, `Premium: +${total.toLocaleString('pt-BR')} NP`, novas.length === 1 ? 'Bônus Premium de 1 partida jogada.' : `Bônus Premium de ${novas.length} partidas jogadas.`, '/loja/'))
   }
 
-  async acao({ acao, id, caixas, cfg, pontos, bonus, premium, ...p }) {
-    if (['saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir', 'vender', 'mercado-comprar', 'dep-creditar', 'cobrar'].includes(acao)) {
-      await this.aplicarBonus(bonus, id, caixas)
-      await this.aplicarPremium(premium)
-    }
+  // O que o saldo precisa: pontos das partidas (ranking), bônus e Premium já aplicados. Devolve os pontos ganhos
+  async prepararSaldo(id) {
+    const [pontos, bonus, premium] = await Promise.all([pontosGanhos(this.env, id), lerDoc(this.env, 'loja-bonus', []), partidasPremium(this.env, id)])
+    await this.aplicarBonus(id, bonus)
+    await this.aplicarPremium(premium)
+    return pontos
+  }
+
+  async acao(p) {
+    const { acao, id } = p
+    const [caixas, cfg] = COM_CAIXAS.has(acao) ? await Promise.all([lerCaixas(this.env), lerConfigLoja(this.env)]) : []
+    const pontos = COM_SALDO.has(acao) ? await this.prepararSaldo(id) : 0
+    const saldo = () => pontos - this.gastos()
     switch (acao) {
       case 'inv-ler':
         return this.invLer(id)
       case 'inv-gravar': {
-        const atual = await this.invLer(id)
-        if (atual.ver !== p.ver) return { ok: false }
-        await this.invGravar(id, limparSkins(p.inv))
+        if ((await this.invLer(id)).ver !== p.ver) throw new ErroConflito('versao')
+        await this.invGravar(limparSkins(p.inv))
         return { ok: true }
       }
       case 'notif-sync': { // junta o que o aparelho mandou com o que a conta já tem e devolve o resultado
         const atual = (await this.ctx.storage.get('notifs')) || docVazio()
-        const novo = p.doc ? juntar(atual, p.doc) : atual
-        if (p.doc) await this.ctx.storage.put('notifs', novo)
+        if (!p.doc) return { doc: atual }
+        const novo = juntar(atual, p.doc)
+        await this.ctx.storage.put('notifs', novo)
         return { doc: novo }
       }
-      case 'perfil-publico': { // resumo das aberturas para o perfil: caixa mais aberta e a melhor queda (maior valor)
-        const linhas = this.linhas()
-        const por = {}
-        let melhor = null
-        for (const l of linhas) {
-          por[l.caixa] = (por[l.caixa] || 0) + 1
-          if (!['arma', 'faca', 'luva'].includes(l.t)) continue
-          const v = valorDe({ t: l.t, d: l.d, p: l.p, f: l.f, st: 0 })?.v ?? 0
-          if (!melhor || v > melhor.v) melhor = { t: l.t, d: l.d, p: l.p, f: l.f, r: l.r, v, caixa: l.caixa, ts: l.ts }
-        }
-        // as mais abertas em ordem: a rota escolhe a primeira que ainda existe na loja (as caixas antigas foram apagadas)
-        const ordem = Object.entries(por).sort((a, b) => b[1] - a[1]).slice(0, 60)
-        const top = ordem[0]
-        return { abertas: linhas.length, favorita: top ? { slug: top[0], vezes: top[1] } : null, ordem, melhor }
-      }
+      case 'perfil-publico':
+        return this.perfilPublico()
       case 'valores':
-        return this.valores(id)
+        return { valores: valoresDe((await this.invOuVazio(id)).itens) }
       case 'vender':
-        return this.vender(id, pontos, p)
+        return this.vender(id, saldo, p)
       case 'mercado-comprar':
-        return this.comprarDoMercado(id, pontos, p)
-      case 'dep-pode': { // antes de criar uma cobrança: no máximo 5 por hora
-        const n = Number(this.sql.exec("SELECT COUNT(*) AS n FROM depositos WHERE estado = 'pendente' AND ts > ?", Date.now() - 3600 * 1000).one().n)
-        if (n >= 5) throw new Error('muitos-pagamentos')
-        return { ok: true, cliente: (await this.ctx.storage.get(`asaasCliente:${p.amb || 'sandbox'}`)) || null } // um cliente por ambiente (o do sandbox não existe na produção)
-      }
-      case 'dep-recorrencia': // id da assinatura recorrente do Asaas (p.set = gravar, '' apaga)
-        if (p.set !== undefined) {
-          if (p.set) await this.ctx.storage.put(`asaasAssinatura:${p.amb || 'sandbox'}`, String(p.set))
-          else await this.ctx.storage.delete(`asaasAssinatura:${p.amb || 'sandbox'}`)
-        }
-        return { id: (await this.ctx.storage.get(`asaasAssinatura:${p.amb || 'sandbox'}`)) || null }
+        return this.comprarDoMercado(id, saldo, p)
+      case 'dep-pode':
+      case 'dep-recorrencia':
       case 'dep-cliente':
-        await this.ctx.storage.put(`asaasCliente:${p.amb || 'sandbox'}`, String(p.cliente || ''))
-        return { ok: true }
       case 'dep-registrar':
-        this.sql.exec('INSERT OR IGNORE INTO depositos (pid, ts, centavos, np, metodo, estado, tipo, dados, entregue) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', String(p.pid), Date.now(), Math.round(p.centavos), Math.round(p.np), String(p.metodo), 'pendente', p.tipo === 'sub' ? 'sub' : 'deposito', p.dados ? JSON.stringify(p.dados) : null, p.tipo === 'sub' ? 0 : 1)
-        return { ok: true }
-      case 'dep-ler': {
-        const l = this.sql.exec('SELECT pid, ts, centavos, np, metodo, estado FROM depositos WHERE pid = ?', String(p.pid)).toArray()[0]
-        return { deposito: l || null }
-      }
-      case 'dep-creditar': { // cobrança paga: credita os NP uma única vez (por mais que o aviso chegue várias vezes)
-        const l = this.sql.exec('SELECT centavos, np, estado, tipo, dados, entregue FROM depositos WHERE pid = ?', String(p.pid)).toArray()[0]
-        if (!l) throw new Error('desconhecido')
-        if (l.centavos !== Math.round(p.centavos)) throw new Error('valor')
-        if (l.tipo === 'sub') {
-          // assinatura: não mexe nos NP; marca como paga e o worker entrega os meses (dep-entregue confirma)
-          const dados = l.dados ? JSON.parse(l.dados) : {}
-          if (l.estado === 'pendente') {
-            this.sql.exec("UPDATE depositos SET estado = 'pago' WHERE pid = ?", String(p.pid))
-            return { novo: true, tipo: 'sub', dados, entregue: 0, estado: 'pago' }
-          }
-          return { novo: false, tipo: 'sub', dados, entregue: l.estado === 'pago' ? l.entregue : 1, estado: l.estado }
-        }
-        if (l.estado !== 'pendente') return { novo: false, estado: l.estado, saldo: pontos - this.gastos() }
-        this.ctx.storage.transactionSync(() => {
-          this.sql.exec("UPDATE depositos SET estado = 'pago' WHERE pid = ?", String(p.pid))
-          this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), -l.np, `depósito R$ ${(l.centavos / 100).toFixed(2).replace('.', ',')}`)
-        })
-        return { novo: true, np: l.np, estado: 'pago', saldo: pontos - this.gastos() }
-      }
+      case 'dep-ler':
+      case 'dep-creditar':
       case 'dep-entregue':
-        this.sql.exec('UPDATE depositos SET entregue = 1 WHERE pid = ?', String(p.pid))
-        return { ok: true }
-      case 'dep-estornar': { // devolução/chargeback: tira os NP de volta (o saldo pode ficar negativo; aí não dá para comprar até regularizar)
-        const l = this.sql.exec('SELECT np, estado, tipo, dados FROM depositos WHERE pid = ?', String(p.pid)).toArray()[0]
-        if (!l || l.estado !== 'pago') return { novo: false }
-        this.ctx.storage.transactionSync(() => {
-          this.sql.exec("UPDATE depositos SET estado = 'estornado' WHERE pid = ?", String(p.pid))
-          if (l.tipo !== 'sub') this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), l.np, 'depósito estornado')
-        })
-        return { novo: true, tipo: l.tipo, dados: l.dados ? JSON.parse(l.dados) : null }
-      }
-      case 'zerar': // src/zerar.js: o jogador volta para o começo (NP, aberturas, insígnias da loja e inventário)
+      case 'dep-estornar':
+        return this.deposito(acao, saldo, p)
+      case 'zerar':
         return this.zerar(p.bonusMax)
       case 'saldo':
-        return { saldo: pontos - this.gastos(), ganhos: pontos, gastos: this.gastos(), movimentos: p.movimentos ? this.movimentos() : undefined }
+        return { saldo: saldo(), ganhos: pontos, gastos: this.gastos(), movimentos: p.movimentos ? this.movimentos() : undefined }
       case 'estado':
         return this.estado(id, caixas, cfg, pontos)
       case 'comprar':
-        return this.comprar(id, caixas, cfg, pontos, p)
+        return this.comprar(id, caixas, cfg, saldo, p)
       case 'abrir':
-        return this.abrir(id, caixas, cfg, pontos, p)
+        return this.abrir(id, caixas, cfg, saldo, p)
       case 'historico':
         return { aberturas: this.sql.exec('SELECT ts, caixa, t, d, p, r, f FROM aberturas ORDER BY id DESC LIMIT 100').toArray() }
-      case 'creditar': // valor > 0 dá NP, valor < 0 tira
-        this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), -Math.round(num(p.valor, -1e7, 1e7, 0)), String(p.motivo || 'ajuste do dono').slice(0, 60))
-        if (p.aviso && Math.round(num(p.valor, -1e7, 1e7, 0)) !== 0) {
-          // ajuste feito pelo dono no painel: avisa o jogador no sino, com o motivo (se tiver)
-          const v = Math.round(num(p.valor, -1e7, 1e7, 0))
-          const n = { id: `ajuste:${Date.now()}`, titulo: v > 0 ? `Você recebeu ${v.toLocaleString('pt-BR')} NP` : `Foram retirados ${Math.abs(v).toLocaleString('pt-BR')} NP da sua conta`, texto: p.motivo ? `Motivo: ${String(p.motivo).slice(0, 60)}` : 'Ajuste feito pela administração.', link: '/loja/', quando: Date.now(), lida: false }
-          const atual = (await this.ctx.storage.get('notifs')) || docVazio()
-          await this.ctx.storage.put('notifs', juntar(atual, { lista: [n], vistos: [n.id], limpoEm: 0 }))
-        }
-        return { saldo: pontos - this.gastos() }
+      case 'creditar': { // valor > 0 dá NP, valor < 0 tira
+        const v = Math.round(num(p.valor, -1e7, 1e7, 0))
+        this.ctx.storage.transactionSync(() => this.movimentar(Date.now(), -v, p.motivo || 'ajuste do dono'))
+        // ajuste feito pelo dono no painel: avisa o jogador no sino, com o motivo (se tiver)
+        if (p.aviso && v !== 0) await this.notificar(novaNotif(`ajuste:${Date.now()}`, v > 0 ? `Você recebeu ${v.toLocaleString('pt-BR')} NP` : `Foram retirados ${Math.abs(v).toLocaleString('pt-BR')} NP da sua conta`, p.motivo ? `Motivo: ${String(p.motivo).slice(0, 60)}` : 'Ajuste feito pela administração.', '/loja/'))
+        return { saldo: saldo() }
+      }
       case 'cobrar': { // gasta NP de verdade (ex.: criar um time): só se o saldo cobrir
         const v = Math.round(num(p.valor, 1, 1e7, 0))
-        if (!v) throw new Error('valor')
-        const saldo = pontos - this.gastos()
-        if (saldo < v) throw new Error('saldo')
-        this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), v, String(p.motivo || 'compra').slice(0, 60))
-        return { saldo: saldo - v }
+        if (!v) throw new ErroPedido('valor')
+        if (saldo() < v) throw new ErroConflito('saldo')
+        this.ctx.storage.transactionSync(() => this.movimentar(Date.now(), v, p.motivo || 'compra'))
+        return { saldo: saldo() }
       }
       case 'definir': { // deixa o saldo exatamente em "valor"
-        const atual = pontos - this.gastos()
         const alvo = Math.round(num(p.valor, -1e7, 1e7, 0))
-        if (alvo !== atual) this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), atual - alvo, String(p.motivo || 'saldo definido pelo dono').slice(0, 60))
+        const atual = saldo()
+        if (alvo !== atual) this.ctx.storage.transactionSync(() => this.movimentar(Date.now(), atual - alvo, p.motivo || 'saldo definido pelo dono'))
         return { saldo: alvo }
       }
       default:
-        throw new Error('acao')
+        throw new ErroPedido('acao')
     }
   }
 
-  async fechadas(id) {
-    const { inv } = await this.invLer(id)
-    const por = {}
-    for (const it of Object.values(inv?.itens || {})) if (it.t === 'caixa') por[it.d] = (por[it.d] || 0) + 1
-    return por
+  // Depósitos e assinaturas pagas (src/pagamentos.js). "amb" separa sandbox e produção (o cliente de um não existe no outro)
+  async deposito(acao, saldo, p) {
+    const amb = p.amb || 'sandbox'
+    const pid = String(p.pid || '')
+    const linha = (colunas) => this.sql.exec(`SELECT ${colunas} FROM depositos WHERE pid = ?`, pid).toArray()[0]
+    switch (acao) {
+      case 'dep-pode': { // antes de criar uma cobrança: no máximo 5 pendentes por hora
+        if (this.sql.exec("SELECT COUNT(*) AS n FROM depositos WHERE estado = 'pendente' AND ts > ?", Date.now() - 3600 * 1000).one().n >= 5) throw new ErroLimite('muitos-pagamentos')
+        return { ok: true, cliente: (await this.ctx.storage.get(`asaasCliente:${amb}`)) || null }
+      }
+      case 'dep-recorrencia': // id da assinatura recorrente do Asaas (set = gravar; '' apaga)
+        if (p.set) await this.ctx.storage.put(`asaasAssinatura:${amb}`, String(p.set))
+        else if (p.set === '') await this.ctx.storage.delete(`asaasAssinatura:${amb}`)
+        return { id: (await this.ctx.storage.get(`asaasAssinatura:${amb}`)) || null }
+      case 'dep-cliente':
+        await this.ctx.storage.put(`asaasCliente:${amb}`, String(p.cliente || ''))
+        return { ok: true }
+      case 'dep-registrar':
+        this.sql.exec('INSERT OR IGNORE INTO depositos (pid, ts, centavos, np, metodo, estado, tipo, dados, entregue) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', pid, Date.now(), Math.round(p.centavos), Math.round(p.np), String(p.metodo), 'pendente', p.tipo === 'sub' ? 'sub' : 'deposito', p.dados ? JSON.stringify(p.dados) : null, p.tipo === 'sub' ? 0 : 1)
+        return { ok: true }
+      case 'dep-ler':
+        return { deposito: linha('pid, ts, centavos, np, metodo, estado') || null }
+      case 'dep-creditar': { // cobrança paga: credita os NP uma única vez (por mais que o aviso chegue várias vezes)
+        const l = linha('centavos, np, estado, tipo, dados, entregue')
+        if (!l) throw new ErroNaoEncontrado('desconhecido')
+        if (l.centavos !== Math.round(p.centavos)) throw new ErroConflito('valor')
+        if (l.tipo === 'sub') {
+          // assinatura: não mexe nos NP; marca como paga e o worker entrega os meses (dep-entregue confirma)
+          const dados = l.dados ? JSON.parse(l.dados) : {}
+          if (l.estado !== 'pendente') return { novo: false, tipo: 'sub', dados, entregue: l.estado === 'pago' ? l.entregue : 1, estado: l.estado }
+          this.sql.exec("UPDATE depositos SET estado = 'pago' WHERE pid = ?", pid)
+          return { novo: true, tipo: 'sub', dados, entregue: 0, estado: 'pago' }
+        }
+        if (l.estado !== 'pendente') return { novo: false, estado: l.estado, saldo: saldo() }
+        this.ctx.storage.transactionSync(() => {
+          this.sql.exec("UPDATE depositos SET estado = 'pago' WHERE pid = ?", pid)
+          this.movimentar(Date.now(), -l.np, `depósito R$ ${(l.centavos / 100).toFixed(2).replace('.', ',')}`)
+        })
+        return { novo: true, np: l.np, estado: 'pago', saldo: saldo() }
+      }
+      case 'dep-entregue':
+        this.sql.exec('UPDATE depositos SET entregue = 1 WHERE pid = ?', pid)
+        return { ok: true }
+      case 'dep-estornar': { // devolução/chargeback: tira os NP de volta (o saldo pode ficar negativo; aí não dá para comprar até regularizar)
+        const l = linha('np, estado, tipo, dados')
+        if (!l || l.estado !== 'pago') return { novo: false }
+        this.ctx.storage.transactionSync(() => {
+          this.sql.exec("UPDATE depositos SET estado = 'estornado' WHERE pid = ?", pid)
+          if (l.tipo !== 'sub') this.movimentar(Date.now(), l.np, 'depósito estornado')
+        })
+        return { novo: true, tipo: l.tipo, dados: l.dados ? JSON.parse(l.dados) : null }
+      }
+    }
   }
 
-  // Insígnias que o histórico já cumpre e o jogador ainda não ganhou (idempotente: o objeto lembra o que já deu, com a data de quando deu, e nunca dá de novo).
-  // Devolve { ids, ts }: a rota grava no perfil (rotaLoja → aplicarInsignias) e o site só mostra o aviso depois que a roleta termina.
-  async conferirInsignias(id, caixas, fechadasPor) {
-    const stats = calcularStats(this.linhas(), Object.values(fechadasPor).reduce((a, b) => a + b, 0))
-    const progresso = progressoInsignias(stats, caixas)
+  // Resumo das aberturas para o perfil: as caixas mais abertas (a rota escolhe a primeira que ainda existe) e a melhor queda (maior valor)
+  perfilPublico() {
+    const { abertas } = this.stats()
+    const ordem = this.sql.exec('SELECT caixa, COUNT(*) AS n FROM aberturas GROUP BY caixa ORDER BY n DESC LIMIT 60').toArray().map((x) => [x.caixa, x.n])
+    return { abertas, ordem, melhor: this.melhor }
+  }
+
+  // Insígnias que o histórico já cumpre e o jogador ainda não ganhou (o objeto lembra o que já deu, com a data, e nunca dá de novo).
+  // Devolve { ids, ts }: a rota grava no perfil e o site só mostra o aviso depois que a roleta termina.
+  async conferirInsignias(caixas, fechadasPor) {
+    const progresso = progressoInsignias(this.stats(Object.values(fechadasPor).reduce((a, b) => a + b, 0)), caixas)
     const ganhas = (await this.ctx.storage.get('ganhas')) || {}
     const novas = insigniasNovas(progresso, ganhas)
-    if (!novas.length) return { ids: [], ts: {} }
-    const agora = Date.now()
-    const ts = Object.fromEntries(novas.map((n) => [n, agora]))
+    if (!novas.length) return { ids: [], ts: {}, ganhas, progresso }
+    const ts = Object.fromEntries(novas.map((n) => [n, Date.now()]))
     await this.ctx.storage.put('ganhas', { ...ganhas, ...ts })
-    return { ids: novas, ts }
+    return { ids: novas, ts, ganhas: { ...ganhas, ...ts }, progresso }
   }
 
   async estado(id, caixas, cfg, pontos) {
     const fechadasPor = await this.fechadas(id)
-    const linhas = this.linhas()
-    const stats = calcularStats(linhas, Object.values(fechadasPor).reduce((a, b) => a + b, 0))
     // confere agora (cura insígnia que ficou sem gravar por falha antes) e devolve as ganhas; a rota grava no perfil o que faltar
-    await this.conferirInsignias(id, caixas, fechadasPor)
-    const ganhas = (await this.ctx.storage.get('ganhas')) || {}
+    const { ganhas, progresso } = await this.conferirInsignias(caixas, fechadasPor)
     // à venda: ativas e não arquivadas; as arquivadas aparecem (marcadas foraDeVenda) só para quem tem uma fechada, para poder abrir
     const ativas = caixas.filter((c) => c.ativa && (!c.arquivada || fechadasPor[c.id] > 0)).map((c) => (c.arquivada ? { ...c, foraDeVenda: true } : c))
     return {
@@ -555,41 +540,41 @@ export class Loja {
       cfg,
       caixas: ativas.map((c) => ({ ...comVersao(c), chances: chancesDaCaixa(c, cfg) })),
       fechadas: fechadasPor,
-      insignias: progressoInsignias(stats, caixas).map((i) => ({ id: i.id, nome: i.nome, descricao: i.descricao, cor: i.cor, secreta: !!i.secreta, grupo: i.grupo || null, nivel: i.nivel || null, meta: i.meta, atual: i.atual, ganhou: ganhas[i.id] || 0 })),
-      aberturas: linhas.length,
+      insignias: progresso.map((i) => ({ id: i.id, nome: i.nome, descricao: i.descricao, cor: i.cor, secreta: !!i.secreta, grupo: i.grupo || null, nivel: i.nivel || null, meta: i.meta, atual: i.atual, ganhou: ganhas[i.id] || 0 })),
+      aberturas: this.acumulado.abertas,
       aberturasEspecial: this.abertasParaEspecial(),
       recentes: this.sql.exec('SELECT ts, caixa, t, d, p, r, f FROM aberturas ORDER BY id DESC LIMIT 12').toArray(),
     }
   }
 
-  // grava as linhas/movimentos e o inventário; se o inventário não gravar, desfaz o que entrou no SQL
-  async gravarTudo(id, inv, sql) {
-    const marca = { mov: Number(this.sql.exec('SELECT COALESCE(MAX(id),0) AS m FROM movimentos').one().m), ab: Number(this.sql.exec('SELECT COALESCE(MAX(id),0) AS m FROM aberturas').one().m) }
+  // Grava as linhas/movimentos (sql) e o inventário; se o inventário não gravar, desfaz o que entrou no SQL
+  async gravarTudo(inv, sql) {
+    const marca = { mov: this.sql.exec('SELECT COALESCE(MAX(id), 0) AS m FROM movimentos').one().m, ab: this.sql.exec('SELECT COALESCE(MAX(id), 0) AS m FROM aberturas').one().m }
     this.ctx.storage.transactionSync(sql)
     try {
-      await this.invGravar(id, inv)
-    } catch {
+      await this.invGravar(inv)
+    } catch (e) {
       this.ctx.storage.transactionSync(() => {
         this.sql.exec('DELETE FROM movimentos WHERE id > ?', marca.mov)
         this.sql.exec('DELETE FROM aberturas WHERE id > ?', marca.ab)
+        this.recalcularResumo()
       })
-      throw new Error('falhou')
+      throw e
     }
   }
 
-  // no máximo 3 caixas por vez (as 3 roletas da página da caixa), mesmo que a configuração permita mais
   quantidade(p, cfg) {
     return Math.trunc(num(p.qtd, 1, Math.min(cfg.maxQtd, MAX_POR_VEZ), 1))
   }
 
-  async comprar(id, caixas, cfg, pontos, p) {
+  async comprar(id, caixas, cfg, saldo, p) {
     const caixa = caixas.find((c) => c.id === Number(p.caixa) && c.ativa && !c.arquivada)
-    if (!caixa) throw new Error('caixa')
+    if (!caixa) throw new ErroNaoEncontrado('caixa')
     const qtd = this.quantidade(p, cfg)
     const custo = caixa.preco * qtd
-    if (pontos - this.gastos() < custo) throw new Error('saldo')
-    const inv = (await this.invLer(id)).inv || limparSkins({})
-    if (Object.keys(inv.itens).length + qtd > ITENS_MAX) throw new Error('cheio')
+    if (saldo() < custo) throw new ErroConflito('saldo')
+    const inv = await this.invOuVazio(id)
+    if (Object.keys(inv.itens).length + qtd > ITENS_MAX) throw new ErroConflito('cheio')
     const agora = Date.now()
     const ids = []
     for (let k = 0; k < qtd; k++) {
@@ -598,103 +583,87 @@ export class Loja {
       inv.criado[item] = agora + k
       ids.push(item)
     }
-    await this.gravarTudo(id, inv, () => this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', agora, custo, `compra ${qtd}x ${caixa.slug}`))
-    const novas = await this.conferirInsignias(id, caixas, await this.fechadas(id))
-    return { saldo: pontos - this.gastos(), ids, insignias: novas.ids, insigniasTs: novas.ts }
-  }
-
-  async valores(id) {
-    const { inv } = await this.invLer(id)
-    const m = {}
-    for (const [k, it] of Object.entries(inv?.itens || {})) {
-      const x = valorDe(it)
-      if (x) m[k] = x
-    }
-    return { valores: m }
+    await this.gravarTudo(inv, () => this.movimentar(agora, custo, `compra ${qtd}x ${caixa.slug}`))
+    const novas = await this.conferirInsignias(caixas, await this.fechadas(id))
+    return { saldo: saldo(), ids, insignias: novas.ids, insigniasTs: novas.ts }
   }
 
   // Vende itens do inventário: tira os itens (e do equipamento) e credita o valor em NP, tudo junto (se o inventário não gravar, nada muda)
-  async vender(id, pontos, p) {
+  async vender(id, saldo, p) {
     const ids = [...new Set(Array.isArray(p.ids) ? p.ids.map(String) : [])].slice(0, 100)
-    if (!ids.length) throw new Error('item')
-    const { inv } = await this.invLer(id)
-    if (!inv) throw new Error('item')
+    if (!ids.length) throw new ErroPedido('item')
+    const inv = await this.invOuVazio(id)
     let total = 0
     for (const k of ids) {
-      const it = inv.itens[k]
-      const x = it && valorDe(it)
-      if (!x) throw new Error('item')
+      const x = inv.itens[k] && valorDe(inv.itens[k])
+      if (!x) throw new ErroConflito('item')
       total += x.v
-      delete inv.itens[k]
-      delete inv.criado[k]
-      for (const lado of ['ct', 'tr']) inv.equip[lado] = Object.fromEntries(Object.entries(inv.equip[lado]).filter(([, v]) => v !== k))
-      inv.presentes = inv.presentes.filter((q) => q.i !== k)
+      tirarItem(inv, k)
     }
     const limpo = limparSkins(inv)
-    await this.gravarTudo(id, limpo, () => this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), -total, `venda de ${ids.length} item(ns)`))
-    return { saldo: pontos - this.gastos(), total, vendidos: ids.length, inv: limpo }
+    await this.gravarTudo(limpo, () => this.movimentar(Date.now(), -total, `venda de ${ids.length} item(ns)`))
+    return { saldo: saldo(), total, vendidos: ids.length, inv: limpo }
   }
 
+  // src/zerar.js: o jogador volta para o começo (NP, aberturas, insígnias da loja e inventário; o KV antigo não é lido de novo)
   async zerar(bonusMax) {
     this.ctx.storage.transactionSync(() => {
       this.sql.exec('DELETE FROM movimentos')
       this.sql.exec('DELETE FROM aberturas')
+      this.recalcularResumo()
     })
     await this.ctx.storage.delete('ganhas')
     const ver = ((await this.ctx.storage.get('invv')) || 0) + 1
     const visto = Math.max(Number(bonusMax) || 0, (await this.ctx.storage.get('bonusVisto')) || 0)
-    await this.ctx.storage.put({ inv: limparSkins({}), invv: ver, bonusVisto: visto }) // inventário vazio (não volta a ler o KV antigo)
+    await this.ctx.storage.put({ inv: limparSkins({}), invv: ver, bonusVisto: visto })
     return { ok: true }
   }
 
   // Compra de um anúncio do mercado (src/mercado.js chama no objeto de quem compra): desconta o preço e põe o item no inventário, tudo junto
-  async comprarDoMercado(id, pontos, p) {
+  async comprarDoMercado(id, saldo, p) {
     const preco = Math.round(num(p.preco, 0, 1e7, 0))
-    if (!preco || !p.item) throw new Error('anuncio')
-    if (pontos - this.gastos() < preco) throw new Error('saldo')
-    const inv = (await this.invLer(id)).inv || limparSkins({})
-    if (Object.keys(inv.itens).length + 1 > ITENS_MAX) throw new Error('cheio')
+    if (!preco || !p.item) throw new ErroPedido('anuncio')
+    if (saldo() < preco) throw new ErroConflito('saldo')
+    const inv = await this.invOuVazio(id)
+    if (Object.keys(inv.itens).length + 1 > ITENS_MAX) throw new ErroConflito('cheio')
     const novo = novoIdItem()
-    inv.itens[novo] = JSON.parse(JSON.stringify(p.item))
+    inv.itens[novo] = structuredClone(p.item)
     inv.criado[novo] = Date.now()
     const limpo = limparSkins(inv)
-    if (!limpo.itens[novo]) throw new Error('anuncio')
-    await this.gravarTudo(id, limpo, () => this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', Date.now(), preco, 'mercado: compra'))
-    return { saldo: pontos - this.gastos(), id: novo }
+    if (!limpo.itens[novo]) throw new ErroPedido('anuncio')
+    await this.gravarTudo(limpo, () => this.movimentar(Date.now(), preco, 'mercado: compra'))
+    return { saldo: saldo(), id: novo }
   }
 
-  async abrir(id, caixas, cfg, pontos, p) {
+  async abrir(id, caixas, cfg, saldo, p) {
     let caixa = caixas.find((c) => c.id === Number(p.caixa) && c.ativa)
-    if (!caixa) throw new Error('caixa')
-    if (!caixa.itens.length) throw new Error('caixa')
+    if (!caixa?.itens.length) throw new ErroNaoEncontrado('caixa')
+    let origem = ['inventario', 'auto'].includes(p.origem) ? p.origem : 'direto'
     // caixa arquivada (fora da loja): só abre a que já está no inventário, sem pagar e sem Jester/Boost
     if (caixa.arquivada) {
-      if (p.modo) throw new Error('caixa')
-      p = { ...p, origem: 'inventario' }
+      if (p.modo) throw new ErroPedido('caixa')
+      origem = 'inventario'
     }
-    // Jester/Boost: chances do modo e o preço dele (calculado na rota); paga sempre na hora (não usa as caixas fechadas do inventário)
+    // Jester/Boost: chances e preço do modo (calculado aqui, nunca vindo do site); paga sempre na hora (não usa as caixas fechadas do inventário)
     if (p.modo) {
-      if (!MODOS.includes(p.modo) || !(p.precoModo > 0)) throw new Error('caixa')
+      if (!MODOS.includes(p.modo)) throw new ErroPedido('caixa')
+      const preco = detalhesDaCaixa(caixa, cfg).modos[p.modo].preco
       const m = aplicarModo(caixa, cfg, p.modo)
-      caixa = { ...m.caixa, preco: p.precoModo }
+      caixa = { ...m.caixa, preco }
       cfg = m.cfg
-      p = { ...p, origem: 'direto' }
+      origem = 'direto'
     }
     const qtd = this.quantidade(p, cfg)
-    const inv = (await this.invLer(id)).inv || limparSkins({})
+    const inv = await this.invOuVazio(id)
     // origem: 'inventario' = só as que já tem; 'direto' = paga todas; 'auto' = usa primeiro as do inventário e paga só as que faltam ("Abrir outra")
     const minhas = Object.entries(inv.itens).filter(([, it]) => it.t === 'caixa' && it.d === caixa.id).map(([k]) => k)
-    const usar = p.origem === 'inventario' ? qtd : p.origem === 'auto' ? Math.min(qtd, minhas.length) : 0
-    if (p.origem === 'inventario' && minhas.length < qtd) throw new Error('sem-caixa')
+    if (origem === 'inventario' && minhas.length < qtd) throw new ErroConflito('sem-caixa')
+    const usar = origem === 'inventario' ? qtd : origem === 'auto' ? Math.min(qtd, minhas.length) : 0
     const pagar = qtd - usar
     const custo = caixa.preco * pagar
-    if (custo && pontos - this.gastos() < custo) throw new Error('saldo')
-    // as do inventário saem (as mais antigas primeiro)
-    for (const k of minhas.slice(0, usar)) {
-      delete inv.itens[k]
-      delete inv.criado[k]
-    }
-    if (Object.keys(inv.itens).length + qtd > ITENS_MAX) throw new Error('cheio')
+    if (custo && saldo() < custo) throw new ErroConflito('saldo')
+    for (const k of minhas.slice(0, usar)) tirarItem(inv, k) // as do inventário saem (as mais antigas primeiro)
+    if (Object.keys(inv.itens).length + qtd > ITENS_MAX) throw new ErroConflito('cheio')
     const agora = Date.now()
     const resultados = []
     const linhas = []
@@ -711,7 +680,7 @@ export class Loja {
       const enfeite = base.t === 'adesivo' || base.t === 'chaveiro' // amuletos e adesivos vão guardados no inventário (como os que o dono dá)
       inv.itens[item] = enfeite ? { t: base.t, d: base.d, p: 0 } : { ...base, st: 0, n: '', a: [null, null, null, null, null], k: null }
       inv.criado[item] = agora + k
-      linhas.push([agora + k, caixa.slug, base.t, base.d, base.p, ganhou.raridade, base.f, faixa.quase ? 1 : 0])
+      linhas.push([agora + k, caixa.slug, base.t || 'arma', base.d, base.p, ganhou.raridade, base.f, faixa.quase ? 1 : 0])
       resultados.push({
         id: item,
         raridade: ganhou.raridade,
@@ -726,202 +695,134 @@ export class Loja {
       })
     }
     const limpo = limparSkins(inv)
-    await this.gravarTudo(id, limpo, () => {
-      if (custo) this.sql.exec('INSERT INTO movimentos (ts, valor, motivo) VALUES (?, ?, ?)', agora, custo, `abertura direta ${pagar}x ${caixa.slug}${p.modo ? ` (${p.modo})` : ''}`)
-      for (const l of linhas) this.sql.exec('INSERT INTO aberturas (ts, caixa, t, d, p, r, f, q) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', ...l)
+    await this.gravarTudo(limpo, () => {
+      if (custo) this.movimentar(agora, custo, `abertura direta ${pagar}x ${caixa.slug}${p.modo ? ` (${p.modo})` : ''}`)
+      for (const l of linhas) this.registrarAbertura(l)
     })
-    // lista de quem já abriu (para o /admin/loja-retro)
-    const lista = (await this.env.MOLDURAS.get('loja-jogadores', 'json').catch(() => null)) || []
-    if (!lista.includes(id)) await this.env.MOLDURAS.put('loja-jogadores', JSON.stringify([...lista, id].slice(-5000))).catch(() => {})
-    const novas = await this.conferirInsignias(id, caixas, await this.fechadas(id))
+    const novas = await this.conferirInsignias(caixas, await this.fechadas(id))
     // quantas dessa caixa ainda sobram no inventário (a tela "Abrir outra" usa para contar o que já tem antes de cobrar)
     const restantes = Object.values(limpo.itens).filter((it) => it.t === 'caixa' && it.d === caixa.id).length
-    return { saldo: pontos - this.gastos(), resultados, restantes, aberturasEspecial: jaAbertas + (soEnfeites ? 0 : qtd), insignias: novas.ids, insigniasTs: novas.ts }
+    return { saldo: saldo(), resultados, restantes, aberturasEspecial: this.abertasParaEspecial(), insignias: novas.ids, insigniasTs: novas.ts }
   }
 }
 
-const objeto = (env, id) => env.LOJA.get(env.LOJA.idFromName(id))
-const chamar = (env, id, corpo) => objeto(env, id).fetch('https://loja/', { method: 'POST', body: JSON.stringify({ id, ...corpo }) })
-
-// ── rotas ──
-// GET /loja/perfil?id= (público): caixa favorita (a mais aberta) e melhor queda do jogador, para o perfil dele
-export async function rotaLojaPerfil(url, env, cors) {
+// ── Rotas ──
+const idDaUrl = (url) => {
   const id = url.searchParams.get('id') || ''
-  if (!ID_STEAM.test(id)) return json({ erro: 'id' }, 400, cors)
-  const r = await chamar(env, id, { acao: 'perfil-publico' })
-  const d = await r.json().catch(() => null)
-  if (!d || d.erro) return json({ abertas: 0, favorita: null, melhor: null }, 200, { ...cors, 'Cache-Control': 'public, max-age=30' })
-  const caixas = await lerCaixas(env)
-  // favorita = a caixa mais aberta que ainda existe (quem abriu muito uma caixa antiga, já apagada, fica com a seguinte)
-  const ordem = Array.isArray(d.ordem) ? d.ordem : d.favorita ? [[d.favorita.slug, d.favorita.vezes]] : []
-  let c = null
-  let vezes = 0
-  for (const [slug, n] of ordem) {
-    c = caixas.find((x) => x.slug === slug)
-    if (c) {
-      vezes = n
-      break
-    }
-  }
+  if (!ID_STEAM.test(id)) throw new ErroPedido('id')
+  return id
+}
+
+// GET /loja/perfil?id= (público): caixa favorita (a mais aberta que ainda existe) e melhor queda do jogador, para o perfil dele
+export async function rotaLojaPerfil(url, env, cors) {
+  const [d, caixas] = await Promise.all([pedirAoJogador(env, idDaUrl(url), { acao: 'perfil-publico' }), lerCaixas(env)])
+  const porSlug = new Map(caixas.map((c) => [c.slug, c]))
+  const [slug, vezes] = d.ordem.find(([s]) => porSlug.has(s)) || []
+  const c = slug && porSlug.get(slug)
   const favorita = c ? { ...publicaDaCaixa({ id: c.id, slug: c.slug, nome: c.nome, img: c.img, cor: c.cor, tier: c.tier, preco: c.preco, ativa: c.ativa, arquivada: c.arquivada }), vezes } : null
   return json({ abertas: d.abertas, favorita, melhor: d.melhor }, 200, { ...cors, 'Cache-Control': 'public, max-age=30' })
 }
 
 export async function rotaLojaPublica(env, cors) {
-  const caixas = (await lerCaixas(env)).filter((c) => c.ativa).map(publicaDaCaixa)
-  return json(caixas, 200, { ...cors, 'Cache-Control': 'public, max-age=60' })
+  return json((await lerCaixas(env)).filter((c) => c.ativa).map(publicaDaCaixa), 200, { ...cors, 'Cache-Control': 'public, max-age=60' })
 }
 
-// Grava as insígnias no perfil (perfis[id].insignias) sem mexer em mais nada e sem repetir as que o perfil já tem (a data de quem já tinha fica).
-// Roda na rota (mesma região do jogador): é de lá que ele grava o resto do perfil, então a leitura aqui não vem velha.
-async function aplicarInsignias(env, porJogador) {
-  const perfis = (await env.MOLDURAS.get('perfis', 'json').catch(() => null)) || {}
-  const mudou = []
-  for (const [id, ts] of Object.entries(porJogador)) {
-    const tem = perfis[id]?.insignias || {}
-    const novas = Object.fromEntries(Object.entries(ts).filter(([k]) => !tem[k]))
-    if (!Object.keys(novas).length) continue
-    perfis[id] = { ...perfis[id], insignias: { ...tem, ...novas } }
-    mudou.push(id)
-  }
-  if (!mudou.length) return
-  await env.MOLDURAS.put('perfis', JSON.stringify(perfis))
-  for (const id of mudou) await avisarPerfil(env, id, perfis[id])
-}
+const ROTAS_LOJA = { 'GET /loja': 'estado', 'GET /loja/saldo': 'saldo', 'GET /loja/valores': 'valores', 'POST /loja/vender': 'vender', 'GET /loja/historico': 'historico', 'POST /loja/comprar': 'comprar', 'POST /loja/abrir': 'abrir' }
 
-// GET/POST /notificacoes (login): notificações do sino guardadas na conta (valem em todos os aparelhos). POST { doc } junta e devolve { doc }.
-export async function rotaNotificacoes(req, env, quem, cors) {
-  const corpo = req.method === 'POST' ? await req.json().catch(() => ({})) : {}
-  const r = await chamar(env, quem.id, { acao: 'notif-sync', doc: req.method === 'POST' ? corpo.doc : null })
-  return json(await r.json().catch(() => ({ erro: 'falhou' })), r.status, cors)
-}
-
-// Partidas jogadas com o Premium valendo (para o bônus de partida): lê o histórico do jogador publicado no site e deixa só as que
-// começaram dentro do período da assinatura. Sem assinatura (ou sem partidas): lista vazia. O horário das partidas é o do servidor (Brasília).
-async function partidasPremium(env, id, sub) {
-  try {
-    if (!sub) return []
-    const de = Number(sub.periodo || sub.inicio) || 0
-    const ate = sub.expira == null ? Infinity : Number(sub.expira)
-    const site = (env.SITE || 'https://neuraproject.com.br').replace(/\/$/, '')
-    const r = await fetch(`${site}/perfil/historico/${id}.json`, { cf: { cacheTtl: 60 } })
-    const h = r.ok ? await r.json() : []
-    return (Array.isArray(h) ? h : [])
-      .map((m) => ({ k: String(m.caminho || ''), ts: Date.parse(String(m.data || '').replace(' ', 'T') + '-03:00') }))
-      .filter((m) => m.k && m.ts >= de && m.ts <= ate)
-      .slice(0, 300)
-  } catch {
-    return []
-  }
-}
-
-export async function rotaLoja(req, env, quem, cors, rota, sub) {
+export async function rotaLoja(req, env, quem, cors, rota) {
   // Página de uma caixa (não precisa do objeto do jogador): desgastes com valor e chance, e os modos Jester/Boost
   if (rota === '/loja/caixa' && req.method === 'GET') {
     const [lista, config] = await Promise.all([lerCaixas(env), lerConfigLoja(env)])
     const c = lista.find((x) => x.id === Number(new URL(req.url).searchParams.get('id')) && x.ativa)
-    return c ? json(detalhesDaCaixa(c, config), 200, cors) : json({ erro: 'caixa' }, 404, cors)
+    if (!c) throw new ErroNaoEncontrado('caixa')
+    return json(detalhesDaCaixa(c, config), 200, cors)
   }
-  const [caixas, cfg, pontos] = await Promise.all([lerCaixas(env), lerConfigLoja(env), pontosGanhos(env, quem.id)])
-  let corpo = {}
-  let acao
-  if (rota === '/loja' && req.method === 'GET') acao = 'estado'
-  else if (rota === '/loja/saldo' && req.method === 'GET') acao = 'saldo'
-  else if (rota === '/loja/valores' && req.method === 'GET') acao = 'valores'
-  else if (rota === '/loja/vender' && req.method === 'POST') acao = 'vender'
-  else if (rota === '/loja/historico' && req.method === 'GET') acao = 'historico'
-  else if (rota === '/loja/comprar' && req.method === 'POST') acao = 'comprar'
-  else if (rota === '/loja/abrir' && req.method === 'POST') acao = 'abrir'
-  else return json({ erro: 'rota' }, 404, cors)
-  if (req.method === 'POST') corpo = await req.json().catch(() => ({}))
-  const bonus = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
-  // modo Jester/Boost: o preço sai daqui (do servidor), nunca do site
-  const modo = acao === 'abrir' && MODOS.includes(corpo.modo) ? corpo.modo : null
-  const caixaModo = modo && caixas.find((c) => c.id === Number(corpo.caixa) && c.ativa && !c.arquivada)
-  const precoModo = caixaModo ? detalhesDaCaixa(caixaModo, cfg).modos[modo].preco : undefined
-  const premium = await partidasPremium(env, quem.id, sub)
-  const r = await chamar(env, quem.id, { acao, caixas, cfg, pontos, bonus, premium, caixa: corpo.caixa, qtd: corpo.qtd, ids: corpo.ids, origem: corpo.origem === 'inventario' || corpo.origem === 'auto' ? corpo.origem : 'direto', ...(modo ? { modo, precoModo } : {}) })
-  const dados = await r.json().catch(() => ({ erro: 'falhou' }))
-  if (acao === 'vender' && r.ok && dados.total > 0) await registrar(env, { tipo: 'venda', quem: quem.id, texto: `vendeu ${dados.vendidos} item(ns) para a loja por ${Number(dados.total).toLocaleString('pt-BR')} NP` })
-  // o que saiu da caixa entra no carrossel de drops ao vivo do topo da loja (aparece depois que a roleta termina)
-  if (acao === 'abrir' && r.ok && Array.isArray(dados.resultados)) await registrarDrops(env, quem, caixas.find((c) => c.id === Number(corpo.caixa)), dados.resultados)
-  // insígnias novas + as que o perfil ainda não tem (cura sozinha: nada de botão "reconferir"); aplicarInsignias só grava se faltar algo
-  const dar = { ...(dados.ganhas || {}), ...(dados.insigniasTs || {}) }
-  if (Object.keys(dar).length) await aplicarInsignias(env, { [quem.id]: dar })
-  delete dados.insigniasTs
-  delete dados.ganhas
-  return json(dados, r.status, cors)
+  const acao = ROTAS_LOJA[`${req.method} ${rota}`]
+  if (!acao) throw new ErroNaoEncontrado('rota')
+  const corpo = req.method === 'POST' ? await lerCorpo(req) : {}
+  const dados = await pedirAoJogador(env, quem.id, { acao, caixa: corpo.caixa, qtd: corpo.qtd, ids: corpo.ids, origem: corpo.origem, modo: MODOS.includes(corpo.modo) ? corpo.modo : undefined })
+  if (acao === 'vender' && dados.total > 0) await registrar(env, { tipo: 'venda', quem: quem.id, texto: `vendeu ${dados.vendidos} item(ns) para a loja por ${Number(dados.total).toLocaleString('pt-BR')} NP` })
+  if (acao === 'abrir') {
+    // o que saiu da caixa entra no carrossel de drops ao vivo (aparece depois que a roleta termina) e quem abriu entra na lista do /admin/loja-retro
+    await registrarDrops(env, quem, (await lerCaixas(env)).find((c) => c.id === Number(corpo.caixa)), dados.resultados)
+    if (!(await lerDoc(env, 'loja-jogadores', [])).includes(quem.id)) await mudarDoc(env, 'loja-jogadores', (l) => (l.includes(quem.id) ? l : [...l, quem.id].slice(-5000)), [])
+  }
+  // insígnias novas + as que o perfil ainda não tem (cura sozinha); darInsignias só grava se faltar algo
+  const { insigniasTs, ganhas, ...resposta } = dados
+  const dar = { ...ganhas, ...insigniasTs }
+  if (Object.keys(dar).length) await darInsignias(env, { [quem.id]: dar })
+  return json(resposta, 200, cors)
 }
 
+// Bônus "para todos" (doc loja-bonus): cada um recebe um id novo (um contador só para NP e caixas: um id já visto nunca é reaproveitado)
+const novoBonus = (env, bonus) => mudarDoc(env, 'loja-bonus', (lista) => [...lista, { id: Math.max(0, ...lista.map((b) => b.id)) + 1, ts: Date.now(), ...bonus }].slice(-200), [])
+
 export async function rotaAdminLoja(req, env, rota, cors) {
-  const corpo = await req.json().catch(() => ({}))
+  if (rota === '/admin/loja-saldo') return json(await pedirAoJogador(env, idDaUrl(new URL(req.url)), { acao: 'saldo', movimentos: true }), 200, cors)
+  if (rota === '/admin/caixas-lista') return json(await lerCaixas(env), 200, cors)
+  if (rota === '/admin/loja-bonus' && req.method === 'GET') {
+    const lista = await lerDoc(env, 'loja-bonus', [])
+    return json({ bonus: lista.filter((b) => !b.apagado && (b.caixa ? Math.round(b.qtd) > 0 : Math.round(b.valor) !== 0)).map((b) => ({ id: b.id, ts: b.ts, valor: b.valor, motivo: b.motivo || '', ...(b.caixa ? { caixa: b.caixa, qtd: b.qtd, nome: b.nome || '' } : {}) })) }, 200, cors)
+  }
+  const corpo = await lerCorpo(req)
   if (rota === '/admin/caixas') {
     const lista = (Array.isArray(corpo.caixas) ? corpo.caixas : []).slice(0, 150).map(limparCaixa).filter(Boolean)
-    if (!lista.length || new Set(lista.map((c) => c.id)).size !== lista.length || new Set(lista.map((c) => c.slug)).size !== lista.length) return json({ erro: 'caixas' }, 400, cors)
-    await env.MOLDURAS.put('caixas', JSON.stringify(lista))
+    if (!lista.length || new Set(lista.map((c) => c.id)).size !== lista.length || new Set(lista.map((c) => c.slug)).size !== lista.length) throw new ErroPedido('caixas')
+    await gravarDoc(env, 'caixas', lista)
     return json({ ok: true, n: lista.length }, 200, cors)
   }
-  if (rota === '/admin/caixas-lista') return json(await lerCaixas(env), 200, cors)
   if (rota === '/admin/loja-config') {
     const atual = await lerConfigLoja(env)
     const taxas = Array.isArray(corpo.taxas) && corpo.taxas.length === 6 ? corpo.taxas.map((t) => num(t, 0, 100, 0)) : atual.taxas
-    if (taxas.reduce((a, b) => a + b, 0) <= 0) return json({ erro: 'taxas' }, 400, cors)
+    if (taxas.reduce((a, b) => a + b, 0) <= 0) throw new ErroPedido('taxas')
     const desgaste = Array.isArray(corpo.desgaste) && corpo.desgaste.length === 5 ? corpo.desgaste.map((f, i) => ({ nome: atual.desgaste[i].nome, min: atual.desgaste[i].min, max: atual.desgaste[i].max, chance: num(f.chance, 0, 100, atual.desgaste[i].chance) })) : atual.desgaste
     const nova = { taxas, desgaste, maxQtd: Math.round(num(corpo.maxQtd, 1, 10, atual.maxQtd)) }
-    await env.MOLDURAS.put('loja-config', JSON.stringify(nova))
+    await gravarDoc(env, 'loja-config', nova)
     return json(nova, 200, cors)
   }
-  // Pontos: uma rota só. alvo = 'todos' ou SteamID64; acao = 'adicionar' | 'remover' | 'definir' (definir só para um jogador)
+  // Pontos: alvo = 'todos' ou SteamID64; acao = 'adicionar' | 'remover' | 'definir' (definir só para um jogador)
   if (rota === '/admin/loja-pontos') {
     const valor = Math.round(num(corpo.valor, 0, 1e7, -1))
-    if (valor < 0 || !['adicionar', 'remover', 'definir'].includes(corpo.acao)) return json({ erro: 'valor' }, 400, cors)
+    if (valor < 0 || !['adicionar', 'remover', 'definir'].includes(corpo.acao)) throw new ErroPedido('valor')
     const motivo = String(corpo.motivo || '').slice(0, 60)
+    const assinado = corpo.acao === 'remover' ? -valor : valor
     if (corpo.alvo === 'todos') {
-      if (corpo.acao === 'definir' || !valor) return json({ erro: 'valor' }, 400, cors)
-      const lista = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
-      const nova = { id: Math.max(0, ...lista.map((b) => b.id)) + 1, ts: Date.now(), valor: corpo.acao === 'remover' ? -valor : valor, motivo }
-      await env.MOLDURAS.put('loja-bonus', JSON.stringify([...lista, nova].slice(-200)))
+      if (corpo.acao === 'definir' || !valor) throw new ErroPedido('valor')
+      await novoBonus(env, { valor: assinado, motivo })
       await avisarTodos(env, { tipo: 'bonus' }) // quem está com o site aberto busca o saldo (recebe o bônus) e depois as notificações
       return json({ ok: true, todos: true }, 200, cors)
     }
-    if (!ID_STEAM.test(corpo.alvo || '')) return json({ erro: 'id' }, 400, cors)
-    const pontos = await pontosGanhos(env, corpo.alvo)
-    const bonus = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
-    const r = await chamar(env, corpo.alvo, { acao: corpo.acao === 'definir' ? 'definir' : 'creditar', pontos, bonus, valor: corpo.acao === 'remover' ? -valor : valor, motivo, aviso: corpo.acao !== 'definir' })
-    return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
+    if (!ID_STEAM.test(corpo.alvo || '')) throw new ErroPedido('id')
+    return json(await pedirAoJogador(env, corpo.alvo, { acao: corpo.acao === 'definir' ? 'definir' : 'creditar', valor: assinado, motivo, aviso: corpo.acao !== 'definir' }), 200, cors)
   }
-  // Bônus de caixa fechada para todos: { caixa (id), qtd 1..ITENS_MAX, motivo }. Entra na mesma lista dos bônus de NP (os ids seguem um contador só)
+  // Bônus de caixa fechada para todos: { caixa (id), qtd 1..ITENS_MAX, motivo }
   if (rota === '/admin/loja-bonus-caixa') {
     const caixa = (await lerCaixas(env)).find((c) => c.id === Number(corpo.caixa) && !c.arquivada)
     const qtd = Math.round(num(corpo.qtd, 1, ITENS_MAX, 0))
-    if (!caixa) return json({ erro: 'caixa' }, 400, cors)
-    if (!qtd) return json({ erro: 'valor' }, 400, cors)
-    const lista = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
-    const nova = { id: Math.max(0, ...lista.map((b) => b.id)) + 1, ts: Date.now(), valor: 0, caixa: caixa.id, qtd, nome: String(caixa.nome || caixa.slug).slice(0, 60), img: comVersao(caixa).img || '', motivo: String(corpo.motivo || '').slice(0, 60) }
-    await env.MOLDURAS.put('loja-bonus', JSON.stringify([...lista, nova].slice(-200)))
+    if (!caixa) throw new ErroPedido('caixa')
+    if (!qtd) throw new ErroPedido('valor')
+    await novoBonus(env, { valor: 0, caixa: caixa.id, qtd, nome: String(caixa.nome || caixa.slug).slice(0, 60), img: comVersao(caixa).img || '', motivo: String(corpo.motivo || '').slice(0, 60) })
     await avisarTodos(env, { tipo: 'bonus' })
     return json({ ok: true, todos: true }, 200, cors)
   }
-  // Bônus "para todos" salvos (GET: lista) e apagar um (POST { apagar: id }). Apagar = ninguém mais recebe (quem já recebeu fica com os pontos); o id continua na lista
-  // marcado como apagado, para um bônus novo nunca reaproveitar um número que os jogadores já "viram".
+  // Apagar um bônus: ninguém mais recebe (quem já recebeu fica com os pontos); o id continua na lista marcado como apagado
   if (rota === '/admin/loja-bonus') {
-    const lista = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
-    if (req.method === 'GET') return json({ bonus: lista.filter((b) => !b.apagado && (b.caixa ? Math.round(b.qtd) > 0 : Math.round(b.valor) !== 0)).map((b) => ({ id: b.id, ts: b.ts, valor: b.valor, motivo: b.motivo || '', ...(b.caixa ? { caixa: b.caixa, qtd: b.qtd, nome: b.nome || '' } : {}) })) }, 200, cors)
     const id = Number(corpo.apagar)
-    if (!lista.some((b) => b.id === id)) return json({ erro: 'bonus' }, 404, cors)
-    await env.MOLDURAS.put('loja-bonus', JSON.stringify(lista.map((b) => (b.id === id ? { ...b, apagado: true } : b))))
+    let achou = false
+    await mudarDoc(
+      env,
+      'loja-bonus',
+      (lista) =>
+        lista.map((b) => {
+          if (b.id !== id) return b
+          achou = true
+          return { ...b, apagado: true }
+        }),
+      [],
+    )
+    if (!achou) throw new ErroNaoEncontrado('bonus')
     return json({ ok: true }, 200, cors)
   }
-  // Saldo de um jogador (o painel consulta de poucos em poucos segundos: "tempo real")
-  if (rota === '/admin/loja-saldo') {
-    const id = new URL(req.url).searchParams.get('id') || ''
-    if (!ID_STEAM.test(id)) return json({ erro: 'id' }, 400, cors)
-    const pontos = await pontosGanhos(env, id)
-    const bonus = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
-    const r = await chamar(env, id, { acao: 'saldo', pontos, bonus, movimentos: true })
-    return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
-  }
-  return json({ erro: 'rota' }, 404, cors)
+  throw new ErroNaoEncontrado('rota')
 }
 
-export { INSIGNIAS_LOJA, ehInsigniaLoja }

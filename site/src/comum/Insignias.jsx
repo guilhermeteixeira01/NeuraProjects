@@ -7,6 +7,7 @@
 //    relidos a cada 30 s e, com o site aberto, o perfil novo chega na hora pela conexão ao vivo (amigos.js).
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { seForErroApi } from './api.js'
 import { useConta } from './conta.js'
 import { salvarPerfil, usePerfis, usePerfisFrescos } from './Moldura.jsx'
 import { registrarNotificacao } from './notificacoes.js'
@@ -190,7 +191,7 @@ const marcar = (id, marca) => {
   } catch {
     // sem armazenamento: o aviso pode repetir, mas não quebra nada
   }
-  salvarPerfil({ vistos: { ins: [marca] } }).catch(() => {}) // na conta, para os outros aparelhos não avisarem de novo
+  salvarPerfil({ vistos: { ins: [marca] } }).catch(seForErroApi()) // na conta, para os outros aparelhos não avisarem de novo
 }
 // Cada insígnia avisa UMA vez (a marca é só o id): antes era id+data, e qualquer mudança de data (gravação repetida) avisava de novo.
 // Marcas antigas ("id:data") ainda valem: o que vem depois dos dois pontos é ignorado.
@@ -309,7 +310,7 @@ export default function AvisoInsignia() {
     const faltam = locais.filter((m) => !doServidor.includes(m))
     if (faltam.length && !migrado.current) {
       migrado.current = true
-      salvarPerfil({ vistos: { ins: faltam } }).catch(() => {})
+      salvarPerfil({ vistos: { ins: faltam } }).catch(seForErroApi())
     }
     const ja = new Set([...doServidor, ...locais])
     const novas = insigniasDe(perfis, conta.id).filter((i) => !ja.has(marcaDe(i)))

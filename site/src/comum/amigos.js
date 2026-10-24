@@ -4,12 +4,12 @@
 //    a mesma conexão traz o meu perfil quando o admin muda algo nele (evento np-perfil-ao-vivo).
 // Ausente: aba em segundo plano ou 5 min sem mexer no mouse/teclado. A conexão volta sozinha se cair.
 import { useEffect, useState } from 'react'
+import { ErroApi, chamarApi, enderecoApi } from './api.js'
 import { CONFIG } from './config.js'
 import { tokenConta, useConta } from './conta.js'
 
 const EVENTO = 'np-amigos'
 const OCIOSO_MS = 5 * 60 * 1000
-const base = () => CONFIG.loginSteam.replace(/\/$/, '')
 
 let estado = { lista: null, status: {}, conectado: false }
 let ws = null
@@ -26,40 +26,23 @@ const publicar = (novo) => {
   window.dispatchEvent(new Event(EVENTO))
 }
 
-async function chamar(metodo, corpo) {
-  const token = tokenConta()
-  if (!token) throw new Error('login')
-  const r = await fetch(`${base()}/amigos`, {
-    method: metodo,
-    headers: { Authorization: `Bearer ${token}`, ...(corpo ? { 'Content-Type': 'application/json' } : {}) },
-    body: corpo ? JSON.stringify(corpo) : undefined,
-  })
-  const d = await r.json().catch(() => null)
-  if (!r.ok || d?.erro) throw new Error(d?.erro || 'falhou')
-  return d
-}
-
 async function carregarLista() {
   try {
-    publicar({ lista: await chamar('GET') })
-  } catch {
-    // sem login ou worker fora: fica a lista que já tinha
+    publicar({ lista: await chamarApi('/amigos') })
+  } catch (e) {
+    if (!(e instanceof ErroApi)) throw e // sem login ou worker fora: fica a lista que já tinha
   }
 }
 
 // pedir | aceitar | recusar | cancelar | remover
 // Busca por nome entre quem o site conhece (quem já entrou com a Steam; o ranking o painel já tem): GET /usuarios/buscar?q=
 export async function buscarJogadores(q) {
-  const token = tokenConta()
-  if (!token) throw new Error('login')
-  const r = await fetch(`${base()}/usuarios/buscar?q=${encodeURIComponent(q)}`, { headers: { Authorization: `Bearer ${token}` } })
-  const d = await r.json().catch(() => null)
-  if (!r.ok || d?.erro) throw new Error(d?.erro || 'falhou')
+  const d = await chamarApi(`/usuarios/buscar?q=${encodeURIComponent(q)}`)
   return Array.isArray(d?.jogadores) ? d.jogadores : []
 }
 
 export async function acaoAmizade(acao, id) {
-  const lista = await chamar('POST', { acao, id })
+  const lista = await chamarApi('/amigos', { acao, id })
   publicar({ lista })
   return lista
 }
@@ -120,7 +103,7 @@ function conectar(id) {
   const token = tokenConta()
   if (!token || !CONFIG.loginSteam) return
   dono = id
-  ws = new WebSocket(`${base().replace(/^http/, 'ws')}/presenca?t=${encodeURIComponent(token)}`)
+  ws = new WebSocket(`${enderecoApi().replace(/^http/, 'ws')}/presenca?t=${encodeURIComponent(token)}`)
   ws.onopen = () => {
     tentativas = 0
     publicar({ conectado: true })
@@ -183,7 +166,6 @@ function desconectar() {
   window.dispatchEvent(new Event(EVENTO))
 }
 
-let usuarios = 0
 let ligadoPara = null
 function ligar(id) {
   if (ligadoPara === id) return
@@ -208,11 +190,7 @@ export function useAmigos() {
   useEffect(() => {
     const ouvir = () => atualizar((n) => n + 1)
     window.addEventListener(EVENTO, ouvir)
-    usuarios++
-    return () => {
-      window.removeEventListener(EVENTO, ouvir)
-      usuarios--
-    }
+    return () => window.removeEventListener(EVENTO, ouvir)
   }, [])
   useEffect(() => {
     if (!CONFIG.loginSteam) return

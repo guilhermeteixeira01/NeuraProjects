@@ -2,26 +2,12 @@
 // (comum/amigos.js -> evento np-chat) e ficam guardadas só enquanto a sala existe: quando ela fecha, o servidor apaga o chat.
 // Worker: src/amigos.js (GET/POST /chat).
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { chamarApi } from '../../comum/api.js'
 import { useAvatar } from '../../comum/avatares.js'
-import { CONFIG } from '../../comum/config.js'
-import { linkPerfil, tokenConta } from '../../comum/conta.js'
+import { linkPerfil } from '../../comum/conta.js'
 import { useT } from '../../comum/i18n.js'
 
-const base = () => CONFIG.loginSteam.replace(/\/$/, '')
 const MAX = 240
-
-async function chamar(metodo, corpo) {
-  const token = tokenConta()
-  if (!token) throw new Error('login')
-  const r = await fetch(`${base()}/chat`, {
-    method: metodo,
-    headers: { Authorization: `Bearer ${token}`, ...(corpo ? { 'Content-Type': 'application/json' } : {}) },
-    body: corpo ? JSON.stringify(corpo) : undefined,
-  })
-  const d = await r.json().catch(() => null)
-  if (!r.ok || d?.erro) throw new Error(d?.erro || 'falhou')
-  return d
-}
 
 const hora = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
@@ -45,7 +31,7 @@ export default function ChatSala({ partidaId, eu, nomeDoTime }) {
 
   const carregar = useCallback(async () => {
     try {
-      const d = await chamar('GET')
+      const d = await chamarApi('/chat')
       if (d.partida === partidaId) setMsgs(d.mensagens || [])
     } catch {
       // sem chat por enquanto: tenta de novo no próximo ciclo
@@ -94,7 +80,7 @@ export default function ChatSala({ partidaId, eu, nomeDoTime }) {
     setTexto('')
     colado.current = true
     try {
-      const d = await chamar('POST', { texto: limpo, canal: aba })
+      const d = await chamarApi('/chat', { texto: limpo, canal: aba })
       setMsgs((l) => (l.some((x) => x.id === d.msg.id) ? l : [...l, d.msg].slice(-200)))
     } catch (e2) {
       setTexto(limpo)

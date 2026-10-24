@@ -2,27 +2,15 @@
 //   • O apelido é escolhido na primeira visita (janela BoasVindas). Depois só assinante Premium troca, a cada 15 dias.
 //   • A senha de segurança é pedida para propor/aceitar troca e para colocar item à venda no mercado (evita golpe e fraude).
 import { useEffect, useState } from 'react'
-import { CONFIG } from './config.js'
-import { tokenConta, useConta } from './conta.js'
+import { chamarApi, seForErroApi } from './api.js'
+import { useConta } from './conta.js'
 import { perguntarSenha } from './Dialogos.jsx'
 import { traduzir } from './i18n.js'
 
-const base = () => CONFIG.loginSteam.replace(/\/$/, '')
 export const EVENTO_SEGURANCA = 'np-seguranca' // a janela de boas-vindas (ou Configurações) mudou algo: quem usa o estado relê
 export const EVENTO_PEDIR_SENHA = 'np-pedir-senha' // alguém precisa criar a senha agora (ação bloqueada por falta dela)
 
-async function chamar(rota, corpo) {
-  const token = tokenConta()
-  if (!token || !CONFIG.loginSteam) throw new Error('login')
-  const r = await fetch(`${base()}${rota}`, {
-    method: corpo === undefined ? 'GET' : 'POST',
-    headers: { Authorization: `Bearer ${token}`, ...(corpo === undefined ? {} : { 'Content-Type': 'application/json' }) },
-    body: corpo === undefined ? undefined : JSON.stringify(corpo),
-  })
-  const d = await r.json().catch(() => null)
-  if (!r.ok || d?.erro) throw Object.assign(new Error(d?.erro || 'falhou'), { dados: d || {} })
-  return d
-}
+const chamar = chamarApi
 
 export const lerSeguranca = () => chamar('/conta/seguranca')
 export const escolherNick = (nick) => chamar('/conta/nick', { nick })
@@ -66,7 +54,7 @@ export function useSeguranca() {
     const ler = () =>
       lerSeguranca()
         .then((d) => vivo && setEstado(d))
-        .catch(() => {})
+        .catch(seForErroApi())
     ler()
     window.addEventListener(EVENTO_SEGURANCA, ler)
     return () => {

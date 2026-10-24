@@ -2,10 +2,10 @@
 // Skins, facas e luvas com adesivos/chaveiro colados e onde estão equipadas (CT/TR); adesivos, chaveiros e caixas guardados, agrupados com a quantidade.
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { lerApi, seForErroApi } from './api.js'
 import CartaoSkin from './CartaoSkin.jsx'
 import { CarregandoNP } from './Carregando.jsx'
 import { InspecionarSkin } from './InspecionarSkin.jsx'
-import { CONFIG } from './config.js'
 import { useConta } from './conta.js'
 import { BotaoTrocas } from './Trocas.jsx'
 import { useT } from './i18n.js'
@@ -42,10 +42,10 @@ export default function InventarioDoJogador({ steamId, nome, aoFechar }) {
 
   useEffect(() => {
     let vivo = true
-    fetch(`${CONFIG.loginSteam.replace(/\/$/, '')}/skins/inventario?id=${encodeURIComponent(steamId)}`)
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d) => vivo && setDados(d))
-      .catch(() => vivo && setErro(true))
+    lerApi(`/skins/inventario?id=${encodeURIComponent(steamId)}`).then(
+      (d) => vivo && setDados(d),
+      seForErroApi(() => vivo && setErro(true)),
+    )
     lerCaixasPublicas().then((c) => vivo && setCaixas(c))
     return () => {
       vivo = false

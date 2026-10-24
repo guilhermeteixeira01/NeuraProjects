@@ -1,6 +1,6 @@
-// Página: times de jogadores (o CSS da página já importa a base do site na ordem certa)
+// Página: times de jogadores (a base do site vem pelo montar.jsx; o CSS da página vem depois e ganha dela)
+import { montar } from '../comum/montar.jsx'
 import './equipes.css'
 import Equipes from '../paginas/equipes/Equipes.jsx'
-import { montar } from '../comum/montar.jsx'
 
 montar(Equipes)

@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import Layout from '../../comum/Layout.jsx'
 import { CarregandoNP } from '../../comum/Carregando.jsx'
-import { CONFIG } from '../../comum/config.js'
 import { entrar, linkPerfil, loginAtivo } from '../../comum/conta.js'
 import { lerJson } from '../../comum/dados.js'
 import { IconeSteam } from '../../comum/Icones.jsx'

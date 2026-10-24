@@ -113,13 +113,6 @@ h4 {
   border-color: var(--accent);
   color: var(--accent);
 }
-.btn-comunidade {
-  background: var(--blue);
-}
-.btn-comunidade:hover {
-  background: var(--blue-2);
-  filter: none;
-}
 
 /* ── Quadros, etiquetas e campos: cantos vivos ── */
 .caixa,
@@ -128,7 +121,6 @@ h4 {
 input[type='text'],
 input[type='search'],
 input[type='number'],
-input[type='email'],
 select,
 textarea {
   border-radius: var(--raio);
@@ -168,10 +160,6 @@ textarea {
 }
 
 /* ── Foco e movimento ── */
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
 @media (prefers-reduced-motion: reduce) {
   * {
     scroll-behavior: auto !important;
@@ -211,8 +199,7 @@ textarea {
 }
 
 /* botões das páginas (.eq-btn, .inv-btn, .lj-btn…): mesmos cantos retos do .btn; os do menu (.nx-) ficam como estão */
-[class*='-btn']:not([class*='nx-']):not([class*='-btn-ico']):not([class*='-btn-x']),
-.cb-botao {
+[class*='-btn']:not([class*='nx-']):not([class*='-btn-ico']):not([class*='-btn-x']) {
   border-radius: var(--raio);
 }
 

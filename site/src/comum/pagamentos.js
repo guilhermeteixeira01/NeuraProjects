@@ -1,21 +1,7 @@
 // Depósito de NP com Pix ou cartão (worker: src/pagamentos.js, pelo Asaas). O servidor calcula tudo; aqui só chamamos.
-import { CONFIG } from './config.js'
-import { tokenConta } from './conta.js'
+import { chamarApi } from './api.js'
 
-const base = () => CONFIG.loginSteam.replace(/\/$/, '')
-
-async function chamar(rota, corpo) {
-  const token = tokenConta()
-  if (!token) throw new Error('login')
-  const r = await fetch(`${base()}${rota}`, {
-    method: corpo ? 'POST' : 'GET',
-    headers: { Authorization: `Bearer ${token}`, ...(corpo ? { 'Content-Type': 'application/json' } : {}) },
-    body: corpo ? JSON.stringify(corpo) : undefined,
-  })
-  const d = await r.json().catch(() => null)
-  if (!r.ok || d?.erro) throw new Error(d?.erro || 'falhou')
-  return d
-}
+const chamar = chamarApi
 
 // metodo: 'pix' | 'cartao'. Devolve { id, metodo, centavos, np, pix: { payload, imagem, expira } } ou { ..., url }
 // extra: { tipo: 'sub', meses } para assinatura (o preço sai do plano, no servidor)

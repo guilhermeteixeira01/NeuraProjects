@@ -4,6 +4,7 @@
 // (Abertura embutida). Chances, preços dos modos e valores por desgaste vêm do servidor (GET /loja/caixa).
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { seForErroApi } from '../../comum/api.js'
 import Deposito from './Deposito.jsx'
 import { useT } from '../../comum/i18n.js'
 import { avisarSaldo, lerDetalhesCaixa, venderItens } from '../../comum/loja.js'
@@ -403,7 +404,7 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
   useEffect(() => {
     let vivo = true
     setDet(null)
-    lerDetalhesCaixa(c.id).then((d) => vivo && setDet(d), () => {})
+    lerDetalhesCaixa(c.id).then((d) => vivo && setDet(d), seForErroApi())
     return () => {
       vivo = false
     }

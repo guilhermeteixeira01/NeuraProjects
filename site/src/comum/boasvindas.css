@@ -10,11 +10,6 @@
 .bv-passos li.feito i { background: #3fb950; color: #06170e; }
 .bv h2 { margin: 0 0 8px; font: 800 26px/1.05 var(--font-display); letter-spacing: .01em; text-transform: none; }
 .bv p { margin: 0 0 14px; font-size: 14px; line-height: 1.55; color: rgb(var(--tinta, 255 255 255) / .8); }
-.bv-campo { display: grid; gap: 5px; margin: 0 0 14px; }
-.bv-campo > span { font: 700 12px var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--dim, #9a9ba3); }
-.bv-campo input { width: 100%; box-sizing: border-box; padding: 11px 12px; border-radius: 8px; border: 1px solid rgb(var(--tinta, 255 255 255) / .2); background: rgb(0 0 0 / .35); color: inherit; font: 600 16px var(--font-body); }
-.bv-campo input:focus { outline: 2px solid var(--accent, #f5c542); outline-offset: 1px; border-color: transparent; }
-.bv-campo small { color: var(--dim, #9a9ba3); font-size: 12px; }
 .bv-aviso { display: grid; gap: 3px; margin: 0 0 14px; padding: 11px 13px; border-radius: 8px; background: rgb(245 197 66 / .1); border: 1px solid rgb(245 197 66 / .4); font-size: 13px; line-height: 1.5; }
 .bv-aviso b { color: var(--accent, #f5c542); font-size: 13.5px; }
 .bv-aviso-atencao { background: rgb(52 152 219 / .1); border-color: rgb(52 152 219 / .45); }

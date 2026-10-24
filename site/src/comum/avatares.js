@@ -10,6 +10,7 @@
 // No HTML gerado (sem JS) também sai AVATAR_VAZIO, igual à primeira renderização no navegador.
 // Avatar animado (Loja de Pontos) vem como GIF; com "Melhorar desempenho" ou no celular, a foto parada.
 import { useEffect, useLayoutEffect, useState } from 'react'
+import { ErroApi, lerApi } from './api.js'
 import { CONFIG } from './config.js'
 import { EVENTO_DESEMPENHO, desempenhoAtivo, ehCelular } from './desempenho.js'
 
@@ -57,7 +58,6 @@ async function buscar() {
   espera = null
   const ids = [...pedidos]
   pedidos.clear()
-  const base = CONFIG.loginSteam.replace(/\/$/, '')
   const desistir = setTimeout(() => {
     for (const id of ids) if (!atuais.has(id)) desistiu.add(id)
     window.dispatchEvent(new Event(EVENTO))
@@ -66,16 +66,16 @@ async function buscar() {
     const lote = ids.slice(i, i + 100)
     try {
       // v=2: versões antigas do worker mandavam o navegador guardar por 30 min; o endereço novo não pega essa cópia velha
-      const r = await fetch(`${base}/avatares?v=2&ids=${lote.join(',')}`, { cache: 'no-store' })
-      const d = r.ok ? await r.json() : {}
+      const d = await lerApi(`/avatares?v=2&ids=${lote.join(',')}`, { cache: 'no-store' })
       for (const [id, url] of Object.entries(d || {})) if (typeof url === 'string' && URL_OK.test(url)) atuais.set(id, url)
       for (const id of lote) {
         if (URL_OK.test(d?._parado?.[id] || '')) parados.set(id, d._parado[id])
         else if (d?.[id]) parados.delete(id) // tirou o avatar animado
         if (!atuais.has(id)) desistiu.add(id) // a Steam não devolveu: fica a da partida
       }
-    } catch {
-      for (const id of lote) if (!atuais.has(id)) desistiu.add(id)
+    } catch (e) {
+      if (!(e instanceof ErroApi)) throw e
+      for (const id of lote) if (!atuais.has(id)) desistiu.add(id) // worker fora: ficam as fotos das partidas
     }
   }
   clearTimeout(desistir)

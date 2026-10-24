@@ -55,7 +55,6 @@
 .dep-pulsa { width: 9px; height: 9px; border-radius: 50%; background: #f5c542; animation: dep-pulsa 1.2s ease-in-out infinite; }
 .dep-link { background: none; border: 0; color: #6ec1ff; cursor: pointer; font: 600 13px var(--font-body, inherit); }
 .dep-ok { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: rgb(182 242 58 / .15); border: 2px solid #b6f23a; color: #b6f23a; font-size: 34px; }
-.dep-btn-saldo { margin-left: 12px; }
 @keyframes dep-fundo { from { opacity: 0; } }
 @keyframes dep-entra { from { opacity: 0; transform: translateY(14px) scale(.97); } }
 @keyframes dep-pulsa { 50% { opacity: .35; transform: scale(.7); } }

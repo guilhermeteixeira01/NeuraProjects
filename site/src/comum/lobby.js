@@ -4,11 +4,11 @@
 //             convitesRecebidos: [{ lider: pessoa, membros }], abertos: [{ lider: pessoa, membros }] }
 //   pessoa = { id, nome, avatar, st: 'online' | 'ausente' | 'offline' }
 import { useEffect, useState } from 'react'
+import { chamarApi } from './api.js'
 import { CONFIG } from './config.js'
-import { tokenConta, useConta } from './conta.js'
+import { useConta } from './conta.js'
 
 const EVENTO = 'np-lobby-estado'
-const base = () => CONFIG.loginSteam.replace(/\/$/, '')
 
 let estado = { dados: null, erro: '' }
 const publicar = (novo) => {
@@ -16,16 +16,8 @@ const publicar = (novo) => {
   window.dispatchEvent(new Event(EVENTO))
 }
 
-async function chamar(metodo, corpo) {
-  const token = tokenConta()
-  if (!token) throw new Error('login')
-  const r = await fetch(`${base()}/lobby`, {
-    method: metodo,
-    headers: { Authorization: `Bearer ${token}`, ...(corpo ? { 'Content-Type': 'application/json' } : {}) },
-    body: corpo ? JSON.stringify(corpo) : undefined,
-  })
-  const d = await r.json().catch(() => null)
-  if (!r.ok || d?.erro) throw new Error(d?.erro || 'falhou')
+async function chamar(corpo) {
+  const d = await chamarApi('/lobby', corpo)
   if (d.partida) d.partida.desvio = d.partida.agora - Date.now() // relógio do servidor − o desta aba
   return d
 }
@@ -49,7 +41,7 @@ export function useRelogio(ativo, ms = 250) {
 let lendo = null
 export function carregarLobby() {
   // vários componentes pedem ao mesmo tempo (página, sino e barra): uma leitura só
-  lendo ||= chamar('GET')
+  lendo ||= chamar()
     .then((d) => publicar({ dados: d, erro: '' }))
     .catch((e) => publicar({ erro: e.message }))
     .finally(() => (lendo = null))
@@ -58,7 +50,7 @@ export function carregarLobby() {
 
 // convidar | remover | entrar | recusar | sair | publico   (id = SteamID do alvo ou do líder; valor = true/false no "publico")
 export async function acaoLobby(acao, id, valor) {
-  const d = await chamar('POST', { acao, id, valor })
+  const d = await chamar({ acao, id, valor })
   publicar({ dados: d, erro: '' })
   return d
 }

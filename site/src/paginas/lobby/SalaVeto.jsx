@@ -254,7 +254,7 @@ function Conectar({ servidor, fechaEm, desvio, aoChamarSubstituto }) {
 export default function SalaVeto({ dados }) {
   const t = useT()
   const { partida, eu } = dados
-  const { fase, times, pool, historico, meuTime } = partida
+  const { fase, times, pool, historico } = partida
   const [aviso, setAviso] = useState('')
   const [ocupado, setOcupado] = useState(false)
   const [chamando, setChamando] = useState(false)

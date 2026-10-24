@@ -3,8 +3,8 @@
 // avatar ou time lê o mapa e confere de novo a cada 30 s (sem recarregar a página); quem troca vê na hora.
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { CONFIG } from './config.js'
-import { sair, tokenConta, useConta } from './conta.js'
+import { chamarApi, lerTextoApi, seForErroApi, enderecoApi } from './api.js'
+import { useConta } from './conta.js'
 import { classeForma, molduraPorId, urlMoldura, urlParada } from './molduras.js'
 import { CONSULTA_CELULAR, EVENTO_DESEMPENHO, desempenhoAtivo } from './desempenho.js'
 import { useT } from './i18n.js'
@@ -18,7 +18,6 @@ import { NIVEIS_SUB, SUB_MESES_PADRAO, nivelDaSub } from './assinatura.js'
 
 const EVENTO = 'np-perfis'
 const CACHE = 'np_perfis' // última lista lida (aparece já na troca de página, sem esperar a rede)
-const base = () => CONFIG.loginSteam.replace(/\/$/, '')
 
 let mapa = null // { steamId: { moldura?, time? } }
 let buscando = null
@@ -37,11 +36,9 @@ function publicar(novo) {
 let textoPerfis = null
 let lido = false // já leu os perfis do worker nesta página (o que veio do cache da aba pode estar velho)
 function buscar() {
-  if (!CONFIG.loginSteam || buscando) return
-  buscando = fetch(`${base()}/perfis`, { cache: 'no-store' })
-    .then((r) => (r.ok ? r.text() : null))
+  if (!enderecoApi() || buscando) return
+  buscando = lerTextoApi('/perfis', { cache: 'no-store' })
     .then((texto) => {
-      if (!texto) return
       if (texto !== textoPerfis) {
         textoPerfis = texto
         const d = JSON.parse(texto)
@@ -53,7 +50,7 @@ function buscar() {
         window.dispatchEvent(new Event(EVENTO))
       }
     })
-    .catch(() => {})
+    .catch(seForErroApi()) // worker fora: ficam os perfis que já tinha
     .finally(() => (buscando = null))
 }
 
@@ -123,22 +120,9 @@ export function usePerfisFrescos() {
   return ok
 }
 
-// Chamada ao worker com o login (GET sem corpo, POST com corpo). Erros: 'login' (login vencido: sai da conta)
-// ou a resposta do worker ({ erro, ... }, ex.: 'nivel', 'bloqueado', 'admin').
+// Chamada ao worker com o login (api.js: erro tipado; login vencido sai da conta). Resposta que traz os perfis já atualiza a página
 export async function chamar(rota, corpo) {
-  const token = tokenConta()
-  if (!token || !CONFIG.loginSteam) throw Object.assign(new Error('login'), { dados: {} })
-  const r = await fetch(`${base()}${rota}`, {
-    method: corpo === undefined ? 'GET' : 'POST',
-    headers: { Authorization: `Bearer ${token}`, ...(corpo === undefined ? {} : { 'Content-Type': 'application/json' }) },
-    body: corpo === undefined ? undefined : JSON.stringify(corpo),
-  })
-  const d = await r.json().catch(() => null)
-  if (r.status === 401) {
-    sair()
-    throw Object.assign(new Error('login'), { dados: d || {} })
-  }
-  if (!r.ok || d?.erro) throw Object.assign(new Error(d?.erro || 'falhou'), { dados: d || {} })
+  const d = await chamarApi(rota, corpo)
   if (d?.perfis) {
     publicar(d.perfis) // toda mudança de perfil já aparece na página
     textoPerfis = null // a próxima leitura sozinha confirma com o worker
@@ -161,11 +145,10 @@ let config = null
 let textoConfig = null
 let buscandoConfig = null
 function buscarConfig() {
-  if (!CONFIG.loginSteam || buscandoConfig) return
-  buscandoConfig = fetch(`${base()}/config`, { cache: 'no-store' })
-    .then((r) => (r.ok ? r.text() : null))
+  if (!enderecoApi() || buscandoConfig) return
+  buscandoConfig = lerTextoApi('/config', { cache: 'no-store' })
     .then((texto) => {
-      if (!texto || texto === textoConfig) return
+      if (texto === textoConfig) return
       textoConfig = texto
       const d = JSON.parse(texto)
       config = {
@@ -184,7 +167,7 @@ function buscarConfig() {
       }
       window.dispatchEvent(new Event(EVENTO_CONFIG))
     })
-    .catch(() => {})
+    .catch(seForErroApi()) // worker fora: fica a configuração que já tinha
     .finally(() => (buscandoConfig = null))
 }
 export function useConfigSite() {
@@ -465,7 +448,7 @@ export function useAdmin(conta) {
     if (eu.id !== conta.id) buscandoEu = null
     buscandoEu ??= chamar('/eu')
       .then((d) => (eu = { id: d.id, admin: !!d.admin, dono: !!d.dono, painel: !!d.painel, abas: Array.isArray(d.abas) ? d.abas : [] }))
-      .catch(() => (eu = { id: conta.id, admin: false, dono: false, painel: false, abas: [] }))
+      .catch(seForErroApi(() => (eu = { id: conta.id, admin: false, dono: false, painel: false, abas: [] })))
     let vivo = true
     buscandoEu.then((e) => vivo && setAtual(e))
     return () => {
@@ -485,7 +468,7 @@ export function useListaTimes() {
   useEffect(() => {
     buscandoTimes ??= carregarTimes()
       .then((l) => (times = l.filter((t) => t?.nome)))
-      .catch(() => (times = []))
+      .catch(seForErroApi(() => (times = [])))
     let vivo = true
     buscandoTimes.then((l) => vivo && setLista(l))
     return () => {

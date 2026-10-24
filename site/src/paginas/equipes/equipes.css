@@ -1,5 +1,4 @@
 /* Ordem: base do site, base das páginas e depois o desta página (o desta página ganha) */
-@import '../../comum/site.css';
 @import '../../comum/paginas.css';
 
 /* ══════════════ Times de jogadores (src/paginas/equipes/Equipes.jsx) ══════════════ */

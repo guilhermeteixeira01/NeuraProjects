@@ -5,71 +5,62 @@
  *   - insígnias: saem todas, menos as de cargo dadas à mão (Staff, Embaixador, Designer); o histórico de aberturas da loja (de onde saem
  *     as insígnias da loja) e as já ganhas também saem;
  *   - inventário de skins: vazio (e a cópia antiga do KV skins:<id> é apagada); anúncios do mercado, drops e trocas também;
- *   - XP: o ajuste do admin (perfis[id].xp) e os avisos já vistos (nível/insígnia) saem. O ranking vem das partidas registradas.
+ *   - XP: o ajuste do admin (perfil.xp) e os avisos já vistos (nível/insígnia) saem. O ranking vem das partidas registradas.
  *
  *   POST /admin/zerar-tudo { confirmar: 'ZERAR TUDO', simular?: true }   (só o dono)
  */
+import { lerColecao, lerDoc, mudar, gravarDoc, mudarDoc } from './dados.js'
+import { apagarKv, listarKv } from './kv.js'
+import { objetoGlobal, pedir, pedirAoJogador } from './objetos.js'
+
 const INSIGNIAS_DE_CARGO = new Set(['staff', 'embaixador', 'designer'])
 const ID_STEAM = /^\d{17}$/
+const PARALELO = 6
 
-const loja = (env, id) => env.LOJA.get(env.LOJA.idFromName(id))
-const objetoGlobal = (ns) => ns.get(ns.idFromName('global'))
-const postar = async (stub, url, corpo) => (await stub.fetch(url, { method: 'POST', body: JSON.stringify(corpo) })).json()
-
-// todo mundo que pode ter alguma coisa guardada: quem já entrou no site, quem já abriu caixa, quem tem perfil e quem tem inventário antigo no KV
+// Todo mundo que pode ter alguma coisa guardada: quem já entrou no site, quem tem perfil, quem já abriu caixa e quem tem inventário antigo no KV
 async function todosOsJogadores(env) {
-  const ids = new Set()
-  const usuarios = (await env.MOLDURAS.get('usuarios', 'json').catch(() => null)) || {}
-  const perfis = (await env.MOLDURAS.get('perfis', 'json').catch(() => null)) || {}
-  const abriram = (await env.MOLDURAS.get('loja-jogadores', 'json').catch(() => null)) || []
-  for (const id of [...Object.keys(usuarios), ...Object.keys(perfis), ...abriram]) if (ID_STEAM.test(id)) ids.add(id)
-  const chavesSkins = []
-  let cursor
-  do {
-    const r = await env.MOLDURAS.list({ prefix: 'skins:', cursor })
-    for (const k of r.keys) {
-      chavesSkins.push(k.name)
-      const id = k.name.slice(6)
-      if (ID_STEAM.test(id)) ids.add(id)
-    }
-    cursor = r.list_complete ? undefined : r.cursor
-  } while (cursor)
-  return { ids: [...ids], perfis, chavesSkins }
+  const [usuarios, perfis, abriram, chavesSkins] = await Promise.all([lerColecao(env, 'usuarios'), lerColecao(env, 'perfis'), lerDoc(env, 'loja-jogadores', []), listarKv(env, 'skins:')])
+  const ids = new Set([...Object.keys(usuarios), ...Object.keys(perfis), ...abriram, ...chavesSkins.map((k) => k.slice('skins:'.length))].filter((id) => ID_STEAM.test(id)))
+  return { ids: [...ids], perfis: Object.keys(perfis).length, chavesSkins }
 }
 
 export async function zerarTudo(env, simular) {
-  const { ids, perfis, chavesSkins } = await todosOsJogadores(env)
-  const bonus = (await env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)) || []
+  const [{ ids, perfis, chavesSkins }, bonus] = await Promise.all([todosOsJogadores(env), lerDoc(env, 'loja-bonus', [])])
   const bonusMax = Math.max(0, ...bonus.map((b) => b.id))
-  const resumo = { jogadores: ids.length, perfis: Object.keys(perfis).length, inventariosKv: chavesSkins.length, bonus: bonus.length, simulado: !!simular }
+  const resumo = { jogadores: ids.length, perfis, inventariosKv: chavesSkins.length, bonus: bonus.length, simulado: !!simular }
   if (simular) return resumo
 
-  // 1. objeto de cada jogador: NP, histórico de aberturas, insígnias da loja e inventário
+  // 1. objeto de cada jogador: NP, histórico de aberturas, insígnias da loja e inventário (6 por vez; quem falhar vai na lista)
   const falhas = []
   const fila = [...ids]
   await Promise.all(
-    Array.from({ length: 6 }, async () => {
-      while (fila.length) {
-        const id = fila.shift()
-        const r = await postar(loja(env, id), 'https://loja/', { id, acao: 'zerar', bonusMax }).catch(() => null)
-        if (!r?.ok) falhas.push(id)
+    Array.from({ length: PARALELO }, async () => {
+      for (let id = fila.shift(); id; id = fila.shift()) {
+        try {
+          await pedirAoJogador(env, id, { acao: 'zerar', bonusMax })
+        } catch (e) {
+          console.error('zerar: jogador', id, e)
+          falhas.push(id)
+        }
       }
     }),
   )
   // 2. perfis: só as insígnias de cargo ficam; sem XP do admin e sem avisos já vistos
-  for (const p of Object.values(perfis)) {
-    if (p.insignias) p.insignias = Object.fromEntries(Object.entries(p.insignias).filter(([k]) => INSIGNIAS_DE_CARGO.has(k)))
-    delete p.xp
-    delete p.vistos
-  }
-  await env.MOLDURAS.put('perfis', JSON.stringify(perfis))
+  await mudar(env, 'perfis', null, (todos) => {
+    for (const [id, p] of Object.entries(todos)) {
+      const novo = { ...p }
+      if (novo.insignias) novo.insignias = Object.fromEntries(Object.entries(novo.insignias).filter(([k]) => INSIGNIAS_DE_CARGO.has(k)))
+      delete novo.xp
+      delete novo.vistos
+      todos[id] = novo
+    }
+  })
   // 3. bônus já lançados valem 0 (os ids continuam, para os próximos bônus funcionarem) e ninguém mais na lista de quem abriu caixa
-  await env.MOLDURAS.put('loja-bonus', JSON.stringify(bonus.map((b) => ({ ...b, valor: 0, ...(b.caixa ? { qtd: 0 } : {}) }))))
-  await env.MOLDURAS.put('loja-jogadores', '[]')
+  await mudarDoc(env, 'loja-bonus', (lista) => lista.map((b) => ({ ...b, valor: 0, ...(b.caixa ? { qtd: 0 } : {}) })), [])
+  await gravarDoc(env, 'loja-jogadores', [])
   // 4. inventários antigos no KV (o objeto do jogador lia daqui na primeira vez)
-  for (const k of chavesSkins) await env.MOLDURAS.delete(k).catch(() => {})
+  for (const k of chavesSkins) await apagarKv(env, k)
   // 5. mercado (anúncios, créditos pendentes, drops) e trocas
-  const mercado = await postar(objetoGlobal(env.MERCADO), 'https://mercado/', { acao: 'zerar' }).catch(() => null)
-  const trocas = await postar(objetoGlobal(env.TROCAS), 'https://trocas/', { acao: 'zerar' }).catch(() => null)
-  return { ...resumo, falhas, mercado: !!mercado?.ok, trocas: !!trocas?.ok }
+  const [mercado, trocas] = await Promise.all([pedir(objetoGlobal(env.MERCADO), { acao: 'zerar' }, 'https://mercado/'), pedir(objetoGlobal(env.TROCAS), { acao: 'zerar' }, 'https://trocas/')])
+  return { ...resumo, falhas, mercado: !!mercado.ok, trocas: !!trocas.ok }
 }

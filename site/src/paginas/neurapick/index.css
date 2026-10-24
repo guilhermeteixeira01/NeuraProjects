@@ -1,5 +1,4 @@
 /* Ordem: base do site, base das páginas e depois o desta página (o desta página ganha) */
-@import '../../comum/site.css';
 
 :root {
   --bg: #0b0c0f;
@@ -62,9 +61,7 @@ img {
 /* ícones de tamanho fixo não podem ser espremidos por grid/flex */
 .map-icon,
 .pool-icon,
-.summary-icon,
-.social,
-.nav-brand .mark {
+.summary-icon {
   max-width: none;
   flex-shrink: 0;
   object-fit: contain;
@@ -82,11 +79,6 @@ button {
 }
 button:disabled {
   cursor: not-allowed;
-}
-
-:focus-visible {
-  outline: 2px solid var(--blue);
-  outline-offset: 2px;
 }
 
 .app {
@@ -170,66 +162,7 @@ b.decider {
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
 }
-.nav-inner {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 0 32px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-}
-.nav-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 16px;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-  text-align: left;
-  line-height: 1.2;
-}
-.nav-brand .outline {
-  -webkit-text-stroke: 1px var(--blue-2);
-  color: transparent;
-}
-.nav-brand .mark {
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-}
-.nav-brand .sub {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 2px;
-  color: var(--dim-2);
-  margin-top: 1px;
-}
-.nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.nav-actions .label-short {
-  display: none;
-}
 /* Celular: "Partidas" no lugar do texto longo e só a seta no "Voltar ao site" */
-@media (max-width: 560px) {
-  .nav-actions .label-long {
-    display: none;
-  }
-  .nav-actions .label-short {
-    display: inline;
-  }
-  .nav-actions .btn-sm {
-    padding: 8px 10px;
-  }
-}
 
 /* ── BUTTONS ── */
 .btn {
@@ -627,29 +560,6 @@ b.decider {
 }
 
 /* ── STATUS STRIP ── */
-.status-strip {
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-soft);
-}
-.status-strip .wrap {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px 32px;
-  padding: 20px 32px;
-  justify-content: center;
-}
-.status-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--dim);
-}
-.status-item svg {
-  color: var(--blue);
-  flex-shrink: 0;
-}
 
 /* ── SECTION ── */
 .section {
@@ -1530,70 +1440,6 @@ b.decider {
   border-top: 1px solid var(--border);
   background: var(--bg-soft);
 }
-.footer-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 20px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 20px;
-}
-.footer-brand {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 14px;
-  letter-spacing: 0.5px;
-}
-.footer-brand span {
-  color: var(--blue);
-}
-.footer-social {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.footer-social a {
-  transition: transform 0.15s;
-}
-.footer-social a:hover {
-  transform: translateY(-2px);
-}
-.social {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-  image-rendering: pixelated;
-  transition: filter 0.15s;
-}
-.social.instagram {
-  image-rendering: auto;
-}
-.social.discord:hover {
-  filter: drop-shadow(0 0 12px rgba(88, 101, 242, 0.8));
-}
-.social.youtube:hover {
-  filter: drop-shadow(0 0 12px rgba(255, 0, 0, 0.8));
-}
-.social.instagram:hover {
-  filter: drop-shadow(0 0 10px rgba(225, 48, 108, 0.75)) drop-shadow(0 0 14px rgba(247, 119, 55, 0.5));
-}
-.social.twitch:hover {
-  filter: drop-shadow(0 0 12px rgba(145, 70, 255, 0.8));
-}
-.social.steam:hover {
-  filter: drop-shadow(0 0 12px rgba(102, 192, 244, 0.8));
-}
-.footer-legal {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  font-size: 11px;
-  color: var(--dim-2);
-}
 
 /* ── Animações ── */
 @keyframes rowIn {
@@ -1633,8 +1479,7 @@ b.decider {
   .hero p.lead {
     max-width: none;
   }
-  .wrap,
-  .nav-inner {
+  .wrap {
     padding: 0 24px;
   }
   .summary-item {
@@ -1647,9 +1492,6 @@ b.decider {
 }
 
 @media (max-width: 720px) {
-  .nav-inner {
-    height: 58px;
-  }
   .hero {
     padding: 40px 0 44px;
   }
@@ -1661,16 +1503,6 @@ b.decider {
   }
   .hero-meta {
     flex-wrap: wrap;
-  }
-  .status-strip .wrap {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px 16px;
-    padding: 16px 24px;
-  }
-  .status-item {
-    align-items: flex-start;
-    font-size: 11.5px;
   }
   .section {
     padding: 48px 0;
@@ -1883,27 +1715,11 @@ b.decider {
   .footer {
     padding: 36px 0 28px;
   }
-  .footer-inner,
-  .footer-legal {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
 }
 
 @media (max-width: 460px) {
-  .wrap,
-  .nav-inner {
+  .wrap {
     padding: 0 16px;
-  }
-  .nav-inner {
-    gap: 10px;
-  }
-  .nav-brand {
-    font-size: 14px;
-  }
-  .nav-brand .sub {
-    display: none;
   }
   .hero h1 {
     font-size: 26px;
@@ -1924,13 +1740,6 @@ b.decider {
   .segmented button {
     padding: 8px 6px;
     font-size: 12px;
-  }
-  .status-strip .wrap {
-    grid-template-columns: 1fr;
-    padding: 16px;
-  }
-  .footer-social {
-    gap: 12px;
   }
 }
 

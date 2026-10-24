@@ -1,6 +1,6 @@
-// Página: loja de caixas (o CSS da página já importa a base do site na ordem certa)
+// Página: loja de caixas (a base do site vem pelo montar.jsx; o CSS da página vem depois e ganha dela)
+import { montar } from '../comum/montar.jsx'
 import './loja.css'
 import Loja from '../paginas/loja/Loja.jsx'
-import { montar } from '../comum/montar.jsx'
 
 montar(Loja)

@@ -26,6 +26,12 @@
  *         facas: { ct|tr: { d, p, f, s, st, n, l } }, luvas: { ct|tr: { d, p, f, s, l } }, agentes: { ct|tr: { d, m } } }
  *   Inventário no formato antigo (v1: armas/facas/luvas/agentes soltos) é convertido ao ler.
  */
+import { lerDoc } from './dados.js'
+import { ErroConflito, ErroNaoEncontrado, ErroPedido, ErroServico } from './erros.js'
+import { exigirBearer, json, lerCorpo } from './http.js'
+import { lerJsonKv } from './kv.js'
+import { pedirAoJogador } from './objetos.js'
+import { valoresDe } from './valor.js'
 
 const ID_STEAM = /^\d{17}$/
 const FACAS = new Set([500, 503, 505, 506, 507, 508, 509, 512, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 525, 526]) // defIndex das facas do jogo
@@ -45,9 +51,6 @@ const timesDoItem = (it) => {
   if (it.t === 'agente') return /\/ctm_/.test(it.m) ? ['ct'] : /\/tm_/.test(it.m) ? ['tr'] : LADOS // agents/models/ctm_... = CT, tm_... = TR
   return LADOS
 }
-
-const json = (dados, status = 200, extra = {}) =>
-  new Response(JSON.stringify(dados), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...extra } })
 
 const inteiro = (v, min, max, padrao = 0) => {
   const n = Math.trunc(Number(v))
@@ -167,44 +170,50 @@ export function resolverEquipado(inv) {
   return algo ? r : null
 }
 
-const chave = (id) => `skins:${id}`
-// KV: formato antigo do inventário. Só o Durable Object do jogador lê daqui, na primeira vez (para migrar); ninguém mais grava.
-export const lerSkinsKv = async (env, id) => {
-  const bruto = await env.MOLDURAS.get(chave(id), 'json').catch(() => null)
+// KV: formato antigo do inventário (skins:<id>). Só o objeto do jogador lê daqui, na primeira vez (para migrar); ninguém mais grava.
+export async function lerSkinsKv(env, id) {
+  const bruto = await lerJsonKv(env, `skins:${id}`)
   return bruto ? limparSkins(bruto) : null
 }
 
-// Durable Object do jogador (loja.js, class Loja): guarda o inventário de verdade (com número de versão). Todo mundo lê e muda por aqui
-const doJogador = (env, id) => env.LOJA.get(env.LOJA.idFromName(id))
-const chamarDO = async (env, id, corpo) => (await doJogador(env, id).fetch('https://loja/', { method: 'POST', body: JSON.stringify({ id, ...corpo }) })).json()
+// Inventário de verdade: no objeto do jogador (loja.js, class Loja), com número de versão. Todo mundo lê e muda por aqui.
+// Caixas apagadas da loja (as antigas): as fechadas somem do inventário (a próxima gravação já sai sem elas).
 export async function lerSkinsVer(env, id) {
-  const r = await chamarDO(env, id, { acao: 'inv-ler' })
+  const [r, removidas] = await Promise.all([pedirAoJogador(env, id, { acao: 'inv-ler' }), lerDoc(env, 'caixas-removidas', [])])
   const inv = r.inv ? limparSkins(r.inv) : null
-  // caixas apagadas da loja (as antigas): as fechadas somem do inventário (a próxima gravação já sai sem elas)
-  if (inv) {
-    const removidas = await caixasRemovidas(env)
-    if (removidas.size) for (const [k, it] of Object.entries(inv.itens)) if (it.t === 'caixa' && removidas.has(it.d)) delete inv.itens[k]
+  if (inv && removidas.length) {
+    const fora = new Set(removidas.map(Number))
+    for (const [k, it] of Object.entries(inv.itens)) if (it.t === 'caixa' && fora.has(it.d)) delete inv.itens[k]
   }
   return { inv, ver: r.ver || 0 }
 }
-let removidasCache = { ate: 0, ids: new Set() }
-async function caixasRemovidas(env) {
-  if (removidasCache.ate > Date.now()) return removidasCache.ids
-  const lista = (await env.MOLDURAS.get('caixas-removidas', 'json').catch(() => null)) || []
-  removidasCache = { ate: Date.now() + 5 * 60_000, ids: new Set(lista.map(Number)) }
-  return removidasCache.ids
-}
 export const lerSkins = async (env, id) => (await lerSkinsVer(env, id)).inv
-// Lê, muda (fn(inv) devolve { inv, ...extra } ou { erro }) e grava só se mais ninguém mexeu no meio (compra/abertura da loja, presente do dono, outra aba)
+
+/**
+ * Lê, muda e grava só se mais ninguém mexeu no meio (compra/abertura da loja, presente do dono, outra aba): senão relê e refaz.
+ * @param {(inv: object) => { inv: object, [extra: string]: unknown }} fn  muda o inventário; lança um ErroApi para recusar
+ * @returns o que fn devolveu (com o inventário gravado em .inv)
+ */
 export async function mudarSkins(env, id, fn) {
   for (let tentativa = 0; tentativa < 5; tentativa++) {
     const { inv, ver } = await lerSkinsVer(env, id)
     const r = await fn(inv || vazio())
-    if (r.erro) return r
-    const ok = await chamarDO(env, id, { acao: 'inv-gravar', inv: r.inv, ver })
-    if (ok.ok) return r
+    try {
+      await pedirAoJogador(env, id, { acao: 'inv-gravar', inv: r.inv, ver })
+      return r
+    } catch (e) {
+      if (!(e instanceof ErroConflito && e.codigo === 'versao')) throw e
+    }
   }
-  return { erro: 'ocupado' }
+  throw new ErroServico('ocupado', undefined, { indisponivel: true })
+}
+
+// Tira o item do inventário, do que está equipado e dos avisos de presente
+export function tirarItem(inv, id) {
+  delete inv.itens[id]
+  delete inv.criado[id]
+  for (const lado of LADOS) inv.equip[lado] = Object.fromEntries(Object.entries(inv.equip[lado] || {}).filter(([, v]) => v !== id))
+  inv.presentes = (inv.presentes || []).filter((q) => q.i !== id)
 }
 
 const novoId = () => (crypto.randomUUID().replace(/-/g, '').slice(0, 10))
@@ -249,10 +258,8 @@ function aplicarConsumo(antes, itens) {
 // GET/POST /skins (o próprio jogador logado)
 export async function rotaSkins(req, env, quem, cors) {
   if (req.method === 'GET') return json((await lerSkins(env, quem.id)) || vazio(), 200, cors)
-  const corpo = await req.json().catch(() => null)
-  if (!corpo || typeof corpo !== 'object') return json({ erro: 'corpo' }, 400, cors)
-
-  const r = await mudarSkins(env, quem.id, (atual) => {
+  const corpo = await lerCorpo(req)
+  const { inv } = await mudarSkins(env, quem.id, (atual) => {
     // O jogador só mexe no que já tem: cria item novo não pode, e tipo/arma/skin de cada item são os de antes
     const proposta = limparSkins(corpo)
     const itens = {}
@@ -264,23 +271,25 @@ export async function rotaSkins(req, env, quem, cors) {
     }
     // Item que o jogador não mandou de volta continua com ele: só o dono tira skin (POST /admin/skin { remover })
     for (const [id, orig] of Object.entries(atual.itens)) if (!itens[id]) itens[id] = orig
-    const erro = aplicarConsumo(atual.itens, itens)
-    if (erro) return { erro }
+    const falta = aplicarConsumo(atual.itens, itens)
+    if (falta) throw new ErroConflito(falta)
     const criado = { ...atual.criado }
     for (const id of Object.keys(itens)) criado[id] ??= Date.now()
     return { inv: limparSkins({ v: 2, itens, equip: proposta.equip, criado, presentes: atual.presentes }) }
   })
-  if (r.erro) return json({ erro: r.erro }, r.erro === 'ocupado' ? 503 : 400, cors)
-  return json(r.inv, 200, cors)
+  return json(inv, 200, cors)
+}
+
+const idDaUrl = (url) => {
+  const id = url.searchParams.get('id') || ''
+  if (!ID_STEAM.test(id)) throw new ErroPedido('id')
+  return id
 }
 
 // GET /skins/publico?id= (sem login): só o que está equipado, para o perfil mostrar a arma com a skin do jogador
 // { armas: { ct|tr: { "<defIndex>": paint } }, facas: { ct|tr: { d, p } } }
-export async function rotaSkinsPublico(url, env) {
-  const id = url.searchParams.get('id') || ''
-  const cab = { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=30' }
-  if (!ID_STEAM.test(id)) return json({ erro: 'id' }, 400, cab)
-  const inv = await lerSkins(env, id)
+export async function rotaSkinsPublico(url, env, cors) {
+  const inv = await lerSkins(env, idDaUrl(url))
   const r = { armas: { ct: {}, tr: {} }, facas: {} }
   for (const lado of LADOS) {
     for (const itemId of Object.values(inv?.equip?.[lado] || {})) {
@@ -290,84 +299,69 @@ export async function rotaSkinsPublico(url, env) {
       else if (it.t === 'faca' && it.p) r.facas[lado] = { d: it.d, p: it.p }
     }
   }
-  return json(r, 200, cab)
+  return json(r, 200, { ...cors, 'Cache-Control': 'public, max-age=30' })
 }
 
-// GET /skins/inventario?id= (sem login): o inventário de um jogador para o perfil dele mostrar ("Ver inventário"). Só leitura: itens e o que está equipado.
-// valorDe (de loja.js, passado pelo index.js para não importar em círculo): acrescenta o valor em NP de cada item
-export async function rotaSkinsInventarioPublico(url, env, valorDe) {
-  const id = url.searchParams.get('id') || ''
-  const cab = { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=20' }
-  if (!ID_STEAM.test(id)) return json({ erro: 'id' }, 400, cab)
-  const inv = await lerSkins(env, id)
-  const valores = {}
-  for (const [k, it] of Object.entries(inv?.itens || {})) {
-    const v = valorDe?.(it)?.v
-    if (v != null) valores[k] = v
-  }
-  return json({ itens: inv?.itens || {}, equip: inv?.equip || { ct: {}, tr: {} }, criado: inv?.criado || {}, valores }, 200, cab)
+// GET /skins/inventario?id= (sem login): o inventário de um jogador para o perfil dele ("Ver inventário"), com o valor em NP de cada item
+export async function rotaSkinsInventarioPublico(url, env, cors) {
+  const inv = await lerSkins(env, idDaUrl(url))
+  const valores = Object.fromEntries(Object.entries(valoresDe(inv?.itens)).map(([k, x]) => [k, x.v]))
+  return json({ itens: inv?.itens || {}, equip: inv?.equip || { ct: {}, tr: {} }, criado: inv?.criado || {}, valores }, 200, { ...cors, 'Cache-Control': 'public, max-age=20' })
 }
 
 // POST /skins/presentes { vistos: [id] }: o jogador já viu o aviso das skins novas
 export async function rotaSkinsPresentes(req, env, quem, cors) {
-  const { vistos } = (await req.json().catch(() => null)) || {}
+  const { vistos } = await lerCorpo(req)
   const lista = new Set(Array.isArray(vistos) ? vistos.map(String) : [])
-  const r = await mudarSkins(env, quem.id, (inv) => ({ inv: { ...inv, presentes: inv.presentes.map((p) => (lista.has(p.i) ? { ...p, v: 1 } : p)) } }))
-  if (r.erro) return json({ erro: r.erro }, 503, cors)
+  await mudarSkins(env, quem.id, (inv) => ({ inv: { ...inv, presentes: inv.presentes.map((p) => (lista.has(p.i) ? { ...p, v: 1 } : p)) } }))
   return json({ ok: true }, 200, cors)
 }
 
-// POST /skins/excluir { id }: o jogador exclui um item do próprio inventário (skin, adesivo, chaveiro ou caixa). Não tem volta: o site pergunta antes.
-export async function rotaSkinsExcluir(req, env, quem, cors) {
-  const { id } = (await req.json().catch(() => null)) || {}
-  if (!ID_ITEM.test(String(id))) return json({ erro: 'item' }, 400, cors)
-  const r = await mudarSkins(env, quem.id, (inv) => {
-    if (!inv.itens[id]) return { erro: 'item', status: 404 }
-    delete inv.itens[id]
-    delete inv.criado[id]
-    for (const lado of LADOS) inv.equip[lado] = Object.fromEntries(Object.entries(inv.equip[lado]).filter(([, v]) => v !== id))
-    inv.presentes = inv.presentes.filter((p) => p.i !== id)
+// Tira um item (o próprio jogador exclui, ou o dono tira pelo painel)
+const excluirItem = (env, dono, id) =>
+  mudarSkins(env, dono, (inv) => {
+    if (!inv.itens[id]) throw new ErroNaoEncontrado('item')
+    tirarItem(inv, id)
     return { inv: limparSkins(inv) }
   })
-  if (r.erro) return json({ erro: r.erro }, r.status || 503, cors)
-  return json(r.inv, 200, cors)
+
+// POST /skins/excluir { id }: o jogador exclui um item do próprio inventário (skin, adesivo, chaveiro ou caixa). Não tem volta: o site pergunta antes.
+export async function rotaSkinsExcluir(req, env, quem, cors) {
+  const { id } = await lerCorpo(req)
+  if (!ID_ITEM.test(String(id))) throw new ErroPedido('item')
+  const { inv } = await excluirItem(env, quem.id, String(id))
+  return json(inv, 200, cors)
 }
 
-// POST /admin/skin (só o dono): { id, item } dá uma skin ao jogador; { id, remover: "<id do item>" } tira
+const TIPOS_DO_DONO = ['arma', 'faca', 'luva', 'adesivo', 'chaveiro', 'caixa'] // agente não: bloqueado no servidor
+
+// POST /admin/skin (só o dono): { id, item } ou { id, itens: [..] } dá skins ao jogador (até 60, cada uma com q = quantidade se for
+// adesivo/chaveiro); { id, remover: "<id do item>" } tira uma. O jogador recebe um aviso por tipo de item, com "×n".
 export async function rotaAdminSkin(req, env, cors, avisar) {
-  const corpo = await req.json().catch(() => null)
-  if (!corpo || !ID_STEAM.test(String(corpo.id))) return json({ erro: 'id' }, 400, cors)
+  const corpo = await lerCorpo(req)
+  if (!ID_STEAM.test(String(corpo.id))) throw new ErroPedido('id')
   const alvo = String(corpo.id)
 
   if (corpo.remover) {
-    const id = String(corpo.remover)
-    const r = await mudarSkins(env, alvo, (inv) => {
-      if (!inv.itens[id]) return { erro: 'item', status: 404 }
-      delete inv.itens[id]
-      delete inv.criado[id]
-      for (const lado of LADOS) inv.equip[lado] = Object.fromEntries(Object.entries(inv.equip[lado]).filter(([, v]) => v !== id))
-      return { inv: limparSkins(inv) }
-    })
-    if (r.erro) return json({ erro: r.erro }, r.status || 503, cors)
-    return json({ ok: true, itens: r.inv.itens }, 200, cors)
+    const { inv } = await excluirItem(env, alvo, String(corpo.remover))
+    return json({ ok: true, itens: inv.itens }, 200, cors)
   }
 
-  // { item } ou { itens: [..] }: dá uma ou várias de uma vez (até 60); o jogador recebe um aviso para cada skin
   const lista = Array.isArray(corpo.itens) ? corpo.itens.slice(0, 60) : corpo.item ? [corpo.item] : []
-  if (!lista.length || lista.some((it) => !it || !['arma', 'faca', 'luva', 'adesivo', 'chaveiro', 'caixa'].includes(it.t))) return json({ erro: 'item' }, 400, cors) // agente não: bloqueado no servidor
-  // cada item pode vir com q (quantidade, até 50: adesivo/chaveiro repetido); o aviso é um só por tipo de item, com "×n"
-  const total = lista.reduce((n, it) => n + (CONSUMIVEIS.has(it.t) ? inteiro(it.q, 1, 50, 1) : 1), 0)
-  const r = await mudarSkins(env, alvo, (inv) => {
-    if (Object.keys(inv.itens).length + total > ITENS_MAX) return { erro: 'cheio', status: 400 }
+  if (!lista.length || lista.some((it) => !it || !TIPOS_DO_DONO.includes(it.t))) throw new ErroPedido('item')
+  const quantos = (it) => (CONSUMIVEIS.has(it.t) ? inteiro(it.q, 1, 50, 1) : 1)
+  const total = lista.reduce((n, it) => n + quantos(it), 0)
+  const { inv, ids } = await mudarSkins(env, alvo, (inv) => {
+    if (Object.keys(inv.itens).length + total > ITENS_MAX) throw new ErroConflito('cheio')
     const ids = []
     const agora = Date.now()
     for (const [n, it] of lista.entries()) {
-      const qtd = CONSUMIVEIS.has(it.t) ? inteiro(it.q, 1, 50, 1) : 1
+      const qtd = quantos(it)
       for (let k = 0; k < qtd; k++) {
         const id = novoId()
-        const teste = limparSkins({ v: 2, itens: { [id]: it } })
-        if (!teste.itens[id]) return { erro: 'item', status: 400 }
-        inv.itens[id] = teste.itens[id]
+        const limpo = limparSkins({ v: 2, itens: { [id]: it } }).itens[id]
+        if (!limpo) throw new ErroPedido('item')
+        inv.itens[id] = limpo
         inv.criado[id] = agora + n
         if (k === 0) inv.presentes = [...inv.presentes, { i: id, q: agora + n, v: 0, n: qtd }]
         ids.push(id)
@@ -375,29 +369,20 @@ export async function rotaAdminSkin(req, env, cors, avisar) {
     }
     return { inv: limparSkins(inv), ids }
   })
-  if (r.erro) return json({ erro: r.erro }, r.status || 503, cors)
-  await avisar?.(env, alvo) // quem está com o site aberto vê o aviso na hora
-  return json({ ok: true, id: r.ids[0], ids: r.ids, itens: r.inv.itens }, 200, cors)
+  await avisar(env, alvo) // quem está com o site aberto vê o aviso na hora
+  return json({ ok: true, id: ids[0], ids, itens: inv.itens }, 200, cors)
 }
 
 // GET /admin/skins?id= (só o dono): o que o jogador tem
 export async function rotaAdminSkins(url, env, cors) {
-  const id = url.searchParams.get('id') || ''
-  if (!ID_STEAM.test(id)) return json({ erro: 'id' }, 400, cors)
-  const inv = (await lerSkins(env, id)) || vazio()
+  const inv = (await lerSkins(env, idDaUrl(url))) || vazio()
   return json({ itens: inv.itens, equip: inv.equip }, 200, cors)
 }
 
 // POST /servidor/skins: o plugin pede o que está equipado de quem está no servidor
 export async function rotaServidorSkins(req, env) {
-  const cab = req.headers.get('Authorization') || ''
-  const dado = new TextEncoder().encode(cab.startsWith('Bearer ') ? cab.slice(7).trim() : '')
-  const certo = new TextEncoder().encode(env.SERVIDOR_TOKEN || '')
-  let dif = dado.length ^ certo.length // compara tudo, sem parar no primeiro byte diferente
-  for (let i = 0; i < certo.length; i++) dif |= (dado[i] ?? 0) ^ certo[i]
-  if (!env.SERVIDOR_TOKEN || dif !== 0) return json({ erro: 'token' }, 401)
-
-  const { ids } = (await req.json().catch(() => null)) || {}
+  exigirBearer(req, env.SERVIDOR_TOKEN)
+  const { ids } = await lerCorpo(req)
   const lista = [...new Set((Array.isArray(ids) ? ids : []).map(String).filter((i) => ID_STEAM.test(i)))].slice(0, 40)
   const resposta = {}
   await Promise.all(

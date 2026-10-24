@@ -49,15 +49,6 @@ export const urlCard = (nome) => {
   }
   return /-anim\.svg$/i.test(id) && parado ? `/assets/cards/parado/${caminho(id)}` : `/assets/cards/${caminho(id)}`
 }
-// Computador sem "economia de dados": a grade da janela já mostra os cards animados se mexendo. No celular a grade mostra a
-// miniatura parada (são dezenas de arquivos de até 600 KB); o card escolhido se mexe na prévia.
-const gradeAnima = () => {
-  try {
-    return window.matchMedia('(min-width: 1025px)').matches && !navigator.connection?.saveData
-  } catch {
-    return false
-  }
-}
 // Miniatura leve para a grade da janela Personalizar (public/assets/cards/mini/<tema>/<nome>.webp, gerada por
 // scripts/gerar-miniaturas.mjs). Sem ela usa a imagem inteira. Card animado (SVG, leve) continua animado também na grade;
 // só para com "Melhorar desempenho" ou movimento reduzido (urlCard).

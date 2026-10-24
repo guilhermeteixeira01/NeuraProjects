@@ -1,11 +1,11 @@
 // Times de jogadores: qualquer jogador cria um time (custa NP), vira o dono, escolhe imagem e se é público ou privado, convida gente, cria cargos com permissões
 // e tem um chat só do time. Dados e regras: worker/steam-login/src/equipes.js (aqui só aparece e chama).
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { chamarApi, seForErroApi } from '../../comum/api.js'
 import Layout from '../../comum/Layout.jsx'
 import { confirmar } from '../../comum/Dialogos.jsx'
 import { CarregandoNP } from '../../comum/Carregando.jsx'
-import { CONFIG } from '../../comum/config.js'
-import { entrar, linkPerfil, loginAtivo, tokenConta, useConta } from '../../comum/conta.js'
+import { entrar, linkPerfil, loginAtivo, useConta } from '../../comum/conta.js'
 import { useAvatar } from '../../comum/avatares.js'
 import { definirMudoEquipe, definirVendoChatEquipe, useAvisoEquipe } from '../../comum/avisoEquipe.js'
 import { useT } from '../../comum/i18n.js'
@@ -381,13 +381,8 @@ function Convidar({ time, fazer, ocupado }) {
     if (busca.trim().length < 2) return setAchados([])
     let vivo = true
     const i = setTimeout(async () => {
-      try {
-        const r = await fetch(`${CONFIG.loginSteam.replace(/\/$/, '')}/usuarios/buscar?q=${encodeURIComponent(busca.trim())}`, { headers: { Authorization: `Bearer ${tokenConta()}` } })
-        const d = await r.json()
-        if (vivo) setAchados(d.jogadores || [])
-      } catch {
-        // sem resultado agora
-      }
+      const d = await chamarApi(`/usuarios/buscar?q=${encodeURIComponent(busca.trim())}`).catch(seForErroApi(() => ({ jogadores: [] })))
+      if (vivo) setAchados(d.jogadores || [])
     }, 300)
     return () => {
       vivo = false

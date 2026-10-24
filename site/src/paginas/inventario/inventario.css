@@ -1,5 +1,4 @@
 /* Ordem: base do site, base das páginas e depois o desta página (o desta página ganha) */
-@import '../../comum/site.css';
 @import '../../comum/paginas.css';
 
 /* ══════════════ Inventário de skins (src/paginas/inventario/Inventario.jsx), no estilo do inventário do jogo ══════════════ */
@@ -23,7 +22,6 @@
 .inv-abas button { background: none; border: 0; border-radius: 4px; color: rgb(255 255 255 / .75); font: 700 13px var(--font-display, var(--font-body)); letter-spacing: .08em; padding: 7px 14px; cursor: pointer; }
 .inv-abas button:hover { color: #fff; }
 .inv-abas button.is-ativo { background: #2bb3d6; color: #06222b; }
-.inv-criar { position: absolute; right: 12px; }
 
 /* barra de ferramentas: pesquisa à esquerda, ordem à direita */
 .inv-barra { display: flex; align-items: center; gap: 14px; padding: 14px 4px 14px; border-bottom: 1px solid rgb(255 255 255 / .1); margin-bottom: 18px; }
@@ -74,32 +72,9 @@
 .inv-janela-rodape { padding: 12px 18px; border-top: 1px solid rgb(255 255 255 / .1); display: flex; justify-content: flex-end; gap: 8px; }
 
 /* criar item */
-.inv-tipos { display: flex; gap: 6px; margin-bottom: 14px; }
-.inv-tipos button { background: rgb(255 255 255 / .06); border: 1px solid rgb(255 255 255 / .12); border-radius: 8px; color: var(--dim); font: 700 13px var(--font-body); padding: 8px 16px; cursor: pointer; }
-.inv-tipos button.is-ativo { color: #06222b; background: #2bb3d6; border-color: #2bb3d6; }
-.inv-layout-criar { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 14px; align-items: start; }
-.inv-lista { background: rgb(255 255 255 / .04); border-radius: 10px; padding: 10px; }
-.inv-lista ul { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 2px; max-height: 52vh; overflow: auto; }
-.inv-lista ul button { width: 100%; text-align: left; background: none; border: 0; border-radius: 8px; padding: 8px 10px; color: var(--dim); font: 500 13px var(--font-body); cursor: pointer; }
-.inv-lista ul button:hover { background: rgb(255 255 255 / .08); color: var(--text); }
-.inv-lista ul button.is-ativo { background: rgb(255 255 255 / .12); color: var(--text); font-weight: 700; }
-.inv-cats { display: flex; flex-wrap: wrap; gap: 4px; }
-.inv-cats button, .inv-lados button { flex: 1; background: rgb(255 255 255 / .06); border: 1px solid rgb(255 255 255 / .12); border-radius: 8px; color: var(--dim); font: 600 12px var(--font-body); padding: 6px 8px; cursor: pointer; }
-.inv-cats button.is-ativo, .inv-lados button.is-ativo { color: var(--text); border-color: #2bb3d6; }
-.inv-lados { display: flex; gap: 6px; margin-bottom: 12px; max-width: 220px; }
 .inv-busca { width: 100%; box-sizing: border-box; background: rgb(255 255 255 / .06); border: 1px solid rgb(255 255 255 / .12); border-radius: 8px; color: var(--text); padding: 9px 12px; font: 400 14px var(--font-body); margin-bottom: 12px; }
-.inv-grade { list-style: none; margin: 0; padding: 0 4px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(138px, 1fr)); gap: 10px; max-height: 52vh; overflow: auto; }
-.inv-grade-agentes { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-.inv-skin { width: 100%; display: grid; grid-template-rows: 92px auto; align-content: start; gap: 6px; min-width: 0; background: rgb(255 255 255 / .05); border: 1px solid rgb(255 255 255 / .1); border-bottom: 3px solid var(--cor, var(--border-2)); border-radius: 10px; padding: 8px; color: var(--text); cursor: pointer; text-align: center; }
-.inv-skin:hover { background: rgb(255 255 255 / .1); }
-.inv-skin.is-ativo { outline: 2px solid #2bb3d6; }
-.inv-skin b { font: 600 12px var(--font-body); line-height: 1.25; min-height: 2.5em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.inv-skin-img { height: 92px; width: 100%; min-width: 0; overflow: hidden; display: grid; place-items: center; }
-.inv-skin-img img, .inv-skin-img .inv-sem-img { width: 100%; height: 100%; max-width: 100%; object-fit: contain; }
-.inv-vazio-x { font-size: 30px; color: var(--dim); }
 
 /* editar item */
-.inv-editor-grade { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
 .inv-previa-img { position: relative; display: block; aspect-ratio: 4 / 3; border-bottom: 4px solid var(--cor); border-radius: 6px; background: transparent; }
 .inv-previa-adesivo { position: absolute; width: 11%; aspect-ratio: 1; object-fit: contain; pointer-events: none; filter: drop-shadow(0 1px 2px rgb(0 0 0 / .6)); }
 .inv-previa-chaveiro { position: absolute; width: 10%; aspect-ratio: 1; object-fit: contain; pointer-events: none; transform: translate(-50%, 0); filter: drop-shadow(0 2px 3px rgb(0 0 0 / .6)); }
@@ -108,21 +83,15 @@
 .inv-arma-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 8px rgb(0 0 0 / .4)); }
 .inv-arma-box .inv-sem-img { width: 50%; height: 50%; inset: auto; left: 25%; top: 25%; }
 .inv-previa-adesivo.is-ativo { outline: 1px dashed #fff; outline-offset: 2px; }
-.inv-previa-aviso { display: block; margin-top: 8px; color: var(--dim); font-size: 11.5px; }
-.inv-editor-controles { display: grid; gap: 14px; }
 .inv-campo { display: grid; gap: 6px; font-size: 13px; color: var(--dim); }
 .inv-campo b { color: var(--text); }
 .inv-campo input[type='number'], .inv-campo input[type='text'] { background: rgb(255 255 255 / .06); border: 1px solid rgb(255 255 255 / .12); border-radius: 8px; color: var(--text); padding: 8px 10px; font: 400 14px var(--font-body); }
 .inv-campo input[type='range'] { width: 100%; }
 .inv-check { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
-.inv-sub { display: block; color: var(--dim); font-size: 13px; margin-bottom: 8px; }
-.inv-adesivos-editor { display: grid; gap: 10px; }
 .inv-slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .inv-slot { aspect-ratio: 1; display: grid; place-items: center; background: rgb(255 255 255 / .06); border: 1px dashed rgb(255 255 255 / .25); border-radius: 10px; cursor: pointer; padding: 4px; color: var(--dim); }
 .inv-slot.is-ativo { border-style: solid; border-color: #2bb3d6; }
 .inv-slot img { max-width: 100%; max-height: 100%; object-fit: contain; }
-.inv-mais { font: 700 16px var(--font-body); }
-.inv-slot-acoes { display: flex; gap: 8px; }
 .inv-posicao { display: grid; gap: 10px; }
 
 .inv-adesivos { list-style: none; margin: 12px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; max-height: 52vh; overflow: auto; }
@@ -140,9 +109,7 @@
 
 @media (max-width: 900px) {
   .inv-topo { flex-direction: column; padding-bottom: 54px; }
-  .inv-criar { right: 50%; transform: translateX(50%); bottom: 10px; }
   .inv-barra { flex-wrap: wrap; }
-  .inv-layout-criar, .inv-editor-grade { grid-template-columns: 1fr; }
 }
 
 .inv-slot-chaveiro { width: 64px; aspect-ratio: 1; }
@@ -153,9 +120,6 @@
 .inv-3d { position: relative; width: 100%; border-radius: 10px; background: radial-gradient(ellipse at 50% 55%, rgb(255 255 255 / .07) 0%, transparent 75%); overflow: hidden; }
 .inv-3d iframe { width: 100%; height: 100%; border: 0; display: block; background: transparent; }
 .inv-3d-carregando { position: absolute; inset: 0; display: grid; place-items: center; color: var(--dim); font-size: 14px; pointer-events: none; }
-.inv-3d-credito { position: absolute; right: 10px; bottom: 6px; color: rgb(255 255 255 / .35); font-size: 10.5px; pointer-events: none; }
-.inv-link { background: none; border: 0; color: var(--dim); font: 500 12px var(--font-body); text-decoration: underline; cursor: pointer; padding: 6px 0; text-align: left; }
-.inv-link:hover { color: var(--text); }
 .inv-slots-5 { grid-template-columns: repeat(5, 1fr); }
 .inv-inspecao-3d { width: min(900px, 100%); }
 
@@ -168,13 +132,6 @@
 .inv-dialogo-form { display: grid; gap: 8px; }
 .inv-bloco { background: rgb(255 255 255 / .05); border-radius: 6px; padding: 10px 12px; display: grid; gap: 8px; }
 .inv-bloco > b { font: 700 12px var(--font-body); letter-spacing: .04em; color: var(--dim); }
-.inv-linha { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 10px; background: rgb(255 255 255 / .05); border-radius: 6px; padding: 8px 12px; }
-.inv-linha > b { font: 700 12px var(--font-body); letter-spacing: .04em; color: var(--dim); }
-.inv-linha input[type='text'] { grid-column: 2 / -1; background: rgb(255 255 255 / .05); border: 1px solid rgb(255 255 255 / .08); border-radius: 4px; color: var(--text); padding: 7px 10px; font: 400 13px var(--font-body); width: 100%; box-sizing: border-box; }
-.inv-linha input[type='number'] { width: 96px; background: rgb(0 0 0 / .35); border: 0; border-radius: 4px; color: var(--text); padding: 7px 8px; font: 400 13px var(--font-body); }
-.inv-linha input[type='range'] { width: 70px; }
-.inv-dado { background: rgb(255 255 255 / .1); border: 0; border-radius: 4px; color: var(--text); width: 30px; height: 30px; cursor: pointer; font-size: 16px; }
-.inv-dado:hover { background: rgb(255 255 255 / .2); }
 .inv-reset { justify-self: end; background: none; border: 0; color: var(--dim); font-size: 20px; cursor: pointer; padding: 2px 6px; }
 .inv-reset:hover { color: var(--text); }
 .inv-dialogo-rodape { display: flex; justify-content: center; align-items: center; gap: 22px; padding: 18px 0 4px; }
@@ -183,12 +140,6 @@
 .inv-btn-fechar { background: none; border: 0; color: var(--text); font: 600 14px var(--font-body); letter-spacing: .03em; padding: 10px 12px; cursor: pointer; }
 .inv-btn-fechar:hover { color: #fff; text-decoration: underline; }
 .inv-nd { color: rgb(255 255 255 / .25); font: 600 11px var(--font-body); }
-.inv-linha-st { grid-template-columns: 1fr auto auto; }
-.inv-st-txt { color: var(--text); font-size: 13px; }
-.inv-chave { width: 40px; height: 20px; border-radius: 10px; border: 0; background: rgb(255 255 255 / .2); position: relative; cursor: pointer; padding: 0; }
-.inv-chave::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .15s; }
-.inv-chave.is-on { background: #1fb36b; }
-.inv-chave.is-on::after { transform: translateX(20px); }
 
 /* ── Tela cheia: Colar adesivo / Prender chaveiro ── */
 .inv-tela { position: fixed; inset: 0; z-index: 5; display: grid; grid-template-rows: auto 1fr auto; background: rgb(8 10 14 / .94); backdrop-filter: blur(10px); }
@@ -227,8 +178,6 @@
 /* dicas dos controles do 3D e botão de som */
 .inv-dicas { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; background: rgb(0 0 0 / .5); border: 1px solid rgb(255 255 255 / .1); padding: 8px 16px; border-radius: 6px; font-size: 12.5px; color: rgb(255 255 255 / .7); z-index: 2; pointer-events: none; }
 .inv-dicas b { color: #fff; font-weight: 600; }
-.inv-som { background: none; border: 0; font-size: 17px; cursor: pointer; padding: 2px 6px; opacity: .85; }
-.inv-som:hover { opacity: 1; }
 
 .inv-menu-aviso { display: block; padding: 9px 10px; color: var(--dim); font: 500 12px var(--font-body); max-width: 230px; }
 .inv-aviso-mobile { margin: 10px 2px 0; padding: 10px 12px; border-radius: 8px; background: rgb(245 197 24 / .1); border: 1px solid rgb(245 197 24 / .3); color: var(--text); font-size: 13px; }
@@ -263,7 +212,6 @@
 
 /* excluir item */
 .inv-menu-perigo { color: #f07a85 !important; }
-.inv-vender-guardado, .inv-excluir-guardado { display: block; margin-top: 6px; width: 100%; text-align: center; }
 .inv-excluir-texto { margin: 0; line-height: 1.5; }
 .inv-excluir-erro { margin: 10px 0 0; color: var(--red); font-size: 13px; }
 .inv-btn-excluir { background: #d7263d; border-color: #d7263d; color: #fff; }
@@ -302,8 +250,6 @@ html.inv-travado body { position: fixed; inset: 0; width: 100%; }
 .inv-fundo { overscroll-behavior: contain; touch-action: none; }
 .inv-janela-corpo { touch-action: pan-y; }
 .inv-janela-insp .inv-janela-corpo, .inv-inspecao, .inv-inspecao-3d, .inv-3d, .inv-3d iframe { touch-action: none; overscroll-behavior: none; }
-
-.inv-aviso-3d { margin: 6px 0; padding: 8px 10px; border-radius: 8px; background: rgb(245 197 24 / .1); border: 1px solid rgb(245 197 24 / .3); font-size: 12px; line-height: 1.4; }
 
 /* valor de cada item (NP) embaixo do nome */
 .inv-cartao-valor { display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; color: #f5c518; font: 700 12px var(--font-body); }

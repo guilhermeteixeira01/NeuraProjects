@@ -1,16 +1,15 @@
 // CS Rating do Premier atual (Leetify). O ranking.json traz o do último deploy; o worker busca de novo de hora em hora
 // (GET /premier, cron) e o site usa esse quando tiver. Uma chamada só por página, dividida entre todos os selos.
 import { useEffect, useState } from 'react'
-import { CONFIG } from './config.js'
+import { lerApi, seForErroApi, enderecoApi } from './api.js'
 
 let dados = null // { "<SteamID64>": número | null }
 let buscando = null
 
 function buscar() {
-  buscando ??= fetch(`${CONFIG.loginSteam.replace(/\/$/, '')}/premier`)
-    .then((r) => (r.ok ? r.json() : null))
+  buscando ??= lerApi('/premier')
     .then((d) => (dados = d?.jogadores || {}))
-    .catch(() => (dados = {}))
+    .catch(seForErroApi(() => (dados = {}))) // sem o atual: vale o do ranking.json
   return buscando
 }
 
@@ -18,7 +17,7 @@ function buscar() {
 export function usePremierAtual(id) {
   const [valor, setValor] = useState(() => dados?.[id] ?? null)
   useEffect(() => {
-    if (!CONFIG.loginSteam || !id) return
+    if (!enderecoApi() || !id) return
     let vivo = true
     buscar().then(() => vivo && setValor(dados?.[id] ?? null))
     return () => {

@@ -4,6 +4,7 @@
 //  - PainelTrocas: propostas recebidas, enviadas e o histórico, com Aceitar / Recusar / Cancelar.
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { chamarApi, lerApi, seForErroApi } from './api.js'
 import { GemaNome, nomeDoDesgaste } from './CartaoSkin.jsx'
 import { BotaoInspecionar } from './InspecionarSkin.jsx'
 import { useConta } from './conta.js'
@@ -11,7 +12,7 @@ import { useT } from './i18n.js'
 import { lerCaixasPublicas } from './loja.js'
 import { comSenha } from './seguranca.js'
 import { descrever, indicar, lerInventario, urlImg, useCatalogo, corEnfeite } from './skins.js'
-import { chamar, lerTrocas } from './Trocas.jsx'
+import { lerTrocas } from './Trocas.jsx'
 
 const MENSAGENS = {
   jogador: 'Jogador não encontrado (ele precisa já ter entrado no site).',
@@ -158,10 +159,8 @@ export function JanelaTroca({ para, aoFechar, aoEnviada }) {
   const [presente, setPresente] = useState(false) // pergunta "dar de presente?" quando só oferece itens
 
   useEffect(() => {
-    lerInventario().then(setMeu, () => setErro('falhou'))
-    fetch(`${base()}/skins/inventario?id=${encodeURIComponent(para.id)}`)
-      .then((r) => r.json())
-      .then(setDele, () => setErro('falhou'))
+    lerInventario().then(setMeu, seForErroApi(() => setErro('falhou')))
+    lerApi(`/skins/inventario?id=${encodeURIComponent(para.id)}`).then(setDele, seForErroApi(() => setErro('falhou')))
   }, [para.id])
   useEffect(() => {
     document.documentElement.classList.add('ins-estante-aberta')
@@ -193,7 +192,7 @@ export function JanelaTroca({ para, aoFechar, aoEnviada }) {
     setEnviando(true)
     setErro('')
     try {
-      const r = await comSenha(t('Para propor a troca, digite a sua senha de segurança.'), (senha) => chamar('/trocas', { para: para.id, dar, pedir, msg, senha }))
+      const r = await comSenha(t('Para propor a troca, digite a sua senha de segurança.'), (senha) => chamarApi('/trocas', { para: para.id, dar, pedir, msg, senha }))
       if (r.cancelado) return
       aoEnviada?.()
       aoFechar()
@@ -322,7 +321,7 @@ export function EscolherJogador({ aoEscolher, aoFechar }) {
     if (q.trim().length < 2) return setLista([])
     let vivo = true
     const id = setTimeout(() => {
-      chamar(`/usuarios/buscar?q=${encodeURIComponent(q.trim())}`).then((d) => vivo && setLista(d.jogadores || []), () => {})
+      chamarApi(`/usuarios/buscar?q=${encodeURIComponent(q.trim())}`).then((d) => vivo && setLista(d.jogadores || []), seForErroApi())
     }, 300)
     return () => {
       vivo = false
@@ -373,9 +372,9 @@ function CartaoProposta({ p, eu, cat, aoMudar }) {
     setErro('')
     try {
       if (acao === 'aceitar') {
-        const r = await comSenha(t('Para aceitar a troca, digite a sua senha de segurança.'), (senha) => chamar('/trocas/aceitar', { id: p.id, senha }))
+        const r = await comSenha(t('Para aceitar a troca, digite a sua senha de segurança.'), (senha) => chamarApi('/trocas/aceitar', { id: p.id, senha }))
         if (r.cancelado) return
-      } else await chamar(`/trocas/${acao}`, { id: p.id })
+      } else await chamarApi(`/trocas/${acao}`, { id: p.id })
       setConfirmando(false)
       aoMudar()
     } catch (e) {

@@ -899,8 +899,7 @@ body,
 }
 input,
 textarea,
-select,
-[contenteditable='true'] {
+select {
   -webkit-user-select: text !important;
   user-select: text !important;
 }
@@ -2096,10 +2095,6 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
     transform: translate(-4px, -50%);
     transition: opacity 0.12s, transform 0.12s;
   }
-  :is(.nx-link, .nx-btn, .nx-config-btn, .nx-conta-btn):is(:hover, :focus-visible) > .nx-dica {
-    opacity: 1;
-    transform: translate(0, -50%);
-  }
   /* menu aberto: a dica sai para não ficar por cima dele */
   [aria-expanded='true'] > .nx-dica {
     opacity: 0 !important;
@@ -2115,9 +2110,6 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
     animation-name: nx-lado;
   }
   /* topo da página inicial ocupa a tela toda (não há mais barra em cima) */
-  .hx {
-    min-height: min(880px, 100vh / var(--escala-site, 1));
-  }
 }
 @keyframes nx-lado {
   from {
@@ -2256,9 +2248,6 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
   }
   /* o que fica preso embaixo da tela sobe para cima das abas */
   .nx-avisos {
-    bottom: calc(var(--nx-baixo) + 12px);
-  }
-  body .barra-salvar {
     bottom: calc(var(--nx-baixo) + 12px);
   }
 }
@@ -2430,10 +2419,6 @@ html:is([data-tema='claro'], [data-tema='branco']) .contagem-remocao {
     opacity: 0;
     transform: translate(4px, -50%);
     transition: opacity 0.12s, transform 0.12s;
-  }
-  .nx-direita :is(.nx-btn, .nx-config-btn, .nx-conta-btn):is(:hover, :focus-visible) > .nx-dica {
-    opacity: 1;
-    transform: translate(0, -50%);
   }
   .nx-direita [aria-expanded='true'] > .nx-dica {
     opacity: 0 !important;
@@ -2981,12 +2966,6 @@ a.nt-corpo:hover b { color: var(--accent); }
   }
   .hero-glow-2 {
     background: radial-gradient(closest-side, var(--accent), transparent);
-  }
-  .hx-radar i,
-  .hx-painel,
-  .hx-painel .painel::after,
-  .hx2-diag i {
-    animation: none !important;
   }
 }
 

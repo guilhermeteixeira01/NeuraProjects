@@ -2,6 +2,7 @@
 // Sempre ficam no navegador. Com login, também ficam no perfil do worker (campos tema, idioma e desempenho):
 // valem em qualquer aparelho em que a pessoa entrar, e a conta vence o que estava no navegador.
 import { useEffect } from 'react'
+import { seForErroApi } from './api.js'
 import { tokenConta, useConta } from './conta.js'
 import { aplicarDesempenho, desempenhoAtivo } from './desempenho.js'
 import { aplicarIdioma, idiomaEscolhido } from './i18n.js'
@@ -10,7 +11,7 @@ import { aplicarTema, temaAtual } from './tema.js'
 
 // Guarda na conta (se estiver logado). mudar = { tema?, idioma?, desempenho?: 'ligado' | 'desligado' }
 function salvarNaConta(mudar) {
-  if (tokenConta()) salvarPerfil(mudar).catch(() => {}) // fora do ar: fica só neste navegador
+  if (tokenConta()) salvarPerfil(mudar).catch(seForErroApi()) // fora do ar: fica só neste navegador
 }
 
 export function escolherTema(id) {

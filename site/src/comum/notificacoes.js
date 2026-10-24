@@ -4,7 +4,7 @@
 // "Limpar". O navegador guarda uma cópia (np_notifs_<SteamID>) para abrir na hora e funcionar sem o worker; a junção das cópias
 // (worker/steam-login/src/notif-core.js) nunca perde nada: nem nova, nem "lida", nem o "limpar".
 import { useEffect, useState } from 'react'
-import { CONFIG } from './config.js'
+import { ErroApi, chamarApi, enderecoApi } from './api.js'
 import { tokenConta, useConta } from './conta.js'
 import { docVazio, juntar, limparDoc } from '../../worker/steam-login/src/notif-core.js'
 
@@ -37,27 +37,21 @@ function gravarLocal(id, doc) {
 }
 
 // ── conta (worker) ──
-const base = () => CONFIG.loginSteam.replace(/\/$/, '')
 let enviando = null
 let reenviar = false
 async function sincronizar(id) {
-  const token = tokenConta()
-  if (!token || !CONFIG.loginSteam) return
+  if (!tokenConta() || !enderecoApi()) return
   if (enviando) {
     reenviar = true // já tem um envio em andamento: manda de novo quando ele acabar, com o que mudou nesse meio-tempo
     return
   }
   enviando = (async () => {
     try {
-      const r = await fetch(`${base()}/notificacoes`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ doc: ler(id) }) })
-      if (!r.ok) return
-      const { doc } = await r.json()
-      if (doc) {
-        gravarLocal(id, juntar(ler(id), doc))
-        window.dispatchEvent(new Event(EVENTO))
-      }
-    } catch {
-      // sem rede: fica só no aparelho e sobe na próxima
+      const { doc } = await chamarApi('/notificacoes', { doc: ler(id) })
+      gravarLocal(id, juntar(ler(id), doc))
+      window.dispatchEvent(new Event(EVENTO))
+    } catch (e) {
+      if (!(e instanceof ErroApi)) throw e // sem rede ou worker fora: fica só no aparelho e sobe na próxima
     } finally {
       enviando = null
       if (reenviar) {

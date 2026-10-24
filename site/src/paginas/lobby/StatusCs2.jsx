@@ -1,7 +1,7 @@
 // Lobby: avisos do CS2 no topo da página (atualização do jogo e servidor em manutenção) e o painel de status do servidor.
 // Dados: worker GET /status/cs2 (src/status-cs2.js): { atualizacao: {titulo, data, url, gid} | null, servidor: {online, atualizando} }
 import { useEffect, useState } from 'react'
-import { CONFIG } from '../../comum/config.js'
+import { lerApi, seForErroApi, enderecoApi } from '../../comum/api.js'
 import { useT } from '../../comum/i18n.js'
 
 const INTERVALO_MS = 60000
@@ -9,13 +9,12 @@ const INTERVALO_MS = 60000
 export function useStatusCs2() {
   const [dados, setDados] = useState(null)
   useEffect(() => {
-    if (!CONFIG.loginSteam) return
+    if (!enderecoApi()) return
     let vivo = true
     const ler = () =>
-      fetch(`${CONFIG.loginSteam.replace(/\/$/, '')}/status/cs2`)
-        .then((r) => (r.ok ? r.json() : null))
-        .then((d) => vivo && d && setDados(d))
-        .catch(() => {})
+      lerApi('/status/cs2')
+        .then((d) => vivo && setDados(d))
+        .catch(seForErroApi()) // fora do ar: fica o último aviso
     ler()
     const id = setInterval(() => document.visibilityState === 'visible' && ler(), INTERVALO_MS)
     return () => {

@@ -7,16 +7,21 @@
  * Um Durable Object GLOBAL ("Mercado") guarda os anúncios em SQLite e roda um pedido de cada vez: dois jogadores nunca compram o mesmo anúncio.
  *
  *   GET  /mercado                         (login) -> { anuncios: [{ id, vendedor, vendedorNome, vendedorAvatar, item, preco, ref, criado }] }
- *   POST /mercado/anunciar { id, preco, nome }    -> tira o item do inventário e anuncia: { ok, anuncio }
+ *   POST /mercado/anunciar { id, preco, nome, senha } -> tira o item do inventário e anuncia: { ok, anuncio }
  *   POST /mercado/cancelar { id }                 -> só o vendedor: o item volta para o inventário
  *   POST /mercado/comprar { id }                  -> paga, recebe o item e avisa o vendedor: { ok, saldo }
  */
 import { avisarMercado } from './amigos.js'
 import { exigirSenha } from './contas.js'
+import { ErroConflito, ErroNaoEncontrado, ErroPedido, ErroPermissao } from './erros.js'
+import { lerCorpo, reenviar } from './http.js'
+import { notificar } from './notificacoes.js'
+import { Fila, objetoGlobal, pedirAoJogador, responder, semDerrubar } from './objetos.js'
 import { registrar } from './registro.js'
 import { lerSkins, novoIdItem } from './skins.js'
 import { mexerNoInventario } from './trocas.js'
-import { pontosGanhos, valorDe } from './loja.js'
+import { lerUsuarios } from './usuarios.js'
+import { valorDe } from './valor.js'
 
 const TIPOS_OK = new Set(['arma', 'faca', 'luva', 'adesivo', 'chaveiro'])
 const MAX_POR_VENDEDOR = 30
@@ -25,41 +30,29 @@ const PRECO_MAX = 10_000_000
 const MAX_DROPS = 2000 // drops guardados (o "top" olha as últimas 24 h dentro deles)
 const ATRASO_DROP = 8000 // o drop só aparece no carrossel depois que a roleta de quem abriu termina (sem estragar a surpresa)
 
-const json = (dados, status = 200, extra = {}) =>
-  new Response(JSON.stringify(dados), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...extra } })
-
-const loja = (env, id) => env.LOJA.get(env.LOJA.idFromName(id))
-const chamarLoja = async (env, id, corpo) => (await loja(env, id).fetch('https://loja/', { method: 'POST', body: JSON.stringify({ id, ...corpo }) })).json()
-
 export class Mercado {
   constructor(ctx, env) {
     this.ctx = ctx
     this.env = env
     this.sql = ctx.storage.sql
     this.sql.exec('CREATE TABLE IF NOT EXISTS anuncios (id TEXT PRIMARY KEY, vendedor TEXT, preco INTEGER, criado INTEGER, dados TEXT)')
+    this.sql.exec('CREATE INDEX IF NOT EXISTS anuncios_vendedor ON anuncios (vendedor)')
+    this.sql.exec('CREATE INDEX IF NOT EXISTS anuncios_criado ON anuncios (criado)')
     // NP de venda que não chegou ao vendedor (falha entre um objeto e outro): tenta de novo no próximo pedido
     this.sql.exec('CREATE TABLE IF NOT EXISTS creditos (id TEXT PRIMARY KEY, vendedor TEXT, valor INTEGER)')
     // Drops ao vivo (carrossel do topo da loja): o que cada jogador ganhou ao abrir caixas. ts = quando pode aparecer (depois da roleta)
     this.sql.exec('CREATE TABLE IF NOT EXISTS drops (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, r INTEGER, v INTEGER, dados TEXT)')
-    this.fila = Promise.resolve()
+    this.sql.exec('CREATE INDEX IF NOT EXISTS drops_ts ON drops (ts)')
+    this.fila = new Fila()
   }
 
-  exclusivo(fn) {
-    const r = this.fila.then(fn)
-    this.fila = r.then(() => {}, () => {})
-    return r
-  }
-
-  async fetch(req) {
-    const corpo = await req.json().catch(() => ({}))
-    return this.exclusivo(async () => {
-      try {
+  fetch(req) {
+    return responder(async () => {
+      const corpo = await lerCorpo(req)
+      return this.fila.rodar(async () => {
         await this.pagarPendentes()
-        return json(await this.acao(corpo))
-      } catch (e) {
-        const m = /^[a-z-]{2,30}$/.test(e?.message || '') ? e.message : 'falhou'
-        return json({ erro: m }, m === 'falhou' ? 500 : 400)
-      }
+        return this.acao(corpo)
+      })
     })
   }
 
@@ -68,45 +61,58 @@ export class Mercado {
     return l ? { ...JSON.parse(l.dados), id: l.id, vendedor: l.vendedor, preco: l.preco, criado: l.criado } : null
   }
 
+  // Créditos que ficaram para trás: cada um tenta de novo; o que falhar continua na tabela para o próximo pedido
   async pagarPendentes() {
     for (const c of this.sql.exec('SELECT id, vendedor, valor FROM creditos').toArray()) {
-      const r = await chamarLoja(this.env, c.vendedor, { acao: 'creditar', pontos: 0, valor: c.valor, motivo: 'mercado: venda' }).catch(() => null)
-      if (r && !r.erro) this.sql.exec('DELETE FROM creditos WHERE id = ?', c.id)
+      try {
+        await pedirAoJogador(this.env, c.vendedor, { acao: 'creditar', valor: c.valor, motivo: 'mercado: venda' })
+        this.sql.exec('DELETE FROM creditos WHERE id = ?', c.id)
+      } catch (e) {
+        console.error('mercado: crédito pendente de', c.vendedor, e)
+      }
     }
   }
 
-  async acao({ acao, quem, ...p }) {
-    if (acao === 'listar') {
-      const linhas = this.sql.exec('SELECT id, vendedor, preco, criado, dados FROM anuncios ORDER BY criado DESC LIMIT ?', MAX_ANUNCIOS).toArray()
-      return {
-        anuncios: linhas.map((l) => {
-          const d = JSON.parse(l.dados)
-          return { id: l.id, vendedor: l.vendedor, vendedorNome: d.vendedorNome, vendedorAvatar: d.vendedorAvatar, item: d.item, preco: l.preco, ref: valorDe(d.item)?.v ?? null, criado: l.criado }
-        }),
-      }
+  acao({ acao, quem, ...p }) {
+    switch (acao) {
+      case 'listar':
+        return this.listar()
+      case 'zerar': // src/zerar.js: sem anúncios, sem créditos pendentes e sem drops
+        this.ctx.storage.transactionSync(() => {
+          for (const tabela of ['anuncios', 'creditos', 'drops']) this.sql.exec(`DELETE FROM ${tabela}`)
+        })
+        return { ok: true }
+      case 'drops-add':
+        return this.dropsAdd(p.lista)
+      case 'drops':
+        return this.drops()
+      case 'anunciar':
+        return this.anunciar(quem, p)
+      case 'cancelar':
+        return this.cancelar(quem, p)
+      case 'comprar':
+        return this.comprar(quem, p)
+      default:
+        throw new ErroPedido('acao')
     }
-    if (acao === 'zerar') {
-      // src/zerar.js: sem anúncios, sem créditos pendentes e sem drops
-      this.ctx.storage.transactionSync(() => {
-        this.sql.exec('DELETE FROM anuncios')
-        this.sql.exec('DELETE FROM creditos')
-        this.sql.exec('DELETE FROM drops')
-      })
-      return { ok: true }
+  }
+
+  listar() {
+    const linhas = this.sql.exec('SELECT id, vendedor, preco, criado, dados FROM anuncios ORDER BY criado DESC LIMIT ?', MAX_ANUNCIOS).toArray()
+    return {
+      anuncios: linhas.map((l) => {
+        const d = JSON.parse(l.dados)
+        return { id: l.id, vendedor: l.vendedor, vendedorNome: d.vendedorNome, vendedorAvatar: d.vendedorAvatar, item: d.item, preco: l.preco, ref: valorDe(d.item)?.v ?? null, criado: l.criado }
+      }),
     }
-    if (acao === 'drops-add') return this.dropsAdd(p.lista)
-    if (acao === 'drops') return this.drops()
-    if (acao === 'anunciar') return this.anunciar(quem, p)
-    if (acao === 'cancelar') return this.cancelar(quem, p)
-    if (acao === 'comprar') return this.comprar(quem, p)
-    throw new Error('acao')
   }
 
   dropsAdd(lista) {
     if (!Array.isArray(lista) || !lista.length) return { ok: true }
     this.ctx.storage.transactionSync(() => {
-      for (const x of lista.slice(0, 20)) this.sql.exec('INSERT INTO drops (ts, r, v, dados) VALUES (?, ?, ?, ?)', x.ts, x.r, x.v, JSON.stringify(x))
-      this.sql.exec('DELETE FROM drops WHERE id <= (SELECT MAX(id) FROM drops) - ?', MAX_DROPS)
+      let ultimo = 0
+      for (const x of lista.slice(0, 20)) ultimo = this.sql.exec('INSERT INTO drops (ts, r, v, dados) VALUES (?, ?, ?, ?) RETURNING id', x.ts, x.r, x.v, JSON.stringify(x)).one().id
+      this.sql.exec('DELETE FROM drops WHERE id <= ?', ultimo - MAX_DROPS)
     })
     return { ok: true }
   }
@@ -125,25 +131,25 @@ export class Mercado {
 
   async anunciar(quem, p) {
     const preco = Math.round(Number(p.preco))
-    if (!Number.isFinite(preco) || preco < 1 || preco > PRECO_MAX) throw new Error('preco')
-    const meus = Number(this.sql.exec('SELECT COUNT(*) AS n FROM anuncios WHERE vendedor = ?', quem).one().n)
-    if (meus >= MAX_POR_VENDEDOR) throw new Error('muitos-anuncios')
-    if (Number(this.sql.exec('SELECT COUNT(*) AS n FROM anuncios').one().n) >= MAX_ANUNCIOS) throw new Error('mercado-cheio')
+    if (!Number.isFinite(preco) || preco < 1 || preco > PRECO_MAX) throw new ErroPedido('preco')
+    if (this.sql.exec('SELECT COUNT(*) AS n FROM anuncios WHERE vendedor = ?', quem).one().n >= MAX_POR_VENDEDOR) throw new ErroConflito('muitos-anuncios')
+    if (this.sql.exec('SELECT COUNT(*) AS n FROM anuncios').one().n >= MAX_ANUNCIOS) throw new ErroConflito('mercado-cheio')
     const inv = await lerSkins(this.env, quem)
     const item = inv?.itens?.[String(p.id)]
-    if (!item || !TIPOS_OK.has(item.t)) throw new Error('item-invalido')
-
-    const tirou = await mexerNoInventario(this.env, quem, [{ id: String(p.id), item }], [])
-    if (tirou.erro) throw new Error(tirou.erro === 'item-mudou' ? 'item-invalido' : tirou.erro)
-
-    const usuarios = (await this.env.MOLDURAS.get('usuarios', 'json').catch(() => null)) || {}
+    if (!item || !TIPOS_OK.has(item.t)) throw new ErroConflito('item-invalido')
+    try {
+      await mexerNoInventario(this.env, quem, [{ id: String(p.id), item }], [])
+    } catch (e) {
+      throw e instanceof ErroConflito && e.codigo === 'item-mudou' ? new ErroConflito('item-invalido') : e
+    }
+    const vendedor = (await lerUsuarios(this.env))[quem]
     const anuncio = {
       id: novoIdItem() + novoIdItem().slice(0, 4),
       vendedor: quem,
       preco,
       criado: Date.now(),
-      vendedorNome: String(usuarios[quem]?.nome || ''),
-      vendedorAvatar: String(usuarios[quem]?.avatar || ''),
+      vendedorNome: String(vendedor?.nome || ''),
+      vendedorAvatar: String(vendedor?.avatar || ''),
       nome: String(p.nome || '').replace(/[\u0000-\u001f<>]/g, '').slice(0, 100),
       item,
     }
@@ -154,20 +160,18 @@ export class Mercado {
 
   async cancelar(quem, p) {
     const a = this.anuncio(p.id)
-    if (!a) throw new Error('nao-achou')
-    if (a.vendedor !== quem) throw new Error('nao-pode')
-    const volta = await mexerNoInventario(this.env, quem, [], [{ item: a.item }])
-    if (volta.erro) throw new Error(volta.erro)
+    if (!a) throw new ErroNaoEncontrado('nao-achou')
+    if (a.vendedor !== quem) throw new ErroPermissao('nao-pode')
+    const [id] = await mexerNoInventario(this.env, quem, [], [{ item: a.item }])
     this.sql.exec('DELETE FROM anuncios WHERE id = ?', a.id)
-    return { ok: true, id: volta.novosIds[0] }
+    return { ok: true, id }
   }
 
   async comprar(quem, p) {
     const a = this.anuncio(p.id)
-    if (!a) throw new Error('nao-achou')
-    if (a.vendedor === quem) throw new Error('proprio')
-    const r = await chamarLoja(this.env, quem, { acao: 'mercado-comprar', pontos: p.pontos, bonus: p.bonus, item: a.item, preco: a.preco })
-    if (r.erro) throw new Error(r.erro)
+    if (!a) throw new ErroNaoEncontrado('nao-achou')
+    if (a.vendedor === quem) throw new ErroConflito('proprio')
+    const r = await pedirAoJogador(this.env, quem, { acao: 'mercado-comprar', item: a.item, preco: a.preco })
     // pago e entregue: o anúncio sai e o vendedor recebe (se o objeto dele falhar agora, fica na lista de créditos e vai no próximo pedido)
     this.ctx.storage.transactionSync(() => {
       this.sql.exec('DELETE FROM anuncios WHERE id = ?', a.id)
@@ -175,29 +179,27 @@ export class Mercado {
     })
     await this.pagarPendentes()
 
-    const usuarios = (await this.env.MOLDURAS.get('usuarios', 'json').catch(() => null)) || {}
-    const comprador = String(usuarios[quem]?.nome || 'Alguém')
-    const preco = a.preco.toLocaleString('pt-BR')
+    const comprador = (await lerUsuarios(this.env))[quem]
     const notif = {
       id: `mercado:${a.id}`,
       titulo: 'Sua skin foi vendida no mercado!',
-      texto: `${comprador} comprou ${a.nome || 'o seu item'} por ${preco} NP. Os pontos já estão na sua conta.`,
+      texto: `${String(comprador?.nome || 'Alguém')} comprou ${a.nome || 'o seu item'} por ${a.preco.toLocaleString('pt-BR')} NP. Os pontos já estão na sua conta.`,
       link: '/loja/?aba=mercado',
-      ...(usuarios[quem]?.avatar ? { imagem: String(usuarios[quem].avatar) } : {}),
+      ...(comprador?.avatar ? { imagem: String(comprador.avatar) } : {}),
       quando: Date.now(),
       lida: false,
     }
-    await chamarLoja(this.env, a.vendedor, { acao: 'notif-sync', doc: { lista: [notif], vistos: [notif.id], limpoEm: 0 } }).catch(() => null)
+    await semDerrubar(notificar(this.env, a.vendedor, notif), 'notificação de venda no mercado')
     await avisarMercado(this.env, a.vendedor)
     return { ok: true, saldo: r.saldo, id: r.id }
   }
 }
 
-const objeto = (env) => env.MERCADO.get(env.MERCADO.idFromName('global'))
+const objeto = (env) => objetoGlobal(env.MERCADO)
 const chamar = (env, corpo) => objeto(env).fetch('https://mercado/', { method: 'POST', body: JSON.stringify(corpo) })
 
 // Depois de uma abertura de caixa (rotaLoja): o que saiu entra no carrossel de drops. resultados = os da Loja.abrir
-export async function registrarDrops(env, quem, caixa, resultados) {
+export function registrarDrops(env, quem, caixa, resultados) {
   const ts = Date.now() + ATRASO_DROP
   const lista = resultados.map((x, k) => {
     const { t, d, p, f, n, i } = x.item
@@ -217,7 +219,7 @@ export async function registrarDrops(env, quem, caixa, resultados) {
       caixa: caixa?.slug || '',
     }
   })
-  await chamar(env, { acao: 'drops-add', lista }).catch(() => {})
+  return semDerrubar(chamar(env, { acao: 'drops-add', lista }), 'carrossel de drops')
 }
 
 // GET /loja/drops (público): as três listas do carrossel. Guardado alguns segundos no cache da borda (todo mundo pergunta a cada poucos segundos)
@@ -225,33 +227,29 @@ export async function rotaDrops(req, env, cors, ctx) {
   const cache = caches.default
   const chave = new Request(new URL('/loja/drops', req.url).toString())
   const salvo = await cache.match(chave)
-  if (salvo) return new Response(salvo.body, { status: 200, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
+  if (salvo) return reenviar(salvo, cors)
   const r = await chamar(env, { acao: 'drops' })
   const corpo = await r.text()
   if (r.ok) ctx.waitUntil(cache.put(chave, new Response(corpo, { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=3' } })))
-  return new Response(corpo, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
+  return reenviar(new Response(corpo, { status: r.status }), cors)
 }
+
+const FEITO = { anunciar: (p) => `anunciou um item no mercado por ${Number(p.preco).toLocaleString('pt-BR')} NP`, cancelar: () => 'cancelou um anúncio do mercado', comprar: () => 'comprou um anúncio do mercado' }
 
 // Rotas /mercado (login)
 export async function rotaMercado(req, env, quem, cors, rota) {
-  const corpo = req.method === 'POST' ? await req.json().catch(() => ({})) : {}
-  // Colocar algo à venda pede a senha de segurança (evita golpe)
-  if (rota === '/mercado/anunciar' && req.method === 'POST') {
-    const falha = await exigirSenha(env, quem.id, corpo.senha, cors)
-    if (falha) return falha
-  }
   let pedido
   if (rota === '/mercado' && req.method === 'GET') pedido = { acao: 'listar' }
-  else if (rota === '/mercado/anunciar' && req.method === 'POST') pedido = { acao: 'anunciar', id: corpo.id, preco: corpo.preco, nome: corpo.nome }
-  else if (rota === '/mercado/cancelar' && req.method === 'POST') pedido = { acao: 'cancelar', id: corpo.id }
-  else if (rota === '/mercado/comprar' && req.method === 'POST') {
-    const [pontos, bonus] = await Promise.all([pontosGanhos(env, quem.id), env.MOLDURAS.get('loja-bonus', 'json').catch(() => null)])
-    pedido = { acao: 'comprar', id: corpo.id, pontos, bonus: bonus || [] }
-  } else return json({ erro: 'rota' }, 404, cors)
+  else if (req.method === 'POST' && ['/mercado/anunciar', '/mercado/cancelar', '/mercado/comprar'].includes(rota)) {
+    const corpo = await lerCorpo(req)
+    const acao = rota.slice('/mercado/'.length)
+    pedido = { acao, id: corpo.id }
+    if (acao === 'anunciar') {
+      await exigirSenha(env, quem.id, corpo.senha) // colocar algo à venda pede a senha de segurança (evita golpe)
+      pedido = { ...pedido, preco: corpo.preco, nome: corpo.nome }
+    }
+  } else throw new ErroNaoEncontrado('rota')
   const r = await chamar(env, { ...pedido, quem: quem.id })
-  if (r.ok && pedido.acao !== 'listar') {
-    const texto = pedido.acao === 'anunciar' ? `anunciou um item no mercado por ${Number(pedido.preco).toLocaleString('pt-BR')} NP` : pedido.acao === 'cancelar' ? 'cancelou um anúncio do mercado' : 'comprou um anúncio do mercado'
-    await registrar(env, { tipo: 'mercado', quem: quem.id, texto, dados: { anuncio: String(pedido.id || '').slice(0, 12) } })
-  }
-  return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
+  if (r.ok && pedido.acao !== 'listar') await registrar(env, { tipo: 'mercado', quem: quem.id, texto: FEITO[pedido.acao](pedido), dados: { anuncio: String(pedido.id || '').slice(0, 12) } })
+  return reenviar(r, cors)
 }

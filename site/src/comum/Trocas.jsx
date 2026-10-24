@@ -3,8 +3,8 @@
 //  - BotaoTrocas: o botão; as janelas (proposta, escolher jogador, lista) ficam em TrocasJanelas.jsx e só baixam no clique.
 import { Suspense, lazy, useCallback, useEffect, useState } from 'react'
 import './trocas.css'
-import { CONFIG } from './config.js'
-import { tokenConta, useConta } from './conta.js'
+import { chamarApi, seForErroApi, enderecoApi } from './api.js'
+import { useConta } from './conta.js'
 import { useT } from './i18n.js'
 import { registrarNotificacao } from './notificacoes.js'
 
@@ -12,27 +12,14 @@ const JanelaTroca = lazy(() => import('./TrocasJanelas.jsx').then((m) => ({ defa
 const EscolherJogador = lazy(() => import('./TrocasJanelas.jsx').then((m) => ({ default: m.EscolherJogador })))
 const PainelTrocas = lazy(() => import('./TrocasJanelas.jsx').then((m) => ({ default: m.PainelTrocas })))
 
-const base = () => CONFIG.loginSteam.replace(/\/$/, '')
-export async function chamar(rota, corpo) {
-  const token = tokenConta()
-  if (!token) throw new Error('login')
-  const r = await fetch(`${base()}${rota}`, {
-    method: corpo === undefined ? 'GET' : 'POST',
-    headers: { Authorization: `Bearer ${token}`, ...(corpo === undefined ? {} : { 'Content-Type': 'application/json' }) },
-    body: corpo === undefined ? undefined : JSON.stringify(corpo),
-  })
-  const d = await r.json().catch(() => null)
-  if (!r.ok || d?.erro) throw Object.assign(new Error(d?.erro || 'falhou'), { dados: d || {} })
-  return d
-}
-export const lerTrocas = () => chamar('/trocas')
+export const lerTrocas = () => chamarApi('/trocas')
 
 // Quantas propostas esperam a sua resposta (e atualiza sozinho)
 export function useTrocas() {
   const conta = useConta()
   const [dados, setDados] = useState(null)
   const carregar = useCallback(() => {
-    if (conta?.id && CONFIG.loginSteam) lerTrocas().then(setDados, () => {})
+    if (conta?.id && enderecoApi()) lerTrocas().then(setDados, seForErroApi())
   }, [conta?.id])
   useEffect(() => {
     carregar()

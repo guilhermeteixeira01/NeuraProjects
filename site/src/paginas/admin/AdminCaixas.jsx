@@ -1,10 +1,11 @@
 // Aba "Caixas" do painel (só o dono): taxas e desgaste do sorteio, as caixas da loja (nome, preço, itens e pesos), NP de um jogador e a
 // reconferência das insígnias. O worker (src/loja.js) valida tudo de novo ao salvar.
 import { useEffect, useMemo, useState } from 'react'
+import { seForErroApi } from '../../comum/api.js'
 import { chamar } from '../../comum/Moldura.jsx'
 import { useT } from '../../comum/i18n.js'
 import { confirmar, perguntar } from '../../comum/Dialogos.jsx'
-import { urlImgArma, useCatalogo } from '../../comum/skins.js'
+import { useCatalogo } from '../../comum/skins.js'
 import { RARIDADES, raridadeDaCor } from '../../../worker/steam-login/src/loja-core.js'
 
 const erroTexto = (e) => ({ login: 'Seu login venceu. Entre de novo com a Steam.', dono: 'Só o dono mexe na loja.', caixas: 'Lista de caixas inválida (nomes repetidos?).', taxas: 'As taxas não podem ser todas zero.', id: 'SteamID64 inválido.' })[e.message] || 'Não deu para salvar. Tente de novo.'
@@ -156,7 +157,7 @@ export default function AdminCaixas() {
 
   useEffect(() => {
     chamar('/admin/caixas-lista', {}).then(setCaixas, (e) => setEstado(erroTexto(e)))
-    chamar('/admin/loja-config', {}).then(setCfg, () => {})
+    chamar('/admin/loja-config', {}).then(setCfg, seForErroApi())
   }, [])
   const armas = catalogo.dados?.armas || []
   const achar = useMemo(() => {

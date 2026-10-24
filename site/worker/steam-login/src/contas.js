@@ -14,7 +14,10 @@
  *   GET  /nicks?ids=a,b,c     (público) -> { "<SteamID64>": "apelido" }
  *   POST /admin/senha-reset   (dono) { id }   ·   POST /admin/nick (dono) { id, nick }
  */
+import { ErroConflito, ErroLimite, ErroPedido, ErroPermissao, ErroSenha } from './erros.js'
+import { lerCorpo } from './http.js'
 import { chaveDoNick, erroDoNick } from './nick-filtro.js'
+import { Fila, objetoGlobal, pedir, responder } from './objetos.js'
 export { chaveDoNick }
 
 export const DIAS_TROCA_NICK = 15
@@ -23,8 +26,6 @@ const MAX_ERROS = 5
 const BLOQUEIO_MS = 15 * 60 * 1000
 const ITERACOES = 100000 // o máximo que o Workers aceita no PBKDF2
 const ID_STEAM = /^\d{17}$/
-
-const json = (dados, status = 200) => new Response(JSON.stringify(dados), { status, headers: { 'Content-Type': 'application/json; charset=utf-8' } })
 
 const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('')
 const deHex = (h) => new Uint8Array((h.match(/../g) || []).map((x) => parseInt(x, 16)))
@@ -46,26 +47,13 @@ export class Contas {
     this.sql = ctx.storage.sql
     this.sql.exec('CREATE TABLE IF NOT EXISTS contas (steam TEXT PRIMARY KEY, nick TEXT, chave TEXT, nick_em INTEGER, trocas INTEGER DEFAULT 0, sal TEXT, hash TEXT, senha_em INTEGER, erros INTEGER DEFAULT 0, bloqueio INTEGER DEFAULT 0)')
     this.sql.exec('CREATE UNIQUE INDEX IF NOT EXISTS contas_chave ON contas (chave) WHERE chave IS NOT NULL')
-    this.fila = Promise.resolve()
+    this.fila = new Fila() // a verificação de senha espera o PBKDF2 (await): sem a fila, duas tentativas juntas contariam um erro só
   }
 
-  exclusivo(fn) {
-    const r = this.fila.then(fn)
-    this.fila = r.then(() => {}, () => {})
-    return r
-  }
-
-  async fetch(req) {
-    const corpo = await req.json().catch(() => ({}))
-    return this.exclusivo(async () => {
-      try {
-        return json(await this.acao(corpo))
-      } catch (e) {
-        if (e?.dados) return json({ erro: e.message, ...e.dados }, e.status || 400)
-        const m = /^[a-z-]{2,30}$/.test(e?.message || '') ? e.message : 'falhou'
-        if (m === 'falhou') console.error('contas', e)
-        return json({ erro: m }, m === 'falhou' ? 500 : 400)
-      }
+  fetch(req) {
+    return responder(async () => {
+      const corpo = await lerCorpo(req)
+      return this.fila.rodar(() => this.acao(corpo))
     })
   }
 
@@ -77,19 +65,12 @@ export class Contas {
     const a = c.acao
     if (a === 'nicks') {
       const ids = (Array.isArray(c.ids) ? c.ids : []).filter((x) => ID_STEAM.test(x)).slice(0, 200)
-      const saida = {}
-      for (const id of ids) {
-        const l = this.conta(id)
-        if (l?.nick) saida[id] = l.nick
-      }
-      return saida
+      if (!ids.length) return {}
+      const linhas = this.sql.exec(`SELECT steam, nick FROM contas WHERE nick IS NOT NULL AND steam IN (${ids.map(() => '?').join(',')})`, ...ids).toArray()
+      return Object.fromEntries(linhas.map((l) => [l.steam, l.nick]))
     }
-    if (a === 'todos-nicks') {
-      const saida = {}
-      for (const l of this.sql.exec('SELECT steam, nick FROM contas WHERE nick IS NOT NULL').toArray()) saida[l.steam] = l.nick
-      return saida
-    }
-    if (!ID_STEAM.test(c.steam || '')) throw new Error('id')
+    if (a === 'todos-nicks') return Object.fromEntries(this.sql.exec('SELECT steam, nick FROM contas WHERE nick IS NOT NULL').toArray().map((l) => [l.steam, l.nick]))
+    if (!ID_STEAM.test(c.steam || '')) throw new ErroPedido('id')
     if (a === 'estado') return this.estado(c.steam, !!c.premium)
     if (a === 'livre') {
       // validação ao vivo do campo de apelido: o mesmo que definirNick confere, sem gravar
@@ -106,7 +87,7 @@ export class Contas {
       this.sql.exec('UPDATE contas SET sal = NULL, hash = NULL, senha_em = NULL, erros = 0, bloqueio = 0 WHERE steam = ?', c.steam)
       return { ok: true }
     }
-    throw new Error('acao')
+    throw new ErroPedido('acao')
   }
 
   estado(steam, premium) {
@@ -126,16 +107,16 @@ export class Contas {
   definirNick(steam, bruto, premium, admin) {
     const nick = String(bruto ?? '').trim().replace(/\s+/g, ' ')
     const invalido = erroDoNick(nick) // formato, reservado ou impróprio
-    if (invalido) throw new Error(invalido)
+    if (invalido) throw new ErroPedido(invalido)
     const chave = chaveDoNick(nick)
     const l = this.conta(steam)
     const agora = Date.now()
     if (l?.nick && !admin) {
-      if (!premium) throw new Error('so-premium')
-      if (agora < l.nick_em + TROCA_MS) throw Object.assign(new Error('espere'), { dados: { proximaTroca: l.nick_em + TROCA_MS }, status: 429 })
+      if (!premium) throw new ErroPermissao('so-premium')
+      if (agora < l.nick_em + TROCA_MS) throw new ErroLimite('espere', { proximaTroca: l.nick_em + TROCA_MS })
     }
     const dono = this.sql.exec('SELECT steam FROM contas WHERE chave = ?', chave).toArray()[0]
-    if (dono && dono.steam !== steam) throw new Error('nick-em-uso')
+    if (dono && dono.steam !== steam) throw new ErroConflito('nick-em-uso')
     // trocar para o mesmo texto só com outra caixa/acento do próprio apelido é permitido (a chave é a mesma)
     if (l) this.sql.exec('UPDATE contas SET nick = ?, chave = ?, nick_em = ?, trocas = trocas + ? WHERE steam = ?', nick, chave, agora, l.nick ? 1 : 0, steam)
     else this.sql.exec('INSERT INTO contas (steam, nick, chave, nick_em, trocas) VALUES (?, ?, ?, ?, 0)', steam, nick, chave, agora)
@@ -143,11 +124,11 @@ export class Contas {
   }
 
   async definirSenha(steam, senha, atual) {
-    if (senha.length < 6 || senha.length > 64) throw new Error('senha-curta')
-    if (senha.includes(steam)) throw new Error('senha-fraca')
+    if (senha.length < 6 || senha.length > 64) throw new ErroPedido('senha-curta')
+    if (senha.includes(steam)) throw new ErroPedido('senha-fraca')
     const l = this.conta(steam)
     if (l?.hash) {
-      if (atual == null) throw new Error('senha-atual')
+      if (atual == null) throw new ErroPedido('senha-atual')
       await this.verificar(steam, atual) // erra: conta como tentativa e bloqueia
     }
     const sal = crypto.getRandomValues(new Uint8Array(16))
@@ -159,10 +140,10 @@ export class Contas {
 
   async verificar(steam, senha) {
     const l = this.conta(steam)
-    if (!l?.hash) throw new Error('sem-senha')
-    if (!senha) throw new Error('senha-pedir') // campo vazio: só pede a senha, não conta como tentativa errada
+    if (!l?.hash) throw new ErroSenha('sem-senha')
+    if (!senha) throw new ErroSenha('senha-pedir') // campo vazio: só pede a senha, não conta como tentativa errada
     const agora = Date.now()
-    if (l.bloqueio > agora) throw Object.assign(new Error('bloqueado'), { dados: { ate: l.bloqueio }, status: 429 })
+    if (l.bloqueio > agora) throw new ErroLimite('bloqueado', { ate: l.bloqueio })
     const calculado = hex(await derivar(senha, deHex(l.sal)))
     if (iguais(calculado, l.hash)) {
       if (l.erros) this.sql.exec('UPDATE contas SET erros = 0 WHERE steam = ?', steam)
@@ -171,22 +152,15 @@ export class Contas {
     const erros = (l.erros || 0) + 1
     if (erros >= MAX_ERROS) {
       this.sql.exec('UPDATE contas SET erros = 0, bloqueio = ? WHERE steam = ?', agora + BLOQUEIO_MS, steam)
-      throw Object.assign(new Error('bloqueado'), { dados: { ate: agora + BLOQUEIO_MS }, status: 429 })
+      throw new ErroLimite('bloqueado', { ate: agora + BLOQUEIO_MS })
     }
     this.sql.exec('UPDATE contas SET erros = ? WHERE steam = ?', erros, steam)
-    throw Object.assign(new Error('senha-errada'), { dados: { restantes: MAX_ERROS - erros }, status: 403 })
+    throw new ErroPermissao('senha-errada', { restantes: MAX_ERROS - erros })
   }
 }
 
-const objeto = (env) => env.CONTAS.get(env.CONTAS.idFromName('global'))
-export const chamarContas = async (env, corpo) => {
-  const r = await objeto(env).fetch('https://contas/', { method: 'POST', body: JSON.stringify(corpo) })
-  return { ok: r.ok, status: r.status, dados: await r.json().catch(() => ({ erro: 'falhou' })) }
-}
+// Pede uma ação ao objeto de contas (erro do objeto volta tipado)
+export const chamarContas = (env, corpo) => pedir(objetoGlobal(env.CONTAS), corpo, 'https://contas/')
 
-// Confere a senha de segurança antes de uma ação sensível (troca, anúncio no mercado). Devolve null se está certa, ou a Response de erro.
-export async function exigirSenha(env, steam, senha, cors) {
-  const r = await chamarContas(env, { acao: 'verificar', steam, senha: String(senha ?? '') })
-  if (r.ok) return null
-  return new Response(JSON.stringify(r.dados), { status: r.status === 400 ? 428 : r.status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors } })
-}
+// Confere a senha de segurança antes de uma ação sensível (troca, anúncio no mercado); errada, faltando ou bloqueada: lança o erro tipado
+export const exigirSenha = (env, steam, senha) => chamarContas(env, { acao: 'verificar', steam, senha: String(senha ?? '') })

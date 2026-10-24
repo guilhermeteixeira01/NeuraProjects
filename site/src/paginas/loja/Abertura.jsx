@@ -10,10 +10,8 @@ import { urlImg, urlImgArma, useCatalogo } from '../../comum/skins.js'
 import { definirPreferencia, preferenciaAtual, som, somDaRaridade } from './somLoja.js'
 
 const DURACAO = 6000 // roleta horizontal (ms)
-const DURACAO_FACAS = 5000
 // Lightning (botão da página da caixa): a mesma animação, mais curta
 const DURACAO_RAPIDA = 2200
-const DURACAO_FACAS_RAPIDA = 1800
 const SEM_VENDIDOS = new Set()
 
 // ── dados de um item (nome, imagem) a partir do catálogo de skins ──

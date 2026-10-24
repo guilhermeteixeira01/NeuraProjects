@@ -1,27 +1,13 @@
 // Times de jogadores (worker: src/equipes.js). Chamadas e utilidades da página "Times".
-import { CONFIG } from './config.js'
-import { tokenConta } from './conta.js'
+import { chamarApi, enderecoApi } from './api.js'
 
-const base = () => CONFIG.loginSteam.replace(/\/$/, '')
-
-async function chamar(rota, corpo) {
-  const token = tokenConta()
-  if (!token) throw new Error('login')
-  const r = await fetch(`${base()}${rota}`, {
-    method: corpo === undefined ? 'GET' : 'POST',
-    headers: { Authorization: `Bearer ${token}`, ...(corpo === undefined ? {} : { 'Content-Type': 'application/json' }) },
-    body: corpo === undefined ? undefined : JSON.stringify(corpo),
-  })
-  const d = await r.json().catch(() => null)
-  if (!r.ok || d?.erro) throw new Error(d?.erro || 'falhou')
-  return d
-}
+const chamar = chamarApi
 
 export const lerEquipes = (q = '') => chamar(`/equipes${q ? `?q=${encodeURIComponent(q)}` : ''}`)
 export const lerMeuTime = () => chamar('/equipes/meu')
 export const lerChatDoTime = () => chamar('/equipes/chat')
 export const acaoEquipe = (acao, corpo = {}) => chamar(`/equipes/${acao}`, corpo)
-export const urlImagemEquipe = (caminho) => (caminho ? `${base()}${caminho}` : '')
+export const urlImagemEquipe = (caminho) => (caminho ? `${enderecoApi()}${caminho}` : '')
 
 // Cada permissão que um cargo pode ter (o dono tem todas)
 export const PERMISSOES = [

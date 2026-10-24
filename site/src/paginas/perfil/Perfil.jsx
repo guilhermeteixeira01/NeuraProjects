@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
+import { lerApi, seForErroApi, enderecoApi } from '../../comum/api.js'
 import Layout from '../../comum/Layout.jsx'
 import { entrar, loginAtivo, useConta } from '../../comum/conta.js'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { useAoVivo } from '../../comum/aoVivo.js'
-import { CONFIG } from '../../comum/config.js'
 import { ordenarRanking } from '../../comum/ranking.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
 import { IconeSteam } from '../../comum/Icones.jsx'
@@ -16,7 +16,6 @@ import Premier from '../../comum/Premier.jsx'
 import InventarioDoJogador from '../../comum/InventarioDoJogador.jsx'
 import PerfilInventario from './PerfilInventario.jsx'
 import { CarregandoNP } from '../../comum/Carregando.jsx'
-import { BotaoTrocas } from '../../comum/Trocas.jsx'
 import { BarraXp, SeloNivel, useNivelDe } from '../../comum/Nivel.jsx'
 import SeletorMoldura from './SeletorMoldura.jsx'
 import { fundoCard } from '../../comum/cardsPerfil.js'
@@ -363,7 +362,6 @@ function Armas({ mapas, steamId }) {
   )
 }
 
-
 // "Ocultar do ranking" (só dono e admins, no próprio perfil): ligado, a pessoa some do ranking e o próximo sobe
 function OcultarRanking({ steamId }) {
   const t = useT()
@@ -588,8 +586,6 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   }, [j.steamId, j.premier])
   const premier = j.premier > 0 ? j.premier : premierLeetify
   const derrotas = j.mapas - j.vitorias
-  const primeiraData = mapas?.length ? mapas[mapas.length - 1].data : null
-  const desde = primeiraData ? new Date(primeiraData).toLocaleDateString(t.local, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'America/Sao_Paulo' }) : ''
   // resumo que aparece no cartão de cima do perfil quando a aba STATUS está aberta (time, Premier, ranking, nível, tempo de servidor e insígnias)
   const resumoStatus = (
     <>
@@ -772,12 +768,11 @@ export default function Perfil() {
   // Jogador fora do ranking (sem partidas): nome e avatar da Steam pelo worker (/jogador, público)
   const noRanking = !!dados?.ranking?.jogadores?.some((x) => x.steamId === id)
   useEffect(() => {
-    if (!id || !dados || noRanking || !CONFIG.loginSteam) return
+    if (!id || !dados || noRanking || !enderecoApi()) return
     let vivo = true
-    fetch(`${CONFIG.loginSteam.replace(/\/$/, '')}/jogador?id=${encodeURIComponent(id)}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => vivo && d && setSteamPublico({ id, nome: d.nome || '', avatar: d.avatar || '' }))
-      .catch(() => {})
+    lerApi(`/jogador?id=${encodeURIComponent(id)}`)
+      .then((d) => vivo && setSteamPublico({ id, nome: d.nome || '', avatar: d.avatar || '' }))
+      .catch(seForErroApi()) // sem resposta: fica o SteamID
     return () => {
       vivo = false
     }

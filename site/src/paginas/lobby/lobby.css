@@ -1,5 +1,4 @@
 /* Ordem: base do site, base das páginas e depois o desta página (o desta página ganha) */
-@import '../../comum/site.css';
 @import '../../comum/paginas.css';
 
 /* ══════════════ Lobby (src/paginas/lobby/Lobby.jsx): grupo + painel de partida, no estilo da FACEIT, com a paleta do site ══════════════ */
@@ -40,10 +39,6 @@
 .lb-temporada:hover::after { filter: saturate(1) brightness(1.05); }
 .lb-temporada-txt { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 6px; padding: 14px 20px; max-width: 86%; }
 .lb-temporada-txt b { font: 700 15px var(--font-body); }
-.lb-estats { display: grid; grid-template-columns: repeat(6, auto); gap: 4px 16px; margin: 2px 0 0; justify-content: start; }
-.lb-estats div { display: flex; flex-direction: column; gap: 1px; }
-.lb-estats dt { font: 600 10px var(--font-mono); letter-spacing: .6px; color: var(--dim-2); text-transform: uppercase; }
-.lb-estats dd { margin: 0; font: 800 15px var(--font-body); color: var(--text); font-variant-numeric: tabular-nums; }
 .lb-temporada-linha { font-size: 13px; color: var(--dim); }
 .lb-temporada-linha em { font-style: normal; font-weight: 800; color: var(--text); }
 .lb-temporada-txt small { font-size: 11.5px; color: var(--dim-2); }
@@ -160,10 +155,6 @@
   background: linear-gradient(0deg, rgba(0, 0, 0, .7), transparent 60%), var(--img) center / cover, linear-gradient(135deg, var(--c1), var(--c2));
 }
 .lb-mapas b { font: 700 15px var(--font-body); text-shadow: 0 2px 8px rgba(0, 0, 0, .8); }
-.lb-servidor { max-width: 560px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
-.lb-servidor b { font: 800 20px var(--font-display); }
-.lb-servidor p { margin: 0; color: var(--dim); line-height: 1.6; }
-.lb-servidor small { color: var(--dim-2); }
 
 /* botões e janelas */
 .lb-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid transparent; font: 700 13px var(--font-body); text-decoration: none; cursor: pointer; transition: filter .15s, background .15s, transform .1s; }

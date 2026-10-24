@@ -12,6 +12,7 @@ const TIPOS = [
   ['troca', 'Trocas'],
   ['mercado', 'Mercado'],
   ['venda', 'Vendas'],
+  ['conta', 'Contas'],
   ['erro', 'Erros'],
 ]
 const ROTULO = Object.fromEntries(TIPOS)
