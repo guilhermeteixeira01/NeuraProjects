@@ -83,8 +83,9 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
   const itens = useMemo(() => (rar === 'todas' ? todosItens : todosItens.filter((i) => rarDe(i) === rar)), [todosItens, rar, idx]) // eslint-disable-line react-hooks/exhaustive-deps
   const guardados = (tipo) => {
     const g = new Map()
-    for (const i of todos) if (i.t === tipo) g.set(i.d, (g.get(i.d) || 0) + 1)
-    return [...g.entries()].map(([d, n]) => ({ d, n }))
+    // id: uma das unidades (o valor de adesivo/chaveiro vem por item do worker; todas as unidades valem o mesmo)
+    for (const i of todos) if (i.t === tipo) g.set(i.d, { n: (g.get(i.d)?.n || 0) + 1, id: g.get(i.d)?.id || i.__id })
+    return [...g.entries()].map(([d, x]) => ({ d, n: x.n, id: x.id }))
   }
   const listaAdesivos = useMemo(() => guardados('adesivo'), [todos]) // eslint-disable-line react-hooks/exhaustive-deps
   const listaChaveiros = useMemo(() => guardados('chaveiro'), [todos]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -309,11 +310,14 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
                 const nomeG = cx ? cx.nome : linha?.[1] || `#${g.d}`
                 const cor = cx?.cor || (linha ? corEnfeite(aba === 'adesivos' ? 'adesivo' : 'chaveiro', linha) : '#6b6f76')
                 const imgG = cx ? cx.img : linha ? urlImg(linha[2], 256) : ''
+                // valor de uma unidade: a caixa vale o preço dela na loja; adesivo/chaveiro, o valor de mercado que o worker manda
+                const valorG = aba === 'caixas' ? cx?.preco : inv?.valores?.[g.id]
                 return (
                   <li key={`${aba}${g.d}`}>
                     <button type="button" className="pf-inv-item pf-inv-item-fixo pf-inv-item-ench" style={{ '--cor': cor }} disabled={aba === 'caixas'} onClick={() => aba !== 'caixas' && setInspecionando({ t: aba === 'adesivos' ? 'adesivo' : 'chaveiro', d: g.d, p: 0 })} title={t('Inspecionar')}>
                       <span className="pf-inv-item-arte">{imgG ? <img src={imgG} alt="" loading="lazy" draggable="false" /> : null}</span>
-                      <span className="pf-inv-item-preco">×{g.n}</span>
+                      {g.n > 1 && <span className="pf-inv-item-st pf-inv-item-qtd">×{g.n}</span>}
+                      <span className="pf-inv-item-preco">{valorG != null ? `${numero(valorG)} NP` : '…'}</span>
                       <span className="pf-inv-item-nome">
                         <small>{aba === 'adesivos' ? t('Adesivo') : aba === 'chaveiros' ? t('Chaveiro') : t('Caixa fechada')}</small>
                         <b>{nomeG}</b>

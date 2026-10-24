@@ -1154,3 +1154,4 @@ html.sm-aberto { overflow: hidden; }
 /* nome do jogador no cartão do topo: altura de linha normal (as letras não são cortadas em cima e embaixo) */
 .pf-inv-quem > b { line-height: 1.25; padding: 1px 0 2px; flex: none; }
 .pf-inv-quem > .pf-inv-rot, .pf-inv-quem > small { flex: none; }
+.pf-inv-item-qtd { color: rgb(255 255 255 / .75); font-size: 12px; letter-spacing: 0; }
