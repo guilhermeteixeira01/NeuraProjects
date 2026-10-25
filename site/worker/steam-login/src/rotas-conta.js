@@ -2,9 +2,11 @@
  * Rotas do jogador logado sobre a própria conta:
  *   GET  /eu                   -> quem é o dono do token, se é admin e quais abas do painel vê (registra a visita para o painel)
  *   POST /perfil               -> { moldura?, time?, card?, tema?, idioma?, desempenho?, vistos?, ocultoRanking? }
- *   GET  /conta/seguranca      -> { nick, temSenha, premium, podeTrocarNick, proximaTroca }
+ *   GET  /conta/seguranca      -> { nick, temSenha, email, emailPendente, premium, podeTrocarNick, proximaTroca }
  *   GET  /conta/nick-livre?nick= -> validação ao vivo do campo de apelido
  *   POST /conta/nick { nick } · POST /conta/senha { senha, atual? }
+ *   POST /conta/email { email } · POST /conta/email/verificar { codigo }
+ *   POST /conta/recuperar-senha {} · POST /conta/recuperar-senha/confirmar { codigo, senha }
  */
 import { lembrarApelido } from './auth.js'
 import { chamarContas } from './contas.js'
@@ -116,7 +118,12 @@ const ehPremium = async (env, id, config) => indiceSub((await lerPerfil(env, id)
 
 // /conta/*: apelido único e senha de segurança (src/contas.js)
 export async function rotaConta(req, env, quem, config, cors, rota, url) {
-  if (rota === '/conta/seguranca' && req.method === 'GET') return json(await chamarContas(env, { acao: 'estado', steam: quem.id, premium: await ehPremium(env, quem.id, config) }), 200, cors)
+  if (rota === '/conta/seguranca' && req.method === 'GET') {
+    const r = await chamarContas(env, { acao: 'estado', steam: quem.id, premium: await ehPremium(env, quem.id, config) })
+    // EMAIL_PRONTO = "1" só depois do domínio verificado no Resend (wrangler.toml [vars]). Até lá, o passo de
+    // e-mail não vira obrigatório pra ninguém: a chave pode já existir, mas o envio ainda falharia sem o domínio.
+    return json({ ...r, emailDisponivel: env.EMAIL_PRONTO === '1' }, 200, cors)
+  }
   if (rota === '/conta/nick-livre' && req.method === 'GET') return json(await chamarContas(env, { acao: 'livre', steam: quem.id, nick: url.searchParams.get('nick') || '' }), 200, cors)
   if (rota === '/conta/nick' && req.method === 'POST') {
     const { nick } = await lerCorpo(req)
@@ -129,6 +136,29 @@ export async function rotaConta(req, env, quem, config, cors, rota, url) {
     const { senha, atual } = await lerCorpo(req)
     const r = await chamarContas(env, { acao: 'senha', steam: quem.id, senha, atual })
     await registrar(env, { tipo: 'conta', quem: quem.id, texto: atual != null ? 'trocou a senha de segurança' : 'criou a senha de segurança' })
+    return json(r, 200, cors)
+  }
+  if (rota === '/conta/email' && req.method === 'POST') {
+    const { email } = await lerCorpo(req)
+    const r = await chamarContas(env, { acao: 'email-pedir', steam: quem.id, email })
+    await registrar(env, { tipo: 'conta', quem: quem.id, texto: 'pediu confirmação de e-mail' })
+    return json(r, 200, cors)
+  }
+  if (rota === '/conta/email/verificar' && req.method === 'POST') {
+    const { codigo } = await lerCorpo(req)
+    const r = await chamarContas(env, { acao: 'email-verificar', steam: quem.id, codigo })
+    await registrar(env, { tipo: 'conta', quem: quem.id, texto: 'confirmou o e-mail' })
+    return json(r, 200, cors)
+  }
+  if (rota === '/conta/recuperar-senha' && req.method === 'POST') {
+    const r = await chamarContas(env, { acao: 'recuperar-pedir', steam: quem.id })
+    await registrar(env, { tipo: 'conta', quem: quem.id, texto: 'pediu código para recuperar a senha por e-mail' })
+    return json(r, 200, cors)
+  }
+  if (rota === '/conta/recuperar-senha/confirmar' && req.method === 'POST') {
+    const { codigo, senha } = await lerCorpo(req)
+    const r = await chamarContas(env, { acao: 'recuperar-confirmar', steam: quem.id, codigo, senha })
+    await registrar(env, { tipo: 'conta', quem: quem.id, texto: 'recuperou a senha de segurança pelo e-mail' })
     return json(r, 200, cors)
   }
   throw new ErroNaoEncontrado('rota')

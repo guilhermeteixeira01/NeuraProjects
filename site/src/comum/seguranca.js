@@ -15,6 +15,11 @@ const chamar = chamarApi
 export const lerSeguranca = () => chamar('/conta/seguranca')
 export const escolherNick = (nick) => chamar('/conta/nick', { nick })
 export const definirSenha = (senha, atual) => chamar('/conta/senha', atual == null ? { senha } : { senha, atual })
+// E-mail: confirma com um código de 6 dígitos (válido 15 min). Depois de confirmado, serve pra recuperar a senha sem precisar da atual.
+export const pedirEmail = (email) => chamar('/conta/email', { email })
+export const verificarEmail = (codigo) => chamar('/conta/email/verificar', { codigo })
+export const pedirRecuperacaoSenha = () => chamar('/conta/recuperar-senha')
+export const confirmarRecuperacaoSenha = (codigo, senha) => chamar('/conta/recuperar-senha/confirmar', { codigo, senha })
 
 const quando = (ms) => new Date(ms).toLocaleDateString(undefined, { day: 'numeric', month: 'long' })
 const minutos = (ate) => Math.max(1, Math.ceil((ate - Date.now()) / 60000))
@@ -26,6 +31,8 @@ export function textoErroConta(e) {
   if (c === 'senha-errada') return `Senha incorreta. Tentativas restantes: ${d.restantes ?? '?'}.`
   if (c === 'bloqueado') return `Muitas tentativas erradas. Tente de novo em ${d.ate ? minutos(d.ate) : 15} minutos.`
   if (c === 'espere') return `Você já trocou o apelido há pouco. A próxima troca é em ${d.proximaTroca ? quando(d.proximaTroca) : '15 dias'}.`
+  if (c === 'codigo-errado') return `Código incorreto. Tentativas restantes: ${d.restantes ?? '?'}.`
+  if (c === 'espere-codigo') return 'Espere um pouco antes de pedir outro código.'
   return (
     {
       'nick-invalido': 'O apelido precisa ter de 3 a 20 caracteres: letras, números, espaço, ponto, _ ou -.',
@@ -38,6 +45,14 @@ export function textoErroConta(e) {
       'senha-atual': 'Digite a senha atual para trocar a senha.',
       'senha-pedir': 'Digite a sua senha de segurança.',
       'sem-senha': 'Você ainda não criou a sua senha de segurança.',
+      'email-invalido': 'Digite um e-mail válido.',
+      'sem-codigo': 'Peça um novo código primeiro.',
+      'codigo-vencido': 'Esse código venceu. Peça um novo.',
+      'codigo-pedir': 'Digite o código que mandamos pro seu e-mail.',
+      'bloqueado-codigo': 'Muitas tentativas erradas. Peça um novo código.',
+      'sem-email': 'Você ainda não tem um e-mail confirmado.',
+      indisponivel: 'Não deu pra mandar o e-mail agora. Tente de novo em instantes.',
+      email: 'Não deu pra mandar o e-mail agora. Tente de novo em instantes.',
       login: 'Seu login venceu. Entre de novo com a Steam.',
     }[c] || 'Não deu agora. Tente de novo.'
   )

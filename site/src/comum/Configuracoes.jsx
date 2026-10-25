@@ -9,6 +9,8 @@ import { useSeguranca } from './seguranca.js'
 
 const TrocarNick = lazy(() => import('./BoasVindas.jsx').then((m) => ({ default: m.TrocarNick }))) // só baixa no clique
 const TrocarSenha = lazy(() => import('./BoasVindas.jsx').then((m) => ({ default: m.TrocarSenha })))
+const VerificarEmail = lazy(() => import('./BoasVindas.jsx').then((m) => ({ default: m.VerificarEmail })))
+const RecuperarSenha = lazy(() => import('./BoasVindas.jsx').then((m) => ({ default: m.RecuperarSenha })))
 
 function IconeEngrenagem() {
   return (
@@ -23,7 +25,7 @@ function IconeEngrenagem() {
 function ContaSeguranca() {
   const t = useT()
   const seg = useSeguranca()
-  const [janela, setJanela] = useState(null) // 'nick' | 'senha'
+  const [janela, setJanela] = useState(null) // 'nick' | 'senha' | 'email' | 'recuperar'
   if (!seg?.nick) return null // sem login (ou ainda escolhendo o apelido na janela de boas-vindas)
   // Premium esperando os 15 dias: o botão mostra quanto falta (dias; no último dia, horas)
   const falta = seg.premium && !seg.podeTrocarNick && seg.proximaTroca ? Math.max(0, seg.proximaTroca - Date.now()) : 0
@@ -39,15 +41,32 @@ function ContaSeguranca() {
       </div>
       <div className="nx-conta-linha">
         <small>{seg.temSenha ? t('Senha de segurança criada') : t('Senha de segurança: ainda não criada')}</small>
-        {seg.temSenha && (
-          <button type="button" className="nx-conta-acao" onClick={() => setJanela('senha')}>
-            {t('Trocar senha')}
-          </button>
-        )}
+        <span>
+          {seg.temSenha && (
+            <button type="button" className="nx-conta-acao" onClick={() => setJanela('senha')}>
+              {t('Trocar senha')}
+            </button>
+          )}
+          {seg.temSenha && seg.email && (
+            <button type="button" className="nx-conta-acao" onClick={() => setJanela('recuperar')}>
+              {t('Esqueci minha senha')}
+            </button>
+          )}
+        </span>
       </div>
+      {(seg.email || seg.emailDisponivel) && (
+        <div className="nx-conta-linha">
+          <small>{seg.email ? t('E-mail confirmado: {email}', { email: seg.email }) : t('E-mail: ainda não confirmado')}</small>
+          <button type="button" className="nx-conta-acao" onClick={() => setJanela('email')}>
+            {seg.email ? t('Trocar e-mail') : t('Confirmar e-mail')}
+          </button>
+        </div>
+      )}
       <Suspense fallback={null}>
         {janela === 'nick' && <TrocarNick atual={seg.nick} aoFechar={() => setJanela(null)} />}
         {janela === 'senha' && <TrocarSenha aoFechar={() => setJanela(null)} />}
+        {janela === 'email' && <VerificarEmail aoFechar={() => setJanela(null)} />}
+        {janela === 'recuperar' && <RecuperarSenha aoFechar={() => setJanela(null)} />}
       </Suspense>
     </div>
   )
