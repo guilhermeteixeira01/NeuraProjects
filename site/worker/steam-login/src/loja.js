@@ -30,8 +30,11 @@
  */
 import { avisarTodos } from './amigos.js'
 import CAIXAS_INICIAIS from './caixas-iniciais.json'
-import CAIXAS_REMOVIDAS from './caixas-removidas.json' // as 31 caixas antigas, apagadas de vez (revisão 11)
-import { gravarDoc, lerDoc, lerItem, mudar, mudarDoc } from './dados.js'
+import CAIXAS_REMOVIDAS from './caixas-removidas.json'
+import CAIXAS_RETIRADAS_IDS from './caixas-retiradas-ids.json'
+import { gravarDoc, lerColecao, lerDoc, lerItem, mudar, mudarDoc } from './dados.js'
+import { removerCaixasAntigas } from './caixas-inventario.js'
+import { listarKv } from './kv.js'
 import { ErroConflito, ErroLimite, ErroNaoEncontrado, ErroPedido, ErroServico } from './erros.js'
 import { migrarEsquema } from './esquema.js'
 import { json, lerCorpo } from './http.js'
@@ -57,14 +60,17 @@ const num = (v, min, max, padrao) => {
 // ── Caixas e configuração ──
 // Revisão das caixas de fábrica: quando sobe, as caixas salvas recebem o conteúdo novo de caixas-iniciais.json (o que o dono mudou fica):
 //   2: Kawaii e Terror só com adesivos; Lendas e Espacial só com amuletos · 6: itens e facas novos em todas e taxas de volta ao padrão
-//   8: as 31 antigas viram arquivadas · 10: tier especial com luvas · 11: as 31 antigas apagadas de vez (as fechadas somem dos inventários)
-const REVISAO_CAIXAS = 11
+//   8: antigas arquivadas · 10: tier especial com luvas · 11: primeiras 31 retiradas · 12: coleção nova e retirada definitiva sem reembolso
+const REVISAO_CAIXAS = 12
 const ATUALIZAR_CAIXAS = ['caixa-kawaii', 'caixa-terror', 'caixa-lendas', 'caixa-espacial']
-const DOCS_CAIXAS = ['caixas', 'caixas-revisao', 'caixas-vistas', 'caixas-removidas', 'loja-config']
+const DOCS_CAIXAS = ['caixas', 'caixas-revisao', 'caixas-vistas', 'caixas-removidas', 'loja-config', 'loja-bonus']
 
 export async function lerCaixas(env) {
   const [salvas, revisao, vistas] = await Promise.all([lerDoc(env, 'caixas'), lerDoc(env, 'caixas-revisao', 0), lerDoc(env, 'caixas-vistas', [])])
-  if (!Array.isArray(salvas) || !salvas.length) return CAIXAS_INICIAIS
+  if (!Array.isArray(salvas) || !salvas.length) {
+    if (Number(revisao) >= REVISAO_CAIXAS) return CAIXAS_INICIAIS
+    return atualizarCaixas(env)
+  }
   const novas = CAIXAS_INICIAIS.some((c) => !vistas.includes(c.slug) && !salvas.some((x) => x.slug === c.slug))
   if (Number(revisao) >= REVISAO_CAIXAS && !novas && vistas.length) return salvas
   return atualizarCaixas(env)
@@ -73,7 +79,8 @@ export async function lerCaixas(env) {
 // Aplica a revisão de fábrica e acrescenta as caixas de fábrica novas (uma vez; as que o dono apagar não voltam), tudo numa gravação só
 async function atualizarCaixas(env) {
   const { mapa } = await mudar(env, 'docs', DOCS_CAIXAS, (d) => {
-    const salvas = d.caixas
+    const salvas = Array.isArray(d.caixas) ? d.caixas : []
+    d.caixas = salvas
     const revisao = Number(d['caixas-revisao']) || 0
     const deFabrica = (slug) => CAIXAS_INICIAIS.find((c) => c.slug === slug)
     if (revisao < REVISAO_CAIXAS) {
@@ -85,15 +92,18 @@ async function atualizarCaixas(env) {
         if (revisao < 8 && nova.arquivada) salvas[i].arquivada = true
       }
       if (revisao < 6 && d['loja-config']) d['loja-config'] = { ...d['loja-config'], taxas: CONFIG_PADRAO.taxas }
-      if (revisao < 11) {
+      if (revisao < 12) {
         const fora = salvas.filter((c) => c.arquivada || CAIXAS_REMOVIDAS.includes(c.slug))
-        d['caixas-removidas'] = [...new Set([...(d['caixas-removidas'] || []), ...fora.map((c) => c.id)])]
+        d['caixas-removidas'] = [...new Set([...(d['caixas-removidas'] || []), ...fora.map((c) => c.id), ...(!salvas.length ? CAIXAS_RETIRADAS_IDS : [])])]
         d.caixas = salvas.filter((c) => !fora.includes(c))
+        const removidas = new Set(d['caixas-removidas'].map(Number))
+        if (Array.isArray(d['loja-bonus'])) d['loja-bonus'] = d['loja-bonus'].map((b) => b.caixa && removidas.has(Number(b.caixa)) ? { ...b, apagado: true, qtd: 0 } : b)
       }
       d['caixas-revisao'] = REVISAO_CAIXAS
     }
     const vistas = d['caixas-vistas'] || []
-    let id = Math.max(0, ...d.caixas.map((c) => c.id))
+    // IDs retirados nunca são reutilizados, inclusive se o dono tinha caixas personalizadas.
+    let id = Math.max(999, ...salvas.map((c) => c.id), ...(d['caixas-removidas'] || []).map(Number), ...CAIXAS_INICIAIS.map((c) => c.id))
     const novas = CAIXAS_INICIAIS.filter((c) => !vistas.includes(c.slug) && !d.caixas.some((x) => x.slug === c.slug)).map((c) => ({ ...c, id: ++id }))
     d.caixas = [...d.caixas, ...novas]
     d['caixas-vistas'] = CAIXAS_INICIAIS.map((c) => c.slug)
@@ -108,6 +118,26 @@ export async function lerConfigLoja(env) {
     desgaste: Array.isArray(c?.desgaste) && c.desgaste.length === 5 ? c.desgaste : CONFIG_PADRAO.desgaste,
     maxQtd: num(c?.maxQtd, 1, 10, CONFIG_PADRAO.maxQtd),
   }
+}
+
+// Varre também quem está offline. A conclusão é gravada e falhas são tentadas no próximo cron.
+export async function limparInventariosCaixasAntigas(env) {
+  if ((await lerDoc(env, 'caixas-limpeza-revisao', 0)) >= REVISAO_CAIXAS) return
+  await lerCaixas(env)
+  const [usuarios, perfis, jogadores, chaves] = await Promise.all([
+    lerColecao(env, 'usuarios'), lerColecao(env, 'perfis'), lerDoc(env, 'loja-jogadores', []), listarKv(env, 'skins:'),
+  ])
+  const ids = [...new Set([...Object.keys(usuarios), ...Object.keys(perfis), ...jogadores, ...chaves.map((k) => k.slice(6))])].filter((id) => ID_STEAM.test(id))
+  const fila = [...ids]
+  const falhas = []
+  await Promise.all(Array.from({ length: 4 }, async () => {
+    for (let id = fila.shift(); id; id = fila.shift()) {
+      try { await pedirAoJogador(env, id, { acao: 'inv-ler' }) }
+      catch { falhas.push(id) }
+    }
+  }))
+  await gravarDoc(env, 'caixas-limpeza-resultado', { revisao: REVISAO_CAIXAS, jogadores: ids.length, falhas, em: Date.now() })
+  if (!falhas.length) await gravarDoc(env, 'caixas-limpeza-revisao', REVISAO_CAIXAS)
 }
 
 // A imagem da caixa vai com ?v=<revisão>: se o navegador guardou uma imagem quebrada ou antiga, ele busca de novo quando a revisão muda
@@ -279,10 +309,15 @@ export class Loja {
   // Inventário de skins do jogador: a versão de verdade fica só aqui (o plugin do servidor e o perfil público também leem daqui).
   // Na primeira vez traz o que estava no KV (skins:<id>, formato antigo). "ver" barra quem está no meio de uma mudança se mexeram antes.
   async invLer(id) {
+    await lerCaixas(this.env) // aplica a revisão antes de consultar os IDs removidos
     const [inv, ver] = await Promise.all([this.ctx.storage.get('inv'), this.ctx.storage.get('invv')])
-    return { inv: inv || (await lerSkinsKv(this.env, id)), ver: ver || 0 }
+    const atual = inv || (await lerSkinsKv(this.env, id))
+    const removidas = await lerDoc(this.env, 'caixas-removidas', [])
+    if (removerCaixasAntigas(atual, removidas)) return { inv: atual, ver: await this.invGravar(atual) }
+    return { inv: atual, ver: ver || 0 }
   }
   async invGravar(inv) {
+    removerCaixasAntigas(inv, await lerDoc(this.env, 'caixas-removidas', []))
     const ver = ((await this.ctx.storage.get('invv')) || 0) + 1
     await this.ctx.storage.put({ inv, invv: ver })
     return ver
@@ -323,7 +358,8 @@ export class Loja {
     if (!novos.length) return
     // bônus apagado pelo dono (apagado: true) ou zerado não entra: só o contador avança, para os próximos bônus funcionarem
     const valem = novos.filter((b) => !b.apagado && !b.caixa && Math.round(b.valor) !== 0)
-    const caixasBonus = novos.filter((b) => !b.apagado && b.caixa && Math.round(b.qtd) > 0)
+    const removidas = new Set((await lerDoc(this.env, 'caixas-removidas', [])).map(Number))
+    const caixasBonus = novos.filter((b) => !b.apagado && b.caixa && !removidas.has(Number(b.caixa)) && Math.round(b.qtd) > 0)
     this.ctx.storage.transactionSync(() => {
       for (const b of valem) this.movimentar(b.ts, -Math.round(b.valor), `bônus: ${b.motivo || 'para todos'}`)
     })
@@ -723,8 +759,10 @@ export async function rotaLojaPerfil(url, env, cors) {
   return json({ abertas: d.abertas, favorita, melhor: d.melhor }, 200, { ...cors, 'Cache-Control': 'public, max-age=30' })
 }
 
-export async function rotaLojaPublica(env, cors) {
-  return json((await lerCaixas(env)).filter((c) => c.ativa).map(publicaDaCaixa), 200, { ...cors, 'Cache-Control': 'public, max-age=60' })
+export async function rotaLojaPublica(env, cors, ctx) {
+  const caixas = await lerCaixas(env)
+  if (ctx) ctx.waitUntil(limparInventariosCaixasAntigas(env))
+  return json(caixas.filter((c) => c.ativa).map(publicaDaCaixa), 200, { ...cors, 'Cache-Control': 'public, max-age=60' })
 }
 
 const ROTAS_LOJA = { 'GET /loja': 'estado', 'GET /loja/saldo': 'saldo', 'GET /loja/valores': 'valores', 'POST /loja/vender': 'vender', 'GET /loja/historico': 'historico', 'POST /loja/comprar': 'comprar', 'POST /loja/abrir': 'abrir' }

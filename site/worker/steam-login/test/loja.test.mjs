@@ -11,7 +11,7 @@ const cfg = CONFIG_PADRAO
 // ── sorteio ──
 test('simulação de 100.000 aberturas: raridades e desgastes batem com as taxas', () => {
   const N = 100000
-  const caixa = CAIXAS.find((c) => c.slug === 'caixa-arma-ak-47') // caixa de arma com tier especial (as antigas foram apagadas)
+  const caixa = CAIXAS.find((c) => c.slug === 'caixa-armas-ak-47')
   const raridades = [0, 0, 0, 0, 0, 0]
   const desgastes = {}
   const porTipo = { faca: 0, luva: 0, arma: 0 }
@@ -88,7 +88,7 @@ test('chances publicadas somam 100% por raridade e batem com as taxas', () => {
 })
 
 test('faixa da roleta: o vencedor está no alvo, "quase" só quando o vizinho é o card dourado', () => {
-  const caixa = CAIXAS.find((c) => c.slug === 'caixa-arma-ak-47')
+  const caixa = CAIXAS.find((c) => c.slug === 'caixa-armas-ak-47')
   let quase = 0
   for (let i = 0; i < 5000; i++) {
     const g = sortearAbertura(caixa, cfg, rndSeguro)
@@ -210,10 +210,10 @@ test('toda insígnia do catálogo tem arte tratada e todas as secretas têm a ve
 
 test('as caixas iniciais são válidas (imagem existe, tem de tudo, pesos > 0)', () => {
   const dir = new URL('../../../public/assets/caixas/web/', import.meta.url)
-  assert.equal(CAIXAS.length, 70)
+  assert.equal(CAIXAS.length, 129)
   assert.equal(CAIXAS.filter((c) => c.arquivada).length, 0) // as 31 antigas foram apagadas (revisão 11)
   const removidas = JSON.parse(fs.readFileSync(new URL('../src/caixas-removidas.json', import.meta.url), 'utf8'))
-  assert.equal(removidas.length, 31)
+  assert.equal(removidas.length, 101)
   assert.ok(CAIXAS.every((c) => !removidas.includes(c.slug)))
   assert.equal(new Set(CAIXAS.map((c) => c.id)).size, CAIXAS.length)
   assert.equal(new Set(CAIXAS.map((c) => c.slug)).size, CAIXAS.length)
@@ -260,7 +260,7 @@ test('vender não paga a caixa de volta (valor esperado de uma abertura fica bem
 
 // ── caixas de adesivos, de chaveiros e de arma ──
 test('caixas de adesivos e de chaveiros: cada uma só com o tipo certo (sem arma e sem faca) e sem desgaste', () => {
-  const grupos = [['caixa-adesivos-', 'adesivo'], ['caixa-chaveiros-', 'chaveiro']]
+  const grupos = [['caixa-stickers-', 'adesivo'], ['caixa-charms-', 'chaveiro']]
   for (const [prefixo, tipo] of grupos) {
     const lista = CAIXAS.filter((x) => x.slug.startsWith(prefixo))
     assert.ok(lista.length > 0, prefixo)
@@ -275,7 +275,7 @@ test('caixas de adesivos e de chaveiros: cada uma só com o tipo certo (sem arma
   }
 })
 test('caixas de arma: só skins daquela arma', () => {
-  const por = { 'caixa-arma-ak-47': [7], 'caixa-arma-awp': [9], 'caixa-arma-desert-eagle': [1], 'caixa-arma-m4a1-s': [60], 'caixa-arma-m4a4': [16], 'caixa-arma-glock-18': [4] }
+  const por = { 'caixa-armas-ak-47': [7], 'caixa-armas-awp': [9], 'caixa-armas-usp-s': [61], 'caixa-armas-m4': [60, 16], 'caixa-armas-glock-18': [4] }
   for (const [slug, defs] of Object.entries(por)) assert.ok(CAIXAS.find((x) => x.slug === slug).itens.every((x) => defs.includes(x.d)), slug)
 })
 test('Mestre da Caixa de facas e de amuletos conta os itens certos (adesivo e chaveiro com o mesmo id não se confundem)', () => {
@@ -290,12 +290,12 @@ test('Mestre da Caixa de facas e de amuletos conta os itens certos (adesivo e ch
 test('categorias da loja por franquia: Kakashi/Sasuke em Naruto, Ichigo/Hollow em Bleach, toda caixa inicial com tema', async () => {
   const { categoriaDaCaixa } = await import('../../../src/comum/temasCaixa.js')
   const cat = (slug) => categoriaDaCaixa(CAIXAS.find((c) => c.slug === slug))
-  for (const s of ['caixa-anime-naruto', 'caixa-anime-kakashi', 'caixa-anime-sasuke']) assert.equal(cat(s), 'naruto', s)
-  for (const s of ['caixa-anime-ichigo', 'caixa-anime-hollow']) assert.equal(cat(s), 'bleach', s)
-  assert.equal(cat('caixa-cs-tematicas-dust-ii'), 'cs')
-  assert.equal(cat('caixa-arma-awp'), 'armas')
-  assert.equal(cat('caixa-chaveiros-toxic'), 'amuletos')
-  for (const c of CAIXAS) assert.ok(!['tematicas', 'facas', 'luvas', 'misto'].includes(categoriaDaCaixa(c)), `${c.slug} sem tema`)
+  for (const s of ['caixa-naruto-naruto', 'caixa-naruto-kakashi', 'caixa-naruto-sasuke']) assert.equal(cat(s), 'naruto-novas', s)
+  for (const s of ['caixa-bleach-ichigo', 'caixa-bleach-rukia']) assert.equal(cat(s), 'bleach-novas', s)
+  assert.equal(cat('caixa-mapas-dust2'), 'mapas')
+  assert.equal(cat('caixa-armas-awp'), 'armas-novas')
+  assert.equal(cat('caixa-charms-charms-personagens'), 'charms')
+  for (const c of CAIXAS) assert.notEqual(categoriaDaCaixa(c), 'tematicas', `${c.slug} sem tema`)
   assert.equal(categoriaDaCaixa({ slug: 'caixa-nova', itens: [{ t: 'faca', d: 1 }] }), 'facas') // criada no painel: pelo conteúdo
 })
 

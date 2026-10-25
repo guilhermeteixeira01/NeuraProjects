@@ -223,7 +223,7 @@ export default function Inicio() {
             {[
               ['/partidas/', '/neurapick/maps/mirage.jpg', 'Partidas', 'Placar, rounds e demo de cada mapa'],
               ['/ranking/', '/assets/insignia/web/arsenal-afiado-diamante.webp', 'Ranking', 'Níveis, XP e o top do servidor', 'azul'],
-              ['/loja/', '/assets/caixas/web/caixa-anime-naruto.webp', 'Loja', 'Caixas de skins com Neura Pontos', 'ouro'],
+              ['/loja/', '/assets/caixas/web/caixa-naruto-naruto.webp', 'Loja', 'Caixas de skins com Neura Pontos', 'ouro'],
               ...(verPick ? [['/neurapick/', '/neurapick/maps/inferno.jpg', 'NeuraPick', 'Veto de mapas no padrão dos campeonatos']] : []),
             ].map(([href, img, nome, texto, arte]) => (
               <li key={href}>

@@ -31,7 +31,7 @@ import { ErroApi, ErroLogin, ErroNaoEncontrado, ErroPedido, ErroPermissao, ErroS
 import { rotaEquipes, rotaImagemEquipe, rotaListaPublicaEquipes } from './equipes.js'
 import { exigirToken, json, lerCorpo, respostaDeErro } from './http.js'
 import { rotaDrops, rotaMercado } from './mercado.js'
-import { rotaLoja, rotaLojaPerfil, rotaLojaPublica } from './loja.js'
+import { limparInventariosCaixasAntigas, rotaLoja, rotaLojaPerfil, rotaLojaPublica } from './loja.js'
 import { rotaNotificacoes } from './notificacoes.js'
 import { semDerrubar } from './objetos.js'
 import { rotaPagamentos, rotaWebhookAsaas } from './pagamentos.js'
@@ -95,7 +95,7 @@ const PUBLICAS = {
   'POST /pagamentos/webhook': (c) => rotaWebhookAsaas(c.req, c.env),
   'GET /loja/drops': (c) => rotaDrops(c.req, c.env, qualquerOrigem, c.ctx),
   'GET /loja/perfil': (c) => rotaLojaPerfil(c.url, c.env, { ...qualquerOrigem, 'Cache-Control': 'public, max-age=5' }),
-  'GET /loja/caixas': (c) => rotaLojaPublica(c.env, qualquerOrigem),
+  'GET /loja/caixas': (c) => rotaLojaPublica(c.env, qualquerOrigem, c.ctx),
   // Zerar tudo pela manutenção (sem login Steam): só existe enquanto o segredo ZERAR_TOKEN estiver configurado
   'POST /manutencao/zerar-tudo': async (c) => {
     if (!c.env.ZERAR_TOKEN) throw new ErroNaoEncontrado('rota')
@@ -167,6 +167,7 @@ export default {
   // Cron (wrangler.toml, a cada 10 min): quem saiu do top N perde o cargo automático (e a moldura exclusiva dele), o top 3 ganha a insígnia
   // e, na primeira rodada de cada hora, o Premier (Leetify) é atualizado
   async scheduled(evento, env, ctx) {
+    ctx.waitUntil(semDerrubar(limparInventariosCaixasAntigas(env), 'cron: remover caixas antigas sem reembolso'))
     ctx.waitUntil(semDerrubar(lerConfig(env).then((config) => tirarExclusivasSemCargo(env, config)).then(() => darInsigniaTop3(env)), 'cron: cargos e insígnia top 3'))
     if (new Date(evento.scheduledTime).getUTCMinutes() < 10) ctx.waitUntil(semDerrubar(atualizarPremier(env), 'cron: Premier'))
   },
