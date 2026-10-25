@@ -1466,4 +1466,9 @@ export default {
   "Ninguém encontrado. Tente o SteamID, o link do perfil ou o nome de usuário da Steam (o que vem depois de steamcommunity.com/id/).": "Nobody found. Try the SteamID, the profile link, or the Steam username (what comes after steamcommunity.com/id/).",
   "Achado pelo nome de usuário da Steam, não pelo nome no site: confira se é mesmo quem você procura.": "Found by Steam username, not by the name on the site: make sure it's really who you're looking for.",
   "Steam": "Steam",
+  "Apagar mensagem": "Delete message",
+  "Apagar conversa": "Delete conversation",
+  "Apagar esta mensagem para todos?": "Delete this message for everyone?",
+  "Apagar a conversa somente para você? O histórico do seu amigo será mantido.": "Delete this conversation only for you? Your friend’s history will be kept.",
+  "Não deu para apagar. Tente de novo.": "Could not delete. Try again.",
 }

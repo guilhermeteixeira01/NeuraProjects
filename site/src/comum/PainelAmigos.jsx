@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { lerApi, seForErroApi } from './api.js'
 import { acaoAmizade, buscarJogadores, relacaoCom, tempoDesde, useAmigos } from './amigos.js'
-import { carregarMensagens, definirConversaAberta, enviarMensagem, horaOuData, useConversas } from './mensagens.js'
+import { apagarChat, carregarMensagens, definirConversaAberta, enviarMensagem, horaOuData, useConversas } from './mensagens.js'
 import { useAvatar } from './avatares.js'
 import { linkPerfil } from './conta.js'
 import { lerJson } from './dados.js'
@@ -247,11 +247,13 @@ function ListaChats({ conversas, eu, aoAbrir }) {
 }
 
 // ── Conversa aberta: histórico + caixa de mandar mensagem ──
-function MensagemConversa({ m, minha }) {
+function MensagemConversa({ m, minha, aoApagar, ocupado }) {
+  const t = useT()
   return (
     <li className={`am-dm-msg${minha ? ' am-dm-minha' : ''}`}>
       <span className="am-dm-bolha">{m.texto}</span>
       <small className="am-dm-ts">{horaOuData(m.ts)}</small>
+      {minha && <button type="button" className="am-dm-apagar" disabled={ocupado} onClick={() => aoApagar(m.id)}>{t('Apagar mensagem')}</button>}
     </li>
   )
 }
@@ -262,6 +264,7 @@ function Conversa({ id, eu, aoFechar }) {
   const [info, setInfo] = useState(null)
   const [texto, setTexto] = useState('')
   const [enviando, setEnviando] = useState(false)
+  const [apagando, setApagando] = useState(false)
   const [erro, setErro] = useState('')
   const fimRef = useRef(null)
   const mensagens = msgs[id] || []
@@ -285,6 +288,20 @@ function Conversa({ id, eu, aoFechar }) {
   useEffect(() => {
     fimRef.current?.scrollIntoView({ block: 'end' })
   }, [mensagens.length])
+
+  const apagar = async (mensagem) => {
+    if (apagando || !window.confirm(t(mensagem ? 'Apagar esta mensagem para todos?' : 'Apagar a conversa somente para você? O histórico do seu amigo será mantido.'))) return
+    setApagando(true)
+    setErro('')
+    try {
+      await apagarChat(id, mensagem)
+      if (!mensagem) aoFechar()
+    } catch {
+      setErro(t('Não deu para apagar. Tente de novo.'))
+    } finally {
+      setApagando(false)
+    }
+  }
 
   const bloqueado = !!info && !info.amigo
 
@@ -321,10 +338,11 @@ function Conversa({ id, eu, aoFechar }) {
           </span>
           <b>{info?.nome || id}</b>
         </a>
+        <button type="button" className="am-dm-apagar" disabled={apagando} onClick={() => apagar()}>{t('Apagar conversa')}</button>
       </div>
       <ul className="am-dm-lista">
         {mensagens.map((m) => (
-          <MensagemConversa key={m.id} m={m} minha={m.de === eu} />
+          <MensagemConversa key={m.id} m={m} minha={m.de === eu} aoApagar={apagar} ocupado={apagando} />
         ))}
         {!mensagens.length && info && <p className="am-vazio">{t('Nenhuma mensagem ainda. Diga oi!')}</p>}
         <li ref={fimRef} aria-hidden="true" />

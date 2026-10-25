@@ -43,6 +43,23 @@ export async function enviarMensagem(com, texto) {
   return d.msg
 }
 
+export async function apagarChat(com, mensagem) {
+  await chamarApi('/dm', { com, acao: mensagem ? 'apagar-mensagem' : 'apagar-conversa', mensagem })
+  await carregarMensagens(com)
+  await carregarConversas()
+}
+
+function aoAtualizarDm(e) {
+  const outro = e.detail.de === dono ? e.detail.para : e.detail.de
+  carregarConversas()
+  if (outro === abertaCom) carregarMensagens(outro).catch(() => {})
+  else if (estado.msgs[outro]) {
+    const msgs = { ...estado.msgs }
+    delete msgs[outro]
+    publicar({ msgs })
+  }
+}
+
 // A conversa aberta na tela agora (ou null): evita contar "não lida" do que a pessoa já está vendo
 export function definirConversaAberta(id) {
   abertaCom = id
@@ -87,9 +104,11 @@ export function useConversas() {
     const ouvir = () => atualizar((n) => n + 1)
     window.addEventListener(EVENTO, ouvir)
     window.addEventListener('np-dm', aoReceberDm)
+    window.addEventListener('np-dm-atualizou', aoAtualizarDm)
     return () => {
       window.removeEventListener(EVENTO, ouvir)
       window.removeEventListener('np-dm', aoReceberDm)
+      window.removeEventListener('np-dm-atualizou', aoAtualizarDm)
     }
   }, [])
   useEffect(() => {

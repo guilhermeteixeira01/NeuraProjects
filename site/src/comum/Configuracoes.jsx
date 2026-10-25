@@ -41,7 +41,7 @@ function ContaSeguranca() {
       </div>
       <div className="nx-conta-linha">
         <small>{seg.temSenha ? t('Senha de segurança criada') : t('Senha de segurança: ainda não criada')}</small>
-        <span>
+        <span className="nx-conta-acoes">
           {seg.temSenha && (
             <button type="button" className="nx-conta-acao" onClick={() => setJanela('senha')}>
               {t('Trocar senha')}

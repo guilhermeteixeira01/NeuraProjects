@@ -3714,3 +3714,7 @@ html[data-desempenho] .pm-niveis figure img, html[data-desempenho] .pm-destaque 
 @keyframes cnp-respira { 50% { scale: 1.1; } }
 @keyframes cnp-entra { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .cnp-anel, .cnp-anel img { animation: none; } .cnp-anel i { animation-duration: 2.4s; } }
+
+.am-dm-apagar { align-self: flex-end; margin-left: auto; border: 0; background: transparent; color: var(--dim); padding: 5px; cursor: pointer; font-size: 11px; }
+.am-dm-apagar:hover { color: #ef7979; }
+.am-dm-apagar:disabled { opacity: .5; cursor: wait; }

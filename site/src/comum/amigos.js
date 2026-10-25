@@ -139,6 +139,7 @@ function conectar(id) {
     // Mensagem nova no chat da sala da partida (comum/ChatSala.jsx)
     else if (m.tipo === 'chat') window.dispatchEvent(new CustomEvent('np-chat', { detail: m }))
     // Mensagem nova no chat direto com um amigo (comum/mensagens.js)
+    else if (m.tipo === 'dm-atualizou') window.dispatchEvent(new CustomEvent('np-dm-atualizou', { detail: m }))
     else if (m.tipo === 'dm') window.dispatchEvent(new CustomEvent('np-dm', { detail: m }))
     // Algo mudou no meu lobby (convite, alguém entrou/saiu, lobby aberto): a página do Lobby recarrega
     else if (m.tipo === 'lobby') window.dispatchEvent(new Event('np-lobby'))

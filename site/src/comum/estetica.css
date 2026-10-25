@@ -433,3 +433,7 @@ html[data-desempenho] body {
     animation: none !important;
   }
 }
+
+.nx-conta-acoes { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin-left: auto; flex-shrink: 0; }
+.nx-conta-linha > .nx-conta-acao { margin-left: auto; }
+.nx-conta-linha small { min-width: 0; overflow-wrap: anywhere; }

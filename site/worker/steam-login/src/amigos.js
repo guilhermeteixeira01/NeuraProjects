@@ -432,7 +432,8 @@ export class Presenca {
     if (req.method === 'GET') {
       if (!ID_STEAM.test(String(com))) throw new ErroPedido('id')
       const chave = `dm:${this.dmParChave(eu, com)}`
-      const mensagens = (await this.state.storage.get(chave)) || []
+      const corte = (await this.state.storage.get(`dmCorte:${eu}:${com}`)) || 0
+      const mensagens = ((await this.state.storage.get(chave)) || []).filter((m) => m.ts > corte)
       const minhaLista = (await this.state.storage.get(`dmLista:${eu}`)) || {}
       if (minhaLista[com]?.naoLidas) {
         minhaLista[com] = { ...minhaLista[com], naoLidas: 0 }
@@ -443,27 +444,67 @@ export class Presenca {
       return { com: { id: com, nome: info.nome || '', avatar: info.avatar || '', st: this.statusVisivel(com), amigo }, mensagens }
     }
 
-    const { com: para, texto } = await lerCorpo(req)
+    const { com: para, texto, acao, mensagem } = await lerCorpo(req)
     if (!ID_STEAM.test(String(para)) || para === eu) throw new ErroPedido('id')
+    if (acao === 'apagar-conversa' || acao === 'apagar-mensagem') {
+      await this.state.storage.transaction(async (storage) => {
+        const chave = `dm:${this.dmParChave(eu, para)}`
+        const todas = (await storage.get(chave)) || []
+        if (acao === 'apagar-conversa') {
+          await storage.put(`dmCorte:${eu}:${para}`, Math.max(Date.now(), ...todas.map((m) => m.ts)))
+          const lista = (await storage.get(`dmLista:${eu}`)) || {}
+          delete lista[para]
+          await storage.put(`dmLista:${eu}`, lista)
+        } else {
+          const alvo = todas.find((m) => m.id === mensagem)
+          if (!alvo || alvo.de !== eu) throw new ErroPermissao('mensagem')
+          const restantes = todas.filter((m) => m.id !== mensagem)
+          await storage.put(chave, restantes)
+          for (const [dono, outro] of [[eu, para], [para, eu]]) {
+            const lista = (await storage.get(`dmLista:${dono}`)) || {}
+            const corte = (await storage.get(`dmCorte:${dono}:${outro}`)) || 0
+            const ultima = restantes.filter((m) => m.ts > corte).at(-1)
+            if (lista[outro]) {
+              if (ultima) {
+                const n = lista[outro].naoLidas || 0
+                const recebidas = todas.filter((m) => m.ts > corte && m.de !== dono)
+                const eraNaoLida = n > 0 && recebidas.slice(-n).some((m) => m.id === mensagem)
+                lista[outro] = { ...lista[outro], ts: ultima.ts, de: ultima.de, texto: ultima.texto.length > DM_PREVIA_MAX ? `${ultima.texto.slice(0, DM_PREVIA_MAX)}…` : ultima.texto, naoLidas: Math.max(0, n - Number(eraNaoLida)) }
+              }
+              else delete lista[outro]
+              await storage.put(`dmLista:${dono}`, lista)
+            }
+          }
+        }
+      })
+      const payload = { tipo: 'dm-atualizou', de: eu, para, acao }
+      this.enviar(eu, payload)
+      if (acao === 'apagar-mensagem') this.enviar(para, payload)
+      return { ok: true }
+    }
     const amigosEu = (await this.listaAmigos())[eu]?.amigos || []
     if (!amigosEu.includes(para)) throw new ErroPermissao('nao-amigo')
     const limpo = String(texto || '').replace(/[\u0000-\u001f\u007f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 1000)
     if (!limpo) throw new ErroPedido('mensagem')
-    const agora = Date.now()
-    if (agora - (this.ultimoDm.get(eu) || 0) < 500) throw new ErroLimite('devagar') // no máximo ~2 mensagens por segundo
-    this.ultimoDm.set(eu, agora)
-    const chave = `dm:${this.dmParChave(eu, para)}`
-    const todas = (await this.state.storage.get(chave)) || []
-    const msg = { id: `${agora.toString(36)}${Math.random().toString(36).slice(2, 6)}`, de: eu, texto: limpo, ts: agora }
-    todas.push(msg)
-    await this.state.storage.put(chave, todas.slice(-DM_MAX))
-    const previa = limpo.length > DM_PREVIA_MAX ? `${limpo.slice(0, DM_PREVIA_MAX)}…` : limpo
-    const minhaLista = (await this.state.storage.get(`dmLista:${eu}`)) || {}
-    minhaLista[para] = { ts: agora, texto: previa, de: eu, naoLidas: 0 }
-    await this.state.storage.put(`dmLista:${eu}`, minhaLista)
-    const listaDele = (await this.state.storage.get(`dmLista:${para}`)) || {}
-    listaDele[eu] = { ts: agora, texto: previa, de: eu, naoLidas: (listaDele[eu]?.naoLidas || 0) + 1 }
-    await this.state.storage.put(`dmLista:${para}`, listaDele)
+    const agoraReal = Date.now()
+    if (agoraReal - (this.ultimoDm.get(eu) || 0) < 500) throw new ErroLimite('devagar')
+    this.ultimoDm.set(eu, agoraReal)
+    const msg = await this.state.storage.transaction(async (storage) => {
+      const chave = `dm:${this.dmParChave(eu, para)}`
+      const todas = (await storage.get(chave)) || []
+      const agora = Math.max(agoraReal, (todas.at(-1)?.ts || 0) + 1, ((await storage.get(`dmCorte:${eu}:${para}`)) || 0) + 1, ((await storage.get(`dmCorte:${para}:${eu}`)) || 0) + 1)
+      const nova = { id: `${agora.toString(36)}${Math.random().toString(36).slice(2, 6)}`, de: eu, texto: limpo, ts: agora }
+      todas.push(nova)
+      await storage.put(chave, todas.slice(-DM_MAX))
+      const previa = limpo.length > DM_PREVIA_MAX ? `${limpo.slice(0, DM_PREVIA_MAX)}…` : limpo
+      const minhaLista = (await storage.get(`dmLista:${eu}`)) || {}
+      minhaLista[para] = { ts: agora, texto: previa, de: eu, naoLidas: 0 }
+      await storage.put(`dmLista:${eu}`, minhaLista)
+      const listaDele = (await storage.get(`dmLista:${para}`)) || {}
+      listaDele[eu] = { ts: agora, texto: previa, de: eu, naoLidas: (listaDele[eu]?.naoLidas || 0) + 1 }
+      await storage.put(`dmLista:${para}`, listaDele)
+      return nova
+    })
     const payload = { tipo: 'dm', de: eu, para, msg }
     this.enviar(para, payload)
     this.enviar(eu, payload) // outras abas minhas (celular, outra janela) também recebem
