@@ -334,18 +334,18 @@ html.lj-travado .nx-rolagem { display: none !important; }
 @media (prefers-reduced-motion: reduce) { .lj-drops-lista > li.is-novo { animation: none; } }
 
 /* ══════ Página da caixa (PaginaCaixa.jsx): roleta na página, modos, conteúdo da caixa ══════ */
-.lj-cx { --modo: #1e90ff; --modo-2: #4aa8ff; --modo-fundo: #123063; padding-bottom: 30px; }
+.lj-cx { position: relative; --modo: #1e90ff; --modo-2: #4aa8ff; --modo-fundo: #123063; padding-bottom: 30px; }
 .lj-cx[data-modo="jester"] { --modo: #a944f5; --modo-2: #d07bff; --modo-fundo: #3a1a63; }
 .lj-cx[data-modo="boost"] { --modo: #ff5a45; --modo-2: #ff9d55; --modo-fundo: #5a2418; }
-.lj-cx-topo { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; gap: 12px; margin: 6px 0 22px; }
+.lj-cx-topo { display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; gap: 12px; margin: 6px 0 22px; }
 .lj-cx-voltar { justify-self: start; display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; background: none; border: 0; color: rgb(255 255 255 / .75); font: 500 17px var(--font-body); cursor: pointer; padding: 4px 0; }
 .lj-cx-voltar:hover { color: #fff; }
 .lj-cx-titulo { text-align: center; }
-.lj-cx-titulo h1 { display: inline-flex; align-items: center; gap: 12px; margin: 0; font: 700 clamp(24px, 3.2vw, 34px) var(--font-display); }
+.lj-cx-titulo h1 { display: inline-flex; align-items: center; gap: 12px; margin: 0; font: 700 clamp(24px, 3.2vw, 34px) var(--font-display); text-shadow: 0 2px 12px rgb(0 0 0 / .85); }
 .lj-cx-fav { display: grid; place-items: center; background: none; border: 0; padding: 2px; color: rgb(255 255 255 / .7); cursor: pointer; transition: color .15s, transform .15s; }
 .lj-cx-fav:hover { color: #fff; transform: scale(1.08); }
 .lj-cx-fav.is-ativo { color: #ff4d6d; }
-.lj-cx-preco-topo { margin: 4px 0 0; color: rgb(255 255 255 / .55); font: 700 20px var(--font-body); }
+.lj-cx-preco-topo { margin: 4px 0 0; color: rgb(255 255 255 / .55); font: 700 20px var(--font-body); text-shadow: 0 2px 10px rgb(0 0 0 / .85); }
 
 /* roletas dentro da página: uma moldura brilhante para cada (até 3), na cor do modo (azul, Jester roxo, Boost laranja) */
 .lj-cx-roletas { position: relative; display: grid; gap: 12px; }
@@ -415,7 +415,7 @@ html.lj-travado .nx-rolagem { display: none !important; }
 .lj-cx-arte { position: absolute; left: 22px; right: 22px; top: 38px; height: 160px; display: grid; place-items: center; z-index: 1; }
 .lj-cx-arte img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 8px 10px rgb(0 0 0 / .5)); transition: transform .2s; }
 .lj-cx-item:hover .lj-cx-arte img { transform: scale(1.05) rotate(-2deg); }
-.lj-cx-nome { position: absolute; left: 10px; right: 10px; bottom: 34px; z-index: 2; text-align: center; font: 600 18px/1.2 var(--font-body); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.lj-cx-nome { position: absolute; left: 10px; right: 10px; bottom: 34px; z-index: 2; text-align: center; font: 600 18px/1.2 var(--font-body); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; }
 /* "i": preço e chance de cada desgaste por cima do item (o resto do cartão fica desfocado) */
 .lj-cx-item.is-info .lj-cx-arte, .lj-cx-item.is-info .lj-cx-nome, .lj-cx-item.is-info .lj-cx-hex, .lj-cx-item.is-info .lj-cx-chance { filter: blur(4px); opacity: .35; }
 .lj-cx-info { position: absolute; inset: 0; z-index: 2; padding: 14px 16px 12px 44px; background: rgb(10 14 30 / .78); cursor: pointer; overflow: auto; }
@@ -450,8 +450,7 @@ html.lj-travado .nx-rolagem { display: none !important; }
 
 /* ══════ Página da caixa: ajustes para celular e tablet ══════ */
 /* as partículas dos modos passam um pouco da moldura: cortadas aqui, sem criar rolagem para o lado */
-.lj-cx-roletas { overflow-x: clip; } /* a cortada agora é só a área da roleta: a borda sazonal do topo pode sangrar para fora */
-.lj-cx-roletas { min-width: 0; }
+.lj-cx-roletas { overflow-x: clip; min-width: 0; }
 /* a roleta embutida não tem barra de cima (nome, som e "pular" ficam na página) */
 .lj-embutida .lj-abertura-topo { display: none; }
 /* parada e girando com o mesmo tamanho de cartão (as regras da tela cheia encolhiam pela altura da tela) */
@@ -578,7 +577,7 @@ html.lj-travado .nx-rolagem { display: none !important; }
 }
 .lj-grade-caixas { grid-auto-rows: 1fr; } /* todas as linhas da grade com a mesma altura */
 .lj-caixa { grid-template-rows: auto 2.4em auto auto; }
-.lj-caixa b { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; align-content: center; text-align: center; }
+.lj-caixa b { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; align-content: center; text-align: center; }
 
 /* ── Carrossel de ponta a ponta (largura e margem vêm do Drops.jsx), logo da NP transparente atrás de cada arma, armas grandes ── */
 .lj-drops { border-radius: 0; border-left: 0; border-right: 0; height: 120px; max-width: none; }
@@ -733,26 +732,3 @@ img.lj-emblema { width: 92px; height: auto; object-fit: contain; filter: drop-sh
 .lj-rev-cartao { position: relative; }
 @media (prefers-reduced-motion: reduce) { .lj-esp-progresso.is-proxima, .lj-cx-esp-barra u::after { animation: none; } }
 .lj-cx-tem { color: rgb(255 255 255 / .55); font: 500 12.5px var(--font-body); }
-
-/* ── Borda sazonal (Halloween): os dois personagens emolduram o topo de TODA página de caixa, sangrando para fora da área central
-   (como o "Carnival of Madness" dos sites de caixa): fixos, iguais em todas as caixas, atrás do título. Trocar/tirar: ver os <img> em PaginaCaixa.jsx. ── */
-.lj-cx-borda { position: absolute; top: 50%; z-index: -1; width: clamp(200px, 20vw, 380px); height: auto; pointer-events: none; user-select: none;
-  filter: drop-shadow(0 10px 30px rgb(0 0 0 / .55)); opacity: .95; transform: translateY(-48%); }
-.lj-cx-borda-esq { right: calc(100% + 18px); transform: translateY(-48%) scaleX(-1); } /* vira a arte: a mão fica sempre apontada para o centro */
-.lj-cx-borda-dir { left: calc(100% + 18px); }
-@media (max-width: 1480px) {
-  .lj-cx-borda { width: clamp(160px, 15vw, 280px); }
-  .lj-cx-borda-esq { right: calc(100% - 20px); }
-  .lj-cx-borda-dir { left: calc(100% - 20px); }
-}
-@media (max-width: 1024px) {
-  .lj-cx-borda { width: clamp(130px, 22vw, 220px); opacity: .85; }
-  .lj-cx-borda-esq { right: calc(100% - 48px); }
-  .lj-cx-borda-dir { left: calc(100% - 48px); }
-}
-@media (max-width: 700px) {
-  .lj-cx-borda { width: 34vw; max-width: 160px; top: 0; transform: translateY(0); opacity: .8; }
-  .lj-cx-borda-esq { right: auto; left: -14px; transform: scaleX(-1); }
-  .lj-cx-borda-dir { left: auto; right: -14px; }
-  .lj-cx-topo { padding-top: 4px; }
-}
