@@ -1,0 +1,44 @@
+- generic [ref=f3e2]:
+  - banner [ref=f3e3]:
+    - generic [ref=f3e4]:
+      - link "Neura Project" [ref=f3e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f3e10]: Ranking
+      - generic [ref=f3e11]:
+        - button "Configurações" [ref=f3e13] [cursor=pointer]
+        - button [ref=f3e17] [cursor=pointer]
+  - navigation "Menu principal" [ref=f3e20]:
+    - link "Início" [ref=f3e21] [cursor=pointer]:
+      - /url: /
+    - link "Ranking" [ref=f3e27] [cursor=pointer]:
+      - /url: /ranking/
+    - link "Inventário" [ref=f3e34] [cursor=pointer]:
+      - /url: /inventario/
+    - link "Loja" [ref=f3e41] [cursor=pointer]:
+      - /url: /loja/
+    - button "Entrar" [ref=f3e48] [cursor=pointer]
+    - button "Mais" [ref=f3e54] [cursor=pointer]
+  - main [ref=f3e61]:
+    - generic [ref=f3e62]:
+      - button "Desligar o som" [ref=f3e63] [cursor=pointer]: 🔊
+      - slider "Volume" [ref=f3e64]: "0.5"
+    - generic [ref=f3e66]:
+      - generic [ref=f3e67]:
+        - generic [ref=f3e68]: CARREGANDO…
+        - heading "Top 15 jogadores" [level=1] [ref=f3e71]:
+          - generic [ref=f3e72]: Top
+          - generic [ref=f3e73]: "15"
+          - generic [ref=f3e74]: jogadores
+        - paragraph [ref=f3e76]: "Ranking montado com todas as partidas registradas no servidor. Cada mapa novo entra na conta sozinho: rating, ADR, KAST, kills e forma recente."
+      - generic [ref=f3e77]:
+        - generic [ref=f3e78]:
+          - text: JOGADORES
+          - generic [ref=f3e79]: —
+        - generic [ref=f3e80]:
+          - text: MAPAS
+          - generic [ref=f3e81]: —
+        - generic [ref=f3e82]:
+          - text: KILLS
+          - generic [ref=f3e83]: —
+    - generic [ref=f3e86]:
+      - tablist "Ordenar ranking por"

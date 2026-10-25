@@ -1,0 +1,14 @@
+[     350ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=b7f071e1:22162
+[    1939ms] [ERROR] Failed to load resource: net::ERR_INSUFFICIENT_RESOURCES @ https://neura-steam-login.steam-login.workers.dev/config:0
+[    1939ms] [ERROR] Failed to load resource: net::ERR_INSUFFICIENT_RESOURCES @ https://neura-steam-login.steam-login.workers.dev/perfis:0
+[    2140ms] [INFO] Images loaded lazily and replaced with placeholders. Load events are deferred. See https://go.microsoft.com/fwlink/?linkid=2048113 @ http://localhost:5173/ranking/:0
+[    2143ms] [ERROR] Failed to load resource: net::ERR_INSUFFICIENT_RESOURCES @ https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2:0
+[    2143ms] [ERROR] Failed to load resource: net::ERR_INSUFFICIENT_RESOURCES @ https://fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B4873z3bWuQ.woff2:0
+[    2143ms] [ERROR] Failed to load resource: net::ERR_INSUFFICIENT_RESOURCES @ https://fonts.gstatic.com/s/anton/v27/1Ptgg87LROyAm3Kz-C8.woff2:0
+[    2143ms] [ERROR] Failed to load resource: net::ERR_INSUFFICIENT_RESOURCES @ https://fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B46r2z3bWuQ.woff2:0
+[    2248ms] [ERROR] Failed to load resource: net::ERR_INSUFFICIENT_RESOURCES @ http://localhost:5173/assets/Ranking/podio-campeao.webp:0
+[    2248ms] [ERROR] Failed to load resource: net::ERR_INSUFFICIENT_RESOURCES @ http://localhost:5173/assets/Ranking/podio-ouro.webp:0
+[    2248ms] [ERROR] Failed to load resource: net::ERR_INSUFFICIENT_RESOURCES @ http://localhost:5173/assets/Ranking/podio-arlequim.webp:0
+[    2248ms] [ERROR] Failed to load resource: net::ERR_INSUFFICIENT_RESOURCES @ http://localhost:5173/assets/Ranking/podio-prata.webp:0
+[    2248ms] [ERROR] Failed to load resource: net::ERR_INSUFFICIENT_RESOURCES @ http://localhost:5173/assets/Ranking/podio-fortao.webp:0
+[    2751ms] [ERROR] Failed to load resource: net::ERR_INSUFFICIENT_RESOURCES @ https://neura-steam-login.steam-login.workers.dev/config:0

@@ -1,0 +1,552 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link [ref=e5] [cursor=pointer]:
+        - /url: /
+      - navigation "Menu principal" [ref=e6]:
+        - link "Início" [ref=e7] [cursor=pointer]:
+          - /url: /
+        - link "Jogar" [ref=e11] [cursor=pointer]:
+          - /url: /lobby/
+        - link "Ranking" [ref=e14] [cursor=pointer]:
+          - /url: /ranking/
+        - link "Inventário" [ref=e19] [cursor=pointer]:
+          - /url: /inventario/
+        - link "Loja" [ref=e24] [cursor=pointer]:
+          - /url: /loja/
+  - complementary "Conta e configurações" [ref=e31]:
+    - button "Entrar" [ref=e32] [cursor=pointer]
+    - button "Configurações" [ref=e36] [cursor=pointer]:
+      - generic [aria-hidden]: Configurações
+    - link "Comunidade na Discord" [ref=e40] [cursor=pointer]:
+      - /url: https://discord.gg/kBHskkJFc
+      - generic: Comunidade
+  - main [ref=e42]:
+    - generic [ref=e43]:
+      - button "Desligar o som" [ref=e44] [cursor=pointer]: 🔊
+      - slider "Volume" [ref=e45]: "0.5"
+    - generic [ref=e47]:
+      - generic [ref=e48]:
+        - generic [ref=e49]: ATUALIZADO 25/10 00:42
+        - heading "Top 15 jogadores" [level=1] [ref=e52]:
+          - generic [ref=e53]: Top
+          - generic [ref=e54]: "15"
+          - generic [ref=e55]: jogadores
+        - paragraph [ref=e57]: "Ranking montado com todas as partidas registradas no servidor. Cada mapa novo entra na conta sozinho: rating, ADR, KAST, kills e forma recente."
+      - generic [ref=e58]:
+        - generic [ref=e59]:
+          - text: JOGADORES
+          - generic [ref=e60]: "2"
+        - generic [ref=e61]:
+          - text: MAPAS
+          - generic [ref=e62]: "0"
+        - generic [ref=e63]:
+          - text: KILLS
+          - generic [ref=e64]: "62"
+    - generic [ref=e66]:
+      - generic [ref=e67]:
+        - tablist "Ordenar ranking por" [ref=e68]:
+          - tab "Rating" [selected] [ref=e69] [cursor=pointer]
+          - tab "Kills" [ref=e70] [cursor=pointer]
+          - tab "ADR" [ref=e71] [cursor=pointer]
+          - tab "KAST" [ref=e72] [cursor=pointer]
+          - tab "K/D" [ref=e73] [cursor=pointer]
+          - tab "HS%" [ref=e74] [cursor=pointer]
+          - tab "Vitórias" [ref=e75] [cursor=pointer]
+          - tab "XP" [ref=e76] [cursor=pointer]
+        - generic [ref=e77]: MÍNIMO DE 1 MAPA · RATING HLTV 1.0
+      - generic [ref=e79]:
+        - generic [ref=e81]:
+          - generic [ref=e82]:
+            - link [aria-hidden] [ref=e83] [cursor=pointer]:
+              - /url: /perfil/?id=76561198814943358
+            - link "Daashy" [ref=e84] [cursor=pointer]:
+              - /url: /perfil/?id=76561198814943358
+            - 'generic "Cargo: Champion Top 1" [ref=e88]': Champion Top 1
+            - generic [ref=e89]:
+              - generic [ref=e90]:
+                - img "Sem classificação" [ref=e91]:
+                  - img [aria-hidden] [ref=e92]:
+                    - generic [ref=e114]: "?"
+                - 'generic "CS Rating do Premier: 23.109" [ref=e115]': "0"
+              - generic [ref=e117]:
+                - generic [ref=e118]: "2.24"
+                - generic [ref=e119]: RATING
+              - generic [ref=e120]:
+                - generic [ref=e121]:
+                  - generic [ref=e122]: "2.38"
+                  - generic [ref=e123]: K/D
+                - generic [ref=e124]:
+                  - generic [ref=e125]: "143.7"
+                  - generic [ref=e126]: ADR
+                - generic [ref=e127]:
+                  - generic [ref=e128]: "1"
+                  - generic [ref=e129]: MAPAS
+              - link "V" [ref=e131] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-22_00-01_de_dust2_time_VAC-LIFE-x-time_senna/
+          - generic [ref=e132]:
+            - link [aria-hidden] [ref=e133] [cursor=pointer]:
+              - /url: /perfil/?id=76561198714552354
+            - link "VAC LIFE" [ref=e134] [cursor=pointer]:
+              - /url: /perfil/?id=76561198714552354
+            - 'generic "Cargo: Champion Top 2" [ref=e138]': Champion Top 2
+            - generic [ref=e139]:
+              - generic [ref=e140]:
+                - img "Sem classificação" [ref=e141]:
+                  - img [aria-hidden] [ref=e142]:
+                    - generic [ref=e164]: "?"
+                - generic "Sem CS Rating do Premier (precisa de conta na leetify.gg)" [ref=e165]: "---"
+              - generic [ref=e167]:
+                - generic [ref=e168]: "1.67"
+                - generic [ref=e169]: RATING
+              - generic [ref=e170]:
+                - generic [ref=e171]:
+                  - generic [ref=e172]: "1.73"
+                  - generic [ref=e173]: K/D
+                - generic [ref=e174]:
+                  - generic [ref=e175]: "128.5"
+                  - generic [ref=e176]: ADR
+                - generic [ref=e177]:
+                  - generic [ref=e178]: "2"
+                  - generic [ref=e179]: MAPAS
+              - generic [ref=e180]:
+                - link "V" [ref=e181] [cursor=pointer]:
+                  - /url: /partidas/neura-project/md1/2026-10-22_00-01_de_dust2_time_VAC-LIFE-x-time_senna/
+                - link "V" [ref=e182] [cursor=pointer]:
+                  - /url: /partidas/neura-project/md1/2026-10-21_22-29_de_mirage_time_Te1xe1ra-x-time_senna/
+          - generic [ref=e183]:
+            - link [aria-hidden] [ref=e184] [cursor=pointer]:
+              - /url: /perfil/?id=76561199054634150
+              - button [ref=e186]
+            - link "rkzada Admin" [ref=e187] [cursor=pointer]:
+              - /url: /perfil/?id=76561199054634150
+              - generic [ref=e188]: rkzada
+              - img "Admin" [ref=e189]
+            - generic [ref=e191]:
+              - 'generic "Cargo: Champion Top 3" [ref=e192]': Champion Top 3
+              - button "Mostrar mais 1 cargos" [ref=e194] [cursor=pointer]: "+1"
+            - generic [ref=e195]:
+              - generic [ref=e196]:
+                - img "Sem classificação" [ref=e197]:
+                  - img [aria-hidden] [ref=e198]:
+                    - generic [ref=e220]: "?"
+                - generic "Sem CS Rating do Premier (precisa de conta na leetify.gg)" [ref=e221]: "---"
+              - generic [ref=e223]:
+                - generic [ref=e224]: "1.27"
+                - generic [ref=e225]: RATING
+              - generic [ref=e226]:
+                - generic [ref=e227]:
+                  - generic [ref=e228]: "1.29"
+                  - generic [ref=e229]: K/D
+                - generic [ref=e230]:
+                  - generic [ref=e231]: "91.7"
+                  - generic [ref=e232]: ADR
+                - generic [ref=e233]:
+                  - generic [ref=e234]: "2"
+                  - generic [ref=e235]: MAPAS
+              - generic [ref=e236]:
+                - link "V" [ref=e237] [cursor=pointer]:
+                  - /url: /partidas/neura-project/md1/2026-10-21_23-16_de_cache_time_emptysoul-z-x-time_senna/
+                - link "D" [ref=e238] [cursor=pointer]:
+                  - /url: /partidas/neura-project/md1/2026-10-21_22-29_de_mirage_time_Te1xe1ra-x-time_senna/
+        - generic [ref=e239]:
+          - generic [ref=e240]:
+            - generic [ref=e241]: RANKING
+            - generic [ref=e242]: JOGADORES 14
+          - generic [ref=e243]:
+            - generic [ref=e244]: "#"
+            - generic [ref=e245]: JOGADOR
+            - generic [ref=e246]: RATING
+            - generic [ref=e247]: KILLS
+            - generic [ref=e248]: K/D
+            - generic [ref=e249]: ADR
+            - generic [ref=e250]: KAST
+            - generic [ref=e251]: HS%
+            - generic [ref=e252]: FORMA
+          - generic [ref=e253]:
+            - generic [ref=e254]: "#1"
+            - generic [ref=e257]:
+              - link [aria-hidden] [ref=e258] [cursor=pointer]:
+                - /url: /perfil/?id=76561198814943358
+              - generic [ref=e259]:
+                - generic [ref=e260]:
+                  - link "Daashy" [ref=e261] [cursor=pointer]:
+                    - /url: /perfil/?id=76561198814943358
+                  - 'generic "Cargo: Champion Top 1" [ref=e263]': Champion Top 1
+                - generic [ref=e264]:
+                  - img "Sem classificação" [ref=e265]:
+                    - img [aria-hidden] [ref=e266]:
+                      - generic [ref=e288]: "?"
+                  - 'generic "CS Rating do Premier: 23.109" [ref=e289]': "0"
+            - generic [ref=e291]: "2.24"
+            - generic [ref=e294]: "31"
+            - generic [ref=e295]: "2.38"
+            - generic [ref=e296]: "143.7"
+            - generic [ref=e297]: 95%
+            - generic [ref=e298]: 39%
+            - link "V" [ref=e301] [cursor=pointer]:
+              - /url: /partidas/neura-project/md1/2026-10-22_00-01_de_dust2_time_VAC-LIFE-x-time_senna/
+          - generic [ref=e302]:
+            - generic [ref=e303]: "#2"
+            - generic [ref=e306]:
+              - link [aria-hidden] [ref=e307] [cursor=pointer]:
+                - /url: /perfil/?id=76561198714552354
+              - generic [ref=e308]:
+                - generic [ref=e309]:
+                  - link "VAC LIFE" [ref=e310] [cursor=pointer]:
+                    - /url: /perfil/?id=76561198714552354
+                  - 'generic "Cargo: Champion Top 2" [ref=e312]': Champion Top 2
+                - generic [ref=e313]:
+                  - img "Sem classificação" [ref=e314]:
+                    - img [aria-hidden] [ref=e315]:
+                      - generic [ref=e337]: "?"
+                  - generic "Sem CS Rating do Premier (precisa de conta na leetify.gg)" [ref=e338]: "---"
+            - generic [ref=e340]: "1.67"
+            - generic [ref=e343]: "52"
+            - generic [ref=e344]: "1.73"
+            - generic [ref=e345]: "128.5"
+            - generic [ref=e346]: 91%
+            - generic [ref=e347]: 52%
+            - generic [ref=e349]:
+              - link "V" [ref=e350] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-22_00-01_de_dust2_time_VAC-LIFE-x-time_senna/
+              - link "V" [ref=e351] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-21_22-29_de_mirage_time_Te1xe1ra-x-time_senna/
+          - generic [ref=e352]:
+            - generic [ref=e353]: "#3"
+            - generic [ref=e356]:
+              - link [aria-hidden] [ref=e357] [cursor=pointer]:
+                - /url: /perfil/?id=76561199054634150
+                - button [ref=e359]
+              - generic [ref=e360]:
+                - generic [ref=e361]:
+                  - link "rkzada" [ref=e362] [cursor=pointer]:
+                    - /url: /perfil/?id=76561199054634150
+                  - img "Admin" [ref=e363]
+                  - generic [ref=e364]:
+                    - 'generic "Cargo: Champion Top 3" [ref=e365]': Champion Top 3
+                    - button "Mostrar mais 1 cargos" [ref=e367] [cursor=pointer]: "+1"
+                - generic [ref=e368]:
+                  - img "Sem classificação" [ref=e369]:
+                    - img [aria-hidden] [ref=e370]:
+                      - generic [ref=e392]: "?"
+                  - generic "Sem CS Rating do Premier (precisa de conta na leetify.gg)" [ref=e393]: "---"
+            - generic [ref=e395]: "1.27"
+            - generic [ref=e398]: "36"
+            - generic [ref=e399]: "1.29"
+            - generic [ref=e400]: "91.7"
+            - generic [ref=e401]: 77%
+            - generic [ref=e402]: 58%
+            - generic [ref=e404]:
+              - link "V" [ref=e405] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-21_23-16_de_cache_time_emptysoul-z-x-time_senna/
+              - link "D" [ref=e406] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-21_22-29_de_mirage_time_Te1xe1ra-x-time_senna/
+          - generic [ref=e407]:
+            - generic [ref=e408]:
+              - text: "4"
+              - generic [ref=e409]: "#4"
+            - generic [ref=e410]:
+              - link [aria-hidden] [ref=e411] [cursor=pointer]:
+                - /url: /perfil/?id=76561199151150360
+                - button [ref=e413]
+              - generic [ref=e414]:
+                - generic [ref=e415]:
+                  - link "Te1xe1ra" [ref=e416] [cursor=pointer]:
+                    - /url: /perfil/?id=76561199151150360
+                  - img "Dono" [ref=e417]
+                - generic [ref=e418]:
+                  - img "Sem classificação" [ref=e419]:
+                    - img [aria-hidden] [ref=e420]:
+                      - generic [ref=e442]: "?"
+                  - 'generic "CS Rating do Premier: 17.273" [ref=e443]': "0"
+                  - 'generic "Time: Neura Project" [ref=e445]': Neura Project
+            - generic [ref=e447]: "1.23"
+            - generic [ref=e450]: "38"
+            - generic [ref=e451]: "1.06"
+            - generic [ref=e452]: "109.6"
+            - generic [ref=e453]: 67%
+            - generic [ref=e454]: 47%
+            - generic [ref=e456]:
+              - link "D" [ref=e457] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-22_00-01_de_dust2_time_VAC-LIFE-x-time_senna/
+              - link "D" [ref=e458] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-21_22-29_de_mirage_time_Te1xe1ra-x-time_senna/
+          - generic [ref=e459]:
+            - generic [ref=e460]:
+              - text: "5"
+              - generic [ref=e461]: "#5"
+            - generic [ref=e462]:
+              - link [aria-hidden] [ref=e463] [cursor=pointer]:
+                - /url: /perfil/?id=76561199245273109
+                - button [ref=e465]
+              - generic [ref=e466]:
+                - generic [ref=e467]:
+                  - link "SharkJESUS" [ref=e468] [cursor=pointer]:
+                    - /url: /perfil/?id=76561199245273109
+                  - img "Admin" [ref=e469]
+                - generic [ref=e470]:
+                  - img "Sem classificação" [ref=e471]:
+                    - img [aria-hidden] [ref=e472]:
+                      - generic [ref=e494]: "?"
+                  - generic "Sem CS Rating do Premier (precisa de conta na leetify.gg)" [ref=e495]: "---"
+            - generic [ref=e497]: "1.11"
+            - generic [ref=e500]: "28"
+            - generic [ref=e501]: "1.00"
+            - generic [ref=e502]: "84.8"
+            - generic [ref=e503]: 63%
+            - generic [ref=e504]: 39%
+            - generic [ref=e506]:
+              - link "V" [ref=e507] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-22_00-01_de_dust2_time_VAC-LIFE-x-time_senna/
+              - link "V" [ref=e508] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-21_23-16_de_cache_time_emptysoul-z-x-time_senna/
+          - generic [ref=e509]:
+            - generic [ref=e510]:
+              - text: "6"
+              - generic [ref=e511]: "#6"
+            - generic [ref=e512]:
+              - link [aria-hidden] [ref=e513] [cursor=pointer]:
+                - /url: /perfil/?id=76561198711226712
+              - generic [ref=e515]:
+                - generic [ref=e516]:
+                  - link "Batata01" [ref=e517] [cursor=pointer]:
+                    - /url: /perfil/?id=76561198711226712
+                  - 'generic "Cargo: Parceiro" [ref=e519]': Parceiro
+                - generic [ref=e520]:
+                  - img "Sem classificação" [ref=e521]:
+                    - img [aria-hidden] [ref=e522]:
+                      - generic [ref=e544]: "?"
+                  - 'generic "CS Rating do Premier: 6.105" [ref=e545]': "0"
+            - generic [ref=e547]: "1.05"
+            - generic [ref=e550]: "15"
+            - generic [ref=e551]: "1.00"
+            - generic [ref=e552]: "70.9"
+            - generic [ref=e553]: 71%
+            - generic [ref=e554]: 40%
+            - link "V" [ref=e557] [cursor=pointer]:
+              - /url: /partidas/neura-project/md1/2026-10-22_00-01_de_dust2_time_VAC-LIFE-x-time_senna/
+          - generic [ref=e558]:
+            - generic [ref=e559]:
+              - text: "7"
+              - generic [ref=e560]: "#7"
+            - generic [ref=e561]:
+              - link [aria-hidden] [ref=e562] [cursor=pointer]:
+                - /url: /perfil/?id=76561198780628109
+              - generic [ref=e564]:
+                - generic [ref=e565]:
+                  - link "Senna" [ref=e566] [cursor=pointer]:
+                    - /url: /perfil/?id=76561198780628109
+                  - 'generic "Cargo: Parceiro" [ref=e568]': Parceiro
+                - generic [ref=e569]:
+                  - img "Sem classificação" [ref=e570]:
+                    - img [aria-hidden] [ref=e571]:
+                      - generic [ref=e593]: "?"
+                  - 'generic "CS Rating do Premier: 11.135" [ref=e594]': "0"
+                  - 'generic "Time: Neura Project" [ref=e596]': Neura Project
+            - generic [ref=e598]: "1.03"
+            - generic [ref=e601]: "47"
+            - generic [ref=e602]: "1.00"
+            - generic [ref=e603]: "79.1"
+            - generic [ref=e604]: 66%
+            - generic [ref=e605]: 51%
+            - generic [ref=e607]:
+              - link "D" [ref=e608] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-22_00-01_de_dust2_time_VAC-LIFE-x-time_senna/
+              - link "D" [ref=e609] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-21_23-16_de_cache_time_emptysoul-z-x-time_senna/
+              - link "V" [ref=e610] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-21_22-29_de_mirage_time_Te1xe1ra-x-time_senna/
+          - generic [ref=e611]:
+            - generic [ref=e612]:
+              - text: "8"
+              - generic [ref=e613]: "#8"
+            - generic [ref=e614]:
+              - link [aria-hidden] [ref=e615] [cursor=pointer]:
+                - /url: /perfil/?id=76561199850349499
+              - generic [ref=e616]:
+                - link "Jzin" [ref=e618] [cursor=pointer]:
+                  - /url: /perfil/?id=76561199850349499
+                - generic [ref=e619]:
+                  - img "Sem classificação" [ref=e620]:
+                    - img [aria-hidden] [ref=e621]:
+                      - generic [ref=e643]: "?"
+                  - generic "Sem CS Rating do Premier (precisa de conta na leetify.gg)" [ref=e644]: "---"
+            - generic [ref=e646]: "1.03"
+            - generic [ref=e649]: "45"
+            - generic [ref=e650]: "1.07"
+            - generic [ref=e651]: "68.7"
+            - generic [ref=e652]: 71%
+            - generic [ref=e653]: 56%
+            - generic [ref=e655]:
+              - link "D" [ref=e656] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-22_00-01_de_dust2_time_VAC-LIFE-x-time_senna/
+              - link "D" [ref=e657] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-21_23-16_de_cache_time_emptysoul-z-x-time_senna/
+              - link "V" [ref=e658] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-21_22-29_de_mirage_time_Te1xe1ra-x-time_senna/
+          - generic [ref=e659]:
+            - generic [ref=e660]:
+              - text: "9"
+              - generic [ref=e661]: "#9"
+            - generic [ref=e662]:
+              - link [aria-hidden] [ref=e663] [cursor=pointer]:
+                - /url: /perfil/?id=76561199215020893
+              - generic [ref=e664]:
+                - link "Zezincomedor" [ref=e666] [cursor=pointer]:
+                  - /url: /perfil/?id=76561199215020893
+                - generic [ref=e667]:
+                  - img "Sem classificação" [ref=e668]:
+                    - img [aria-hidden] [ref=e669]:
+                      - generic [ref=e691]: "?"
+                  - generic "Sem CS Rating do Premier (precisa de conta na leetify.gg)" [ref=e692]: "---"
+            - generic [ref=e694]: "0.87"
+            - generic [ref=e697]: "28"
+            - generic [ref=e698]: "0.93"
+            - generic [ref=e699]: "67.0"
+            - generic [ref=e700]: 81%
+            - generic [ref=e701]: 32%
+            - generic [ref=e703]:
+              - link "V" [ref=e704] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-21_23-16_de_cache_time_emptysoul-z-x-time_senna/
+              - link "D" [ref=e705] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-21_22-29_de_mirage_time_Te1xe1ra-x-time_senna/
+          - generic [ref=e706]:
+            - generic [ref=e707]:
+              - text: "10"
+              - generic [ref=e708]: "#10"
+            - generic [ref=e709]:
+              - link [aria-hidden] [ref=e710] [cursor=pointer]:
+                - /url: /perfil/?id=76561199869966304
+              - generic [ref=e712]:
+                - link "Kz7" [ref=e714] [cursor=pointer]:
+                  - /url: /perfil/?id=76561199869966304
+                - generic [ref=e715]:
+                  - img "Sem classificação" [ref=e716]:
+                    - img [aria-hidden] [ref=e717]:
+                      - generic [ref=e739]: "?"
+                  - generic "Sem CS Rating do Premier (precisa de conta na leetify.gg)" [ref=e740]: "---"
+                  - 'generic "Time: Neura Project" [ref=e742]': Neura Project
+            - generic [ref=e744]: "0.86"
+            - generic [ref=e747]: "41"
+            - generic [ref=e748]: "0.82"
+            - generic [ref=e749]: "77.8"
+            - generic [ref=e750]: 73%
+            - generic [ref=e751]: 54%
+            - generic [ref=e753]:
+              - link "D" [ref=e754] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-22_00-01_de_dust2_time_VAC-LIFE-x-time_senna/
+              - link "D" [ref=e755] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-21_23-16_de_cache_time_emptysoul-z-x-time_senna/
+              - link "V" [ref=e756] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-21_22-29_de_mirage_time_Te1xe1ra-x-time_senna/
+          - generic [ref=e757]:
+            - generic [ref=e758]:
+              - text: "11"
+              - generic [ref=e759]: "#11"
+            - generic [ref=e760]:
+              - link [aria-hidden] [ref=e761] [cursor=pointer]:
+                - /url: /perfil/?id=76561199185489154
+              - generic [ref=e763]:
+                - generic [ref=e764]:
+                  - link "Emptysoulz" [ref=e765] [cursor=pointer]:
+                    - /url: /perfil/?id=76561199185489154
+                  - 'generic "Cargo: Parceiro" [ref=e767]': Parceiro
+                - generic [ref=e768]:
+                  - img "Sem classificação" [ref=e769]:
+                    - img [aria-hidden] [ref=e770]:
+                      - generic [ref=e792]: "?"
+                  - generic "Sem CS Rating do Premier (precisa de conta na leetify.gg)" [ref=e793]: "---"
+            - generic [ref=e795]: "0.85"
+            - generic [ref=e798]: "22"
+            - generic [ref=e799]: "0.85"
+            - generic [ref=e800]: "55.2"
+            - generic [ref=e801]: 76%
+            - generic [ref=e802]: 27%
+            - generic [ref=e804]:
+              - link "V" [ref=e805] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-21_23-16_de_cache_time_emptysoul-z-x-time_senna/
+              - link "D" [ref=e806] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-21_22-29_de_mirage_time_Te1xe1ra-x-time_senna/
+          - generic [ref=e807]:
+            - generic [ref=e808]:
+              - text: "12"
+              - generic [ref=e809]: "#12"
+            - generic [ref=e810]:
+              - link [aria-hidden] [ref=e811] [cursor=pointer]:
+                - /url: /perfil/?id=76561199869741322
+              - generic [ref=e813]:
+                - link "caos" [ref=e815] [cursor=pointer]:
+                  - /url: /perfil/?id=76561199869741322
+                - generic [ref=e816]:
+                  - img "Sem classificação" [ref=e817]:
+                    - img [aria-hidden] [ref=e818]:
+                      - generic [ref=e840]: "?"
+                  - generic "Sem CS Rating do Premier (precisa de conta na leetify.gg)" [ref=e841]: "---"
+            - generic [ref=e843]: "0.79"
+            - generic [ref=e846]: "26"
+            - generic [ref=e847]: "0.70"
+            - generic [ref=e848]: "69.8"
+            - generic [ref=e849]: 63%
+            - generic [ref=e850]: 50%
+            - generic [ref=e852]:
+              - link "D" [ref=e853] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-22_00-01_de_dust2_time_VAC-LIFE-x-time_senna/
+              - link "D" [ref=e854] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-21_23-16_de_cache_time_emptysoul-z-x-time_senna/
+          - generic [ref=e855]:
+            - generic [ref=e856]:
+              - text: "13"
+              - generic [ref=e857]: "#13"
+            - generic [ref=e858]:
+              - link [aria-hidden] [ref=e859] [cursor=pointer]:
+                - /url: /perfil/?id=76561198721338233
+              - generic [ref=e861]:
+                - link "lukingthebest" [ref=e863] [cursor=pointer]:
+                  - /url: /perfil/?id=76561198721338233
+                - generic [ref=e864]:
+                  - img "Sem classificação" [ref=e865]:
+                    - img [aria-hidden] [ref=e866]:
+                      - generic [ref=e888]: "?"
+                  - generic "Sem CS Rating do Premier (precisa de conta na leetify.gg)" [ref=e889]: "---"
+            - generic [ref=e891]: "0.69"
+            - generic [ref=e894]: "23"
+            - generic [ref=e895]: "0.68"
+            - generic [ref=e896]: "75.3"
+            - generic [ref=e897]: 63%
+            - generic [ref=e898]: 26%
+            - generic [ref=e900]:
+              - link "V" [ref=e901] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-21_23-16_de_cache_time_emptysoul-z-x-time_senna/
+              - link "D" [ref=e902] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-21_22-29_de_mirage_time_Te1xe1ra-x-time_senna/
+          - generic [ref=e903]:
+            - generic [ref=e904]:
+              - text: "14"
+              - generic [ref=e905]: "#14"
+            - generic [ref=e906]:
+              - link [aria-hidden] [ref=e907] [cursor=pointer]:
+                - /url: /perfil/?id=76561199802548645
+              - generic [ref=e909]:
+                - generic [ref=e910]:
+                  - link "floz" [ref=e911] [cursor=pointer]:
+                    - /url: /perfil/?id=76561199802548645
+                  - 'generic "Cargo: Parceiro" [ref=e913]': Parceiro
+                - generic [ref=e914]:
+                  - img "Sem classificação" [ref=e915]:
+                    - img [aria-hidden] [ref=e916]:
+                      - generic [ref=e938]: "?"
+                  - generic "Sem CS Rating do Premier (precisa de conta na leetify.gg)" [ref=e939]: "---"
+            - generic [ref=e941]: "0.51"
+            - generic [ref=e944]: "23"
+            - generic [ref=e945]: "0.46"
+            - generic [ref=e946]: "48.4"
+            - generic [ref=e947]: 65%
+            - generic [ref=e948]: 30%
+            - generic [ref=e950]:
+              - link "V" [ref=e951] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-22_00-01_de_dust2_time_VAC-LIFE-x-time_senna/
+              - link "D" [ref=e952] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-21_23-16_de_cache_time_emptysoul-z-x-time_senna/
+              - link "V" [ref=e953] [cursor=pointer]:
+                - /url: /partidas/neura-project/md1/2026-10-21_22-29_de_mirage_time_Te1xe1ra-x-time_senna/

@@ -1,0 +1,47 @@
+- generic [ref=f20e2]:
+  - banner [ref=f20e3]:
+    - generic [ref=f20e4]:
+      - link [ref=f20e5] [cursor=pointer]:
+        - /url: /
+      - navigation "Menu principal" [ref=f20e6]:
+        - link "Início" [ref=f20e7] [cursor=pointer]:
+          - /url: /
+        - link "Jogar" [ref=f20e11] [cursor=pointer]:
+          - /url: /lobby/
+        - link "Ranking" [ref=f20e14] [cursor=pointer]:
+          - /url: /ranking/
+        - link "Inventário" [ref=f20e19] [cursor=pointer]:
+          - /url: /inventario/
+        - link "Loja" [ref=f20e24] [cursor=pointer]:
+          - /url: /loja/
+  - complementary "Conta e configurações" [ref=f20e29]:
+    - button "Entrar" [ref=f20e30] [cursor=pointer]
+    - button "Configurações" [ref=f20e34] [cursor=pointer]:
+      - generic [aria-hidden]: Configurações
+    - link "Comunidade na Discord" [ref=f20e38] [cursor=pointer]:
+      - /url: https://discord.gg/kBHskkJFc
+      - generic: Comunidade
+  - main [ref=f20e40]:
+    - generic [ref=f20e41]:
+      - button "Desligar o som" [ref=f20e42] [cursor=pointer]: 🔊
+      - slider "Volume" [ref=f20e43]: "0.5"
+    - generic [ref=f20e45]:
+      - generic [ref=f20e46]:
+        - generic [ref=f20e47]: CARREGANDO…
+        - heading "Top 15 jogadores" [level=1] [ref=f20e50]:
+          - generic [ref=f20e51]: Top
+          - generic [ref=f20e52]: "15"
+          - generic [ref=f20e53]: jogadores
+        - paragraph [ref=f20e55]: "Ranking montado com todas as partidas registradas no servidor. Cada mapa novo entra na conta sozinho: rating, ADR, KAST, kills e forma recente."
+      - generic [ref=f20e56]:
+        - generic [ref=f20e57]:
+          - text: JOGADORES
+          - generic [ref=f20e58]: —
+        - generic [ref=f20e59]:
+          - text: MAPAS
+          - generic [ref=f20e60]: —
+        - generic [ref=f20e61]:
+          - text: KILLS
+          - generic [ref=f20e62]: —
+    - generic [ref=f20e65]:
+      - tablist "Ordenar ranking por"

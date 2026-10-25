@@ -80,7 +80,7 @@
 .pod-mini { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; margin-top: 2px; padding-top: 12px; border-top: 1px solid rgb(var(--tinta) / .1); }
 /* Painel das informações: nível/Premier/time, rating, estatísticas e forma, juntos e separados do avatar e do nome */
 .pod-info {
-  width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 12px; padding: 14px 14px 14px;
+  width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 12px; /* padding: 14px 14px 14px; */
   border-radius: 14px; border: 1px solid rgb(var(--tinta) / .08); background: rgb(var(--tinta) / .035);
 }
 .pod.com-card .pod-info { background: rgb(8 9 12 / .66); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-color: rgb(255 255 255 / .12); }
@@ -103,8 +103,25 @@
 .forma .v { color: var(--green); background: rgba(61,220,132,.12); box-shadow: inset 0 0 0 1px rgba(61,220,132,.45); }
 .forma .d { color: var(--red); background: rgba(255,70,85,.1); box-shadow: inset 0 0 0 1px rgba(255,70,85,.4); }
 
-/* ── Lista 4–15 ── */
+/* ── Lista do ranking ── */
 .tabela-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.ranking-page .ranking-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  color: #f1e6ff;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  background: linear-gradient(90deg, rgb(92 66 122 / .55), rgb(52 43 70 / .3));
+}
+.ranking-page .ranking-list-heading span:last-child {
+  color: #d2c0e8;
+  font-size: 10px;
+}
 .linha {
   display: grid; grid-template-columns: 52px minmax(0, 2.2fr) minmax(130px, 1fr) 70px 62px 62px 62px 54px 124px;
   align-items: center; gap: 14px; padding: 12px 20px; border-top: 1px solid var(--border); transition: background .15s;
@@ -115,6 +132,53 @@
 .linha:not(.cab):hover { background: rgba(26,115,232,.05); }
 .num-c { text-align: center; font-family: var(--font-mono); font-size: 13.5px; }
 .pos-n { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--dim-2); text-align: center; }
+.ranking-page .pos-n.com-trofeu {
+  display: grid;
+  place-items: center;
+  min-height: 54px;
+}
+.ranking-page .pos-n.com-trofeu img {
+  display: block;
+  width: 46px;
+  height: 54px;
+  object-fit: contain;
+}
+/* Top 3 da tabela: linha maior, troféu colado nas bordas da linha (sem o respiro/padding) e com o brilho da cor dele */
+.ranking-page .linha.linha-pod {
+  position: relative;
+  grid-template-columns: 92px minmax(0, 2.2fr) minmax(130px, 1fr) 70px 62px 62px 62px 54px 124px;
+  min-height: 108px;
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+.ranking-page .linha.linha-pod .pos-n.com-trofeu {
+  display: block;
+  align-self: stretch;
+  min-height: 0;
+  height: calc(100% + 36px);
+  margin: -18px 0 -18px -20px;
+  padding: 0;
+  overflow: visible;
+}
+.ranking-page .linha.linha-pod .pos-n.com-trofeu img {
+  width: auto;
+  height: 100%;
+  object-fit: contain;
+}
+.ranking-page .linha.p1.linha-pod .pos-n.com-trofeu img { filter: drop-shadow(0 0 16px var(--ouro)) drop-shadow(0 0 6px var(--ouro)); }
+.ranking-page .linha.p2.linha-pod .pos-n.com-trofeu img { filter: drop-shadow(0 0 16px var(--prata)) drop-shadow(0 0 6px var(--prata)); }
+.ranking-page .linha.p3.linha-pod .pos-n.com-trofeu img { filter: drop-shadow(0 0 16px var(--bronze)) drop-shadow(0 0 6px var(--bronze)); }
+.ranking-page .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 .jog { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .jog .av { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; max-width: none; flex-shrink: 0; border: 1px solid var(--border-2); background: var(--panel-2); }
 .jog .av.ini { font-size: 14px; display: grid; place-items: center; }
@@ -255,6 +319,26 @@
 .linha.eu { background: rgba(26,115,232,.12); box-shadow: inset 3px 0 0 var(--blue-2); }
 .minha-pos { margin-top: 14px; }
 .minha-pos-tit { padding: 10px 16px 4px; font-size: 11px; letter-spacing: 1.5px; color: var(--blue-2); }
+.ranking-page .ranking-self {
+  margin: 0 0 20px;
+  overflow: hidden;
+  border: 1px solid rgb(184 143 231 / .45);
+  border-radius: 8px;
+  background: linear-gradient(100deg, rgb(78 57 102 / .68), rgb(50 42 66 / .7));
+  box-shadow: 0 10px 30px rgb(12 9 17 / .2);
+}
+.ranking-page .ranking-self .minha-pos-tit {
+  padding: 12px 20px 3px;
+  color: #e1c5ff;
+}
+.ranking-page .ranking-self .linha {
+  border-top: 0;
+  background: transparent;
+}
+.ranking-page .ranking-self .linha.eu {
+  border-radius: 0;
+  background: transparent;
+}
 .pod-pos { z-index: 3; } /* número da posição fica por cima da moldura */
 /* Time escolhido no "Personalizar" */
 .pod-time { justify-content: center; font-size: 12.5px; }
@@ -351,10 +435,413 @@
 }
 .pod.com-card .pod-nome { text-shadow: 0 2px 12px rgba(0, 0, 0, .85); }
 
-/* Pódio no formato do card (5:7, o mesmo das imagens dos cards do perfil): a arte aparece inteira, sem esticar nem dar zoom.
- * O do 1º lugar fica um pouco mais largo (e portanto maior, na mesma proporção). Se o conteúdo precisar de mais altura, o card cresce. */
+/* Mantém a proporção original das molduras do pódio (780x1200), sem esticá-las. */
 @media (min-width: 901px) {
   .podio { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1fr); }
-  .pod:not(.esq-pod) { aspect-ratio: 5 / 7; justify-content: flex-start; }
+  .pod:not(.esq-pod) { aspect-ratio: 13 / 20; justify-content: flex-start; }
   .pod:not(.esq-pod) .pod-info { margin-top: auto; }
+}
+
+/* ── Ranking Carnival: palco ilustrado e placas do pódio ── */
+.ranking-page {
+  background: #09080e;
+}
+.ranking-page > .hero {
+  padding: 34px 0 24px;
+  background: linear-gradient(105deg, #0b0913 0%, #161126 58%, #0a0a12 100%);
+}
+.ranking-page .hero-inner {
+  gap: 28px;
+  align-items: center;
+}
+.ranking-page .hero h1 {
+  color: #fff;
+}
+.ranking-page .resumo .caixa {
+  border-color: rgb(193 164 255 / .2);
+  background: rgb(42 33 62 / .82);
+}
+.ranking-page .resumo b {
+  color: #f4d78a;
+}
+.ranking-page .secao {
+  padding-top: 18px !important;
+  background: #09080e;
+}
+.ranking-page .barra-topo {
+  margin-bottom: 18px;
+  padding: 10px;
+  border: 1px solid rgb(183 143 255 / .18);
+  border-radius: 12px;
+  background: #15111f;
+}
+.ranking-page .metricas {
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.ranking-page .metricas button {
+  border-radius: 7px;
+  color: #aaa4b6;
+}
+.ranking-page .metricas button.active {
+  color: #ffe08a;
+  background: #30223f;
+  box-shadow: inset 0 0 0 1px rgb(255 198 95 / .32);
+}
+.ranking-page .nota {
+  color: #c0b3cf;
+}
+/* O palco (fundo) ocupa a largura toda da tela (não só a coluna de 1480px do conteúdo);
+ * o padding lateral empurra o pódio de volta para dentro dessa coluna, como o resto da página. */
+.ranking-page { --wrap-pad: 32px; }
+@media (max-width: 980px) { .ranking-page { --wrap-pad: 24px; } }
+@media (max-width: 460px) { .ranking-page { --wrap-pad: 16px; } }
+.ranking-arena {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  width: 100vw;
+  min-height: 610px;
+  margin-left: calc(50% - 50vw);
+  padding: 320px calc(max(0px, (100vw - 1480px) / 2) + var(--wrap-pad) + clamp(10px, 4vw, 54px)) 28px;
+  background: #0f0a18;
+}
+.ranking-arena::before,
+.ranking-arena::after {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: '';
+  pointer-events: none;
+}
+.ranking-arena::before {
+  background: url('/assets/Ranking/podio-palco.webp') center 38% / cover no-repeat;
+  opacity: .78;
+  filter: saturate(1.4) brightness(1.08) contrast(1.05);
+}
+/* Luz de carnaval por cima da arte azul/dourada original: holofote magenta no centro
+ * e luzes âmbar/roxa nas laterais, pra aproximar do clima vibrante da referência sem trocar a imagem. */
+.ranking-arena::after {
+  background:
+    radial-gradient(55% 45% at 50% 6%, rgb(255 90 190 / .5), transparent 70%),
+    radial-gradient(60% 42% at 10% 96%, rgb(255 150 60 / .34), transparent 70%),
+    radial-gradient(60% 42% at 90% 96%, rgb(170 70 255 / .34), transparent 70%),
+    linear-gradient(180deg, #0b0913 0%, rgb(8 8 15 / .35) 10%, rgb(8 8 15 / .05) 42%, #09080e 78%),
+    linear-gradient(90deg, rgb(8 8 15 / .62), transparent 28%, transparent 72%, rgb(8 8 15 / .62));
+}
+.ranking-arena .podio {
+  position: relative;
+  z-index: 1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(20px, 6vw, 92px);
+  align-items: end;
+  max-width: 880px;
+  margin: 0 auto;
+}
+.ranking-arena .pod {
+  min-height: 0;
+  overflow: visible;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  isolation: isolate;
+  /* O texto escala pelo tamanho real do card (não da tela): em telas "do meio" o card pode ficar
+   * mais estreito que o previsto e o texto em vw não acompanhava, saindo por cima do desenho. */
+  container-type: inline-size;
+  container-name: pod;
+}
+.ranking-arena .pod:hover,
+.ranking-arena .pod.spot:hover {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.ranking-arena .pod::before,
+.ranking-arena .pod::after,
+.ranking-arena .pod .coroa,
+.ranking-arena .pod-pos {
+  display: none;
+}
+.pod-arte {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+.pod-personagem {
+  position: absolute;
+  top: -58%;
+  left: 50%;
+  width: 155%;
+  height: auto;
+  max-width: none;
+  object-fit: contain;
+  transform: translateX(-50%);
+  transform-origin: center 70%;
+  transition: transform .25s ease;
+}
+/* Só o boneco cresce ao passar o mouse; a moldura fica sempre no mesmo tamanho */
+.ranking-arena .pod:hover .pod-personagem {
+  transform: translateX(-50%) scale(1.08);
+}
+.pod-moldura {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: contain;
+}
+/* A moldura de ouro tem o círculo do avatar maior e mais baixo que as de prata/bronze
+ * (medido nos próprios arquivos): cada uma precisa do seu encaixe. */
+.ranking-arena .pod .pod-arte .pod-av {
+  z-index: 1;
+  top: 6%;
+  left: 50%;
+  width: 38%;
+  height: auto;
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+.ranking-arena .pod.p1 .pod-arte .pod-av {
+  top: 10%;
+  width: 43%;
+}
+.ranking-arena .pod > :not(.pod-arte) {
+  z-index: 2;
+}
+.ranking-arena .pod .pod-av img,
+.ranking-arena .pod .pod-av .ini {
+  border-radius: 50%;
+  padding: 0;
+  background: transparent;
+  object-fit: cover;
+}
+.ranking-arena .pod .pod-nome {
+  position: absolute;
+  top: 42%;
+  left: 14%;
+  width: 72%;
+  margin: 0;
+  color: #fff;
+  font-size: clamp(10px, 9cqw, 21px);
+}
+.ranking-arena .pod .pod-linha-cargos {
+  position: absolute;
+  top: 49%;
+  left: 12%;
+  width: 76%;
+  min-height: 0;
+  margin: 0;
+}
+.ranking-arena .pod .pod-info {
+  position: absolute;
+  inset: 53% 13% 13%;
+  width: auto;
+  margin: 0;
+  padding: 3px 0 0;
+  gap: 7px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  justify-content: space-between;
+}
+/* Jogador sem time: sem o quê mostrar embaixo, o rating fica centralizado em vez de grudado no topo com vão vazio embaixo */
+.ranking-arena .pod .pod-info.sem-time {
+  justify-content: center;
+}
+.ranking-arena .pod.com-card .pod-info {
+  border: 0;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+/* No palco do carnaval a moldura já é o fundo: o banner do jogador (fundo de .pod inteiro no card antigo)
+ * criava um retângulo claro atrás da arte. Aqui ele fica restrito ao avatar, como nas linhas da tabela. */
+.ranking-arena .pod.com-card,
+.ranking-arena .pod.com-card:hover,
+.ranking-arena .pod.com-card.spot:hover {
+  background-image: none !important;
+}
+.ranking-arena .pod .pod-valor b {
+  color: #ffe2a0;
+  font-size: clamp(16px, 17cqw, 42px);
+  text-shadow: 0 1px 3px #09080e;
+}
+.ranking-arena .pod.p1 .pod-valor b {
+  font-size: clamp(18px, 18cqw, 48px);
+}
+.ranking-arena .pod .pod-valor .mono {
+  color: #d1c9d9;
+  font-size: clamp(7px, 5cqw, 11px);
+}
+/* Time do jogador no rodapé da moldura (no lugar do antigo K/D/ADR/MAPAS + forma) */
+.ranking-arena .pod .pod-time-rodape {
+  display: flex;
+  max-width: 100%;
+  margin: 0;
+  padding-top: 8px;
+  border-top: 1px solid rgb(255 255 255 / .16);
+  gap: 4%;
+  color: #f1e9f7;
+  font-size: clamp(7px, 5.5cqw, 13px);
+}
+.ranking-arena .pod .pod-time-rodape img,
+.ranking-arena .pod .pod-time-rodape i {
+  width: clamp(12px, 9cqw, 22px);
+  height: clamp(12px, 9cqw, 22px);
+  flex: none;
+}
+.ranking-arena .pod .pod-time-rodape span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ranking-arena .selo-eu {
+  z-index: 3;
+}
+.ranking-page .tabela-card {
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.ranking-page .linha.cab {
+  border: 0;
+  background: transparent;
+}
+.ranking-page .linha:not(.cab) {
+  min-height: 72px;
+  border-top: 1px dashed rgb(205 175 232 / .2);
+}
+.ranking-page .linha:not(.cab):nth-child(odd) {
+  background: rgb(79 62 101 / .28);
+}
+.ranking-page .linha:not(.cab):hover {
+  background: rgb(100 76 126 / .36);
+}
+.ranking-page .linha.eu {
+  border-radius: 6px;
+  background: #493d62;
+}
+.ranking-page .ranking-self .linha.eu {
+  border-radius: 0;
+  background: transparent;
+}
+.ranking-page .barra-val .trilho i {
+  background: linear-gradient(90deg, #8b5bce, #f2c767);
+}
+
+/* Controle da música de fundo do evento: botão de mutar + volume, flutuando sobre a página */
+.ranking-page .rk-som {
+  position: fixed;
+  right: 70px;
+  bottom: 88px;
+  z-index: 410;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid rgb(183 143 255 / .3);
+  border-radius: 999px;
+  background: rgb(21 17 31 / .88);
+  box-shadow: 0 10px 30px rgb(8 8 15 / .45);
+  backdrop-filter: blur(6px);
+}
+.ranking-page .rk-som-icone {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: #30223f;
+  color: #ffe08a;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background .15s;
+}
+.ranking-page .rk-som-icone:hover {
+  background: #42305a;
+}
+.ranking-page .rk-som input[type='range'] {
+  width: 84px;
+  accent-color: #c79bff;
+}
+@media (max-width: 560px) {
+  .ranking-page .rk-som {
+    right: 10px;
+    bottom: 76px;
+    padding: 6px 8px;
+  }
+  .ranking-page .rk-som input[type='range'] {
+    width: 56px;
+  }
+}
+
+@media (max-width: 900px) {
+  .ranking-arena {
+    min-height: 0;
+    padding: 130px calc(var(--wrap-pad) + 10px) 20px;
+  }
+  .ranking-arena::before {
+    background-position: center top;
+    background-size: auto 620px;
+  }
+  .ranking-arena .podio {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .ranking-arena .pod-personagem {
+    top: -32%;
+    width: 150%;
+    height: auto;
+    max-width: none;
+  }
+  .ranking-arena .pod {
+    aspect-ratio: 13 / 20;
+  }
+  .ranking-arena .pod .pod-nome {
+    top: 45%;
+    left: 8%;
+    width: 84%;
+  }
+  .ranking-arena .pod .pod-info {
+    inset: 57% 10% 16%;
+  }
+  .ranking-arena .pod .pod-time-rodape {
+    padding-top: 4px;
+  }
+}
+@media (max-width: 560px) {
+  .ranking-page > .hero {
+    padding: 26px 0 20px;
+  }
+  .ranking-page .hero-inner {
+    gap: 18px;
+  }
+  .ranking-page .resumo {
+    gap: 6px;
+  }
+  .ranking-page .resumo .caixa {
+    padding: 10px 8px;
+  }
+  .ranking-page .barra-topo {
+    padding: 8px;
+  }
+  .ranking-page .nota {
+    width: 100%;
+    text-align: center;
+  }
+  .ranking-arena {
+    padding-inline: calc(var(--wrap-pad) + 10px);
+  }
 }

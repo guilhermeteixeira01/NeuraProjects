@@ -15,10 +15,10 @@ import { definirPreferencia, preferenciaAtual, som } from './somLoja.js'
 
 const MAX_POR_VEZ = 3 // o servidor também não deixa passar disso
 const numero = (n) => Number(n).toLocaleString('pt-BR')
-// Chance em %: nunca aparece "0%" para item que tem chance de verdade (item caro: "<0.0001%")
+// Chance em %: nunca aparece "0%" para item que tem chance de verdade (item caro: "0.0001%")
 const pct = (n) => {
   if (!(n > 0)) return '0%'
-  if (n < 0.0001) return '<0.0001%'
+  if (n < 0.0001) return '0.0001%'
   const txt = n >= 1 ? n.toFixed(2) : n >= 0.01 ? n.toFixed(3) : n.toFixed(4)
   return `${txt.replace(/0+$/, '').replace(/\.$/, '')}%`
 }

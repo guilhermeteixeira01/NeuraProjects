@@ -6,15 +6,22 @@ import { Contador } from '../../comum/efeitos.jsx'
 import { useAoVivo } from '../../comum/aoVivo.js'
 import { FundoHero, Palavras } from '../../comum/HeroFundo.jsx'
 import Premier from '../../comum/Premier.jsx'
-import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, apelidoDe, useCardDe, usePerfis } from '../../comum/Moldura.jsx'
+import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, apelidoDe, useCardDe, usePerfis, useTimeDe } from '../../comum/Moldura.jsx'
 import { fundoCard } from '../../comum/cardsPerfil.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { nivelDe } from '../../comum/niveis.js'
 import { MIN_MAPAS } from '../../comum/ranking.js'
 import { useT } from '../../comum/i18n.js'
 import { useAvatar } from '../../comum/avatares.js'
+import { definirPreferencia, iniciar, lerPreferencia, parar } from './somRanking.js'
 
 const TOP = 15
+const PODIO_ARTE = {
+  1: { moldura: 'podio-ouro.webp', personagem: 'podio-campeao.webp' },
+  2: { moldura: 'podio-prata.webp', personagem: 'podio-arlequim.webp' },
+  3: { moldura: 'podio-bronze.webp', personagem: 'podio-fortao.webp' },
+}
+const arteRanking = (arquivo) => `/assets/Ranking/${arquivo}`
 
 // Métricas que podem ordenar o ranking: [chave, rótulo do botão, rótulo curto, casas decimais, sufixo]
 const METRICAS = [
@@ -76,38 +83,33 @@ function Forma({ j }) {
 
 function Podio({ j, pos, m, eu }) {
   const card = useCardDe(j.steamId) // banner que o jogador escolheu no perfil (só o pódio, top 3, mostra o card)
+  const time = useTimeDe(j.steamId) // sem time: o rating fica centralizado em vez de deixar um vão vazio embaixo
   const t = useT()
   const [chave, , rotulo, casas, suf] = m
+  const arte = PODIO_ARTE[pos]
   return (
     <div className={`pod spot p${pos}${eu ? ' eu' : ''}${card ? ' com-card' : ''}`} data-pos={pos} style={card ? { '--card-fundo': fundoCard(card, true) } : undefined}>
       {eu && <span className="selo-eu">{t('VOCÊ')}</span>}
+      <div className="pod-arte" aria-hidden="true">
+        <img className="pod-personagem" src={arteRanking(arte.personagem)} alt="" />
+        {/* Sem ComMoldura aqui: a moldura do carnaval já emoldura o avatar, a borda animada e o emblema de assinante por cima ficam poluídos */}
+        <a className="pod-av" href={perfil(j)} aria-hidden="true" tabIndex={-1}>
+          <Avatar j={j} classe="" />
+          <span className="pod-pos">#{pos}</span>
+        </a>
+        <img className="pod-moldura" src={arteRanking(arte.moldura)} alt="" />
+      </div>
       {pos === 1 && (
         <svg className="coroa" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 12H5L3 7z" />
         </svg>
       )}
-      <a className="pod-av" href={perfil(j)}>
-        <ComMoldura steamId={j.steamId} cheio emblema>
-          <Avatar j={j} classe="" />
-        </ComMoldura>
-        <span className="pod-pos">#{pos}</span>
-      </a>
       <a className="pod-nome" href={perfil(j)}>
         <span className="pod-nome-txt">{j.nome}</span>
         <IconeEquipe steamId={j.steamId} />
       </a>
-      {/* Linhas fixas (com espaço guardado mesmo vazias): os 3 cartões ficam alinhados */}
-      <span className="pod-linha pod-linha-cargos">
-        <CargosDe steamId={j.steamId} classe="pod-cargos" max={1} />
-      </span>
-      {/* Tudo o que é número fica junto num painel só (lê bem mesmo sobre o banner do jogador): nível, Premier e time (só o logo, o
-          nome aparece ao passar o mouse), o rating em destaque, as estatísticas principais e a forma recente */}
-      <div className="pod-info">
-        <span className="selos pod-meta">
-          <SeloNivel nivel={j.nivel} tamanho={28} />
-          <Premier j={j} />
-          <TimeEscolhido steamId={j.steamId} classe="pod-time" soLogo />
-        </span>
+      {/* No pódio do carnaval, sem nível/Premier/tag de campeão nem K/D-ADR-MAPAS/forma: o rating fica em cima e o time do jogador embaixo */}
+      <div className={`pod-info${time ? '' : ' sem-time'}`}>
         <span className="pod-valor">
           <b>
             {fmt(j[chave], casas)}
@@ -115,21 +117,7 @@ function Podio({ j, pos, m, eu }) {
           </b>
           <span className="mono">{t(rotulo)}</span>
         </span>
-        <div className="pod-mini">
-          <div>
-            <b>{chave === 'rating' ? fmt(j.kd, 2) : fmt(j.rating, 2)}</b>
-            <span>{chave === 'rating' ? 'K/D' : 'RATING'}</span>
-          </div>
-          <div>
-            <b>{fmt(j.adr, 1)}</b>
-            <span>ADR</span>
-          </div>
-          <div>
-            <b>{j.mapas}</b>
-            <span>{t('MAPAS')}</span>
-          </div>
-        </div>
-        <Forma j={j} />
+        <TimeEscolhido steamId={j.steamId} classe="pod-time-rodape" />
       </div>
     </div>
   )
@@ -139,9 +127,13 @@ function Linha({ j, pos, m, max, i, eu }) {
   const t = useT()
   const [chave, , , casas, suf] = m
   const w = max > 0 ? Math.max(3, (j[chave] / max) * 100) : 0
+  const trofeu = pos <= 3 ? `/assets/Ranking/trofeu-${pos}.png` : null
   return (
-    <div className={`linha spot${eu ? ' eu' : ''}`} style={{ '--i': i }}>
-      <span className="pos-n">{pos}</span>
+    <div className={`linha spot${eu ? ' eu' : ''}${trofeu ? ` linha-pod p${pos}` : ''}`} style={{ '--i': i }}>
+      <span className={`pos-n${trofeu ? ' com-trofeu' : ''}`}>
+        {trofeu ? <img src={trofeu} alt="" aria-hidden="true" /> : pos}
+        <span className="sr-only">#{pos}</span>
+      </span>
       <span className="jog">
         <a className="jog-av" href={perfil(j)} aria-hidden="true" tabIndex={-1}>
           <ComMoldura steamId={j.steamId}>
@@ -205,18 +197,29 @@ function Conteudo({ dados, chave, eu }) {
     return <p className="vazio">{t('Ainda não há jogadores no ranking. Assim que uma partida terminar no servidor, ela entra aqui.')}</p>
   }
 
-  const resto = top.slice(3)
-  const max = resto.length ? Math.max(...top.map((j) => j[m[0]])) : 0
+  const max = top.length ? Math.max(...top.map((j) => j[m[0]])) : 0
   return (
     // key: troca de métrica remonta o bloco e as animações tocam de novo
     <div key={chave} className="anim">
-      <div className="podio">
-        {top.slice(0, 3).map((j, i) => (
-          <Podio key={j.steamId} j={j} pos={i + 1} m={m} eu={j.steamId === eu} />
-        ))}
+      <div className="ranking-arena">
+        <div className="podio">
+          {top.slice(0, 3).map((j, i) => (
+            <Podio key={j.steamId} j={j} pos={i + 1} m={m} eu={j.steamId === eu} />
+          ))}
+        </div>
       </div>
-      {resto.length > 0 && (
+      {minhaPos >= TOP && (
+        <div className="minha-pos ranking-self">
+          <div className="minha-pos-tit mono">{t('SUA POSIÇÃO')}</div>
+          <Linha j={todos[minhaPos]} pos={minhaPos + 1} m={m} max={max || todos[0][m[0]]} i={0} eu />
+        </div>
+      )}
+      {top.length > 0 && (
         <div className="tabela-card">
+          <div className="ranking-list-heading">
+            <span>{t('RANKING')}</span>
+            <span>{t('JOGADORES')} {top.length}</span>
+          </div>
           <div className="linha cab">
             <span className="num-c">#</span>
             <span>{t('JOGADOR')}</span>
@@ -228,17 +231,48 @@ function Conteudo({ dados, chave, eu }) {
             <span className="num-c c-hs">HS%</span>
             <span className="c-forma">{t('FORMA')}</span>
           </div>
-          {resto.map((j, i) => (
-            <Linha key={j.steamId} j={j} pos={i + 4} m={m} max={max} i={i} eu={j.steamId === eu} />
+          {top.map((j, i) => (
+            <Linha key={j.steamId} j={j} pos={i + 1} m={m} max={max} i={i} eu={j.steamId === eu} />
           ))}
         </div>
       )}
-      {minhaPos >= TOP && (
-        <div className="tabela-card minha-pos">
-          <div className="minha-pos-tit mono">{t('SUA POSIÇÃO')}</div>
-          <Linha j={todos[minhaPos]} pos={minhaPos + 1} m={m} max={max || todos[0][m[0]]} i={0} eu />
-        </div>
-      )}
+    </div>
+  )
+}
+
+// Toca a música de fundo do evento (loop) e mostra o botão de mutar + controle de volume
+function SomRanking() {
+  const t = useT()
+  const [pref, setPref] = useState(() => lerPreferencia())
+
+  useEffect(() => {
+    iniciar(pref)
+    return () => parar()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const mudar = (p) => setPref((atual) => definirPreferencia(p, atual))
+
+  return (
+    <div className="rk-som">
+      <button
+        type="button"
+        className="rk-som-icone"
+        onClick={() => mudar({ mudo: !pref.mudo })}
+        aria-label={pref.mudo ? t('Ligar o som') : t('Desligar o som')}
+        title={pref.mudo ? t('Ligar o som') : t('Desligar o som')}
+      >
+        {pref.mudo ? '🔇' : '🔊'}
+      </button>
+      <input
+        type="range"
+        min="0"
+        max="1"
+        step="0.05"
+        value={pref.vol}
+        onChange={(e) => mudar({ vol: Number(e.target.value), mudo: false })}
+        aria-label={t('Volume')}
+      />
     </div>
   )
 }
@@ -296,7 +330,8 @@ export default function Ranking({ dados: inicial }) {
   const quando = dados && dataBr(dados.atualizado, t.local)
   return (
     <Layout pagina="ranking">
-      <main>
+      <main className="ranking-page">
+        <SomRanking />
         <section className="hero">
           <FundoHero />
           <div className="wrap hero-inner">

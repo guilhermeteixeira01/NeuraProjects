@@ -178,7 +178,7 @@ function Usuarios({ usuarios, painel, dono, editar }) {
 
 // Janela de edição de um usuário
 // Janela do jogador: Perfil (moldura, XP, cargos, insígnias, bloqueio), Pontos (saldo e ajuste) e Itens (dar e tirar skins), conforme as abas que o admin tem
-function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar, abas = [], usuarios = [] }) {
+function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar, abas = [], usuarios = [], souDono = false }) {
   const tr = useT()
   const secoes = [['perfil', 'Perfil', 'usuarios'], ['pontos', 'Pontos', 'pontos'], ['itens', 'Itens', 'skins']].filter(([, , p]) => abas.includes(p))
   const [secao, setSecao] = useState(secoes[0]?.[0] || 'perfil')
@@ -213,6 +213,17 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar, abas = [], u
   }
   const salvar = () => enviar({ moldura: moldura || null, card: card || null, xp: Math.round(Number(ajuste) || 0), bloqueado, cargos: meus, insignias })
   const limpar = async () => (await confirmar(tr('Apagar moldura, ajuste de XP, cargos e bloqueio de {nome}? (as insígnias ficam)', { nome: u.nome || u.id }), { perigo: true, ok: tr('Apagar') })) && enviar({ limpar: true })
+  // Apaga a senha de segurança (hash + sal): o jogador perde o acesso com a senha antiga e consegue criar uma nova da próxima vez que precisar.
+  const resetarSenha = async () => {
+    if (!(await confirmar(tr('Remover a senha de segurança de {nome}? Ele(a) vai poder criar uma nova senha na próxima vez que precisar.', { nome: u.nome || u.id }), { perigo: true, ok: tr('Remover senha') }))) return
+    setEstado('salvando')
+    try {
+      await chamar('/admin/senha-reset', { id: u.id })
+      setEstado(tr('Senha removida: o jogador já pode criar outra.'))
+    } catch (e) {
+      setEstado(mensagemErro(e))
+    }
+  }
 
   return (
     <div className="sm-fundo" onClick={fechar}>
@@ -369,6 +380,11 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar, abas = [], u
           <button type="button" className="btn btn-ghost adm-perigo" onClick={limpar} disabled={estado === 'salvando'}>
             {tr('Limpar perfil')}
           </button>
+          {souDono && (
+            <button type="button" className="btn btn-ghost adm-perigo" onClick={resetarSenha} disabled={estado === 'salvando'} title={tr('Remove a senha de segurança: o jogador consegue criar outra')}>
+              {tr('Remover senha')}
+            </button>
+          )}
           <span className="sm-msg" role="status">
             {estado !== 'salvando' && tr(estado)}
           </span>
@@ -1980,7 +1996,7 @@ export default function Admin() {
             {abaAtual === 'servidor' && eu.dono && <AdminServidor />}
           </div>
         </section>
-        {editando && <EditarUsuario abas={eu.abas} usuarios={usuarios} u={editando} cargos={painel.config.cargos || []} ehAdmin={editando.id === painel.dono || (painel.config.admins || []).includes(editando.id)} fechar={fecharEdicao} aoSalvar={(perfis) => setPainel((p) => ({ ...p, perfis }))} />}
+        {editando && <EditarUsuario abas={eu.abas} usuarios={usuarios} u={editando} cargos={painel.config.cargos || []} ehAdmin={editando.id === painel.dono || (painel.config.admins || []).includes(editando.id)} souDono={eu.dono} fechar={fecharEdicao} aoSalvar={(perfis) => setPainel((p) => ({ ...p, perfis }))} />}
       </>
     )
   }
