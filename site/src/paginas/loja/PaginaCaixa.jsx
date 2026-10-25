@@ -111,20 +111,20 @@ function IconeSom({ ligado }) {
   )
 }
 
-// ── abertura especial: a cada 100 caixas abertas (as de adesivo/chaveiro não contam) o item sai entre as skins mais caras da caixa (worker: loja-core.js ESPECIAL) ──
+// A cada 100 caixas elegíveis, faca/luva garantida (adesivo/chaveiro não contam).
 const CADA_ESPECIAL = 100
 function ProgressoEspecial({ aberturas }) {
   const t = useT()
   const feitas = aberturas % CADA_ESPECIAL
   const faltam = CADA_ESPECIAL - feitas
   return (
-    <span className={`lj-esp-progresso${faltam === 1 ? ' is-proxima' : ''}`} title={t('A cada {n} caixas abertas, uma sai entre as skins mais caras da caixa.', { n: CADA_ESPECIAL })}>
+    <span className={`lj-esp-progresso${faltam === 1 ? ' is-proxima' : ''}`} title={t('A cada {n} caixas de armas, facas ou luvas abertas, uma faca ou luva é garantida.', { n: CADA_ESPECIAL })}>
       <span className="lj-cx-esp-topo">
         <b>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="m12 2.5 2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" />
           </svg>
-          {t('Abertura especial')}
+          {t('Faca ou luva garantida')}
         </b>
         <em>
           {feitas}/{CADA_ESPECIAL}

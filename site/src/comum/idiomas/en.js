@@ -1431,6 +1431,8 @@ export default {
   "A próxima caixa é especial!": "Your next case is special!",
   "Abertura especial em {n} caixas": "Special opening in {n} cases",
   "A cada {n} caixas abertas, uma sai entre as skins mais caras da caixa.": "Every {n} cases opened, one drops from the most expensive skins in the case.",
+  "A cada {n} caixas de armas, facas ou luvas abertas, uma faca ou luva é garantida.": "Every {n} weapon, knife or glove cases opened guarantees a knife or glove.",
+  "Faca ou luva garantida": "Guaranteed knife or glove",
   "Faltam {n} caixas": "{n} cases to go",
   "Abrir do inventário": "Open from inventory",
   "Abrir {n} do inventário": "Open {n} from inventory",

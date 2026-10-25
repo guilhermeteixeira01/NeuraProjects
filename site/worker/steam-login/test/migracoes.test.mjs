@@ -35,7 +35,8 @@ test('Loja: depósitos ganham as colunas novas, o saldo vem do total guardado e 
   assert.equal(storage.sql.exec('SELECT valor FROM resumo WHERE chave = ?', 'gasto').one().valor, storage.sql.exec('SELECT SUM(valor) AS s FROM movimentos').one().s)
   // abrir de novo o objeto (ele "acorda") não roda a migração outra vez
   new Loja(ctxCom(storage), env)
-  assert.equal(storage.sql.exec('SELECT versao FROM esquema').one().versao, 3)
+  assert.equal(storage.sql.exec('SELECT versao FROM esquema').one().versao, 4)
+  assert.equal(loja.abertasParaEspecial(), 1) // inclui a abertura antiga que tinha t NULL
   const perfil = await pedir(loja, { id: ID, acao: 'perfil-publico' })
   assert.equal(perfil.dados.melhor.d, 7) // a arma antiga (que estava sem tipo) entra na melhor queda
   assert.equal(perfil.dados.abertas, 2)

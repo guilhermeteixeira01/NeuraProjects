@@ -164,57 +164,21 @@ export function sortearAbertura(caixa, cfg, rnd) {
   return { raridade, indice, item: { t: origem.t === 'faca' || origem.t === 'luva' ? origem.t : t, d: origem.d, p: origem.p, f, s: Math.floor(rnd() * 1001), l: origem.l ? 1 : 0, faixa } }
 }
 
-// Abertura especial: a cada ESPECIAL.cada caixas abertas (somando todas), o item sai entre as skins mais caras da caixa.
-// Candidatas: das ESPECIAL.top mais caras, só as que valem pelo menos ESPECIAL.minimo × o preço (e sempre pelo menos duas, para ter sorteio).
-// Entre elas, peso 1/valor^a, com o menor a que deixa o valor médio da especial dentro do teto: o mais generoso possível sem virar jeito
-// de farmar NP. Teto = ESPECIAL.teto × o preço, e nunca deixa a caixa passar de ESPECIAL.retornoMax de retorno somando a especial.
-export const ESPECIAL = { cada: 100, top: 5, minimo: 1.5, teto: 30, retornoMax: 0.9 }
+// A cada 100 aberturas elegíveis, garante faca/luva. Caixas de enfeites não contam.
+export const ESPECIAL = { cada: 100 }
 export const ehEspecial = (numeroDaAbertura) => numeroDaAbertura > 0 && numeroDaAbertura % ESPECIAL.cada === 0
 export function sortearEspecial(caixa, cfg, rnd) {
-  // valor médio de verdade (somando as faixas de desgaste): no do meio da faixa, uma skin que vale muito em Factory New parecia barata
-  const valor = (it, t = 'arma') => {
-    if (!valoradorDeItem) return 0
-    const x = { ...it, t: it.t || t }
-    if (x.t === 'adesivo' || x.t === 'chaveiro') return Number(valoradorDeItem(x)) || 0
-    return faixasDeDesgaste(cfg, it.min, it.max).reduce((s, fx) => s + fx.p * (Number(valoradorDeItem({ ...x, f: fx.f })) || 0), 0)
-  }
-  const preco = caixa.preco > 0 ? caixa.preco : 1
-  const ordem = caixa.itens
-    .map((it, i) => ({ it, i, v: valor(it) }))
-    .filter((x) => x.it.w > 0)
-    .sort((a, b) => b.v - a.v)
-  const top = ordem.slice(0, ESPECIAL.top).filter((x) => x.v >= ESPECIAL.minimo * preco)
-  for (const x of ordem) if (top.length < 2 && !top.includes(x)) top.push(x)
-  if (!top.length) return sortearAbertura(caixa, cfg, rnd)
-  // retorno normal da caixa (aproximado pelo mesmo valor que o sorteio usa), para a especial não levar a caixa acima do retorno máximo
-  const ch = chancesDaCaixa(caixa, cfg)
-  const normal = caixa.itens.reduce((s, it, i) => s + (ch.itens[i] / 100) * valor(it), 0) + caixa.facas.reduce((s, f, i) => s + (ch.facas[i] / 100) * valor(f, 'faca'), 0)
-  const folga = (ESPECIAL.retornoMax * preco - normal) * ESPECIAL.cada // quanto a especial ainda pode valer em média
-  const teto = Math.max(ESPECIAL.minimo * preco, Math.min(ESPECIAL.teto * preco, folga))
-  const medio = (a) => {
-    const p = top.map((x) => 1 / Math.pow(Math.max(1, x.v), a))
-    const soma = p.reduce((s, q) => s + q, 0)
-    return { p, v: top.reduce((s, x, k) => s + (p[k] / soma) * x.v, 0) }
-  }
-  // busca binária do menor expoente que cabe no teto (a = 0: todas iguais)
-  let pesos = medio(0)
-  if (pesos.v > teto) {
-    let lo = 0
-    let hi = 8
-    for (let k = 0; k < 30; k++) {
-      const meio = (lo + hi) / 2
-      if (medio(meio).v > teto) lo = meio
-      else hi = meio
-    }
-    pesos = medio(hi)
-  }
-  pesos = pesos.p
-  const escolhido = top[sortearPeso(pesos, rnd)]
+  const doTier = caixa.facas.length > 0
+  const candidatos = (doTier ? caixa.facas : caixa.itens)
+    .map((it, i) => ({ it, i }))
+    .filter(({ it }) => it.w > 0 && (doTier || it.t === 'faca' || it.t === 'luva'))
+  if (!candidatos.length) throw new Error('Caixa sem faca ou luva para a abertura garantida')
+  // Usa os pesos e a dificuldade por valor do sorteio normal, só dentro das facas/luvas.
+  const escolhido = candidatos[sortearPeso(fatiasDaRaridade(candidatos.map((x) => x.it), 'faca', 1 / ESPECIAL.cada, caixa.preco), rnd)]
   const origem = escolhido.it
-  const raridade = Math.max(0, Math.min(4, origem.r ?? 4))
-  if (origem.t === 'adesivo' || origem.t === 'chaveiro') return { raridade, indice: escolhido.i, especial: true, item: { t: origem.t, d: origem.d, p: 0, f: 0.5, s: 0, l: 0, faixa: null, n: origem.n || '', i: origem.i || '' } }
+  const raridade = doTier ? 5 : Math.max(0, Math.min(4, origem.r ?? 4))
   const { f, faixa } = sortearDesgaste(cfg, origem.min, origem.max, rnd)
-  return { raridade, indice: escolhido.i, especial: true, item: { t: origem.t === 'faca' || origem.t === 'luva' ? origem.t : 'arma', d: origem.d, p: origem.p, f, s: Math.floor(rnd() * 1001), l: origem.l ? 1 : 0, faixa } }
+  return { raridade, indice: escolhido.i, especial: true, item: { t: origem.t || 'faca', d: origem.d, p: origem.p, f, s: Math.floor(rnd() * 1001), l: origem.l ? 1 : 0, faixa } }
 }
 
 // Faixa da roleta horizontal: itens de enchimento nas proporções das raridades, com alguns cards dourados "?", e o vencedor em `alvo`.

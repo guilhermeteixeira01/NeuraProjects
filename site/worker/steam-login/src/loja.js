@@ -253,6 +253,8 @@ export class Loja {
       () => this.recalcularResumo(),
       // 3: aberturas de arma eram gravadas sem tipo (t NULL): a melhor queda do perfil não as via
       (sql) => sql.exec("UPDATE aberturas SET t = 'arma' WHERE t IS NULL"),
+      // 4: a contagem antiga era calculada antes da correção de t NULL; recompõe o progresso pelo histórico real.
+      () => this.recalcularResumo(),
     ])
     this.fila = new Fila()
     this.acumulado = null // estatísticas das aberturas até o id "acumuladoAte" (memória: refeito do SQL quando o objeto acorda)
@@ -703,7 +705,7 @@ export class Loja {
     const agora = Date.now()
     const resultados = []
     const linhas = []
-    // abertura especial (loja-core.js: ESPECIAL): a 100ª, 200ª... caixa aberta pelo jogador sai entre as skins mais caras da caixa.
+    // A 100ª, 200ª... abertura elegível garante faca/luva, inclusive no meio de lotes de 2 ou 3.
     // Caixas só de adesivos/chaveiros não contam nem dão especial
     const soEnfeites = caixa.itens.every((it) => it.t === 'adesivo' || it.t === 'chaveiro')
     const jaAbertas = this.abertasParaEspecial()

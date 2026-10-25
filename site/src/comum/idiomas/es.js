@@ -1431,6 +1431,8 @@ export default {
   "A próxima caixa é especial!": "¡La próxima caja es especial!",
   "Abertura especial em {n} caixas": "Apertura especial en {n} cajas",
   "A cada {n} caixas abertas, uma sai entre as skins mais caras da caixa.": "Cada {n} cajas abiertas, una sale entre las skins más caras de la caja.",
+  "A cada {n} caixas de armas, facas ou luvas abertas, uma faca ou luva é garantida.": "Cada {n} cajas de armas, cuchillos o guantes abiertas garantiza un cuchillo o guantes.",
+  "Faca ou luva garantida": "Cuchillo o guantes garantizados",
   "Faltam {n} caixas": "Faltan {n} cajas",
   "Abrir do inventário": "Abrir del inventario",
   "Abrir {n} do inventário": "Abrir {n} del inventario",

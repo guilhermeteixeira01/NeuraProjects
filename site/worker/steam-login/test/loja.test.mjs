@@ -319,22 +319,22 @@ test('piso de chance: a skin mais cara da raridade nunca fica impossível, mas t
   definirValorador(null)
 })
 
-test('abertura especial: a cada 100 caixas, o item sai só entre as 5 skins mais caras da caixa, sem passar do teto de valor', async () => {
-  const { definirValorador, ehEspecial, sortearEspecial, ESPECIAL } = await import('../src/loja-core.js')
+test('abertura especial: a cada 100 caixas garante faca/luva e o índice corresponde ao tier especial', async () => {
+  const { definirValorador, ehEspecial, sortearEspecial } = await import('../src/loja-core.js')
   assert.deepEqual([1, 99, 100, 150, 200, 300].map(ehEspecial), [false, false, true, false, true, true])
   const valores = { 1: 5, 2: 10, 3: 300, 4: 400, 5: 500, 6: 900, 7: 40000 }
   definirValorador((x) => valores[x.d] || 0)
-  const caixa = { preco: 250, facas: [], itens: Object.keys(valores).map((d) => ({ d: Number(d), p: 1, r: Number(d) > 5 ? 4 : 2, w: 100 })) }
+  const caixa = { preco: 250, facas: [{ d: 500, p: 38, w: 100, min: 0, max: .45 }, { t: 'luva', d: 5030, p: 10018, w: 100, min: .06, max: .8 }], itens: Object.keys(valores).map((d) => ({ d: Number(d), p: 1, r: Number(d) > 5 ? 4 : 2, w: 100 })) }
   const vistos = new Set()
-  let soma = 0
-  const N = 20000
+  const N = 2000
   for (let i = 0; i < N; i++) {
     const g = sortearEspecial(caixa, cfg, rndSeguro)
     assert.ok(g.especial)
-    vistos.add(caixa.itens[g.indice].d)
-    soma += valores[caixa.itens[g.indice].d]
+    vistos.add(g.item.t)
+    assert.equal(g.raridade, 5)
+    assert.equal(caixa.facas[g.indice].d, g.item.d)
+    assert.ok(['faca', 'luva'].includes(g.item.t))
   }
-  assert.ok(![1, 2].some((d) => vistos.has(d)), 'as baratas nunca saem na especial')
-  assert.ok(soma / N <= ESPECIAL.teto * caixa.preco * 1.1, `valor médio ${soma / N}`)
+  assert.deepEqual(vistos, new Set(['faca', 'luva']))
   definirValorador(null)
 })
