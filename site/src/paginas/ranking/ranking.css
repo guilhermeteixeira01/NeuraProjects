@@ -242,6 +242,10 @@
 }
 @media (max-width: 720px) {
   .linha { grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; padding: 12px 14px; }
+  /* A grade de 9 colunas do troféu (pensada pra tela larga) não cabia aqui: o valor do rating
+   * ficava espremido e caía por cima do avatar. Em telas estreitas a linha do pódio usa só 3 colunas, como as outras. */
+  .ranking-page .linha.linha-pod { grid-template-columns: 64px minmax(0, 1fr) auto; gap: 10px; padding-left: 14px; padding-right: 14px; }
+  .ranking-page .linha.linha-pod .pos-n.com-trofeu { margin-left: -14px; }
   .linha .c-rt, .linha .c-kd, .linha .c-adr, .linha .c-kast, .linha .c-forma, .linha.cab { display: none; }
   .barra-val .trilho { display: none; }
   .jog .av { width: 36px; height: 36px; }
@@ -521,13 +525,10 @@
   opacity: .78;
   filter: saturate(1.4) brightness(1.08) contrast(1.05);
 }
-/* Luz de carnaval por cima da arte azul/dourada original: holofote magenta no centro
- * e luzes âmbar/roxa nas laterais, pra aproximar do clima vibrante da referência sem trocar a imagem. */
+/* Só o degradê escuro pra legibilidade e pra mesclar com o fundo da página: as luzes coloridas
+ * (magenta/âmbar/roxa) saíram porque criavam um retângulo colorido por cima da arte, parecendo recorte. */
 .ranking-arena::after {
   background:
-    radial-gradient(55% 45% at 50% 6%, rgb(255 90 190 / .5), transparent 70%),
-    radial-gradient(60% 42% at 10% 96%, rgb(255 150 60 / .34), transparent 70%),
-    radial-gradient(60% 42% at 90% 96%, rgb(170 70 255 / .34), transparent 70%),
     linear-gradient(180deg, #0b0913 0%, rgb(8 8 15 / .35) 10%, rgb(8 8 15 / .05) 42%, #09080e 78%),
     linear-gradient(90deg, rgb(8 8 15 / .62), transparent 28%, transparent 72%, rgb(8 8 15 / .62));
 }
@@ -624,40 +625,35 @@
   background: transparent;
   object-fit: cover;
 }
-.ranking-arena .pod .pod-nome {
+/* As 3 molduras (ouro/prata/bronze) têm arte diferente: medi nos próprios arquivos onde cada uma tem a
+ * parte "lisa" (sem relevo) — uma caixa em cima (nome + resultado) e outra embaixo (time), com o
+ * tamanho e a margem calibrados pra cada moldura, pra nunca ficar por cima do desenho. */
+.ranking-arena .pod .pod-cima,
+.ranking-arena .pod .pod-baixo {
   position: absolute;
-  top: 42%;
-  left: 14%;
-  width: 72%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 1% 4%;
+  overflow: hidden;
+}
+.ranking-arena .pod .pod-nome {
+  position: static;
+  max-width: 100%;
   margin: 0;
   color: #fff;
   font-size: clamp(10px, 9cqw, 21px);
 }
-.ranking-arena .pod .pod-linha-cargos {
-  position: absolute;
-  top: 49%;
-  left: 12%;
-  width: 76%;
-  min-height: 0;
-  margin: 0;
-}
-.ranking-arena .pod .pod-info {
-  position: absolute;
-  inset: 53% 13% 13%;
-  width: auto;
-  margin: 0;
-  padding: 3px 0 0;
-  gap: 7px;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  justify-content: space-between;
-}
-/* Jogador sem time: sem o quê mostrar embaixo, o rating fica centralizado em vez de grudado no topo com vão vazio embaixo */
-.ranking-arena .pod .pod-info.sem-time {
-  justify-content: center;
-}
-.ranking-arena .pod.com-card .pod-info {
+.ranking-arena .pod.p1 .pod-cima { top: 46.8%; bottom: 25.4%; left: 3.7%; right: 3.7%; }
+.ranking-arena .pod.p1 .pod-baixo { top: 77.5%; bottom: 9.2%; left: 3.3%; right: 3.3%; }
+.ranking-arena .pod.p2 .pod-cima { top: 39.2%; bottom: 27.1%; left: 4.6%; right: 5%; }
+.ranking-arena .pod.p2 .pod-baixo { top: 77.5%; bottom: 11.7%; left: 10.1%; right: 10%; }
+.ranking-arena .pod.p3 .pod-cima { top: 37.7%; bottom: 28.8%; left: 7.7%; right: 7.7%; }
+.ranking-arena .pod.p3 .pod-baixo { top: 75.3%; bottom: 12.2%; left: 17.4%; right: 17.3%; }
+.ranking-arena .pod.com-card .pod-cima,
+.ranking-arena .pod.com-card .pod-baixo {
   border: 0;
   background: transparent;
   backdrop-filter: none;
@@ -685,12 +681,16 @@
 /* Time do jogador no rodapé da moldura (no lugar do antigo K/D/ADR/MAPAS + forma) */
 .ranking-arena .pod .pod-time-rodape {
   display: flex;
+  justify-content: center;
+  width: 100%;
   max-width: 100%;
   margin: 0;
-  padding-top: 8px;
-  border-top: 1px solid rgb(255 255 255 / .16);
+  padding: 7px 4%;
+  border: 0;
+  background: none;
   gap: 4%;
   color: #f1e9f7;
+  text-shadow: 0 1px 3px #09080e;
   font-size: clamp(7px, 5.5cqw, 13px);
 }
 .ranking-arena .pod .pod-time-rodape img,
@@ -700,6 +700,8 @@
   flex: none;
 }
 .ranking-arena .pod .pod-time-rodape span {
+  min-width: 0;
+  flex-shrink: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -712,6 +714,10 @@
   border: 0;
   border-radius: 0;
   background: transparent;
+  /* A lista do ranking vai de ponta a ponta da tela (como o palco acima dela), não só até a coluna de 1480px */
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  padding-inline: max(0px, (100vw - 1480px) / 2);
 }
 .ranking-page .linha.cab {
   border: 0;
@@ -800,6 +806,11 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
   }
+  /* A regra geral do pódio em 1 coluna zera a ordem (que aqui não faz diferença); no palco continua em
+   * 3 colunas, então o 1º lugar precisa voltar pro meio, como no desktop. */
+  .ranking-arena .pod.p1 { order: 2; }
+  .ranking-arena .pod.p2 { order: 1; }
+  .ranking-arena .pod.p3 { order: 3; }
   .ranking-arena .pod-personagem {
     top: -32%;
     width: 150%;
@@ -809,16 +820,22 @@
   .ranking-arena .pod {
     aspect-ratio: 13 / 20;
   }
+  /* Um pouco menor no mobile: nome, resultado e time (os cards ficam mais apertados em 3 colunas aqui) */
   .ranking-arena .pod .pod-nome {
-    top: 45%;
-    left: 8%;
-    width: 84%;
+    font-size: clamp(9px, 8cqw, 19px);
   }
-  .ranking-arena .pod .pod-info {
-    inset: 57% 10% 16%;
+  .ranking-arena .pod .pod-valor b {
+    font-size: clamp(14px, 15cqw, 38px);
+  }
+  .ranking-arena .pod.p1 .pod-valor b {
+    font-size: clamp(16px, 16cqw, 43px);
+  }
+  .ranking-arena .pod .pod-valor .mono {
+    font-size: clamp(6px, 4.3cqw, 10px);
   }
   .ranking-arena .pod .pod-time-rodape {
-    padding-top: 4px;
+    padding: 6px 4%;
+    font-size: clamp(6px, 4.8cqw, 12px);
   }
 }
 @media (max-width: 560px) {

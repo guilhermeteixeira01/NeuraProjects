@@ -3,3 +3,5 @@ node_modules/
 site/dist/
 site/dist-ssr/
 site/dist-final/
+# Arquivos temporários do playwright-cli (sessões de teste local)
+.playwright-cli/

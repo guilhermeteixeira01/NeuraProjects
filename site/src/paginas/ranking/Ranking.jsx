@@ -89,7 +89,7 @@ function Podio({ j, pos, m, eu }) {
   const arte = PODIO_ARTE[pos]
   return (
     <div className={`pod spot p${pos}${eu ? ' eu' : ''}${card ? ' com-card' : ''}`} data-pos={pos} style={card ? { '--card-fundo': fundoCard(card, true) } : undefined}>
-      {eu && <span className="selo-eu">{t('VOCÊ')}</span>}
+      {/* Sem o selo "VOCÊ" aqui: poluía a moldura (o destaque de quem está logado já fica só na borda azul via .pod.eu) */}
       <div className="pod-arte" aria-hidden="true">
         <img className="pod-personagem" src={arteRanking(arte.personagem)} alt="" />
         {/* Sem ComMoldura aqui: a moldura do carnaval já emoldura o avatar, a borda animada e o emblema de assinante por cima ficam poluídos */}
@@ -104,12 +104,13 @@ function Podio({ j, pos, m, eu }) {
           <path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 12H5L3 7z" />
         </svg>
       )}
-      <a className="pod-nome" href={perfil(j)}>
-        <span className="pod-nome-txt">{j.nome}</span>
-        <IconeEquipe steamId={j.steamId} />
-      </a>
-      {/* No pódio do carnaval, sem nível/Premier/tag de campeão nem K/D-ADR-MAPAS/forma: o rating fica em cima e o time do jogador embaixo */}
-      <div className={`pod-info${time ? '' : ' sem-time'}`}>
+      {/* Cada moldura (ouro/prata/bronze) tem a arte diferente: a caixa de cima (nome+resultado) e a de baixo (time)
+          são encaixadas nas medidas de cada uma (ver .pod.p1/.p2/.p3 .pod-cima/.pod-baixo), sem invadir o relevo. */}
+      <div className="pod-cima">
+        {/* Sem IconeEquipe aqui: o selo de dono/admin ao lado do nome polui a moldura (fica só na tabela) */}
+        <a className="pod-nome" href={perfil(j)}>
+          <span className="pod-nome-txt">{j.nome}</span>
+        </a>
         <span className="pod-valor">
           <b>
             {fmt(j[chave], casas)}
@@ -117,7 +118,10 @@ function Podio({ j, pos, m, eu }) {
           </b>
           <span className="mono">{t(rotulo)}</span>
         </span>
-        <TimeEscolhido steamId={j.steamId} classe="pod-time-rodape" />
+      </div>
+      {/* No pódio do carnaval, sem nível/Premier/tag de campeão nem K/D-ADR-MAPAS/forma: só o time do jogador embaixo */}
+      <div className={`pod-baixo${time ? '' : ' sem-time'}`}>
+        {time && <TimeEscolhido steamId={j.steamId} classe="pod-time-rodape" />}
       </div>
     </div>
   )

@@ -25,7 +25,11 @@
 .premier.sem { --pc: #5d6470; box-shadow: inset 0 0 0 1px rgb(var(--tinta) / .12); }
 .premier.sem::after { content: none; }
 .premier.sem b { letter-spacing: 2px; }
+/* Cores das faixas do CS Rating (Leetify/CS2): cinza, azul claro, azul, roxo, rosa, vermelho e ouro no topo */
 .premier.t1 { --pc: #b0c3d9; } .premier.t2 { --pc: #8cc6ff; }
+.premier.t3 { --pc: #4b69ff; } .premier.t4 { --pc: #8847ff; }
+.premier.t5 { --pc: #d32ce6; } .premier.t6 { --pc: #eb4b4b; }
+.premier.t7 { --pc: #eeae0a; }
 @keyframes premier-brilho { 0%, 55% { left: -60%; } 100% { left: 130%; } }
 @keyframes premier-pop { from { opacity: 0; transform: skewX(-14deg) scale(.5); } }
 @media (prefers-reduced-motion: reduce) { .premier::after { content: none; } }
