@@ -23,7 +23,7 @@ let tokenLido = undefined
 let contaLida = null
 function lerConta() {
   try {
-    const token = localStorage.getItem(CHAVE)
+    const token = import.meta.env.DEV && window.__npPreviewAtivo ? window.__npPreviewToken : localStorage.getItem(CHAVE)
     if (token !== tokenLido) {
       tokenLido = token
       contaLida = decodificar(token)
@@ -50,7 +50,7 @@ function capturarDaUrl() {
 // Token guardado (o worker confere a assinatura ao salvar a moldura); null sem login ou vencido
 export function tokenConta() {
   try {
-    const t = localStorage.getItem(CHAVE)
+    const t = import.meta.env.DEV && window.__npPreviewAtivo ? window.__npPreviewToken : localStorage.getItem(CHAVE)
     return t && decodificar(t) ? t : null
   } catch {
     return null
@@ -61,6 +61,11 @@ export const loginAtivo = () => Boolean(CONFIG.loginSteam)
 
 // Antes de ir para a Steam, mostra os Termos de Uso (uma vez por versão) com a caixinha de aceite
 export async function entrar() {
+  if (import.meta.env.DEV && window.__npPreviewAtivo) {
+    sessionStorage.removeItem('np-preview-saiu')
+    location.reload()
+    return
+  }
   const { exigirTermos } = await import('./Termos.jsx')
   if (!(await exigirTermos())) return
   const volta = location.origin + location.pathname + location.search
@@ -70,6 +75,13 @@ export async function entrar() {
 // irParaInicio: quem clicou em "Sair" volta para a página inicial. Login vencido (o worker respondeu 401) só
 // limpa a conta e fica na página, para a mensagem "Seu login venceu" aparecer.
 export function sair({ irParaInicio = false } = {}) {
+  if (import.meta.env.DEV && window.__npPreviewAtivo) {
+    sessionStorage.setItem('np-preview-saiu', '1')
+    window.__npPreviewToken = null
+    window.dispatchEvent(new Event(EVENTO))
+    if (irParaInicio) location.assign('/')
+    return
+  }
   try {
     localStorage.removeItem(CHAVE)
   } catch {

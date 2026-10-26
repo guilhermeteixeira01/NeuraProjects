@@ -4,7 +4,7 @@
 .lj-grupo p { font-size: 14px; line-height: 1.5; color: var(--ui-muted); }
 .lj-cx-topo { padding-block: 22px; gap: 24px; }
 .lj-cx-topo h1 { font: 600 clamp(32px,3vw,48px)/1.05 var(--font-display); text-transform: none; }
-.lj-cx-controles { background: var(--ui-surface); border: 0; border-radius: 10px; padding: 22px; }
+.lj-cx-controles { background: transparent; border: 0; border-radius: 0; padding: 22px; }
 .lj-cx-grade { gap: 16px; }
 .lj-qtd { background: var(--ui-raised); border-radius: 6px; padding: 4px; }
 .lj-qtd button { min-width: 40px; min-height: 40px; border: 0; background: none; border-radius: 4px; }

@@ -218,7 +218,7 @@ export default function AdminCaixas() {
             ))}
             <label>
               {t('Máx. por abertura')}
-              <input type="number" min="1" max="10" value={cfg.maxQtd} onChange={(e) => setCfg({ ...cfg, maxQtd: e.target.value })} />
+              <input type="number" min="1" max="1" value="1" readOnly aria-label="Uma caixa por abertura" />
             </label>
           </div>
           <button type="button" className="btn btn-primary" disabled={ocupado} onClick={() => rodar(async () => setCfg(await chamar('/admin/loja-config', { taxas: cfg.taxas.map(Number), desgaste: cfg.desgaste.map((f) => ({ chance: Number(f.chance) })), maxQtd: Number(cfg.maxQtd) })), t('Taxas salvas!'))}>

@@ -23,16 +23,22 @@ test('toda caixa elegível tem garantia válida e animação aponta para o item 
   }
 })
 
-test('lotes atravessando 100/200 garantem o item no lugar exato e gravam o contador junto com o inventário', async () => {
+test('aberturas individuais atravessando 100/200 garantem o item no lugar exato e gravam o contador junto com o inventário', async () => {
   const caixa = caixas.find((c) => c.slug === 'caixa-armas-ak-47')
   for (const [antes, qtd, indice, modo] of [[98, 3, 1, null], [99, 2, 0, 'jester'], [199, 1, 0, 'boost']]) {
     const storage = armazenamento()
     const loja = new Loja({ storage }, env)
     for (let i = 0; i < antes; i++) loja.registrarAbertura([i, caixa.slug, 'arma', 7, 44, 0, .1, 0])
-    const dados = await loja.acao({ acao: 'abrir', id: ID, caixa: caixa.id, qtd, origem: 'direto', modo })
+    const resultados=[]
+    let dados
+    for(let k=0;k<qtd;k++) {
+      dados=await loja.acao({acao:'abrir',id:ID,caixa:caixa.id,qtd:1,origem:'direto',modo})
+      assert.equal(dados.resultados.length,1)
+      resultados.push(...dados.resultados)
+    }
     assert.equal(dados.aberturasEspecial, antes + qtd)
-    assert.equal(dados.resultados.filter((r) => r.especial).length, 1)
-    const premio = dados.resultados[indice]
+    assert.equal(resultados.filter((r) => r.especial).length, 1)
+    const premio = resultados[indice]
     assert.ok(premio.especial && ['faca', 'luva'].includes(premio.item.t))
     const inv = (await loja.invLer(ID)).inv
     assert.equal(inv.itens[premio.id].d, premio.item.d)

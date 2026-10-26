@@ -50,7 +50,7 @@ import { valorDe, valoresDe } from './valor.js'
 
 const ID_STEAM = /^\d{17}$/
 const ITENS_MAX = 2000
-const MAX_POR_VEZ = 3 // caixas por compra/abertura (as 3 roletas da página da caixa)
+const MAX_POR_VEZ = 1 // uma caixa por compra/abertura
 
 const num = (v, min, max, padrao) => {
   const n = Number(v)
@@ -116,7 +116,7 @@ export async function lerConfigLoja(env) {
   return {
     taxas: Array.isArray(c?.taxas) && c.taxas.length === 6 ? c.taxas.map((t) => num(t, 0, 100, 0)) : CONFIG_PADRAO.taxas,
     desgaste: Array.isArray(c?.desgaste) && c.desgaste.length === 5 ? c.desgaste : CONFIG_PADRAO.desgaste,
-    maxQtd: num(c?.maxQtd, 1, 10, CONFIG_PADRAO.maxQtd),
+    maxQtd: 1,
   }
 }
 
@@ -816,7 +816,7 @@ export async function rotaAdminLoja(req, env, rota, cors) {
     const taxas = Array.isArray(corpo.taxas) && corpo.taxas.length === 6 ? corpo.taxas.map((t) => num(t, 0, 100, 0)) : atual.taxas
     if (taxas.reduce((a, b) => a + b, 0) <= 0) throw new ErroPedido('taxas')
     const desgaste = Array.isArray(corpo.desgaste) && corpo.desgaste.length === 5 ? corpo.desgaste.map((f, i) => ({ nome: atual.desgaste[i].nome, min: atual.desgaste[i].min, max: atual.desgaste[i].max, chance: num(f.chance, 0, 100, atual.desgaste[i].chance) })) : atual.desgaste
-    const nova = { taxas, desgaste, maxQtd: Math.round(num(corpo.maxQtd, 1, 10, atual.maxQtd)) }
+    const nova = { taxas, desgaste, maxQtd: 1 }
     await gravarDoc(env, 'loja-config', nova)
     return json(nova, 200, cors)
   }

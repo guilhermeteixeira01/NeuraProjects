@@ -17,6 +17,7 @@ import { CATEGORIAS, indicar, urlImg, urlImgArma, useCatalogo } from '../../comu
 import CartaoSkin from '../../comum/CartaoSkin.jsx'
 import { confirmar } from '../../comum/Dialogos.jsx'
 import AdminCaixas from './AdminCaixas.jsx'
+import AdminHall from './AdminHall.jsx'
 import AdminPontos, { ConfigDepositos } from './AdminPontos.jsx'
 import AdminLogs from './AdminLogs.jsx'
 import AdminServidor from './AdminServidor.jsx'
@@ -1938,6 +1939,7 @@ export default function Admin() {
             </div>
             {abaAtual === 'jogadores' && (
               <>
+                {tem('usuarios') && <AdminHall />}
                 <Usuarios usuarios={usuarios} painel={painel} dono={painel.dono} editar={setEditando} />
                 {tem('pontos') && (
                   <details className="adm-dobra">

@@ -188,7 +188,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
           <button type="button" role="tab" aria-selected={topo === 'status'} className={topo === 'status' ? 'is-ativo' : ''} onClick={() => trocar('status')}>
             {t('STATUS')}
           </button>
-          <button type="button" role="tab" aria-selected={topo === 'inventario'} className={topo === 'inventario' ? 'is-ativo' : ''} onClick={() => trocar('inventario')}>
+          <button type="button" role="tab" data-aba="inventario" aria-selected={topo === 'inventario'} className={topo === 'inventario' ? 'is-ativo' : ''} onClick={() => trocar('inventario')}>
             {t('INVENTÁRIO')} <small>{inv ? todos.length : '…'}</small>
           </button>
           {/* perfil de outro jogador (logado): propor troca direto daqui */}

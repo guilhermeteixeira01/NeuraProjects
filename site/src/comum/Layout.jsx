@@ -9,6 +9,8 @@ import { AvisoTroca } from './Trocas.jsx'
 import AvisoPontos from './AvisoPontos.jsx'
 import { useLuzCursor } from './efeitos.jsx'
 import Nav from './Nav.jsx'
+import BannerEvento from './BannerEvento.jsx'
+import RodapeComunidade from '../paginas/inicio/RodapeComunidade.jsx'
 import { useSeguranca } from './seguranca.js'
 import { SincronizarPreferencias } from './preferencias.js'
 import { MostrarAposIdioma } from './i18n.js'
@@ -118,7 +120,11 @@ export default function Layout({ pagina, children }) {
   return (
     <>
       <Nav pagina={pagina} />
-      {children}
+      <div className="np-conteudo">
+        <BannerEvento />
+        {children}
+        <RodapeComunidade />
+      </div>
       <PortaoBoasVindas />
       <Avisos />
       <AvisoConvite />

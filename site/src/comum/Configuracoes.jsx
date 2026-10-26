@@ -22,7 +22,7 @@ function IconeEngrenagem() {
 }
 
 // Conta: apelido (Premium troca a cada 15 dias) e senha de segurança (trocas e mercado). As janelas ficam em BoasVindas.jsx.
-function ContaSeguranca() {
+export function ContaSeguranca() {
   const t = useT()
   const seg = useSeguranca()
   const [janela, setJanela] = useState(null) // 'nick' | 'senha' | 'email' | 'recuperar'

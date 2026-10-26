@@ -4,10 +4,12 @@ const utc = (ano, mes, dia) => Date.UTC(ano, mes - 1, dia)
 export const ANIVERSARIO_NEURA = { mes: 9, dia: 9 }
 
 export const BANNERS_EVENTOS = {
-  natal: '01-natal', anoNovo: '02-ano-novo', halloween: '03-halloween', carnaval: '04-carnaval',
-  pascoa: '05-pascoa', festaJunina: '06-festa-junina', namorados: '07-dia-dos-namorados',
-  criancas: '08-dia-das-criancas', blackFriday: '09-black-friday', verao: '10-verao',
-  inverno: '11-inverno', aniversario: '12-aniversario-neura',
+  verao: '01-verao', outono: '02-outono', inverno: '03-inverno', primavera: '04-primavera',
+  carnaval: '05-carnaval', pascoa: '06-pascoa', festaJunina: '07-festa-junina', halloween: '08-halloween',
+  natal: '09-natal', anoNovo: '10-ano-novo', namorados: '11-dia-dos-namorados', independencia: '12-independencia',
+  maes: '13-dia-das-maes', pais: '14-dia-dos-pais', criancas: '15-dia-das-criancas', blackFriday: '16-black-friday',
+  // A nova coleção não contém arte de aniversário. Mantém a data com uma arte existente.
+  aniversario: '04-primavera',
 }
 
 export function domingoDePascoa(ano) {
@@ -28,7 +30,7 @@ export function eventoDaData(data = new Date(), aniversario = ANIVERSARIO_NEURA)
   if (aniversario) {
     for (const a of [ano - 1, ano, ano + 1]) {
       const festa = utc(a, aniversario.mes, aniversario.dia)
-      if (entre(festa - 3 * DIA, festa + 3 * DIA)) return 'aniversario'
+      if (entre(festa - DIA, festa + DIA)) return 'aniversario'
     }
   }
   if ((mes === 12 && dia >= 27) || (mes === 1 && dia <= 6)) return 'anoNovo'
@@ -37,14 +39,24 @@ export function eventoDaData(data = new Date(), aniversario = ANIVERSARIO_NEURA)
   if (mes === 10 && dia >= 5 && dia <= 13) return 'criancas'
   if (mes === 6 && dia >= 10 && dia <= 13) return 'namorados'
   if (mes === 6) return 'festaJunina'
+  if (mes === 9 && dia >= 4 && dia <= 7) return 'independencia'
+  const segundoDomingo = (m) => {
+    const primeiro = new Date(utc(ano, m, 1)).getUTCDay()
+    return utc(ano, m, 8 + (7 - primeiro) % 7)
+  }
+  if (entre(segundoDomingo(5) - 6 * DIA, segundoDomingo(5))) return 'maes'
+  if (entre(segundoDomingo(8) - 6 * DIA, segundoDomingo(8))) return 'pais'
   const pascoa = domingoDePascoa(ano)
   if (entre(pascoa - 52 * DIA, pascoa - 46 * DIA)) return 'carnaval'
   if (entre(pascoa - 14 * DIA, pascoa + DIA)) return 'pascoa'
   const fimNovembro = utc(ano, 11, 30)
   const blackFriday = fimNovembro - ((new Date(fimNovembro).getUTCDay() + 2) % 7) * DIA
   if (entre(blackFriday - 7 * DIA, blackFriday + 3 * DIA)) return 'blackFriday'
-  // Fora das festas, alterna a arte de clima quente/frio sem deixar o banner vazio.
-  return mes >= 4 && mes <= 9 ? 'inverno' : 'verao'
+  // Estações do hemisfério sul, com transições civis aproximadas.
+  if (hoje < utc(ano, 3, 20) || hoje >= utc(ano, 12, 21)) return 'verao'
+  if (hoje < utc(ano, 6, 21)) return 'outono'
+  if (hoje < utc(ano, 9, 22)) return 'inverno'
+  return 'primavera'
 }
 
 export function bannerDoEvento(evento) {

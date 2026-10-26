@@ -9,7 +9,7 @@ import { lerApi, seForErroApi } from './api.js'
 import { acaoAmizade, buscarJogadores, relacaoCom, tempoDesde, useAmigos } from './amigos.js'
 import { apagarChat, carregarMensagens, definirConversaAberta, enviarMensagem, horaOuData, useConversas } from './mensagens.js'
 import { useAvatar } from './avatares.js'
-import { linkPerfil } from './conta.js'
+import { linkPerfil, useConta } from './conta.js'
 import { lerJson } from './dados.js'
 import { CargosDe, ComMoldura, IconeEquipe } from './Moldura.jsx'
 import { useT } from './i18n.js'
@@ -247,12 +247,12 @@ function ListaChats({ conversas, eu, aoAbrir }) {
 }
 
 // ── Conversa aberta: histórico + caixa de mandar mensagem ──
-function MensagemConversa({ m, minha, aoApagar, ocupado }) {
+function MensagemConversa({ m, minha, autor, aoApagar, ocupado }) {
   const t = useT()
   return (
     <li className={`am-dm-msg${minha ? ' am-dm-minha' : ''}`}>
+      <div className="np-chat-autor"><Foto a={{ ...autor, id: m.de }} /><a href={linkPerfil(m.de)}>{autor?.nome || m.nome || t('Jogador')}</a><small className="am-dm-ts">{horaOuData(m.ts)}</small></div>
       <span className="am-dm-bolha">{m.texto}</span>
-      <small className="am-dm-ts">{horaOuData(m.ts)}</small>
       {minha && <button type="button" className="am-dm-apagar" disabled={ocupado} onClick={() => aoApagar(m.id)}>{t('Apagar mensagem')}</button>}
     </li>
   )
@@ -260,6 +260,7 @@ function MensagemConversa({ m, minha, aoApagar, ocupado }) {
 
 function Conversa({ id, eu, aoFechar }) {
   const t = useT()
+  const conta = useConta()
   const { msgs } = useConversas()
   const [info, setInfo] = useState(null)
   const [texto, setTexto] = useState('')
@@ -342,7 +343,7 @@ function Conversa({ id, eu, aoFechar }) {
       </div>
       <ul className="am-dm-lista">
         {mensagens.map((m) => (
-          <MensagemConversa key={m.id} m={m} minha={m.de === eu} aoApagar={apagar} ocupado={apagando} />
+          <MensagemConversa key={m.id} m={m} minha={m.de === eu} autor={m.de === eu ? conta : info} aoApagar={apagar} ocupado={apagando} />
         ))}
         {!mensagens.length && info && <p className="am-vazio">{t('Nenhuma mensagem ainda. Diga oi!')}</p>}
         <li ref={fimRef} aria-hidden="true" />
@@ -475,13 +476,14 @@ export default function PainelAmigos({ celular = false }) {
               ×
             </button>
           </div>
-          {!conversaCom && (
+          {(
             <div className="am-abas" role="tablist">
-              <button type="button" role="tab" aria-selected={aba === 'amigos'} className={aba === 'amigos' ? 'am-aba-ativa' : ''} onClick={() => setAba('amigos')}>
+              <button type="button" role="tab" aria-selected={!conversaCom && aba === 'amigos'} className={!conversaCom && aba === 'amigos' ? 'am-aba-ativa' : ''} onClick={() => { setConversaCom(null); setAba('amigos') }}>
                 {t('AMIGOS')}
+                <span className="np-chat-contagem">{jogando.length + online.length + ausentes.length}/{amigos.length}</span>
               </button>
-              <button type="button" role="tab" aria-selected={aba === 'chats'} className={aba === 'chats' ? 'am-aba-ativa' : ''} onClick={() => setAba('chats')}>
-                {t('CHATS')}
+              <button type="button" role="tab" aria-selected={!!conversaCom || aba === 'chats'} className={conversaCom || aba === 'chats' ? 'am-aba-ativa' : ''} onClick={() => { setAba('chats'); if (!conversaCom && conversas?.length) abrirConversa(conversas[0].id) }}>
+                {t('CHAT')}
                 {naoLidas > 0 && <em className="am-aba-badge">{naoLidas > 9 ? '9+' : naoLidas}</em>}
               </button>
             </div>

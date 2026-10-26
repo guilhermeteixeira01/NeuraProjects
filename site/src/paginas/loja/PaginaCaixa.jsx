@@ -13,7 +13,7 @@ import { RARIDADES } from '../../../worker/steam-login/src/loja-core.js'
 import Abertura, { CartaoItem, EmblemaEspecial, dadosDoItem } from './Abertura.jsx'
 import { definirPreferencia, preferenciaAtual, som } from './somLoja.js'
 
-const MAX_POR_VEZ = 3 // o servidor também não deixa passar disso
+const MAX_POR_VEZ = 1 // uma caixa por abertura, também validado no servidor
 const numero = (n) => Number(n).toLocaleString('pt-BR')
 // Chance em %: nunca aparece "0%" para item que tem chance de verdade (item caro: "0.0001%")
 const pct = (n) => {
@@ -108,33 +108,6 @@ function IconeSom({ ligado }) {
         <path d="m15 9.5 5 5m0-5-5 5" />
       )}
     </svg>
-  )
-}
-
-// A cada 100 caixas elegíveis, faca/luva garantida (adesivo/chaveiro não contam).
-const CADA_ESPECIAL = 100
-function ProgressoEspecial({ aberturas }) {
-  const t = useT()
-  const feitas = aberturas % CADA_ESPECIAL
-  const faltam = CADA_ESPECIAL - feitas
-  return (
-    <span className={`lj-esp-progresso${faltam === 1 ? ' is-proxima' : ''}`} title={t('A cada {n} caixas de armas, facas ou luvas abertas, uma faca ou luva é garantida.', { n: CADA_ESPECIAL })}>
-      <span className="lj-cx-esp-topo">
-        <b>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="m12 2.5 2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" />
-          </svg>
-          {t('Faca ou luva garantida')}
-        </b>
-        <em>
-          {feitas}/{CADA_ESPECIAL}
-        </em>
-      </span>
-      <i className="lj-cx-esp-barra" aria-hidden="true">
-        <u style={{ width: `${Math.max(2, (feitas / CADA_ESPECIAL) * 100)}%` }} />
-      </i>
-      <small>{faltam === 1 ? t('A próxima caixa é especial!') : t('Faltam {n} caixas', { n: faltam })}</small>
-    </span>
   )
 }
 
@@ -391,7 +364,6 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
   const [det, setDet] = useState(null) // GET /loja/caixa
   const [abrindo, setAbrindo] = useState(null) // { qtd, origem, chave }
   // caixa só de adesivos/chaveiros: não conta para a abertura especial (nem tem)
-  const soEnfeites = c.itens.length > 0 && c.itens.every((it) => it.t === 'adesivo' || it.t === 'chaveiro')
   const [resultado, setResultado] = useState(null) // o que saiu (depois que as roletas pararam): [{ id, v, ... }]
   const [vendidos, setVendidos] = useState(() => new Set())
   const [vendendo, setVendendo] = useState(false)
@@ -521,6 +493,8 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
       </header>
 
       <div className="lj-cx-roletas">
+            <img className="np-carrossel-borda np-carrossel-borda-esquerda" src="/assets/caixas/carrocel/jason-esquerda.webp" alt="" aria-hidden="true" width="900" height="900" />
+            <img className="np-carrossel-borda np-carrossel-borda-direita" src="/assets/caixas/carrocel/ghostface-direita.webp" alt="" aria-hidden="true" width="900" height="900" />
         {abrindo ? (
           <Abertura
             key={abrindo.chave}
@@ -543,7 +517,10 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
             espera={paradas}
           />
         ) : (
-          paradas
+          <div className="np-caixa-antes">
+            <div className="np-carrossel-vazio" aria-hidden="true" />
+            <div className="np-caixa-vitrine"><img src={c.img} alt={c.nome} width="220" height="220" /><b>{c.nome}</b>{qtd > 1 && <small>× {qtd}</small>}</div>
+          </div>
         )}
         <ParticulasModo modo={modo} chave={efeito} />
       </div>
@@ -598,7 +575,6 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
             <button type="button" className="lj-cx-btn-abrir" disabled={girando || ocupado || preco == null} onClick={() => (falta ? setDepositando(true) : abrir(qtd, modo ? 'direto' : 'auto'))}>
               {girando ? t('Abrindo…') : preco == null ? t('Carregando…') : rotuloAbrir(false)}
             </button>
-            {!soEnfeites && <ProgressoEspecial aberturas={aberturas} />}
             {tem > 0 && (
               <span className="lj-cx-extras">
                 <small className="lj-cx-tem">{modo ? t('Você tem {n} no inventário (os modos sempre cobram NP)', { n: tem }) : t('Você tem {n} no inventário', { n: tem })}</small>
@@ -623,6 +599,7 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
         </div>
       )}
 
+      {abrindo && <>
       <h2 className="lj-cx-sub">{t('Conteúdo da caixa')}</h2>
       <ul className="lj-cx-grade">
         {/* os itens do card dourado ficam juntos num card só ("Item Raro Especial") com a chance somada; clicar abre a lista */}
@@ -631,6 +608,7 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
           <ItemConteudo key={x.chave} r={x.r} base={x.base} chance={x.chance} normal={x.normal} modo={modo} desgastes={x.desgastes} achar={achar} />
         ))}
       </ul>
+      </>}
       {verEspeciais && <JanelaEspeciais itens={[...especiais].sort((a, b) => b.chance - a.chance || (b.desgastes?.[0]?.v || 0) - (a.desgastes?.[0]?.v || 0))} achar={achar} aoFechar={() => setVerEspeciais(false)} />}
       {depositando && <Deposito aoFechar={() => setDepositando(false)} aoPagar={aoAbriu} />}
     </section>

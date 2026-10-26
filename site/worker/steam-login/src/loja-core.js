@@ -28,7 +28,7 @@ export const CONFIG_PADRAO = {
     { nome: 'Well-Worn', min: 0.38, max: 0.45, chance: 13 },
     { nome: 'Battle-Scarred', min: 0.45, max: 1, chance: 15 },
   ],
-  maxQtd: 5,
+  maxQtd: 1,
 }
 
 // Gerador criptográfico: 0 <= x < 1 com 53 bits

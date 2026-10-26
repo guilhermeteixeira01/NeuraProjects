@@ -4,12 +4,13 @@ import { CONFIG } from '../../comum/config.js'
 import { lerJson } from '../../comum/dados.js'
 import { Contador } from '../../comum/efeitos.jsx'
 import Letreiro from '../../comum/Letreiro.jsx'
-import { Icone, IconeDiscord } from '../../comum/Icones.jsx'
+import { Icone } from '../../comum/Icones.jsx'
 import { useT } from '../../comum/i18n.js'
 import { useAcessoPick } from '../../comum/Moldura.jsx'
-import { useBannerEvento } from '../../comum/useBannerEvento.js'
+import { useConta, linkPerfil } from '../../comum/conta.js'
 import LiveTwitch from './LiveTwitch.jsx'
 import TimesCarrossel from './TimesCarrossel.jsx'
+import CentralComunidade from './CentralComunidade.jsx'
 
 const SETA = (
   <Icone tamanho={14} traco={2.4}>
@@ -104,26 +105,16 @@ const PRINCIPIOS = [
 // Âncoras das seções do índice vertical do topo
 
 const FICHA = [
-  ['ESTÚDIO', 'Neura Project'],
-  ['FORMATO', 'Independente'],
-  ['FOCO', 'Jogos e competitivo'],
+  ['COMUNIDADE', 'Neura Project'],
+  ['PROPÓSITO', 'Evolução dos jogadores'],
+  ['CONEXÕES', 'Amizades e equipes'],
   ['BASE', 'Brasil'],
-  ['COMUNIDADE', 'Discord'],
+  ['FUTURO', 'Novos profissionais'],
 ]
-
-// Link da comunidade no Discord (some se não tiver comunidade configurada)
-function LinkComunidade({ className, children }) {
-  if (!CONFIG.comunidade) return null
-  return (
-    <a className={className} href={CONFIG.comunidade} target="_blank" rel="noopener">
-      {children}
-    </a>
-  )
-}
 
 // Números do servidor (contam ao aparecer): mapas jogados, jogadores no ranking, kills
 function useNumeros() {
-  const [n, setN] = useState({ mapas: null, jogadores: null, kills: null })
+  const [n, setN] = useState({ mapas: null, jogadores: null, kills: null, partidas: [], ranking: [] })
   useEffect(() => {
     Promise.all([lerJson('/partidas/partidas.json'), lerJson('/ranking/ranking.json')]).then(([lista, ranking]) => {
       const jogadores = Array.isArray(ranking?.jogadores) ? ranking.jogadores : []
@@ -131,6 +122,7 @@ function useNumeros() {
         mapas: Array.isArray(lista) ? lista.length : 0,
         jogadores: jogadores.length,
         kills: jogadores.reduce((s, j) => s + (j.kills || 0), 0),
+        partidas: Array.isArray(lista) ? lista : [], ranking: jogadores,
       })
     })
   }, [])
@@ -143,21 +135,16 @@ export default function Inicio() {
   const verPick = useAcessoPick()
   const t = useT()
   const numeros = useNumeros()
-  const banner = useBannerEvento()
+  const conta = useConta()
 
   return (
     <Layout pagina="inicio">
-      <main className="inicio" data-evento={banner.evento} style={{ '--banner-evento': `url("${banner.grande}")` }}>
+      <main className="inicio np-inicio">
         {/* TOPO */}
         <section className="ix-hero">
-          <div className="wrap">
+          <div className="wrap np-hub">
           <div className="ix-hero-card">
-            {/* celular: versão de 860 px (94 KB no lugar de 380 KB); fica atrás do texto com sombra, a diferença não aparece */}
-            <picture>
-              <source media="(max-width: 760px)" srcSet={banner.pequeno} />
-              <img className="ix-fundo" src={banner.grande} alt="" width="1726" height="807" fetchPriority="high" decoding="async" />
-            </picture>
-            <div className="ix-fundo-vu" aria-hidden="true" />
+            <img className="np-hero-mapa" src="/neurapick/maps/mirage.jpg" width="1920" height="1080" alt="" decoding="async" />
             <div className="ix-hero-texto">
               <h1 className="fx-entra" style={{ '--e': 2 }}>
                 <span>{t('Jogue.')} {t('Compita.')}</span>
@@ -167,15 +154,20 @@ export default function Inicio() {
                 {t('Pick & Ban de CS2, servidor competitivo, estatísticas de cada mapa, ranking e níveis. Tudo feito por jogadores, para quem joga de verdade.')}
               </p>
               <div className="ix-acoes fx-entra" style={{ '--e': 4 }}>
-                <LinkComunidade className="btn btn-primary btn-lg">
-                  <IconeDiscord tamanho={18} /> {t('Entrar no Discord')}
-                </LinkComunidade>
+                <a className="btn btn-primary btn-lg" href="/lobby/">{t('Jogar')} {SETA}</a>
                 <a className="btn btn-ghost btn-lg" href="/partidas/">
                   {t('Ver partidas')} {SETA}
                 </a>
               </div>
             </div>
           </div>
+          <aside className="np-acesso">
+            <h2>{t('Seu próximo jogo')}</h2>
+            <p>{t('Jogue. Compita. Evolua.')}</p>
+            <a href="/lobby/"><Icone tamanho={22}>{IC_PESSOAS}</Icone><span><b>{t('Jogar')}</b><small>{t('Servidor competitivo')}</small></span>{SETA}</a>
+            <a href={conta ? linkPerfil(conta.id) : '/ranking/'}><Icone tamanho={22}>{IC_ALVO}</Icone><span><b>{t('Perfil')}</b><small>{t('Ranking, níveis e perfil')}</small></span>{SETA}</a>
+            <a href="/times/"><Icone tamanho={22}>{IC_ESCUDO}</Icone><span><b>{t('Times')}</b><small>{t('Comunidade em primeiro lugar')}</small></span>{SETA}</a>
+          </aside>
           </div>
         </section>
 
@@ -218,7 +210,7 @@ export default function Inicio() {
           <h2 className="ix-titulo-linha">
             {t('Em destaque')}
           </h2>
-          <ul className="ix-destaques">
+          <ul className={`ix-destaques np-destaques-${verPick ? 'quatro' : 'tres'}`}>
             {[
               ['/partidas/', '/neurapick/maps/mirage.jpg', 'Partidas', 'Placar, rounds e demo de cada mapa'],
               ['/ranking/', '/assets/insignia/web/arsenal-afiado-diamante.webp', 'Ranking', 'Níveis, XP e o top do servidor', 'azul'],
@@ -232,11 +224,14 @@ export default function Inicio() {
                   </span>
                   <b>{t(nome)}</b>
                   <small>{t(texto)}</small>
+                  <span className="np-destaque-seta" aria-hidden="true">{SETA}</span>
                 </a>
               </li>
             ))}
           </ul>
         </section>
+
+        <CentralComunidade partidas={numeros.partidas} ranking={numeros.ranking} />
 
         {/* LETREIRO */}
         <Letreiro itens={LETREIRO} />
@@ -308,10 +303,11 @@ export default function Inicio() {
                 .map((p, i) => {
                 const conteudo = (
                   <>
+                    <span className="np-projeto-simbolo" aria-hidden="true"><Icone tamanho={30}>{p.icone}</Icone></span>
                     <h3>{t(p.titulo)}</h3>
                     <p>{t(p.texto)}</p>
                     <span className="projeto-link">
-                      {t(p.link)}
+                      {t(p.link)} {SETA}
                     </span>
                   </>
                 )
@@ -339,17 +335,17 @@ export default function Inicio() {
           </div>
         </section>
 
-        {/* SOBRE: banda com imagem e a ficha do estúdio */}
+        {/* SOBRE: propósito da comunidade */}
         <section className="ix-banda" id="sobre">
           <div className="wrap ix-banda-grade">
             <figure className="ix-banda-arte reveal">
-              <img src={banner.grande} srcSet={`${banner.pequeno} 860w, ${banner.grande} 1726w`} sizes="(max-width: 900px) 100vw, 50vw" alt="" width="1726" height="807" loading="lazy" decoding="async" />
+              <img src="/neurapick/maps/inferno.jpg" alt="" width="1920" height="1080" loading="lazy" decoding="async" />
             </figure>
             <div className="ix-banda-texto reveal" style={{ '--d': '.08s' }}>
-              <h2>{t('Um estúdio pequeno, feito por jogadores')}</h2>
-              <p>{t('A Neura Project nasceu da vontade de ter ferramentas melhores para jogar: veto de mapas sem planilha, servidor com estatística de verdade e os jogos organizados num só lugar. Então começamos a construir as ferramentas que a gente queria usar.')}</p>
-              <p>{t('Hoje somos um estúdio independente focado em jogos — pequeno de propósito. Isso deixa a gente perto de quem usa: ideia que chega na comunidade do Discord vira recurso, bug reportado vira correção.')}</p>
-              <p>{t('O objetivo é simples: tornar o competitivo mais organizado, justo e divertido, para campeonatos de amigos e para a comunidade inteira.')}</p>
+              <h2>{t('Evoluir juntos. Ir mais longe.')}</h2>
+              <p>{t('A Neura Project é uma comunidade criada para incentivar a evolução dos jogadores, construir novas amizades e abrir caminhos para futuros profissionais.')}</p>
+              <p>{t('Aqui, cada partida é uma oportunidade de aprender, conhecer pessoas e encontrar uma equipe. Reunimos quem está começando, quem quer melhorar e quem sonha em levar o competitivo mais longe.')}</p>
+              <p>{t('Nosso compromisso é criar um ambiente de respeito, troca de experiências e oportunidades, onde o talento cresce junto com a comunidade.')}</p>
               <dl className="ix-ficha">
                 {FICHA.map(([rotulo, valor]) => (
                   <div key={rotulo}>
@@ -377,23 +373,6 @@ export default function Inicio() {
           </div>
         </section>
 
-        {/* COMUNIDADE: barra de cor cheia */}
-        <section className="ix-barra" id="comunidade">
-          <div className="wrap ix-barra-grade">
-            <div className="ix-barra-texto">
-              <h2>{t('Vem jogar com a Gente !')}</h2>
-              <p>{t('Entre na nossa comunidade no Discord para jogar no servidor, participar dos campeonatos e acompanhar o que estamos criando.')}</p>
-            </div>
-            <div className="ix-barra-acoes">
-              <LinkComunidade className="ix-barra-botao">
-                <IconeDiscord tamanho={20} /> <span>{t('Entrar no Discord')}</span>
-              </LinkComunidade>
-              <a className="ix-barra-link" href="/partidas/">
-                {t('Ver últimas partidas')} {SETA}
-              </a>
-            </div>
-          </div>
-        </section>
       </main>
     </Layout>
   )

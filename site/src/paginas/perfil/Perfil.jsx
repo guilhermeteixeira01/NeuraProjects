@@ -23,6 +23,9 @@ import { useT } from '../../comum/i18n.js'
 import { useAvatar } from '../../comum/avatares.js'
 import { BotaoAmizade, StatusAmigo } from './Amizade.jsx'
 import { InsigniasDe } from '../../comum/Insignias.jsx'
+import HallDaFama from './HallDaFama.jsx'
+import ConfiguracoesConta from './ConfiguracoesConta.jsx'
+import PerfilProtegido from './PerfilProtegido.jsx'
 
 // Perfil do jogador: /perfil/?id=<SteamID64>. Sem id, mostra o de quem está logado pela Steam.
 // Dados: ranking/ranking.json (totais) e perfil/historico/<id>.json (todos os mapas), gerados no deploy.
@@ -565,6 +568,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   const t = useT()
   const timeEscolhido = useTimeDe(j.steamId)
   const [verInventario, setVerInventario] = useState(false)
+  const [contaAberta,setContaAberta] = useState(()=>typeof location!=='undefined'&&new URLSearchParams(location.search).get('conta')==='1')
   const nivel = useNivelDe(j)
   const card = useCardDe(j.steamId) // banner do card (janela Personalizar); some se for exclusivo de cargo que o jogador não tem
   // CS Rating do Premier: vem do ranking (deploy); sem ele (jogador sem partidas, ou deploy sem Leetify),
@@ -615,11 +619,13 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   const v = (texto) => (sem ? '—' : texto)
   return (
     <>
-      <section className="secao pf-pagina">
+      <section className="secao pf-pagina pf-hall-pagina">
+        <div className="wrap"><header className="hf-capa" style={card?{backgroundImage:fundoCard(card)}:undefined}><div className="hf-capa-identidade"><ComMoldura steamId={j.steamId} emblema><Avatar id={j.steamId} src={j.avatar} nome={j.nome} classe="hf-capa-avatar"/></ComMoldura><h1>{j.nome}</h1><span>{t('Comunidade Neura Project')}</span></div><div className="hf-capa-acoes">{eu&&<button className="btn btn-ghost" type="button" onClick={()=>setContaAberta(v=>!v)}>Configurações da conta</button>}<a className="btn btn-ghost" href="/ranking/">{t('Ranking')}</a></div></header>{contaAberta&&eu&&<ConfiguracoesConta id={j.steamId} fechar={()=>setContaAberta(false)}/>}</div>
         <FundoHero quantidade={10} rastros={false} />
         {/* Estilo FACEIT: cartão do jogador na esquerda (a capa pode virar personalizável no futuro) e as informações no meio */}
         <div className="wrap pf-layout">
           <aside className="pf-lado">
+            <HallDaFama j={j} pos={pos} total={total} nivel={nivel} eu={eu}/>
             <div className={`pf-cartao fx-entra${card ? ' com-card' : ''}`} style={{ '--e': 1, ...(card ? { backgroundImage: fundoCard(card) } : {}) }}>
               <ComMoldura steamId={j.steamId} emblema>
                 <Avatar id={j.steamId} src={j.avatar} nome={j.nome} classe="pf-av" />
@@ -835,7 +841,7 @@ export default function Perfil() {
 
   return (
     <Layout pagina="perfil">
-      <main>{travado ? <TravaLogin>{conteudo}</TravaLogin> : conteudo}</main>
+      <main>{travado ? <TravaLogin>{conteudo}</TravaLogin> : <PerfilProtegido id={id}>{conteudo}</PerfilProtegido>}</main>
       {editando && conta && (
         <SeletorMoldura steamId={conta.id} avatar={minhaFoto || j?.avatar} nome={conta.nome || j?.nome || t('Você')} nivel={meuNivel.nivel} admin={admin} fechar={fechar} />
       )}

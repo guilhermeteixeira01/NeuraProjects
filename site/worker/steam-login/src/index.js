@@ -25,6 +25,8 @@
  *   ASAAS_API_KEY, ASAAS_WEBHOOK_TOKEN, CS2_AGENTE_URL, CS2_AGENTE_TOKEN, ZERAR_TOKEN (ver pagamentos.js, servidor-cs2.js, zerar.js)
  */
 import { rotaAdmin } from './admin.js'
+import { hallPublico, rotaHall } from './hall.js'
+import { rotaDadosConta, rotaPerfilPublico, exigirVisibilidade, filtrarConquistasPublicas } from './conta-dados.js'
 import { rotaAmigos, rotaChat, rotaDm, rotaLobby, rotaPresenca, rotaServidor } from './amigos.js'
 import { conferirToken, exigirLogin, login, origensPermitidas, retorno } from './auth.js'
 import { ErroApi, ErroLogin, ErroNaoEncontrado, ErroPedido, ErroPermissao, ErroServico } from './erros.js'
@@ -64,9 +66,10 @@ function corsDe(req, env) {
 
 // Rotas sem login: "MÉTODO /caminho" -> atender(c), c = { req, env, ctx, url, site }
 const PUBLICAS = {
+  'GET /hall/publico': async (c) => { await exigirVisibilidade(c.req,c.env,c.url.searchParams.get('id'),'perfil'); return hallPublico(c.env,c.url.searchParams.get('id'),{'Access-Control-Allow-Origin':'*'}) },
   'GET /login': (c) => login(c.url, c.env, c.site),
   'GET /retorno': (c) => retorno(c.url, c.env, c.site),
-  'GET /perfis': (c) => rotaPerfis(c.env),
+  'GET /perfis': async (c) => filtrarConquistasPublicas(await rotaPerfis(c.env),c.req,c.env),
   'GET /nicks': (c) => rotaNicks(c.url, c.env),
   'GET /config': (c) => rotaConfig(c.env),
   'GET /jogador': (c) => rotaJogador(c.url, c.env),
@@ -88,8 +91,8 @@ const PUBLICAS = {
     if (c.env.MODO_TESTE !== '1') throw new ErroNaoEncontrado('rota')
     return rotaServidor(c.req, c.env, '/teste/limpar')
   },
-  'GET /skins/publico': (c) => rotaSkinsPublico(c.url, c.env, qualquerOrigem),
-  'GET /skins/inventario': (c) => rotaSkinsInventarioPublico(c.url, c.env, qualquerOrigem),
+  'GET /skins/publico': async (c) => { await exigirVisibilidade(c.req,c.env,c.url.searchParams.get('id'),'inventario'); const r=await rotaSkinsPublico(c.url,c.env,qualquerOrigem);r.headers.set('Cache-Control','private, no-store');r.headers.set('Vary','Authorization, Origin');return r },
+  'GET /skins/inventario': async (c) => { await exigirVisibilidade(c.req,c.env,c.url.searchParams.get('id'),'inventario'); const r=await rotaSkinsInventarioPublico(c.url,c.env,qualquerOrigem);r.headers.set('Cache-Control','private, no-store');r.headers.set('Vary','Authorization, Origin');return r },
   'GET /equipes/publico': (c) => rotaListaPublicaEquipes(c.url, c.env),
   'GET /equipes/imagem': (c) => rotaImagemEquipe(c.req, c.url, c.env, c.ctx),
   'POST /pagamentos/webhook': (c) => rotaWebhookAsaas(c.req, c.env),
@@ -113,12 +116,16 @@ const naoAtende = () => {
 }
 const so = (metodo, atender) => (c) => (c.req.method === metodo ? atender(c) : naoAtende())
 const COM_LOGIN = [
+  ['/conta/dados', (c) => rotaDadosConta(c.req,c.env,c.quem,c.cors)],
+  ['/perfil/publico', (c) => rotaPerfilPublico(c.req,c.env,c.quem,c.cors,c.url)],
+  ['/hall', (c) => rotaHall(c.req,c.env,c.quem,c.config,c.cors,c.url)],
+  ['/hall/revisao', (c) => rotaHall(c.req,c.env,c.quem,c.config,c.cors,c.url)],
   ['/eu', so('GET', (c) => rotaEu(c.env, c.quem, c.config, c.cors))],
   ['/perfil', so('POST', (c) => salvarPerfil(c.req, c.env, c.quem, c.config, c.cors))],
   ['/conta/', (c) => rotaConta(c.req, c.env, c.quem, c.config, c.cors, c.rota, c.url)],
   ['/amigos', (c) => rotaAmigos(c.req, c.env, c.quem, c.cors)],
   ['/usuarios/buscar', so('GET', (c) => rotaBuscarUsuarios(c.url, c.env, c.quem, c.cors))],
-  ['/lobby', (c) => rotaLobby(c.req, c.env, c.quem, c.cors)],
+  ['/lobby', async (c) => { if(c.req.method==='POST'){const p=await lerCorpo(c.req.clone());if(p.acao==='convidar')await exigirVisibilidade(c.req,c.env,p.id,'convites',c.quem.id)}return rotaLobby(c.req,c.env,c.quem,c.cors) }],
   ['/chat', (c) => rotaChat(c.req, c.env, c.quem, c.cors)],
   ['/dm', (c) => rotaDm(c.req, c.env, c.quem, c.cors, c.url)],
   ['/skins', (c) => rotaSkins(c.req, c.env, c.quem, c.cors)],

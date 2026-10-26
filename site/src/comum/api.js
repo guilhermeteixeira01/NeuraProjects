@@ -69,9 +69,18 @@ export const seForErroApi =
   }
 
 // Rota pública (sem login)
-export const lerApi = (rota, init) => pedido(rota, init)
+export const lerApi = (rota, init) => {
+  if(['/skins/publico','/skins/inventario','/hall/publico'].some(p=>rota.startsWith(p))) {
+    const token=tokenConta()
+    if(token){const headers=new Headers(init?.headers);headers.set('Authorization',`Bearer ${token}`);return pedido(rota,{...init,headers})}
+  }
+  return pedido(rota, init)
+}
 // Rota pública como texto (quem compara com a última leitura para só redesenhar quando muda)
-export const lerTextoApi = async (rota, init) => (await responder(rota, init)).texto
+export const lerTextoApi = async (rota, init) => {
+  if(rota==='/perfis'&&tokenConta()){const headers=new Headers(init?.headers);headers.set('Authorization',`Bearer ${tokenConta()}`);init={...init,headers}}
+  return (await responder(rota, init)).texto
+}
 
 // Endereço do worker (WebSocket da presença, links de imagem)
 export const enderecoApi = base

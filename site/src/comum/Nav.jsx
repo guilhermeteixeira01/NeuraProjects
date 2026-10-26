@@ -30,6 +30,7 @@ function LinkMenu({ item, atual }) {
     <a
       className={`nx-link${ativo ? ' is-active' : ''}`}
       href={item.href}
+      title={t(item.rotulo)}
       {...(item.externo ? { target: '_blank', rel: 'noopener' } : {})}
       {...(ativo ? { 'aria-current': 'page' } : {})}
     >
@@ -162,6 +163,7 @@ function Conta() {
             {t('VER PERFIL')}
           </a>
           <div className="cp-links">
+            <a href={linkPerfil(conta.id)+'&conta=1'}>Configura??es da conta</a>
             <a href={`https://steamcommunity.com/profiles/${conta.id}`} target="_blank" rel="noopener">
               {t('Perfil na Steam')}
             </a>
@@ -331,7 +333,43 @@ export default function Nav({ pagina }) {
   const t = useT()
   const [rolou, setRolou] = useState(false)
   const [mais, setMais] = useState(false)
+  const [busca, setBusca] = useState('')
+  const [menuAberto, setMenuAberto] = useState(false)
+  const campoBusca = useRef(null)
+  const botaoBusca = useRef(null)
+  useEffect(() => {
+    if (menuAberto) campoBusca.current?.focus()
+  }, [menuAberto])
+  const recolherMenu = () => {
+    setMenuAberto(false)
+    setBusca('')
+    requestAnimationFrame(() => botaoBusca.current?.focus())
+  }
   const fecharMais = useCallback(() => setMais(false), [])
+  useEffect(() => {
+    let destino = null
+    let timer = 0
+    const raiz = document.documentElement
+    const limpar = () => { clearTimeout(timer); destino = null; raiz.classList.remove('nx-fechando') }
+    const navegar = (e) => {
+      if (e.defaultPrevented || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return
+      if (!matchMedia('(min-width: 1025px)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+      if (!document.querySelector('.nx-nav.nx-aberta')) return
+      const a = e.target.closest?.('a[href]')
+      if (!a || a.target || a.hasAttribute('download')) return
+      const url = new URL(a.href, location.href)
+      if (url.origin !== location.origin || url.pathname === '/') return
+      if (url.pathname === location.pathname && url.search === location.search) return
+      e.preventDefault()
+      if (destino) return
+      destino = url.href
+      raiz.classList.add('nx-fechando')
+      timer = setTimeout(() => location.assign(destino), 240)
+    }
+    document.addEventListener('click', navegar)
+    window.addEventListener('pageshow', limpar)
+    return () => { document.removeEventListener('click', navegar); window.removeEventListener('pageshow', limpar); limpar() }
+  }, [])
 
   // Rolou a página: o menu fica com o vidro mais forte e a linha luminosa
   useEffect(() => {
@@ -353,7 +391,8 @@ export default function Nav({ pagina }) {
   const verPick = useAcessoPick()
   const menu = (conta || !loginAtivo() ? MENU : MENU.filter((m) => SEM_LOGIN.includes(m.id))).filter((m) => m.id !== 'pick' || verPick)
   // Páginas do site de um lado; Admin (só para admin) separado delas
-  const paginas = menu.map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
+  const termo = busca.trim().toLocaleLowerCase()
+  const paginas = menu.filter((m) => !termo || t(m.rotulo).toLocaleLowerCase().includes(termo)).map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
   const linkAdmin = admin && <LinkMenu item={ITEM_ADMIN} atual={pagina} />
 
   // Barra de baixo (celular): páginas do site; as de fora (Inventário) vão para o "Mais"
@@ -373,22 +412,37 @@ export default function Nav({ pagina }) {
 
   return (
     <>
-      <header data-site-nav="" className={`nx-nav${pagina === 'inicio' ? ' nx-aberta' : ''}${rolou ? ' is-scrolled' : ''}`}>
+      <header data-site-nav="" className={`nx-nav${pagina === 'inicio' || menuAberto ? ' nx-aberta' : ''}${rolou ? ' is-scrolled' : ''}`}>
         <div className="nx-nav-inner">
-          <a className="nx-brand" href="/">
+          <a className="nx-brand" href="/" aria-label="Neura Project">
             <img src="/assets/logos/logo-np-64.png" alt="" width="30" height="30" />
             <span>
               NEURA <span className="nx-outline">PROJECT</span>
-              <span className="nx-sub">GAME STUDIO</span>
+              <span className="nx-sub">COUNTER-STRIKE 2</span>
             </span>
           </a>
+          <div className="np-sidebar-reduzida">
+            <button ref={botaoBusca} type="button" aria-label={t('Pesquisar no menu')} aria-expanded={menuAberto} aria-controls="np-menu-principal" onClick={() => setMenuAberto(true)}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg>
+            </button>
+            <a href="/lobby/" aria-label="Counter-Strike 2"><img src="/assets/logos/logo-np-64.png" alt="" width="24" height="24" /></a>
+          </div>
+          <div className="np-sidebar-inicio">
+            {pagina !== 'inicio' && <button className="np-menu-recolher" type="button" onClick={recolherMenu} aria-expanded={menuAberto} aria-controls="np-menu-principal">{t('Fechar')}</button>}
+            <label className="np-pesquisa">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg>
+              <input ref={campoBusca} type="search" value={busca} onChange={(e) => setBusca(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape' && pagina !== 'inicio') recolherMenu() }} placeholder={t('Pesquisar')} aria-label={t('Pesquisar no menu')} aria-controls="np-menu-principal" />
+            </label>
+            <a className="np-jogo" href="/lobby/"><img src="/assets/logos/logo-np-64.png" alt="" width="24" height="24" /><span>CS2</span></a>
+          </div>
           {/* Celular: no lugar da marca, o ícone e o nome da página atual */}
           <a className="nx-titulo" href="/" aria-label="Neura Project">
             {IconeAtual && <IconeAtual />}
             <span>{t(atual.rotulo)}</span>
           </a>
-          <nav className="nx-links" aria-label={t('Menu principal')}>
+          <nav className="nx-links" id="np-menu-principal" aria-label={t('Menu principal')}>
             {paginas}
+            {termo && paginas.length === 0 && <p className="np-sem-resultados">{t('Nenhum resultado')}</p>}
             {linkAdmin && (
               <>
                 <span className="nx-links-sep" aria-hidden="true" />
@@ -396,6 +450,10 @@ export default function Nav({ pagina }) {
               </>
             )}
           </nav>
+          <div className="np-sidebar-fim">
+            <a href="/times/">{t('Times')}</a>
+            {CONFIG.comunidade && <a href={CONFIG.comunidade} target="_blank" rel="noopener"><IconeDiscord tamanho={18} />{t('Comunidade')}</a>}
+          </div>
           <div className="nx-acoes">
             {CONFIG.comunidade && (
               <a className="nx-btn nx-btn-ghost nx-comunidade" href={CONFIG.comunidade} target="_blank" rel="noopener" aria-label={t('Comunidade na {nome}', { nome: CONFIG.comunidadeNome })}>

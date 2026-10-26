@@ -8,7 +8,11 @@ import './site.css'
 // No site publicado o HTML já vem pronto (gerado no deploy, bom para o Google) e o React só "assume" ele;
 // os dados usados para gerar vêm junto, em <script id="dados-pagina">. No `npm run dev` a página vem vazia
 // e o próprio componente busca os dados.
-export function montar(Pagina) {
+export async function montar(Pagina) {
+  if (import.meta.env.DEV && ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) {
+    const { ativarPreviewLocal } = await import('./previewLocal.js')
+    ativarPreviewLocal()
+  }
   const raiz = document.getElementById('root')
   const el = document.getElementById('dados-pagina')
   const dados = el ? JSON.parse(el.textContent) : undefined

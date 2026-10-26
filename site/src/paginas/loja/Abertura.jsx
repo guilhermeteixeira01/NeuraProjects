@@ -193,7 +193,6 @@ function Roleta({ vertical = false, itens, alvo, lista, achar, rodando, pular, d
   const caixa = useRef(null)
   const trilho = useRef(null)
   const [parou, setParou] = useState(false)
-  const [sorte] = useState(() => Math.random()) // onde dentro do cartão vencedor o marcador para
 
   useEffect(() => {
     if (!rodando) return
@@ -206,9 +205,10 @@ function Roleta({ vertical = false, itens, alvo, lista, achar, rodando, pular, d
     const gap = parseFloat(vertical ? estilo.rowGap : estilo.columnGap) || 0
     const passo = tam + gap
     const V = vertical ? el.clientHeight : el.clientWidth
-    const desvio = (sorte - 0.5) * tam * 0.78 // um pouco para cada lado do centro do cartão (parece natural, mas nunca na borda)
     const x0 = V / 2 - tam / 2
-    const x1 = V / 2 - (alvo * passo + tam / 2 + desvio)
+    const escolhido = tr.children[alvo]
+    const centro = vertical ? escolhido.offsetTop + escolhido.offsetHeight / 2 : escolhido.offsetLeft + escolhido.offsetWidth / 2
+    const x1 = V / 2 - centro
     const eixo = vertical ? 'Y' : 'X'
     let quadro = 0
     let ultimo = -1
@@ -240,6 +240,23 @@ function Roleta({ vertical = false, itens, alvo, lista, achar, rodando, pular, d
     return () => cancelAnimationFrame(quadro)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rodando])
+
+  // Depois de parar, preserve o centro também ao girar o celular ou redimensionar a janela.
+  useEffect(() => {
+    if (!parou) return
+    const el = caixa.current, tr = trilho.current, escolhido = tr?.children[alvo]
+    if (!el || !escolhido) return
+    const centralizar = () => {
+      const centro = vertical ? escolhido.offsetTop + escolhido.offsetHeight / 2 : escolhido.offsetLeft + escolhido.offsetWidth / 2
+      const tamanho = vertical ? el.clientHeight : el.clientWidth
+      tr.style.transform = `translate${vertical ? 'Y' : 'X'}(${tamanho / 2 - centro}px)`
+    }
+    centralizar()
+    const observador = new ResizeObserver(centralizar)
+    observador.observe(el)
+    observador.observe(escolhido)
+    return () => observador.disconnect()
+  }, [parou, vertical, alvo])
 
   return (
     <div className={`lj-roleta${vertical ? ' lj-vertical' : ''}${parou ? ' lj-parou' : ''}`} ref={caixa}>
@@ -615,7 +632,7 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
           <div className="lj-botoes">
             <div className="lj-outra">
               <div className="lj-qtd lj-qtd-p" role="group" aria-label={t('Quantidade')}>
-                {Array.from({ length: Math.min(maxQtd, 3) }, (_, k) => k + 1).map((n) => (
+                {Array.from({ length: 1 }, (_, k) => k + 1).map((n) => (
                   <button key={n} type="button" className={qtdOutra === n ? 'is-ativo' : ''} aria-pressed={qtdOutra === n} onClick={() => setQtdOutra(n)}>
                     {n}
                   </button>

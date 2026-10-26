@@ -1,0 +1,22 @@
+.cc-area { margin: 0 0 30px; padding: 26px; border: 1px solid var(--border-2); border-radius: 10px; background: var(--bg-soft); }
+.cc-area > header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
+.cc-area h2 { font-size: 24px; margin: 0; }
+.cc-area fieldset { border: 0; padding: 0; margin: 0 0 28px; min-width: 0; }
+.cc-area legend { font-size: 18px; font-weight: 800; border-left: 4px solid var(--ui-accent); padding: 4px 14px; margin-bottom: 22px; }
+.cc-grade { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; }
+.cc-grade > label:last-child { grid-column: 1/-1; }
+.cc-area label:not(.cc-privacidade label) { display: grid; gap: 9px; margin-bottom: 16px; color: var(--ui-muted); font-size: 12px; }
+.cc-area :is(input:not([type='radio']),textarea) { width: 100%; min-width: 0; padding: 12px 14px; min-height: 44px; border: 1px solid var(--border-2); border-radius: 7px; background: var(--bg); color: var(--text); font-size: 14px; box-sizing: border-box; }
+.cc-area .cc-privacidade { border: 1px solid var(--border-2); border-radius: 8px; padding: 18px; }
+.cc-area .cc-privacidade legend { font-size: 13px; border: 0; padding: 0 8px; margin-bottom: 8px; }
+.cc-privacidade > div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; align-items: center; }
+.cc-privacidade b { font-size: 13px; }
+.cc-privacidade > div > span { display: flex; gap: 7px; flex-wrap: wrap; }
+.cc-privacidade label { display: flex; align-items: center; gap: 6px; padding: 8px 10px; border: 1px solid var(--border-2); border-radius: 20px; font-size: 11px; cursor: pointer; }
+.cc-privacidade label.ativa { border-color: var(--ui-accent); color: var(--ui-accent); background: var(--ui-active); }
+.cc-privacidade input { accent-color: var(--ui-accent); margin: 0; }
+.cc-nota { color: var(--ui-muted); font-size: 12px; line-height: 1.6; }
+.cc-rodape { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.cc-rodape p { font-size: 13px; color: var(--ui-muted); }
+.cc-seguranca { border-top: 1px solid var(--border); padding-top: 24px; margin-top: 24px; max-width: 650px; }
+@media(max-width:650px) { .cc-area { padding: 18px; } .cc-grade { grid-template-columns: minmax(0,1fr); } .cc-privacidade > div { align-items: flex-start; flex-direction: column; } .cc-rodape { flex-direction: column; align-items: stretch; } }

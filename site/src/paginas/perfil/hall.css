@@ -1,0 +1,63 @@
+.pf-hall-pagina .pf-cartao { display: none; }
+.hf-capa { min-height: 210px; margin: 12px 0 30px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 30px; border: 1px solid var(--border-2); border-radius: 14px; background: linear-gradient(0deg,#101216,rgb(16 18 22 / .3)),url('/neurapick/maps/mirage.jpg') center 42%/cover; background-size: cover; background-position: center; }
+.hf-capa-identidade { display: flex; flex-direction: column; gap: 8px; }
+.hf-capa-identidade > .av-moldura { width: 68px; height: 68px; }
+.hf-capa-avatar { width: 68px; height: 68px; object-fit: cover; border-radius: 10px; }
+.hf-capa-identidade h1 { font-size: 28px; line-height: 1.1; margin: 0; color: #fff; }
+.hf-capa-identidade > span { color: #bbc3ce; font-size: 12px; }
+.hf-capa-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
+.hf-area { width: 100%; }
+.hf-card { position: relative; overflow: hidden; isolation: isolate; width: 100%; min-height: 470px; padding: 26px 24px 32px; clip-path: polygon(9% 0,89% 0,100% 7%,100% 92%,50% 100%,0 92%,0 7%); border-top: 7px solid #626870; color: #f4f5f7; background: repeating-linear-gradient(115deg,transparent 0 7px,rgb(255 255 255 / .065) 8px 9px),linear-gradient(145deg,#424952,#1b2027 75%); text-align: center; }
+.hf-card::before { content: ''; position: absolute; inset: 7px; border: 1px solid rgb(255 255 255 / .15); clip-path: inherit; z-index: -1; }
+.hf-topo { display: flex; justify-content: space-between; text-align: left; }
+.hf-topo > div { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.hf-topo > div > b { font-size: 44px; line-height: 1; letter-spacing: -.05em; }
+.hf-topo small { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
+.hf-topo > div > span { border: 1px solid #a8afb8; padding: 2px 7px; font-size: 10px; border-radius: 3px; margin-top: 10px; }
+.hf-topo > strong { font-size: 20px; line-height: .9; letter-spacing: -.05em; text-align: right; }
+.hf-topo > strong > small { font-size: 11px; }
+.hf-retrato { position: relative; height: 210px; margin: -25px -8px -8px; }
+.hf-retrato { height: 240px; margin-top: -35px; overflow: hidden; mask-image: linear-gradient(#000 85%,transparent); }
+.hf-retrato > .hf-camisa-foto { width: 240px; max-width: none; height: 360px; object-fit: contain; position: absolute; left: 50%; top: 0; bottom: auto; transform: translateX(-50%); }
+.hf-camisas .hf-camisa-foto { width: 100%; height: 150px; object-fit: cover; object-position: center 54%; }
+.hf-retrato .hf-foto { top: 4px; width: 68px; height: 82px; }
+.hf-camisa { width: 100%; max-width: 220px; height: 100%; overflow: visible; }
+.hf-camisa-cor { fill: #161a20; stroke: #686f79; stroke-width: 1.3; }
+.hf-camisa-friso { fill: none; stroke: #edc34b; stroke-width: 4; }
+.hf-camisa-gola { fill: #080a0d; stroke: #edc34b; stroke-width: 2; }
+.hf-camisa-detalhe { stroke: #343d49; fill: none; stroke-width: 3; }
+.hf-camisa text { fill: #fff; font: 800 21px 'Segoe UI',sans-serif; }
+.hf-camisa text.hf-camisa-project { font-size: 10px; letter-spacing: 5px; }
+.hf-camisa.clara .hf-camisa-cor { fill: #e9ecf0; }
+.hf-camisa.clara text { fill: #161a20; }
+.hf-retrato > .hf-camisa { position: absolute; height: 195px; width: 195px; left: 50%; bottom: -8px; transform: translateX(-50%); }
+.hf-foto,.hf-sem-foto { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); width: 68px; height: 90px; object-fit: cover; object-position: center 22%; border-radius: 45% 45% 38% 38%; border: 1px solid #616973; background: #1b2027; }
+.hf-sem-foto { display: grid; place-items: center; color: #fff; font-size: 50px; font-weight: 800; }
+.hf-card h2 { margin: 14px 0 8px; font-size: 25px; text-transform: uppercase; overflow-wrap: anywhere; }
+.hf-card > p { font-size: 11px; color: #c0c6cf; margin: 0 0 18px; }
+.hf-card dl { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 6px; margin: 0 0 20px; padding-top: 14px; border-top: 1px solid #68717e; }
+.hf-card dt { font-size: 9px; color: #bbc2cc; }
+.hf-card dd { font-size: 13px; font-weight: 800; margin: 5px 0 0; }
+.hf-card > a { display: inline-block; padding: 8px 14px; border: 1px solid #929ba8; border-radius: 20px; text-decoration: none; color: #fff; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.hf-editar { margin-top: 18px; border: 1px solid var(--border-2); border-radius: 6px; padding: 14px; background: var(--ui-surface); }
+.hf-editar summary { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--ui-accent); }
+.hf-editar form { display: grid; gap: 14px; padding-top: 14px; }
+.hf-editar p,.hf-editar small { font-size: 12px; color: var(--ui-muted); line-height: 1.6; }
+.hf-camisas { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.hf-camisas button { background: var(--bg-soft); border: 1px solid var(--border-2); border-radius: 6px; color: var(--text); cursor: pointer; padding: 10px; }
+.hf-camisas button[aria-pressed='true'] { border-color: var(--ui-accent); }
+.hf-camisas .hf-camisa { height: 120px; }
+.hf-camisas span { display: block; font-size: 11px; padding-top: 8px; }
+.hf-upload { display: grid; gap: 10px; border: 1px dashed var(--border-2); padding: 12px; font-size: 12px; }
+.hf-upload img { width: 100%; max-height: 200px; object-fit: contain; }
+.hf-upload input { max-width: 100%; font-size: 10px; }
+@media(max-width:760px) { .hf-capa { min-height: 210px; padding: 22px; } .hf-area { max-width: 320px; margin-inline: auto; } .hf-capa-identidade h1 { font-size: 25px; } }
+
+.hf-retrato .hf-foto.hf-montagem { top:0; width:240px; height:360px; border:0; border-radius:0; background:transparent; object-fit:contain; object-position:top; }
+.pf-sem-conquistas .pf-insignias { display:none; }
+.pf-sem-inventario button[data-aba="inventario"] { display:none; }
+.pf-apresentacao { padding-block:20px; display:flex; gap:24px; flex-wrap:wrap; }
+.pf-amigos-publicos { display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+.pf-amigos-publicos h2 { font-size:14px; }
+
+.pf-sem-inventario .pf-inv, .pf-sem-inventario .pf-inv-troca { display:none; }

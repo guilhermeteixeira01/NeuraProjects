@@ -46,11 +46,11 @@ test('loja: comprar, abrir, vender; saldo sempre igual a pontos - gastos', async
   const caixa = estado.dados.caixas.find((c) => c.preco <= 5000 && c.itens.every((it) => !it.t)) // caixa de armas (a melhor queda é de arma, faca ou luva)
   const compra = await pedir('POST', '/loja/comprar', { quem: ANA, corpo: { caixa: caixa.id, qtd: 2 } })
   assert.equal(compra.status, 200)
-  assert.equal(compra.dados.saldo, 50000 - 2 * caixa.preco)
+  assert.equal(compra.dados.saldo, 50000 - caixa.preco) // pedido antigo em lote continua limitado a uma caixa
   const aberta = await pedir('POST', '/loja/abrir', { quem: ANA, corpo: { caixa: caixa.id, qtd: 2, origem: 'inventario' } })
   assert.equal(aberta.status, 200)
-  assert.equal(aberta.dados.resultados.length, 2)
-  assert.equal(aberta.dados.saldo, 50000 - 2 * caixa.preco) // abriu as que já tinha: não pagou de novo
+  assert.equal(aberta.dados.resultados.length, 1)
+  assert.equal(aberta.dados.saldo, 50000 - caixa.preco) // abriu a que já tinha: não pagou de novo
   assert.equal(aberta.dados.insigniasTs, undefined) // o que é só do worker não vai para o site
   // sem caixa no inventário: 409 "sem-caixa"
   assert.deepEqual(await pedir('POST', '/loja/abrir', { quem: ANA, corpo: { caixa: caixa.id, qtd: 1, origem: 'inventario' } }), { status: 409, dados: { erro: 'sem-caixa' } })
@@ -59,13 +59,13 @@ test('loja: comprar, abrir, vender; saldo sempre igual a pontos - gastos', async
   assert.equal(venda.status, 200)
   const total = aberta.dados.resultados.reduce((a, r) => a + r.v, 0)
   assert.equal(venda.dados.total, total)
-  assert.equal(venda.dados.saldo, 50000 - 2 * caixa.preco + total)
+  assert.equal(venda.dados.saldo, 50000 - caixa.preco + total)
   const saldo = await pedir('GET', '/loja/saldo', { quem: ANA })
   assert.equal(saldo.dados.saldo, venda.dados.saldo)
   const depois = await pedir('GET', '/loja', { quem: ANA })
-  assert.equal(depois.dados.aberturas, 2)
+  assert.equal(depois.dados.aberturas, 1)
   const perfil = await pedir('GET', `/loja/perfil?id=${ANA}`)
-  assert.equal(perfil.dados.abertas, 2)
+  assert.equal(perfil.dados.abertas, 1)
   assert.equal(perfil.dados.favorita.slug, caixa.slug)
   assert.equal(perfil.dados.melhor.v, Math.max(...aberta.dados.resultados.map((r) => r.v)))
   assert.ok(depois.dados.recentes.every((l) => l.t)) // toda abertura gravada com o tipo (arma também)
@@ -75,7 +75,7 @@ test('saldo insuficiente: 409 "saldo"', async () => {
   const caras = (await pedir('GET', '/loja', { quem: BIA })).dados.caixas.sort((a, b) => b.preco - a.preco)
   const muitas = Math.ceil(50001 / caras[0].preco)
   let saldo = 50000
-  for (let i = 0; saldo >= caras[0].preco * 3 && i < muitas; i++) saldo = (await pedir('POST', '/loja/comprar', { quem: BIA, corpo: { caixa: caras[0].id, qtd: 3 } })).dados.saldo
+  for (let i = 0; saldo >= caras[0].preco && i < muitas; i++) saldo = (await pedir('POST', '/loja/comprar', { quem: BIA, corpo: { caixa: caras[0].id, qtd: 3 } })).dados.saldo
   const r = await pedir('POST', '/loja/comprar', { quem: BIA, corpo: { caixa: caras[0].id, qtd: 3 } })
   assert.deepEqual(r, { status: 409, dados: { erro: 'saldo' } })
 })

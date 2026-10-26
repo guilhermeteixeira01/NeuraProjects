@@ -1,0 +1,127 @@
+// Importado somente pelo servidor de desenvolvimento em loopback. Não autentica no worker real.
+import { CONFIG } from './config.js'
+import catalogo from '../../worker/steam-login/src/caixas-iniciais.json'
+import { CONFIG_PADRAO, chancesDaCaixa, aplicarModo, faixasDeDesgaste, sortearAbertura, gerarFaixa, gerarFaixaFacas, valorDoItem } from '../../worker/steam-login/src/loja-core.js'
+
+export function ativarPreviewLocal() {
+  if (window.__npPreviewAtivo) return
+  const id = '76561198000000011'
+  const nome = 'Jogador de teste'
+  const avatar = '/assets/logos/logo-np-64.png'
+  const caixas = catalogo.map(c => ({ ...c, chances: chancesDaCaixa(c, CONFIG_PADRAO) }))
+  const pessoas = [{id,nome,avatar,st:'online',dono:true,cargo:'membro'}, {id:'76561198000000012',nome:'Luna · teste',avatar,st:'online',cargo:'membro'}, {id:'76561198000000013',nome:'Rafa · teste',avatar,st:'ausente',cargo:'membro'}, {id:'76561198000000014',nome:'Nico · teste',avatar,st:'jogando',cargo:'membro'}]
+  const novoId = () => 'demo'+Math.random().toString(36).slice(2,10)
+  const itens = Object.fromEntries(caixas[0].itens.slice(0,12).map((it,i)=>['demoitem'+i,{t:it.t||'arma',d:it.d,p:it.p,f:.08+i*.012,s:i*23,st:0,a:[null,null,null,null,null],k:null}]))
+  caixas[0].facas.slice(0,2).forEach((it,i)=>{itens['demoraro'+i]={t:it.t||'faca',d:it.d,p:it.p,f:.04,s:100,st:0,a:[null,null,null,null,null]}})
+  itens.democaixa={t:'caixa',d:caixas[0].id,p:0}
+  let estado={saldo:250000,abertas:36,inv:{v:2,itens,equip:{ct:{},tr:{}},criado:Object.fromEntries(Object.keys(itens).map(k=>[k,Date.now()]))},mensagens:[{id:'demomsg1',de:pessoas[1].id,texto:'Bora jogar com o pessoal hoje?',ts:Date.now()-180000},{id:'demomsg2',de:id,texto:'Bora! Vou montar o grupo.',ts:Date.now()-120000},{id:'demomsg3',de:pessoas[1].id,texto:'Esse é o chat de demonstração.',ts:Date.now()-60000}],chat:[{id:'demochat',de:pessoas[1].id,nome:pessoas[1].nome,texto:'Bem-vindos ao time de teste!',ts:Date.now()-60000}]}
+  try { estado=JSON.parse(sessionStorage.getItem('np-preview-dados-v2')||'null')||estado } catch { /* estado inicial */ }
+  estado.notificacoes ??= {lista:[{id:'demo-boas-vindas',titulo:'Bem-vindo à prévia local',texto:'Amigos, time, inventário e saldo são dados de demonstração.',link:'/lobby/',imagem:avatar,quando:Date.now()-60000,lida:false},{id:'demo-caixas',titulo:'Caixas prontas para testar',texto:'Abra caixas e veja o resultado no inventário de teste.',link:'/loja/',quando:Date.now()-120000,lida:false}],vistos:[],limpoEm:0}
+  estado.conta ??= {nome:'',sobrenome:'',cpf:'',nascimento:'',discord:'',descricao:'Jogador da comunidade Neura.',faceit:'',privacidade:Object.fromEntries(['perfil','inventario','amigos','conquistas','convites'].map(k=>[k,'todos']))}
+  estado.hall ??= {estado:'sem-foto',camisa:'escura'}
+  const guardar=()=>{try{sessionStorage.setItem('np-preview-dados-v2',JSON.stringify(estado))}catch{/* sem armazenamento */}}
+  const time={id:'equipe-demo',nome:'Neura Academy · teste',tag:'NRA',logo:avatar,descricao:'Time de demonstração para revisar membros, cargos e chat.',publico:true,criada:Date.now()-86400000*30,minhas:['dono','editar','convidar','expulsar','moderar'],cargos:[{id:'membro',nome:'Membro',cor:'#a6c5ed',permissoes:[]}],membros:pessoas}
+  const base = `${location.origin}/__preview-local`
+  CONFIG.loginSteam = base
+  window.__npPreviewAtivo = true
+  window.__npPreviewToken = sessionStorage.getItem('np-preview-saiu') ? null : btoa(JSON.stringify({ id, nome, avatar, exp: Date.now() / 1000 + 86400 })) + '.demonstracao-local'
+  const config = { cargos: [], equipe: { dono: id, admins: [] }, selos: { dono: { pick: true, mostrar: false }, admin: { pick: true, mostrar: false } } }
+  const respostas = {
+    '/config': config,
+    '/eu': { id, admin: true, dono: true, painel: true, abas: ['usuarios', 'molduras', 'cards', 'cargos', 'logs', 'servidor'] },
+    '/conta/seguranca': { nick: nome, temSenha: true, email: 'teste@example.com', premium: true, podeTrocarNick: true },
+    '/amigos': { amigos: pessoas.slice(1), recebidos: [], enviados: [] },
+    '/lobby': { eu: id, lider: id, souLider: true, publico: false, max: 5, membros: [{ id, nome, avatar, st: 'online' }], convites: [], convitesRecebidos: [], abertos: [], emLobby: [], emPartida: [], partida: null },
+    '/status/cs2': { atualizacao: null, servidor: { online: true, atualizando: false } },
+    '/dm': { conversas: [{...pessoas[1],amigo:true,ts:Date.now()-60000,texto:'Esse é o chat de demonstração.',naoLidas:0}] }, '/trocas': { recebidas: [], enviadas: [] },
+    '/notificacoes': { doc: { lista: [], vistos: [], limpoEm: 0 } },
+    '/equipes/publico': { times: [time] }, '/equipes/meu': { time, convites: [], custo: 1000 }, '/equipes': { equipes: [time] },
+    '/mercado': { anuncios: [] }, '/skins': { v: 2, itens: {}, equip: { ct: {}, tr: {} }, criado: {} },
+    '/loja': { saldo: 5000, pontos: 5000, cfg: { maxQtd: 1 }, caixas, fechadas: {}, insignias: [], ganhas: {} },
+    '/loja/saldo': { saldo: 5000 }, '/loja/caixas': caixas, '/loja/drops': { recentes: [], bons: [], top: [], agora: Date.now() },
+    '/admin/dados': { usuarios: { [id]: { nome, avatar } }, perfis: {}, config, dono: id },
+    '/admin/logs': { logs: [], total: 0 }, '/admin/servidor/status': { estado: 'rodando', total: 0, logs: [] },
+  }
+  const original = window.fetch.bind(window)
+  window.fetch = async (input, init) => {
+    const url = new URL(input instanceof Request ? input.url : String(input), location.href)
+    if(url.hostname==='api-public.cs-prod.leetify.com'&&url.pathname==='/v3/profile'&&pessoas.some(p=>p.id===url.searchParams.get('steam64_id')))return Response.json({ranks:{premier:15340}})
+    if (!url.href.startsWith(base + '/')) return original(input, init)
+    const rota = url.pathname.slice('/__preview-local'.length)
+    const metodo = init?.method || (input instanceof Request ? input.method : 'GET')
+    let corpo={}
+    try{corpo=JSON.parse(init?.body||(input instanceof Request?await input.clone().text():'{}'))}catch{/* leitura */}
+    if (metodo !== 'GET') {
+      if(rota==='/conta/dados'){estado.conta=corpo;guardar();return Response.json(estado.conta)}
+      if(rota==='/hall'){estado.hall={...estado.hall,original:corpo.foto,camisa:corpo.camisa,estado:'pendente',nome};guardar();return Response.json(estado.hall)}
+      if(rota==='/hall/revisao'){estado.hall={...estado.hall,estado:corpo.acao==='aprovar'?'aprovada':'reprovada',...(corpo.acao==='aprovar'?{aprovada:corpo.foto||estado.hall.original,camisaAprovada:estado.hall.camisa,montada:!!corpo.foto}:{})};guardar();return Response.json({ok:true})}
+
+      if(rota==='/dm') {
+        if(corpo.acao==='apagar-conversa')estado.mensagens=[]
+        else if(corpo.acao==='apagar-mensagem')estado.mensagens=estado.mensagens.filter(m=>m.id!==corpo.mensagem)
+        else{const msg={id:novoId(),de:id,texto:corpo.texto,ts:Date.now()};estado.mensagens.push(msg);guardar();return Response.json({msg})}
+        guardar();return Response.json({ok:true})
+      }
+      if(rota==='/equipes/chat'){const msg={id:novoId(),de:id,nome,texto:corpo.texto,ts:Date.now()};estado.chat.push(msg);guardar();return Response.json({msg})}
+      if(rota==='/skins'){estado.inv=corpo;guardar();return Response.json(estado.inv)}
+      if(rota==='/skins/excluir'){delete estado.inv.itens[corpo.id];guardar();return Response.json(estado.inv)}
+      if(rota==='/loja/abrir'){
+        let cx=caixas.find(c=>c.id===Number(corpo.caixa)||c.slug===corpo.caixa)||caixas[0],cfg=CONFIG_PADRAO
+        if(corpo.modo){const m=aplicarModo(cx,cfg,corpo.modo);cx=m.caixa;cfg=m.cfg}
+        const resultados=[]
+        for(let k=0;k<Math.max(1,Math.min(1,Number(corpo.qtd)||1));k++){
+          const ganhou=sortearAbertura(cx,cfg,Math.random),faixa=gerarFaixa(cx,cfg,ganhou,Math.random),item=novoId(),v=valorDoItem(ganhou.item,ganhou.raridade)
+          estado.inv.itens[item]={...ganhou.item,st:0,a:[null,null,null,null,null]};estado.inv.criado[item]=Date.now();estado.saldo-=cx.preco;estado.abertas++
+          resultados.push({id:item,raridade:ganhou.raridade,indice:ganhou.indice,item:ganhou.item,faixa:faixa.itens,alvo:faixa.alvo,quase:faixa.quase,v,facas:ganhou.raridade===5?gerarFaixaFacas(cx,ganhou,Math.random):null})
+        }
+        guardar();return Response.json({saldo:estado.saldo,resultados,restantes:0,aberturasEspecial:estado.abertas,insignias:[]})
+      }
+      if(rota==='/loja/comprar'){
+        const cx=caixas.find(c=>c.id===Number(corpo.caixa)||c.slug===corpo.caixa)||caixas[0],ids=[]
+        for(let i=0;i<Math.min(5,Number(corpo.qtd)||1);i++){const k=novoId();estado.inv.itens[k]={t:'caixa',d:cx.id,p:0};estado.inv.criado[k]=Date.now();estado.saldo-=cx.preco;ids.push(k)}guardar();return Response.json({saldo:estado.saldo,ids,insignias:[]})
+      }
+      if(rota==='/loja/vender'){let total=0;for(const k of corpo.ids||[])if(estado.inv.itens[k]){delete estado.inv.itens[k];total+=100}estado.saldo+=total;guardar();return Response.json({saldo:estado.saldo,total,inv:estado.inv})}
+      if(rota==='/notificacoes'){estado.notificacoes=corpo.doc||corpo;guardar();return Response.json({doc:estado.notificacoes})}
+      return Response.json({ok:true,saldo:estado.saldo,inv:estado.inv})
+    }
+    if(rota==='/conta/dados')return Response.json(estado.conta)
+    if(rota==='/perfil/publico')return Response.json({permitido:true,descricao:estado.conta.descricao,faceit:estado.conta.faceit,visibilidade:Object.fromEntries(Object.keys(estado.conta.privacidade).map(k=>[k,true])),amigos:pessoas.slice(1)})
+    if(rota==='/hall')return Response.json(estado.hall)
+    if(rota==='/hall/publico')return Response.json({foto:estado.hall.aprovada,camisa:estado.hall.camisaAprovada,montada:estado.hall.montada})
+    if(rota==='/hall/revisao')return Response.json({pedidos:estado.hall.estado==='pendente'?[{id,...estado.hall}]:[]})
+    if(rota==='/dm'&&url.searchParams.has('com'))return Response.json({com:{...(pessoas.find(p=>p.id===url.searchParams.get('com'))||pessoas[1]),amigo:true},mensagens:estado.mensagens})
+    if(rota==='/equipes/chat')return Response.json({equipe:time.id,mensagens:estado.chat})
+    if(rota==='/notificacoes')return Response.json({doc:estado.notificacoes})
+    if(rota==='/lobby')return Response.json({...respostas['/lobby'],membros:pessoas.slice(0,3),publico:true})
+    if(rota==='/admin/dados')return Response.json({...respostas['/admin/dados'],usuarios:Object.fromEntries(pessoas.map(p=>[p.id,p]))})
+    if(rota==='/loja/drops'){const d={id:'demoDrop',ts:Date.now()-60000,r:4,v:14500,t:'arma',d:7,p:282,quem:pessoas[1].id,nome:pessoas[1].nome,avatar,caixa:caixas[0].slug};return Response.json({agora:Date.now(),recentes:[d],bons:[d],top:[d]})}
+    if(rota==='/skins')return Response.json(estado.inv)
+    if(rota==='/loja/saldo')return Response.json({saldo:estado.saldo})
+    if(rota==='/loja')return Response.json({...respostas['/loja'],saldo:estado.saldo,pontos:estado.saldo,cfg:{...CONFIG_PADRAO,maxQtd:1},aberturasEspecial:estado.abertas})
+    if(rota==='/loja/valores')return Response.json({valores:Object.fromEntries(Object.keys(estado.inv.itens).map(k=>[k,{r:3,v:150}]))})
+    if(rota==='/mercado')return Response.json({anuncios:[{id:'demoanuncio',vendedor:pessoas[1].id,vendedorNome:pessoas[1].nome,vendedorAvatar:avatar,item:itens.demoitem0,preco:450,ref:500,criado:Date.now()}]})
+    if(rota==='/partidas/recentes')return Response.json([])
+    if(rota==='/usuarios/buscar')return Response.json({jogadores:pessoas})
+    if(rota==='/admin/caixas-lista')return Response.json(catalogo)
+    if (rota === '/loja/caixa') {
+      const caixa = caixas.find((c) => c.slug === url.searchParams.get('slug') || String(c.id) === url.searchParams.get('id')) || caixas[0]
+      const desgastes=it=>faixasDeDesgaste(CONFIG_PADRAO,it.min,it.max).map(f=>({nome:f.nome,p:f.p,v:valorDoItem({f:f.f},it.r||5)}))
+      const modos={};for(const modo of ['jester','boost']){const m=aplicarModo(caixa,CONFIG_PADRAO,modo);modos[modo]={preco:Math.round(caixa.preco*(modo==='jester'?2:1.6)),chances:chancesDaCaixa(m.caixa,m.cfg)}}
+      return Response.json({itens:caixa.itens.map(desgastes),facas:caixa.facas.map(desgastes),modos})
+    }
+    return Promise.resolve(Response.json(respostas[rota] ?? {}))
+  }
+  const SocketReal = window.WebSocket
+  window.WebSocket = class extends EventTarget {
+    static CONNECTING = 0; static OPEN = 1; static CLOSING = 2; static CLOSED = 3
+    constructor(url, protocolos) {
+      super()
+      if (!String(url).includes('/__preview-local/')) return new SocketReal(url, protocolos)
+      this.readyState = 0
+      this.timer = setTimeout(() => { this.readyState = 1; this.onopen?.(new Event('open')); this.receber({ tipo: 'estado', status: Object.fromEntries(pessoas.map(p=>[p.id,{st:p.st,visto:Date.now()}])) }) }, 30)
+    }
+    receber(dados) { this.onmessage?.(new MessageEvent('message', { data: typeof dados === 'string' ? dados : JSON.stringify(dados) })) }
+    send(dados) { if (dados === 'ping') this.receber('pong') }
+    close() { clearTimeout(this.timer); this.readyState = 3; this.onclose?.(new Event('close')) }
+  }
+}

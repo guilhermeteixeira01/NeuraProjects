@@ -11,12 +11,14 @@ test('calendário anual alterna todos os eventos e respeita prioridades', () => 
     '2026-07-15': 'inverno', '2026-09-09': 'aniversario', '2026-10-12': 'criancas',
     '2026-10-25': 'halloween', '2026-11-27': 'blackFriday', '2026-12-25': 'natal',
     '2026-12-31': 'anoNovo', '2027-02-09': 'carnaval', '2027-03-28': 'pascoa',
+    '2026-04-20': 'outono', '2026-10-01': 'primavera', '2026-09-07': 'independencia',
+    '2026-05-10': 'maes', '2026-08-09': 'pais', '2027-05-09': 'maes', '2027-08-08': 'pais',
   })) assert.equal(evento(dia), esperado, dia)
 })
 test('datas móveis e virada de data usam Brasília, não o fuso da máquina', () => {
   assert.equal(new Date(domingoDePascoa(2026)).toISOString().slice(0, 10), '2026-04-05')
   assert.equal(new Date(domingoDePascoa(2038)).toISOString().slice(0, 10), '2038-04-25')
-  assert.equal(eventoDaData(new Date('2026-10-15T02:59:59Z')), 'verao')
+  assert.equal(eventoDaData(new Date('2026-10-15T02:59:59Z')), 'primavera')
   assert.equal(eventoDaData(new Date('2026-10-15T03:00:00Z')), 'halloween')
 })
 test('todos os eventos têm imagem desktop e mobile; referências antigas não são necessárias', () => {
