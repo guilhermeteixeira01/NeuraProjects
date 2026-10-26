@@ -3,3 +3,5 @@
    importado direto do .jsx, o estetica.css virava um pedaço compartilhado e carregava antes do CSS da página, perdendo dele. */
 @import '../paginas/naoencontrada/naoencontrada.css';
 @import '../comum/estetica.css';
+
+@import '../comum/redesign.css';

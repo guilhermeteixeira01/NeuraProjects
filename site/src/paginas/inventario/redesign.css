@@ -1,0 +1,14 @@
+/* Inventário: ferramentas agrupadas e cartões sem mudar a arte dos itens. */
+.inv-wrap { padding-top: 14px; }
+.inv-topo { margin-bottom: 24px; }
+.inv-abas { justify-content: flex-start; padding: 8px; background: var(--ui-surface); border-radius: 10px; }
+.inv-barra { border: 0; padding: 18px; border-radius: 8px; background: var(--ui-surface); gap: 12px; margin-bottom: 22px; }
+.inv-pesquisa { background: var(--ui-raised); border-radius: 6px; padding-inline: 12px; min-height: 44px; }
+.inv-pesquisa input { background: none; border: 0; min-height: 44px; }
+.inv-ordem { background: var(--ui-raised); border: 0; min-height: 44px; }
+.inv-total { font-size: 13px; color: var(--ui-muted); }
+.inv-itens { gap: 16px; }
+.inv-item { border-radius: 10px; box-shadow: none; }
+.inv-aviso-mobile { background: var(--ui-active); border: 0; color: var(--text); border-radius: 6px; padding: 14px 16px; font-size: 13px; line-height: 1.6; }
+.inv-nada { background: var(--ui-surface); border-radius: 10px; padding: 40px 24px; color: var(--ui-muted); font-size: 15px; line-height: 1.6; }
+@media(max-width:650px) { .inv-barra { padding: 14px; } .inv-itens { gap: 10px; } .inv-abas { gap: 4px; } }

@@ -1,0 +1,11 @@
+/* Ranking: preservar integralmente o palco, os personagens e as três molduras. */
+.ranking-page .resumo .caixa { background: var(--ui-surface); border: 0; border-radius: 8px; padding: 20px; }
+.ranking-page .resumo .mono { font: 500 13px var(--font-body); letter-spacing: 0; }
+.ranking-page .resumo b { font: 600 34px var(--font-display); font-variant-numeric: tabular-nums; }
+.ranking-page .barra-topo { gap: 16px; padding-block: 10px 22px; }
+.ranking-page .metricas { display: flex; flex-wrap: wrap; background: var(--ui-surface); padding: 6px; border: 0; border-radius: 8px; }
+.ranking-page .metricas button { min-height: 42px; border: 0; border-radius: 5px; font: 600 14px var(--font-body); }
+.ranking-page .metricas button.active { background: var(--ui-active); color: var(--ui-accent); }
+.ranking-page .nota { font: 400 12px var(--font-body); letter-spacing: 0; color: var(--ui-muted); }
+.ranking-page .tabela-card .linha.cab { padding-block: 16px; font: 500 13px var(--font-body); }
+@media(max-width:650px) { .ranking-page .metricas { width: 100%; } .ranking-page .metricas button { flex: 1 1 65px; font-size: 13px; } .ranking-page .resumo .caixa { padding: 14px; } }

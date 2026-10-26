@@ -37,15 +37,22 @@ const pedido = async (rota, init) => (await responder(rota, init)).dados
  * Rota que pede login (GET sem corpo, POST com corpo). Sem login: ErroApi 'login'.
  * @param {string} rota  @param {unknown} [corpo]
  */
+const leituras = new Map()
 export async function chamarApi(rota, corpo) {
   const token = tokenConta()
   if (!token) throw new ErroApi('login')
   try {
-    return await pedido(rota, {
+    const chave = corpo === undefined ? `${token}:${rota}` : null
+    if (chave && leituras.has(chave)) return await leituras.get(chave)
+    const requisicao = pedido(rota, {
       method: corpo === undefined ? 'GET' : 'POST',
+      ...(corpo === undefined ? { signal: AbortSignal.timeout(15000) } : {}),
       headers: { Authorization: `Bearer ${token}`, ...(corpo === undefined ? {} : { 'Content-Type': 'application/json' }) },
       body: corpo === undefined ? undefined : JSON.stringify(corpo),
     })
+    if (!chave) return await requisicao
+    leituras.set(chave, requisicao)
+    try { return await requisicao } finally { if (leituras.get(chave) === requisicao) leituras.delete(chave) }
   } catch (e) {
     if (e instanceof ErroApi && e.status === 401 && e.codigo === 'login') sair() // login vencido ou inválido: entrar de novo
     throw e

@@ -73,7 +73,7 @@ const PUBLICAS = {
   'GET /avatares': (c) => rotaAvatares(c.url, c.env),
   'GET /premier': (c) => rotaPremier(c.env, c.ctx),
   // aviso do lobby: saiu atualização do CS2? o nosso servidor está no ar?
-  'GET /status/cs2': async (c) => json(await statusCs2(c.env), 200, { ...qualquerOrigem, 'Cache-Control': 'public, max-age=15' }),
+  'GET /status/cs2': async (c) => json(await statusCs2(c.env, c.ctx), 200, { ...qualquerOrigem, 'Cache-Control': 'no-store' }),
   // partidas recém-jogadas (o plugin manda assim que o mapa termina; o site lê sem esperar o deploy)
   'POST /servidor/partida': (c) => rotaPartidaServidor(c.req, c.env),
   'GET /partidas/recentes': (c) => rotaPartidasPublico(c.url, c.env),

@@ -1,0 +1,36 @@
+/* Pick & Ban: configuração clara, mapas preservados e etapas legíveis. */
+.app .hero { padding-block: 40px; }
+.app .hero-inner { grid-template-columns: minmax(0,1fr) minmax(360px,1fr); gap: 48px; align-items: center; }
+.app .hero h1 { max-width: 12ch; }
+.app .hero-status { background: var(--ui-surface); border: 0; font: 500 13px var(--font-body); letter-spacing: 0; }
+.app .hero-meta { font: 500 13px var(--font-body); gap: 14px; }
+.app .hud-frame { padding: 0; }
+.app .hud-frame::before, .app .hud-frame::after { display: none; }
+.app .config { background: var(--ui-surface); border: 0; border-radius: 12px; padding: 28px; box-shadow: none; }
+.app .config-3d { transform: none !important; }
+.app .config-head { font: 600 22px var(--font-display); text-transform: none; letter-spacing: 0; margin-bottom: 24px; }
+.app .teams-row { gap: 14px; }
+.app .field input, .app .logo-field input { min-height: 44px; background: var(--ui-raised); border-color: transparent; border-radius: 6px; }
+.app .field > span, .app .config-row .mono-label { font: 500 13px var(--font-body); letter-spacing: 0; color: var(--ui-muted); }
+.app .segmented { border: 0; background: var(--ui-raised); border-radius: 6px; padding: 4px; gap: 4px; }
+.app .segmented button { min-height: 40px; font: 600 14px var(--font-body); letter-spacing: 0; border: 0; border-radius: 4px; }
+.app .segmented button.active { background: var(--ui-active); color: var(--ui-accent); box-shadow: none; }
+.app .section-head h2 { font: 600 36px var(--font-display); }
+.app .section-head p { font-size: 15px; line-height: 1.6; max-width: 64ch; }
+.app .pool-grid { grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; }
+.app .pool-item { border: 0; border-radius: 10px; min-height: 200px; box-shadow: none; }
+.app .pool-item.on { outline: 2px solid var(--ui-accent); outline-offset: -2px; box-shadow: none; }
+.app .pool-name { font: 600 28px var(--font-display); letter-spacing: 0; }
+.app .pool-check, .app .pool-premier { font: 600 12px var(--font-body); letter-spacing: 0; border: 0; }
+.app .scoreboard { background: var(--ui-surface); border: 0; border-radius: 12px; box-shadow: none; }
+.app .sb-team.active { background: var(--ui-raised); }
+.app .veto .step, .app .step-card, .app .history { background-color: var(--ui-surface); border-color: transparent; border-radius: 10px; }
+.app .map-grid { gap: 14px; }
+@media(max-width:1050px) { .app .hero-inner { grid-template-columns: 1fr; gap: 32px; } .app .hero-visual { width: 100%; max-width: none; } .app .hero h1 { max-width: none; } }
+@media(max-width:600px) { .app .config { padding: 20px; } .app .teams-row { grid-template-columns: 1fr; } .app .teams-row > .vs { display: none; } .app .pool-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; } .app .pool-item { min-height: 160px; } .app .pool-name { font-size: 24px; } .app .config .btn { width: 100%; } .app .scoreboard .sb-team { padding: 16px 10px; } .app .sb-center { padding-inline: 12px; } }
+
+.app .hud-frame.config-3d { background: none; border: 0; border-radius: 12px; box-shadow: none; }
+.app .config-3d::before, .app .config-3d::after { display: none; }
+.app .config-head { border: 0; padding: 0; }
+.app .config-head .mono-label { font: 600 22px var(--font-display); letter-spacing: 0; text-transform: none; color: var(--text); }
+.app .config-head .mono-label::before { display: none; }

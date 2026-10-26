@@ -1,8 +1,9 @@
 // Trocas entre jogadores, no estilo das propostas de troca da Steam (worker: src/trocas.js, rotas /trocas).
 //  - useTrocas + AvisoTroca: quantidade pendente, atualização ao vivo e a notificação no sino quando chega uma proposta.
 //  - BotaoTrocas: o botão; as janelas (proposta, escolher jogador, lista) ficam em TrocasJanelas.jsx e só baixam no clique.
-import { Suspense, lazy, useCallback, useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
 import './trocas.css'
+import { criarAtualizador } from './atualizador.js'
 import { chamarApi, seForErroApi, enderecoApi } from './api.js'
 import { useConta } from './conta.js'
 import { useT } from './i18n.js'
@@ -14,23 +15,51 @@ const PainelTrocas = lazy(() => import('./TrocasJanelas.jsx').then((m) => ({ def
 
 export const lerTrocas = () => chamarApi('/trocas')
 
-// Quantas propostas esperam a sua resposta (e atualiza sozinho)
+// Leitura e eventos compartilhados: barra, sino e inventário usam o mesmo estado.
+let donoTrocas = null, estadoTrocas = null, ouvintesTrocas = 0, pararTrocas = null
+const EVENTO_TROCAS = 'np-trocas-estado'
+const consultaTrocas = criarAtualizador({
+  ler: async () => { const id = donoTrocas; return { id, dados: await lerTrocas() } },
+  aplicar: ({ id, dados }) => {
+    if (id !== donoTrocas) return
+    estadoTrocas = dados
+    window.dispatchEvent(new Event(EVENTO_TROCAS))
+  },
+  aoErro: seForErroApi(),
+})
+const atualizarTrocas = () => donoTrocas && consultaTrocas.atualizar()
 export function useTrocas() {
   const conta = useConta()
-  const [dados, setDados] = useState(null)
-  const carregar = useCallback(() => {
-    if (conta?.id && enderecoApi()) lerTrocas().then(setDados, seForErroApi())
-  }, [conta?.id])
+  const [, atualizar] = useState(0)
   useEffect(() => {
-    carregar()
-    window.addEventListener('np-troca', carregar)
-    const i = setInterval(() => document.visibilityState === 'visible' && carregar(), 60000)
-    return () => {
-      window.removeEventListener('np-troca', carregar)
-      clearInterval(i)
+    const ouvir = () => atualizar((n) => n + 1)
+    window.addEventListener(EVENTO_TROCAS, ouvir)
+    return () => window.removeEventListener(EVENTO_TROCAS, ouvir)
+  }, [])
+  useEffect(() => {
+    const id = conta?.id
+    if (!id || !enderecoApi()) {
+      if (donoTrocas) { consultaTrocas.descartar(); donoTrocas = null; estadoTrocas = null }
+      return
     }
-  }, [carregar])
-  return { dados, recarregar: carregar, pendentes: dados?.recebidas?.length || 0 }
+    const mudou = donoTrocas !== id
+    if (mudou) { consultaTrocas.descartar(); donoTrocas = id; estadoTrocas = null }
+    if (!ouvintesTrocas++) {
+      if (mudou) atualizarTrocas()
+      else consultaTrocas.carregar()
+      window.addEventListener('np-troca', atualizarTrocas)
+      window.addEventListener('np-reconectou', atualizarTrocas)
+      const relogio = setInterval(() => document.visibilityState === 'visible' && consultaTrocas.carregar(), 60000)
+      pararTrocas = () => {
+        window.removeEventListener('np-troca', atualizarTrocas)
+        window.removeEventListener('np-reconectou', atualizarTrocas)
+        clearInterval(relogio)
+      }
+    }
+    return () => { if (!--ouvintesTrocas) pararTrocas?.() }
+  }, [conta?.id])
+  const dados = conta?.id === donoTrocas ? estadoTrocas : null
+  return { dados, recarregar: atualizarTrocas, pendentes: dados?.recebidas?.length || 0 }
 }
 
 // No Layout (com login): proposta nova vira notificação no sino (uma vez por proposta)

@@ -343,27 +343,6 @@ export default function Nav({ pagina }) {
 
   // Só a página inicial mostra a barra da esquerda aberta (ícone + nome). Ao clicar em outra página ela encolhe até os ícones com
   // animação (classe nx-fechando, regras em estetica.css) e só depois a página nova abre, já com a barra do tamanho final.
-  useEffect(() => {
-    if (pagina !== 'inicio') return
-    const clicar = (e) => {
-      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
-      if (!window.matchMedia('(min-width: 1025px)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-      const a = e.target instanceof Element ? e.target.closest('a[href]') : null
-      if (!a || a.target === '_blank' || a.hasAttribute('download')) return
-      const url = new URL(a.href, location.href)
-      if (url.origin !== location.origin || url.pathname === location.pathname) return
-      e.preventDefault()
-      const h = document.documentElement
-      h.classList.add('nx-fechando')
-      setTimeout(() => {
-        location.href = a.href
-      }, 290)
-      // voltar pelo navegador (a página volta do cache já fechada): reabre
-      window.addEventListener('pageshow', () => h.classList.remove('nx-fechando'), { once: true })
-    }
-    document.addEventListener('click', clicar)
-    return () => document.removeEventListener('click', clicar)
-  }, [pagina])
 
   const conta = useConta()
   useEffect(() => iniciarAvisoEquipe(), [])

@@ -1,0 +1,14 @@
+/* Lista pública dos times, independente da tela de gestão. */
+.times-page .resumo .caixa { background: var(--ui-surface); border: 0; padding: 22px; border-radius: 10px; }
+.times-page .resumo .mono { font: 500 13px var(--font-body); letter-spacing: 0; }
+.times-page .resumo b { font: 600 38px var(--font-display); }
+.times-page .card { background: var(--ui-surface); border: 0; border-radius: 12px; padding: 24px; }
+.times-page .card-head { padding: 0 0 24px; border: 0; gap: 20px; }
+.times-page .card-head h2 { font: 600 30px var(--font-display); }
+.times-page .lista { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.times-page .time { background: var(--ui-raised); border: 0; border-radius: 8px; padding: 20px; gap: 16px; }
+.times-page .time::before { display: none; }
+.times-page .time .logo { width: 52px; height: 52px; border: 0; border-radius: 8px; }
+.times-page .time b { font: 600 21px var(--font-display); text-transform: none; }
+.times-page .time small { font: 400 13px var(--font-body); letter-spacing: 0; }
+@media(max-width:700px) { .times-page .card { padding: 18px; } .times-page .card-head { flex-direction: column; align-items: stretch; } .times-page .card-head .busca { max-width: none !important; width: 100%; min-height: 44px; } .times-page .lista { grid-template-columns: 1fr; } }

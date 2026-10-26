@@ -38,25 +38,31 @@ function gravarLocal(id, doc) {
 
 // ── conta (worker) ──
 let enviando = null
-let reenviar = false
-async function sincronizar(id) {
+let reenviar = null
+let enviandoConta = null
+async function sincronizar(id, mudou = false) {
   if (!tokenConta() || !enderecoApi()) return
   if (enviando) {
-    reenviar = true // já tem um envio em andamento: manda de novo quando ele acabar, com o que mudou nesse meio-tempo
-    return
+    if (mudou || enviandoConta !== id) reenviar = id
+    return enviando
   }
+  enviandoConta = id
+  const tokenInicial = tokenConta()
   enviando = (async () => {
     try {
       const { doc } = await chamarApi('/notificacoes', { doc: ler(id) })
+      if (tokenInicial !== tokenConta()) return
       gravarLocal(id, juntar(ler(id), doc))
       window.dispatchEvent(new Event(EVENTO))
     } catch (e) {
       if (!(e instanceof ErroApi)) throw e // sem rede ou worker fora: fica só no aparelho e sobe na próxima
     } finally {
       enviando = null
+      enviandoConta = null
       if (reenviar) {
-        reenviar = false
-        sincronizar(id)
+        const proximo = reenviar
+        reenviar = null
+        sincronizar(proximo)
       }
     }
   })()
@@ -64,7 +70,7 @@ async function sincronizar(id) {
 let agenda = 0
 const subir = (id) => {
   clearTimeout(agenda)
-  agenda = setTimeout(() => sincronizar(id), 600)
+  agenda = setTimeout(() => sincronizar(id, true), 300)
 }
 
 function gravar(id, doc) {
@@ -92,9 +98,10 @@ export function useNotificacoes() {
     sincronizar(id) // traz o que chegou nos outros aparelhos (e sobe o que só este tem)
     const periodico = setInterval(() => document.visibilityState === 'visible' && sincronizar(id), 60000)
     const voltou = () => document.visibilityState === 'visible' && sincronizar(id)
-    const doServidor = () => sincronizar(id) // o worker gravou uma notificação na conta (ex.: item vendido no mercado)
+    const doServidor = () => sincronizar(id, true) // o worker gravou uma notificação na conta (ex.: item vendido no mercado)
     window.addEventListener('np-mercado', doServidor)
     window.addEventListener('np-notif-servidor', doServidor)
+    window.addEventListener('np-reconectou', doServidor)
     window.addEventListener(EVENTO, atualizar)
     window.addEventListener('storage', atualizar)
     document.addEventListener('visibilitychange', voltou)
@@ -102,6 +109,7 @@ export function useNotificacoes() {
       clearInterval(periodico)
       window.removeEventListener('np-mercado', doServidor)
       window.removeEventListener('np-notif-servidor', doServidor)
+      window.removeEventListener('np-reconectou', doServidor)
       window.removeEventListener(EVENTO, atualizar)
       window.removeEventListener('storage', atualizar)
       document.removeEventListener('visibilitychange', voltou)

@@ -1,29 +1,41 @@
 // Lobby: avisos do CS2 no topo da página (atualização do jogo e servidor em manutenção) e o painel de status do servidor.
 // Dados: worker GET /status/cs2 (src/status-cs2.js): { atualizacao: {titulo, data, url, gid} | null, servidor: {online, atualizando} }
-import { useEffect, useState } from 'react'
-import { lerApi, seForErroApi, enderecoApi } from '../../comum/api.js'
+import { useState, useSyncExternalStore } from 'react'
+import { criarAtualizador } from '../../comum/atualizador.js'
+import { lerApi, enderecoApi } from '../../comum/api.js'
 import { useT } from '../../comum/i18n.js'
 
-const INTERVALO_MS = 60000
-
-export function useStatusCs2() {
-  const [dados, setDados] = useState(null)
-  useEffect(() => {
-    if (!enderecoApi()) return
-    let vivo = true
-    const ler = () =>
-      lerApi('/status/cs2')
-        .then((d) => vivo && setDados(d))
-        .catch(seForErroApi()) // fora do ar: fica o último aviso
-    ler()
-    const id = setInterval(() => document.visibilityState === 'visible' && ler(), INTERVALO_MS)
-    return () => {
-      vivo = false
-      clearInterval(id)
+const INTERVALO_MS = 20000
+let dadosStatus = null, parar = null
+const ouvintes = new Set()
+const publicar = (d) => { dadosStatus = d; for (const ouvir of ouvintes) ouvir() }
+const leitura = criarAtualizador({
+  ler: () => lerApi('/status/cs2', { cache: 'no-store', signal: AbortSignal.timeout(8000) }),
+  aplicar: publicar,
+  aoErro: () => publicar({ ...dadosStatus, servidor: { ...dadosStatus?.servidor, online: null, atualizando: false, desatualizado: true, consultaFalhou: true } }),
+})
+const atualizar = () => enderecoApi() && leitura.atualizar()
+function assinar(ouvir) {
+  ouvintes.add(ouvir)
+  if (ouvintes.size === 1 && enderecoApi()) {
+    leitura.carregar()
+    const voltou = () => document.visibilityState === 'visible' && atualizar()
+    const intervalo = setInterval(voltou, INTERVALO_MS)
+    window.addEventListener('focus', voltou)
+    window.addEventListener('np-reconectou', atualizar)
+    document.addEventListener('visibilitychange', voltou)
+    parar = () => {
+      clearInterval(intervalo)
+      window.removeEventListener('focus', voltou)
+      window.removeEventListener('np-reconectou', atualizar)
+      document.removeEventListener('visibilitychange', voltou)
     }
-  }, [])
-  return dados
+  }
+  return () => { ouvintes.delete(ouvir); if (!ouvintes.size) parar?.() }
 }
+const snapshot = () => dadosStatus
+const servidorSnapshot = () => null
+export function useStatusCs2() { return useSyncExternalStore(assinar, snapshot, servidorSnapshot) }
 
 const guardada = (gid) => {
   try {
@@ -42,7 +54,7 @@ export function AvisosCs2({ status }) {
   const srv = status?.servidor
   // o aviso de atualização só faz sentido com o servidor no ar (se ele está fora, vale só o aviso de manutenção)
   const mostrarAtualizacao = !!gid && srv?.online === true && fechado !== gid && !guardada(gid)
-  const manutencao = srv && srv.online === false
+  const manutencao = srv && !srv.desatualizado && srv.online === false && srv.atualizando
   if (!mostrarAtualizacao && !manutencao) return null
   return (
     <div className="lb-faixas">
@@ -137,14 +149,16 @@ const REGIOES = [
 export function PainelServidor({ status }) {
   const t = useT()
   const srv = status?.servidor
-  const estado = !srv || srv.online === null ? 'desconhecido' : srv.online ? 'online' : srv.atualizando ? 'manutencao' : 'offline'
-  const rotulo = { online: 'Online', offline: 'Offline', manutencao: 'Em manutenção', desconhecido: 'Verificando…' }[estado]
+  const estado = srv?.consultaFalhou ? 'indisponivel' : !srv || typeof srv.online !== 'boolean' ? 'desconhecido' : srv.online ? 'online' : srv.atualizando ? 'manutencao' : 'offline'
+  const rotulo = { online: 'Online', offline: 'Offline', manutencao: 'Em manutenção', desconhecido: 'Verificando…', indisponivel: 'Consulta indisponível' }[estado]
   return (
     <div className="lb-servidor-status">
       <div className={`lb-estado lb-estado-${estado}`} role="status">
         <i aria-hidden="true" /> <b>{t(rotulo)}</b>
       </div>
-      {estado === 'offline' && <p>{t('Servidor em manutenção. Voltamos em breve — agradecemos a paciência!')}</p>}
+      {estado === 'offline' && <p>{t('Servidor indisponível no momento.')}</p>}
+      {estado === 'indisponivel' && <p>{t('Não foi possível confirmar o status do servidor. Tentando novamente.')}</p>}
+      {estado === 'indisponivel' && <button type="button" className="lb-btn" onClick={atualizar}>{t('Verificar novamente')}</button>}
       <ul className="lb-regioes" aria-label={t('Servidores')}>
         {REGIOES.map(([id, nome, ativa]) => (
           <li key={id} className={ativa ? `ativa lb-reg-${estado}` : 'em-breve'} title={ativa ? t(rotulo) : t('Em breve')}>

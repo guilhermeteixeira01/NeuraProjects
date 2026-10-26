@@ -159,10 +159,8 @@ export default function Inicio() {
             </picture>
             <div className="ix-fundo-vu" aria-hidden="true" />
             <div className="ix-hero-texto">
-              <span className="kicker fx-entra" style={{ '--e': 1 }}>{t('SERVIDOR COMPETITIVO DE CS2')}</span>
               <h1 className="fx-entra" style={{ '--e': 2 }}>
-                <span>{t('Jogue.')}</span>
-                <span className="ix-destaque">{t('Compita.')}</span>
+                <span>{t('Jogue.')} {t('Compita.')}</span>
                 <span>{t('Evolua.')}</span>
               </h1>
               <p className="ix-lead fx-entra" style={{ '--e': 3 }}>
@@ -186,7 +184,6 @@ export default function Inicio() {
           <div className="ix-quadro fx-entra" style={{ '--e': 5 }}>
             <div className="ix-quadro-in">
               <div className="ix-faixa-titulo">
-                <span className="kicker">{t('NO SERVIDOR')}</span>
                 <b>{t('Jogue. Compita. Evolua.')}</b>
               </div>
               <dl className="ix-numeros">
@@ -254,9 +251,6 @@ export default function Inicio() {
         <section className="secao" id="projetos">
           <div className="wrap">
             <div className="secao-head reveal">
-              <span className="kicker">
-                <b>01</b> {t('O QUE FAZEMOS')}
-              </span>
               <h2>{t('Nossos projetos')}</h2>
               <p>{t('Cada projeto nasce de um problema real de quem joga: montar o veto de um campeonato, jogar uma partida justa, entender o que aconteceu nela e ver a sua evolução.')}</p>
             </div>
@@ -314,17 +308,10 @@ export default function Inicio() {
                 .map((p, i) => {
                 const conteudo = (
                   <>
-                    <span className="projeto-num">0{i + 1}</span>
-                    <div className="projeto-topo">
-                      <span className="ico">
-                        <Icone tamanho={22}>{p.icone}</Icone>
-                      </span>
-                      <span className={`tag ${p.tag[1]}`}>{p.tag[0]}</span>
-                    </div>
                     <h3>{t(p.titulo)}</h3>
                     <p>{t(p.texto)}</p>
                     <span className="projeto-link">
-                      {t(p.link)} {SETA}
+                      {t(p.link)}
                     </span>
                   </>
                 )
@@ -359,7 +346,6 @@ export default function Inicio() {
               <img src={banner.grande} srcSet={`${banner.pequeno} 860w, ${banner.grande} 1726w`} sizes="(max-width: 900px) 100vw, 50vw" alt="" width="1726" height="807" loading="lazy" decoding="async" />
             </figure>
             <div className="ix-banda-texto reveal" style={{ '--d': '.08s' }}>
-              <span className="kicker">{t('SOBRE A NEURA')}</span>
               <h2>{t('Um estúdio pequeno, feito por jogadores')}</h2>
               <p>{t('A Neura Project nasceu da vontade de ter ferramentas melhores para jogar: veto de mapas sem planilha, servidor com estatística de verdade e os jogos organizados num só lugar. Então começamos a construir as ferramentas que a gente queria usar.')}</p>
               <p>{t('Hoje somos um estúdio independente focado em jogos — pequeno de propósito. Isso deixa a gente perto de quem usa: ideia que chega na comunidade do Discord vira recurso, bug reportado vira correção.')}</p>
@@ -381,12 +367,8 @@ export default function Inicio() {
           <div className="wrap">
             <h2 className="ix-titulo-linha">{t('O que guia cada projeto')}</h2>
             <ol className="ix-principios">
-              {PRINCIPIOS.map(([icone, titulo, texto, tag], i) => (
+              {PRINCIPIOS.map(([, titulo, texto], i) => (
                 <li key={titulo} className="reveal" style={{ '--d': `${i * 0.07}s` }}>
-                  <span className="ix-pico">
-                    <Icone tamanho={26}>{icone}</Icone>
-                  </span>
-                  <small>{t(tag)}</small>
                   <h3>{t(titulo)}</h3>
                   <p>{t(texto)}</p>
                 </li>

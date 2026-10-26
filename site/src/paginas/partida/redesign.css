@@ -1,0 +1,38 @@
+/* Detalhe da partida: placar, rounds e dados sem molduras decorativas. */
+.hero-partida { padding-block: 28px; border: 0; }
+.hero-partida .banner { border: 0; border-radius: 12px; padding: 24px 32px 36px; box-shadow: none; }
+.bn-topo { gap: 16px; }
+.bn-trilha, .bn-info { text-shadow: none; font: 500 13px var(--font-body); }
+.bn-tag, .bn-demo { border: 0; border-radius: 5px; background: rgb(11 12 15 / .8); min-height: 36px; padding: 8px 12px; }
+.bn-placar { gap: 22px; padding-top: 14px; }
+.bn-nome b { font: 600 clamp(22px,2.5vw,36px)/1.1 var(--font-display); letter-spacing: 0; text-transform: none; }
+.bn-logo::after { display: none; }
+.bn-venc { font: 500 12px var(--font-body); letter-spacing: 0; text-shadow: none; }
+.partida-conteudo .section { padding-top: 32px; }
+.partida-conteudo .section-head h2 { font: 600 34px var(--font-display); }
+.rounds-card, .team-card, .summary-item { background-color: var(--ui-surface); border-color: transparent; border-radius: 10px; box-shadow: none; }
+.team-card { margin-bottom: 20px; }
+.team-card.team-A { border-left: 3px solid var(--team-a); }
+.team-card.team-B { border-left: 3px solid var(--team-b); }
+.team-head { background: var(--ui-raised); border-bottom: 0; padding: 18px 22px; }
+.team-name { font-size: 25px; text-transform: none; }
+.team-score { font-size: 34px; font-variant-numeric: tabular-nums; }
+.team-meta { font-size: 13px; }
+.team-card .tabela { overscroll-behavior-x: contain; }
+.team-card table th { font: 600 12px var(--font-body); letter-spacing: 0; background: var(--ui-surface); padding-block: 16px; }
+.team-card table td { padding-block: 16px; font-variant-numeric: tabular-nums; }
+.team-card table tbody tr { border: 0; }
+.team-card table tbody tr:nth-child(even) { background: rgb(var(--tinta) / .025); }
+.abas-tabela { background: var(--ui-surface); border: 0; border-radius: 8px; padding: 5px; gap: 4px; flex-wrap: wrap; }
+.abas-tabela button { min-height: 42px; border: 0; border-radius: 5px; font: 600 14px var(--font-body); letter-spacing: 0; }
+.abas-tabela button.active { background: var(--ui-active); color: var(--ui-accent); box-shadow: none; }
+.rounds-card { padding: 22px; }
+.legenda { border: 0; gap: 12px 20px; font: 400 13px var(--font-body); }
+@media(max-width:650px) { .hero-partida .banner { padding: 18px 16px 24px; } .bn-placar { gap: 10px; } .bn-logo { width: 46px; height: 46px; } .bn-nome b { font-size: 19px; } .team-head { flex-wrap: wrap; padding: 14px; gap: 12px; } .team-name { font-size: 22px; } .team-meta { flex-basis: 100%; } .team-card .tabela table { min-width: 680px; } .abas-tabela button { font-size: 13px; padding-inline: 10px; } .rounds-card { padding: 16px; } }
+
+.mvp-card, .mvp-perfil { background: var(--ui-surface); border: 0; box-shadow: none; border-radius: 10px; }
+.mvp-card { padding: 26px; gap: 24px; }
+.mvp-perfil { background: var(--ui-raised); padding: 22px 16px; }
+.mvp-perfil b { font: 600 21px var(--font-display); }
+.mvp-card .mono-label { font: 500 12px var(--font-body); letter-spacing: 0; color: var(--ui-muted); }
+@media(max-width:650px) { .mvp-card { padding: 18px; gap: 20px; } }

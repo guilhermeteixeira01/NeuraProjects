@@ -757,7 +757,7 @@ function Conteudo({ d }) {
   // Contagem acabou: a série saiu do site (a limpeza apaga a página e a demo; até lá, só o aviso)
   if (fimSerie !== null && agora !== null && agora >= fimSerie)
     return (
-      <main className="wrap">
+      <main className="wrap partida-conteudo">
         <section className="serie-removida">
           <span className="kicker">{tr('SÉRIE CANCELADA')}</span>
           <h1>{tr('Esta partida foi removida do site')}</h1>
@@ -779,7 +779,7 @@ function Conteudo({ d }) {
         </div>
       </div>
       <Banner d={d} nomeTime={nomeTime} vencedor={vencedor} porRating={porRating} comecou={comecou} />
-      <main className="wrap">
+      <main className="wrap partida-conteudo">
         {d.serie && <Serie serie={d.serie} nomeTime={nomeTime} jogos={jogos} caminhoAtual={d.caminho} anuncio={anuncio} agora={agora} />}
         {mvp && <Destaques jogadores={jogadores} porRating={porRating} totalRounds={totalRounds} nomeTime={nomeTime} />}
         {d.rounds?.length > 0 && <Rounds d={d} nomeTime={nomeTime} />}
@@ -834,7 +834,7 @@ export default function Partida({ dados: inicial }) {
       {d ? (
         <Conteudo d={dApelidos} />
       ) : (
-        <main className="wrap">
+        <main className="wrap partida-conteudo">
           {erro ? (
             <p className="gerado" style={{ padding: '80px 0' }}>
               {tr('Partida não encontrada.')}

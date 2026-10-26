@@ -1471,4 +1471,8 @@ export default {
   "Apagar esta mensagem para todos?": "¿Eliminar este mensaje para todos?",
   "Apagar a conversa somente para você? O histórico do seu amigo será mantido.": "¿Eliminar la conversación solo para ti? Se conservará el historial de tu amigo.",
   "Não deu para apagar. Tente de novo.": "No se pudo eliminar. Inténtalo de nuevo.",
+  "Consulta indisponível": "Consulta no disponible",
+  "Servidor indisponível no momento.": "Servidor no disponible en este momento.",
+  "Não foi possível confirmar o status do servidor. Tentando novamente.": "No se pudo confirmar el estado del servidor. Reintentando.",
+  "Verificar novamente": "Volver a comprobar",
 }

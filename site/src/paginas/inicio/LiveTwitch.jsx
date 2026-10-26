@@ -77,7 +77,7 @@ export default function LiveTwitch() {
           obs.disconnect()
         }
       },
-      { rootMargin: '500px 0px' },
+      { rootMargin: window.matchMedia('(max-width: 760px)').matches ? '120px 0px' : '300px 0px' },
     )
     if (secao.current) obs.observe(secao.current)
     return () => obs.disconnect()

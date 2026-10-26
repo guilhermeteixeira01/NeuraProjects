@@ -3,6 +3,7 @@
 //   conversa = { id, nome, avatar, st: 'online'|'ausente'|'offline', amigo, ts, texto (prévia), de (quem mandou por último), naoLidas }
 //   mensagem = { id, de, texto, ts }
 import { useEffect, useState } from 'react'
+import { criarAtualizador } from './atualizador.js'
 import { chamarApi } from './api.js'
 import { useConta } from './conta.js'
 
@@ -17,26 +18,37 @@ const publicar = (novo) => {
   window.dispatchEvent(new Event(EVENTO))
 }
 
-export async function carregarConversas() {
-  try {
-    const d = await chamarApi('/dm')
-    publicar({ conversas: d.conversas || [] })
-  } catch {
-    // mantém a lista que já tinha
+const leituraConversas = criarAtualizador({
+  ler: async () => { const autor = dono; return { autor, dados: await chamarApi('/dm') } },
+  aplicar: ({ autor, dados }) => autor === dono && publicar({ conversas: dados.conversas || [] }),
+})
+export const carregarConversas = (nova = false) => nova ? leituraConversas.atualizar() : leituraConversas.carregar()
+const leiturasMensagens = new Map()
+export async function carregarMensagens(com, nova = false) {
+  let consulta = leiturasMensagens.get(com)
+  if (!consulta) {
+    consulta = { info: null }
+    consulta.leitura = criarAtualizador({
+      ler: async () => { const autor = dono; return { autor, dados: await chamarApi(`/dm?com=${encodeURIComponent(com)}`) } },
+      aplicar: ({ autor, dados: d }) => {
+        if (autor !== dono) return
+        consulta.info = d.com
+        publicar({ msgs: { ...estado.msgs, [com]: d.mensagens || [] } })
+        if (estado.conversas?.some((c) => c.id === com && c.naoLidas)) publicar({ conversas: estado.conversas.map((c) => c.id === com ? { ...c, naoLidas: 0 } : c) })
+      },
+      aoErro: (e) => { throw e },
+    })
+    leiturasMensagens.set(com, consulta)
   }
-}
-
-// Histórico com um amigo: o worker já marca como lida ao ler (zera naoLidas dessa conversa para quem pediu)
-export async function carregarMensagens(com) {
-  const d = await chamarApi(`/dm?com=${encodeURIComponent(com)}`)
-  publicar({ msgs: { ...estado.msgs, [com]: d.mensagens || [] } })
-  if (estado.conversas?.some((c) => c.id === com && c.naoLidas)) publicar({ conversas: estado.conversas.map((c) => (c.id === com ? { ...c, naoLidas: 0 } : c)) })
-  return d.com
+  await (nova ? consulta.leitura.atualizar() : consulta.leitura.carregar())
+  return consulta.info
 }
 
 export async function enviarMensagem(com, texto) {
+  const autor = dono
   const d = await chamarApi('/dm', { com, texto })
-  publicar({ msgs: { ...estado.msgs, [com]: [...(estado.msgs[com] || []), d.msg] } })
+  if (autor !== dono) return d.msg
+  publicar({ msgs: { ...estado.msgs, [com]: [...(estado.msgs[com] || []).filter((m) => m.id !== d.msg.id), d.msg] } })
   const existente = estado.conversas?.find((c) => c.id === com)
   if (existente) publicar({ conversas: [{ ...existente, ts: d.msg.ts, texto: d.msg.texto, de: d.msg.de }, ...estado.conversas.filter((c) => c.id !== com)] })
   else carregarConversas() // primeira mensagem para essa pessoa: busca a conversa nova com nome e foto
@@ -45,14 +57,13 @@ export async function enviarMensagem(com, texto) {
 
 export async function apagarChat(com, mensagem) {
   await chamarApi('/dm', { com, acao: mensagem ? 'apagar-mensagem' : 'apagar-conversa', mensagem })
-  await carregarMensagens(com)
-  await carregarConversas()
+  await Promise.all([carregarMensagens(com, true), carregarConversas(true)])
 }
 
 function aoAtualizarDm(e) {
   const outro = e.detail.de === dono ? e.detail.para : e.detail.de
-  carregarConversas()
-  if (outro === abertaCom) carregarMensagens(outro).catch(() => {})
+  carregarConversas(true)
+  if (outro === abertaCom) carregarMensagens(outro, true).catch(() => {})
   else if (estado.msgs[outro]) {
     const msgs = { ...estado.msgs }
     delete msgs[outro]
@@ -69,31 +80,45 @@ function aoReceberDm(e) {
   const { de, para, msg } = e.detail
   const outro = de === dono ? para : de
   if (outro === abertaCom) {
-    carregarMensagens(outro) // já está com a conversa aberta: busca de novo (marca como lida) e mostra a mensagem
+    carregarMensagens(outro, true).catch(() => {}) // já está com a conversa aberta: busca de novo (marca como lida) e mostra a mensagem
     return
   }
   const existente = estado.conversas?.find((c) => c.id === outro)
   if (!existente) {
-    carregarConversas() // conversa nova (primeira mensagem dessa pessoa): busca nome e foto certinhos
+    carregarConversas(true) // conversa nova (primeira mensagem dessa pessoa): busca nome e foto certinhos
     return
   }
   const msgs = estado.msgs[outro]
   const souEu = de === dono
   const atualizada = { ...existente, ts: msg.ts, texto: msg.texto, de, naoLidas: souEu ? existente.naoLidas : (existente.naoLidas || 0) + 1 }
   publicar({
-    msgs: msgs ? { ...estado.msgs, [outro]: [...msgs, msg] } : estado.msgs,
+    msgs: msgs ? { ...estado.msgs, [outro]: [...msgs.filter((m) => m.id !== msg.id), msg] } : estado.msgs,
     conversas: [atualizada, ...estado.conversas.filter((c) => c.id !== outro)],
   })
 }
 
+let eventosLigados = false
+const sincronizarChats = () => {
+  carregarConversas(true)
+  if (abertaCom) carregarMensagens(abertaCom, true).catch(() => {})
+}
 let ligadoPara = null
 function ligar(id) {
+  if (!eventosLigados) {
+    eventosLigados = true
+    window.addEventListener('np-dm', aoReceberDm)
+    window.addEventListener('np-dm-atualizou', aoAtualizarDm)
+    window.addEventListener('np-reconectou', sincronizarChats)
+  }
   dono = id
   if (ligadoPara === id) return
   ligadoPara = id
+  leituraConversas.descartar()
+  for (const consulta of leiturasMensagens.values()) consulta.leitura.descartar()
+  leiturasMensagens.clear()
   estado = { conversas: null, msgs: {} }
   window.dispatchEvent(new Event(EVENTO))
-  if (id) carregarConversas()
+  if (id) carregarConversas(true)
 }
 
 // Lista de conversas (sidebar) + helper para o total de mensagens não lidas (selo no botão de Amigos)
@@ -103,12 +128,8 @@ export function useConversas() {
   useEffect(() => {
     const ouvir = () => atualizar((n) => n + 1)
     window.addEventListener(EVENTO, ouvir)
-    window.addEventListener('np-dm', aoReceberDm)
-    window.addEventListener('np-dm-atualizou', aoAtualizarDm)
     return () => {
       window.removeEventListener(EVENTO, ouvir)
-      window.removeEventListener('np-dm', aoReceberDm)
-      window.removeEventListener('np-dm-atualizou', aoAtualizarDm)
     }
   }, [])
   useEffect(() => {

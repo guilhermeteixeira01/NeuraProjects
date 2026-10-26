@@ -1,0 +1,27 @@
+/* Administração: navegação, tabelas e formulários no mesmo sistema do site. */
+.adm-resumo { max-width: none; gap: 16px; }
+.adm-resumo .caixa { background: var(--ui-surface); border: 0; padding: 22px; border-radius: 10px; }
+.adm-resumo .mono { font: 500 13px var(--font-body); letter-spacing: 0; }
+.adm-resumo b { font-size: 38px; font-variant-numeric: tabular-nums; }
+.adm-secao { padding-block: 28px 64px; }
+.adm-abas { width: 100%; display: flex; flex-wrap: wrap; border: 0; background: var(--ui-surface); padding: 8px; gap: 6px; border-radius: 10px; }
+.adm-abas button, .adm-sub-abas button, .adm-chips button { min-height: 42px; font: 600 13px var(--font-body); text-transform: none; letter-spacing: 0; border: 0; border-radius: 6px; }
+.adm-abas button.active, .adm-chips button.active, .adm-sub-abas button.active { background: var(--ui-active); color: var(--ui-accent); box-shadow: none; }
+.adm-bloco, .adm-dobra { background: var(--ui-surface); border: 0; border-radius: 10px; padding: 24px; }
+.adm-dobra + .adm-dobra { margin-top: 14px; }
+.adm-dobra > summary { min-height: 44px; font-size: 16px; cursor: pointer; }
+.adm-ferramentas { gap: 12px; margin-bottom: 22px; }
+.adm-tabela-box { border-radius: 8px; background: var(--ui-surface); overscroll-behavior-x: contain; }
+.adm-tabela th { font: 500 12px var(--font-body); letter-spacing: 0; text-transform: none; background: var(--ui-raised); padding-block: 16px; }
+.adm-tabela td { padding-block: 16px; font-size: 14px; font-variant-numeric: tabular-nums; }
+.adm-tabela tbody tr { border-top: 0; }
+.adm-tabela tbody tr:nth-child(even) { background: rgb(var(--tinta) / .025); }
+.adm-tabela tbody tr:hover { background: var(--ui-raised); }
+.adm-jog small, .adm-nivel small { font-size: 12px; }
+.adm-editar { min-height: 36px; background: var(--ui-raised); border: 0; border-radius: 5px; color: var(--text); }
+.adm-janela { background: var(--ui-surface); border: 0; border-radius: 12px; max-height: 92dvh; }
+.adm-campo input, .adm-campo select, .adm-busca { min-height: 44px; background: var(--ui-raised); border-color: transparent; }
+.adm-ed-corpo { gap: 24px; }
+.adm-servidor, .sv-painel { background: var(--ui-surface); border: 0; }
+.adm-console, .sv-console { border-radius: 8px; font-family: Consolas, monospace; }
+@media(max-width:700px) { .adm-resumo { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; } .adm-resumo .caixa { padding: 16px; } .adm-bloco, .adm-dobra { padding: 16px; } .adm-abas button { flex: 1 1 100px; padding-inline: 10px; } .adm-ferramentas { align-items: stretch; } .adm-chips { gap: 5px; } .adm-tabela-box { max-width: 100%; } }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ALL_MAPS, DEFAULT_POOL, POOL_SIZE, POOL_UPDATED, mapIcon, mapImage } from '../data/maps.js'
 import { FORMATS } from '../data/veto.js'
-import { FundoHero, Palavras } from '../../../comum/HeroFundo.jsx'
+import { FundoHero } from '../../../comum/HeroFundo.jsx'
 import { useInclinar } from '../../../comum/efeitos.jsx'
 import { IconClock, IconPlay, IconShield, IconSwap, IconTarget } from './Icons.jsx'
 import TeamLogo, { MAX_LOGO_URL, logoValido } from './TeamLogo.jsx'
@@ -108,15 +108,7 @@ export default function Setup({ onStart }) {
 
         <div className="wrap hero-inner">
           <div className="hero-copy">
-            <span className="hero-status fx-entra" style={{ '--e': 0 }}>
-              <span className="dot-live" /> MAP VETO SYSTEM · CS2
-            </span>
-            <h1>
-              <Palavras texto={tr('Pick & Ban de mapas no')} />
-              <span className="fx-gradiente">
-                <Palavras texto={tr('padrão competitivo')} inicio={5} />
-              </span>
-            </h1>
+            <h1>Pick &amp; Ban<br />CS2.</h1>
             <p className="lead fx-entra" style={{ '--e': 3 }}>
               {tr('Monte o confronto, defina o formato e conduza o veto exatamente como nos campeonatos de Counter-Strike 2 — até sobrar um único mapa.')}
             </p>

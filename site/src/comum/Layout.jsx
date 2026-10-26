@@ -29,7 +29,7 @@ function PortaoBoasVindas() {
 
 // Elementos com a classe `seletor` ganham `classe` quando aparecem na tela (entram suavemente).
 // Também pega os que surgem depois (lista que carrega da internet, troca de filtro...).
-export function useRevelar(seletor = '.reveal', classe = 'is-visible', opcoes = { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }, aoRevelar) {
+export function useRevelar(seletor = '.reveal', classe = 'is-visible', opcoes = { threshold: 0.12, rootMargin: '80px 0px' }, aoRevelar) {
   useEffect(() => {
     const pendentes = () => document.querySelectorAll(`${seletor}:not(.${classe})`)
     const mostrar = (el) => {
@@ -48,9 +48,22 @@ export function useRevelar(seletor = '.reveal', classe = 'is-visible', opcoes = 
         }
       })
     }, opcoes)
-    const observar = () => pendentes().forEach((el) => obs.observe(el))
+    const vistos = new WeakSet()
+    const observarUm = (el) => {
+      if (vistos.has(el)) return
+      vistos.add(el)
+      obs.observe(el)
+    }
+    const observar = (raiz = document) => {
+      if (raiz instanceof Element && raiz.matches(`${seletor}:not(.${classe})`)) observarUm(raiz)
+      raiz.querySelectorAll(`${seletor}:not(.${classe})`).forEach(observarUm)
+    }
     observar()
-    const novos = new MutationObserver(observar)
+    const novos = new MutationObserver((registros) => {
+      for (const registro of registros) for (const no of registro.addedNodes) {
+        if (no instanceof Element) observar(no)
+      }
+    })
     novos.observe(document.body, { childList: true, subtree: true })
     return () => {
       obs.disconnect()

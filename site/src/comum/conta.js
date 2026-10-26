@@ -1,7 +1,7 @@
 // Conta do jogador (login pela Steam). O worker (site/worker/steam-login) confirma o login com a Steam e
 // volta para a página com #steam=<token>; o token fica guardado no navegador até expirar ou a pessoa sair.
 // O site só lê o conteúdo do token para mostrar (nome, avatar, SteamID); nada aqui depende de ele ser secreto.
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 import { CONFIG } from './config.js'
 
 const CHAVE = 'np_conta'
@@ -13,18 +13,24 @@ function decodificar(token) {
     const bytes = Uint8Array.from(atob(corpo), (c) => c.charCodeAt(0))
     const d = JSON.parse(new TextDecoder().decode(bytes))
     if (!/^\d{17}$/.test(d.id) || !(d.exp * 1000 > Date.now())) return null
-    return { id: d.id, nome: String(d.nome || ''), avatar: String(d.avatar || '') }
+    return { id: d.id, nome: String(d.nome || ''), avatar: String(d.avatar || ''), exp: d.exp }
   } catch {
     return null
   }
 }
 
+let tokenLido = undefined
+let contaLida = null
 function lerConta() {
   try {
-    return decodificar(localStorage.getItem(CHAVE))
-  } catch {
-    return null
-  }
+    const token = localStorage.getItem(CHAVE)
+    if (token !== tokenLido) {
+      tokenLido = token
+      contaLida = decodificar(token)
+    }
+    if (contaLida && contaLida.exp * 1000 <= Date.now()) contaLida = null
+    return contaLida
+  } catch { return null }
 }
 
 // Chegou do login: guarda o token e tira ele do endereço (some do histórico e de quem copiar o link)
@@ -75,20 +81,28 @@ export function sair({ irParaInicio = false } = {}) {
 
 // Conta logada (ou null). Começa null no HTML gerado e no primeiro render do navegador (iguais),
 // e só depois lê o navegador.
-export function useConta() {
-  const [conta, setConta] = useState(null)
-  useEffect(() => {
+const ouvintesConta = new Set()
+const notificarConta = () => { for (const ouvir of ouvintesConta) ouvir() }
+const aoGuardarConta = (e) => { if (!e.key || e.key === CHAVE) notificarConta() }
+function assinarConta(ouvir) {
+  if (!ouvintesConta.size) {
     capturarDaUrl()
-    const ler = () => setConta(lerConta())
-    ler()
-    window.addEventListener(EVENTO, ler)
-    window.addEventListener('storage', ler) // entrou/saiu em outra aba
-    return () => {
-      window.removeEventListener(EVENTO, ler)
-      window.removeEventListener('storage', ler)
+    window.addEventListener(EVENTO, notificarConta)
+    window.addEventListener('storage', aoGuardarConta)
+  }
+  ouvintesConta.add(ouvir)
+  return () => {
+    ouvintesConta.delete(ouvir)
+    if (!ouvintesConta.size) {
+      window.removeEventListener(EVENTO, notificarConta)
+      window.removeEventListener('storage', aoGuardarConta)
     }
-  }, [])
-  return conta
+  }
+}
+const contaNoServidor = () => null
+export function useConta() {
+  // Snapshot único: montar um painel novo não simula um logout antes de ler a conta.
+  return useSyncExternalStore(assinarConta, lerConta, contaNoServidor)
 }
 
 export const linkPerfil = (steamId) => `/perfil/?id=${encodeURIComponent(steamId)}`

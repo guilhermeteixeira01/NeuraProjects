@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 import { chamarApi } from './api.js'
 import { CONFIG } from './config.js'
 import { useConta } from './conta.js'
+import { criarAtualizador } from './atualizador.js'
 
 const EVENTO = 'np-lobby-estado'
 
@@ -38,24 +39,56 @@ export function useRelogio(ativo, ms = 250) {
   }, [ativo, ms])
 }
 
-let lendo = null
-export function carregarLobby() {
-  // vários componentes pedem ao mesmo tempo (página, sino e barra): uma leitura só
-  lendo ||= chamar()
-    .then((d) => publicar({ dados: d, erro: '' }))
-    .catch((e) => publicar({ erro: e.message }))
-    .finally(() => (lendo = null))
-  return lendo
-}
+let dono = null
+const leitura = criarAtualizador({
+  ler: async () => { const id = dono; return { id, dados: await chamar() } },
+  aplicar: ({ id, dados }) => id === dono && publicar({ dados, erro: '' }),
+  aoErro: (e) => publicar({ erro: e.message }),
+})
+export const carregarLobby = () => dono && leitura.carregar()
+const atualizarLobby = () => dono && leitura.atualizar()
 
 // convidar | remover | entrar | recusar | sair | publico   (id = SteamID do alvo ou do líder; valor = true/false no "publico")
 export async function acaoLobby(acao, id, valor) {
+  const autor = dono
   const d = await chamar({ acao, id, valor })
+  if (autor !== dono) return d
+  leitura.descartar()
   publicar({ dados: d, erro: '' })
+  atualizarLobby()
   return d
 }
 
-// Estado do lobby de quem está logado; atualiza sozinho (aviso ao vivo do worker, ao voltar para a aba e a cada 8 s)
+// Uma assinatura de rede por conta, compartilhada por página, avisos e painéis.
+let assinantes = 0
+let parar = null
+function assinarRede(id) {
+  const mudouConta = dono !== id
+  if (mudouConta) {
+    leitura.descartar()
+    dono = id
+    publicar({ dados: null, erro: '' })
+  }
+  if (!assinantes++) {
+    if (mudouConta) atualizarLobby()
+    else carregarLobby()
+    const voltou = () => document.visibilityState === 'visible' && atualizarLobby()
+    window.addEventListener('np-lobby', atualizarLobby)
+    window.addEventListener('np-reconectou', atualizarLobby)
+    window.addEventListener('focus', voltou)
+    document.addEventListener('visibilitychange', voltou)
+    // Recuperação de eventos perdidos; o WebSocket entrega as mudanças imediatamente.
+    const relogio = setInterval(() => document.visibilityState === 'visible' && carregarLobby(), 20000)
+    parar = () => {
+      window.removeEventListener('np-lobby', atualizarLobby)
+      window.removeEventListener('np-reconectou', atualizarLobby)
+      window.removeEventListener('focus', voltou)
+      document.removeEventListener('visibilitychange', voltou)
+      clearInterval(relogio)
+    }
+  }
+  return () => { if (!--assinantes) parar?.() }
+}
 export function useLobby() {
   const conta = useConta()
   const [, atualizar] = useState(0)
@@ -65,19 +98,11 @@ export function useLobby() {
     return () => window.removeEventListener(EVENTO, ouvir)
   }, [])
   useEffect(() => {
-    if (!conta?.id || !CONFIG.loginSteam) return
-    carregarLobby()
-    const recarregar = () => document.visibilityState === 'visible' && carregarLobby()
-    window.addEventListener('np-lobby', carregarLobby)
-    window.addEventListener('focus', recarregar)
-    document.addEventListener('visibilitychange', recarregar)
-    const relogio = setInterval(recarregar, 8000)
-    return () => {
-      window.removeEventListener('np-lobby', carregarLobby)
-      window.removeEventListener('focus', recarregar)
-      document.removeEventListener('visibilitychange', recarregar)
-      clearInterval(relogio)
+    if (!conta?.id || !CONFIG.loginSteam) {
+      if (dono && !conta?.id) { dono = null; leitura.descartar(); publicar({ dados: null, erro: '' }) }
+      return
     }
+    return assinarRede(conta.id)
   }, [conta?.id])
   return { ...estado, conta }
 }

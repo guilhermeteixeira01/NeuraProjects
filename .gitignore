@@ -5,3 +5,6 @@ site/dist-ssr/
 site/dist-final/
 # Arquivos temporários do playwright-cli (sessões de teste local)
 .playwright-cli/
+
+# Estudos locais de design e capturas de revisão
+.taste-skill/

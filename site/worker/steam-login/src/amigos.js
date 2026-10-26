@@ -196,10 +196,10 @@ const poe = (lista, id) => [...new Set([...(lista || []), id])]
 // Presença: o objeto único que guarda as conexões
 const presenca = (env) => objetoGlobal(env.PRESENCA)
 
-async function minhaLista(env, eu, todos) {
+async function minhaLista(env, eu, todos, semNomes = false) {
   const m = todos[eu] || vazio()
   const ids = [...new Set([...m.amigos, ...m.recebidos, ...m.enviados])]
-  const info = await nomesDe(env, ids)
+  const info = semNomes ? {} : await nomesDe(env, ids)
   const com = (l) => l.map((id) => ({ id, ...info[id] }))
   return { amigos: com(m.amigos), recebidos: com(m.recebidos), enviados: com(m.enviados) }
 }
@@ -302,15 +302,15 @@ export class Presenca {
   }
 
   // GET/POST /amigos (rotaAmigos): lista, pedir, aceitar, recusar, cancelar, remover. Tudo aqui dentro, um pedido de cada vez
-  async amigosPedido(req) {
+  async amigosPedido(req, semNomes = false) {
     const { metodo, quem, acao, id } = await lerCorpo(req)
     const todos = await this.listaAmigos()
-    if (metodo === 'GET') return (minhaLista(this.env, quem, todos))
+    if (metodo === 'GET') return (minhaLista(this.env, quem, todos, semNomes))
     if (!ACOES.includes(acao) || !ID_STEAM.test(String(id)) || id === quem) throw new ErroPedido('amigos')
     const eu = (todos[quem] ??= vazio())
     const ele = (todos[id] ??= vazio())
     if (acao === 'pedir') {
-      if (eu.amigos.includes(id)) return (minhaLista(this.env, quem, todos))
+      if (eu.amigos.includes(id)) return (minhaLista(this.env, quem, todos, semNomes))
       if (eu.amigos.length >= MAX_AMIGOS) throw new ErroConflito('limite')
       if (eu.recebidos.includes(id)) {
         // ele já tinha pedido: vira amizade direto
@@ -339,7 +339,7 @@ export class Presenca {
       this.enviar(k, { tipo: 'lista' })
       if (this.state.getWebSockets(k).length) this.enviar(k, await this.estadoPara(k))
     }
-    return (minhaLista(this.env, quem, todos))
+    return (minhaLista(this.env, quem, todos, semNomes))
   }
 
   // "jogando": quem está numa partida do site com o servidor carregado/ao vivo (e o plugin diz que está lá, quando ele informa quem está presente).
@@ -412,7 +412,7 @@ export class Presenca {
   }
 
   // GET /dm (sem "com"): lista de conversas; GET /dm?com=<id>: histórico com uma pessoa (marca como lida); POST: envia
-  async dm(req) {
+  async dm(req, semNomes = false) {
     const eu = req.headers.get('X-Id')
     if (!ID_STEAM.test(String(eu))) throw new ErroPedido('id')
     const url = new URL(req.url)
@@ -421,7 +421,7 @@ export class Presenca {
     if (req.method === 'GET' && !com) {
       const minhaLista = (await this.state.storage.get(`dmLista:${eu}`)) || {}
       const ids = Object.keys(minhaLista)
-      const info = ids.length ? await nomesDe(this.env, ids) : {}
+      const info = !semNomes && ids.length ? await nomesDe(this.env, ids) : {}
       const amigosEu = new Set((await this.listaAmigos())[eu]?.amigos || [])
       const conversas = ids
         .map((id) => ({ id, nome: info[id]?.nome || '', avatar: info[id]?.avatar || '', st: this.statusVisivel(id), amigo: amigosEu.has(id), ...minhaLista[id] }))
@@ -439,7 +439,7 @@ export class Presenca {
         minhaLista[com] = { ...minhaLista[com], naoLidas: 0 }
         await this.state.storage.put(`dmLista:${eu}`, minhaLista)
       }
-      const info = (await nomesDe(this.env, [com]))[com] || {}
+      const info = semNomes ? {} : (await nomesDe(this.env, [com]))[com] || {}
       const amigo = ((await this.listaAmigos())[eu]?.amigos || []).includes(com)
       return { com: { id: com, nome: info.nome || '', avatar: info.avatar || '', st: this.statusVisivel(com), amigo }, mensagens }
     }
@@ -544,7 +544,7 @@ export class Presenca {
 
   // ── Lobby ──
   // GET /lobby (X-Id = quem pergunta) devolve o lobby dele; POST { acao, id?, valor? } muda e devolve o lobby novo.
-  async lobby(req) {
+  async lobby(req, semNomes = false) {
     const eu = req.headers.get('X-Id')
     if (!ID_STEAM.test(String(eu))) throw new ErroPedido('id')
     const todos = (await this.state.storage.get('lobbies')) || {}
@@ -759,7 +759,7 @@ export class Presenca {
     const minhaPartida = partidaDe(partidas, eu)
     const chamadosPor = minhaPartida ? [] : [...new Set(Object.values(partidas).flatMap((x) => (x.chamados?.[eu] && x.chamados[eu].ate > Date.now() && vagasDe(x, x.times.A.membros.includes(x.chamados[eu].por) ? x.times.A : x.times.B).length ? [x.chamados[eu].por] : [])))]
     const ids = [...new Set([lider, ...lb.membros, ...lb.convites, ...convitesRecebidos, ...chamadosPor, ...abertos, ...(minhaPartida ? idsDe(minhaPartida) : [])])]
-    const info = await nomesDe(this.env, ids)
+    const info = semNomes ? {} : await nomesDe(this.env, ids)
     const pessoa = (id) => ({ id, ...info[id], st: this.statusVisivel(id) })
     return {
       eu,
@@ -835,7 +835,15 @@ export class Presenca {
 
   // ── Servidor de CS2 (o plugin BaseComp conversa com estas duas rotas; index.js confere o token) ──
   // POST /servidor/proxima: o plugin está livre e pede a próxima partida; devolve a série pronta ({ nenhuma: true } se não tem).
+  async registrarSinalServidor() {
+    const agora = Date.now()
+    if (agora - (this.ultimoSinalServidor || 0) < 10000) return
+    this.ultimoSinalServidor = agora
+    await this.state.storage.put('servidorVisto', agora)
+  }
+
   async servidorProxima() {
+    await this.registrarSinalServidor()
     const partidas = (await this.state.storage.get('partidas')) || {}
     const agora = Date.now()
     const avisados = new Set()
@@ -874,6 +882,7 @@ export class Presenca {
 
   // POST /servidor/estado { partidaId, estado, detalhe?, placar? }: o plugin conta em que fase a série está
   async servidorEstado(req) {
+    await this.registrarSinalServidor()
     const { partidaId, estado, detalhe, placar } = await lerCorpo(req)
     if (!ESTADOS_SERVIDOR.includes(estado)) throw new ErroPedido('estado')
     const partidas = (await this.state.storage.get('partidas')) || {}
@@ -892,6 +901,7 @@ export class Presenca {
   // POST /servidor/elenco { partidaId, presentes }: o plugin diz quem do elenco está no servidor e recebe o elenco atual
   // (muda quando um membro chama um substituto). Sem partida (já fechada): { erro }.
   async servidorElenco(req) {
+    await this.registrarSinalServidor()
     const { partidaId, presentes } = await lerCorpo(req)
     const partidas = (await this.state.storage.get('partidas')) || {}
     const p = partidas[String(partidaId)]
@@ -939,6 +949,7 @@ export class Presenca {
       this.jogandoAgora = new Set()
       await this.sincronizarJogando((await this.state.storage.get('partidas')) || {})
     }
+    if (url.pathname === '/servidor/sinal') return responder(async () => ({ visto: this.ultimoSinalServidor || (await this.state.storage.get('servidorVisto')) || 0 }))
     const rotas = {
       '/amigos': () => this.amigosPedido(req),
       '/chat': () => this.chat(req),
@@ -950,6 +961,12 @@ export class Presenca {
       // só o ambiente de teste local liga isto (index.js exige MODO_TESTE): apaga as partidas (e os lobbies, sem { apenasPartidas: true })
       '/teste/limpar': () => this.limparTeste(req),
     }
+    // Nomes/fotos podem depender da Steam: enriquecer FORA da fila de mutações.
+    // Um serviço externo lento não bloqueia convites, aceite, chat ou outros jogadores.
+    if (['/lobby', '/amigos', '/dm'].includes(url.pathname)) return responder(async () => {
+      const dados = await this.exclusivo(() => url.pathname === '/lobby' ? this.lobby(req, true) : url.pathname === '/dm' ? this.dm(req, true) : this.amigosPedido(req, true))
+      return this.comNomes(dados)
+    })
     if (rotas[url.pathname]) return responder(() => this.exclusivo(rotas[url.pathname]))
     if (url.pathname === '/todos' || url.pathname === '/mandar') return responder(() => this.avisar(url.pathname, req))
 
@@ -965,8 +982,30 @@ export class Presenca {
     return new Response(null, { status: 101, webSocket: cliente })
   }
 
+  async comNomes(dados) {
+    const ids = new Set()
+    const visitar = (valor) => {
+      if (!valor || typeof valor !== 'object') return
+      if (ID_STEAM.test(String(valor.id))) ids.add(valor.id)
+      for (const filho of Object.values(valor)) visitar(filho)
+    }
+    visitar(dados)
+    const info = ids.size ? await nomesDe(this.env, [...ids]) : {}
+    const preencher = (valor) => {
+      if (Array.isArray(valor)) return valor.map(preencher)
+      if (!valor || typeof valor !== 'object') return valor
+      const novo = Object.fromEntries(Object.entries(valor).map(([k, v]) => [k, preencher(v)]))
+      return info[valor.id] ? { ...novo, ...info[valor.id] } : novo
+    }
+    return preencher(dados)
+  }
+
   async webSocketMessage(ws, msg) {
     const dados = ws.deserializeAttachment()
+    if (dados?.id && msg === 'sincronizar') {
+      this.enviar(dados.id, await this.estadoPara(dados.id))
+      return
+    }
     if (!dados?.id || (msg !== 'online' && msg !== 'ausente') || dados.st === msg) return
     const antes = this.statusDe(dados.id)
     ws.serializeAttachment({ ...dados, st: msg })

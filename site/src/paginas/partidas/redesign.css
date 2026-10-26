@@ -1,0 +1,18 @@
+/* Histórico: filtro lateral legível e séries com mapas preservados. */
+.hist-grade { gap: 24px; }
+.fl-painel { background: var(--ui-surface); border: 0; border-radius: 10px; padding: 20px; }
+.fl-cab { border: 0; padding-bottom: 16px; }
+.fl-rotulo { font: 600 18px var(--font-display); letter-spacing: 0; }
+.fl-lista button { grid-template-columns: minmax(0,1fr) auto; padding: 12px; border: 0; border-radius: 6px; font: 500 14px var(--font-body); }
+.fl-lista button.active { background: var(--ui-active); color: var(--ui-accent); border: 0; }
+.fl-lista button::before { display: none; }
+.fl-lista button.active i { background: var(--ui-raised); box-shadow: none; }
+.fl-rodape { border: 0; font: 400 12px var(--font-body); text-transform: none; letter-spacing: 0; }
+.serie-bloco { clip-path: none; background: var(--ui-surface); border: 0; border-radius: 10px; padding: 18px; margin-bottom: 20px; }
+.serie-bloco::before { display: none; }
+.serie-cab { background: none; border: 0; padding: 8px 4px 18px; }
+.summary-item.partida { border: 0; border-radius: 8px; margin-block: 8px; padding: 20px; box-shadow: none; }
+.summary-map { font: 600 24px var(--font-display); text-transform: none; }
+.summary-num, .summary-side { font: 500 12px var(--font-body); letter-spacing: 0; }
+.placar-linha b { font: 600 28px var(--font-display); font-variant-numeric: tabular-nums; }
+@media(max-width:760px) { .hist-grade { grid-template-columns: 1fr; } .fl-lista { display: flex; flex-wrap: wrap; } .fl-lista button { width: auto; flex: 1 1 120px; } .summary-item.partida { padding: 16px; } .serie-bloco { padding: 12px; } }

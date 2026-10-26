@@ -45,7 +45,7 @@ export default function Times() {
 
   return (
     <Layout pagina="times">
-      <main>
+      <main className="times-page">
         <section className="hero">
           <FundoHero />
           <div className="wrap hero-inner">

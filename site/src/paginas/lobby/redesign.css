@@ -1,0 +1,32 @@
+/* Lobby: nível, grupo, lugares e configuração com a mesma hierarquia. */
+.lb-wrap { padding-top: 28px; }
+.lb-fila { justify-content: flex-start; margin-bottom: 24px; }
+.lb-fila > span { background: none; border: 0; padding: 0; font: 500 14px var(--font-body); letter-spacing: 0; }
+.lb-topo { gap: 24px; padding-bottom: 26px; margin-bottom: 24px; }
+.lb-nivel { background: var(--ui-surface); padding: 22px; border-radius: 10px; }
+.lb-nivel-gema { background: none; }
+.lb-nivel-info h1 { font-size: 34px; text-transform: none; }
+.lb-nivel-texto { color: var(--ui-muted); font-size: 13px; line-height: 1.5; }
+.lb-temporada { border: 0; border-radius: 10px; min-height: 160px; }
+.lb-nome-linha { gap: 18px; margin-block: 16px 24px; }
+.lb-nome-grupo b { font: 600 26px var(--font-display); text-transform: none; }
+.lb-chip { border-radius: 5px; background: var(--ui-raised); font: 500 12px var(--font-body); }
+.lb-lugar { border-radius: 10px; border-color: transparent; box-shadow: none; }
+.lb-lugar:not(.com-card) { background: var(--ui-surface); }
+.lb-lugar.lb-vazio { border: 1px dashed rgb(var(--tinta) / .15); background: transparent; }
+.lb-painel { border: 0; border-radius: 12px; background: var(--ui-surface); padding: 22px; }
+.lb-buscar-faixa { border: 0; padding-bottom: 20px; }
+.lb-buscar { font: 600 17px var(--font-body); text-transform: none; letter-spacing: 0; border-radius: 6px; min-height: 50px; }
+.lb-buscar.pronto { background: var(--ui-accent); color: #18160e; box-shadow: none; }
+.lb-abas-painel { background: var(--ui-raised); border: 0; border-radius: 6px; padding: 4px; }
+.lb-abas-painel button { border: 0; border-radius: 4px; min-height: 42px; font: 600 13px var(--font-body); letter-spacing: 0; }
+.lb-abas-painel button.active, .lb-abas-painel button.is-ativo { background: var(--ui-active); color: var(--ui-accent); }
+.lb-regioes li { background: var(--ui-raised); border: 0; border-radius: 8px; padding: 16px; }
+.lb-regioes li.ativa { outline: 2px solid rgb(var(--tinta) / .15); outline-offset: -2px; }
+.lb-estado-indisponivel { background: var(--ui-raised); color: var(--ui-muted); }
+.lb-janela { background: var(--ui-surface); border: 0; border-radius: 12px; }
+@media(max-width:760px) { .lb-topo { grid-template-columns: 1fr; } .lb-painel { padding: 16px; } .lb-regioes { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); width: 100%; } }
+
+.lb-abas-painel button.ativa { background: var(--ui-active); color: var(--ui-accent); border: 0; }
+.lb-abas-painel button.ativa::after { display: none; }
+.lb-convidar { background: var(--ui-raised); border: 0; }

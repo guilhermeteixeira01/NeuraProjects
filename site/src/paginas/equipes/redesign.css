@@ -1,0 +1,19 @@
+/* Time: catálogo, gestão, membros e chat. */
+.eq-wrap { max-width: 1320px; gap: 24px; }
+.eq-topo { align-items: flex-start; padding-bottom: 24px; }
+.eq-topo h1 { font-size: 48px; margin-bottom: 12px; }
+.eq-topo p { max-width: 60ch; line-height: 1.6; }
+.eq-bloco, .eq-painel { background: var(--ui-surface); border: 0; border-radius: 12px; padding: 24px; }
+.eq-bloco h2 { font: 600 28px var(--font-display); margin-bottom: 18px; }
+.eq-cartao { padding: 18px; border: 0; border-radius: 8px; background: var(--ui-raised); gap: 16px; }
+.eq-cartao b { font-size: 16px; }
+.eq-cartao small { font-size: 13px; }
+.eq-abas { gap: 6px; padding: 6px; border: 0; border-radius: 8px; }
+.eq-abas button { border: 0; min-height: 44px; font: 600 14px var(--font-body); }
+.eq-abas button.is-ativo { color: var(--ui-accent); background: var(--ui-active); }
+.eq-stat, .eq-lado { padding: 22px; border: 0; border-radius: 8px; background: var(--ui-raised); }
+.eq-stat b { font: 600 38px var(--font-display); }
+.eq-stat small { font: 500 13px var(--font-body); text-transform: none; letter-spacing: 0; }
+.eq-pagina input, .eq-pagina select, .eq-pagina textarea { min-height: 44px; background: var(--ui-raised); border-color: transparent; }
+.eq-chat { background: var(--ui-surface); border: 0; border-radius: 10px; }
+@media(max-width:650px) { .eq-topo { flex-direction: column; } .eq-topo h1 { font-size: 38px; } .eq-bloco, .eq-painel { padding: 18px; } .eq-geral { grid-template-columns: repeat(2,minmax(0,1fr)); } .eq-abas { flex-wrap: wrap; } .eq-cartao { flex-wrap: wrap; } }

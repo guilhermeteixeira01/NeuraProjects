@@ -5,6 +5,7 @@
 // Ausente: aba em segundo plano ou 5 min sem mexer no mouse/teclado. A conexão volta sozinha se cair.
 import { useEffect, useState } from 'react'
 import { ErroApi, chamarApi, enderecoApi } from './api.js'
+import { criarAtualizador } from './atualizador.js'
 import { CONFIG } from './config.js'
 import { tokenConta, useConta } from './conta.js'
 
@@ -26,13 +27,13 @@ const publicar = (novo) => {
   window.dispatchEvent(new Event(EVENTO))
 }
 
-async function carregarLista() {
-  try {
-    publicar({ lista: await chamarApi('/amigos') })
-  } catch (e) {
-    if (!(e instanceof ErroApi)) throw e // sem login ou worker fora: fica a lista que já tinha
-  }
-}
+const leituraLista = criarAtualizador({
+  ler: async () => { const id = dono; return { id, lista: await chamarApi('/amigos') } },
+  aplicar: ({ id, lista }) => id === dono && publicar({ lista }),
+  aoErro: (e) => { if (!(e instanceof ErroApi)) throw e },
+})
+const carregarLista = () => dono && leituraLista.carregar()
+const atualizarLista = () => dono && leituraLista.atualizar()
 
 // pedir | aceitar | recusar | cancelar | remover
 // Busca por nome entre quem o site conhece (quem já entrou com a Steam; o ranking o painel já tem): GET /usuarios/buscar?q=
@@ -42,8 +43,12 @@ export async function buscarJogadores(q) {
 }
 
 export async function acaoAmizade(acao, id) {
+  const autor = dono
   const lista = await chamarApi('/amigos', { acao, id })
+  if (autor !== dono) return lista
+  leituraLista.descartar()
   publicar({ lista })
+  atualizarLista()
   return lista
 }
 
@@ -52,8 +57,11 @@ function mandarStatus(st) {
   meuStatus = st
   if (ws?.readyState === 1) ws.send(st)
 }
+let ultimaAtividade = 0
 const atividade = () => {
   if (document.visibilityState !== 'visible') return
+  if (!dono || (Date.now() - ultimaAtividade < 1000 && meuStatus === 'online')) return
+  ultimaAtividade = Date.now()
   mandarStatus('online')
   clearTimeout(ocioso)
   ocioso = setTimeout(() => mandarStatus('ausente'), OCIOSO_MS)
@@ -63,7 +71,7 @@ const visibilidade = () => (document.visibilityState === 'visible' ? atividade()
 // Conexão que parou de responder (PC dormiu, rede trocou) não dispara "close" na hora: derruba e liga de novo sem esperar
 function verificar() {
   if (ws?.readyState !== 1) return
-  if (Date.now() - ultimoSinal > 50000) return reconectar()
+  if (Date.now() - ultimoSinal > 35000) return reconectar()
   ws.send('ping')
 }
 function reconectar() {
@@ -86,10 +94,15 @@ function reconectar() {
   conectar(id)
 }
 // Voltou para a aba / a internet voltou: se a conexão não está aberta liga já; se está, confere com um ping
+let ultimaSincronia = 0
 function acordou() {
-  if (!dono || document.visibilityState === 'hidden') return
+  if (!dono || document.visibilityState === 'hidden' || Date.now() - ultimaSincronia < 500) return
+  ultimaSincronia = Date.now()
+  atualizarLista()
+  window.dispatchEvent(new Event('np-reconectou'))
   if (!ws || ws.readyState > 1) return reconectar()
-  if (Date.now() - ultimoSinal > 25000) {
+  if (ws.readyState === 1) ws.send('sincronizar')
+  if (Date.now() - ultimoSinal > 15000) {
     ultimoSinal = Math.min(ultimoSinal, Date.now() - 40000) // se não vier pong em ~10 s, o próximo verificar() derruba
     try {
       ws.send('ping')
@@ -104,16 +117,25 @@ function conectar(id) {
   if (!token || !CONFIG.loginSteam) return
   dono = id
   ws = new WebSocket(`${enderecoApi().replace(/^http/, 'ws')}/presenca?t=${encodeURIComponent(token)}`)
+  const socket = ws
+  const prazo = setTimeout(() => { if (ws === socket && socket.readyState === 0) socket.close() }, 8000)
+  ws.onerror = () => { if (ws === socket) socket.close() }
   ws.onopen = () => {
+    clearTimeout(prazo)
+    if (ws !== socket) return
+    atualizarLista()
+    window.dispatchEvent(new Event('np-reconectou'))
+    atividade()
     tentativas = 0
     publicar({ conectado: true })
     meuStatus = 'online'
     if (document.visibilityState !== 'visible') mandarStatus('ausente')
     clearInterval(pingar)
     ultimoSinal = Date.now()
-    pingar = setInterval(verificar, 20000) // mantém a conexão viva e percebe quando ela morreu sem avisar
+    pingar = setInterval(verificar, 15000) // mantém a conexão viva e percebe quando ela morreu sem avisar
   }
   ws.onmessage = (e) => {
+    if (ws !== socket) return
     ultimoSinal = Date.now()
     if (e.data === 'pong') return
     let m
@@ -124,7 +146,7 @@ function conectar(id) {
     }
     if (m.tipo === 'estado') publicar({ status: m.status || {} })
     else if (m.tipo === 'mudou') publicar({ status: { ...estado.status, [m.id]: { st: m.st, visto: m.visto ?? estado.status[m.id]?.visto ?? null } } })
-    else if (m.tipo === 'lista') carregarLista()
+    else if (m.tipo === 'lista') atualizarLista()
     // O dono deu uma skin: o aviso aparece na hora (comum/AvisoSkin.jsx)
     else if (m.tipo === 'skin') window.dispatchEvent(new Event('np-skin'))
     // Troca nova/aceita/recusada: o aviso e a lista de trocas atualizam na hora (comum/Trocas.jsx)
@@ -147,16 +169,20 @@ function conectar(id) {
     else if (m.tipo === 'perfil' && m.id) window.dispatchEvent(new CustomEvent('np-perfil-ao-vivo', { detail: { id: m.id, perfil: m.perfil } }))
   }
   ws.onclose = () => {
+    clearTimeout(prazo)
+    if (ws !== socket) return
     clearInterval(pingar)
     publicar({ conectado: false })
     if (dono !== id) return // saiu da conta: não reconecta
-    const espera = Math.min(30000, 1000 * 2 ** tentativas++) // 1 s, 2 s, 4 s... até 30 s
+    const espera = Math.min(15000, 1000 * 2 ** tentativas++) // 1 s, 2 s, 4 s... até 15 s
     religar = setTimeout(() => dono === id && conectar(id), espera)
   }
 }
 
 function desconectar() {
   dono = null
+  leituraLista.descartar()
+  clearTimeout(ocioso)
   clearTimeout(religar)
   clearInterval(pingar)
   try {
@@ -175,6 +201,7 @@ function ligar(id) {
   desconectar()
   ligadoPara = id
   if (!id) return
+  dono = id
   carregarLista()
   conectar(id)
   if (!window.__npAmigosEventos) {
