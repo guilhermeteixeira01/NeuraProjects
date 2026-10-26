@@ -178,8 +178,11 @@ html[data-desempenho='1'] .np-inicio .ix-destaques li a { box-shadow: none; tran
 .lj-cx-roletas .lj-especial .lj-emblema { max-width:100%; max-height:100%; width:auto; height:100%; object-fit:contain; }
 /* A venda permanece no controle abaixo; não cobre mais imagem ou texto da roleta. */
 .lj-cx-roletas .lj-vender-um { display:none; }
+.lj-cx-roletas .lj-faixas[data-n] .lj-trilho .lj-reel { display:block; padding:0; }
+.lj-cx-roletas .lj-faixas[data-n] .lj-reel-item > .lj-cartao { width:100% !important; height:100%; }
 .lj-cx-roletas .lj-embutida .lj-faixas { padding-block:var(--encaixe); }
 .lj-cx-roletas .lj-embutida .lj-centro { min-height:var(--cenario); }
+.lj-cx-roletas .lj-abertura.lj-embutida { min-height:var(--cenario); }
 .np-caixa-vitrine { position:absolute; z-index:3; inset:50% auto auto 50%; transform:translate(-50%,-50%); display:grid; place-items:center; width:clamp(200px,21vw,260px); height:280px; padding:0; border:0; background:transparent; pointer-events:none; }
 .np-caixa-vitrine img { width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 8px 18px rgb(0 0 0 / .4)); }
 .np-caixa-vitrine b,.np-caixa-vitrine small { display:none; }

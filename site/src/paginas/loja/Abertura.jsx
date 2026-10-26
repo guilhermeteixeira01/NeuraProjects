@@ -244,9 +244,12 @@ function Roleta({ vertical = false, itens, alvo, lista, achar, rodando, pular, d
   // Depois de parar, preserve o centro também ao girar o celular ou redimensionar a janela.
   useEffect(() => {
     if (!parou) return
-    const el = caixa.current, tr = trilho.current, escolhido = tr?.children[alvo]
-    if (!el || !escolhido) return
+    const el = caixa.current, tr = trilho.current
+    if (!el || !tr?.children[alvo]) return
     const centralizar = () => {
+      // O cartão dourado é substituído durante a revelação: não reutilize o nó removido.
+      const escolhido = tr.children[alvo]
+      if (!escolhido?.isConnected) return
       const centro = vertical ? escolhido.offsetTop + escolhido.offsetHeight / 2 : escolhido.offsetLeft + escolhido.offsetWidth / 2
       const tamanho = vertical ? el.clientHeight : el.clientWidth
       tr.style.transform = `translate${vertical ? 'Y' : 'X'}(${tamanho / 2 - centro}px)`
@@ -254,7 +257,7 @@ function Roleta({ vertical = false, itens, alvo, lista, achar, rodando, pular, d
     centralizar()
     const observador = new ResizeObserver(centralizar)
     observador.observe(el)
-    observador.observe(escolhido)
+    observador.observe(tr)
     return () => observador.disconnect()
   }, [parou, vertical, alvo])
 
@@ -550,7 +553,7 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
         {/* sem "Pular animação": a roleta sempre vai até o fim (o Lightning da página da caixa deixa ela mais curta) */}
       </div>
 
-      {/* embutida: enquanto o servidor sorteia, ficam as mesmas roletas paradas que já estavam na tela (nada muda de altura) */}
+      {/* Enquanto o servidor responde, conserva o cenário inicial e sua altura. */}
       {fase === 'carregando' && embutida && espera}
       {fase === 'carregando' && !embutida && (
         <div className="lj-centro">

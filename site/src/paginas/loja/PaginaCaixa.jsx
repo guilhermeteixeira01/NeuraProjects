@@ -10,7 +10,7 @@ import { useT } from '../../comum/i18n.js'
 import { avisarSaldo, lerDetalhesCaixa, venderItens } from '../../comum/loja.js'
 import { desempenhoAtivo } from '../../comum/desempenho.js'
 import { RARIDADES } from '../../../worker/steam-login/src/loja-core.js'
-import Abertura, { CartaoItem, EmblemaEspecial, dadosDoItem } from './Abertura.jsx'
+import Abertura, { EmblemaEspecial, dadosDoItem } from './Abertura.jsx'
 import { definirPreferencia, preferenciaAtual, som } from './somLoja.js'
 
 const MAX_POR_VEZ = 1 // uma caixa por abertura, também validado no servidor
@@ -192,34 +192,6 @@ function ParticulasModo({ modo, chave }) {
     }
   }, [modo, chave])
   return <canvas className="lj-cx-particulas" ref={ref} aria-hidden="true" />
-}
-
-// ── roleta parada (antes de abrir): uma amostra dos itens da caixa, com o marcador no meio ──
-function sortearAmostra(c) {
-  const lista = []
-  const pesos = c.itens.map((it) => Math.max(1, (RARIDADES.length - it.r) * 3))
-  const total = pesos.reduce((a, b) => a + b, 0)
-  for (let k = 0; k < 11; k++) {
-    if (c.facas.length && k === 7) {
-      lista.push({ r: 5 })
-      continue
-    }
-    let x = Math.random() * total
-    let i = 0
-    while (x > pesos[i] && i < pesos.length - 1) x -= pesos[i++]
-    lista.push({ r: c.itens[i].r, it: c.itens[i] })
-  }
-  return lista
-}
-function RoletaParada({ amostra, achar }) {
-  return (
-    <div className="lj-roleta lj-roleta-parada">
-      <div className="lj-trilho">
-        {amostra.map((x, k) => (x.r === 5 && !x.it ? <CartaoItem key={k} r={5} achar={achar} /> : <CartaoItem key={k} r={x.r} d={x.it.d} p={x.it.p} tipo={x.it.t} n={x.it.n} i={x.it.i} achar={achar} />))}
-      </div>
-      <i className="lj-marcador" aria-hidden="true" />
-    </div>
-  )
 }
 
 // ── um item do "Conteúdo da caixa": chance no canto (no Boost, quantas vezes mais chance); o "i" mostra preço e chance de cada desgaste ──
@@ -464,9 +436,11 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
     }
   }
   const girando = !!abrindo && !resultado
-  // as roletas paradas (uma por caixa escolhida): a mesma amostra antes de abrir e enquanto o servidor sorteia
-  const amostras = useMemo(() => Array.from({ length: qtd }, () => sortearAmostra(c)), [c.id, qtd]) // eslint-disable-line react-hooks/exhaustive-deps
-  const paradas = amostras.map((a, k) => <RoletaParada key={k} amostra={a} achar={achar} />)
+  // Mantem o mesmo cenario e a mesma altura durante a espera da resposta.
+  const espera = <div className="np-caixa-antes">
+    <div className="np-carrossel-vazio" aria-hidden="true" />
+    <div className="np-caixa-vitrine"><img src={c.img} alt={c.nome} width="220" height="220" /></div>
+  </div>
   const aVender = (resultado || []).filter((r) => !vendidos.has(r.id))
   const totalVenda = aVender.reduce((a, r) => a + (r.v || 0), 0)
 
@@ -514,14 +488,9 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
             vendidos={vendidos}
             vendendo={vendendo}
             aoVender={vender}
-            espera={paradas}
+            espera={espera}
           />
-        ) : (
-          <div className="np-caixa-antes">
-            <div className="np-carrossel-vazio" aria-hidden="true" />
-            <div className="np-caixa-vitrine"><img src={c.img} alt={c.nome} width="220" height="220" /><b>{c.nome}</b>{qtd > 1 && <small>× {qtd}</small>}</div>
-          </div>
-        )}
+        ) : espera}
         <ParticulasModo modo={modo} chave={efeito} />
       </div>
 
