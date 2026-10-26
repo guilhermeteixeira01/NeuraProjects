@@ -16,23 +16,5 @@
     "criada": "2026-10-26 22:08",
     "atualizada": "2026-10-26 22:08",
     "canceladaEm": "2026-10-26T22:08:36+00:00"
-  },
-  {
-    "id": "2026-10-26_22-00_time_Te1xe1ra-x-time_Senna",
-    "organizacao": "neura-project",
-    "categoria": "md1",
-    "formato": "MD1",
-    "timeA": "time_Te1xe1ra",
-    "timeB": "time_Senna",
-    "logoA": null,
-    "logoB": null,
-    "mapas": [
-      "de_overpass"
-    ],
-    "status": "cancelada",
-    "mapaAtual": 0,
-    "criada": "2026-10-26 22:05",
-    "atualizada": "2026-10-26 22:05",
-    "canceladaEm": "2026-10-26T22:05:38+00:00"
   }
 ]
