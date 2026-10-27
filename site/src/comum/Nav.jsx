@@ -1,3 +1,5 @@
+import { createPortal } from 'react-dom'
+import { usePainelMobile } from './usePainelMobile.js'
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import { CONFIG, MENU } from './config.js'
 import { entrar, linkPerfil, loginAtivo, sair, useConta } from './conta.js'
@@ -55,6 +57,9 @@ function Conta() {
   // A foto do token é a do dia do login (vale 30 dias): troca pela atual da Steam
   const fotoAtual = useAvatar(conta?.id)
   const caixa = useRef(null)
+  const painel = useRef(null)
+  const celular = usePainelMobile(aberto && !!conta, painel)
+  const naTela = el => celular ? createPortal(el, document.body) : el
   const saldo = useSaldo(conta?.id, true, aberto) // o que sobra depois de gastar na loja: busca ao carregar a página e de novo ao abrir o menu; o último valor fica guardado
   const pontos = saldo // null só na primeira vez, até o servidor responder (mostra "…" em vez de um número errado)
   const { conectado } = useAmigos()
@@ -62,7 +67,7 @@ function Conta() {
 
   useEffect(() => {
     if (!aberto) return
-    const fora = (e) => !caixa.current?.contains(e.target) && setAberto(false)
+    const fora = (e) => !caixa.current?.contains(e.target) && !painel.current?.contains(e.target) && setAberto(false)
     const tecla = (e) => e.key === 'Escape' && setAberto(false)
     document.addEventListener('pointerdown', fora)
     document.addEventListener('keydown', tecla)
@@ -95,8 +100,8 @@ function Conta() {
         </ComMoldura>
         <span className="nx-conta-nome nx-dica">{nome}</span>
       </button>
-      {aberto && (
-        <div className="nx-conta-menu cp-card" role="dialog" aria-label={t('Minha conta')}>
+      {aberto && naTela(
+        <div ref={painel} className={`nx-conta-menu cp-card${celular ? ' nx-painel-mobile' : ''}`} role="dialog" aria-modal={celular || undefined} aria-label={t('Minha conta')}>
           <div className="cp-topo">
             <span className="cp-av">
               <ComMoldura steamId={conta.id}>

@@ -676,20 +676,23 @@ function Conteudo({ status }) {
         </p>
       )}
 
-      <div className="lb-palco">
-        {lugares.map((l, i) =>
-          l.encontrar ? (
-            <button key={i} type="button" className="lb-lugar lb-encontrar" onClick={() => setEncontrando(true)}>
-              <Marca d={IC_BUSCA} tamanho={22} />
-              <b>{t('Encontrar lobbies')}</b>
-              {dados.convitesRecebidos.length > 0 && <span className="lb-badge">{dados.convitesRecebidos.length}</span>}
-            </button>
-          ) : l.pessoa ? (
-            <Pessoa key={l.pessoa.id} {...l} eu={eu} souLider={dados.souLider} ocupado={ocupado || !!dados.busca} nivelDe={nivelDoJogador} aoRemover={(id) => fazer('remover', id)} />
-          ) : (
-            <Vazio key={i} podeConvidar={!dados.busca} aoConvidar={() => setConvidando(true)} />
-          ),
-        )}
+      <div className="lb-palco lb-palco-cenario">
+        {lugares.map((l, i) => (
+          <div className={`lb-cena-slot${l.centro ? ' lb-cena-centro' : ''}`} key={l.pessoa?.id || `lugar-${i}`}>
+            <img className="lb-personagem" src={`/assets/Lobby/web/personagem-${[2, 4, 1, 3, 5][i]}.webp`} alt="" aria-hidden="true" draggable="false" decoding="async" />
+            {l.encontrar ? (
+              <button type="button" className="lb-lugar lb-encontrar" onClick={() => setEncontrando(true)}>
+                <Marca d={IC_BUSCA} tamanho={22} />
+                <b>{t('Encontrar lobbies')}</b>
+                {dados.convitesRecebidos.length > 0 && <span className="lb-badge">{dados.convitesRecebidos.length}</span>}
+              </button>
+            ) : l.pessoa ? (
+              <Pessoa {...l} eu={eu} souLider={dados.souLider} ocupado={ocupado || !!dados.busca} nivelDe={nivelDoJogador} aoRemover={(id) => fazer('remover', id)} />
+            ) : (
+              <Vazio podeConvidar={!dados.busca} aoConvidar={() => setConvidando(true)} />
+            )}
+          </div>
+        ))}
       </div>
 
       <Painel dados={dados} fazer={fazer} ocupado={ocupado} status={status} />

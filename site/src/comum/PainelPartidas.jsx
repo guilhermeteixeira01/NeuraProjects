@@ -1,3 +1,4 @@
+import { usePainelMobile } from './usePainelMobile.js'
 // Painel "Partidas" (botão VS na barra da direita): os mapas que o jogador já jogou, do mais novo para o mais antigo, como o da FACEIT.
 // Dados: perfil/historico/<SteamID>.json (gerado no deploy: scripts/ranking.mjs). Cada cartão leva para a página da partida.
 import { useEffect, useState } from 'react'
@@ -54,6 +55,7 @@ export default function PainelPartidas({ celular = false }) {
   const t = useT()
   const conta = useConta()
   const [aberto, setAberto] = useState(false)
+  usePainelMobile(aberto && celular && !!conta)
   const [lista, setLista] = useState(null)
 
   useEffect(() => {

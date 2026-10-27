@@ -10,7 +10,7 @@
   --ui-hover: #262b34;
   --ui-muted: #adb3c0;
   --ui-accent: #edc34b;
-  --ui-active: #322c1b;
+  --ui-active: #252525;
   --ui-shadow: 0 18px 60px rgb(0 0 0 / .28);
   --ui-gap: clamp(20px, 3.4vw, 52px);
 }
@@ -20,7 +20,7 @@ html:is([data-tema='claro'], [data-tema='branco']) {
   --ui-raised: #e8ecf2;
   --ui-hover: #dde3eb;
   --ui-muted: #505c6b;
-  --ui-active: #f6e9bd;
+  --ui-active: #e7e9ec;
 }
 html[data-tema='escuro'] { --ui-surface: #191b20; --ui-raised: #22252c; }
 body { background: var(--bg); }

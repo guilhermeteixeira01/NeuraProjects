@@ -121,7 +121,7 @@ export default function Layout({ pagina, children }) {
     <>
       <Nav pagina={pagina} />
       <div className="np-conteudo">
-        <BannerEvento />
+        {pagina === 'inicio' && <BannerEvento />}
         {children}
         <RodapeComunidade />
       </div>

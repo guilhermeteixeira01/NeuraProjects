@@ -1,24 +1,28 @@
-/* O calendário do banner também conduz a atmosfera e os detalhes da interface. */
+/* Arte e partículas acompanham o calendário; a base da interface mantém cores fixas. */
 :root { --evento-cor: #f39a4c; --evento-secundario: #a6c5ed; }
 html:not([data-tema]), html[data-tema='escuro'] {
-  --bg-soft: color-mix(in srgb, var(--evento-cor) 3%, #111214);
-  --ui-surface: color-mix(in srgb, var(--evento-cor) 3%, #17181a);
-  --ui-raised: color-mix(in srgb, var(--evento-cor) 4%, #222428);
-  --ui-hover: color-mix(in srgb, var(--evento-cor) 7%, #2d3035);
-  --border: color-mix(in srgb, var(--evento-cor) 13%, #2b2d31);
-  --border-2: color-mix(in srgb, var(--evento-cor) 20%, #3a3d42);
+  --bg-soft: #141414;
+  --ui-surface: #181818;
+  --ui-raised: #242424;
+  --ui-hover: #303030;
+  --border: #303030;
+  --border-2: #424242;
 }
 html:is([data-tema='claro'],[data-tema='branco']) {
-  --ui-surface: color-mix(in srgb, var(--evento-cor) 4%, white);
-  --border: color-mix(in srgb, var(--evento-cor) 20%, #cdd1d7);
-  --border-2: color-mix(in srgb, var(--evento-cor) 26%, #a2a9b2);
+  --ui-surface: #ffffff;
+  --border: #cdd1d7;
+  --border-2: #a2a9b2;
 }
-.nx-nav .nx-link.is-active { box-shadow: inset 3px 0 var(--evento-cor); }
-.np-jogo { border-color: color-mix(in srgb, var(--evento-cor) 30%, var(--border)); }
+.nx-nav .nx-link.is-active { box-shadow: inset 3px 0 var(--ui-accent); }
+/* A navegação e os menus usam o azul Neura, independente do evento do Início. */
+:is(.nx-nav, .nx-direita, .nx-baixo) { --ui-accent: var(--blue-2); }
+html:is([data-tema='claro'], [data-tema='branco']) :is(.nx-nav, .nx-direita, .nx-baixo) { --ui-accent: var(--blue); }
+.nx-nav .nx-link.is-active, .nx-nav.nx-aberta .nx-links .nx-link.is-active, .nx-baixo .nx-link.is-active { color: var(--ui-accent); background: var(--ui-active); }
+.np-jogo { border-color: color-mix(in srgb, var(--blue-2) 30%, var(--border)); }
 .np-jogo:hover { background: var(--ui-raised); }
-.am-cab, .nx-config-cab { border-bottom-color: color-mix(in srgb, var(--evento-cor) 28%,var(--border)); }
-:is(.nx-conta-menu.cp-card,.nx-config-painel,.am-painel) { border-top: 2px solid var(--evento-cor); }
-:is(.btn-ghost,.eq-btn,.lj-btn,.lb-btn,.inv-btn):hover:not(:disabled) { border-color: var(--evento-cor); }
+.am-cab, .nx-config-cab { border-bottom-color: var(--border); }
+:is(.nx-conta-menu.cp-card,.nx-config-painel,.am-painel) { border-top: 2px solid var(--blue-2); }
+:is(.btn-ghost,.eq-btn,.lj-btn,.lb-btn,.inv-btn):hover:not(:disabled) { border-color: var(--blue-2); }
 :is(.lb-nivel,.lb-temporada,.pf-estat,.inv-barra,.lj-saldo,.eq-box) { border: 1px solid var(--border); }
 .ranking-page, .ranking-page > .hero, .ranking-page .secao { background: var(--bg); }
 .ranking-page .barra-topo { background: var(--ui-surface); border-color: var(--border); }
@@ -113,7 +117,7 @@ html[data-desempenho='1'] .np-inicio .ix-destaques li a { box-shadow: none; tran
 .am-painel .am-abas button.ativa, .am-painel .am-abas button.active, .am-painel .am-abas button[aria-selected='true'] { color: #17150e; background: var(--ui-accent); box-shadow: 0 2px 10px rgb(245 197 66 / .12); }
 .am-dm-lista { padding: 10px; gap: 8px; }
 .am-dm-lista .am-dm-msg { display: flex; flex-direction: column; align-items: stretch; align-self: stretch; width: 100%; max-width: 100%; padding: 10px; border-left: 2px solid var(--border-2); border-radius: 0 5px 5px 0; background: var(--bg-soft); gap: 8px; }
-.am-dm-lista .am-dm-minha { border-left-color: var(--evento-cor); background: color-mix(in srgb,var(--evento-cor) 4%,var(--bg-soft)); }
+.am-dm-lista .am-dm-minha { border-left-color: var(--blue-2); background: var(--bg-soft); }
 .np-chat-autor { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .np-chat-autor .am-av { width: 28px; height: 28px; flex: none; }
 .np-chat-autor > img, .np-chat-autor > .am-ini { width: 28px; height: 28px; flex: none; border-radius: 50%; object-fit: cover; }
@@ -130,7 +134,7 @@ html[data-desempenho='1'] .np-inicio .ix-destaques li a { box-shadow: none; tran
 .chat-sala .chat-quem time, .eq-chat-lista time { margin-left: auto; color: var(--ui-muted); font-size: 10px; }
 .chat-sala .chat-abas { border-bottom: 1px solid var(--border); padding: 6px; gap: 6px; }
 .chat-sala .chat-abas button.is-ativo { color: #17150e; background: var(--ui-accent); border-radius: 6px; }
-.am-painel:not(.nt-painel):not(.pp-painel) { background: radial-gradient(ellipse at 0 100%,color-mix(in srgb,var(--evento-cor) 5%,transparent),transparent 65%),#0e1012; }
+.am-painel:not(.nt-painel):not(.pp-painel) { background: var(--ui-surface); }
 .am-painel:not(.nt-painel):not(.pp-painel) .am-abas { margin: 8px; padding: 4px; background: #080b0c; border-color: #22272a; border-radius: 12px; }
 .am-painel:not(.nt-painel):not(.pp-painel) .am-abas button { font-size: 10px; font-weight: 800; letter-spacing: .1em; }
 .am-painel:not(.nt-painel):not(.pp-painel) .am-abas button:last-child { order: -1; }
@@ -206,4 +210,44 @@ html[data-desempenho='1'] .np-inicio .ix-destaques li a { box-shadow: none; tran
 @media(prefers-reduced-motion:reduce) {
   .np-evento-ambiente { display: none; }
   .np-inicio .ix-destaques li a, .np-inicio .ix-acoes .btn-primary { transition: none; transform: none; }
+}
+
+/* Menus superiores do celular: uma tela, sem largura de popover ou dobra. */
+@media (max-width: 1024px) {
+  html.np-painel-mobile-aberto, html.np-painel-mobile-aberto body { overflow: hidden !important; overscroll-behavior: none; }
+  .nx-config-painel.nx-painel-mobile, .nx-conta-menu.cp-card.nx-painel-mobile {
+    --ui-accent: var(--blue-2);
+    position: fixed; inset: 0; z-index: 460;
+    box-sizing: border-box; width: 100%; min-width: 0; max-width: none;
+    height: 100vh; height: 100dvh; min-height: 0; max-height: none;
+    display: flex; flex-direction: column; align-items: stretch;
+    margin: 0; padding: 0 0 max(20px, env(safe-area-inset-bottom, 0px));
+    gap: 20px; border: 0; border-radius: 0; box-shadow: none;
+    background: var(--ui-surface); transform: none; animation: none;
+    overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain;
+    touch-action: pan-y; scrollbar-gutter: stable;
+  }
+  .nx-config-painel.nx-painel-mobile > *, .nx-conta-menu.cp-card.nx-painel-mobile > * { flex-shrink: 0; min-width: 0; }
+  .nx-config-painel.nx-painel-mobile > :not(.nx-config-cab), .nx-conta-menu.cp-card.nx-painel-mobile > :not(.cp-topo) {
+    margin-left: max(16px, env(safe-area-inset-left, 0px)); margin-right: max(16px, env(safe-area-inset-right, 0px)); width: auto;
+  }
+  .nx-painel-mobile .nx-config-cab, .nx-painel-mobile .cp-topo {
+    position: sticky; top: 0; z-index: 3; min-height: 64px; box-sizing: border-box;
+    margin: 0; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px));
+    background: var(--ui-surface); border-bottom: 1px solid var(--border);
+  }
+  .nx-painel-mobile .nx-config-cab { font-size: 19px; font-weight: 700; }
+  .nx-painel-mobile .nx-config-fechar, .nx-painel-mobile .cp-fechar { min-width: 44px; min-height: 44px; display: grid; place-items: center; flex-shrink: 0; }
+  .nx-painel-mobile .nx-conta-linha { flex-wrap: wrap; }
+  .nx-painel-mobile .nx-conta-linha small, .nx-painel-mobile .nx-config-switch small { overflow-wrap: anywhere; }
+  .nx-painel-mobile select { font-size: 16px; min-height: 44px; }
+  .am-painel.am-celular {
+    --ui-accent: var(--blue-2);
+    box-sizing: border-box; inset: 0; width: 100%; min-width: 0; max-width: none;
+    height: 100vh; height: 100dvh; max-height: none; margin: 0; border: 0; border-radius: 0;
+    overflow: hidden;
+  }
+  .am-celular > .am-cab { flex-shrink: 0; min-height: 64px; }
+  .am-celular .am-fechar { min-width: 44px; min-height: 44px; }
+  .am-celular :is(.am-rolagem, .nt-corpo, .pp-corpo) { min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
 }

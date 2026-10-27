@@ -6,7 +6,7 @@
   --raio-grande: 6px;
   --ui-gap: clamp(16px, 2.2vw, 32px);
   --ui-accent: #f5c542;
-  --ui-active: #302b1d;
+  --ui-active: #252525;
 }
 html:not([data-tema]), html[data-tema='escuro'] {
   --bg: #101010;
@@ -30,7 +30,7 @@ body { font-size: 14px; }
 .nx-config-cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .nx-config-fechar { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--border); border-radius: 6px; background: var(--ui-raised); color: var(--text); font-size: 24px; cursor: pointer; }
 @media (max-width: 1024px) {
-  /* Painéis pequenos presos à tela, com espaço para as duas barras e o notch. */
+  /* Fallback até o portal mobile montar; a tela completa está em sazonal.css. */
   .nx-nav .nx-acoes :is(.nx-conta-menu.cp-card, .nx-config-painel) {
     position: fixed; top: calc(70px + env(safe-area-inset-top, 0px));
     right: max(12px, env(safe-area-inset-right, 0px)); bottom: auto; left: auto;

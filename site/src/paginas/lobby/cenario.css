@@ -1,0 +1,40 @@
+/* Cenário decorativo: os cards mantêm dimensões, conteúdo e estilos existentes. */
+.lb-pagina {
+  background-color: #0b0d10;
+  background-image: linear-gradient(180deg, rgb(6 9 15 / .35), rgb(6 9 15 / .24) 45%, #0b0d10 100%), url('/assets/Lobby/web/cenario.webp');
+  background-position: center top;
+  background-size: 100% auto;
+  background-repeat: no-repeat;
+}
+.lb-cena-slot { position: relative; isolation: isolate; flex: none; display: grid; place-items: center; padding-top: 240px; }
+.lb-cena-slot > .lb-lugar { z-index: 2; }
+.lb-personagem {
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  bottom: -88px;
+  height: 610px;
+  width: auto;
+  max-width: none;
+  pointer-events: none;
+  user-select: none;
+  translate: -50% 0;
+  transform-origin: 50% 80%;
+  filter: brightness(.77) saturate(.75) drop-shadow(0 12px 16px rgb(0 0 0 / .6));
+  mask-image: linear-gradient(#000 50%, rgb(0 0 0 / .8) 67%, transparent 93%);
+  transition: filter .24s ease, transform .24s ease;
+}
+.lb-cena-centro .lb-personagem { height: 650px; filter: brightness(.94) saturate(.9) drop-shadow(0 0 14px color-mix(in srgb, var(--blue-2) 18%, transparent)); }
+.lb-cena-slot:hover .lb-personagem, .lb-cena-slot:focus-within .lb-personagem {
+  filter: brightness(1.12) saturate(1.1) drop-shadow(0 0 20px color-mix(in srgb, var(--blue-2) 65%, transparent));
+  transform: translateY(-6px) scale(1.025);
+}
+@media (max-width: 1400px) {
+  .lb-cena-slot { padding-top: 210px; }
+  .lb-personagem { height: 540px; bottom: -75px; }
+  .lb-cena-centro .lb-personagem { height: 575px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lb-personagem { transition: none; }
+  .lb-cena-slot:hover .lb-personagem, .lb-cena-slot:focus-within .lb-personagem { transform: none; }
+}

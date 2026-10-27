@@ -1,3 +1,5 @@
+import { createPortal } from 'react-dom'
+import { usePainelMobile } from './usePainelMobile.js'
 // Botão ⚙ Configurações do topo: idioma, tema e "Melhorar desempenho". Vale para todas as páginas e fica
 // guardado no navegador e, com login, na conta (vale nos outros aparelhos; preferencias.js).
 import { Suspense, lazy, useEffect, useRef, useState } from 'react'
@@ -78,6 +80,9 @@ export default function Configuracoes() {
   const [tema, setTema] = useState('padrao') // igual ao HTML gerado; o efeito lê o de verdade
   const [desempenho, setDesempenho] = useState(false)
   const caixa = useRef(null)
+  const painel = useRef(null)
+  const celular = usePainelMobile(aberto, painel)
+  const naTela = el => celular ? createPortal(el, document.body) : el
 
   useEffect(() => {
     const ler = () => {
@@ -96,7 +101,7 @@ export default function Configuracoes() {
   // Fecha clicando fora ou com Esc
   useEffect(() => {
     if (!aberto) return
-    const fora = (e) => !caixa.current?.contains(e.target) && !e.target.closest?.('.bv-fundo') && setAberto(false) // clique nas janelas de trocar apelido/senha não fecha o painel
+    const fora = (e) => !caixa.current?.contains(e.target) && !painel.current?.contains(e.target) && !e.target.closest?.('.bv-fundo') && setAberto(false) // clique nas janelas de trocar apelido/senha não fecha o painel
     const tecla = (e) => e.key === 'Escape' && setAberto(false)
     document.addEventListener('pointerdown', fora)
     document.addEventListener('keydown', tecla)
@@ -112,8 +117,8 @@ export default function Configuracoes() {
         <IconeEngrenagem />
         <span className="nx-dica" aria-hidden="true">{t('Configurações')}</span>
       </button>
-      {aberto && (
-        <div className="nx-config-painel" role="dialog" aria-label={t('Configurações')}>
+      {aberto && naTela(
+        <div ref={painel} className={`nx-config-painel${celular ? ' nx-painel-mobile' : ''}`} role="dialog" aria-modal={celular || undefined} aria-label={t('Configurações')}>
           <div className="nx-config-cab"><span>{t('Configurações')}</span><button type="button" className="nx-config-fechar" aria-label={t('Fechar')} onClick={() => setAberto(false)}>×</button></div>
 
           <label className="nx-config-campo">
