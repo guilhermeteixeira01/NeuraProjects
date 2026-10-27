@@ -6,7 +6,6 @@
 //    para cada insígnia nova. As já avisadas ficam no navegador (localStorage np_insignias_<SteamID>); os perfis são
 //    relidos a cada 30 s e, com o site aberto, o perfil novo chega na hora pela conexão ao vivo (amigos.js).
 import { useEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { seForErroApi } from './api.js'
 import { useConta } from './conta.js'
 import { salvarPerfil, usePerfis, usePerfisFrescos } from './Moldura.jsx'
@@ -53,89 +52,10 @@ function Item({ i }) {
   )
 }
 
-// ── Estante de insígnias: todas as do jogador em colmeia, como numa prateleira de troféus (o fundo do site fica embaçado) ──
-const COR_PADRAO = '#5aa9e6'
-function Estante({ lista, aoFechar }) {
-  const t = useT()
-  const [larg, setLarg] = useState(() => (typeof window === 'undefined' ? 1200 : window.innerWidth))
-  useEffect(() => {
-    const r = () => setLarg(window.innerWidth)
-    window.addEventListener('resize', r)
-    return () => window.removeEventListener('resize', r)
-  }, [])
-  useEffect(() => {
-    // fundo embaçado e sem rolagem enquanto a estante está aberta
-    document.documentElement.classList.add('ins-estante-aberta')
-    const tecla = (e) => e.key === 'Escape' && aoFechar()
-    document.addEventListener('keydown', tecla)
-    return () => {
-      document.documentElement.classList.remove('ins-estante-aberta')
-      document.removeEventListener('keydown', tecla)
-    }
-  }, [aoFechar])
-  // A dica abre para baixo; se não couber na área rolável (última fileira), vira para cima (e nunca passa dos lados)
-  const rolagem = useRef(null)
-  const viraDica = (e) => {
-    const hex = e.currentTarget
-    const area = rolagem.current?.getBoundingClientRect()
-    const r = hex.getBoundingClientRect()
-    if (!area) return
-    hex.dataset.cima = r.bottom + 110 > area.bottom && r.top - 130 > area.top ? '1' : ''
-    const metade = 115
-    const meio = r.left + r.width / 2
-    hex.dataset.lado = meio - metade < area.left ? 'e' : meio + metade > area.right ? 'd' : ''
-  }
-  // fileiras alternadas (n, n-1, n, ...): é o que dá o desenho de colmeia
-  const n = larg >= 1000 ? 6 : larg >= 760 ? 5 : larg >= 520 ? 4 : 3
-  const fileiras = []
-  for (let k = 0, i = 0; i < lista.length; k++) {
-    const c = k % 2 === 0 ? n : n - 1
-    fileiras.push(lista.slice(i, i + c))
-    i += c
-  }
-  return createPortal(
-    <div className="ins-est-fundo" onClick={aoFechar}>
-      <div className="ins-est" role="dialog" aria-modal="true" aria-label={t('Insígnias')} onClick={(e) => e.stopPropagation()}>
-        <header className="ins-est-cab">
-          <h2>{t('Insígnias')}</h2>
-          <span>{lista.length}</span>
-          <button type="button" className="ins-est-fechar" onClick={aoFechar} aria-label={t('Fechar')}>
-            ×
-          </button>
-        </header>
-        <div className="ins-est-rolagem" ref={rolagem}>
-        <div className="ins-est-vitrine">
-          {fileiras.map((f, r) => (
-            <div className="ins-est-fileira" key={r}>
-              {f.map((i) => {
-                const data = i.desde ? new Date(i.desde).toLocaleDateString(localeAtual()) : null
-                return (
-                  <button type="button" className="ins-hex" key={i.id} style={{ '--cor': i.cor || COR_PADRAO }} aria-label={t(i.nome)} onMouseEnter={viraDica} onFocus={viraDica}>
-                    <span className="ins-hex-placa" aria-hidden="true" />
-                    <img src={imagemInsignia(i.id)} alt="" loading="lazy" decoding="async" draggable="false" onError={caiNaGrande(i.id)} />
-                    <span className="ins-hex-info" role="tooltip">
-                      <b>{t(i.nome)}</b>
-                      <small>{t(i.descricao)}</small>
-                      {data && <em>{t('Recebida em {data}', { data })}</em>}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          ))}
-        </div>
-        </div>
-      </div>
-    </div>,
-    document.body,
-  )
-}
-
-// Fileira do perfil: mostra 4; se tiver mais, o "+N" abre a estante com todas
+// Fileira do perfil: o atalho abre a página de insígnias do jogador.
 export function InsigniasDe({ steamId, classe = '', max = 4 }) {
   const t = useT()
   const lista = insigniasDe(usePerfis(), steamId)
-  const [aberta, setAberta] = useState(false)
   if (!lista.length) return null
   const mostrar = lista.length > max ? lista.slice(0, max) : lista
   const resto = lista.length - mostrar.length
@@ -147,14 +67,13 @@ export function InsigniasDe({ steamId, classe = '', max = 4 }) {
         ))}
         {resto > 0 && (
           <li className="ins-item ins-item-mais">
-            <button type="button" className="ins-mais" onClick={() => setAberta(true)} aria-haspopup="dialog" title={t('Ver todas as insígnias')}>
+            <button type="button" className="ins-mais" onClick={() => { const url = `/perfil/?id=${encodeURIComponent(steamId)}#insignias`; if (location.pathname.replace(/\/$/, '') === '/perfil' && (!new URLSearchParams(location.search).get('id') || new URLSearchParams(location.search).get('id') === steamId)) location.hash = 'insignias'; else location.assign(url) }} title={t('Ver todas as insígnias')}>
               <b>+{resto}</b>
               <small>{t('ver todas')}</small>
             </button>
           </li>
         )}
       </ul>
-      {aberta && <Estante lista={lista} aoFechar={() => setAberta(false)} />}
     </>
   )
 }

@@ -39,9 +39,10 @@
 /* grade de caixas */
 .lj-grade-caixas { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; }
 .lj-caixa { position: relative; width: 100%; display: grid; justify-items: center; gap: 6px; padding: 14px 12px 14px; border-radius: 14px; cursor: pointer; text-align: center; color: var(--text);
-  background: radial-gradient(90% 60% at 50% 30%, color-mix(in srgb, var(--cor) 24%, transparent), transparent 75%), linear-gradient(180deg, #16181e, #101216);
-  border: 1px solid color-mix(in srgb, var(--cor) 40%, rgb(255 255 255 / .08)); transition: transform .18s, border-color .18s, box-shadow .18s; }
-.lj-caixa:hover { transform: translateY(-4px); border-color: var(--cor); box-shadow: 0 14px 34px -14px var(--cor); }
+  background: transparent;
+  border: 1px solid transparent; box-shadow:none; transition: transform .18s; }
+.lj-caixa:hover { transform: translateY(-4px); background:transparent; border-color:transparent; box-shadow:none; }
+.lj-caixa:focus-visible { outline:2px solid var(--blue-2,#428de8); outline-offset:3px; }
 .lj-caixa-arte { display: block; width: 100%; aspect-ratio: 1; }
 .lj-caixa-arte img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 10px 14px rgb(0 0 0 / .55)); transition: transform .25s; }
 .lj-caixa:hover .lj-caixa-arte img { transform: scale(1.06) rotate(-1.5deg); }
@@ -693,8 +694,7 @@ img.lj-emblema { width: 92px; height: auto; object-fit: contain; filter: drop-sh
 .lj-caixa:hover { transform: none; box-shadow: none; }
 .lj-caixa-arte { position: relative; }
 /* brilho atrás da arte: aparece mais no hover */
-.lj-caixa-arte::before { content: ''; position: absolute; inset: 14% 10% 8%; z-index: -1; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--cor) 55%, transparent), transparent); filter: blur(22px); opacity: .55; transition: opacity .25s, transform .25s; }
-.lj-caixa:hover .lj-caixa-arte::before { opacity: 1; transform: scale(1.08); }
+.lj-caixa-arte::before { content: none; }
 .lj-caixa-arte img { filter: drop-shadow(0 14px 18px rgb(0 0 0 / .6)); transition: transform .3s cubic-bezier(.2, .8, .3, 1); }
 .lj-caixa:hover .lj-caixa-arte img { transform: translateY(-8px) scale(1.05); }
 .lj-caixa b { display: block; min-height: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 100%; font: 600 17px/1.2 var(--font-body); letter-spacing: .01em; color: #fff; }

@@ -23,6 +23,7 @@ import { fundoCard } from '../../comum/cardsPerfil.js'
 import { useT } from '../../comum/i18n.js'
 import { useAvatar } from '../../comum/avatares.js'
 import { BotaoAmizade, StatusAmigo } from './Amizade.jsx'
+import GaleriaInsignias from '../../comum/GaleriaInsignias.jsx'
 import { InsigniasDe } from '../../comum/Insignias.jsx'
 import HallDaFama from './HallDaFama.jsx'
 import ConfiguracoesConta from './ConfiguracoesConta.jsx'
@@ -572,14 +573,14 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   const t = useT()
   const timeEscolhido = useTimeDe(j.steamId)
   const [verInventario, setVerInventario] = useState(false)
-  const [abaPerfil, setAbaPerfil] = useState(() => typeof location !== 'undefined' && ['#inventario', '#amigos', '#afiliado', '#missoes'].includes(location.hash) ? location.hash.slice(1) : 'status')
+  const [abaPerfil, setAbaPerfil] = useState(() => typeof location !== 'undefined' && ['#inventario', '#amigos', '#afiliado', '#missoes', '#insignias'].includes(location.hash) ? location.hash.slice(1) : 'status')
   const [linkCopiado, setLinkCopiado] = useState('')
   const trocarAbaPerfil = (aba) => {
     setAbaPerfil(aba)
     history.replaceState(null, '', location.pathname + location.search + (aba !== 'status' ? `#${aba}` : ''))
   }
   useEffect(() => {
-    const atualizar = () => setAbaPerfil(['#inventario', '#amigos', '#afiliado', '#missoes'].includes(location.hash) ? location.hash.slice(1) : 'status')
+    const atualizar = () => setAbaPerfil(['#inventario', '#amigos', '#afiliado', '#missoes', '#insignias'].includes(location.hash) ? location.hash.slice(1) : 'status')
     window.addEventListener('hashchange', atualizar)
     return () => window.removeEventListener('hashchange', atualizar)
   }, [])
@@ -676,9 +677,10 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
             <nav className="pf-profile-nav" aria-label={t('Seções do perfil')}>
               <button type="button" aria-current={abaPerfil === 'status' ? 'page' : undefined} onClick={() => trocarAbaPerfil('status')}><IconeCabecalho tipo="perfil" />{t('Perfil')}</button>
               <button type="button" data-aba="inventario" aria-current={abaPerfil === 'inventario' ? 'page' : undefined} onClick={() => trocarAbaPerfil('inventario')}><IconeCabecalho tipo="inventario" />{t('Inventário')}</button>
+              <button type="button" aria-current={abaPerfil === 'insignias' ? 'page' : undefined} onClick={() => trocarAbaPerfil('insignias')}>{t('Insígnias')}</button>
               {eu && <button type="button" aria-current={abaPerfil === 'missoes' ? 'page' : undefined} onClick={() => trocarAbaPerfil('missoes')}>Missões</button>}
               <a href="/ranking/"><SeloNivel nivel={nivel.nivel} tamanho={18} />{t('Ranking')}</a>
-              <button type="button" aria-current={abaPerfil === 'missoes' && eu ? <div className="wrap"><PainelMissoes /></div> : abaPerfil === 'amigos' ? 'page' : undefined} onClick={() => trocarAbaPerfil('amigos')}><IconeCabecalho tipo="amigos" />{t('Amigos')}</button>
+              <button type="button" aria-current={abaPerfil === 'amigos' ? 'page' : undefined} onClick={() => trocarAbaPerfil('amigos')}><IconeCabecalho tipo="amigos" />{t('Amigos')}</button>
               {eu && <button type="button" aria-current={abaPerfil === 'afiliado' ? 'page' : undefined} onClick={() => trocarAbaPerfil('afiliado')}><IconeCabecalho tipo="compartilhar" />{t('Afiliado')}</button>}
               {eu && <button type="button" onClick={abrirFotoPersonalizada}><IconeCabecalho tipo="foto" />{t('Foto personalizada')}</button>}
             </nav>
@@ -688,7 +690,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
         </div>
         <FundoHero quantidade={10} rastros={false} />
         {/* Estilo FACEIT: cartão do jogador na esquerda (a capa pode virar personalizável no futuro) e as informações no meio */}
-        {abaPerfil === 'missoes' && eu ? <div className="wrap"><PainelMissoes /></div> : abaPerfil === 'amigos' ? <div className="wrap"><AmigosDoPerfil key={j.steamId} id={j.steamId} eu={eu} /></div> : abaPerfil === 'afiliado' && eu ? <div className="wrap"><AfiliadoDoPerfil id={j.steamId} /></div> : <div className="wrap pf-layout">
+        {abaPerfil === 'insignias' ? <div className="wrap"><GaleriaInsignias steamId={j.steamId} /></div> : abaPerfil === 'missoes' && eu ? <div className="wrap"><PainelMissoes /></div> : abaPerfil === 'amigos' ? <div className="wrap"><AmigosDoPerfil key={j.steamId} id={j.steamId} eu={eu} /></div> : abaPerfil === 'afiliado' && eu ? <div className="wrap"><AfiliadoDoPerfil id={j.steamId} /></div> : <div className="wrap pf-layout">
           <aside className="pf-lado">
             <HallDaFama j={j} pos={pos} total={total} nivel={nivel} eu={eu}/>
             <div className={`pf-cartao fx-entra${card ? ' com-card' : ''}`} style={{ '--e': 1, ...(card ? { backgroundImage: fundoCard(card) } : {}) }}>

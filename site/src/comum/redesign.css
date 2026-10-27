@@ -61,8 +61,8 @@ code, pre { font-family: Consolas, monospace; }
 .lj-saldo { background: var(--ui-raised); border: 0; border-radius: 8px; padding: 12px 18px; }
 .lj-saldo b { font: 700 28px var(--font-display); font-variant-numeric: tabular-nums; }
 .lj-caixas { gap: 18px; }
-.lj-caixa { border-color: transparent; border-radius: 12px; background: var(--ui-surface); box-shadow: none; padding-bottom: 18px; }
-.lj-caixa:hover { border-color: transparent; background: var(--ui-raised); box-shadow: none; }
+.lj-caixa { border-color: transparent; border-radius: 0; background: transparent; box-shadow: none; padding-bottom: 18px; }
+.lj-caixa:hover { border-color: transparent; background: transparent; box-shadow: none; }
 .lj-caixa b { font-size: 16px; text-transform: none; letter-spacing: 0; }
 .lj-caixa-preco { font-variant-numeric: tabular-nums; }
 .lj-cartao:not(.lj-trilho .lj-cartao) { background-color: var(--ui-surface); border-radius: 8px; }
