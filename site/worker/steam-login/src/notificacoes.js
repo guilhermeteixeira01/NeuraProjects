@@ -8,5 +8,5 @@ export const notificar = (env, id, notif) => pedirAoJogador(env, id, { acao: 'no
 
 export async function rotaNotificacoes(req, env, quem, cors) {
   const doc = req.method === 'POST' ? (await lerCorpo(req)).doc : null
-  return json(await pedirAoJogador(env, quem.id, { acao: 'notif-sync', doc }), 200, cors)
+  return json(await pedirAoJogador(env, quem.id, { acao: 'notif-sync', doc, acesso:true }), 200, cors)
 }

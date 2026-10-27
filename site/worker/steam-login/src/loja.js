@@ -443,7 +443,7 @@ export class Loja {
     const saldo = () => pontos - this.gastos()
     switch (acao) {
       case 'missoes-sinc':
-        return sincronizarMissoes(this,id,p.partidas||[],!!p.historico)
+        return sincronizarMissoes(this,id,p.partidas||[],!!p.historico,Date.now(),p.acesso===true)
       case 'afiliado-recompensar':
         return this.recompensarAfiliado(id, p.convidado)
       case 'inv-ler':
@@ -454,7 +454,7 @@ export class Loja {
         return { ok: true }
       }
       case 'notif-sync': { // junta o que o aparelho mandou com o que a conta já tem e devolve o resultado
-        await sincronizarMissoes(this,id) // também alcança contas já autenticadas, pelo sino
+        await sincronizarMissoes(this,id,[],false,Date.now(),p.acesso===true) // acesso autenticado também pelo sino
         try { await this.aplicarPremium(await partidasPremium(this.env, id), id) }
         catch(e) { if (e.codigo !== 'historico') throw e } // histórico fora do ar não esconde os avisos já recebidos
         const atual = (await this.ctx.storage.get('notifs')) || docVazio()

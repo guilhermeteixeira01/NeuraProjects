@@ -64,7 +64,7 @@ export function progressoMissoes(partidas,config={},agora=Date.now()) {
   const regras={headshot:['headshots',100],sniper:['awp',50],clutch:['clutches',10],ace:['melhorRound',5],demolidor:['plantios',25],desarmador:['desarmes',25],suporte:['assistencias',100],veterano:['vitorias',100],'primeira-vitoria':['vitorias',1],pistoleiro:['pistolas',100],rajada:['submetralhadoras',100],granadeiro:['he',10],incendiario:['fogo',10],implacavel:['kills',1000]}
   const ano=ANO_EVENTOS,pendencias=[],calendario=calendarioEventosInsignias(ano)
   const lista=MISSOES.map(m=>{
-    let atual=0,meta=1,id=m.id,detalhes
+    let atual=0,meta=1,id=m.id,detalhes,evento
     if(m.categoria==='combate') {
       const r=regras[m.id.replace('missao-','')]
       if(r){atual=cont[r[0]];meta=r[1]}
@@ -79,9 +79,13 @@ export function progressoMissoes(partidas,config={},agora=Date.now()) {
       id=idEventoMissao(m.id,ano)
       const periodo=config.eventos?.[m.id]
       if(!periodo || periodo.ano!==ano || !Number.isFinite(Date.parse(periodo.inicio)) || !Number.isFinite(Date.parse(periodo.fim)) || anoBrasilia(Date.parse(periodo.inicio))!==ano || Date.parse(periodo.fim)<=Date.parse(periodo.inicio) || (calendario[m.id]&&Date.parse(periodo.fim)<Date.parse(calendario[m.id].fim)))pendencias.push({id:m.id,motivo:'Configure o período da edição 2026, sem antecipar seu encerramento.'})
-      else atual=Date.parse(periodo.fim)<agora?1:0
+      else {
+        const inicio=Date.parse(periodo.inicio),fim=Date.parse(periodo.fim),acesso=Number(config.acessosEventos?.[id])
+        evento={inicio:periodo.inicio,fim:periodo.fim,eventoAtivo:agora>=inicio&&agora<=fim,estadoEvento:agora<inicio?'aguardando':agora>fim?'encerrado':'ativo'}
+        atual=Number.isFinite(acesso)&&acesso>=inicio&&acesso<=fim&&acesso<=agora?1:0
+      }
     }
-    return {...m,id,atual,meta,concluida:atual>=meta,...(detalhes?{detalhes}:{})}
+    return {...m,id,atual,meta,concluida:atual>=meta,...(detalhes?{detalhes}:{}),...(evento||{})}
   })
   return {lista,pendencias}
 }

@@ -14,6 +14,6 @@ Configurações opcionais: `MissoesModo` (`auto`, `wingman`, `corrida-armada`, `
 
 ## Administração do site
 
-Em **Admin → Usuários → Missões**, ajuste metas por mapa e os períodos anuais. Os eventos usam Brasília e concedem as insígnias da coleção 2026 depois do encerramento do período iniciado em 2026 (Ano Novo e Verão terminam em 2027). Eventos sem calendário e o mapa Complex Rush sem identificador configurado ficam pendentes, sem conceder indevidamente.
+Em **Admin → Usuários → Missões**, ajuste metas por mapa e os períodos anuais. Os eventos usam Brasília e concedem as insígnias da coleção 2026 mediante um acesso autenticado durante o período iniciado em 2026 (Ano Novo e Verão terminam em 2027). A data da conquista registra o primeiro acesso válido; rotinas automáticas não simulam acessos. Eventos sem calendário e o mapa Complex Rush sem identificador configurado ficam pendentes, sem conceder indevidamente.
 
 O progresso retroativo utiliza apenas estatísticas verificadas; campos ausentes não são estimados. A entrega no perfil e a notificação têm registro persistente para permitir novas tentativas sem duplicação.

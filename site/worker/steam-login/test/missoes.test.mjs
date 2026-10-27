@@ -19,10 +19,10 @@ test('coleção 2026 não usa Ano Novo e Verão iniciados em 2025 nem antecipa e
   assert.equal(progressoMissoes([],legado,hoje).lista.find(m=>m.id==='evento-ano-novo-2026').concluida,false)
   const natalAntecipado={eventos:{...cfg.eventos,'evento-natal':{ano:2026,inicio:'2026-01-01T03:00:00Z',fim:'2026-01-02T03:00:00Z'}}}
   assert.equal(progressoMissoes([],natalAntecipado,hoje).lista.find(m=>m.id==='evento-natal-2026').concluida,false)
-  assert.ok(progressoMissoes([],cfg,Date.parse('2027-04-01T12:00:00Z')).lista.find(m=>m.id==='evento-verao-2026').concluida)
+  assert.equal(progressoMissoes([],cfg,Date.parse('2027-04-01T12:00:00Z')).lista.find(m=>m.id==='evento-verao-2026').concluida,false)
 })
 
-test('retira concessões antecipadas e avisos em todos os aparelhos; entrega de novo só após encerrar',async()=>{
+test('retira concessões antecipadas e avisos; entrega no acesso durante o evento e preserva após encerrar',async()=>{
   const id='76561198000000429',f=ambiente({'missoes-config':{ativa:true}}),a=f.env.LOJA.instancia(id),hoje=Date.parse('2026-10-27T12:00:00Z')
   const badge='evento-ano-novo-2026',aviso={id:`ins:${badge}`,insignia:badge,titulo:'Antecipada',quando:hoje-1000}
   await darInsignias(f.env,{[id]:{[badge]:hoje-1000,'missao-headshot':hoje-1000,'evento-outono-2026':hoje-1000}})
@@ -34,9 +34,12 @@ test('retira concessões antecipadas e avisos em todos os aparelhos; entrega de 
   assert.equal(a.sql.exec('SELECT id FROM missoes_concessoes WHERE id = ?',badge).toArray().length,0)
   let doc=await a.ctx.storage.get('notifs');assert.ok(!doc.lista.some(n=>n.id===aviso.id))
   assert.ok(!juntar(antigo,doc).lista.some(n=>n.id===aviso.id))
-  await sincronizarMissoes(a,id,[],false,Date.parse('2027-01-08T12:00:00Z'))
-  perfil=await lerPerfil(f.env,id);assert.ok(perfil.insignias[badge])
+  const acesso=Date.parse('2026-12-30T12:00:00Z')
+  await sincronizarMissoes(a,id,[],false,acesso,true)
+  perfil=await lerPerfil(f.env,id);assert.equal(perfil.insignias[badge],acesso)
   doc=await a.ctx.storage.get('notifs');assert.equal(doc.lista.filter(n=>n.id===aviso.id).length,1)
+  await sincronizarMissoes(a,id,[],false,Date.parse('2027-01-08T12:00:00Z'))
+  assert.equal((await lerPerfil(f.env,id)).insignias[badge],acesso)
 })
 
 test('todas as 57 artes existem nas versões web e miniatura',()=>{
@@ -105,10 +108,11 @@ test('mapas contam derrotas, distinguem modo e mapa e respeitam meta individual'
   assert.equal(obter([partida(),partida('b')],'mapa-dust2',cfg).concluida,true)
   assert.equal(obter([partida('rush',{mapa:'workshop/123/complex',modo:'rush'})],'mapa-complex-rush',cfg).atual,1)
 })
-test('eventos usam ano de Brasília e fim configurado, sem exigir partidas ou inventar datas',()=>{
+test('eventos exigem acesso no período de Brasília, sem exigir partidas ou inventar datas',()=>{
   assert.equal(anoBrasilia(Date.parse('2027-01-01T01:00:00Z')),2026)
   const cfg={eventos:calendarioEventosInsignias(2026)}
-  assert.equal(obter([],'evento-outono-2026',cfg).concluida,true)
+  assert.equal(obter([],'evento-outono-2026',cfg).concluida,false)
+  assert.equal(obter([],'evento-outono-2026',{...cfg,acessosEventos:{'evento-outono-2026':Date.parse('2026-05-01T12:00:00Z')}}).concluida,true)
   assert.equal(obter([],'evento-halloween-2026',cfg).concluida,false)
   assert.equal(obter([],'evento-natal-2026',cfg).concluida,false)
   const r=progressoMissoes([],cfg,agora)
@@ -128,7 +132,7 @@ test('entrega retroativa é idempotente, persiste no perfil e só notifica após
   const resumo=partida('passada',{venceu:true,headshots:100})
   await sincronizarMissoes(a,id,[resumo],false,agora)
   const perfil=await lerPerfil(f.env,id),quando=perfil.insignias['missao-headshot']
-  assert.ok(quando);assert.ok(perfil.insignias['missao-primeira-vitoria']);assert.ok(perfil.insignias['evento-outono-2026'])
+  assert.ok(quando);assert.ok(perfil.insignias['missao-primeira-vitoria']);assert.equal(perfil.insignias['evento-outono-2026'],undefined)
   const antes=(await a.ctx.storage.get('notifs')).lista.length
   await sincronizarMissoes(a,id,[resumo],false,agora+1000)
   assert.equal((await lerPerfil(f.env,id)).insignias['missao-headshot'],quando)

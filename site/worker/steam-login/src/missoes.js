@@ -12,6 +12,7 @@ import { enderecoDoSite } from './ranking.js'
 export function iniciarMissoes(obj) {
   obj.sql.exec('CREATE TABLE IF NOT EXISTS missoes_partidas (chave TEXT PRIMARY KEY, dados TEXT NOT NULL)')
   obj.sql.exec('CREATE TABLE IF NOT EXISTS missoes_concessoes (id TEXT PRIMARY KEY, quando INTEGER NOT NULL, perfilado INTEGER NOT NULL DEFAULT 0, notificada INTEGER NOT NULL DEFAULT 0)')
+  obj.sql.exec('CREATE TABLE IF NOT EXISTS missoes_eventos_acessos (id TEXT PRIMARY KEY, quando INTEGER NOT NULL)')
 }
 export async function configMissoes(env,agora=Date.now()) {
   const salvo=await lerDoc(env,'missoes-config',{})
@@ -24,16 +25,21 @@ export async function historicoMissoes(env,id) {
   const dados=await r.json()
   return Array.isArray(dados)?dados.map(m=>m.missoes).filter(Boolean):[]
 }
-export async function sincronizarMissoes(obj,id,novas=[],buscarHistorico=false,agora=Date.now()) {
+export async function sincronizarMissoes(obj,id,novas=[],buscarHistorico=false,agora=Date.now(),acessoAutenticado=false) {
   const config=await configMissoes(obj.env,agora)
   let historico=[]
   if(buscarHistorico)try{historico=await historicoMissoes(obj.env,id)}catch{/* progresso confirmado anterior continua disponível; tenta de novo no próximo acesso */}
   const resumos=[...historico,...novas].filter(p=>p?.validada===true&&typeof p.chave==='string'&&p.chave.length<400)
   obj.ctx.storage.transactionSync(()=>{for(const p of resumos)obj.sql.exec('INSERT OR IGNORE INTO missoes_partidas (chave,dados) VALUES (?,?)',p.chave,JSON.stringify(p))})
   const partidas=obj.sql.exec('SELECT dados FROM missoes_partidas').toArray().map(p=>JSON.parse(p.dados))
-  const progresso=progressoMissoes(partidas,config,agora)
+  if(acessoAutenticado){
+    const ativos=progressoMissoes([],config,agora).lista.filter(m=>m.categoria==='eventos'&&m.eventoAtivo)
+    obj.ctx.storage.transactionSync(()=>{for(const m of ativos)obj.sql.exec('INSERT OR IGNORE INTO missoes_eventos_acessos (id,quando) VALUES (?,?)',m.id,agora)})
+  }
+  const acessosEventos=Object.fromEntries(obj.sql.exec('SELECT id,quando FROM missoes_eventos_acessos').toArray().map(r=>[r.id,r.quando]))
+  const progresso=progressoMissoes(partidas,{...config,acessosEventos},agora)
   let perfil=await lerPerfil(obj.env,id)
-  const bloqueadas=new Set(progresso.lista.filter(m=>m.categoria==='eventos'&&!m.concluida).map(m=>m.id))
+  const bloqueadas=new Set(progresso.lista.filter(m=>m.categoria==='eventos'&&(!m.inicio||Date.parse(m.inicio)>agora)).map(m=>m.id))
   const revogar=new Set([...Object.keys(perfil?.insignias||{}),...obj.sql.exec('SELECT id FROM missoes_concessoes').toArray().map(r=>r.id)].filter(id=>bloqueadas.has(id)))
   if(revogar.size){
     const {mapa}=await mudar(obj.env,'perfis',[id],atuais=>{if(!atuais[id])return;const insignias={...atuais[id].insignias};for(const k of revogar)delete insignias[k];atuais[id]={...atuais[id],insignias}})
@@ -43,7 +49,7 @@ export async function sincronizarMissoes(obj,id,novas=[],buscarHistorico=false,a
   const avisos=await obj.ctx.storage.get('notifs')||docVazio()
   const apagar=[...new Set([...revogar,...avisos.lista.filter(n=>bloqueadas.has(n.insignia)||bloqueadas.has(n.id.replace(/^ins:/,''))).map(n=>n.insignia||n.id.replace(/^ins:/,''))])]
   if(apagar.length)await obj.ctx.storage.put('notifs',juntar(avisos,{removidas:Object.fromEntries(apagar.map(k=>[`ins:${k}`,agora]))}))
-  obj.ctx.storage.transactionSync(()=>{for(const m of progresso.lista)if(config.ativa!==false&&m.concluida&&!perfil?.insignias?.[m.id])obj.sql.exec('INSERT OR IGNORE INTO missoes_concessoes (id,quando) VALUES (?,?)',m.id,agora)})
+  obj.ctx.storage.transactionSync(()=>{for(const m of progresso.lista)if(config.ativa!==false&&m.concluida&&!perfil?.insignias?.[m.id])obj.sql.exec('INSERT OR IGNORE INTO missoes_concessoes (id,quando) VALUES (?,?)',m.id,m.categoria==='eventos'?acessosEventos[m.id]:agora)})
   const entregar=obj.sql.exec('SELECT * FROM missoes_concessoes WHERE perfilado = 0').toArray()
   if(entregar.length) {
     await darInsignias(obj.env,{[id]:Object.fromEntries(entregar.map(m=>[m.id,m.quando]))})
@@ -51,7 +57,7 @@ export async function sincronizarMissoes(obj,id,novas=[],buscarHistorico=false,a
   }
   for(const r of obj.sql.exec('SELECT * FROM missoes_concessoes WHERE perfilado = 1 AND notificada = 0 LIMIT 60').toArray()) {
     const m=insigniaMissao(r.id);if(!m)continue
-    const texto=m.categoria==='eventos'?`Você recebeu a insígnia ${m.nome.toUpperCase()} da Neura Project, referente a um evento deste ano já encerrado.`:`Você conquistou a insígnia ${m.nome.toUpperCase()} da Neura Project!`
+    const texto=m.categoria==='eventos'?`Você recebeu a insígnia ${m.nome.toUpperCase()} por acessar a Neura Project durante o evento!`:`Você conquistou a insígnia ${m.nome.toUpperCase()} da Neura Project!`
     await obj.notificar({id:`ins:${r.id}`,titulo:texto,texto:m.descricao,insignia:r.id,quando:r.quando,lida:false,link:'/perfil/#missoes'})
     obj.sql.exec('UPDATE missoes_concessoes SET notificada = 1 WHERE id = ?',r.id)
   }
@@ -68,10 +74,10 @@ export async function registrarMissoesPartida(env,chave,partida) {
 // Repara também contas offline; não depende de o jogador abrir a aba de missões.
 export async function corrigirEventosAntecipados(env,agora=Date.now()) {
   const config=await configMissoes(env,agora),progresso=progressoMissoes([],config,agora)
-  const bloqueadas=new Set(progresso.lista.filter(m=>m.categoria==='eventos'&&!m.concluida).map(m=>m.id))
+  const bloqueadas=new Set(progresso.lista.filter(m=>m.categoria==='eventos'&&(!m.inicio||Date.parse(m.inicio)>agora)).map(m=>m.id))
   for(const [id,p] of Object.entries(await lerPerfis(env)))if(Object.keys(p.insignias||{}).some(k=>bloqueadas.has(k)))await pedirAoJogador(env,id,{acao:'missoes-sinc'})
 }
-export const rotaMissoes = async (env,quem,cors) => json(await pedirAoJogador(env,quem.id,{acao:'missoes-sinc',historico:true}),200,{...cors,'Cache-Control':'no-store'})
+export const rotaMissoes = async (env,quem,cors) => json(await pedirAoJogador(env,quem.id,{acao:'missoes-sinc',historico:true,acesso:true}),200,{...cors,'Cache-Control':'no-store'})
 export async function lerPainelMissoes(env) {
   const config=await configMissoes(env)
   return {config,...progressoMissoes([],config),catalogo:MISSOES}
