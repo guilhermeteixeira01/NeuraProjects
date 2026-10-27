@@ -1,3 +1,4 @@
+import { exigirSenha } from './contas.js'
 /*
  * Loja: o jogador gasta Neura Pontos (NP) para comprar e abrir caixas de skins.
  *
@@ -801,6 +802,7 @@ export async function rotaLoja(req, env, quem, cors, rota) {
   const acao = ROTAS_LOJA[`${req.method} ${rota}`]
   if (!acao) throw new ErroNaoEncontrado('rota')
   const corpo = req.method === 'POST' ? await lerCorpo(req) : {}
+  if (acao === 'vender') await exigirSenha(env, quem.id, corpo.senha)
   const dados = await pedirAoJogador(env, quem.id, { acao, caixa: corpo.caixa, qtd: corpo.qtd, ids: corpo.ids, origem: corpo.origem, modo: MODOS.includes(corpo.modo) ? corpo.modo : undefined })
   if (acao === 'vender' && dados.total > 0) await registrar(env, { tipo: 'venda', quem: quem.id, texto: `vendeu ${dados.vendidos} item(ns) para a loja por ${Number(dados.total).toLocaleString('pt-BR')} NP` })
   if (acao === 'abrir') {

@@ -100,6 +100,7 @@ export class Trocas {
       return { ok: true }
     }
     this.sql.exec("UPDATE trocas SET estado = 'vencida' WHERE estado = 'pendente' AND fim < ?", Date.now())
+    if (acao === 'reservados') return { ids: [...this.reservados(quem)] }
     if (acao === 'listar') return this.listar(quem)
     if (acao === 'criar') return this.criar(quem, p)
 
@@ -129,6 +130,11 @@ export class Trocas {
     return { ok: true }
   }
 
+  reservados(quem) {
+    const linhas = this.sql.exec("SELECT * FROM trocas WHERE estado = 'pendente' AND (de = ? OR para = ?)", quem, quem).toArray()
+    return new Set(linhas.flatMap(l => { const t = deLinha(l); return (t.de === quem ? t.dar : t.pedir).map(i => i.id) }))
+  }
+
   listar(quem) {
     const minhas = this.sql.exec('SELECT * FROM trocas WHERE de = ? OR para = ? ORDER BY criada DESC', quem, quem).toArray().map(deLinha)
     const pendente = (x) => x.estado === 'pendente'
@@ -153,12 +159,12 @@ export class Trocas {
     const usuarios = await lerUsuarios(this.env)
     if (!usuarios[para]) throw new ErroNaoEncontrado('jogador')
     const [invMeu, invDele] = await Promise.all([lerSkins(this.env, quem), lerSkins(this.env, para)])
-    const emUso = new Set(minhasPendentes.flatMap((l) => JSON.parse(l.dados).dar.map((i) => i.id)))
-    const montar = (lista, inv, checarUso) =>
+    const meusReservados = this.reservados(quem), deleReservados = this.reservados(para)
+    const montar = (lista, inv, reservados) =>
       lista.map((id) => {
         const item = inv?.itens?.[id]
         if (!item || !TIPOS_OK.has(item.t)) throw new ErroConflito('item-invalido')
-        if (checarUso && emUso.has(id)) throw new ErroConflito('item-em-outra-proposta')
+        if (reservados.has(id)) throw new ErroConflito('item-em-outra-proposta')
         return { id, item }
       })
 
@@ -171,8 +177,8 @@ export class Trocas {
       deAvatar: String(usuarios[quem]?.avatar || ''),
       paraNome: String(usuarios[para]?.nome || ''),
       paraAvatar: String(usuarios[para]?.avatar || ''),
-      dar: montar(dar, invMeu, true),
-      pedir: montar(pedir, invDele, false),
+      dar: montar(dar, invMeu, meusReservados),
+      pedir: montar(pedir, invDele, deleReservados),
       msg: String(p.msg || '').replace(/[\u0000-\u001f<>]/g, '').slice(0, 200),
       estado: 'pendente',
       criada: agora,

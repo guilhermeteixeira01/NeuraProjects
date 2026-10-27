@@ -55,7 +55,8 @@ test('loja: comprar, abrir, vender; saldo sempre igual a pontos - gastos', async
   // sem caixa no inventário: 409 "sem-caixa"
   assert.deepEqual(await pedir('POST', '/loja/abrir', { quem: ANA, corpo: { caixa: caixa.id, qtd: 1, origem: 'inventario' } }), { status: 409, dados: { erro: 'sem-caixa' } })
   const vendidos = aberta.dados.resultados.map((r) => r.id)
-  const venda = await pedir('POST', '/loja/vender', { quem: ANA, corpo: { ids: vendidos } })
+  await pedir('POST', '/conta/senha', { quem: ANA, corpo: { senha: 'senha-da-ana' } })
+  const venda = await pedir('POST', '/loja/vender', { quem: ANA, corpo: { ids: vendidos, senha: 'senha-da-ana' } })
   assert.equal(venda.status, 200)
   const total = aberta.dados.resultados.reduce((a, r) => a + r.v, 0)
   assert.equal(venda.dados.total, total)
@@ -83,7 +84,7 @@ test('saldo insuficiente: 409 "saldo"', async () => {
 test('conta: apelido único, senha e senha errada com tentativas restantes', async () => {
   assert.equal((await pedir('POST', '/conta/nick', { quem: ANA, corpo: { nick: 'Ana Neura' } })).status, 200)
   assert.deepEqual(await pedir('POST', '/conta/nick', { quem: BIA, corpo: { nick: 'ana neura' } }), { status: 409, dados: { erro: 'nick-em-uso' } })
-  assert.equal((await pedir('POST', '/conta/senha', { quem: ANA, corpo: { senha: 'senha-da-ana' } })).status, 200)
+  assert.equal((await pedir('GET', '/conta/seguranca', { quem: ANA })).dados.temSenha, true)
   assert.equal((await pedir('POST', '/conta/senha', { quem: BIA, corpo: { senha: 'senha-da-bia' } })).status, 200)
   const seg = await pedir('GET', '/conta/seguranca', { quem: ANA })
   assert.equal(seg.dados.nick, 'Ana Neura')

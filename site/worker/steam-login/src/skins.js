@@ -1,3 +1,4 @@
+import { objetoGlobal, pedir } from './objetos.js'
 /*
  * Skins: inventário do jogador no site (como o inventário do jogo) e o que ele equipa em cada time.
  * O plugin BaseComp lê o inventário já "resolvido" em /servidor/skins e aplica no servidor de CS2.
@@ -304,7 +305,13 @@ export async function rotaSkinsPublico(url, env, cors) {
 
 // GET /skins/inventario?id= (sem login): o inventário de um jogador para o perfil dele ("Ver inventário"), com o valor em NP de cada item
 export async function rotaSkinsInventarioPublico(url, env, cors) {
-  const inv = await lerSkins(env, idDaUrl(url))
+  const dono = idDaUrl(url)
+  const inv = await lerSkins(env, dono)
+  if (url.searchParams.get('troca') === '1') {
+    const { ids } = await pedir(objetoGlobal(env.TROCAS), { acao: 'reservados', quem: dono })
+    const reservados = new Set(ids)
+    inv.itens = Object.fromEntries(Object.entries(inv.itens || {}).filter(([id]) => !reservados.has(id)))
+  }
   const valores = Object.fromEntries(Object.entries(valoresDe(inv?.itens)).map(([k, x]) => [k, x.v]))
   return json({ itens: inv?.itens || {}, equip: inv?.equip || { ct: {}, tr: {} }, criado: inv?.criado || {}, valores }, 200, { ...cors, 'Cache-Control': 'public, max-age=20' })
 }

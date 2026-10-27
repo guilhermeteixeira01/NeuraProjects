@@ -953,7 +953,8 @@ function Conteudo() {
   const confirmarVenda = async () => {
     setVendendo(true)
     try {
-      const r = await venderItens(venda.ids)
+      const { dados: r, cancelado } = await comSenha(t('Para vender os itens por NP, digite sua senha de segurança.'), senha => venderItens(venda.ids, senha))
+      if (cancelado) return
       const novo = { ...inventarioNovo(), ...r.inv }
       salvo.current = JSON.stringify(novo)
       setInv(novo)

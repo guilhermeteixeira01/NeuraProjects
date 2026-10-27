@@ -14,7 +14,7 @@ export const lerDetalhesCaixa = (id) => chamar(`/loja/caixa?id=${id}`)
 // Valor de venda de cada item do inventário: { <id do item>: { r: raridade 0..6, v: NP } } (o servidor calcula)
 export const lerValores = async () => (await chamar('/loja/valores')).valores || {}
 // Vende itens (skin, faca ou luva) por NP: { saldo, total, vendidos, inv }
-export const venderItens = (ids) => chamar('/loja/vender', { ids })
+export const venderItens = (ids, senha) => chamar('/loja/vender', { ids, senha })
 
 // Carrossel de drops ao vivo (público): { agora, recentes, bons, top }, cada drop { id, ts, r, v, t, d, p, n?, i?, quem, nome, avatar, caixa }
 export const lerDrops = () => lerApi('/loja/drops')

@@ -11,7 +11,7 @@ import { useConta } from './conta.js'
 import { useT } from './i18n.js'
 import { lerCaixasPublicas } from './loja.js'
 import { comSenha } from './seguranca.js'
-import { descrever, indicar, lerInventario, urlImg, useCatalogo, corEnfeite } from './skins.js'
+import { descrever, indicar, urlImg, useCatalogo, corEnfeite } from './skins.js'
 import { lerTrocas } from './Trocas.jsx'
 
 const MENSAGENS = {
@@ -20,7 +20,7 @@ const MENSAGENS = {
   'muitos-itens': 'No máximo 20 itens de cada lado.',
   'muitas-pendentes': 'Você já tem propostas demais esperando resposta.',
   'item-invalido': 'Algum item não pode ser trocado.',
-  'item-em-outra-proposta': 'Um dos seus itens já está em outra proposta pendente.',
+  'item-em-outra-proposta': 'Um dos itens já está reservado em outra proposta pendente.',
   encerrada: 'Essa proposta já foi respondida.',
   'item-de-quem-propos-mudou': 'Quem propôs não tem mais algum dos itens.',
   'seu-item-mudou': 'Você não tem mais algum dos itens pedidos.',
@@ -146,6 +146,7 @@ const FILTROS = [
 // ── Janela de proposta ──
 export function JanelaTroca({ para, aoFechar, aoEnviada }) {
   const t = useT()
+  const conta = useConta()
   const cat = useCatalogosDeItens()
   const [meu, setMeu] = useState(null)
   const [dele, setDele] = useState(null)
@@ -159,9 +160,20 @@ export function JanelaTroca({ para, aoFechar, aoEnviada }) {
   const [presente, setPresente] = useState(false) // pergunta "dar de presente?" quando só oferece itens
 
   useEffect(() => {
-    lerInventario().then(setMeu, seForErroApi(() => setErro('falhou')))
-    lerApi(`/skins/inventario?id=${encodeURIComponent(para.id)}`).then(setDele, seForErroApi(() => setErro('falhou')))
-  }, [para.id])
+    let ativo = true, versao = 0
+    const carregar = async () => {
+      const atual = ++versao
+      try {
+        const [a,b] = await Promise.all([lerApi(`/skins/inventario?id=${encodeURIComponent(conta.id)}&troca=1`),lerApi(`/skins/inventario?id=${encodeURIComponent(para.id)}&troca=1`)])
+        if (!ativo || atual !== versao) return
+        setMeu(a); setDele(b)
+        setDar(ids=>ids.filter(id=>a.itens?.[id])); setPedir(ids=>ids.filter(id=>b.itens?.[id]))
+      } catch(e) { if(ativo) seForErroApi(()=>setErro('falhou'))(e) }
+    }
+    carregar()
+    window.addEventListener('focus',carregar);window.addEventListener('np-trocas-estado',carregar)
+    return()=>{ativo=false;window.removeEventListener('focus',carregar);window.removeEventListener('np-trocas-estado',carregar)}
+  }, [para.id,conta?.id])
   useEffect(() => {
     document.documentElement.classList.add('ins-estante-aberta')
     const tecla = (e) => e.key === 'Escape' && !enviando && aoFechar()

@@ -1,3 +1,4 @@
+import { comSenha } from '../../comum/seguranca.js'
 // Página de uma caixa (dentro da loja, com o carrossel de drops em cima): uma roleta parada por caixa escolhida (até 3), "Abrir por X NP",
 // os modos (Jester = chances iguais, Boost = itens melhores mais prováveis, Lightning = animação rápida), o som e o conteúdo da caixa.
 // Cada modo pinta a página com a cor dele (Jester roxo, Boost laranja) e entra com partículas e som. Abrir roda as roletas ali mesmo
@@ -424,7 +425,8 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
     setVendendo(true)
     setErroVenda('')
     try {
-      const r = await venderItens(lista)
+      const { dados: r, cancelado } = await comSenha(t('Para vender os itens por NP, digite sua senha de segurança.'), senha => venderItens(lista, senha))
+      if (cancelado) return
       avisarSaldo(r.saldo)
       som('parar')
       setVendidos((s) => new Set([...s, ...lista]))
