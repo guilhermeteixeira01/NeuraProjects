@@ -27,6 +27,30 @@ html:not([data-tema]), html[data-tema='escuro'] {
   --cartao-2: #141414;
 }
 body { font-size: 14px; }
+.nx-config-cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.nx-config-fechar { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--border); border-radius: 6px; background: var(--ui-raised); color: var(--text); font-size: 24px; cursor: pointer; }
+@media (max-width: 1024px) {
+  /* Painéis pequenos presos à tela, com espaço para as duas barras e o notch. */
+  .nx-nav .nx-acoes :is(.nx-conta-menu.cp-card, .nx-config-painel) {
+    position: fixed; top: calc(70px + env(safe-area-inset-top, 0px));
+    right: max(12px, env(safe-area-inset-right, 0px)); bottom: auto; left: auto;
+    width: min(340px, calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+    min-width: 0; max-width: none;
+    max-height: calc(100vh - 150px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100dvh - 150px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable;
+  }
+  .nx-nav .nx-acoes :is(.nx-conta-menu.cp-card, .nx-config-painel) > * { flex-shrink: 0; }
+  /* Os painéis sociais são telas completas; não herdam a largura dos popovers. */
+  .am-painel.am-celular {
+    inset: 0; width: 100%; max-width: none; min-width: 0;
+    height: 100vh; height: 100dvh; max-height: none; border-radius: 0;
+    padding-top: env(safe-area-inset-top, 0px); padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
+    overflow: hidden;
+  }
+  .am-celular > .am-cab { flex-shrink: 0; }
+  .am-celular :is(.am-rolagem, .nt-corpo, .pp-corpo) { min-height: 0; overscroll-behavior: contain; }
+}
 h1, h2, h3, h4 { font-family: var(--font-body); letter-spacing: -.025em; text-transform: none; }
 :is(.hero h1, .lj-topo h1, .eq-topo h1, .inv-topo h1) { font: 750 clamp(28px, 3vw, 40px)/1.15 var(--font-body); }
 .hero { padding-block: 28px 24px; }

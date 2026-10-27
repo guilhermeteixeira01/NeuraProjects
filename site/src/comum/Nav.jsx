@@ -85,7 +85,7 @@ function Conta() {
   const avatar = fotoAtual || conta.avatar
   return (
     <div className="nx-conta" ref={caixa}>
-      <button type="button" className="nx-conta-btn" aria-haspopup="menu" aria-expanded={aberto} onClick={() => setAberto((a) => !a)}>
+      <button type="button" className="nx-conta-btn" aria-label={t('Minha conta')} aria-haspopup="dialog" aria-expanded={aberto} onClick={() => setAberto((a) => !a)}>
         <ComMoldura steamId={conta.id}>
           {avatar && erroAvatar !== avatar ? (
             <img src={avatar} alt="" width="28" height="28" onError={() => setErroAvatar(avatar)} />
@@ -163,7 +163,7 @@ function Conta() {
             {t('VER PERFIL')}
           </a>
           <div className="cp-links">
-            <a href={linkPerfil(conta.id)+'&conta=1'}>Configura??es da conta</a>
+            <a href={linkPerfil(conta.id)+'&conta=1'}>{t('Configurações da conta')}</a>
             <a href={`https://steamcommunity.com/profiles/${conta.id}`} target="_blank" rel="noopener">
               {t('Perfil na Steam')}
             </a>

@@ -20,6 +20,13 @@ explícitas do admin por envio. Tentativas antigas da OpenAI não contam
 para esse limite quando o pedido é aprovado novamente na Cloudflare.
 
 Modelo: `@cf/black-forest-labs/flux-2-klein-4b`, saída 768×1152.
+Todos os pedidos usam o mesmo prompt de estúdio e seed 114702: rosto
+centrado, câmera frontal, ombros nivelados, corte na cintura e luz neutra.
+A foto do jogador é a única referência de identidade; a segunda imagem
+fornece somente a camisa. O prompt proíbe alterações na geometria facial,
+idade, pele, cabelo e barba. Essas instruções reduzem a variação, mas a IA
+ainda pode desobedecer; não equivalem a uma verificação biométrica.
+O novo preset vale para gerações futuras, sem regenerar cards existentes.
 As duas referências são reduzidas a no máximo 480 pixels por lado e
 enviadas em multipart. O fundo verde é removido no servidor, sem segunda
 API. Resultado sem fundo adequado não é publicado. A IA pode variar

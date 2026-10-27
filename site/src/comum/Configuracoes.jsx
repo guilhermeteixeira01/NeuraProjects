@@ -114,7 +114,7 @@ export default function Configuracoes() {
       </button>
       {aberto && (
         <div className="nx-config-painel" role="dialog" aria-label={t('Configurações')}>
-          <div className="nx-config-cab">{t('Configurações')}</div>
+          <div className="nx-config-cab"><span>{t('Configurações')}</span><button type="button" className="nx-config-fechar" aria-label={t('Fechar')} onClick={() => setAberto(false)}>×</button></div>
 
           <label className="nx-config-campo">
             <span>{t('Idioma')}</span>
