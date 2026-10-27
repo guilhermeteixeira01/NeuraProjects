@@ -27,7 +27,8 @@ fornece somente a camisa. O prompt proíbe alterações na geometria facial,
 idade, pele, cabelo e barba. Essas instruções reduzem a variação, mas a IA
 ainda pode desobedecer; não equivalem a uma verificação biométrica.
 O novo preset vale para gerações futuras, sem regenerar cards existentes.
-As duas referências são reduzidas a no máximo 480 pixels por lado e
+As três referências (foto, camisa e detalhe ampliado da marca da camisa)
+ficam com no máximo 480 pixels por lado e
 enviadas em multipart. O fundo verde é removido no servidor, sem segunda
 API. Resultado sem fundo adequado não é publicado. A IA pode variar
 traços e detalhes da camisa; a qualidade depende da foto enviada.
@@ -45,3 +46,10 @@ Em `site/worker/steam-login`: `npx wrangler deploy --dry-run`.
 Documentação oficial:
 - https://developers.cloudflare.com/changelog/post/2026-01-15-flux-2-klein-4b-workers-ai/
 - https://developers.cloudflare.com/workers-ai/platform/pricing/
+
+O corpo deve seguir as proporções visíveis na foto, sem copiar o físico do
+manequim nem acrescentar músculos. O limite de largura do card não é uma
+largura obrigatória dos ombros. Para fidelidade corporal, envie rosto,
+ombros e tronco; foto só do rosto não permite conhecer o porte com precisão.
+A terceira referência destaca NEURA / PROJECT e o prompt soletra PROJECT
+para reduzir texto deformado. A IA ainda pode errar; não há garantia OCR.

@@ -31,8 +31,8 @@ export async function decodificarHall(bytes) {
   } catch { throw new ErroServico('hall-imagem-invalida') }
 }
 
-export function reduzirHall(imagem, max = 480) {
-  const escala = Math.min(1, max / Math.max(imagem.width, imagem.height))
+export function reduzirHall(imagem, max = 480, ampliar = false) {
+  const escala = Math.min(ampliar ? Infinity : 1, max / Math.max(imagem.width, imagem.height))
   const width = Math.max(1, Math.round(imagem.width * escala)), height = Math.max(1, Math.round(imagem.height * escala))
   const data = new Uint8Array(width * height * 4)
   for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
@@ -44,6 +44,20 @@ export function reduzirHall(imagem, max = 480) {
 }
 
 export const pngHall = imagem => encode({ ...imagem, depth: 8, channels: 4 })
+
+// Detalhe das duas linhas da marca nas duas camisas oficiais do Hall.
+// Uma referência separada evita que PROJECT vire poucos pixels ao reduzir o uniforme inteiro.
+export function detalheMarcaHall(imagem) {
+  const x = Math.floor(imagem.width * .33), y = Math.floor(imagem.height * .385)
+  const width = Math.max(1, Math.min(imagem.width - x, Math.ceil(imagem.width * .34)))
+  const height = Math.max(1, Math.min(imagem.height - y, Math.ceil(imagem.height * .065)))
+  const data = new Uint8Array(width * height * 4)
+  for (let linha = 0; linha < height; linha++) {
+    const inicio = ((y + linha) * imagem.width + x) * 4
+    data.set(imagem.data.subarray(inicio, inicio + width * 4), linha * width * 4)
+  }
+  return { width, height, data }
+}
 
 // Remove o fundo e grandes vãos entre braços e camisa, preservando detalhes pequenos.
 export function recortarHall(imagem) {

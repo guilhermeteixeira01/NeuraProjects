@@ -39,7 +39,7 @@ test('gera somente após admin aprovar; salva imagem binária e publica no Hall 
   await f.ator().alarm();assert.equal(chamadas.length,1)
   const form=chamadas[0].body
   assert.equal(form.get('width'),'768');assert.equal(form.get('height'),'1152');assert.equal(form.get('seed'),'114702')
-  assert.ok(form.get('input_image_0'));assert.ok(form.get('input_image_1'));assert.equal(chamadas[0].model,'@cf/black-forest-labs/flux-2-klein-4b')
+  assert.ok(form.get('input_image_0'));assert.ok(form.get('input_image_1'));assert.ok(form.get('input_image_2'));assert.equal(chamadas[0].model,'@cf/black-forest-labs/flux-2-klein-4b')
   assert.match(form.get('prompt'),/facial identity/)
   const d=await f.estado();assert.equal(d.estado,'aprovada');assert.equal(d.camisaAprovada,'clara');assert.equal(d.original,undefined)
   const p=(await f.pedir('GET','/hall/publico?id='+A)).dados

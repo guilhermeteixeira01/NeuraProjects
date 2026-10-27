@@ -5,7 +5,7 @@ import { cotaHall } from '../src/hall-cota.js'
 import { mudarDoc } from '../src/dados.js'
 import { readFileSync } from 'node:fs'
 const { foto, referencia, simularAI } = await import('./hall-fixture.mjs')
-const { decodificarHall, reduzirHall, recortarHall, pngHall } = await import('../src/hall-codec.js')
+const { decodificarHall, reduzirHall, recortarHall, pngHall, detalheMarcaHall } = await import('../src/hall-codec.js')
 
 test('cota global limita concorrência, reserva idempotente e renova em UTC', async () => {
   const { env } = ambiente(), agora = Date.parse('2026-10-27T12:00:00Z')
@@ -42,6 +42,10 @@ test('quota esgotada mantém pedido aprovado na fila sem chamada AI e retoma ama
 test('codec decodifica ambas as camisas WebP reais e reduz referências abaixo de 512', async () => {
   for (const cor of ['escura', 'clara']) {
     const imagem = await decodificarHall(readFileSync(new URL(`../../../public/assets/hall/jogador-${cor}.webp`, import.meta.url)))
+    const marca = reduzirHall(detalheMarcaHall(imagem), 480, true)
+    assert.ok(Math.min(marca.width, marca.height) >= 64)
+    assert.ok(Math.max(marca.width, marca.height) <= 480)
+    assert.equal(marca.data.length, marca.width * marca.height * 4)
     const pequena = reduzirHall(imagem)
     assert.ok(Math.max(pequena.width, pequena.height) <= 480)
     assert.equal((await decodificarHall(pngHall(pequena))).width, pequena.width)
