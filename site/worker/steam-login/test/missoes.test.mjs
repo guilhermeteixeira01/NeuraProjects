@@ -7,6 +7,37 @@ import { progressoMissoes,resumoMissao,anoBrasilia,categoriaArma,MISSOES,MAPAS_M
 import { sincronizarMissoes } from '../src/missoes.js'
 import { calendarioEventosInsignias } from '../../../src/comum/eventos.js'
 import { lerPerfil } from '../src/perfis.js'
+import { darInsignias } from '../src/perfis.js'
+import { juntar } from '../src/notif-core.js'
+
+test('coleção 2026 não usa Ano Novo e Verão iniciados em 2025 nem antecipa eventos futuros',()=>{
+  const cfg={eventos:calendarioEventosInsignias(2026)},hoje=Date.parse('2026-10-27T12:00:00Z')
+  const lista=progressoMissoes([],cfg,hoje).lista
+  for(const id of ['ano-novo','verao','natal','halloween','black-friday','primavera'])assert.equal(lista.find(m=>m.id===`evento-${id}-2026`).concluida,false,id)
+  for(const id of ['ano-novo','verao'])assert.equal(anoBrasilia(Date.parse(cfg.eventos[`evento-${id}`].inicio)),2026)
+  const legado={eventos:{...cfg.eventos,'evento-ano-novo':{ano:2026,inicio:'2025-12-27T03:00:00Z',fim:'2026-01-07T03:00:00Z'}}}
+  assert.equal(progressoMissoes([],legado,hoje).lista.find(m=>m.id==='evento-ano-novo-2026').concluida,false)
+  const natalAntecipado={eventos:{...cfg.eventos,'evento-natal':{ano:2026,inicio:'2026-01-01T03:00:00Z',fim:'2026-01-02T03:00:00Z'}}}
+  assert.equal(progressoMissoes([],natalAntecipado,hoje).lista.find(m=>m.id==='evento-natal-2026').concluida,false)
+  assert.ok(progressoMissoes([],cfg,Date.parse('2027-04-01T12:00:00Z')).lista.find(m=>m.id==='evento-verao-2026').concluida)
+})
+
+test('retira concessões antecipadas e avisos em todos os aparelhos; entrega de novo só após encerrar',async()=>{
+  const id='76561198000000429',f=ambiente({'missoes-config':{ativa:true}}),a=f.env.LOJA.instancia(id),hoje=Date.parse('2026-10-27T12:00:00Z')
+  const badge='evento-ano-novo-2026',aviso={id:`ins:${badge}`,insignia:badge,titulo:'Antecipada',quando:hoje-1000}
+  await darInsignias(f.env,{[id]:{[badge]:hoje-1000,'missao-headshot':hoje-1000,'evento-outono-2026':hoje-1000}})
+  a.sql.exec('INSERT INTO missoes_concessoes (id,quando,perfilado,notificada) VALUES (?,?,1,1)',badge,hoje-1000)
+  const antigo={lista:[aviso],vistos:[aviso.id],limpoEm:0};await a.ctx.storage.put('notifs',antigo)
+  await sincronizarMissoes(a,id,[],false,hoje)
+  let perfil=await lerPerfil(f.env,id)
+  assert.equal(perfil.insignias[badge],undefined);assert.ok(perfil.insignias['missao-headshot']);assert.ok(perfil.insignias['evento-outono-2026'])
+  assert.equal(a.sql.exec('SELECT id FROM missoes_concessoes WHERE id = ?',badge).toArray().length,0)
+  let doc=await a.ctx.storage.get('notifs');assert.ok(!doc.lista.some(n=>n.id===aviso.id))
+  assert.ok(!juntar(antigo,doc).lista.some(n=>n.id===aviso.id))
+  await sincronizarMissoes(a,id,[],false,Date.parse('2027-01-08T12:00:00Z'))
+  perfil=await lerPerfil(f.env,id);assert.ok(perfil.insignias[badge])
+  doc=await a.ctx.storage.get('notifs');assert.equal(doc.lista.filter(n=>n.id===aviso.id).length,1)
+})
 
 test('todas as 57 artes existem nas versões web e miniatura',()=>{
   const pasta=new URL('../../../public/assets/insignia/',import.meta.url)
@@ -123,4 +154,14 @@ test('API de missões é da própria conta e só admin pode ajustar regras',asyn
   const p=await f.pedir('GET','/admin/missoes',{quem:DONO});assert.equal(p.status,200);assert.equal(p.dados.catalogo.length,57)
   assert.equal((await f.pedir('POST','/admin/missoes',{quem:DONO,corpo:{eventos:{'evento-natal':{ano:2026,inicio:'2026-01-02',fim:'2026-01-01'}}}})).status,400)
   assert.equal((await f.pedir('POST','/admin/missoes',{quem:DONO,corpo:{metaMapas:7,mapas:{dust2:{mapa:'de_dust2',modo:'5v5',meta:4}}}})).status,200)
+  assert.equal((await f.pedir('POST','/admin/missoes',{quem:DONO,corpo:{eventos:{'evento-ano-novo':{ano:2026,inicio:'2025-12-27T03:00:00Z',fim:'2026-01-07T03:00:00Z'}}}})).status,400)
+  assert.equal((await f.pedir('POST','/admin/perfil',{quem:DONO,corpo:{id,insignias:['evento-natal-2026']}})).status,400)
+})
+
+test('consulta pública corrige insígnias antecipadas mesmo de uma conta offline',async()=>{
+  const id='76561198000000430',f=ambiente()
+  await darInsignias(f.env,{[id]:{'evento-verao-2026':Date.now(),'missao-headshot':Date.now()}})
+  const r=await f.pedir('GET','/perfis')
+  assert.equal(r.status,200);assert.equal(r.dados[id].insignias['evento-verao-2026'],undefined)
+  assert.ok((await lerPerfil(f.env,id)).insignias['missao-headshot'])
 })

@@ -1,4 +1,4 @@
-import { rotaMissoes } from './missoes.js'
+import { rotaMissoes, corrigirEventosAntecipados } from './missoes.js'
 /*
  * Worker do neuraproject.com.br (Cloudflare): login pela Steam e tudo que o site estático (GitHub Pages) não faz sozinho.
  * Este arquivo só encaminha: cada rota vive no módulo dela. Erro tipado (erros.js) vira { erro } com o status da classe; qualquer outra
@@ -181,6 +181,7 @@ export default {
   // Cron (wrangler.toml, a cada 10 min): quem saiu do top N perde o cargo automático (e a moldura exclusiva dele), o top 3 ganha a insígnia
   // e, na primeira rodada de cada hora, o Premier (Leetify) é atualizado
   async scheduled(evento, env, ctx) {
+    ctx.waitUntil(semDerrubar(corrigirEventosAntecipados(env), 'cron: corrigir eventos antecipados'))
     ctx.waitUntil(semDerrubar(limparInventariosCaixasAntigas(env), 'cron: remover caixas antigas sem reembolso'))
     ctx.waitUntil(semDerrubar(lerConfig(env).then((config) => tirarExclusivasSemCargo(env, config)).then(() => darInsigniaTop3(env)), 'cron: cargos e insígnia top 3'))
     if (new Date(evento.scheduledTime).getUTCMinutes() < 10) ctx.waitUntil(semDerrubar(atualizarPremier(env), 'cron: Premier'))

@@ -1,7 +1,9 @@
-import { MISSOES, anoBrasilia, progressoMissoes, resumoMissao, insigniaMissao } from './missoes-core.js'
+import { MISSOES, ANO_EVENTOS, anoBrasilia, progressoMissoes, resumoMissao, insigniaMissao } from './missoes-core.js'
 import { calendarioEventosInsignias } from '../../../src/comum/eventos.js'
-import { lerDoc, gravarDoc } from './dados.js'
-import { darInsignias, lerPerfil } from './perfis.js'
+import { lerDoc, gravarDoc, mudar } from './dados.js'
+import { darInsignias, lerPerfil, lerPerfis } from './perfis.js'
+import { avisarPerfil } from './amigos.js'
+import { juntar,docVazio } from './notif-core.js'
 import { pedirAoJogador } from './objetos.js'
 import { ErroPedido } from './erros.js'
 import { json } from './http.js'
@@ -13,7 +15,7 @@ export function iniciarMissoes(obj) {
 }
 export async function configMissoes(env,agora=Date.now()) {
   const salvo=await lerDoc(env,'missoes-config',{})
-  return {ativa:true,...salvo,eventos:{...calendarioEventosInsignias(anoBrasilia(agora)),...salvo.eventos}}
+  return {ativa:true,...salvo,eventos:{...calendarioEventosInsignias(ANO_EVENTOS),...salvo.eventos}}
 }
 export async function historicoMissoes(env,id) {
   const r=await fetch(`${enderecoDoSite(env)}/perfil/historico/${id}.json`,{cf:{cacheTtl:60},signal:AbortSignal.timeout(15000)})
@@ -29,7 +31,18 @@ export async function sincronizarMissoes(obj,id,novas=[],buscarHistorico=false,a
   const resumos=[...historico,...novas].filter(p=>p?.validada===true&&typeof p.chave==='string'&&p.chave.length<400)
   obj.ctx.storage.transactionSync(()=>{for(const p of resumos)obj.sql.exec('INSERT OR IGNORE INTO missoes_partidas (chave,dados) VALUES (?,?)',p.chave,JSON.stringify(p))})
   const partidas=obj.sql.exec('SELECT dados FROM missoes_partidas').toArray().map(p=>JSON.parse(p.dados))
-  const progresso=progressoMissoes(partidas,config,agora),perfil=await lerPerfil(obj.env,id)
+  const progresso=progressoMissoes(partidas,config,agora)
+  let perfil=await lerPerfil(obj.env,id)
+  const bloqueadas=new Set(progresso.lista.filter(m=>m.categoria==='eventos'&&!m.concluida).map(m=>m.id))
+  const revogar=new Set([...Object.keys(perfil?.insignias||{}),...obj.sql.exec('SELECT id FROM missoes_concessoes').toArray().map(r=>r.id)].filter(id=>bloqueadas.has(id)))
+  if(revogar.size){
+    const {mapa}=await mudar(obj.env,'perfis',[id],atuais=>{if(!atuais[id])return;const insignias={...atuais[id].insignias};for(const k of revogar)delete insignias[k];atuais[id]={...atuais[id],insignias}})
+    perfil=mapa[id];await avisarPerfil(obj.env,id,perfil)
+    obj.ctx.storage.transactionSync(()=>{for(const k of revogar)obj.sql.exec('DELETE FROM missoes_concessoes WHERE id = ?',k)})
+  }
+  const avisos=await obj.ctx.storage.get('notifs')||docVazio()
+  const apagar=[...new Set([...revogar,...avisos.lista.filter(n=>bloqueadas.has(n.insignia)||bloqueadas.has(n.id.replace(/^ins:/,''))).map(n=>n.insignia||n.id.replace(/^ins:/,''))])]
+  if(apagar.length)await obj.ctx.storage.put('notifs',juntar(avisos,{removidas:Object.fromEntries(apagar.map(k=>[`ins:${k}`,agora]))}))
   obj.ctx.storage.transactionSync(()=>{for(const m of progresso.lista)if(config.ativa!==false&&m.concluida&&!perfil?.insignias?.[m.id])obj.sql.exec('INSERT OR IGNORE INTO missoes_concessoes (id,quando) VALUES (?,?)',m.id,agora)})
   const entregar=obj.sql.exec('SELECT * FROM missoes_concessoes WHERE perfilado = 0').toArray()
   if(entregar.length) {
@@ -52,6 +65,12 @@ export async function registrarMissoesPartida(env,chave,partida) {
     if(resumo)await pedirAoJogador(env,id,{acao:'missoes-sinc',partidas:[{...resumo,validada:true}]})
   }
 }
+// Repara também contas offline; não depende de o jogador abrir a aba de missões.
+export async function corrigirEventosAntecipados(env,agora=Date.now()) {
+  const config=await configMissoes(env,agora),progresso=progressoMissoes([],config,agora)
+  const bloqueadas=new Set(progresso.lista.filter(m=>m.categoria==='eventos'&&!m.concluida).map(m=>m.id))
+  for(const [id,p] of Object.entries(await lerPerfis(env)))if(Object.keys(p.insignias||{}).some(k=>bloqueadas.has(k)))await pedirAoJogador(env,id,{acao:'missoes-sinc'})
+}
 export const rotaMissoes = async (env,quem,cors) => json(await pedirAoJogador(env,quem.id,{acao:'missoes-sinc',historico:true}),200,{...cors,'Cache-Control':'no-store'})
 export async function lerPainelMissoes(env) {
   const config=await configMissoes(env)
@@ -61,7 +80,8 @@ export async function salvarConfigMissoes(env,c) {
   if(!c || typeof c!=='object'||Array.isArray(c))throw new ErroPedido('config')
   const config={ativa:c.ativa!==false,metaMapas:Math.max(1,Math.min(10000,Math.round(Number(c.metaMapas)||10))),eventos:{},mapas:{}}
   for(const [id,p] of Object.entries(c.eventos||{})) {
-    if(!MISSOES.some(m=>m.id===id&&m.categoria==='eventos')||!p||!/^20\d{2}$/.test(String(p.ano))||!/(Z|[+-]\d{2}:\d{2})$/.test(p.inicio||'')||!/(Z|[+-]\d{2}:\d{2})$/.test(p.fim||'')||!(Date.parse(p.fim)>Date.parse(p.inicio)))throw new ErroPedido('evento')
+    const base=calendarioEventosInsignias(ANO_EVENTOS)[id]
+    if(!MISSOES.some(m=>m.id===id&&m.categoria==='eventos')||!p||Number(p.ano)!==ANO_EVENTOS||!/(Z|[+-]\d{2}:\d{2})$/.test(p.inicio||'')||!/(Z|[+-]\d{2}:\d{2})$/.test(p.fim||'')||!(Date.parse(p.fim)>Date.parse(p.inicio))||anoBrasilia(Date.parse(p.inicio))!==ANO_EVENTOS||(base&&Date.parse(p.fim)<Date.parse(base.fim)))throw new ErroPedido('evento')
     config.eventos[id]={ano:Number(p.ano),inicio:p.inicio,fim:p.fim}
   }
   for(const [id,p] of Object.entries(c.mapas||{})) {

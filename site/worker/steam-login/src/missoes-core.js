@@ -1,4 +1,6 @@
 import CATALOGO from './missoes-catalogo.js'
+import { calendarioEventosInsignias } from '../../../src/comum/eventos.js'
+export const ANO_EVENTOS = 2026
 export const MISSOES = CATALOGO
 export const EXPLORADOR = ['de_dust2','de_mirage','de_inferno','de_nuke','de_ancient','de_anubis','de_overpass']
 export const MAPAS_MISSOES = Object.fromEntries([
@@ -60,7 +62,7 @@ export function progressoMissoes(partidas,config={},agora=Date.now()) {
     }
   }
   const regras={headshot:['headshots',100],sniper:['awp',50],clutch:['clutches',10],ace:['melhorRound',5],demolidor:['plantios',25],desarmador:['desarmes',25],suporte:['assistencias',100],veterano:['vitorias',100],'primeira-vitoria':['vitorias',1],pistoleiro:['pistolas',100],rajada:['submetralhadoras',100],granadeiro:['he',10],incendiario:['fogo',10],implacavel:['kills',1000]}
-  const ano=anoBrasilia(agora),pendencias=[]
+  const ano=ANO_EVENTOS,pendencias=[],calendario=calendarioEventosInsignias(ano)
   const lista=MISSOES.map(m=>{
     let atual=0,meta=1,id=m.id,detalhes
     if(m.categoria==='combate') {
@@ -76,7 +78,7 @@ export function progressoMissoes(partidas,config={},agora=Date.now()) {
     } else {
       id=idEventoMissao(m.id,ano)
       const periodo=config.eventos?.[m.id]
-      if(!periodo || periodo.ano!==ano || !Number.isFinite(Date.parse(periodo.inicio)) || !Number.isFinite(Date.parse(periodo.fim)) || Date.parse(periodo.fim)<=Date.parse(periodo.inicio))pendencias.push({id:m.id,motivo:'Configure início, encerramento e edição anual do evento.'})
+      if(!periodo || periodo.ano!==ano || !Number.isFinite(Date.parse(periodo.inicio)) || !Number.isFinite(Date.parse(periodo.fim)) || anoBrasilia(Date.parse(periodo.inicio))!==ano || Date.parse(periodo.fim)<=Date.parse(periodo.inicio) || (calendario[m.id]&&Date.parse(periodo.fim)<Date.parse(calendario[m.id].fim)))pendencias.push({id:m.id,motivo:'Configure o período da edição 2026, sem antecipar seu encerramento.'})
       else atual=Date.parse(periodo.fim)<agora?1:0
     }
     return {...m,id,atual,meta,concluida:atual>=meta,...(detalhes?{detalhes}:{})}

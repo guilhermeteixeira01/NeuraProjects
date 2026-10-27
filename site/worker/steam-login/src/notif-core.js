@@ -10,7 +10,9 @@ export const docVazio = () => ({ lista: [], vistos: [], limpoEm: 0 })
 
 export function limparDoc(d) {
   const lista = Array.isArray(d?.lista) ? d.lista : []
+  const removidas=Object.fromEntries(Object.entries(d?.removidas||{}).filter(([id,t])=>id.length<=120&&Number.isFinite(t)&&t>0).slice(-MAX_VISTOS))
   return {
+    ...(Object.keys(removidas).length?{removidas}:{}),
     lista: lista
       .filter((n) => n && typeof n.id === 'string' && n.id.length <= 120)
       .map((n) => ({
@@ -35,9 +37,11 @@ export function juntar(a, b) {
   const x = limparDoc(a)
   const y = limparDoc(b)
   const limpoEm = Math.max(x.limpoEm, y.limpoEm)
+  const removidas={...x.removidas}
+  for(const [id,t] of Object.entries(y.removidas||{}))removidas[id]=Math.max(removidas[id]||0,t)
   const por = new Map()
   for (const n of [...x.lista, ...y.lista]) {
-    if (n.quando <= limpoEm) continue
+    if (n.quando <= limpoEm || n.quando <= (removidas[n.id]||0)) continue
     const antes = por.get(n.id)
     por.set(n.id, antes ? { ...antes, lida: antes.lida || n.lida } : n)
   }
@@ -51,5 +55,5 @@ export function juntar(a, b) {
     cargos.add(n.cargo)
     return true
   })
-  return { lista: sem.slice(0, MAX_NOTIFS), vistos, limpoEm }
+  return { lista: sem.slice(0, MAX_NOTIFS), vistos, limpoEm,...(Object.keys(removidas).length?{removidas}:{}) }
 }

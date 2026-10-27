@@ -1,4 +1,4 @@
-import { MISSOES, anoBrasilia, idEventoMissao, insigniaMissao } from '../../worker/steam-login/src/missoes-core.js'
+import { MISSOES, ANO_EVENTOS, idEventoMissao, insigniaMissao } from '../../worker/steam-login/src/missoes-core.js'
 // Insígnias: conquistas com arte própria que aparecem no perfil (passando o mouse mostra a descrição).
 // Quem tem cada uma fica nos perfis do worker: perfis[id].insignias = { "<insígnia>": quando ganhou (ms) }.
 //  - o admin dá e tira no painel (Usuários → Editar);
@@ -9,7 +9,7 @@ import { usePerfis } from './Moldura.jsx'
 import { ID_MESTRE, INSIGNIAS_LOJA, insigniaMestreDoId } from '../../worker/steam-login/src/loja-core.js'
 
 export const INSIGNIAS = [
-  ...MISSOES.map(m=>({...m,id:m.categoria==='eventos'?idEventoMissao(m.id,anoBrasilia(Date.now())):m.id,auto:true,missao:true})),
+  ...MISSOES.map(m=>({...m,id:m.categoria==='eventos'?idEventoMissao(m.id,ANO_EVENTOS):m.id,auto:true,missao:true})),
   { id: 'top3', nome: 'Top 3', descricao: 'Chegou ao top 3 do ranking da Neura Projects.', auto: true },
   { id: 'staff', nome: 'Staff', descricao: 'Faz parte da equipe da Neura Projects.' },
   { id: 'embaixador', nome: 'Embaixador', descricao: 'Representa e divulga a Neura Projects na comunidade.' },

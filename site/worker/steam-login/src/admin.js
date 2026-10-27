@@ -1,5 +1,5 @@
-import { lerPainelMissoes, salvarConfigMissoes } from './missoes.js'
-import { insigniaMissao } from './missoes-core.js'
+import { lerPainelMissoes, salvarConfigMissoes, configMissoes } from './missoes.js'
+import { insigniaMissao, progressoMissoes } from './missoes-core.js'
 /*
  * Painel de administrador (/admin/*). Cada rota declara do que precisa: uma aba do painel ou ser o dono (ROTAS_ADMIN, no fim).
  *
@@ -140,6 +140,10 @@ async function adminPerfil(corpo, env, config, cors) {
     const lista = [...new Set(Array.isArray(corpo.insignias) ? corpo.insignias : [])]
     if (lista.some((i) => !INSIGNIAS.includes(i) && !ehInsigniaLoja(i) && !insigniaMissao(i))) throw new ErroPedido('insignia')
     const tinha = antes.insignias || {}
+    if(lista.some(i=>!tinha[i]&&insigniaMissao(i)?.categoria==='eventos')){
+      const elegiveis=new Set(progressoMissoes([],await configMissoes(env)).lista.filter(m=>m.categoria==='eventos'&&m.concluida).map(m=>m.id))
+      if(lista.some(i=>!tinha[i]&&insigniaMissao(i)?.categoria==='eventos'&&!elegiveis.has(i)))throw new ErroPedido('evento-nao-encerrado')
+    }
     for (const k of Object.keys(tinha)) if (ID_MESTRE.test(k) && !lista.includes(k)) lista.push(k) // "Mestre da [Caixa]" não tem caixinha no painel: o que já ganhou fica
     mudarCampos.insignias = lista.length ? Object.fromEntries(lista.map((i) => [i, Number(tinha[i]) || Date.now()])) : null
   }
