@@ -55,9 +55,9 @@ export default function HallDaFama({j,pos,total,nivel,eu}) {
   const retrato=useRetratoHall(originalRetrato)
   return <div className="hf-area">
     {eu&&dados?.simulacao&&<p className="hf-aviso-local">{t('Prévia local: geração simulada com a camisa, sem envio de fotos e sem cobrança.')}</p>}
-    <div className="hf-card-palco"><article ref={card} className="hf-card" aria-label={t('Hall da Fama')} onPointerMove={moverCard} onPointerLeave={reporCard} onPointerCancel={reporCard}>
+    <div className="hf-card-palco"><article ref={card} className={`hf-card${pos>=1&&pos<=3?` hf-podio hf-podio-${pos}`:''}`} aria-label={t('Hall da Fama')} onPointerMove={moverCard} onPointerLeave={reporCard} onPointerCancel={reporCard}>
       <span className="hf-card-folha" aria-hidden="true"/><span className="hf-card-serial" aria-hidden="true">NP / PLAYER CARD</span>
-      <div className="hf-topo"><div><b>{pos>0?pos:'—'}</b><small>{pos>0?t('Posição'):t('Sem rank')}</small><span>LVL {nivel?.nivel ?? '?'}</span></div><strong>HALL<br/><small>DA</small><br/>FAMA</strong></div>
+      <div className="hf-topo"><div><b>{pos>0?`#${pos}`:'—'}</b>{pos>=1&&pos<=3&&<img className="hf-trofeu" src={`/assets/Ranking/trofeu-${pos}.png`} alt={t(pos===1?'Ouro':pos===2?'Prata':'Bronze')} width="48" height="56"/>}<small>{pos>0?t('Posição'):t('Sem rank')}</small><span>LVL {nivel?.nivel ?? '?'}</span></div><strong>HALL<br/><small>DA</small><br/>FAMA</strong></div>
       <div className="hf-retrato">{!(retrato&&dados?.montada)&&<CamisaNeura clara={(dados?.camisaAprovada||camisa)==='clara'}/>} {retrato?<img className={dados?.montada?'hf-foto hf-montagem':'hf-foto'} src={retrato} alt={j.nome}/>:null}</div>
       <h2>{j.nome}</h2><p>{pos>0?`${pos}º ${t('de')} ${total} ${t('jogadores')}`:t('Seu próximo capítulo começa aqui')}</p>
       <dl>{[['RAT',j.mapas?Number(j.rating||0).toFixed(2):'—'],['ADR',j.mapas?Math.round(j.adr||0):'—'],['WIN',j.mapas?Math.round((j.vitorias||0)/j.mapas*100)+'%':'—'],['MAPAS',j.mapas||0]].map(([rotulo,valor])=><div key={rotulo}><dt>{rotulo}</dt><dd>{valor}</dd></div>)}</dl>

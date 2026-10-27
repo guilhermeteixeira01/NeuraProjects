@@ -102,3 +102,27 @@
 html[data-desempenho='1'] .hf-card-palco { filter: none; }
 html[data-desempenho='1'] .hf-card-palco .hf-card { transform: none; transition: none; }
 html[data-desempenho='1'] .hf-card-folha, html[data-desempenho='1'] .hf-card-palco .hf-card::after { display: none; }
+
+/* O restante do ranking usa metal grafite; as três colocações têm seu próprio metal. */
+.hf-card-palco .hf-card {
+  --hf-metal: #8c9aa9; --hf-metal-luz: #d8e1eb; --hf-metal-sombra: #56616f; --hf-fundo: #151b22;
+  border-color: var(--hf-metal);
+  box-shadow: inset 0 0 0 4px #10151b,inset 0 0 0 5px var(--hf-metal-sombra),inset 0 0 30px rgb(0 0 0 / .5);
+}
+.hf-card-palco .hf-podio-1 { --hf-metal: #dfb951; --hf-metal-luz: #ffe6a0; --hf-metal-sombra: #8d6b26; --hf-fundo: #2d2514; }
+.hf-card-palco .hf-podio-2 { --hf-metal: #bdcbdc; --hf-metal-luz: #f0f5ff; --hf-metal-sombra: #727f92; --hf-fundo: #242d39; }
+.hf-card-palco .hf-podio-3 { --hf-metal: #c88c60; --hf-metal-luz: #f4c4a1; --hf-metal-sombra: #795036; --hf-fundo: #33241e; }
+.hf-card-palco .hf-podio {
+  background: radial-gradient(ellipse at 50% 24%,color-mix(in srgb,var(--hf-metal) 28%,transparent),transparent 60%),repeating-linear-gradient(125deg,transparent 0 14px,rgb(255 255 255 / .045) 15px 16px),var(--hf-fundo);
+}
+.hf-card-palco .hf-card::before { border-color: color-mix(in srgb,var(--hf-metal) 45%,transparent); }
+.hf-card-palco .hf-topo > div > b, .hf-card-palco .hf-card dd { color: var(--hf-metal-luz); }
+.hf-card-palco .hf-topo > div > b { font-size: clamp(30px,3vw,40px); }
+.hf-card-palco .hf-topo > div { position: relative; z-index: 1; }
+.hf-topo .hf-trofeu { position: absolute; left: 0; top: 94px; width: 42px; height: 50px; object-fit: contain; filter: drop-shadow(0 3px 5px #0008); }
+.hf-card-palco .hf-topo > div > span { border-color: var(--hf-metal-sombra); color: var(--hf-metal-luz); }
+.hf-card-palco .hf-card dl { border-color: var(--hf-metal-sombra); }
+.hf-card-palco .hf-card > a { border-color: var(--hf-metal); background: var(--hf-fundo); color: var(--hf-metal-luz); }
+.hf-card-palco .hf-card > a:hover { background: color-mix(in srgb,var(--hf-fundo) 75%,var(--hf-metal)); border-color: var(--hf-metal-luz); }
+.hf-card-serial, .hf-card-edicao, .hf-card-edicao i { color: var(--hf-metal); }
+.hf-card-palco .hf-card-folha { background-image: linear-gradient(122deg,transparent 15%,color-mix(in srgb,var(--hf-metal) 30%,transparent) 30%,#84cad755 40%,#e5bcf055 48%,color-mix(in srgb,var(--hf-metal) 35%,transparent) 55%,transparent 70%); }

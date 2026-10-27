@@ -888,7 +888,7 @@ export default function Perfil() {
   } else {
     // Quem está oculto do ranking fica sem posição (e não conta para a dos outros)
     const ordem = ordenarRanking(dados.ranking.jogadores, perfis)
-    conteudo = <Jogador j={j} mapas={dados.mapas} pos={ordem.indexOf(j) + 1} total={ordem.length} eu={conta?.id === id} admin={admin} personalizar={() => setEditando(true)} />
+    conteudo = <Jogador j={j} mapas={dados.mapas} pos={ordem.findIndex(jogador => jogador.steamId === j.steamId) + 1} total={ordem.length} eu={conta?.id === id} admin={admin} personalizar={() => setEditando(true)} />
     travado = !conta && loginAtivo()
   }
 
