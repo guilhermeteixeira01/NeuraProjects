@@ -1,3 +1,4 @@
+import AdminMissoes from './AdminMissoes.jsx'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Layout from '../../comum/Layout.jsx'
@@ -12,7 +13,7 @@ import { ordenarRanking } from '../../comum/ranking.js'
 import { localeAtual, useT } from '../../comum/i18n.js'
 import { ICONES_CARGO, IconeCargo } from '../../comum/cargos.jsx'
 import { NIVEIS_SUB, SUB_MESES_PADRAO, maisUmMes, nivelDaSub, tituloNivel, urlEmblema } from '../../comum/assinatura.js'
-import { INSIGNIAS, imagemInsignia } from '../../comum/insignias.js'
+import { INSIGNIAS, imagemInsignia, insigniaPorId } from '../../comum/insignias.js'
 import { CATEGORIAS, indicar, urlImg, urlImgArma, useCatalogo } from '../../comum/skins.js'
 import CartaoSkin from '../../comum/CartaoSkin.jsx'
 import { confirmar } from '../../comum/Dialogos.jsx'
@@ -190,7 +191,7 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar, abas = [], u
   const [bloqueado, setBloqueado] = useState(!!u.perfil.bloqueado)
   const [meus, setMeus] = useState(() => (u.perfil.cargos || []).filter((id) => cargos.some((c) => c.id === id)))
   const trocarCargo = (id, ligado) => setMeus((l) => (ligado ? [...new Set([...l, id])] : l.filter((x) => x !== id)))
-  const [insignias, setInsignias] = useState(() => Object.keys(u.perfil.insignias || {}).filter((id) => INSIGNIAS.some((i) => i.id === id)))
+  const [insignias, setInsignias] = useState(() => Object.keys(u.perfil.insignias || {}).filter((id) => !!insigniaPorId(id)))
   const trocarInsignia = (id) => setInsignias((l) => (l.includes(id) ? l.filter((x) => x !== id) : [...l, id]))
   const [estado, setEstado] = useState('')
   const previa = nivelDe(u.xpBase + (Number(ajuste) || 0), u.mapas)
@@ -1939,7 +1940,7 @@ export default function Admin() {
             </div>
             {abaAtual === 'jogadores' && (
               <>
-                {tem('usuarios') && <AdminHall />}
+                {tem('usuarios') && <><AdminMissoes /><AdminHall /></>}
                 <Usuarios usuarios={usuarios} painel={painel} dono={painel.dono} editar={setEditando} />
                 {tem('pontos') && (
                   <details className="adm-dobra">

@@ -1,3 +1,4 @@
+import { iniciarMissoes, sincronizarMissoes } from './missoes.js'
 import { exigirSenha } from './contas.js'
 /*
  * Loja: o jogador gasta Neura Pontos (NP) para comprar e abrir caixas de skins.
@@ -262,6 +263,7 @@ export class Loja {
       // 4: a contagem antiga era calculada antes da correção de t NULL; recompõe o progresso pelo histórico real.
       () => this.recalcularResumo(),
     ])
+    iniciarMissoes(this)
     this.fila = new Fila()
     this.acumulado = null // estatísticas das aberturas até o id "acumuladoAte" (memória: refeito do SQL quando o objeto acorda)
     this.acumuladoAte = 0
@@ -440,6 +442,8 @@ export class Loja {
     const pontos = COM_SALDO.has(acao) ? await this.prepararSaldo(id) : 0
     const saldo = () => pontos - this.gastos()
     switch (acao) {
+      case 'missoes-sinc':
+        return sincronizarMissoes(this,id,p.partidas||[],!!p.historico)
       case 'afiliado-recompensar':
         return this.recompensarAfiliado(id, p.convidado)
       case 'inv-ler':
@@ -450,6 +454,7 @@ export class Loja {
         return { ok: true }
       }
       case 'notif-sync': { // junta o que o aparelho mandou com o que a conta já tem e devolve o resultado
+        await sincronizarMissoes(this,id) // também alcança contas já autenticadas, pelo sino
         try { await this.aplicarPremium(await partidasPremium(this.env, id), id) }
         catch(e) { if (e.codigo !== 'historico') throw e } // histórico fora do ar não esconde os avisos já recebidos
         const atual = (await this.ctx.storage.get('notifs')) || docVazio()

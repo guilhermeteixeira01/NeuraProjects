@@ -1,3 +1,5 @@
+import { progressoMissoes, anoBrasilia } from '../../worker/steam-login/src/missoes-core.js'
+import { calendarioEventosInsignias } from './eventos.js'
 // Importado somente pelo servidor de desenvolvimento em loopback. Não autentica no worker real.
 import { CONFIG } from './config.js'
 import catalogo from '../../worker/steam-login/src/caixas-iniciais.json'
@@ -108,6 +110,8 @@ export function ativarPreviewLocal() {
     if(rota==='/conta/dados')return Response.json(estado.conta)
     if(rota==='/amigos')return Response.json({amigos:pessoas.filter(p=>estado.amigos.includes(p.id)),recebidos:[],enviados:[]})
     if(rota==='/perfil/amigos')return Response.json({permitido:true,amigos:pessoas.filter(p=>p.id!==url.searchParams.get('id'))})
+    if(rota==='/missoes')return Response.json({...progressoMissoes([],{eventos:calendarioEventosInsignias(anoBrasilia(Date.now()))}),partidasValidadas:0,simulacao:true})
+    if(rota==='/admin/missoes')return Response.json({config:{ativa:true,metaMapas:10,eventos:calendarioEventosInsignias(anoBrasilia(Date.now()))},...progressoMissoes([],{eventos:calendarioEventosInsignias(anoBrasilia(Date.now()))})})
     if(rota==='/afiliado')return Response.json({cadastrados:2,premios:1,np:1000,caixa:'Caixa Facas',lista:[{...pessoas[1],criado:Date.now()-86400000,entregue:Date.now()-3600000},{...pessoas[2],criado:Date.now()-1800000,entregue:null}]})
     if(rota==='/perfil/publico')return Response.json({permitido:true,descricao:estado.conta.descricao,faceit:estado.conta.faceit,visibilidade:Object.fromEntries(Object.keys(estado.conta.privacidade).map(k=>[k,true])),amigos:pessoas.slice(1)})
     if(rota==='/hall')return Response.json(hallDaPrevia())

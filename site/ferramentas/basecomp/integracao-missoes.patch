@@ -1,0 +1,74 @@
+--- a/BaseComp.cs
++++ b/BaseComp.cs
+@@ -16,7 +16,7 @@
+ public partial class BaseComp : BasePlugin, IPluginConfig<BaseCompConfig>
+ {
+     public override string ModuleName => "BaseComp";
+-    public override string ModuleVersion => "1.8.2";
++    public override string ModuleVersion => "1.9.0";
+     public override string ModuleAuthor => "Teixeira";
+     public override string ModuleDescription => "Base competitiva: round faca, tags de cargo e chat colorido";
+ 
+--- a/BaseCompConfig.cs
++++ b/BaseCompConfig.cs
+@@ -8,6 +8,8 @@
+ // Use o comando !cores no jogo para ver todas.
+ public class BaseCompConfig : BasePluginConfig
+ {
++    [JsonPropertyName("MissoesModo")] public string MissoesModo { get; set; } = "auto";
++    [JsonPropertyName("MissoesTreino")] public bool MissoesTreino { get; set; } = false;
+     // Prefixo das mensagens do plugin
+     [JsonPropertyName("Prefixo")]
+     public string Prefixo { get; set; } = "{green}[DGA]{default}";
+--- a/Relatorio.cs
++++ b/Relatorio.cs
+@@ -122,6 +122,7 @@
+                 GerarRelatorio();
+             return HookResult.Continue;
+         });
++        CarregarMissoes();
+     }
+ 
+     private HookResult OnRoundStartRelatorio(EventRoundStart @event, GameEventInfo info)
+@@ -150,6 +151,7 @@
+         _relatorioGerado = false;
+         _inicioPartida = DateTime.Now;
+         _estat.Clear();
++        ZerarMissoes();
+         _rounds.Clear();
+         NomePartida(); // fixa o nome agora (a demo usa o mesmo)
+         // Mapa da série começou valendo: no site o status vira "EM ANDAMENTO · MAPA X/Y" com o mapa ao vivo
+--- a/RelatorioPagina.cs
++++ b/RelatorioPagina.cs
+@@ -163,6 +163,7 @@
+         return new PartidaDados
+         {
+             Nome = nome,
++            Missoes = DadosDeMissoes(),
+             Caminho = caminho,
+             Organizacao = OrganizacaoRelatorio,
+             Categoria = categoria,
+@@ -206,6 +207,7 @@
+                 .Select(e => new JogadorDados
+                 {
+                     SteamId = e.SteamId.ToString(),
++                    Missoes = DadosDeMissoes(e.SteamId),
+                     Nome = e.Nome,
+                     Time = e.Time!,
+                     Rounds = e.Rounds,
+@@ -314,6 +316,7 @@
+ // ── partida.json (versão 1): o site lê este formato (NeuraProjects/site/src/paginas/partida/Partida.jsx) ──
+ public class PartidaDados
+ {
++    [JsonPropertyName("missoes")] public DadosMissoesPartida? Missoes { get; set; }
+     [JsonPropertyName("versao")] public int Versao { get; set; } = 1;
+     [JsonPropertyName("nome")] public string Nome { get; set; } = "";
+     [JsonPropertyName("caminho")] public string Caminho { get; set; } = "";
+@@ -370,6 +373,7 @@
+ 
+ public class JogadorDados
+ {
++    [JsonPropertyName("missoes")] public DadosMissoesJogador? Missoes { get; set; }
+     [JsonPropertyName("steamId")] public string SteamId { get; set; } = "0";
+     [JsonPropertyName("nome")] public string Nome { get; set; } = "";
+     [JsonPropertyName("avatar")] public string? Avatar { get; set; }

@@ -129,6 +129,11 @@ export function ambiente(kvInicial = {}) {
   const env = { SITE: 'https://neuraproject.com.br', DONO, SEGREDO, ORIGENS_EXTRAS: SITE, SERVIDOR_TOKEN: 'token-servidor', MOLDURAS: kv() }
   for (const [k, v] of Object.entries(kvInicial)) env.MOLDURAS.dados.set(k, typeof v === 'string' ? v : JSON.stringify(v))
   for (const [binding, classe] of Object.entries({ PRESENCA: 'Presenca', LOJA: 'Loja', TROCAS: 'Trocas', MERCADO: 'Mercado', REGISTRO: 'Registro', EQUIPES: 'Equipes', CONTAS: 'Contas', DADOS: 'Dados', HALL_RETRATOS: 'HallRetratos' })) env[binding] = namespace(worker[classe], env)
+  if (!Object.hasOwn(kvInicial, 'missoes-config')) {
+    const sql = env.DADOS.instancia('global').sql
+    sql.exec('INSERT INTO itens (colecao,id,dados,ver) VALUES (?,?,?,1)', 'docs', 'missoes-config', JSON.stringify({ativa:false}))
+    sql.exec('INSERT INTO migradas (chave) VALUES (?)', 'docs:missoes-config')
+  }
   const espera = []
   const ctx = { waitUntil: (p) => espera.push(p) }
   const b64 = (s) => Buffer.from(s).toString('base64url')

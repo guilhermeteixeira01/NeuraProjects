@@ -1,0 +1,29 @@
+.ms-painel { padding:24px 0; }
+.ms-painel > p { color:var(--dim); font-size:13px; line-height:1.6; }
+.ms-abas { display:flex; gap:8px; flex-wrap:wrap; margin:24px 0; }
+.ms-abas button { padding:12px 18px; border:1px solid var(--border-2); border-radius:6px; background:var(--panel); color:var(--text); cursor:pointer; }
+.ms-abas button[aria-selected='true'] { border-color:var(--ui-accent); color:var(--ui-accent); }
+.ms-grade { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:16px; }
+.ms-card { display:flex; flex-direction:column; gap:10px; min-width:0; padding:20px; border:1px solid var(--border); border-radius:10px; background:var(--panel); }
+.ms-card h3,.ms-card p { margin:0; }
+.ms-card p { color:var(--dim); font-size:12px; line-height:1.6; flex:1; }
+.ms-card small { color:var(--dim); font-size:10px; }
+.ms-arte { height:140px; display:grid; place-items:center; }
+.ms-arte img { width:140px; height:140px; object-fit:contain; opacity:.5; filter:grayscale(.8); }
+.ms-arte span { color:var(--dim); text-align:center; font-weight:800; }
+.ms-recebida { border-color:#8c7846; }
+.ms-recebida .ms-arte img { opacity:1; filter:none; }
+.ms-estado { color:var(--dim); font-size:10px; text-transform:uppercase; letter-spacing:.06em; }
+.ms-recebida .ms-estado { color:var(--ui-accent); }
+.ms-card progress { width:100%; height:8px; accent-color:var(--ui-accent); }
+.ms-card > b { font-size:12px; }
+.ms-card details { font-size:11px; color:var(--dim); }
+.ms-card summary { cursor:pointer; }
+.ms-card ul { padding-left:16px; line-height:1.8; }
+.ms-config { padding:20px; margin-bottom:24px; border:1px solid var(--border-2); border-radius:8px; background:var(--panel); }
+.ms-config summary { cursor:pointer; font-weight:700; }
+.ms-config label { display:grid; gap:6px; font-size:12px; }
+.ms-config input,.ms-config select { max-width:100%; padding:8px; border:1px solid var(--border-2); border-radius:4px; background:var(--bg); color:var(--text); }
+.ms-config-linha { display:grid; grid-template-columns:minmax(120px,1fr) repeat(2,minmax(0,1fr)); gap:10px; padding:12px 0; border-bottom:1px solid var(--border); }
+.ms-config-pendencias { color:var(--ui-accent); font-size:12px; line-height:1.7; }
+@media(max-width:600px){.ms-grade{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ms-card{padding:12px}.ms-arte,.ms-arte img{height:100px;width:100%}.ms-card h3{font-size:14px}.ms-card p{font-size:11px}.ms-config-linha{grid-template-columns:minmax(0,1fr)}.ms-config{padding:14px}}

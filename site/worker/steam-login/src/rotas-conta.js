@@ -1,3 +1,4 @@
+import { pedirAoJogador } from './objetos.js'
 /*
  * Rotas do jogador logado sobre a própria conta:
  *   GET  /eu                   -> quem é o dono do token, se é admin e quais abas do painel vê (registra a visita para o painel)
@@ -111,6 +112,7 @@ export async function salvarPerfil(req, env, quem, config, cors) {
 export async function rotaEu(env, quem, config, cors) {
   const abas = await abasDe(quem.id, env, config)
   await semDerrubar(registrarUsuario(env, quem.id, { nome: quem.nome, avatar: quem.avatar }, true), 'registro da visita')
+  await semDerrubar(pedirAoJogador(env,quem.id,{acao:'missoes-sinc',historico:true}), 'missões da conta')
   if (quem.id === env.DONO) abas.push('servidor') // aba só do dono (fora de ABAS_ADMIN: nenhum cargo libera)
   return json({ id: quem.id, admin: ehAdmin(quem.id, env, config), dono: quem.id === env.DONO, painel: abas.length > 0, abas }, 200, cors)
 }

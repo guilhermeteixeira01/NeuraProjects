@@ -1,3 +1,4 @@
+import { registrarMissoesPartida } from './missoes.js'
 // Partidas recém-jogadas, servidas direto pelo worker (sem esperar o deploy do site).
 //
 // O plugin do servidor (BaseComp) manda a partida para cá assim que o mapa termina, além de continuar enviando para o
@@ -37,6 +38,7 @@ export async function rotaPartidaServidor(req, env) {
   await gravarKv(env, `partida:${c.caminho}`, c.partida, { expirationTtl: VALIDADE_S })
   const item = { ...c.item, caminho: c.caminho } // o link da página é sempre /partidas/<caminho>/
   await mudarDoc(env, 'partidas-recentes', (lista) => [item, ...lista.filter((p) => p.caminho !== c.caminho)].slice(0, MAX_RECENTES), [])
+  await registrarMissoesPartida(env,c.caminho,c.partida)
   return json({ ok: true })
 }
 

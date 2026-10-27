@@ -1,0 +1,126 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import path from 'node:path'
+import { ambiente, DONO } from './ambiente.mjs'
+import { progressoMissoes,resumoMissao,anoBrasilia,categoriaArma,MISSOES,MAPAS_MISSOES } from '../src/missoes-core.js'
+import { sincronizarMissoes } from '../src/missoes.js'
+import { calendarioEventosInsignias } from '../../../src/comum/eventos.js'
+import { lerPerfil } from '../src/perfis.js'
+
+test('todas as 57 artes existem nas versões web e miniatura',()=>{
+  const pasta=new URL('../../../public/assets/insignia/',import.meta.url)
+  for(const m of MISSOES)for(const tamanho of ['web','mini'])assert.ok(fs.statSync(new URL(`${tamanho}/${m.id}.webp`,pasta)).size>0,`${tamanho}/${m.id}`)
+})
+
+test('seis demos históricas preservam 133 rounds e participantes confirmados',()=>{
+  const raiz=new URL('../../../../partidas/',import.meta.url)
+  const arquivos=fs.readdirSync(raiz,{recursive:true}).filter(f=>f.endsWith('partida.json'))
+  let mapas=0,rounds=0,resumos=0
+  for(const arquivo of arquivos){
+    const p=JSON.parse(fs.readFileSync(new URL(arquivo.split(path.sep).join('/'),raiz),'utf8'))
+    if(p.missoes?.fonte!=='demo')continue
+    mapas++;rounds+=p.rounds.length
+    assert.equal(p.missoes.validada,true)
+    for(const j of p.jogadores){const r=resumoMissao(p,String(j.steamId),arquivo);if(!r)continue;resumos++;assert.ok(r.headshots<=r.kills);assert.ok(r.melhorRound<=5);assert.ok(r.kills<=j.kills)}
+  }
+  assert.equal(mapas,6);assert.equal(rounds,133);assert.ok(resumos>=60)
+})
+const agora=Date.parse('2026-10-27T12:00:00Z')
+const partida=(chave='a',mudar={})=>({chave,validada:true,presenteFinal:true,modo:'5v5',mapa:'de_dust2',venceu:false,kills:0,headshots:0,assistencias:0,clutches:0,plantios:0,desarmes:0,melhorRound:0,armas:{},...mudar})
+const obter=(ps,id,c={})=>progressoMissoes(ps,c,agora).lista.find(m=>m.id===id)
+
+test('catálogo tem exatamente 16 missões, 20 eventos e 21 mapas sem IDs repetidos',()=>{
+  assert.equal(new Set(MISSOES.map(m=>m.id)).size,57)
+  for(const [c,n] of [['combate',16],['eventos',20],['mapas',21]])assert.equal(MISSOES.filter(m=>m.categoria===c).length,n)
+})
+test('metas de combate são cumulativas, exclusivas de 5v5 e idempotentes por partida',()=>{
+  const casos=[['headshot','headshots',100],['clutch','clutches',10],['ace','melhorRound',5],['demolidor','plantios',25],['desarmador','desarmes',25],['suporte','assistencias',100],['implacavel','kills',1000]]
+  for(const [id,k,meta] of casos) {
+    assert.equal(obter([partida('a',{[k]:meta-1})],`missao-${id}`).concluida,false)
+    const p=partida('a',{[k]:meta})
+    assert.equal(obter([p,p],`missao-${id}`).atual,meta)
+    assert.equal(obter([p],`missao-${id}`).concluida,true)
+    assert.equal(obter([{...p,modo:'wingman'}],`missao-${id}`).atual,0)
+  }
+  assert.equal(obter(Array.from({length:100},(_,i)=>partida(String(i),{venceu:true})),'missao-veterano').concluida,true)
+  assert.equal(obter([partida('a',{venceu:true})],'missao-primeira-vitoria').concluida,true)
+  assert.equal(obter([partida('a')],'missao-primeira-vitoria').concluida,false)
+})
+test('armas têm categorias disjuntas e Versátil exige as cinco; utilitários não substituem armas',()=>{
+  assert.equal(categoriaArma('awp'),'precisao');assert.equal(categoriaArma('knife'),null)
+  const armas={awp:50,ak47:20,nova:20,glock:100,mp9:100,hegrenade:10,inferno:5,molotov:5,knife:999}
+  const p=partida('a',{armas})
+  for(const id of ['sniper','pistoleiro','rajada','granadeiro','incendiario','versatil'])assert.equal(obter([p],`missao-${id}`).concluida,true)
+  assert.equal(obter([partida('a',{armas:{...armas,nova:19}})],'missao-versatil').concluida,false)
+  assert.equal(obter([partida('a',{armas:{awp:100}})],'missao-versatil').atual,1)
+})
+test('Explorador exige vitória nos sete mapas fixos sem substituir pelo pool atual',()=>{
+  const mapas=['dust2','mirage','inferno','nuke','ancient','anubis','overpass']
+  const ps=mapas.map(m=>partida(m,{mapa:`de_${m}`,venceu:true}))
+  assert.equal(obter(ps,'missao-explorador').atual,7)
+  assert.equal(obter(ps.slice(1),'missao-explorador').concluida,false)
+  assert.equal(obter([...ps.slice(1),partida('cache',{mapa:'de_cache',venceu:true})],'missao-explorador').concluida,false)
+})
+test('mapas contam derrotas, distinguem modo e mapa e respeitam meta individual',()=>{
+  for(const [id,m] of Object.entries(MAPAS_MISSOES).filter(([,m])=>m.mapa)) {
+    const ps=Array.from({length:10},(_,i)=>partida(String(i),{mapa:m.mapa,modo:m.modo}))
+    assert.equal(obter(ps,`mapa-${id}`).concluida,true)
+    assert.equal(obter([...ps.slice(0,9),ps[0]],`mapa-${id}`).atual,9)
+    assert.equal(obter(ps.map(p=>({...p,mapa:p.mapa+'2'})),`mapa-${id}`).atual,0)
+    assert.equal(obter(ps.map(p=>({...p,presenteFinal:false})),`mapa-${id}`).atual,0)
+  }
+  const cfg={metaMapas:4,mapas:{dust2:{meta:2},'complex-rush':{mapa:'workshop/123/complex',modo:'rush',meta:3}}}
+  assert.equal(obter([partida(),partida('b')],'mapa-dust2',cfg).concluida,true)
+  assert.equal(obter([partida('rush',{mapa:'workshop/123/complex',modo:'rush'})],'mapa-complex-rush',cfg).atual,1)
+})
+test('eventos usam ano de Brasília e fim configurado, sem exigir partidas ou inventar datas',()=>{
+  assert.equal(anoBrasilia(Date.parse('2027-01-01T01:00:00Z')),2026)
+  const cfg={eventos:calendarioEventosInsignias(2026)}
+  assert.equal(obter([],'evento-outono-2026',cfg).concluida,true)
+  assert.equal(obter([],'evento-halloween-2026',cfg).concluida,false)
+  assert.equal(obter([],'evento-natal-2026',cfg).concluida,false)
+  const r=progressoMissoes([],cfg,agora)
+  assert.ok(r.pendencias.some(p=>p.id==='evento-dia-do-gamer'))
+  assert.equal(obter([],'evento-natal-2026',{eventos:{'evento-natal':{ano:2025,inicio:'2025-01-01T00:00:00Z',fim:'2025-01-02T00:00:00Z'}}}).concluida,false)
+})
+test('resumo rejeita fonte não validada, cancelamento, bots e ausência de participação; vencedor precisa de elenco final',()=>{
+  const id='76561198000000411',d={mapa:'de_mirage',placarA:13,placarB:7,missoes:{versao:1,concluida:true,validada:true,modo:'5v5',elencoFinal:[id]},jogadores:[{steamId:id,time:'A',missoes:{participou:true,roundsValidos:20,kills:10}}]}
+  assert.equal(resumoMissao(d,id,'chave').venceu,true)
+  for(const extra of [{cancelada:true},{treino:true},{aquecimento:true},{missoes:null},{missoes:{...d.missoes,validada:false}}])assert.equal(resumoMissao({...d,...extra},id,'chave'),null)
+  assert.equal(resumoMissao({...d,jogadores:[{...d.jogadores[0],bot:true}]},id,'chave'),null)
+  const saiu=resumoMissao({...d,missoes:{...d.missoes,elencoFinal:[]}},id,'chave')
+  assert.equal(saiu.venceu,false);assert.equal(saiu.presenteFinal,false);assert.equal(saiu.kills,10)
+})
+test('entrega retroativa é idempotente, persiste no perfil e só notifica após confirmar',async()=>{
+  const id='76561198000000421',f=ambiente({'missoes-config':{ativa:true}}),a=f.env.LOJA.instancia(id)
+  const resumo=partida('passada',{venceu:true,headshots:100})
+  await sincronizarMissoes(a,id,[resumo],false,agora)
+  const perfil=await lerPerfil(f.env,id),quando=perfil.insignias['missao-headshot']
+  assert.ok(quando);assert.ok(perfil.insignias['missao-primeira-vitoria']);assert.ok(perfil.insignias['evento-outono-2026'])
+  const antes=(await a.ctx.storage.get('notifs')).lista.length
+  await sincronizarMissoes(a,id,[resumo],false,agora+1000)
+  assert.equal((await lerPerfil(f.env,id)).insignias['missao-headshot'],quando)
+  assert.equal((await a.ctx.storage.get('notifs')).lista.length,antes)
+  assert.equal(a.sql.exec('SELECT COUNT(*) AS n FROM missoes_partidas').one().n,1)
+  assert.ok((await a.ctx.storage.get('notifs')).lista.some(n=>n.id==='ins:missao-headshot'))
+})
+test('falha ao notificar retoma entrega sem duplicar perfil nem conquista',async()=>{
+  const id='76561198000000422',f=ambiente({'missoes-config':{ativa:true}}),a=f.env.LOJA.instancia(id),notificar=a.notificar.bind(a)
+  a.notificar=async()=>{throw Error('falhou notificação')}
+  await assert.rejects(sincronizarMissoes(a,id,[partida('antiga',{headshots:100})],false,agora))
+  const quando=(await lerPerfil(f.env,id)).insignias['missao-headshot'];assert.ok(quando)
+  a.notificar=notificar
+  await sincronizarMissoes(a,id,[],false,agora+1000)
+  assert.equal((await lerPerfil(f.env,id)).insignias['missao-headshot'],quando)
+  const ids=(await a.ctx.storage.get('notifs')).lista.map(n=>n.id);assert.equal(ids.length,new Set(ids).size)
+})
+test('API de missões é da própria conta e só admin pode ajustar regras',async()=>{
+  const f=ambiente(),id='76561198000000423'
+  assert.equal((await f.pedir('GET','/missoes')).status,401)
+  assert.equal((await f.pedir('POST','/missoes',{quem:id,corpo:{kills:99999}})).status,404)
+  assert.equal((await f.pedir('GET','/admin/missoes',{quem:id})).status,403)
+  const p=await f.pedir('GET','/admin/missoes',{quem:DONO});assert.equal(p.status,200);assert.equal(p.dados.catalogo.length,57)
+  assert.equal((await f.pedir('POST','/admin/missoes',{quem:DONO,corpo:{eventos:{'evento-natal':{ano:2026,inicio:'2026-01-02',fim:'2026-01-01'}}}})).status,400)
+  assert.equal((await f.pedir('POST','/admin/missoes',{quem:DONO,corpo:{metaMapas:7,mapas:{dust2:{mapa:'de_dust2',modo:'5v5',meta:4}}}})).status,200)
+})

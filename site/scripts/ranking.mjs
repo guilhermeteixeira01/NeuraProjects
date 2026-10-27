@@ -1,3 +1,4 @@
+import { resumoMissao } from '../worker/steam-login/src/missoes-core.js'
 /*
  * Ranking dos jogadores: soma as estatísticas de TODAS as partidas registradas (partida.json de cada uma).
  * Roda no deploy (scripts/gerar-site.mjs), então cada partida nova que o plugin envia já atualiza o ranking.
@@ -77,6 +78,7 @@ export async function gerarRanking(pasta) {
       const meu = e.time === 'A' ? 'A' : 'B'
       j.historico.push({
         caminho: p.caminho || p.nome,
+        ...(resumoMissao(d,e.steamId,p.caminho||p.nome)?{missoes:{...resumoMissao(d,e.steamId,p.caminho||p.nome),validada:true}}:{}),
         data: p.data,
         mapa: d.mapa,
         serie: p.serie || '',

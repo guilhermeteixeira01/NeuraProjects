@@ -236,6 +236,24 @@
           "dano": 9,
           "acertos": 1
         }
+      },
+      "missoes": {
+        "participou": true,
+        "roundsValidos": 22,
+        "kills": 23,
+        "headshots": 11,
+        "assistencias": 3,
+        "clutches": 0,
+        "plantios": 1,
+        "desarmes": 0,
+        "melhorRound": 3,
+        "armas": {
+          "ak47": 8,
+          "awp": 3,
+          "deagle": 2,
+          "usp_silencer": 2,
+          "m4a1": 8
+        }
       }
     },
     {
@@ -336,6 +354,23 @@
           "dano": 10,
           "acertos": 2
         }
+      },
+      "missoes": {
+        "participou": true,
+        "roundsValidos": 22,
+        "kills": 8,
+        "headshots": 3,
+        "assistencias": 7,
+        "clutches": 0,
+        "plantios": 0,
+        "desarmes": 0,
+        "melhorRound": 3,
+        "armas": {
+          "ak47": 3,
+          "m4a1_silencer": 1,
+          "awp": 1,
+          "m4a1": 3
+        }
       }
     },
     {
@@ -430,6 +465,26 @@
           "dano": 102,
           "acertos": 7
         }
+      },
+      "missoes": {
+        "participou": true,
+        "roundsValidos": 22,
+        "kills": 14,
+        "headshots": 6,
+        "assistencias": 7,
+        "clutches": 0,
+        "plantios": 1,
+        "desarmes": 0,
+        "melhorRound": 3,
+        "armas": {
+          "ak47": 3,
+          "tec9": 1,
+          "m4a1": 5,
+          "usp_silencer": 1,
+          "m4a1_silencer": 2,
+          "fiveseven": 1,
+          "mp9": 1
+        }
       }
     },
     {
@@ -518,6 +573,24 @@
           "dano": 72,
           "acertos": 3
         }
+      },
+      "missoes": {
+        "participou": true,
+        "roundsValidos": 22,
+        "kills": 22,
+        "headshots": 11,
+        "assistencias": 4,
+        "clutches": 1,
+        "plantios": 1,
+        "desarmes": 0,
+        "melhorRound": 3,
+        "armas": {
+          "usp_silencer": 2,
+          "m4a1_silencer": 6,
+          "mp9": 2,
+          "ak47": 8,
+          "galilar": 4
+        }
       }
     },
     {
@@ -599,6 +672,23 @@
           "headshots": 0,
           "dano": 43,
           "acertos": 2
+        }
+      },
+      "missoes": {
+        "participou": true,
+        "roundsValidos": 22,
+        "kills": 10,
+        "headshots": 5,
+        "assistencias": 4,
+        "clutches": 0,
+        "plantios": 0,
+        "desarmes": 0,
+        "melhorRound": 3,
+        "armas": {
+          "m4a1_silencer": 3,
+          "mp7": 1,
+          "galilar": 3,
+          "ak47": 3
         }
       }
     },
@@ -693,6 +783,24 @@
           "headshots": 0,
           "dano": 20,
           "acertos": 1
+        }
+      },
+      "missoes": {
+        "participou": true,
+        "roundsValidos": 22,
+        "kills": 16,
+        "headshots": 9,
+        "assistencias": 4,
+        "clutches": 0,
+        "plantios": 2,
+        "desarmes": 0,
+        "melhorRound": 3,
+        "armas": {
+          "usp_silencer": 2,
+          "ak47": 7,
+          "m4a1_silencer": 5,
+          "glock": 1,
+          "galilar": 1
         }
       }
     },
@@ -794,6 +902,24 @@
           "dano": 20,
           "acertos": 7
         }
+      },
+      "missoes": {
+        "participou": true,
+        "roundsValidos": 22,
+        "kills": 22,
+        "headshots": 14,
+        "assistencias": 7,
+        "clutches": 0,
+        "plantios": 0,
+        "desarmes": 1,
+        "melhorRound": 4,
+        "armas": {
+          "deagle": 2,
+          "m4a1_silencer": 8,
+          "awp": 3,
+          "ak47": 7,
+          "usp_silencer": 2
+        }
       }
     },
     {
@@ -881,6 +1007,24 @@
           "headshots": 0,
           "dano": 10,
           "acertos": 1
+        }
+      },
+      "missoes": {
+        "participou": true,
+        "roundsValidos": 22,
+        "kills": 9,
+        "headshots": 5,
+        "assistencias": 4,
+        "clutches": 0,
+        "plantios": 0,
+        "desarmes": 0,
+        "melhorRound": 1,
+        "armas": {
+          "usp_silencer": 1,
+          "m4a1_silencer": 1,
+          "m4a1": 2,
+          "ak47": 4,
+          "galilar": 1
         }
       }
     },
@@ -994,6 +1138,28 @@
           "dano": 31,
           "acertos": 7
         }
+      },
+      "missoes": {
+        "participou": true,
+        "roundsValidos": 22,
+        "kills": 19,
+        "headshots": 9,
+        "assistencias": 2,
+        "clutches": 1,
+        "plantios": 0,
+        "desarmes": 0,
+        "melhorRound": 3,
+        "armas": {
+          "usp_silencer": 1,
+          "m4a1_silencer": 4,
+          "bizon": 2,
+          "awp": 1,
+          "famas": 1,
+          "glock": 2,
+          "ak47": 5,
+          "mp7": 1,
+          "m4a1": 2
+        }
       }
     },
     {
@@ -1082,9 +1248,59 @@
           "dano": 14,
           "acertos": 5
         }
+      },
+      "missoes": {
+        "participou": true,
+        "roundsValidos": 22,
+        "kills": 19,
+        "headshots": 8,
+        "assistencias": 2,
+        "clutches": 1,
+        "plantios": 2,
+        "desarmes": 1,
+        "melhorRound": 3,
+        "armas": {
+          "glock": 2,
+          "deagle": 3,
+          "ak47": 7,
+          "m4a1_silencer": 6,
+          "hegrenade": 1
+        }
       }
     }
   ],
   "demo": "https://github.com/guilhermeteixeira01/NeuraProjects/releases/download/demo-2026-10-26_22-12_de_overpass_time_Te1xe1ra-x-time_Senna/2026-10-26_22-12_de_overpass_time_Te1xe1ra-x-time_Senna.zip",
-  "gerado": "2026-10-26 22:54"
+  "gerado": "2026-10-26 22:54",
+  "missoes": {
+    "versao": 1,
+    "validada": true,
+    "concluida": true,
+    "modo": "5v5",
+    "fonte": "demo",
+    "elencoFinal": [
+      "76561199802548645",
+      "76561198126107307",
+      "76561199850349499",
+      "76561198780628109",
+      "76561199185489154",
+      "76561199646435650",
+      "76561198397206163",
+      "76561199245273109",
+      "76561199869966304",
+      "76561199151150360"
+    ],
+    "timesFinais": {
+      "76561199802548645": "A",
+      "76561198126107307": "B",
+      "76561199850349499": "B",
+      "76561198780628109": "B",
+      "76561199185489154": "B",
+      "76561199646435650": "A",
+      "76561198397206163": "A",
+      "76561199245273109": "B",
+      "76561199869966304": "A",
+      "76561199151150360": "A"
+    },
+    "sha256": "9ac1a401c7dc9fd748e4e00d52515f9f5de4ec34915cdaa263054acbe0b30c91"
+  }
 }

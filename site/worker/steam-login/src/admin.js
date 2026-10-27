@@ -1,3 +1,5 @@
+import { lerPainelMissoes, salvarConfigMissoes } from './missoes.js'
+import { insigniaMissao } from './missoes-core.js'
 /*
  * Painel de administrador (/admin/*). Cada rota declara do que precisa: uma aba do painel ou ser o dono (ROTAS_ADMIN, no fim).
  *
@@ -136,7 +138,7 @@ async function adminPerfil(corpo, env, config, cors) {
   // Insígnias: lista das que o jogador fica tendo; as que ele já tinha mantêm a data em que ganhou
   if ('insignias' in corpo) {
     const lista = [...new Set(Array.isArray(corpo.insignias) ? corpo.insignias : [])]
-    if (lista.some((i) => !INSIGNIAS.includes(i) && !ehInsigniaLoja(i))) throw new ErroPedido('insignia')
+    if (lista.some((i) => !INSIGNIAS.includes(i) && !ehInsigniaLoja(i) && !insigniaMissao(i))) throw new ErroPedido('insignia')
     const tinha = antes.insignias || {}
     for (const k of Object.keys(tinha)) if (ID_MESTRE.test(k) && !lista.includes(k)) lista.push(k) // "Mestre da [Caixa]" não tem caixinha no painel: o que já ganhou fica
     mudarCampos.insignias = lista.length ? Object.fromEntries(lista.map((i) => [i, Number(tinha[i]) || Date.now()])) : null
@@ -279,6 +281,7 @@ async function adminZerar(corpo, env, quem, cors) {
 
 // Rota -> { metodos, precisa: aba | 'dono' | 'aba-do-corpo', atender }. "c" = { req, env, quem, config, cors, rota, url, corpo }
 const ROTAS_ADMIN = {
+  '/admin/missoes': {metodos:['GET','POST'],precisa:'usuarios',atender:async c=>json(c.req.method==='POST'?await salvarConfigMissoes(c.env,c.corpo):await lerPainelMissoes(c.env),200,c.cors)},
   '/admin/dados': { metodos: ['GET'], precisa: null, atender: (c) => adminDados(c.env, c.config, c.cors) },
   // editar assinatura pede a aba de assinaturas; o resto do perfil, a de usuários
   '/admin/perfil': { metodos: ['POST'], precisa: (corpo) => ('sub' in corpo ? 'assinaturas' : 'usuarios'), atender: (c) => adminPerfil(c.corpo, c.env, c.config, c.cors) },

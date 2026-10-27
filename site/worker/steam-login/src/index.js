@@ -1,3 +1,4 @@
+import { rotaMissoes } from './missoes.js'
 /*
  * Worker do neuraproject.com.br (Cloudflare): login pela Steam e tudo que o site estático (GitHub Pages) não faz sozinho.
  * Este arquivo só encaminha: cada rota vive no módulo dela. Erro tipado (erros.js) vira { erro } com o status da classe; qualquer outra
@@ -119,6 +120,7 @@ const naoAtende = () => {
 }
 const so = (metodo, atender) => (c) => (c.req.method === metodo ? atender(c) : naoAtende())
 const COM_LOGIN = [
+  ['/missoes', so('GET', (c) => rotaMissoes(c.env,c.quem,c.cors))],
   ['/afiliado', (c) => rotaAfiliado(c.req, c.env, c.quem, c.cors)],
   ['/perfil/amigos', (c) => rotaAmigosPerfil(c.req, c.env, c.quem, c.cors, c.url)],
   ['/conta/dados', (c) => rotaDadosConta(c.req,c.env,c.quem,c.cors)],

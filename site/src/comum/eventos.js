@@ -63,3 +63,23 @@ export function bannerDoEvento(evento) {
   const nome = BANNERS_EVENTOS[evento] || BANNERS_EVENTOS.verao
   return { evento, grande: `/assets/banners/${nome}.webp`, pequeno: `/assets/banners/${nome}-860.webp` }
 }
+
+// Edições com encerramento explícito, usando as mesmas janelas civis do tema acima.
+// Eventos sem janela configurada aqui precisam ser definidos pelo administrador.
+export function calendarioEventosInsignias(ano) {
+  const calendario = {}, horaBrasilia = 3 * 3600000
+  const periodo = (id,inicio,fim) => { calendario[`evento-${id}`]={ano,inicio:new Date(inicio+horaBrasilia).toISOString(),fim:new Date(fim+horaBrasilia-1).toISOString()} }
+  periodo('ano-novo',utc(ano-1,12,27),utc(ano,1,7));periodo('natal',utc(ano,12,1),utc(ano,12,27))
+  periodo('halloween',utc(ano,10,15),utc(ano,11,3));periodo('dia-das-criancas',utc(ano,10,5),utc(ano,10,14))
+  periodo('dia-dos-namorados',utc(ano,6,10),utc(ano,6,14));periodo('festa-junina',utc(ano,6,1),utc(ano,7,1))
+  periodo('independencia',utc(ano,9,4),utc(ano,9,8))
+  const domingo=m=>utc(ano,m,8+(7-new Date(utc(ano,m,1)).getUTCDay())%7)
+  periodo('dia-das-maes',domingo(5)-6*DIA,domingo(5)+DIA);periodo('dia-dos-pais',domingo(8)-6*DIA,domingo(8)+DIA)
+  const pascoa=domingoDePascoa(ano)
+  periodo('carnaval',pascoa-52*DIA,pascoa-45*DIA);periodo('pascoa',pascoa-14*DIA,pascoa+2*DIA)
+  const fimNovembro=utc(ano,11,30),sexta=fimNovembro-((new Date(fimNovembro).getUTCDay()+2)%7)*DIA
+  periodo('black-friday',sexta-7*DIA,sexta+4*DIA)
+  periodo('verao',utc(ano-1,12,21),utc(ano,3,20));periodo('outono',utc(ano,3,20),utc(ano,6,21))
+  periodo('inverno',utc(ano,6,21),utc(ano,9,22));periodo('primavera',utc(ano,9,22),utc(ano,12,21))
+  return calendario
+}
