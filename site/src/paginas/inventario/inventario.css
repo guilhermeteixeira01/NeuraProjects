@@ -164,9 +164,27 @@
 .inv-lixo:hover { color: var(--red); }
 .inv-tela-rodape { display: flex; justify-content: center; align-items: center; gap: 22px; padding: 14px 0 22px; border-top: 1px solid rgb(255 255 255 / .1); margin: 0 18px; }
 .inv-previa-grande { height: 100%; }
+.inv-ajuda-mobile { display: none; }
 @media (max-width: 900px) {
   .inv-dialogo, .inv-tela-corpo { grid-template-columns: 1fr; }
   .inv-tela-lateral { margin-top: 0; }
+  .inv-dialogo > *, .inv-tela-corpo > * { min-width: 0; }
+  .inv-tela { height: 100dvh; box-sizing: border-box; }
+  .inv-tela-cab { padding: max(10px, env(safe-area-inset-top)) 12px 8px; max-height: 28dvh; overflow-y: auto; }
+  .inv-tela-cab h2 { font-size: 23px; }
+  .inv-tela-cab p { font-size: 13px; }
+  .inv-ajuda-mobile { display: block; }
+  .inv-tela .inv-dicas { display: none; }
+  .inv-tela-aviso { font-size: 12px !important; align-items: flex-start; }
+  .inv-tela-aviso i { flex-shrink: 0; }
+  .inv-tela-corpo { overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; grid-template-rows: minmax(220px, 35dvh) auto; align-content: start; padding: 0 12px 12px; }
+  .inv-tela-centro { grid-row: 1; min-height: 220px; }
+  .inv-tela-lateral { grid-row: 2; }
+  .inv-tela .inv-painel { max-height: none; overflow: visible; }
+  .inv-tela-rodape { margin: 0; padding: 10px 12px max(10px, env(safe-area-inset-bottom)); gap: 12px; flex-wrap: wrap; background: #0d1016; }
+  .inv-tela button, .inv-dialogo button, .inv-fechar { min-height: 44px; }
+  .inv-tela input[type='range'] { min-height: 44px; touch-action: pan-y; }
+  .inv-tela input[type='number'], .inv-janela input[type='text'], .inv-janela input[type='number'], .inv-janela input[type='search'] { font-size: 16px; }
 }
 
 /* cartão: chaveiro e adesivos fora da arma, no canto de baixo à esquerda (como no inventário do jogo) */

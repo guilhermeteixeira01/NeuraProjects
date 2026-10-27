@@ -25,7 +25,7 @@ import { CarregandoNP } from '../../comum/Carregando.jsx'
 import { confirmar } from '../../comum/Dialogos.jsx'
 import { comSenha } from '../../comum/seguranca.js'
 import { BotaoTrocas } from '../../comum/Trocas.jsx'
-import { ArmaComEnfeites, Visualizador3D, idNo3d, useMapas3d, Inspecionar, useTelaPequena, InspecionarSkin } from '../../comum/InspecionarSkin.jsx'
+import { ArmaComEnfeites, Visualizador3D, idNo3d, useMapas3d, Inspecionar, InspecionarSkin } from '../../comum/InspecionarSkin.jsx'
 
 // Inventário de skins, no estilo do inventário do jogo: o jogador CRIA itens (arma/faca/luva/agente com a skin que quiser), ajusta
 // cada um (desgaste, seed, StatTrak, nome, adesivos com posição) e EQUIPA no CT, no TR ou nos dois (botão direito no item).
@@ -161,6 +161,7 @@ function TelaInteira({ titulo, subtitulo, aviso, aoFechar, confirmar, rotuloConf
       <header className="inv-tela-cab">
         <h2>{titulo}</h2>
         <p>{subtitulo}</p>
+        <p className="inv-ajuda-mobile">{t('Use os controles abaixo da arma para ajustar a posição e os detalhes.')}</p>
         {aviso && (
           <p className="inv-tela-aviso">
             <i aria-hidden="true">i</i>
@@ -251,7 +252,7 @@ function TelaAdesivos({ item, d, m, adesivos, estoque, original, aoColar, aoFech
           {d.subtitulo ? <b> | {d.subtitulo}</b> : null}
         </>
       }
-      aviso={t('Arraste o adesivo na arma, gire com o botão direito do mouse e use a roda para aproximar. Cada adesivo colado é gasto do seu inventário.')}
+      aviso={t('Arraste o adesivo na arma ou use os controles para ajustar a posição e a rotação. Cada adesivo colado é gasto do seu inventário.')}
       aoFechar={aoFechar}
       confirmar={() => aoColar({ a: loc.a, k: loc.k })}
       rotuloConfirmar={t('COLAR ADESIVO')}
@@ -614,7 +615,7 @@ function MenuGuardado({ x, y, n, valor, aoInspecionar, aoAnunciar, aoVenderAgora
 }
 
 // Só aparece o time em que o item existe no jogo (AK-47 e Glock só no TR; M4 e USP-S só no CT; agente do CT só no CT...)
-function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoDesequipar, aoEditar, aoInspecionar, aoVender, aoVenderAgora, valor, podeEditar, aoFechar }) {
+function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoDesequipar, aoEditar, aoInspecionar, aoVender, aoVenderAgora, valor, aoFechar }) {
   const t = useT()
   const { ref, pos } = useMenuFlutuante(x, y, aoFechar)
   const chave = chaveEquip(item)
@@ -643,12 +644,7 @@ function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoD
         )
       })}
       <li className="inv-menu-sep" />
-      {item.t === 'arma' && !podeEditar && (
-        <li>
-          <span className="inv-menu-aviso">{t('Editar (adesivos e chaveiro) só no computador')}</span>
-        </li>
-      )}
-      {item.t === 'arma' && podeEditar && (
+      {item.t === 'arma' && (
         <li>
           <button type="button" role="menuitem" onClick={aoEditar}>
             {t('Editar (adesivos e chaveiro)')}
@@ -708,7 +704,6 @@ function Conteudo() {
   const [janela, setJanela] = useState(null) // { tipo: 'criar'|'editar'|'inspecionar', id? }
   const catalogo = useCatalogo('armas')
   const agentes = useCatalogo('agentes')
-  const pequena = useTelaPequena() // celular/tablet: dá para equipar e inspecionar, mas não editar
   useEffect(() => {
     const clique = (e) => {
       const alvo = e.target.closest?.('button, select')
@@ -1113,7 +1108,6 @@ function Conteudo() {
         </nav>
       </div>
 
-      {pequena && <p className="inv-aviso-mobile">{t('No celular dá para equipar e inspecionar. Para editar (desgaste, adesivos e chaveiro), abra o site no computador.')}</p>}
 
       <div className="inv-barra">
         <label className="inv-pesquisa">
@@ -1223,7 +1217,6 @@ function Conteudo() {
           aoEquipar={(l) => { equipar(menu.id, l); fecharMenu() }}
           aoEquiparAmbos={() => { equipar(menu.id, 'ct'); equipar(menu.id, 'tr'); fecharMenu() }}
           aoDesequipar={(l) => { desequipar(menu.id, l); fecharMenu() }}
-          podeEditar={!pequena}
           aoEditar={() => { setJanela({ tipo: 'editar', id: menu.id }); fecharMenu() }}
           aoInspecionar={() => { setJanela({ tipo: 'inspecionar', id: menu.id }); fecharMenu() }}
           valor={valores[menu.id]?.v}
@@ -1316,7 +1309,7 @@ function Conteudo() {
           </Janela>
         )
       })()}
-      {janela?.tipo === 'editar' && itemJanela && !pequena && (
+      {janela?.tipo === 'editar' && itemJanela && (
         <DialogoItem
           inicial={itemJanela}
           modo="editar"
