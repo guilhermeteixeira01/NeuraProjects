@@ -38,8 +38,12 @@ object Inv(string json){var inv=JsonSerializer.Deserialize(json,tipo)!;preparar.
 bool Mudou(object? a,object? b,string chave)=>(bool)mudou.Invoke(null,[a,b,chave])!;
 var a=Inv("""{"armas":{"ct":{"7":{"p":1,"f":0.1,"a":[{"i":22}]},"9":{"p":3}}},"luvas":{"ct":{"d":5030,"p":100}},"agentes":{"ct":{"m":"modelo"}},"facas":{"ct":{"d":515,"p":7}}}""");
 var b=Inv("""{"facas":{"ct":{"p":7,"d":515}},"agentes":{"ct":{"m":"modelo"}},"luvas":{"ct":{"p":100,"d":5030}},"armas":{"ct":{"9":{"p":3},"7":{"a":[{"i":22}],"f":0.1,"p":1}}}}""");
+var iguais=plugin.GetMethod("RevisoesIguais",BindingFlags.NonPublic|BindingFlags.Static)!;
+Verificar((bool)iguais.Invoke(null,[a,b])!,"Ordem JSON provoca atualização do painel");
+Verificar((bool)iguais.Invoke(null,[null,null])!,"Inventário vazio provoca atualização");
 foreach(var chave in new[]{"ct:arma:7","ct:arma:9","ct:luva","ct:agente","ct:faca"})Verificar(!Mudou(a,b,chave),"Ordem JSON causou reaplicação: "+chave);
 var c=Inv("""{"armas":{"ct":{"7":{"p":1,"f":0.1,"a":[{"i":23}]},"9":{"p":3}}},"luvas":{"ct":{"d":5030,"p":100}},"agentes":{"ct":{"m":"modelo"}},"facas":{"ct":{"d":515,"p":7}}}""");
+Verificar(!(bool)iguais.Invoke(null,[a,c])!,"Mudança real foi ignorada pelo painel");
 Verificar(Mudou(a,c,"ct:arma:7"),"Adesivo alterado não foi detectado");
 foreach(var chave in new[]{"ct:arma:9","ct:luva","ct:agente","ct:faca"})Verificar(!Mudou(a,c,chave),"Reaplica parte que não mudou: "+chave);
 Verificar(Mudou(null,a,"ct:luva"),"Primeiro inventário não aplica luva");

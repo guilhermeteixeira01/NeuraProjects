@@ -79,6 +79,8 @@ public partial class BaseComp
     }
     private static string Revisao(SkinsJogador? inv, string chave) => inv?.Revisoes.GetValueOrDefault(chave, "") ?? "";
     private static bool Mudou(SkinsJogador? antes, SkinsJogador? depois, string chave) => Revisao(antes, chave) != Revisao(depois, chave);
+    private static bool RevisoesIguais(SkinsJogador? antes, SkinsJogador? depois) =>
+        antes is null ? depois is null : depois is not null && antes.Revisoes.Count == depois.Revisoes.Count && antes.Revisoes.All(r => depois.Revisoes.TryGetValue(r.Key, out var v) && v == r.Value);
 
     private readonly Dictionary<ulong, SkinsJogador> _skins = new();
     private readonly Dictionary<ulong, string> _skinsJson = new(); // o último texto recebido (só reaplica se mudou)
@@ -161,7 +163,14 @@ public partial class BaseComp
             {
                 _vidasSkins[p.SteamID] = _vidasSkins.GetValueOrDefault(p.SteamID) + 1;
                 foreach (var k in _cosmeticosAplicados.Keys.Where(k => k.Steam == p.SteamID).ToArray()) _cosmeticosAplicados.Remove(k);
-                AplicarSkinsNoJogador(p, comArmas: false);
+                var id = p.SteamID; var vida = _vidasSkins[id];
+                var sessao = _sessoesSkins.GetValueOrDefault(id); var mapa = _geracaoMapaSkins;
+                // Como no fluxo anterior, aguarda o pawn do spawn ficar pronto.
+                // A aplicação nativa continua sendo distribuída pela fila.
+                Server.NextFrame(() =>
+                {
+                    if (SessaoSkinsValida(id, sessao, mapa) && _vidasSkins.GetValueOrDefault(id) == vida && p.IsValid && p.PawnIsAlive) AplicarSkinsNoJogador(p, comArmas: false);
+                });
             }
             return HookResult.Continue;
         });
@@ -234,6 +243,7 @@ public partial class BaseComp
             if (_skinsJson.GetValueOrDefault(id, "") == texto) continue;
             _skins.TryGetValue(id, out var antes);
             _skinsJson[id] = texto;
+            if (RevisoesIguais(antes, skins)) continue;
             if (skins is null) _skins.Remove(id); else _skins[id] = skins;
             var sessao = sessoes[id];
             var mapa = _geracaoMapaSkins;
