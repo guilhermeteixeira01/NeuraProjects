@@ -59,7 +59,7 @@ export function textoErroConta(e) {
 }
 
 // Estado da conta logada: { nick, temSenha, premium, podeTrocarNick, proximaTroca } (null enquanto carrega ou sem login)
-export function useSeguranca() {
+export function useSeguranca(acompanhar = false) {
   const conta = useConta()
   const [estado, setEstado] = useState(null)
   const id = conta?.id
@@ -72,11 +72,16 @@ export function useSeguranca() {
         .catch(seForErroApi())
     ler()
     window.addEventListener(EVENTO_SEGURANCA, ler)
+    const atualizar = () => { if (document.visibilityState !== 'hidden') ler() }
+    const timer = acompanhar ? setInterval(atualizar, 60000) : null
+    if (acompanhar) window.addEventListener('focus', atualizar)
     return () => {
       vivo = false
       window.removeEventListener(EVENTO_SEGURANCA, ler)
+      clearInterval(timer)
+      window.removeEventListener('focus', atualizar)
     }
-  }, [id])
+  }, [id, acompanhar])
   return estado
 }
 

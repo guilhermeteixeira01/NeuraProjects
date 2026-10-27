@@ -80,6 +80,8 @@ export class Contas {
         ]
         for (const [nome, tipo] of novas) if (!colunas.has(nome)) sql.exec(`ALTER TABLE contas ADD COLUMN ${nome} ${tipo}`)
       },
+      // Contas anteriores continuam acessíveis; novos cadastros exigem confirmação.
+      (sql) => sql.exec('ALTER TABLE contas ADD COLUMN email_obrigatorio INTEGER NOT NULL DEFAULT 0'),
     ])
     this.fila = new Fila() // a verificação de senha espera o PBKDF2 (await): sem a fila, duas tentativas juntas contariam um erro só
   }
@@ -138,6 +140,7 @@ export class Contas {
       temSenha: !!l?.hash,
       email: l?.email || null,
       emailPendente: l?.email_pendente || null,
+      emailObrigatorio: !!l?.email_obrigatorio,
       premium,
       // depois da primeira escolha: só Premium, e a cada 15 dias
       podeTrocarNick: !l?.nick || (premium && agora >= proxima),
@@ -155,6 +158,7 @@ export class Contas {
     const hash = hex(await derivar(senha, sal))
     if (l) this.sql.exec('UPDATE contas SET sal = ?, hash = ?, senha_em = ?, erros = 0, bloqueio = 0 WHERE steam = ?', hex(sal), hash, Date.now(), steam)
     else this.sql.exec('INSERT INTO contas (steam, sal, hash, senha_em) VALUES (?, ?, ?, ?)', steam, hex(sal), hash, Date.now())
+    if (!l?.hash && !l?.email && this.env.EMAIL_PRONTO === '1') this.sql.exec('UPDATE contas SET email_obrigatorio = 1 WHERE steam = ?', steam)
     return { ok: true, temSenha: true }
   }
 

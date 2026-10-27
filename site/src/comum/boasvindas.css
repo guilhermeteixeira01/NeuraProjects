@@ -41,3 +41,8 @@
 @keyframes bv-passo { from { opacity: 0; transform: translateX(16px); } }
 @keyframes bv-pulo { 0% { transform: scale(.85); } 60% { transform: scale(1.06); } }
 @keyframes cc-gira { to { transform: rotate(360deg); } }
+/* Aviso permanente para contas antigas, sem bloquear a navegação. */
+.bv-email-aviso { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 20px; margin:16px auto; width:calc(100% - 32px); max-width:1440px; box-sizing:border-box; background:#181c24; border:1px solid var(--blue-2, #367cf5); border-radius:10px; color:#fff; }
+.bv-email-aviso p { margin:5px 0 0; color:#bac2d0; font-size:13px; }
+.bv-email-aviso button { flex-shrink:0; width:auto; }
+@media(max-width:600px) { .bv-email-aviso { align-items:stretch; flex-direction:column; padding:14px; } }

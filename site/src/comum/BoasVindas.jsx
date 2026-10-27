@@ -16,7 +16,6 @@ import {
   pedirEmail,
   pedirRecuperacaoSenha,
   textoErroConta,
-  useSeguranca,
   verificarEmail,
 } from './seguranca.js'
 import { CampoNick, CampoSenha, analisarSenha, useValidacaoNick } from './CamposConta.jsx'
@@ -376,9 +375,8 @@ function FormRecuperarSenha({ aoSalvo }) {
   )
 }
 
-export default function BoasVindas() {
+export default function BoasVindas({ seg }) {
   const t = useT()
-  const seg = useSeguranca()
   const [forcarSenha, setForcarSenha] = useState(false)
 
   // alguma ação (troca, mercado) pediu a senha e ela ainda não existe
@@ -388,16 +386,16 @@ export default function BoasVindas() {
     return () => window.removeEventListener(EVENTO_PEDIR_SENHA, abrir)
   }, [])
 
-  // E-mail só entra na lista obrigatória quando o worker confirma que o envio está pronto (domínio verificado no Resend)
-  const pendente = !seg ? null : !seg.nick ? 'nick' : !seg.temSenha ? 'senha' : seg.emailDisponivel && !seg.email ? 'email' : null
+  // O servidor preserva quais cadastros precisam concluir a etapa obrigatória.
+  const pendente = !seg ? null : !seg.nick ? 'nick' : !seg.temSenha ? 'senha' : seg.emailObrigatorio && !seg.email ? 'email' : null
   const passo = pendente || (forcarSenha && seg && !seg.temSenha ? 'senha' : null)
   useTravaRolagem(!!passo)
-  if (!passo) return null
+  if (!passo) return !seg.email && seg.emailDisponivel ? <LembreteEmail /> : null
 
   const numero = { nick: 1, senha: 2, email: 3 }
   const estadoPasso = (p) => (passo === p ? 'ativo' : numero[p] < numero[passo] ? 'feito' : '')
 
-  return (
+  return createPortal(
     <div className="bv-fundo" role="presentation">
       <div className="bv" role="dialog" aria-modal="true" aria-labelledby="bv-titulo">
         <ol className="bv-passos" aria-label={t('Etapas')}>
@@ -407,7 +405,7 @@ export default function BoasVindas() {
           <li className={estadoPasso('senha')}>
             <i>{estadoPasso('senha') === 'feito' ? '✓' : '2'}</i> {t('Senha de segurança')}
           </li>
-          {seg?.emailDisponivel && (
+          {(seg?.emailDisponivel || seg?.emailObrigatorio) && (
             <li className={estadoPasso('email')}>
               <i>3</i> {t('E-mail')}
             </li>
@@ -438,8 +436,20 @@ export default function BoasVindas() {
         </div>
         {CONFIG.comunidade && <small className="bv-rodape">{t('Dúvidas? Fale com a gente no Discord.')}</small>}
       </div>
-    </div>
+    </div>, document.body
   )
+}
+
+function LembreteEmail() {
+  const t = useT()
+  const [aberto, setAberto] = useState(() => new URLSearchParams(window.location.search).has('verificar-email'))
+  return <>
+    <aside className="bv-email-aviso" aria-label={t('Verificação de e-mail pendente')}>
+      <div><strong>{t('Confirme seu e-mail para proteger sua conta')}</strong><p>{t('A confirmação permite recuperar sua senha de segurança. Você ainda não verificou seu e-mail.')}</p></div>
+      <button type="button" className="bv-botao" onClick={() => setAberto(true)}>{t('Verificar e-mail')}</button>
+    </aside>
+    {aberto && <VerificarEmail aoFechar={() => setAberto(false)} />}
+  </>
 }
 
 // Janela com X para fechar (Configurações → Conta)

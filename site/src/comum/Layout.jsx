@@ -17,14 +17,13 @@ import { MostrarAposIdioma } from './i18n.js'
 
 const BoasVindas = lazy(() => import('./BoasVindas.jsx'))
 
-// A janela de boas-vindas (apelido + senha, com a validação dos campos) só baixa para quem ainda precisa dela:
-// logado e sem apelido ou sem senha (as mesmas condições em que BoasVindas abre).
+// Carrega o cadastro incompleto ou o lembrete de e-mail das contas antigas.
 function PortaoBoasVindas() {
-  const seg = useSeguranca()
-  if (!seg || (seg.nick && seg.temSenha)) return null
+  const seg = useSeguranca(true)
+  if (!seg || (seg.nick && seg.temSenha && (seg.email || (!seg.emailDisponivel && !seg.emailObrigatorio)))) return null
   return (
     <Suspense fallback={null}>
-      <BoasVindas />
+      <BoasVindas seg={seg} />
     </Suspense>
   )
 }
@@ -122,10 +121,10 @@ export default function Layout({ pagina, children }) {
       <Nav pagina={pagina} />
       <div className="np-conteudo">
         {pagina === 'inicio' && <BannerEvento />}
+        <PortaoBoasVindas />
         {children}
         <RodapeComunidade />
       </div>
-      <PortaoBoasVindas />
       <Avisos />
       <AvisoConvite />
       <AceitarPartida />
