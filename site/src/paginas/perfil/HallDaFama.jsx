@@ -21,6 +21,15 @@ export async function prepararFoto(arquivo) {
 export default function HallDaFama({j,pos,total,nivel,eu}) {
   const t=useT(),[dados,setDados]=useState(null),[camisa,setCamisa]=useState('escura'),[foto,setFoto]=useState(''),[erro,setErro]=useState(''),[enviando,setEnviando]=useState(false)
   const consulta=useRef(0)
+  const card=useRef(null), quadro=useRef(0)
+  useEffect(()=>()=>cancelAnimationFrame(quadro.current),[])
+  const moverCard=e=>{
+    if(e.pointerType!=='mouse'||document.documentElement.dataset.desempenho==='1'||matchMedia('(prefers-reduced-motion: reduce)').matches)return
+    const el=card.current, r=el.getBoundingClientRect(), x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)), y=Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))
+    cancelAnimationFrame(quadro.current)
+    quadro.current=requestAnimationFrame(()=>{el.style.setProperty('--hf-rx',`${(0.5-y)*10}deg`);el.style.setProperty('--hf-ry',`${(x-0.5)*12}deg`);el.style.setProperty('--hf-luz-x',`${x*100}%`);el.style.setProperty('--hf-luz-y',`${y*100}%`)})
+  }
+  const reporCard=()=>{cancelAnimationFrame(quadro.current);card.current?.removeAttribute('style')}
   const carregar=useCallback(async()=>{
     const versao=++consulta.current
     const d=await(eu?chamarApi('/hall'):lerApi(`/hall/publico?id=${j.steamId}`))
@@ -46,13 +55,15 @@ export default function HallDaFama({j,pos,total,nivel,eu}) {
   const retrato=useRetratoHall(originalRetrato)
   return <div className="hf-area">
     {eu&&dados?.simulacao&&<p className="hf-aviso-local">{t('Prévia local: geração simulada com a camisa, sem envio de fotos e sem cobrança.')}</p>}
-    <article className="hf-card" aria-label={t('Hall da Fama')}>
+    <div className="hf-card-palco"><article ref={card} className="hf-card" aria-label={t('Hall da Fama')} onPointerMove={moverCard} onPointerLeave={reporCard} onPointerCancel={reporCard}>
+      <span className="hf-card-folha" aria-hidden="true"/><span className="hf-card-serial" aria-hidden="true">NP / PLAYER CARD</span>
       <div className="hf-topo"><div><b>{pos>0?pos:'—'}</b><small>{pos>0?t('Posição'):t('Sem rank')}</small><span>LVL {nivel?.nivel ?? '?'}</span></div><strong>HALL<br/><small>DA</small><br/>FAMA</strong></div>
       <div className="hf-retrato">{!(retrato&&dados?.montada)&&<CamisaNeura clara={(dados?.camisaAprovada||camisa)==='clara'}/>} {retrato?<img className={dados?.montada?'hf-foto hf-montagem':'hf-foto'} src={retrato} alt={j.nome}/>:null}</div>
       <h2>{j.nome}</h2><p>{pos>0?`${pos}º ${t('de')} ${total} ${t('jogadores')}`:t('Seu próximo capítulo começa aqui')}</p>
       <dl>{[['RAT',j.mapas?Number(j.rating||0).toFixed(2):'—'],['ADR',j.mapas?Math.round(j.adr||0):'—'],['WIN',j.mapas?Math.round((j.vitorias||0)/j.mapas*100)+'%':'—'],['MAPAS',j.mapas||0]].map(([rotulo,valor])=><div key={rotulo}><dt>{rotulo}</dt><dd>{valor}</dd></div>)}</dl>
       <a href="/ranking/">{t('Ver ranking')} →</a>
-    </article>
+      <span className="hf-card-edicao">NEURA PROJECT <i aria-hidden="true">✦</i> HALL OF FAME</span>
+    </article></div>
     {eu&&<details className="hf-editar"><summary>{t('Foto personalizada')}</summary><form onSubmit={enviar}><p>{t('Escolha a camisa e envie uma foto do rosto. A equipe confere a imagem antes da geração do retrato.')}</p><div className="hf-camisas">{['escura','clara'].map(c=><button type="button" key={c} aria-pressed={camisa===c} onClick={()=>setCamisa(c)}><CamisaNeura clara={c==='clara'}/><span>{c==='clara'?t('Clara'):t('Escura')}</span></button>)}</div><label className="hf-upload">{foto?<img src={foto} alt={t('Prévia da foto')}/>:<span>{t('Escolher foto')}</span>}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={selecionar}/></label><small>{t('Foto de frente, bem iluminada. JPG, PNG ou WebP, até 10 MB.')}</small><small>{t('Após a aprovação do admin, sua foto e a camisa escolhida são enviadas à Cloudflare Workers AI para gerar seu retrato. O resultado é salvo e aparece automaticamente no Hall.')}</small><button className="btn btn-primary" disabled={!foto||enviando}>{enviando?t('Enviando…'):t('Enviar foto para revisão')}</button>{dados?.estado==='pendente'&&<p role="status">{t('Foto recebida. Aguardando aprovação da equipe.')}</p>}{dados?.estado==='fila'&&<p role="status">{t('Foto aprovada. Seu retrato está na fila de geração.')}</p>}{dados?.estado==='gerando'&&<p role="status">{t('Gerando seu retrato com a camisa escolhida. Ele aparecerá aqui automaticamente.')}</p>}{dados?.estado==='falhou'&&<p role="status">{t('Não foi possível concluir o retrato. A equipe poderá tentar novamente; seu card anterior foi preservado.')}</p>}{dados?.estado==='aprovada'&&<p role="status">{t('Seu retrato está publicado no card.')}</p>}{dados?.estado==='reprovada'&&<p role="status">{dados.motivo||t('Envie outra foto para revisão.')}</p>}{erro&&<p role="alert">{erro}</p>}</form></details>}
   </div>
 }
