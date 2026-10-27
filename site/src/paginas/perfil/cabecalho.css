@@ -1,0 +1,56 @@
+/* Capa independente do painel: o avatar permanece inteiro sobre a borda. */
+.pf-hall-pagina { position: relative; isolation: isolate; padding-top: 0; }
+.pf-cover { position: absolute; z-index: -1; inset: 0 0 auto; height: 310px; overflow: hidden; pointer-events: none; }
+.pf-cover::before { content: ''; position: absolute; inset: -8px; background-image: var(--pf-cover, url('/neurapick/maps/mirage.jpg')); background-size: cover; background-position: center 42%; filter: blur(4px); opacity: .62; }
+.pf-cover::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgb(11 13 16 / .12), rgb(11 13 16 / .35) 38%, var(--bg, #0b0d10) 100%); }
+.pf-header-wrap { padding-top: 190px; margin-bottom: 28px; }
+.pf-profile-header { position: relative; max-width: 1180px; margin-inline: auto; border: 1px solid #292c32; border-radius: 16px; background: #101216; box-shadow: 0 14px 32px rgb(0 0 0 / .18); }
+.pf-profile-row { min-height: 104px; padding: 22px 18px; display: grid; grid-template-columns: minmax(155px, 1fr) minmax(40px, .65fr) minmax(190px, 1.3fr) minmax(220px, 1.65fr); gap: 16px; align-items: center; }
+.pf-header-level { display: flex; align-items: center; gap: 9px; color: #e9ebef; min-width: 0; }
+.pf-header-level > span:last-child { display: grid; gap: 8px; min-width: 0; }
+.pf-header-level b { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+.pf-header-progress { display: block; width: 105px; height: 4px; background: #292c32; border-radius: 2px; overflow: hidden; }
+.pf-header-progress i { display: block; height: 100%; background: var(--accent, #f2c63d); }
+.pf-header-links { display: flex; align-items: center; gap: 12px; border-left: 1px solid #2a2c31; padding-left: 16px; }
+.pf-header-identity { position: relative; align-self: stretch; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; text-align: center; min-width: 0; padding-top: 6px; }
+.pf-header-portrait { position: absolute; top: -65px; width: 68px; height: 68px; }
+.pf-header-portrait > :is(.moldura-box,.emblema-box) { width: 100%; height: 100%; }
+.pf-header-avatar.ini { display: grid; place-items: center; font-size: 22px; font-weight: 700; }
+.pf-header-avatar { display: block; width: 68px; height: 68px; object-fit: cover; border-radius: 13px; border: 2px solid var(--accent, #f2c63d); background: #15181d; }
+.pf-header-identity h1 { font-size: 23px; font-weight: 750; line-height: 1.15; letter-spacing: -.025em; margin: 8px 0 7px; max-width: 100%; overflow-wrap: anywhere; color: #f3f4f6; }
+.pf-header-identity > span { font-size: 10px; color: #969ba5; }
+.pf-header-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; }
+.pf-header-icon { display: inline-flex; flex: 0 0 36px; width: 36px; height: 36px; padding: 8px; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #2c2f36; background: #191c21; color: #b9bdc6; cursor: pointer; }
+.pf-header-icon svg { width: 18px; height: 18px; }
+.pf-header-customize { min-height: 36px; padding: 8px 14px; border: 1px solid #736333; border-radius: 8px; color: #edd184; background: #29261c; font: 700 10px var(--font-body); text-transform: uppercase; letter-spacing: .025em; cursor: pointer; }
+.pf-profile-nav { display: flex; gap: 6px; margin: 0; padding: 9px; border-top: 1px solid #25282e; border-radius: 0 0 16px 16px; background: #0e1013; }
+.pf-profile-nav > :is(button,a) { flex: 1 0 auto; min-height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 10px 18px; border: 1px solid transparent; border-radius: 10px; color: #9298a3; background: transparent; font: 700 10px var(--font-body); letter-spacing: .07em; text-transform: uppercase; text-decoration: none; cursor: pointer; }
+.pf-profile-nav > [aria-current="page"] { color: #15130c; background: var(--accent, #f2c63d); border-color: #f5d77e; box-shadow: 0 3px 14px rgb(242 198 61 / .14); }
+.pf-profile-nav > :is(button,a):hover:not([aria-current]) { background: #1c1f25; color: #f3f4f6; }
+.pf-header-icon:hover, .pf-header-customize:hover { border-color: var(--accent, #f2c63d); color: #f5d77e; }
+.pf-profile-header :is(button,a):focus-visible { outline: 2px solid var(--accent, #f2c63d); outline-offset: 3px; }
+.pf-header-feedback { position: absolute; right: 16px; bottom: calc(100% + 10px); font-size: 12px; color: #f5d77e; }
+.pf-header-feedback:empty { display: none; }
+@media (max-width: 1100px) {
+  .pf-profile-row { grid-template-columns: minmax(145px, 1fr) minmax(170px, 1fr) minmax(200px, 1fr); gap: 12px; }
+  .pf-header-links { display: none; }
+}
+@media (max-width: 640px) {
+  .pf-header-wrap { padding-top: 154px; margin-bottom: 22px; }
+  .pf-cover { height: 260px; }
+  .pf-profile-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding: 18px 14px 14px; gap: 22px 12px; }
+  .pf-header-identity { grid-column: 1 / -1; grid-row: 1; padding-top: 16px; min-height: 64px; }
+  .pf-header-portrait { top: -54px; width: 60px; height: 60px; }
+  .pf-header-avatar { width: 60px; height: 60px; }
+  .pf-header-identity h1 { font-size: 21px; margin-top: 4px; }
+  .pf-header-level { gap: 5px; }
+  .pf-header-level b { font-size: 9px; }
+  .pf-header-level .selo-nivel { width: 32px !important; height: 32px !important; }
+  .pf-header-progress { width: 80px; }
+  .pf-header-actions { gap: 6px; flex-wrap: wrap; }
+  .pf-header-icon { flex-basis: 32px; width: 32px; height: 32px; }
+  .pf-header-customize { width: 100%; min-height: 32px; font-size: 9px; padding: 6px 8px; }
+  .pf-profile-nav { flex-wrap: wrap; gap: 4px; padding: 6px; }
+  .pf-profile-nav > :is(button,a) { flex: 1 0 28%; min-height: 42px; padding: 9px 7px; gap: 6px; font-size: 9px; letter-spacing: .035em; }
+  .pf-profile-nav > :last-child { flex-grow: 2; }
+}

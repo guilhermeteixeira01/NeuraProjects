@@ -27,10 +27,12 @@ const abaInicial = () => {
   }
 }
 
-export default function PerfilInventario({ steamId, nome, resumoStatus, children }) {
+export default function PerfilInventario({ steamId, nome, resumoStatus, children, abaPerfil, aoTrocarAba }) {
   const conta = useConta()
   const t = useT()
-  const [topo, setTopo] = useState(abaInicial) // 'status' | 'inventario'
+  const [topoLocal, setTopoLocal] = useState(abaInicial)
+  const topo = abaPerfil ?? topoLocal
+  const setTopo = aoTrocarAba ?? setTopoLocal
   const [inv, setInv] = useState(null)
   const [resumo, setResumo] = useState(null)
   const [erro, setErro] = useState(false)
@@ -184,7 +186,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
           </div>
         </div>
 
-        <nav className="pf-inv-abas" role="tablist">
+        {abaPerfil === undefined && <nav className="pf-inv-abas" role="tablist">
           <button type="button" role="tab" aria-selected={topo === 'status'} className={topo === 'status' ? 'is-ativo' : ''} onClick={() => trocar('status')}>
             {t('STATUS')}
           </button>
@@ -197,7 +199,10 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
               <BotaoTrocas para={{ id: steamId, nome }} classe="inv-btn inv-btn-p" />
             </span>
           )}
-        </nav>
+        </nav>}
+        {abaPerfil !== undefined && conta && conta.id !== steamId && (
+          <div className="pf-inv-troca"><BotaoTrocas para={{ id: steamId, nome }} classe="inv-btn inv-btn-p" /></div>
+        )}
       </section>
 
       {topo === 'status' ? (

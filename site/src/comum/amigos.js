@@ -158,6 +158,7 @@ function conectar(id) {
     else if (m.tipo === 'equipe-chat') window.dispatchEvent(new CustomEvent('np-equipe-chat', { detail: m }))
     // Bônus de pontos para todos: o saldo é buscado (o servidor aplica o bônus) e depois as notificações (comum/loja.js)
     else if (m.tipo === 'bonus') window.dispatchEvent(new Event('np-bonus'))
+    else if (m.tipo === 'hall') window.dispatchEvent(new Event('np-hall'))
     // Mensagem nova no chat da sala da partida (comum/ChatSala.jsx)
     else if (m.tipo === 'chat') window.dispatchEvent(new CustomEvent('np-chat', { detail: m }))
     // Mensagem nova no chat direto com um amigo (comum/mensagens.js)

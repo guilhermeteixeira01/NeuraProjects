@@ -25,7 +25,8 @@ import { BotaoAmizade, StatusAmigo } from './Amizade.jsx'
 import { InsigniasDe } from '../../comum/Insignias.jsx'
 import HallDaFama from './HallDaFama.jsx'
 import ConfiguracoesConta from './ConfiguracoesConta.jsx'
-import PerfilProtegido from './PerfilProtegido.jsx'
+import PerfilProtegido, { ApresentacaoPerfil } from './PerfilProtegido.jsx'
+import { AmigosDoPerfil, AfiliadoDoPerfil } from './PerfilSocial.jsx'
 
 // Perfil do jogador: /perfil/?id=<SteamID64>. Sem id, mostra o de quem está logado pela Steam.
 // Dados: ranking/ranking.json (totais) e perfil/historico/<id>.json (todos os mapas), gerados no deploy.
@@ -52,7 +53,7 @@ const dataBr = (iso, local = 'pt-BR', hora = true) => {
 function Avatar({ id, src: padrao, nome, classe }) {
   const src = useAvatar(id, padrao) // foto atual da Steam
   const [erro, setErro] = useState('')
-  return urlOk(src) && erro !== src ? (
+  return (urlOk(src) || (typeof src === 'string' && src.startsWith('/') && !src.startsWith('//'))) && erro !== src ? (
     <img className={classe} src={src} alt="" onError={() => setErro(src)} />
   ) : (
     <span className={`${classe} ini`}>{iniciais(nome)}</span>
@@ -405,16 +406,6 @@ function Estat({ rotulo, valor, sub, classe = '' }) {
   )
 }
 
-// Ícone do botão "Personalizar"
-function IconePincel() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 20h9" />
-      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
-    </svg>
-  )
-}
-
 // Atividade recente (últimos 91 dias = 13 semanas): um quadradinho por dia, mais forte quanto mais partidas no dia
 const SEMANAS = 13
 function AtividadeRecente({ mapas }) {
@@ -564,10 +555,48 @@ function DesempenhoRecente({ mapas, nivel, eu }) {
   )
 }
 
+function IconeCabecalho({ tipo }) {
+  const paths = {
+    perfil: 'M20 21v-2a7 7 0 0 0-14 0v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+    inventario: 'M6 7h12v14H6zM9 7V4h6v3M9 11h6M9 15h6',
+    amigos: 'M16 21v-2a5 5 0 0 0-10 0v2M11 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M17 4a4 4 0 0 1 0 8M20 21v-2a5 5 0 0 0-3-4',
+    foto: 'M3 7h4l2-3h6l2 3h4v14H3zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+    ajustes: 'M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+    compartilhar: 'M8 12l8-5M8 12l8 5M5 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6M19 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6M19 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6',
+  }
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[tipo]} /></svg>
+}
+
 function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   const t = useT()
   const timeEscolhido = useTimeDe(j.steamId)
   const [verInventario, setVerInventario] = useState(false)
+  const [abaPerfil, setAbaPerfil] = useState(() => typeof location !== 'undefined' && ['#inventario', '#amigos', '#afiliado'].includes(location.hash) ? location.hash.slice(1) : 'status')
+  const [linkCopiado, setLinkCopiado] = useState('')
+  const trocarAbaPerfil = (aba) => {
+    setAbaPerfil(aba)
+    history.replaceState(null, '', location.pathname + location.search + (aba !== 'status' ? `#${aba}` : ''))
+  }
+  useEffect(() => {
+    const atualizar = () => setAbaPerfil(['#inventario', '#amigos', '#afiliado'].includes(location.hash) ? location.hash.slice(1) : 'status')
+    window.addEventListener('hashchange', atualizar)
+    return () => window.removeEventListener('hashchange', atualizar)
+  }, [])
+  const abrirFotoPersonalizada = () => {
+    trocarAbaPerfil('status')
+    setTimeout(() => {
+      const editor = document.querySelector('.hf-editar')
+      if (editor) { editor.open = true; editor.scrollIntoView({ behavior: 'smooth', block: 'center' }); editor.querySelector('summary')?.focus({ preventScroll: true }) }
+    }, 0)
+  }
+  const compartilharPerfil = async () => {
+    try {
+      const url = new URL('/perfil/', location.origin)
+      url.searchParams.set('id', j.steamId)
+      await navigator.clipboard.writeText(url.href)
+      setLinkCopiado(t('Link copiado'))
+    } catch { setLinkCopiado(t('Não foi possível copiar o link')) }
+  }
   const [contaAberta,setContaAberta] = useState(()=>typeof location!=='undefined'&&new URLSearchParams(location.search).get('conta')==='1')
   const nivel = useNivelDe(j)
   const card = useCardDe(j.steamId) // banner do card (janela Personalizar); some se for exclusivo de cargo que o jogador não tem
@@ -620,10 +649,44 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   return (
     <>
       <section className="secao pf-pagina pf-hall-pagina">
-        <div className="wrap"><header className="hf-capa" style={card?{backgroundImage:fundoCard(card)}:undefined}><div className="hf-capa-identidade"><ComMoldura steamId={j.steamId} emblema><Avatar id={j.steamId} src={j.avatar} nome={j.nome} classe="hf-capa-avatar"/></ComMoldura><h1>{j.nome}</h1><span>{t('Comunidade Neura Project')}</span></div><div className="hf-capa-acoes">{eu&&<button className="btn btn-ghost" type="button" onClick={()=>setContaAberta(v=>!v)}>Configurações da conta</button>}<a className="btn btn-ghost" href="/ranking/">{t('Ranking')}</a></div></header>{contaAberta&&eu&&<ConfiguracoesConta id={j.steamId} fechar={()=>setContaAberta(false)}/>}</div>
+        <div className="pf-cover" style={card ? { '--pf-cover': fundoCard(card) } : undefined} aria-hidden="true" />
+        <div className="wrap pf-header-wrap">
+          <header className="pf-profile-header">
+            <div className="pf-profile-row">
+              <a className="pf-header-level" href="/ranking/" aria-label={t('Ver ranking')}>
+                <SeloNivel nivel={nivel.nivel} tamanho={42} />
+                <span><b>{nivel.classificado ? t('Nível {n}', { n: textoNivel(nivel.nivel) }) : t('Sem classificação')}</b><span className="pf-header-progress"><i style={{ width: `${Math.max(0, Math.min(100, nivel.progresso * 100))}%` }} /></span></span>
+              </a>
+              <div className="pf-header-links">
+                {premier > 0 && <Premier j={{ ...j, premier }} />}
+                <a href={steam(j.steamId)} target="_blank" rel="noopener" className="pf-header-icon" aria-label={t('Perfil na Steam')} title={t('Perfil na Steam')}><IconeSteam /></a>
+              </div>
+              <div className="pf-header-identity">
+                <div className="pf-header-portrait"><ComMoldura steamId={j.steamId} emblema><Avatar id={j.steamId} src={j.avatar} nome={j.nome} classe="pf-header-avatar" /></ComMoldura></div>
+                <h1>{j.nome}</h1>
+                <span>{t('Comunidade Neura Project')}</span>
+              </div>
+              <div className="pf-header-actions">
+                <button type="button" className="pf-header-icon" onClick={compartilharPerfil} aria-label={t('Copiar link do perfil')} title={t('Copiar link do perfil')}><IconeCabecalho tipo="compartilhar" /></button>
+                {eu && <button type="button" className="pf-header-icon" onClick={() => setContaAberta(v => !v)} aria-label={t('Configurações da conta')} title={t('Configurações da conta')} aria-expanded={contaAberta}><IconeCabecalho tipo="ajustes" /></button>}
+                {eu ? <button type="button" className="pf-header-customize" onClick={personalizar}>{t('Personalizar perfil')}</button> : <BotaoAmizade id={j.steamId} />}
+              </div>
+            </div>
+            <nav className="pf-profile-nav" aria-label={t('Seções do perfil')}>
+              <button type="button" aria-current={abaPerfil === 'status' ? 'page' : undefined} onClick={() => trocarAbaPerfil('status')}><IconeCabecalho tipo="perfil" />{t('Perfil')}</button>
+              <button type="button" data-aba="inventario" aria-current={abaPerfil === 'inventario' ? 'page' : undefined} onClick={() => trocarAbaPerfil('inventario')}><IconeCabecalho tipo="inventario" />{t('Inventário')}</button>
+              <a href="/ranking/"><SeloNivel nivel={nivel.nivel} tamanho={18} />{t('Ranking')}</a>
+              <button type="button" aria-current={abaPerfil === 'amigos' ? 'page' : undefined} onClick={() => trocarAbaPerfil('amigos')}><IconeCabecalho tipo="amigos" />{t('Amigos')}</button>
+              {eu && <button type="button" aria-current={abaPerfil === 'afiliado' ? 'page' : undefined} onClick={() => trocarAbaPerfil('afiliado')}><IconeCabecalho tipo="compartilhar" />{t('Afiliado')}</button>}
+              {eu && <button type="button" onClick={abrirFotoPersonalizada}><IconeCabecalho tipo="foto" />{t('Foto personalizada')}</button>}
+            </nav>
+            <span className="pf-header-feedback" role="status">{linkCopiado}</span>
+          </header>
+          {contaAberta && eu && <ConfiguracoesConta id={j.steamId} fechar={() => setContaAberta(false)} />}
+        </div>
         <FundoHero quantidade={10} rastros={false} />
         {/* Estilo FACEIT: cartão do jogador na esquerda (a capa pode virar personalizável no futuro) e as informações no meio */}
-        <div className="wrap pf-layout">
+        {abaPerfil === 'amigos' ? <div className="wrap"><AmigosDoPerfil key={j.steamId} id={j.steamId} eu={eu} /></div> : abaPerfil === 'afiliado' && eu ? <div className="wrap"><AfiliadoDoPerfil id={j.steamId} /></div> : <div className="wrap pf-layout">
           <aside className="pf-lado">
             <HallDaFama j={j} pos={pos} total={total} nivel={nivel} eu={eu}/>
             <div className={`pf-cartao fx-entra${card ? ' com-card' : ''}`} style={{ '--e': 1, ...(card ? { backgroundImage: fundoCard(card) } : {}) }}>
@@ -641,18 +704,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
               </div>
             </div>
             <div className="pf-acoes pf-acoes-lado fx-entra" style={{ '--e': 2 }}>
-              {eu && (
-                <button type="button" className="btn btn-primary" onClick={personalizar}>
-                  <IconePincel /> {t('Personalizar')}
-                </button>
-              )}
               {!eu && <BotaoAmizade id={j.steamId} />}
-              <a className="btn btn-ghost" href={steam(j.steamId)} target="_blank" rel="noopener">
-                <IconeSteam /> {t('Perfil na Steam')}
-              </a>
-              <a className="btn btn-ghost" href="/ranking/">
-                {t('Ver ranking')}
-              </a>
               {!eu && (
                 <button type="button" className="btn btn-ghost" onClick={() => window.dispatchEvent(new CustomEvent('np-perfil-aba', { detail: 'inventario' }))}>
                   {t('Ver inventário')}
@@ -665,7 +717,8 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
           </aside>
 
           <div className="pf-centro">
-            <PerfilInventario steamId={j.steamId} nome={j.nome} resumoStatus={resumoStatus}>
+            <PerfilInventario steamId={j.steamId} nome={j.nome} resumoStatus={resumoStatus} abaPerfil={abaPerfil} aoTrocarAba={trocarAbaPerfil}>
+            <ApresentacaoPerfil />
             <DesempenhoRecente mapas={mapas || []} nivel={nivel} eu={eu} />
 
             <div className={`pf-estats${sem ? ' vazio' : ''}`}>
@@ -692,7 +745,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
             {mapas?.length > 0 && <Historico mapas={mapas} />}
             </PerfilInventario>
           </div>
-        </div>
+        </div>}
       </section>
     </>
   )

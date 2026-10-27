@@ -19,6 +19,7 @@ EMAIL_PRONTO = "1"
 # ORIGENS_EXTRAS = "http://localhost:5173"
 
 # Segredos (não ficam neste arquivo):
+#   npx wrangler secret put OPENAI_API_KEY -> retrato do Hall, apenas após aprovação do admin
 #   npx wrangler secret put SEGREDO        -> texto aleatório longo (obrigatório)
 #   npx wrangler secret put STEAM_API_KEY  -> chave de https://steamcommunity.com/dev/apikey (opcional)
 
@@ -75,6 +76,11 @@ class_name = "Contas"
 name = "DADOS"
 class_name = "Dados"
 
+# Retratos do Hall: fila persistente e imagens geradas, um objeto por jogador.
+[[durable_objects.bindings]]
+name = "HALL_RETRATOS"
+class_name = "HallRetratos"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["Presenca"]
@@ -108,3 +114,7 @@ new_sqlite_classes = ["Contas"]
 [[migrations]]
 tag = "v8"
 new_sqlite_classes = ["Dados"]
+
+[[migrations]]
+tag = "v9"
+new_sqlite_classes = ["HallRetratos"]

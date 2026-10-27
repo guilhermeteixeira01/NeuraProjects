@@ -70,7 +70,7 @@
 .np-rodape-skins { position: absolute; inset: 0; pointer-events: none; z-index: -1; overflow: hidden; }
 .np-rodape-skin { position: absolute; object-fit: contain; opacity: .26; filter: drop-shadow(0 0 25px color-mix(in srgb,var(--evento-cor) 35%,transparent)); }
 .np-rodape-skin-0 { width: 360px; height: 270px; right: -100px; bottom: 90px; transform: rotate(20deg); }
-.np-rodape-skin-1 { width: 250px; height: 230px; left: -65px; top: 155px; transform: rotate(-25deg); opacity: .5; }
+.np-rodape-skin-1 { width: 290px; height: 218px; left: -90px; top: 155px; transform: rotate(52deg); opacity: .5; }
 .np-rodape > .wrap { position: relative; z-index: 1; }
 .np-discord-faixa { background: linear-gradient(115deg,#5865de,#3b438e); border-color: #858beb; color: #fff; box-shadow: 0 8px 35px -20px #5865f2; }
 .np-discord-faixa > svg { color: #fff; }

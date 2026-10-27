@@ -414,7 +414,7 @@ export class Loja {
     const [pontos, bonus, premium] = await Promise.all([pontosGanhos(this.env, id), lerDoc(this.env, 'loja-bonus', []), partidasPremium(this.env, id)])
     await this.aplicarBonus(id, bonus)
     await this.aplicarPremium(premium)
-    return pontos
+    return pontos + ((await this.ctx.storage.get('afiliado-np')) || 0)
   }
 
   async acao(p) {
@@ -423,6 +423,8 @@ export class Loja {
     const pontos = COM_SALDO.has(acao) ? await this.prepararSaldo(id) : 0
     const saldo = () => pontos - this.gastos()
     switch (acao) {
+      case 'afiliado-recompensar':
+        return this.recompensarAfiliado(id, p.convidado)
       case 'inv-ler':
         return this.invLer(id)
       case 'inv-gravar': {
@@ -585,6 +587,25 @@ export class Loja {
     }
   }
 
+  async recompensarAfiliado(id, convidado) {
+    if (!ID_STEAM.test(convidado || '') || id === convidado) throw new ErroPedido('id')
+    const chave = `afiliado-premio:${convidado}`
+    if (await this.ctx.storage.get(chave)) return { ok: true, repetido: true }
+    const caixa = (await lerCaixas(this.env)).find(c => c.slug === 'caixa-extras-facas' && c.ativa && !c.arquivada)
+    if (!caixa) throw new ErroNaoEncontrado('caixa')
+    const inv = await this.invOuVazio(id)
+    if (Object.keys(inv.itens).length >= ITENS_MAX) throw new ErroConflito('cheio')
+    const item = novoIdItem(), ts = Date.now()
+    inv.itens[item] = { t: 'caixa', d: caixa.id, p: 0 }
+    inv.criado[item] = ts
+    const ver = ((await this.ctx.storage.get('invv')) || 0) + 1
+    const pontos = ((await this.ctx.storage.get('afiliado-np')) || 0) + 1000
+    // Uma única gravação atômica: caixa, NP e recibo de entrega. A fila serializa os convites.
+    await this.ctx.storage.put({ inv, invv: ver, 'afiliado-np': pontos, [chave]: { item, ts } })
+    await this.notificar(novaNotif(`afiliado:${convidado}`, 'Indicação concluída: caixa de faca + 1.000 NP', 'Seu amigo concluiu o cadastro. A caixa está no inventário e os NP já estão disponíveis.', '/perfil/#afiliado', { imagem: caixa.img }))
+    return { ok: true }
+  }
+
   // Grava as linhas/movimentos (sql) e o inventário; se o inventário não gravar, desfaz o que entrou no SQL
   async gravarTudo(inv, sql) {
     const marca = { mov: this.sql.exec('SELECT COALESCE(MAX(id), 0) AS m FROM movimentos').one().m, ab: this.sql.exec('SELECT COALESCE(MAX(id), 0) AS m FROM aberturas').one().m }
@@ -653,7 +674,7 @@ export class Loja {
     await this.ctx.storage.delete('ganhas')
     const ver = ((await this.ctx.storage.get('invv')) || 0) + 1
     const visto = Math.max(Number(bonusMax) || 0, (await this.ctx.storage.get('bonusVisto')) || 0)
-    await this.ctx.storage.put({ inv: limparSkins({}), invv: ver, bonusVisto: visto })
+    await this.ctx.storage.put({ inv: limparSkins({}), invv: ver, bonusVisto: visto, 'afiliado-np': 0 })
     return { ok: true }
   }
 

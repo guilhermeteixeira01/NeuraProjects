@@ -29,6 +29,7 @@ import { migrarEsquema } from './esquema.js'
 import { lerCorpo } from './http.js'
 import { chaveDoNick, erroDoNick } from './nick-filtro.js'
 import { Fila, objetoGlobal, pedir, responder } from './objetos.js'
+import { prepararAfiliados, acaoAfiliado } from './afiliado-core.js'
 export { chaveDoNick }
 
 export const DIAS_TROCA_NICK = 15
@@ -62,6 +63,7 @@ export class Contas {
     this.sql = ctx.storage.sql
     this.sql.exec('CREATE TABLE IF NOT EXISTS contas (steam TEXT PRIMARY KEY, nick TEXT, chave TEXT, nick_em INTEGER, trocas INTEGER DEFAULT 0, sal TEXT, hash TEXT, senha_em INTEGER, erros INTEGER DEFAULT 0, bloqueio INTEGER DEFAULT 0)')
     this.sql.exec('CREATE UNIQUE INDEX IF NOT EXISTS contas_chave ON contas (chave) WHERE chave IS NOT NULL')
+    prepararAfiliados(this.sql)
     migrarEsquema(this.ctx, [
       // 1: e-mail (confirmação + recuperação de senha). Contas criadas antes dessas colunas não têm.
       (sql) => {
@@ -103,6 +105,7 @@ export class Contas {
     }
     if (a === 'todos-nicks') return Object.fromEntries(this.sql.exec('SELECT steam, nick FROM contas WHERE nick IS NOT NULL').toArray().map((l) => [l.steam, l.nick]))
     if (!ID_STEAM.test(c.steam || '')) throw new ErroPedido('id')
+    if (typeof a === 'string' && a.startsWith('afiliado-')) return acaoAfiliado(this, c)
     if (a === 'estado') return this.estado(c.steam, !!c.premium)
     if (a === 'livre') {
       // validação ao vivo do campo de apelido: o mesmo que definirNick confere, sem gravar

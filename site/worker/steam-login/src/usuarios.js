@@ -9,16 +9,20 @@ export const lerUsuarios = (env) => lerColecao(env, 'usuarios')
 const HORA_MS = 3600_000
 
 // Registra a entrada/visita. visita = chamada do /eu: só grava se for novo, se o nome ou a foto mudou ou se a última visita tem mais de 1 hora
-export async function registrarUsuario(env, id, perfil, visita = false) {
-  await mudar(env, 'usuarios', [id], (usuarios) => {
+export async function registrarUsuario(env, id, perfil, visita = false, entradaRef = null) {
+  const { resultado } = await mudar(env, 'usuarios', [id], (usuarios) => {
+    const novo = !usuarios[id]
     const antes = usuarios[id] || {}
     const apelido = perfil.apelido || antes.apelido || ''
     const nome = apelido || perfil.nome || antes.nome || ''
     const mudou = !usuarios[id] || nome !== antes.nome || (perfil.avatar && perfil.avatar !== antes.avatar)
     if (visita && !mudou && Date.now() - new Date(antes.visto || 0).getTime() < HORA_MS) return
     const agora = new Date().toISOString()
-    usuarios[id] = { nome, ...(apelido ? { apelido } : {}), avatar: perfil.avatar || antes.avatar || '', primeiro: antes.primeiro || agora, visto: agora }
+    usuarios[id] = { ...antes, nome, ...(apelido ? { apelido } : {}), avatar: perfil.avatar || antes.avatar || '', primeiro: antes.primeiro || agora, visto: agora,
+      ...(novo && entradaRef !== null ? { indicacaoEntrada: { ref: entradaRef } } : {}) }
+    return { novo, indicacaoEntrada: usuarios[id].indicacaoEntrada }
   })
+  return resultado
 }
 
 // Nome e foto de vários jogadores: quem já entrou no site vem da coleção; os outros, da Steam numa chamada só.

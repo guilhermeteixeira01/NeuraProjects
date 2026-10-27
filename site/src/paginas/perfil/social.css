@@ -1,0 +1,51 @@
+.pf-social-panel { border: 1px solid var(--border-2); border-radius: 14px; background: linear-gradient(125deg, #1b1e24, #15171c); color: #eceef3; overflow: hidden; min-width: 0; }
+.pf-social-title { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 18px 20px; border-bottom: 1px solid #2a2d34; background: linear-gradient(90deg, rgb(242 198 61 / .09), transparent 65%); }
+.pf-social-title h2 { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 17px; text-transform: uppercase; letter-spacing: .05em; }
+.pf-social-title h2::before { content: ''; width: 4px; height: 20px; background: var(--accent,#f2c63d); border-radius: 2px; box-shadow: 0 0 12px rgb(242 198 61 / .25); }
+.pf-social-title small { color: #949aa5; font-size: 12px; }
+.pf-social-title > button { background: transparent; border: 0; color: #aeb4c0; font-size: 12px; cursor: pointer; }
+.pf-friends-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(240px,1fr)); gap: 14px; padding: 18px; }
+.pf-friend-card { display: flex; flex-direction: column; gap: 16px; padding: 16px; border: 1px solid #2c3038; background: #101318; border-radius: 12px; min-width: 0; }
+.pf-friend-identity { display: flex; align-items: center; gap: 12px; color: #f1f3f7; min-width: 0; }
+.pf-friend-identity img { width: 48px; height: 48px; border-radius: 7px; object-fit: cover; }
+.pf-friend-identity > span:last-child { min-width: 0; display: grid; gap: 6px; }
+.pf-friend-identity b { font-size: 14px; overflow-wrap: anywhere; }
+.pf-friend-card .pf-amizade { width: 100%; min-height: 40px; }
+.pf-social-empty { margin: 18px; padding: 26px; border: 1px dashed var(--border-2); border-radius: 10px; color: var(--ui-muted); font-size: 13px; line-height: 1.7; text-align: center; }
+.pf-social-empty button { background: transparent; border: 0; color: var(--accent,#f2c63d); cursor: pointer; }
+.pf-affiliate { display: grid; gap: 18px; }
+.pf-affiliate-intro { display: grid; grid-template-columns: 1.2fr 1fr; gap: 28px; padding: 26px; }
+.pf-affiliate-eyebrow { color: var(--accent,#f2c63d); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .2em; }
+.pf-affiliate-copy h2 { font-size: clamp(22px,2.3vw,30px); line-height: 1.3; margin: 12px 0 10px; letter-spacing: -.025em; text-wrap: balance; }
+.pf-affiliate-copy em { color: #9aebba; font-style: normal; }
+.pf-affiliate-copy p { color: #9ca4b2; font-size: 13px; line-height: 1.8; margin: 0; }
+.pf-affiliate-ticket { align-self: center; padding: 20px; border: 1px dashed #726134; border-radius: 14px; background: rgb(242 198 61 / .04); min-width: 0; }
+.pf-affiliate-ticket label { display: block; color: #b5a57b; font-size: 10px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; margin-bottom: 14px; }
+.pf-affiliate-ticket > div { display: flex; padding: 4px; background: #0e1014; border-radius: 8px; gap: 6px; }
+.pf-affiliate-ticket input { width: 100%; min-width: 0; background: transparent; border: 0; padding: 8px; color: #eef0f5; font: 600 12px var(--font-body); }
+.pf-affiliate-ticket button { background: var(--accent,#f2c63d); border: 0; color: #19170f; border-radius: 6px; font-weight: 700; padding: 10px 15px; cursor: pointer; }
+.pf-affiliate-barcode { display: block; height: 25px; margin-top: 14px; opacity: .35; background: repeating-linear-gradient(90deg,#b5a57b 0 1px,transparent 1px 4px,#b5a57b 4px 6px,transparent 6px 9px); }
+.pf-affiliate-steps { grid-column: 1/-1; list-style: none; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin: 0; padding: 0; }
+.pf-affiliate-steps li { padding: 18px; border: 1px solid #292d34; border-radius: 12px; background: #101318; }
+.pf-affiliate-steps span { display: block; color: var(--accent,#f2c63d); font-size: 19px; font-weight: 700; margin-bottom: 12px; }
+.pf-affiliate-steps b { font-size: 13px; }
+.pf-affiliate-steps p { margin: 7px 0 0; color: #969fac; font-size: 12px; line-height: 1.7; }
+.pf-affiliate-note { grid-column: 1/-1; color: var(--ui-muted); font-size: 11px; line-height: 1.7; margin: 0; }
+.pf-affiliate-totals { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+.pf-affiliate-totals > div { border: 1px solid var(--border-2); border-left: 2px solid var(--accent,#f2c63d); padding: 20px; border-radius: 9px; background: var(--ui-surface); display: grid; gap: 10px; }
+.pf-affiliate-totals span { color: var(--ui-muted); font-size: 10px; text-transform: uppercase; letter-spacing: .09em; }
+.pf-affiliate-totals b { font-size: 28px; font-variant-numeric: tabular-nums; }
+.pf-affiliate-list { list-style: none; padding: 0 20px; margin: 0; }
+.pf-affiliate-list li { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 0; border-bottom: 1px solid #292d34; }
+.pf-affiliate-list li:last-child { border: 0; }
+.pf-affiliate-list a { color: #eef0f5; display: flex; align-items: center; gap: 10px; font-size: 13px; overflow-wrap: anywhere; min-width: 0; }
+.pf-affiliate-list img { border-radius: 6px; }
+.pf-affiliate-list li > span { color: #9aebba; font-size: 11px; text-align: right; }
+.pf-social-feedback:empty { display: none; }
+.pf-social-feedback { color: var(--accent,#f2c63d); font-size: 12px; }
+.pf-social-panel :is(a,button,input):focus-visible { outline: 2px solid var(--accent,#f2c63d); outline-offset: 3px; }
+@media(max-width:760px) { .pf-affiliate-intro { grid-template-columns: 1fr; gap: 20px; padding: 18px; } .pf-affiliate-steps { grid-template-columns: 1fr; } .pf-affiliate-totals { gap: 8px; } .pf-affiliate-totals > div { padding: 14px 10px; } .pf-affiliate-totals span { font-size: 9px; letter-spacing: 0; } .pf-affiliate-totals b { font-size: 23px; } .pf-social-title { padding: 16px; } .pf-friends-grid { grid-template-columns: 1fr; padding: 14px; } .pf-affiliate-list li { flex-wrap: wrap; } }
+.pf-profile-about { padding: 20px; border: 1px solid var(--border-2); border-radius: 12px; background: var(--ui-surface); min-width: 0; }
+.pf-profile-about h2 { margin: 0 0 10px; font-size: 16px; }
+.pf-profile-about p { margin: 0; color: var(--ui-muted); font-size: 13px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+.pf-profile-about a { display: inline-block; margin-top: 12px; color: var(--accent,#f2c63d); font-size: 12px; }

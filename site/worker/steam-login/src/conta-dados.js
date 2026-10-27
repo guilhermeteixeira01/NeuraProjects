@@ -69,3 +69,14 @@ export async function rotaPerfilPublico(req,env,quem,cors,url) {
  if(v.amigos){const r=await rotaAmigos(new Request('https://interno/amigos'),env,{id},{});amigos=((await r.json()).amigos||[]).slice(0,30).map(a=>({id:a.id,nome:a.nome,avatar:a.avatar}))}
  return json({permitido:true,descricao:d.descricao||'',faceit:d.faceit||'',visibilidade:v,amigos},200,{...cors,'Cache-Control':'no-store'})
 }
+
+export async function rotaAmigosPerfil(req,env,quem,cors,url) {
+ if(req.method!=='GET')throw new ErroPedido('metodo')
+ const id=url.searchParams.get('id')||quem.id
+ if(!/^\d{17}$/.test(id))throw new ErroPedido('id')
+ const v=await visibilidade(env,id,quem.id)
+ if(!v.perfil||!v.amigos)return json({permitido:false,amigos:[]},200,{...cors,'Cache-Control':'no-store'})
+ const r=await rotaAmigos(new Request('https://interno/amigos'),env,{id},{})
+ const lista=(await r.json()).amigos||[]
+ return json({permitido:true,amigos:lista.map(a=>({id:a.id,nome:a.nome,avatar:a.avatar}))},200,{...cors,'Cache-Control':'no-store'})
+}

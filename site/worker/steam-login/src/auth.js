@@ -73,6 +73,7 @@ function destino(volta, env, site) {
 export function login(url, env, site) {
   const retorno = new URL('/retorno', url.origin)
   retorno.searchParams.set('volta', destino(url.searchParams.get('volta'), env, site))
+  if (ID_STEAM.test(url.searchParams.get('ref') || '')) retorno.searchParams.set('ref', url.searchParams.get('ref'))
   const p = new URLSearchParams({
     'openid.ns': NS,
     'openid.mode': 'checkid_setup',
@@ -121,7 +122,11 @@ export async function retorno(url, env, site) {
   if (!env.SEGREDO) return erro('config')
 
   const perfil = await perfilSteam(env, id)
-  await semDerrubar(registrarUsuario(env, id, perfil), 'registro do usuário no login') // a lista do painel não impede o login
+  // O return_to foi confirmado pela Steam; não aceita indicação enviada depois do primeiro login.
+  const retornoAssinado = new URL(q.get('openid.return_to'))
+  const entrada = await semDerrubar(registrarUsuario(env, id, perfil, false, retornoAssinado.searchParams.get('ref') || ''), 'registro do usuário no login')
+  // A origem persistida permite retomar se o objeto de contas esteve indisponível no callback anterior.
+  if (entrada) await semDerrubar(chamarContas(env, { acao: 'afiliado-entrada', steam: id, novo: !!entrada.indicacaoEntrada, ref: entrada.indicacaoEntrada?.ref || '' }), 'registro da indicação')
   const token = await assinar({ id, nome: perfil.nome, avatar: perfil.avatar, exp: Math.floor(Date.now() / 1000) + DIAS * 86400 }, env.SEGREDO)
   return Response.redirect(`${volta}#steam=${token}`, 302)
 }

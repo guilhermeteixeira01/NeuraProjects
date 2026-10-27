@@ -31,6 +31,8 @@ const PAGINAS = {
 //   /ranking/ranking.json    -> gerado na hora com scripts/ranking.mjs
 //   /perfil/historico/<id>.json -> idem (histórico do jogador)
 function dadosNoDev() {
+  let ultimoConteudoRanking = ''
+  let ultimaAtualizacaoRanking = ''
   const enviar = (res, arquivo) => {
     res.setHeader('Content-Type', arquivo.endsWith('.json') ? 'application/json; charset=utf-8' : 'application/octet-stream')
     fs.createReadStream(arquivo).pipe(res)
@@ -44,6 +46,14 @@ function dadosNoDev() {
         if (url === '/ranking/ranking.json' || historico) {
           const { gerarRanking } = await import('./scripts/ranking.mjs')
           const { historicos, ...ranking } = await gerarRanking(path.join(raiz, 'partidas'))
+          // Consultar o mesmo dado no desenvolvimento não significa que o ranking mudou.
+          const { atualizado, ...conteudo } = ranking
+          const assinatura = JSON.stringify(conteudo)
+          if (assinatura !== ultimoConteudoRanking) {
+            ultimoConteudoRanking = assinatura
+            ultimaAtualizacaoRanking = atualizado
+          }
+          ranking.atualizado = ultimaAtualizacaoRanking
           const resposta = historico ? historicos[historico[1]] : ranking
           if (!resposta) return next()
           res.setHeader('Content-Type', 'application/json; charset=utf-8')

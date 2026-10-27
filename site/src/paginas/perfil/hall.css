@@ -7,6 +7,7 @@
 .hf-capa-identidade > span { color: #bbc3ce; font-size: 12px; }
 .hf-capa-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
 .hf-area { width: 100%; }
+.hf-aviso-local { margin: 0 0 12px; padding: 10px; border: 1px solid var(--border-2); border-radius: 6px; font-size: 11px; line-height: 1.6; color: var(--ui-muted); background: var(--ui-surface); }
 .hf-card { position: relative; overflow: hidden; isolation: isolate; width: 100%; min-height: 470px; padding: 26px 24px 32px; clip-path: polygon(9% 0,89% 0,100% 7%,100% 92%,50% 100%,0 92%,0 7%); border-top: 7px solid #626870; color: #f4f5f7; background: repeating-linear-gradient(115deg,transparent 0 7px,rgb(255 255 255 / .065) 8px 9px),linear-gradient(145deg,#424952,#1b2027 75%); text-align: center; }
 .hf-card::before { content: ''; position: absolute; inset: 7px; border: 1px solid rgb(255 255 255 / .15); clip-path: inherit; z-index: -1; }
 .hf-topo { display: flex; justify-content: space-between; text-align: left; }

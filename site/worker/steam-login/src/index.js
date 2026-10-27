@@ -25,8 +25,9 @@
  *   ASAAS_API_KEY, ASAAS_WEBHOOK_TOKEN, CS2_AGENTE_URL, CS2_AGENTE_TOKEN, ZERAR_TOKEN (ver pagamentos.js, servidor-cs2.js, zerar.js)
  */
 import { rotaAdmin } from './admin.js'
-import { hallPublico, rotaHall } from './hall.js'
-import { rotaDadosConta, rotaPerfilPublico, exigirVisibilidade, filtrarConquistasPublicas } from './conta-dados.js'
+import { rotaAfiliado } from './afiliado.js'
+import { hallPublico, imagemHall, rotaHall } from './hall.js'
+import { rotaDadosConta, rotaPerfilPublico, rotaAmigosPerfil, exigirVisibilidade, filtrarConquistasPublicas } from './conta-dados.js'
 import { rotaAmigos, rotaChat, rotaDm, rotaLobby, rotaPresenca, rotaServidor } from './amigos.js'
 import { conferirToken, exigirLogin, login, origensPermitidas, retorno } from './auth.js'
 import { ErroApi, ErroLogin, ErroNaoEncontrado, ErroPedido, ErroPermissao, ErroServico } from './erros.js'
@@ -49,6 +50,7 @@ import { zerarTudo } from './zerar.js'
 
 export { Presenca } from './amigos.js'
 export { Contas } from './contas.js'
+export { HallRetratos } from './hall-retratos.js'
 export { Dados } from './dados.js'
 export { Equipes } from './equipes.js'
 export { Loja } from './loja.js'
@@ -66,6 +68,7 @@ function corsDe(req, env) {
 
 // Rotas sem login: "MÉTODO /caminho" -> atender(c), c = { req, env, ctx, url, site }
 const PUBLICAS = {
+  'GET /hall/imagem': async (c) => { await exigirVisibilidade(c.req,c.env,c.url.searchParams.get('id'),'perfil'); return imagemHall(c.env,c.url,{'Access-Control-Allow-Origin':'*'}) },
   'GET /hall/publico': async (c) => { await exigirVisibilidade(c.req,c.env,c.url.searchParams.get('id'),'perfil'); return hallPublico(c.env,c.url.searchParams.get('id'),{'Access-Control-Allow-Origin':'*'}) },
   'GET /login': (c) => login(c.url, c.env, c.site),
   'GET /retorno': (c) => retorno(c.url, c.env, c.site),
@@ -116,6 +119,8 @@ const naoAtende = () => {
 }
 const so = (metodo, atender) => (c) => (c.req.method === metodo ? atender(c) : naoAtende())
 const COM_LOGIN = [
+  ['/afiliado', (c) => rotaAfiliado(c.req, c.env, c.quem, c.cors)],
+  ['/perfil/amigos', (c) => rotaAmigosPerfil(c.req, c.env, c.quem, c.cors, c.url)],
   ['/conta/dados', (c) => rotaDadosConta(c.req,c.env,c.quem,c.cors)],
   ['/perfil/publico', (c) => rotaPerfilPublico(c.req,c.env,c.quem,c.cors,c.url)],
   ['/hall', (c) => rotaHall(c.req,c.env,c.quem,c.config,c.cors,c.url)],

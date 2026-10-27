@@ -568,7 +568,6 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
         </div>
       )}
 
-      {abrindo && <>
       <h2 className="lj-cx-sub">{t('Conteúdo da caixa')}</h2>
       <ul className="lj-cx-grade">
         {/* os itens do card dourado ficam juntos num card só ("Item Raro Especial") com a chance somada; clicar abre a lista */}
@@ -577,7 +576,6 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
           <ItemConteudo key={x.chave} r={x.r} base={x.base} chance={x.chance} normal={x.normal} modo={modo} desgastes={x.desgastes} achar={achar} />
         ))}
       </ul>
-      </>}
       {verEspeciais && <JanelaEspeciais itens={[...especiais].sort((a, b) => b.chance - a.chance || (b.desgastes?.[0]?.v || 0) - (a.desgastes?.[0]?.v || 0))} achar={achar} aoFechar={() => setVerEspeciais(false)} />}
       {depositando && <Deposito aoFechar={() => setDepositando(false)} aoPagar={aoAbriu} />}
     </section>

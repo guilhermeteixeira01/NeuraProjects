@@ -3,6 +3,7 @@
 // O site só lê o conteúdo do token para mostrar (nome, avatar, SteamID); nada aqui depende de ele ser secreto.
 import { useSyncExternalStore } from 'react'
 import { CONFIG } from './config.js'
+import { indicacaoAtual } from './indicacao.js'
 
 const CHAVE = 'np_conta'
 const EVENTO = 'np-conta' // avisa os outros componentes da página que a conta mudou
@@ -69,7 +70,8 @@ export async function entrar() {
   const { exigirTermos } = await import('./Termos.jsx')
   if (!(await exigirTermos())) return
   const volta = location.origin + location.pathname + location.search
-  location.href = `${CONFIG.loginSteam.replace(/\/$/, '')}/login?volta=${encodeURIComponent(volta)}`
+  const ref = indicacaoAtual()
+  location.href = `${CONFIG.loginSteam.replace(/\/$/, '')}/login?volta=${encodeURIComponent(volta)}${ref ? `&ref=${encodeURIComponent(ref)}` : ''}`
 }
 
 // irParaInicio: quem clicou em "Sair" volta para a página inicial. Login vencido (o worker respondeu 401) só

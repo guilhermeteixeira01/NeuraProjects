@@ -4,7 +4,7 @@ import { acaoAmizade, relacaoCom, tempoDesde, useAmigos } from '../../comum/amig
 import { IconeAmigos } from '../../comum/PainelAmigos.jsx'
 import { useT } from '../../comum/i18n.js'
 
-export function BotaoAmizade({ id }) {
+export function BotaoAmizade({ id, rotuloAmigo }) {
   const t = useT()
   const { lista, eu } = useAmigos()
   const [ocupado, setOcupado] = useState(false)
@@ -58,7 +58,7 @@ export function BotaoAmizade({ id }) {
           </span>
         ) : (
           <button type="button" className="btn btn-ghost pf-amizade pf-sao-amigos" onClick={() => setConfirmar(true)} title={t('Clique para remover')}>
-            <IconeAmigos tamanho={16} /> {t('Amigos')} ✓
+            <IconeAmigos tamanho={16} /> {rotuloAmigo || t('Amigos')} ✓
           </button>
         ))}
       {erro && <span className="pf-amizade-erro">{erro}</span>}

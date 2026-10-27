@@ -18,6 +18,7 @@ import { esquecerJogador } from './publico.js'
 import { lerRanking, nivelDoJogador } from './ranking.js'
 import { registrar } from './registro.js'
 import { registrarUsuario } from './usuarios.js'
+import { concluirAfiliacao } from './afiliado.js'
 
 export const ID_MOLDURA = /^[a-z0-9-]{1,40}\/[a-z0-9-]{1,60}$/
 export const NOME_TIME = /^[^\u0000-\u001f<>]{1,40}$/ // nome da lista de times (o site só mostra se ainda existir na lista)
@@ -120,6 +121,7 @@ const ehPremium = async (env, id, config) => indiceSub((await lerPerfil(env, id)
 export async function rotaConta(req, env, quem, config, cors, rota, url) {
   if (rota === '/conta/seguranca' && req.method === 'GET') {
     const r = await chamarContas(env, { acao: 'estado', steam: quem.id, premium: await ehPremium(env, quem.id, config) })
+    if (r.nick && r.temSenha) await semDerrubar(concluirAfiliacao(env, quem.id), 'recompensa de indicação')
     // EMAIL_PRONTO = "1" só depois do domínio verificado no Resend (wrangler.toml [vars]). Até lá, o passo de
     // e-mail não vira obrigatório pra ninguém: a chave pode já existir, mas o envio ainda falharia sem o domínio.
     return json({ ...r, emailDisponivel: env.EMAIL_PRONTO === '1' }, 200, cors)
@@ -129,12 +131,14 @@ export async function rotaConta(req, env, quem, config, cors, rota, url) {
     const { nick } = await lerCorpo(req)
     const r = await chamarContas(env, { acao: 'nick', steam: quem.id, nick, premium: await ehPremium(env, quem.id, config) })
     await aplicarApelido(env, quem.id, r.nick, quem.avatar)
+    await semDerrubar(concluirAfiliacao(env, quem.id), 'recompensa de indicação')
     await registrar(env, { tipo: 'conta', quem: quem.id, texto: `escolheu o apelido "${r.nick}"` })
     return json(r, 200, cors)
   }
   if (rota === '/conta/senha' && req.method === 'POST') {
     const { senha, atual } = await lerCorpo(req)
     const r = await chamarContas(env, { acao: 'senha', steam: quem.id, senha, atual })
+    await semDerrubar(concluirAfiliacao(env, quem.id), 'recompensa de indicação')
     await registrar(env, { tipo: 'conta', quem: quem.id, texto: atual != null ? 'trocou a senha de segurança' : 'criou a senha de segurança' })
     return json(r, 200, cors)
   }
@@ -147,6 +151,7 @@ export async function rotaConta(req, env, quem, config, cors, rota, url) {
   if (rota === '/conta/email/verificar' && req.method === 'POST') {
     const { codigo } = await lerCorpo(req)
     const r = await chamarContas(env, { acao: 'email-verificar', steam: quem.id, codigo })
+    await semDerrubar(concluirAfiliacao(env, quem.id), 'recompensa de indicação')
     await registrar(env, { tipo: 'conta', quem: quem.id, texto: 'confirmou o e-mail' })
     return json(r, 200, cors)
   }

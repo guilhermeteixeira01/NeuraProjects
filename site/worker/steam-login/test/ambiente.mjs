@@ -17,6 +17,7 @@ registerHooks({
 export function armazenamento() {
   const db = new DatabaseSync(':memory:')
   const chaves = new Map()
+  let alarme = null
   const cursor = (linhas) => ({
     toArray: () => linhas,
     one: () => {
@@ -52,26 +53,31 @@ export function armazenamento() {
     async list({ prefix = '' } = {}) {
       return new Map([...chaves].filter(([x]) => x.startsWith(prefix)))
     },
-    async setAlarm() {},
-    async deleteAlarm() {},
+    async setAlarm(quando) { alarme = Number(quando) },
+    async getAlarm() { return alarme },
+    async deleteAlarm() { alarme = null },
   }
 }
 
 // Namespace de Durable Object: um objeto por nome, criado na primeira vez; fetch passa por um Request/Response de verdade
 function namespace(Classe, env) {
   const instancias = new Map()
+  const instancia = (id) => {
+    if (!instancias.has(id)) {
+      const storage = armazenamento()
+      const ctx = { storage, blockConcurrencyWhile: (fn) => fn(), getWebSockets: () => [], acceptWebSocket() {}, setWebSocketAutoResponse() {}, getWebSocketAutoResponseTimestamp: () => null }
+      instancias.set(id, new Classe(ctx, env))
+    }
+    return instancias.get(id)
+  }
   return {
+    instancia,
     idFromName: (nome) => nome,
     get(id) {
       return {
         fetch: async (endereco, init) => {
-          if (!instancias.has(id)) {
-            const storage = armazenamento()
-            const ctx = { storage, blockConcurrencyWhile: (fn) => fn(), getWebSockets: () => [], acceptWebSocket() {}, setWebSocketAutoResponse() {}, getWebSocketAutoResponseTimestamp: () => null }
-            instancias.set(id, new Classe(ctx, env))
-          }
-          const r = await instancias.get(id).fetch(new Request(endereco, init))
-          return new Response(await r.text(), { status: r.status, headers: r.headers })
+          const r = await instancia(id).fetch(new Request(endereco, init))
+          return new Response(await r.arrayBuffer(), { status: r.status, headers: r.headers })
         },
       }
     },
@@ -121,7 +127,7 @@ export function ambiente(kvInicial = {}) {
   cache.clear()
   const env = { SITE: 'https://neuraproject.com.br', DONO, SEGREDO, ORIGENS_EXTRAS: SITE, SERVIDOR_TOKEN: 'token-servidor', MOLDURAS: kv() }
   for (const [k, v] of Object.entries(kvInicial)) env.MOLDURAS.dados.set(k, typeof v === 'string' ? v : JSON.stringify(v))
-  for (const [binding, classe] of Object.entries({ PRESENCA: 'Presenca', LOJA: 'Loja', TROCAS: 'Trocas', MERCADO: 'Mercado', REGISTRO: 'Registro', EQUIPES: 'Equipes', CONTAS: 'Contas', DADOS: 'Dados' })) env[binding] = namespace(worker[classe], env)
+  for (const [binding, classe] of Object.entries({ PRESENCA: 'Presenca', LOJA: 'Loja', TROCAS: 'Trocas', MERCADO: 'Mercado', REGISTRO: 'Registro', EQUIPES: 'Equipes', CONTAS: 'Contas', DADOS: 'Dados', HALL_RETRATOS: 'HallRetratos' })) env[binding] = namespace(worker[classe], env)
   const espera = []
   const ctx = { waitUntil: (p) => espera.push(p) }
   const b64 = (s) => Buffer.from(s).toString('base64url')

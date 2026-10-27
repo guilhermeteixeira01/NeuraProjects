@@ -19,7 +19,18 @@ export function ativarPreviewLocal() {
   estado.notificacoes ??= {lista:[{id:'demo-boas-vindas',titulo:'Bem-vindo à prévia local',texto:'Amigos, time, inventário e saldo são dados de demonstração.',link:'/lobby/',imagem:avatar,quando:Date.now()-60000,lida:false},{id:'demo-caixas',titulo:'Caixas prontas para testar',texto:'Abra caixas e veja o resultado no inventário de teste.',link:'/loja/',quando:Date.now()-120000,lida:false}],vistos:[],limpoEm:0}
   estado.conta ??= {nome:'',sobrenome:'',cpf:'',nascimento:'',discord:'',descricao:'Jogador da comunidade Neura.',faceit:'',privacidade:Object.fromEntries(['perfil','inventario','amigos','conquistas','convites'].map(k=>[k,'todos']))}
   estado.hall ??= {estado:'sem-foto',camisa:'escura'}
+  estado.amigos ??= pessoas.slice(1).map(p => p.id)
   const guardar=()=>{try{sessionStorage.setItem('np-preview-dados-v2',JSON.stringify(estado))}catch{/* sem armazenamento */}}
+  const hallDaPrevia=()=>{
+    const h=estado.hall
+    if(['fila','gerando'].includes(h.estado)){
+      const tempo=Date.now()-(h.geracaoLocal||Date.now())
+      if(tempo>=2500){h.estado='aprovada';h.aprovada=`/assets/hall/jogador-${h.camisa==='clara'?'clara':'escura'}.webp`;h.camisaAprovada=h.camisa;h.montada=true}
+      else if(tempo>=700)h.estado='gerando'
+      guardar()
+    }
+    return {...h,simulacao:true}
+  }
   const time={id:'equipe-demo',nome:'Neura Academy · teste',tag:'NRA',logo:avatar,descricao:'Time de demonstração para revisar membros, cargos e chat.',publico:true,criada:Date.now()-86400000*30,minhas:['dono','editar','convidar','expulsar','moderar'],cargos:[{id:'membro',nome:'Membro',cor:'#a6c5ed',permissoes:[]}],membros:pessoas}
   const base = `${location.origin}/__preview-local`
   CONFIG.loginSteam = base
@@ -52,9 +63,19 @@ export function ativarPreviewLocal() {
     let corpo={}
     try{corpo=JSON.parse(init?.body||(input instanceof Request?await input.clone().text():'{}'))}catch{/* leitura */}
     if (metodo !== 'GET') {
+      if(rota==='/amigos') {
+        if(corpo.acao==='remover')estado.amigos=estado.amigos.filter(a=>a!==corpo.id)
+        if(corpo.acao==='aceitar')estado.amigos=[...new Set([...estado.amigos,corpo.id])]
+        guardar();return Response.json({amigos:pessoas.filter(p=>estado.amigos.includes(p.id)),recebidos:[],enviados:[]})
+      }
       if(rota==='/conta/dados'){estado.conta=corpo;guardar();return Response.json(estado.conta)}
-      if(rota==='/hall'){estado.hall={...estado.hall,original:corpo.foto,camisa:corpo.camisa,estado:'pendente',nome};guardar();return Response.json(estado.hall)}
-      if(rota==='/hall/revisao'){estado.hall={...estado.hall,estado:corpo.acao==='aprovar'?'aprovada':'reprovada',...(corpo.acao==='aprovar'?{aprovada:corpo.foto||estado.hall.original,camisaAprovada:estado.hall.camisa,montada:!!corpo.foto}:{})};guardar();return Response.json({ok:true})}
+      if(rota==='/hall'){estado.hall={...estado.hall,pedido:novoId(),original:corpo.foto,camisa:corpo.camisa,estado:'pendente',nome,motivo:'',tentativasGeracao:0};guardar();return Response.json(hallDaPrevia())}
+      if(rota==='/hall/revisao'){
+        if(corpo.pedido!==estado.hall.pedido)return Response.json({erro:'pedido-alterado'},{status:409})
+        estado.hall={...estado.hall,estado:corpo.acao==='aprovar'?'fila':'reprovada',motivo:corpo.motivo||'',geracaoLocal:Date.now()};guardar()
+        if(corpo.acao==='aprovar')for(const tempo of [800,2700])setTimeout(()=>{hallDaPrevia();window.dispatchEvent(new Event('np-hall'))},tempo)
+        return Response.json({ok:true,simulacao:true})
+      }
 
       if(rota==='/dm') {
         if(corpo.acao==='apagar-conversa')estado.mensagens=[]
@@ -85,10 +106,13 @@ export function ativarPreviewLocal() {
       return Response.json({ok:true,saldo:estado.saldo,inv:estado.inv})
     }
     if(rota==='/conta/dados')return Response.json(estado.conta)
+    if(rota==='/amigos')return Response.json({amigos:pessoas.filter(p=>estado.amigos.includes(p.id)),recebidos:[],enviados:[]})
+    if(rota==='/perfil/amigos')return Response.json({permitido:true,amigos:pessoas.filter(p=>p.id!==url.searchParams.get('id'))})
+    if(rota==='/afiliado')return Response.json({cadastrados:2,premios:1,np:1000,caixa:'Caixa Facas',lista:[{...pessoas[1],criado:Date.now()-86400000,entregue:Date.now()-3600000},{...pessoas[2],criado:Date.now()-1800000,entregue:null}]})
     if(rota==='/perfil/publico')return Response.json({permitido:true,descricao:estado.conta.descricao,faceit:estado.conta.faceit,visibilidade:Object.fromEntries(Object.keys(estado.conta.privacidade).map(k=>[k,true])),amigos:pessoas.slice(1)})
-    if(rota==='/hall')return Response.json(estado.hall)
+    if(rota==='/hall')return Response.json(hallDaPrevia())
     if(rota==='/hall/publico')return Response.json({foto:estado.hall.aprovada,camisa:estado.hall.camisaAprovada,montada:estado.hall.montada})
-    if(rota==='/hall/revisao')return Response.json({pedidos:estado.hall.estado==='pendente'?[{id,...estado.hall}]:[]})
+    if(rota==='/hall/revisao'){const h=hallDaPrevia();return Response.json({pedidos:['pendente','fila','gerando','falhou'].includes(h.estado)?[{id,...h}]:[],geracaoDisponivel:true,simulacao:true})}
     if(rota==='/dm'&&url.searchParams.has('com'))return Response.json({com:{...(pessoas.find(p=>p.id===url.searchParams.get('com'))||pessoas[1]),amigo:true},mensagens:estado.mensagens})
     if(rota==='/equipes/chat')return Response.json({equipe:time.id,mensagens:estado.chat})
     if(rota==='/notificacoes')return Response.json({doc:estado.notificacoes})
