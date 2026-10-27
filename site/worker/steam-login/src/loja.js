@@ -29,7 +29,7 @@ import { exigirSenha } from './contas.js'
  *   POST /admin/loja-pontos {alvo: 'todos'|<SteamID64>, acao: 'adicionar'|'remover'|'definir', valor, motivo?} (dono)
  *   GET  /admin/loja-saldo?id= (dono)  -> { saldo, ganhos, gastos, movimentos } de um jogador
  */
-import { avisarTodos } from './amigos.js'
+import { avisarTodos, mandarPara } from './amigos.js'
 import CAIXAS_INICIAIS from './caixas-iniciais.json'
 import CAIXAS_REMOVIDAS from './caixas-removidas.json'
 import CAIXAS_RETIRADAS_IDS from './caixas-retiradas-ids.json'
@@ -221,9 +221,13 @@ async function partidasPremium(env, id) {
   if (!r.ok) throw new ErroServico('historico', { status: r.status }, { indisponivel: true })
   const h = await r.json()
   return (Array.isArray(h) ? h : [])
-    .map((m) => ({ k: String(m.caminho || ''), ts: Date.parse(String(m.data || '').replace(' ', 'T') + '-03:00') }))
-    .filter((m) => m.k && m.ts >= de && m.ts <= ate)
-    .slice(0, 300)
+    .map((m) => {
+      const data = String(m.data || '').trim().replace(' ', 'T')
+      const ts = typeof m.data === 'number' ? m.data : Date.parse(data + (/([zZ]|[+-]\d{2}:?\d{2})$/.test(data) ? '' : '-03:00'))
+      return { k: String(m.caminho || ''), ts }
+    })
+    .filter((m) => m.k && Number.isFinite(m.ts) && m.ts >= de && m.ts <= ate && m.ts <= Date.now())
+    .slice(0, 300) // mantém o alcance legado: evita reabrir pagamentos históricos fora do registro antigo
 }
 
 // Ações que mexem no saldo ou mostram o saldo: antes delas entram os bônus para todos e o bônus Premium de partida
@@ -241,6 +245,7 @@ export class Loja {
     // depósitos com dinheiro (Asaas): um por cobrança; estado = pendente | pago | estornado. É daqui que sai a garantia de creditar uma vez só.
     // Também guardam assinaturas pagas: tipo ('deposito' | 'sub'), dados (JSON, ex.: { meses }) e entregue (a assinatura já foi dada?)
     this.sql.exec("CREATE TABLE IF NOT EXISTS depositos (pid TEXT PRIMARY KEY, ts INTEGER, centavos INTEGER, np INTEGER, metodo TEXT, estado TEXT, tipo TEXT DEFAULT 'deposito', dados TEXT, entregue INTEGER DEFAULT 1)")
+    this.sql.exec('CREATE TABLE IF NOT EXISTS premium_partidas (id INTEGER PRIMARY KEY AUTOINCREMENT, partida TEXT NOT NULL UNIQUE, ts INTEGER NOT NULL, valor INTEGER NOT NULL, notificada INTEGER NOT NULL DEFAULT 0)')
     this.sql.exec('CREATE TABLE IF NOT EXISTS movimentos (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, valor INTEGER, motivo TEXT)')
     // Totais mantidos na mesma transação de cada movimento/abertura (saldo e contador da abertura especial sem percorrer o histórico)
     this.sql.exec('CREATE TABLE IF NOT EXISTS resumo (chave TEXT PRIMARY KEY, valor INTEGER NOT NULL)')
@@ -396,25 +401,36 @@ export class Loja {
     }
   }
 
-  // Premium: BONUS_PREMIUM_PARTIDA a mais por partida jogada com a assinatura valendo; cada partida só rende uma vez (premiumFeitas)
-  async aplicarPremium(partidas) {
-    if (!partidas.length) return
-    const feitas = new Set((await this.ctx.storage.get('premiumFeitas')) || [])
-    const novas = partidas.filter((m) => !feitas.has(m.k))
-    if (!novas.length) return
+  // Recibo e crédito na mesma transação. A notificação pendente pode ser retomada sem pagar novamente.
+  async aplicarPremium(partidas, id) {
+    if (!(await this.ctx.storage.get('premiumMigradoSql'))) {
+      const antigas = (await this.ctx.storage.get('premiumFeitas')) || []
+      this.ctx.storage.transactionSync(() => {
+        for (const k of antigas) this.sql.exec('INSERT OR IGNORE INTO premium_partidas (partida, ts, valor, notificada) VALUES (?, 0, 0, 1)', k)
+      })
+      await this.ctx.storage.put('premiumMigradoSql', true)
+    }
     this.ctx.storage.transactionSync(() => {
-      for (const m of novas) this.movimentar(Number(m.ts) || Date.now(), -BONUS_PREMIUM_PARTIDA, 'Premium: bônus de partida')
+      for (const m of partidas) {
+        if (this.sql.exec('SELECT 1 FROM premium_partidas WHERE partida = ?', m.k).toArray().length) continue
+        const ts = Number(m.ts) || Date.now()
+        this.sql.exec('INSERT INTO premium_partidas (partida, ts, valor) VALUES (?, ?, ?)', m.k, ts, BONUS_PREMIUM_PARTIDA)
+        this.movimentar(ts, -BONUS_PREMIUM_PARTIDA, 'Premium: bônus de partida')
+      }
     })
-    await this.ctx.storage.put('premiumFeitas', [...feitas, ...novas.map((m) => m.k)].slice(-1500))
-    const total = novas.length * BONUS_PREMIUM_PARTIDA
-    await this.notificar(novaNotif(`premium:${Date.now()}`, `Premium: +${total.toLocaleString('pt-BR')} NP`, novas.length === 1 ? 'Bônus Premium de 1 partida jogada.' : `Bônus Premium de ${novas.length} partidas jogadas.`, '/loja/'))
+    const pendentes = this.sql.exec('SELECT * FROM premium_partidas WHERE notificada = 0 ORDER BY id LIMIT 30').toArray()
+    for (const m of pendentes) {
+      await this.notificar(novaNotif(`premium:partida:${m.id}`, `Bônus Premium recebido: +${m.valor.toLocaleString('pt-BR')} NP`, `Você recebeu ${m.valor.toLocaleString('pt-BR')} NP extras pela partida jogada com Premium. Vitória ou derrota: o bônus já está no seu saldo.`, '/loja/'))
+      this.sql.exec('UPDATE premium_partidas SET notificada = 1 WHERE id = ?', m.id)
+    }
+    if (pendentes.length && id) await mandarPara(this.env, [id], { tipo: 'bonus' })
   }
 
   // O que o saldo precisa: pontos das partidas (ranking), bônus e Premium já aplicados. Devolve os pontos ganhos
   async prepararSaldo(id) {
     const [pontos, bonus, premium] = await Promise.all([pontosGanhos(this.env, id), lerDoc(this.env, 'loja-bonus', []), partidasPremium(this.env, id)])
     await this.aplicarBonus(id, bonus)
-    await this.aplicarPremium(premium)
+    await this.aplicarPremium(premium, id)
     return pontos + ((await this.ctx.storage.get('afiliado-np')) || 0)
   }
 
@@ -434,6 +450,8 @@ export class Loja {
         return { ok: true }
       }
       case 'notif-sync': { // junta o que o aparelho mandou com o que a conta já tem e devolve o resultado
+        try { await this.aplicarPremium(await partidasPremium(this.env, id), id) }
+        catch(e) { if (e.codigo !== 'historico') throw e } // histórico fora do ar não esconde os avisos já recebidos
         const atual = (await this.ctx.storage.get('notifs')) || docVazio()
         if (!p.doc) return { doc: atual }
         const novo = juntar(atual, p.doc)
