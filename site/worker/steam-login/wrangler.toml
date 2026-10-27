@@ -19,7 +19,6 @@ EMAIL_PRONTO = "1"
 # ORIGENS_EXTRAS = "http://localhost:5173"
 
 # Segredos (não ficam neste arquivo):
-#   npx wrangler secret put OPENAI_API_KEY -> retrato do Hall, apenas após aprovação do admin
 #   npx wrangler secret put SEGREDO        -> texto aleatório longo (obrigatório)
 #   npx wrangler secret put STEAM_API_KEY  -> chave de https://steamcommunity.com/dev/apikey (opcional)
 
@@ -118,3 +117,7 @@ new_sqlite_classes = ["Dados"]
 [[migrations]]
 tag = "v9"
 new_sqlite_classes = ["HallRetratos"]
+
+# Workers AI no plano Free; limite adicional de 10 tentativas/dia em hall-cota.js.
+[ai]
+binding = "AI"

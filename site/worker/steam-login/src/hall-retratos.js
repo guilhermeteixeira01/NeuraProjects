@@ -5,6 +5,7 @@ import { Fila, responder } from './objetos.js'
 import { gerarRetratoHall } from './hall-imagem.js'
 import { mandarPara } from './amigos.js'
 import { tirarDaFilaHall } from './hall.js'
+import { cotaHall } from './hall-cota.js'
 
 export const pedidoHall = d => d?.pedido || String(d?.enviada || 'legado')
 const mesmo = (d, j) => pedidoHall(d) === j.pedido
@@ -58,9 +59,17 @@ export class HallRetratos {
         return
       }
       if (j.estado === 'fila') {
+        const antes = await mudarDoc(this.env, `hall:${j.id}`, d => d, {})
+        if (!mesmo(antes, j) || antes.estado !== 'fila') { await this.atualizarTrabalho(j, { estado: 'cancelado' }); return }
+        const cota = await cotaHall(this.env, `${j.id}:${j.pedido}:${antes.tentativasGeracao}`)
+        if (!cota.permitido) {
+          await mudarDoc(this.env, `hall:${j.id}`, d => mesmo(d, j) && d.estado === 'fila' ? { ...d, aguardaCota: true, retomarEm: cota.reiniciaEm } : d, {})
+          await this.ctx.storage.setAlarm(cota.reiniciaEm + 1000)
+          return
+        }
         const d = await mudarDoc(this.env, `hall:${j.id}`, atual => {
           if (!mesmo(atual, j) || atual.estado !== 'fila') return atual
-          return { ...atual, estado: 'gerando', geracaoIniciada: Date.now() }
+          return { ...atual, estado: 'gerando', aguardaCota: false, retomarEm: null, geracaoIniciada: Date.now() }
         }, {})
         if (!mesmo(d, j) || d.estado !== 'gerando') { await this.atualizarTrabalho(j, { estado: 'cancelado' }); return }
         if (!(await this.atualizarTrabalho(j, { estado: 'gerando' }))) return
@@ -80,6 +89,13 @@ export class HallRetratos {
       }
       await this.publicar(j)
     } catch (e) {
+      if (j.estado !== 'pronto' && (e.codigo === 'ocupado' || e.codigo === 'hall-cota-cloudflare')) {
+        const amanha = Date.parse(new Date().toISOString().slice(0, 10) + 'T00:00:00Z') + 86400000
+        const quando = e.codigo === 'ocupado' ? Date.now() + 30000 : amanha + 1000
+        await mudarDoc(this.env, `hall:${j.id}`, d => mesmo(d, j) && ['fila', 'gerando'].includes(d.estado) ? { ...d, estado: 'fila', aguardaCota: e.codigo === 'hall-cota-cloudflare', retomarEm: quando } : d, {})
+        if (await this.atualizarTrabalho(j, { estado: 'fila' })) await this.ctx.storage.setAlarm(quando)
+        return
+      }
       if (j.estado === 'pronto') {
         // Resultado salvo: retoma somente a publicação, sem outra chamada à API.
         await this.ctx.storage.setAlarm(Date.now() + 30_000)

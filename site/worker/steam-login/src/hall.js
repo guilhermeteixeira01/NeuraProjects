@@ -3,6 +3,7 @@ import { abasDe } from './perfis.js'
 import { ErroPedido, ErroPermissao, ErroConflito, ErroServico } from './erros.js'
 import { json, lerCorpo } from './http.js'
 import { pedir } from './objetos.js'
+import { cotaHall } from './hall-cota.js'
 import { pedidoHall } from './hall-retratos.js'
 
 const idValido = (id) => /^\d{17}$/.test(String(id || ''))
@@ -40,7 +41,7 @@ export async function rotaHall(req,env,quem,config,cors,url) {
     if(revisao) {
       const ids=await lerDoc(env,'hall-pendentes',[])
       const pedidos=await Promise.all(ids.slice(0,40).map(async p=>{const id=idFila(p),d=await atual(env,id);return {id,...d,pedido:pedidoHall(d)}}))
-      return json({pedidos:pedidos.filter(ativo),geracaoDisponivel:!!env.OPENAI_API_KEY&&!!env.HALL_RETRATOS},200,{...cors,'Cache-Control':'no-store'})
+      return json({pedidos:pedidos.filter(ativo),cota:await cotaHall(env),geracaoDisponivel:!!env.AI?.run&&!!env.HALL_RETRATOS},200,{...cors,'Cache-Control':'no-store'})
     }
     const {original,...d}=await atual(env,quem.id)
     return json({estado:'sem-foto',camisa:'escura',...d,pedido:pedidoHall(d)},200,{...cors,'Cache-Control':'no-store'})
@@ -50,14 +51,15 @@ export async function rotaHall(req,env,quem,config,cors,url) {
   if(revisao) {
     if(!idValido(corpo.id)||!['aprovar','reprovar'].includes(corpo.acao))throw new ErroPedido('pedido')
     if(corpo.foto)throw new ErroPedido('montagem-manual')
-    if(corpo.acao==='aprovar'&&(!env.OPENAI_API_KEY||!env.HALL_RETRATOS))throw new ErroServico('hall-config',undefined,{indisponivel:true})
+    if(corpo.acao==='aprovar'&&(!env.AI?.run||!env.HALL_RETRATOS))throw new ErroServico('hall-config',undefined,{indisponivel:true})
     const d=await mudarDoc(env,`hall:${corpo.id}`,d=>{
       if(!d?.original)throw new ErroPedido('pedido')
       if(corpo.pedido!==pedidoHall(d)||!ativo(d))throw new ErroConflito('pedido-alterado')
       if(corpo.acao==='reprovar')return {...d,estado:'reprovada',motivo:String(corpo.motivo||'').slice(0,200),revisada:Date.now()}
       if(['fila','gerando'].includes(d.estado))return d
-      if((d.tentativasGeracao||0)>=3)throw new ErroConflito('hall-tentativas')
-      return {...d,estado:'fila',aprovadaPor:quem.id,revisada:Date.now(),tentativasGeracao:(d.tentativasGeracao||0)+1,motivo:'',erroGeracao:''}
+      const tentativas = d.provedorGeracao === 'cloudflare' ? (d.tentativasGeracao||0) : 0
+      if(tentativas>=3)throw new ErroConflito('hall-tentativas')
+      return {...d,estado:'fila',aprovadaPor:quem.id,revisada:Date.now(),tentativasGeracao:tentativas+1,provedorGeracao:'cloudflare',aguardaCota:false,retomarEm:null,motivo:'',erroGeracao:''}
     },{})
     if(corpo.acao==='reprovar')await tirarDaFilaHall(env,corpo.id,corpo.pedido)
     else {

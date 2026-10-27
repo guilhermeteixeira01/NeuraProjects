@@ -4,13 +4,12 @@ import { ambiente, DONO } from './ambiente.mjs'
 import { mudarDoc } from '../src/dados.js'
 const worker = (await import('../src/index.js')).default
 const A='76561198000000911', B='76561198000000912'
-const foto='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aXe8AAAAASUVORK5CYII='
-const binario=new Uint8Array(250000);binario.set(Uint8Array.from(atob(foto.split(',')[1]),c=>c.charCodeAt(0)))
-const retornoImagem={data:[{b64_json:Buffer.from(binario).toString('base64')}]}
+const { foto, binario, retornoImagem, referencia, simularAI } = await import('./hall-fixture.mjs')
+let aiAtual
 const chave='chave-simulada-nao-e-real'
 
 async function fixture() {
- const a=ambiente();a.env.OPENAI_API_KEY=chave
+ const a=ambiente();a.env.AI={run:(...args)=>aiAtual.run(...args)}
  const enviar=async(camisa='escura')=>{
   const r=await a.pedir('POST','/hall',{quem:A,corpo:{foto,camisa}});assert.equal(r.status,200);return r.dados.pedido
  }
@@ -22,11 +21,11 @@ async function comApi(fn,provedor=async()=>Response.json(retornoImagem)) {
  const anterior=globalThis.fetch, chamadas=[]
  globalThis.fetch=async(url,init)=>{
   const u=String(url)
-  if(u.includes('/assets/hall/'))return new Response(new Uint8Array([1,2,3]),{headers:{'Content-Type':'image/webp'}})
-  if(u==='https://api.openai.com/v1/images/edits'){chamadas.push({url:u,...init});return provedor(url,init)}
+  if(u.includes('/assets/hall/'))return new Response(referencia,{headers:{'Content-Type':'image/png'}})
   return anterior(url,init)
  }
- try {return await fn(chamadas)}finally{globalThis.fetch=anterior}
+ aiAtual=simularAI(chamadas,provedor)
+ try {return await fn(chamadas)}finally{globalThis.fetch=anterior;aiAtual=null}
 }
 
 test('gera somente após admin aprovar; salva imagem binária e publica no Hall sem expor original/chave',async()=>{
@@ -39,8 +38,8 @@ test('gera somente após admin aprovar; salva imagem binária e publica no Hall 
   assert.ok(await f.ator().ctx.storage.getAlarm())
   await f.ator().alarm();assert.equal(chamadas.length,1)
   const form=chamadas[0].body
-  assert.equal(form.get('background'),'transparent');assert.equal(form.get('size'),'1024x1536');assert.equal(form.get('n'),'1')
-  assert.equal(form.getAll('image[]').length,2);assert.equal(form.get('model'),'gpt-image-2.5-sunburst')
+  assert.equal(form.get('width'),'768');assert.equal(form.get('height'),'1152')
+  assert.ok(form.get('input_image_0'));assert.ok(form.get('input_image_1'));assert.equal(chamadas[0].model,'@cf/black-forest-labs/flux-2-klein-4b')
   assert.match(form.get('prompt'),/facial identity/)
   const d=await f.estado();assert.equal(d.estado,'aprovada');assert.equal(d.camisaAprovada,'clara');assert.equal(d.original,undefined)
   const p=(await f.pedir('GET','/hall/publico?id='+A)).dados
@@ -60,8 +59,8 @@ test('aprovação e alarmes concorrentes geram uma única chamada',async()=>{
  assert.equal((await f.aprovar(pedido)).status,409)
 })
 
-test('sem chave não agenda, não publica original e não gasta tentativa',async()=>{
- const f=await fixture(),pedido=await f.enviar();delete f.env.OPENAI_API_KEY
+test('sem binding AI não agenda, não publica original e não gasta tentativa',async()=>{
+ const f=await fixture(),pedido=await f.enviar();delete f.env.AI
  assert.equal((await f.aprovar(pedido)).status,503)
  const d=await f.estado();assert.equal(d.estado,'pendente');assert.equal(d.tentativasGeracao,0)
  assert.equal((await f.pedir('GET','/hall/publico?id='+A)).dados.foto,null)

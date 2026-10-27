@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url'
 // O worker importa JSON sem "with { type: 'json' }" (o wrangler aceita): aqui o JSON vira um módulo com export default
 registerHooks({
   load(url, contexto, proximo) {
+    if (url.endsWith('.wasm')) return { format: 'module', source: `export default new WebAssembly.Module(Buffer.from('${fs.readFileSync(fileURLToPath(url)).toString('base64')}', 'base64'))`, shortCircuit: true }
     if (url.endsWith('.json') && contexto.importAttributes?.type !== 'json') return { format: 'module', source: `export default ${fs.readFileSync(fileURLToPath(url), 'utf8')}`, shortCircuit: true }
     return proximo(url, contexto)
   },

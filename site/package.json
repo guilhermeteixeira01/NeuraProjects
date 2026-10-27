@@ -13,6 +13,10 @@
     "preview": "vite preview --outDir dist-final"
   },
   "dependencies": {
+    "@jsquash/webp": "^1.5.0",
+    "fast-png": "^8.0.0",
+    "image-size": "^2.0.4",
+    "jpeg-js": "^0.4.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
