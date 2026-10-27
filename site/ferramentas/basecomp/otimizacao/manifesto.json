@@ -1,0 +1,18 @@
+{
+  "Skins.cs": {
+    "antes": "4db2dd12f75c54ea3476ff90bdf54397321b335560c09fea46bc1d23fe1aad59",
+    "depois": "6fc7ca8beef4b0fb2a4a1899e84885d824ab0643ec396d0a99864734ec602d3c"
+  },
+  "PainelInventario.cs": {
+    "antes": "450d2b55facaf3aba605eca0e390d36ebdaa23fb82850d68d3705df366e63c09",
+    "depois": "1f9a27c88b607ef1d8b2235604fe093b8f4b0c545caeb5f076b5ae1a08f30081"
+  },
+  "BaseComp.cs": {
+    "antes": "4184ce9a576d3ab1587e717f54a324f0be9671d6fbde0b292c98b771c8c29c05",
+    "depois": "09ad4466dd3c8a05dc13ce8a29460d22faa6d38db329dfa2fd5f0342a35bd61a"
+  },
+  "AtualizacoesSkins.cs": {
+    "antes": null,
+    "depois": "e0069c70e9691d7bd701018b298d98d7514d02662549241c5b752b2ef0aa27b0"
+  }
+}
