@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "id": "2026-10-28_21-59_time_Te1xe1ra-x-time_Senna",
+    "organizacao": "neura-project",
+    "categoria": "md1",
+    "formato": "MD1",
+    "timeA": "time_Te1xe1ra",
+    "timeB": "time_Senna",
+    "logoA": null,
+    "logoB": null,
+    "mapas": [
+      "de_train"
+    ],
+    "status": "cancelada",
+    "mapaAtual": 0,
+    "criada": "2026-10-28 22:10",
+    "atualizada": "2026-10-28 22:10",
+    "canceladaEm": "2026-10-28T22:10:29+00:00"
+  }
+]
