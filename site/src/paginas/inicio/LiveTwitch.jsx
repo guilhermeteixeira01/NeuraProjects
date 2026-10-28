@@ -90,6 +90,10 @@ export default function LiveTwitch() {
     let vivo = true
     let i = 0
     let relogio
+    let instancia
+    let aoOnline
+    let eventoOnline
+    let eventoOffline
     const tentar = (n) => {
       i = n
       player.current.setChannel(canais[i])
@@ -108,7 +112,7 @@ export default function LiveTwitch() {
       .then((Twitch) => {
         if (!vivo) return
         caixa.current.replaceChildren()
-        player.current = new Twitch.Player(ID_PLAYER, {
+        instancia = new Twitch.Player(ID_PLAYER, {
           channel: canais[0],
           parent: [location.hostname],
           width: '100%',
@@ -118,21 +122,32 @@ export default function LiveTwitch() {
           // Quem dá o play é o efeito de baixo, com a capa fora e o vídeo visível na tela.
           autoplay: false,
         })
+        player.current = instancia
+        eventoOnline = Twitch.Player.ONLINE
+        eventoOffline = Twitch.Player.OFFLINE
         relogio = setTimeout(proximo, ESPERA_CANAL)
-        player.current.addEventListener(Twitch.Player.ONLINE, () => {
+        aoOnline = () => {
           if (!vivo) return
           clearTimeout(relogio)
           setCanal(nomeCanal(player.current.getChannel()) || canais[i])
           setEstado('aovivo')
-        })
+        }
+        instancia.addEventListener(eventoOnline, aoOnline)
         // Canal offline (ou a live acabou): passa para o próximo da lista
-        player.current.addEventListener(Twitch.Player.OFFLINE, proximo)
+        instancia.addEventListener(eventoOffline, proximo)
       })
       .catch(() => vivo && setEstado('offline')) // bloqueador de anúncios/sem internet: mostra os links
 
     return () => {
       vivo = false
       clearTimeout(relogio)
+      if (instancia) {
+        instancia.removeEventListener(eventoOnline, aoOnline)
+        instancia.removeEventListener(eventoOffline, proximo)
+        instancia.pause()
+        if (player.current === instancia) player.current = null
+        caixa.current?.replaceChildren()
+      }
     }
   }, [config, perto])
 
