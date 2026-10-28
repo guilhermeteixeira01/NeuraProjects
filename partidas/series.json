@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "id": "2026-10-28_23-15_time_Te1xe1ra-x-time_caos",
+    "organizacao": "neura-project",
+    "categoria": "md1",
+    "formato": "MD1",
+    "timeA": "time_Te1xe1ra",
+    "timeB": "time_caos",
+    "logoA": null,
+    "logoB": null,
+    "mapas": [
+      "de_inferno"
+    ],
+    "status": "cancelada",
+    "mapaAtual": 0,
+    "criada": "2026-10-28 23:19",
+    "atualizada": "2026-10-28 23:19",
+    "canceladaEm": "2026-10-28T23:19:29+00:00"
+  }
+]
