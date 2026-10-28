@@ -1,3 +1,4 @@
+import IconeUI from '../../comum/IconeUI.jsx'
 // Depositar saldo: Pix (QR code + copia e cola, confirmação sozinha) ou cartão (página segura do Asaas). Mínimo R$ 5,00 = 2.000 NP.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -17,39 +18,19 @@ const reais = (centavos) => (centavos / 100).toLocaleString('pt-BR', { style: 'c
 // Ícones animados da apresentação do Premium (um por benefício)
 const ICONES_BEN = {
   'dep-ben-np': (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <circle className="ib-aro" cx="24" cy="24" r="20" />
-      <circle className="ib-moeda" cx="24" cy="24" r="14" />
-      <path className="ib-raio" d="M26 10 17 26h7l-2 12 10-17h-7z" />
-    </svg>
+    <IconeUI tipo="raio" tamanho={18}/>
   ),
   'dep-ben-mold': (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <rect className="ib-aro ib-gira" x="6" y="6" width="36" height="36" rx="10" />
-      <circle className="ib-moeda" cx="24" cy="19" r="6" />
-      <path className="ib-moeda" d="M12 38c1-8 7-11 12-11s11 3 12 11z" />
-    </svg>
+    <IconeUI tipo="perfil" tamanho={18}/>
   ),
   'dep-ben-card': (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <rect className="ib-aro ib-c1" x="8" y="9" width="26" height="34" rx="4" />
-      <rect className="ib-moeda ib-c2" x="14" y="5" width="26" height="34" rx="4" />
-      <path className="ib-raio" d="M20 28l5-7 4 5 3-3 4 5z" />
-    </svg>
+    <IconeUI tipo="foto" tamanho={18}/>
   ),
   'dep-ben-caixa': (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <rect className="ib-moeda" x="9" y="22" width="30" height="20" rx="3" />
-      <g className="ib-tampa"><rect className="ib-aro" x="6" y="15" width="36" height="8" rx="3" /></g>
-      <path className="ib-aro" d="M24 15v27" />
-      <path className="ib-aro" d="M24 15c-8-8-14 0-6 0M24 15c8-8 14 0 6 0" />
-    </svg>
+    <IconeUI tipo="presente" tamanho={18}/>
   ),
   'dep-ben-selo': (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <path className="ib-moeda" d="M24 4 41 10v13c0 10-7 17-17 21C14 40 7 33 7 23V10z" />
-      <path className="ib-raio" d="m24 14 3.2 6.6 7.2 1-5.2 5 1.2 7.2L24 30.5 17.6 33.8l1.2-7.2-5.2-5 7.2-1z" />
-    </svg>
+    <IconeUI tipo="escudo" tamanho={18}/>
   ),
 }
 
@@ -241,10 +222,7 @@ export default function Deposito({ nomeInicial = '', modo = 'deposito', aoFechar
             <small>{t('Cai na hora')}</small>
           </button>
           <button type="button" role="tab" aria-selected={metodo === 'cartao'} className={`dep-metodo${metodo === 'cartao' ? ' is-ativo' : ''}`} onClick={() => setMetodo('cartao')}>
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
-              <rect x="2.5" y="5" width="19" height="14" rx="2.5" />
-              <path d="M2.5 10h19M6 15h4" />
-            </svg>
+            <IconeUI tipo="cartao" tamanho={30}/>
             <b>{t('Cartão')}</b>
             <small>{t('Crédito')}</small>
           </button>

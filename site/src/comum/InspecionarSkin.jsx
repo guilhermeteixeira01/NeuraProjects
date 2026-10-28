@@ -1,3 +1,4 @@
+import IconeUI from './IconeUI.jsx'
 // Janela "Inspecionar" de um item (arma, faca ou luva): o 3D do visualizador (gira com o mouse/dedo) ou, sem ele, a imagem 2D com adesivos e chaveiro,
 // mais nome, desgaste (float), pattern (seed) e StatTrak. É a MESMA do inventário (/inventario/) e agora também do mercado, das trocas e do
 // "Ver inventário" do perfil: quem não tem o inventário aberto usa <InspecionarSkin item={...} aoFechar={...} /> ou <BotaoInspecionar item={...} />,
@@ -337,10 +338,7 @@ export function BotaoInspecionar({ item, classe = '' }) {
           setAberto(true)
         }}
       >
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-          <circle cx="10.5" cy="10.5" r="6.5" />
-          <path d="m20 20-4.8-4.8" />
-        </svg>
+        <IconeUI tipo="busca" tamanho={16}/>
         <span>{t('Inspecionar')}</span>
       </button>
       {aberto && <InspecionarSkin item={item} aoFechar={() => setAberto(false)} />}

@@ -1,3 +1,5 @@
+import { urlTrofeu } from '../../comum/trofeus.js'
+import IconeUI from '../../comum/IconeUI.jsx'
 import { useEffect, useMemo, useState } from 'react'
 import Layout from '../../comum/Layout.jsx'
 import { linkPerfil, useConta } from '../../comum/conta.js'
@@ -100,9 +102,7 @@ function Podio({ j, pos, m, eu }) {
         <img className="pod-moldura" src={arteRanking(arte.moldura)} alt="" />
       </div>
       {pos === 1 && (
-        <svg className="coroa" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 12H5L3 7z" />
-        </svg>
+        <IconeUI tipo="jester" tamanho={26} className="coroa"/>
       )}
       {/* Cada moldura (ouro/prata/bronze) tem a arte diferente: a caixa de cima (nome+resultado) e a de baixo (time)
           são encaixadas nas medidas de cada uma (ver .pod.p1/.p2/.p3 .pod-cima/.pod-baixo), sem invadir o relevo. */}
@@ -131,7 +131,7 @@ function Linha({ j, pos, m, max, i, eu }) {
   const t = useT()
   const [chave, , , casas, suf] = m
   const w = max > 0 ? Math.max(3, (j[chave] / max) * 100) : 0
-  const trofeu = pos <= 3 ? `/assets/Ranking/trofeu-${pos}.png` : null
+  const trofeu = urlTrofeu(pos)
   return (
     <div className={`linha spot${eu ? ' eu' : ''}${trofeu ? ` linha-pod p${pos}` : ''}`} style={{ '--i': i }}>
       <span className={`pos-n${trofeu ? ' com-trofeu' : ''}`}>

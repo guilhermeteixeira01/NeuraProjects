@@ -1,3 +1,4 @@
+import IconeUI from '../../comum/IconeUI.jsx'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { seForErroApi } from '../../comum/api.js'
 import Layout from '../../comum/Layout.jsx'
@@ -270,9 +271,7 @@ function TelaAdesivos({ item, d, m, adesivos, estoque, original, aoColar, aoFech
                     <span>{st[1]}</span>
                   </button>
                   <button type="button" className="inv-lixo" onClick={() => remover(k)} aria-label={t('Tirar adesivo')} title={t('Tirar adesivo')}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5" />
-                    </svg>
+                    <IconeUI tipo="excluir" tamanho={15}/>
                   </button>
                 </li>
               )
@@ -371,9 +370,7 @@ function TelaChaveiro({ item, d, m, chaveiros, estoque, original, aoPrender, aoF
               </button>
               {ch && (
                 <button type="button" className="inv-lixo" onClick={tirar} aria-label={t('Tirar chaveiro')} title={t('Tirar chaveiro')}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5" />
-                  </svg>
+                  <IconeUI tipo="excluir" tamanho={15}/>
                 </button>
               )}
             </li>
@@ -1111,10 +1108,7 @@ function Conteudo() {
 
       <div className="inv-barra">
         <label className="inv-pesquisa">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-3.5-3.5" />
-          </svg>
+          <IconeUI tipo="busca" tamanho={18}/>
           <input type="search" placeholder={t('Pesquisar no inventário')} value={busca} onChange={(e) => setBusca(e.target.value)} />
         </label>
         <span className="inv-estado" aria-live="polite">

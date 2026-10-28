@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { usePerfis } from './Moldura.jsx'
 import { imagemInsignia, insigniasDe } from './insignias.js'
 import { localeAtual, useT } from './i18n.js'
-import { desempenhoAtivo } from './desempenho.js'
 import './galeriaInsignias.css'
 
 const CATEGORIAS = { todas: 'Todas', combate: 'Combate', mapas: 'Mapas', eventos: 'Eventos', loja: 'Coleção de caixas', comunidade: 'Comunidade' }
@@ -10,14 +9,7 @@ const categoriaDe = i => i.categoria || (i.loja || i.id.startsWith('mestre-') ? 
 
 function CardInsignia({ insignia: i }) {
   const t = useT()
-  const mover = e => {
-    if (e.pointerType !== 'mouse' || desempenhoAtivo() || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const el = e.currentTarget, r = el.getBoundingClientRect()
-    el.style.setProperty('--reflexo-x', `${(e.clientX - r.left) / r.width * 100}%`)
-    el.style.setProperty('--reflexo-y', `${(e.clientY - r.top) / r.height * 100}%`)
-  }
-  const limpar = e => { e.currentTarget.style.removeProperty('--reflexo-x'); e.currentTarget.style.removeProperty('--reflexo-y') }
-  return <article className="ig-card" onPointerMove={mover} onPointerLeave={limpar} style={{ '--ins-cor': i.cor || '#428de8' }}>
+  return <article className="ig-card" style={{ '--ins-cor': i.cor || '#428de8' }}>
     <div className="ig-card-arte"><img src={imagemInsignia(i.id)} alt="" loading="lazy" decoding="async" draggable="false" /></div>
     <div className="ig-card-texto">
       <span className="ig-card-categoria">{t(CATEGORIAS[categoriaDe(i)] || 'Comunidade')}</span>

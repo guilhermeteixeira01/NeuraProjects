@@ -1,6 +1,7 @@
 // Categorias das caixas da loja por franquia/tema, pelo slug (caixa-anime-kakashi → Naruto, caixa-anime-ichigo → Bleach...).
 // Caixa nova de um anime: põe o personagem na lista da franquia. O que não casar com nenhum tema cai na categoria pelo conteúdo (armas, facas...).
 export const TEMAS_CAIXA = [
+  ['diaria', 'Caixa diária', 'Uma caixa grátis por dia.', /^caixa-diaria$/],
   ['originais', 'Originais', 'A nova coleção da Neura Project.', /^caixa-originais-/],
   ['naruto-novas', 'Naruto', 'Personagens da Vila da Folha.', /^caixa-naruto-/],
   ['bleach-novas', 'Bleach', 'Personagens da Soul Society.', /^caixa-bleach-/],

@@ -1,3 +1,4 @@
+import IconeUI from '../../comum/IconeUI.jsx'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import Layout from '../../comum/Layout.jsx'
 import { CarregandoNP } from '../../comum/Carregando.jsx'
@@ -96,9 +97,7 @@ function Foto({ p }) {
 }
 
 const Coroa = () => (
-  <svg className="lb-coroa" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 12H5L3 7z" />
-  </svg>
+  <IconeUI tipo="jester" tamanho={22} className="lb-coroa"/>
 )
 const Marca = ({ d, tamanho = 16 }) => (
   <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -163,9 +162,7 @@ function Pessoa({ pessoa: bruta, lider, pendente, centro, souLider, eu, aoRemove
       )}
       {souLider && !lider && !centro && (
         <button type="button" className="lb-x" disabled={ocupado} onClick={() => aoRemover(pessoa.id)} aria-label={pendente ? t('Cancelar convite') : t('Remover do lobby')} title={pendente ? t('Cancelar convite') : t('Remover do lobby')}>
-          <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
-            <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" fill="none" />
-          </svg>
+          <IconeUI tipo="fechar" tamanho={12}/>
         </button>
       )}
     </div>
@@ -448,12 +445,7 @@ function Painel({ dados, fazer, ocupado, status }) {
                 {m.premium && <ParticulasPremium quantidade={22} />}
                 <span className="lb-modo-cab">
                   {m.premium && (
-                    <svg className="lb-coroa" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-                      <path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z" />
-                      <circle cx="3" cy="8" r="1.4" />
-                      <circle cx="12" cy="5" r="1.4" />
-                      <circle cx="21" cy="8" r="1.4" />
-                    </svg>
+                    <IconeUI tipo="jester" tamanho={22} className="lb-coroa"/>
                   )}
                   <b>{t(m.nome)}</b> <small>· 5v5</small>
                   {m.premium && <em className={`lb-premium${travado(m) ? '' : ' livre'}`}>PREMIUM</em>}
@@ -678,7 +670,7 @@ function Conteudo({ status }) {
 
       <div className="lb-palco lb-palco-cenario">
         {lugares.map((l, i) => (
-          <div className={`lb-cena-slot${l.centro ? ' lb-cena-centro' : ''}`} key={l.pessoa?.id || `lugar-${i}`}>
+          <div className={`lb-cena-slot${l.centro ? ' lb-cena-centro' : ''}${l.pessoa ? ' lb-cena-ocupado' : ''}`} key={l.pessoa?.id || `lugar-${i}`}>
             <img className="lb-personagem" src={`/assets/Lobby/web/personagem-${[2, 4, 1, 3, 5][i]}.webp`} alt="" aria-hidden="true" draggable="false" decoding="async" />
             {l.encontrar ? (
               <button type="button" className="lb-lugar lb-encontrar" onClick={() => setEncontrando(true)}>

@@ -1,3 +1,4 @@
+import IconeUI from './IconeUI.jsx'
 // Contagem regressiva da série cancelada (5 minutos e ela sai do site; regra em series.js)
 import { useEffect, useState } from 'react'
 import { useT } from './i18n.js'
@@ -23,10 +24,7 @@ export function ContagemRemocao({ fim, agora, classe = '' }) {
   const texto = resta > 0 ? t('REMOVIDA EM {tempo}', { tempo: `${Math.floor(resta / 60)}:${String(resta % 60).padStart(2, '0')}` }) : t('REMOVENDO…')
   return (
     <span className={`contagem-remocao ${classe}`} title={t('Série cancelada: some do site (partidas, ranking e demos) ao fim da contagem')}>
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
-        <circle cx="12" cy="13" r="8" />
-        <path d="M12 9v4l2 2M9 2h6" />
-      </svg>
+      <IconeUI tipo="relogio" tamanho={11}/>
       {texto}
     </span>
   )

@@ -1,0 +1,37 @@
+:root {
+  --np-fundo-painel:url('/assets/ui/granulado.png'),radial-gradient(60% 140% at 0%,#428de826,#0000 70%),radial-gradient(45% 100% at 100% 100%,#e7bc4710,#0000 75%),linear-gradient(#1a1b20 0%,#141519 100%);
+  --np-fundo-nav:url('/assets/ui/granulado.png'),radial-gradient(100% 65% at 0% 0%,#428de81f,transparent 75%),radial-gradient(100% 60% at 100% 100%,#e7bc4710,transparent 75%),linear-gradient(#191c22,#12151a);
+}
+#root :is(.np-painel-partidas,.np-destaques-painel,.np-caixa-painel,.pd-card,.nx-conta-menu.nc-card,.nx-config-painel,.am-painel,.pf-social-panel,.pf-profile-header,.pf-inv,.pf-lado-bloco,.pf-estat,.lb-painel,.lb-box,.eq-card,.eq-box,.eq-painel,.inv-painel,.ad-secao,.ad-resumo,.lj-mercado-filtros,.tr-painel,.fl-painel,.ig-card,.np-config,.caixa) {
+  background:var(--np-fundo-painel);background-repeat:repeat,no-repeat,no-repeat,no-repeat;background-size:96px 96px,100% 100%,100% 100%,100% 100%;
+}
+body :is(.nx-conta-menu.nc-card,.nx-config-painel,.am-painel)[role='dialog'] { background:var(--np-fundo-painel);background-size:96px 96px,100% 100%,100% 100%,100% 100%; }
+#root :is(.nx-nav,.nx-nav.is-scrolled,.nx-direita,.nx-baixo) {
+  background:var(--np-fundo-nav);background-size:96px 96px,100% 100%,100% 100%,100% 100%;background-repeat:repeat,no-repeat,no-repeat,no-repeat;
+}
+html body { background:#080a0f!important; }
+.np-fundo-fixo {
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 28% 48% at 0% 12%,#428de82e,transparent 78%),radial-gradient(ellipse 26% 45% at 100% 66%,#e7bc4721,transparent 78%),radial-gradient(ellipse 22% 35% at 0% 94%,#428de818,transparent 80%),#080a0f;
+}
+#root .np-conteudo { position:relative;z-index:1;background:transparent; }
+#root .np-conteudo>main { background-color:transparent; }
+#root .np-bloco-cab { border-top-color:#428de84d; }
+#root .np-destaque-jogador { border-left-color:#428de8; }
+#root .np-destaque-drop { border-left-color:#e7bc47; }
+.lucide { flex-shrink:0;vertical-align:middle; }
+/* Mantém os fundos nítidos atrás dos painéis e menus. */
+body *,body *::before,body *::after {
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+.np-acabamento-nav { display:none; }
+@media(min-width:1025px) {
+  .np-acabamento-nav { display:block;position:fixed;inset:0;width:100%;height:100%;z-index:289;pointer-events:none; }
+  .np-moldura-recorte { x:var(--nx-lateral);y:8px;width:calc(100% - var(--nx-lateral) - var(--nx-direita));height:calc(100% - 16px); }
+  .np-moldura-fundo { width:100%;height:100%;background:var(--np-fundo-nav);background-size:96px 96px,100% 100%,100% 100%,100% 100%;background-repeat:repeat,no-repeat,no-repeat,no-repeat; }
+  html body::before { display:none; }
+  #root :is(.nx-nav,.nx-nav.is-scrolled,.nx-direita) { background-color:transparent;background-image:url('/assets/ui/granulado.png');background-size:96px 96px;background-repeat:repeat;background-attachment:fixed; }
+}
+
+#root section.pf-inv[aria-label="Inventário"],#root section.pf-inv[aria-label="Perfil"] { background:transparent; }

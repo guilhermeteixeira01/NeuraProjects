@@ -1,128 +1,47 @@
 .pf-hall-pagina .pf-cartao { display: none; }
-.hf-capa { min-height: 210px; margin: 12px 0 30px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 30px; border: 1px solid var(--border-2); border-radius: 14px; background: linear-gradient(0deg,#101216,rgb(16 18 22 / .3)),url('/neurapick/maps/mirage.jpg') center 42%/cover; background-size: cover; background-position: center; }
-.hf-capa-identidade { display: flex; flex-direction: column; gap: 8px; }
-.hf-capa-identidade > .av-moldura { width: 68px; height: 68px; }
-.hf-capa-avatar { width: 68px; height: 68px; object-fit: cover; border-radius: 10px; }
-.hf-capa-identidade h1 { font-size: 28px; line-height: 1.1; margin: 0; color: #fff; }
-.hf-capa-identidade > span { color: #bbc3ce; font-size: 12px; }
-.hf-capa-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
-.hf-area { width: 100%; }
-.hf-aviso-local { margin: 0 0 12px; padding: 10px; border: 1px solid var(--border-2); border-radius: 6px; font-size: 11px; line-height: 1.6; color: var(--ui-muted); background: var(--ui-surface); }
-.hf-card { position: relative; overflow: hidden; isolation: isolate; width: 100%; min-height: 470px; padding: 26px 24px 32px; clip-path: polygon(9% 0,89% 0,100% 7%,100% 92%,50% 100%,0 92%,0 7%); border-top: 7px solid #626870; color: #f4f5f7; background: repeating-linear-gradient(115deg,transparent 0 7px,rgb(255 255 255 / .065) 8px 9px),linear-gradient(145deg,#424952,#1b2027 75%); text-align: center; }
-.hf-card::before { content: ''; position: absolute; inset: 7px; border: 1px solid rgb(255 255 255 / .15); clip-path: inherit; z-index: -1; }
-.hf-topo { display: flex; justify-content: space-between; text-align: left; }
-.hf-topo > div { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
-.hf-topo > div > b { font-size: 44px; line-height: 1; letter-spacing: -.05em; }
-.hf-topo small { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
-.hf-topo > div > span { border: 1px solid #a8afb8; padding: 2px 7px; font-size: 10px; border-radius: 3px; margin-top: 10px; }
-.hf-topo > strong { font-size: 20px; line-height: .9; letter-spacing: -.05em; text-align: right; }
-.hf-topo > strong > small { font-size: 11px; }
-.hf-retrato { position: relative; height: 210px; margin: -25px -8px -8px; }
-.hf-retrato { height: 240px; margin-top: -35px; overflow: hidden; mask-image: linear-gradient(#000 85%,transparent); }
-.hf-retrato > .hf-camisa-foto { width: 240px; max-width: none; height: 360px; object-fit: contain; position: absolute; left: 50%; top: 0; bottom: auto; transform: translateX(-50%); }
-.hf-camisas .hf-camisa-foto { width: 100%; height: 150px; object-fit: cover; object-position: center 54%; }
-.hf-retrato .hf-foto { top: 4px; width: 68px; height: 82px; }
-.hf-camisa { width: 100%; max-width: 220px; height: 100%; overflow: visible; }
-.hf-camisa-cor { fill: #161a20; stroke: #686f79; stroke-width: 1.3; }
-.hf-camisa-friso { fill: none; stroke: #edc34b; stroke-width: 4; }
-.hf-camisa-gola { fill: #080a0d; stroke: #edc34b; stroke-width: 2; }
-.hf-camisa-detalhe { stroke: #343d49; fill: none; stroke-width: 3; }
-.hf-camisa text { fill: #fff; font: 800 21px 'Segoe UI',sans-serif; }
-.hf-camisa text.hf-camisa-project { font-size: 10px; letter-spacing: 5px; }
-.hf-camisa.clara .hf-camisa-cor { fill: #e9ecf0; }
-.hf-camisa.clara text { fill: #161a20; }
-.hf-retrato > .hf-camisa { position: absolute; height: 195px; width: 195px; left: 50%; bottom: -8px; transform: translateX(-50%); }
-.hf-foto,.hf-sem-foto { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); width: 68px; height: 90px; object-fit: cover; object-position: center 22%; border-radius: 45% 45% 38% 38%; border: 1px solid #616973; background: #1b2027; }
-.hf-sem-foto { display: grid; place-items: center; color: #fff; font-size: 50px; font-weight: 800; }
-.hf-card h2 { margin: 14px 0 8px; font-size: 25px; text-transform: uppercase; overflow-wrap: anywhere; }
-.hf-card > p { font-size: 11px; color: #c0c6cf; margin: 0 0 18px; }
-.hf-card dl { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 6px; margin: 0 0 20px; padding-top: 14px; border-top: 1px solid #68717e; }
-.hf-card dt { font-size: 9px; color: #bbc2cc; }
-.hf-card dd { font-size: 13px; font-weight: 800; margin: 5px 0 0; }
-.hf-card > a { display: inline-block; padding: 8px 14px; border: 1px solid #929ba8; border-radius: 20px; text-decoration: none; color: #fff; font-size: 10px; font-weight: 700; text-transform: uppercase; }
-.hf-editar { margin-top: 18px; border: 1px solid var(--border-2); border-radius: 6px; padding: 14px; background: var(--ui-surface); }
-.hf-editar summary { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--ui-accent); }
-.hf-editar form { display: grid; gap: 14px; padding-top: 14px; }
-.hf-editar p,.hf-editar small { font-size: 12px; color: var(--ui-muted); line-height: 1.6; }
-.hf-camisas { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
-.hf-camisas button { background: var(--bg-soft); border: 1px solid var(--border-2); border-radius: 6px; color: var(--text); cursor: pointer; padding: 10px; }
-.hf-camisas button[aria-pressed='true'] { border-color: var(--ui-accent); }
-.hf-camisas .hf-camisa { height: 120px; }
-.hf-camisas span { display: block; font-size: 11px; padding-top: 8px; }
-.hf-upload { display: grid; gap: 10px; border: 1px dashed var(--border-2); padding: 12px; font-size: 12px; }
-.hf-upload img { width: 100%; max-height: 200px; object-fit: contain; }
-.hf-upload input { max-width: 100%; font-size: 10px; }
-@media(max-width:760px) { .hf-capa { min-height: 210px; padding: 22px; } .hf-area { max-width: 320px; margin-inline: auto; } .hf-capa-identidade h1 { font-size: 25px; } }
-
-.hf-retrato .hf-foto.hf-montagem { top:0; width:240px; height:360px; border:0; border-radius:0; background:transparent; object-fit:contain; object-position:top; }
 .pf-sem-conquistas .pf-insignias { display:none; }
 .pf-sem-inventario button[data-aba="inventario"] { display:none; }
 .pf-apresentacao { padding-block:20px; display:flex; gap:24px; flex-wrap:wrap; }
 .pf-amigos-publicos { display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
 .pf-amigos-publicos h2 { font-size:14px; }
-
 .pf-sem-inventario .pf-inv, .pf-sem-inventario .pf-inv-troca { display:none; }
+.hf-area { width:100%; }
+.hf-jogador-card {
+ --hf-cor:#788594;position:relative;isolation:isolate;overflow:hidden;box-sizing:border-box;
+ display:flex;flex-direction:column;align-items:center;width:100%;padding:20px 18px;
+ border:1px solid #ffffff26;border-radius:14px;background:#101114 center/cover no-repeat;color:#f4f5f7;text-align:center;
+}
+.hf-jogador-card.hf-top-1 { --hf-cor:#dfb951;border-color:var(--hf-cor); }
+.hf-jogador-card.hf-top-2 { --hf-cor:#bdcbdc;border-color:var(--hf-cor); }
+.hf-jogador-card.hf-top-3 { --hf-cor:#c88c60;border-color:var(--hf-cor); }
+.hf-jogador-card::after {
+ content:'';position:absolute;inset:-20% 0;z-index:3;pointer-events:none;
+ background:linear-gradient(90deg,transparent 20%,#ffffff05 35%,#ffffff38 50%,#cce5ff12 60%,transparent 80%);
+ transform:translateX(-160%) skewX(-18deg);animation:hf-reflexo-passando 6s ease-in-out infinite;
+}
+@keyframes hf-reflexo-passando { 0%,55% { transform:translateX(-160%) skewX(-18deg); } 90%,100% { transform:translateX(160%) skewX(-18deg); } }
+.hf-jogador-topo { display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:56px; }
+.hf-jogador-topo>span:first-child { display:flex;flex-direction:column;text-align:left;gap:3px; }
+.hf-jogador-topo b { font-size:26px;color:var(--hf-cor);line-height:1; }
+.hf-jogador-topo small { font-size:9px;text-transform:uppercase;color:#bec7d1; }
+.hf-jogador-nivel { padding:5px 9px;border:1px solid #ffffff26;border-radius:6px;font-size:10px;background:#0005; }
+.hf-jogador-trofeu { width:48px;height:56px;object-fit:contain; }
+.hf-jogador-avatar { display:flex;justify-content:center;align-items:center;min-height:116px;margin:16px 0 18px; }
+.hf-jogador-avatar .av-moldura,.hf-avatar-imagem { width:106px;height:106px; }
+.hf-avatar-imagem { display:block;object-fit:cover;border-radius:12px; }
+.hf-jogador-card h2 { margin:0 0 8px;font-size:22px;line-height:1.15;overflow-wrap:anywhere;text-shadow:0 2px 8px #000; }
+.hf-jogador-cargos { justify-content:center;margin-bottom:8px; }
+.hf-jogador-card>p { margin:0 0 20px;font-size:11px;color:#bec7d1; }
+.hf-jogador-card dl { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:100%;gap:6px;margin:0 0 18px;padding:16px 0;border-block:1px solid #ffffff26;background:#0002; }
+.hf-jogador-card dt { font-size:9px;color:#bec7d1; }
+.hf-jogador-card dd { margin:6px 0 0;font-size:16px;font-weight:800; }
+.hf-jogador-card>a { position:relative;z-index:4;border:1px solid #ffffff26;border-radius:7px;padding:9px 16px;color:#fff;background:#0005;font-size:10px;font-weight:700;text-transform:uppercase;text-decoration:none; }
+.hf-jogador-card>a:hover { border-color:var(--blue-2); }
+@media(max-width:760px) { .hf-area { max-width:320px;margin-inline:auto; } }
+@media(prefers-reduced-motion:reduce) { .hf-jogador-card::after { animation:none;display:none; } }
+html[data-desempenho='1'] .hf-jogador-card::after { animation:none;display:none; }
 
-/* Carta colecionável: metal escuro, foil e iluminação guiada pelo cursor. */
-.hf-card-palco { perspective: 1000px; padding: 8px 0 16px; filter: drop-shadow(0 18px 18px rgb(0 0 0 / .4)); }
-.hf-card-palco .hf-card {
-  --hf-luz-x: 28%; --hf-luz-y: 15%;
-  min-height: 485px; padding: 24px 22px 20px;
-  clip-path: none; border: 1px solid #b7a26a; border-radius: 20px;
-  background: radial-gradient(ellipse at 50% 24%,#34414b 0,transparent 55%),repeating-linear-gradient(125deg,transparent 0 14px,rgb(255 255 255 / .035) 15px 16px),#151b22;
-  box-shadow: inset 0 0 0 4px #10151b,inset 0 0 0 5px #6a6250,inset 0 0 30px rgb(0 0 0 / .5);
-  transform: rotateX(var(--hf-rx,0deg)) rotateY(var(--hf-ry,0deg));
-  transition: transform .22s ease-out, border-color .22s;
-}
-.hf-card-palco .hf-card::before { inset: 10px; border: 1px solid rgb(211 190 134 / .26); border-radius: 12px; z-index: -1; }
-.hf-card-palco .hf-card::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3; border-radius: inherit;
-  background: radial-gradient(ellipse at var(--hf-luz-x) var(--hf-luz-y),rgb(255 246 211 / .14),transparent 62%);
-}
-.hf-card-folha { position: absolute; inset: 0; z-index: 2; pointer-events: none; border-radius: inherit; opacity: .2; mix-blend-mode: screen;
-  background: linear-gradient(122deg,transparent 15%,#d8ab5b33 30%,#84cad755 40%,#e5bcf055 48%,#e8c77c44 55%,transparent 70%);
-  background-size: 220% 220%; background-position: var(--hf-luz-x) var(--hf-luz-y); transition: opacity .25s;
-}
-.hf-card:hover .hf-card-folha { opacity: .5; }
-.hf-card-serial { display: block; margin-bottom: 18px; text-align: center; color: #cbb986; font-size: 8px; font-weight: 700; letter-spacing: .22em; }
-.hf-card-palco .hf-topo { position: relative; z-index: 1; }
-.hf-card-palco .hf-topo > div > b { color: #f6e1a6; }
-.hf-card-palco .hf-topo > strong { color: #e9dfc7; font-size: 19px; }
-.hf-card-palco .hf-topo > div > span { border-color: #897954; color: #e8d6a5; background: #111820; }
-.hf-card-palco .hf-retrato { margin-top: -34px; height: 245px; }
-.hf-card-palco .hf-card h2 { position: relative; z-index: 1; font-size: clamp(20px,2vw,26px); line-height: 1.1; margin: 10px 0 8px; text-shadow: 0 2px 10px #000; }
-.hf-card-palco .hf-card dl { border-color: #80704a; padding: 14px 0; margin-bottom: 12px; border-bottom: 1px solid #80704a; }
-.hf-card-palco .hf-card dd { color: #f5e3b3; font-size: 16px; }
-.hf-card-palco .hf-card > a { position: relative; z-index: 4; border-color: #9e8854; background: #24251e; color: #f4dda0; padding: 10px 18px; }
-.hf-card-palco .hf-card > a:hover { background: #393322; border-color: #e2c47e; }
-.hf-card-edicao { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 18px; color: #aa9b78; font-size: 7px; letter-spacing: .13em; }
-.hf-card-edicao i { font-style: normal; font-size: 12px; color: #e0c47e; }
-@media (hover:none) { .hf-card-palco .hf-card { transform: none; } .hf-card-folha { opacity: .28; } }
-@media (prefers-reduced-motion:reduce) { .hf-card-palco .hf-card { transform: none; transition: none; } .hf-card-folha { transition: none; } }
-html[data-desempenho='1'] .hf-card-palco { filter: none; }
-html[data-desempenho='1'] .hf-card-palco .hf-card { transform: none; transition: none; }
-html[data-desempenho='1'] .hf-card-folha, html[data-desempenho='1'] .hf-card-palco .hf-card::after { display: none; }
-
-/* O restante do ranking usa metal grafite; as três colocações têm seu próprio metal. */
-.hf-card-palco .hf-card {
-  --hf-metal: #8c9aa9; --hf-metal-luz: #d8e1eb; --hf-metal-sombra: #56616f; --hf-fundo: #151b22;
-  border-color: var(--hf-metal);
-  box-shadow: inset 0 0 0 4px #10151b,inset 0 0 0 5px var(--hf-metal-sombra),inset 0 0 30px rgb(0 0 0 / .5);
-}
-.hf-card-palco .hf-podio-1 { --hf-metal: #dfb951; --hf-metal-luz: #ffe6a0; --hf-metal-sombra: #8d6b26; --hf-fundo: #2d2514; }
-.hf-card-palco .hf-podio-2 { --hf-metal: #bdcbdc; --hf-metal-luz: #f0f5ff; --hf-metal-sombra: #727f92; --hf-fundo: #242d39; }
-.hf-card-palco .hf-podio-3 { --hf-metal: #c88c60; --hf-metal-luz: #f4c4a1; --hf-metal-sombra: #795036; --hf-fundo: #33241e; }
-.hf-card-palco .hf-podio {
-  background: radial-gradient(ellipse at 50% 24%,color-mix(in srgb,var(--hf-metal) 28%,transparent),transparent 60%),repeating-linear-gradient(125deg,transparent 0 14px,rgb(255 255 255 / .045) 15px 16px),var(--hf-fundo);
-}
-.hf-card-palco .hf-card::before { border-color: color-mix(in srgb,var(--hf-metal) 45%,transparent); }
-.hf-card-palco .hf-topo > div > b, .hf-card-palco .hf-card dd { color: var(--hf-metal-luz); }
-.hf-card-palco .hf-topo > div > b { font-size: clamp(30px,3vw,40px); }
-.hf-card-palco .hf-topo > div { position: relative; z-index: 1; }
-.hf-topo .hf-trofeu { position: absolute; left: 0; top: 94px; width: 42px; height: 50px; object-fit: contain; filter: drop-shadow(0 3px 5px #0008); }
-.hf-card-palco .hf-topo > div > span { border-color: var(--hf-metal-sombra); color: var(--hf-metal-luz); }
-.hf-card-palco .hf-card dl { border-color: var(--hf-metal-sombra); }
-.hf-card-palco .hf-card > a { border-color: var(--hf-metal); background: var(--hf-fundo); color: var(--hf-metal-luz); }
-.hf-card-palco .hf-card > a:hover { background: color-mix(in srgb,var(--hf-fundo) 75%,var(--hf-metal)); border-color: var(--hf-metal-luz); }
-.hf-card-serial, .hf-card-edicao, .hf-card-edicao i { color: var(--hf-metal); }
-.hf-card-palco .hf-card-folha { background-image: linear-gradient(122deg,transparent 15%,color-mix(in srgb,var(--hf-metal) 30%,transparent) 30%,#84cad755 40%,#e5bcf055 48%,color-mix(in srgb,var(--hf-metal) 35%,transparent) 55%,transparent 70%); }
+/* Os três arquivos têm tela quadrada: mesma área e escala, sem distorcer. */
+.hf-jogador-trofeu { width:56px;height:56px;aspect-ratio:1;object-fit:contain;object-position:center;flex:none; }
+.hf-jogador-avatar>.moldura-box,.hf-jogador-avatar>.emblema-box { width:106px;height:106px;flex:none; }
+.hf-jogador-avatar>.moldura-box>.hf-avatar-imagem,.hf-jogador-avatar>.emblema-box>.hf-avatar-imagem { width:100%;height:100%; }

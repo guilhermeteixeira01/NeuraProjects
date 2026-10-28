@@ -1,10 +1,11 @@
+import IconeUI from './IconeUI.jsx'
 import { createPortal } from 'react-dom'
 import { usePainelMobile } from './usePainelMobile.js'
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import { CONFIG, MENU } from './config.js'
 import { entrar, linkPerfil, loginAtivo, sair, useConta } from './conta.js'
 import { ICONES_MENU, IconeDiscord, IconeSteam } from './Icones.jsx'
-import { useAcessoPick, useAdmin, useNivelSub, useTimeDe } from './Moldura.jsx'
+import { useAcessoPick, useAdmin, useTimeDe } from './Moldura.jsx'
 import Configuracoes from './Configuracoes.jsx'
 import { useT } from './i18n.js'
 
@@ -18,10 +19,9 @@ import PainelNotificacoes from './PainelNotificacoes.jsx'
 import PainelPartidas from './PainelPartidas.jsx'
 import { iniciarAvisoEquipe, useAvisoEquipe } from './avisoEquipe.js'
 import { useAmigos } from './amigos.js'
-import { useSaldo } from './loja.js'
-import { localeAtual } from './i18n.js'
+import ResumoMenuConta from './ResumoMenuConta.jsx'
 
-const Deposito = lazy(() => import('../paginas/loja/Deposito.jsx')) // só baixa quando alguém clica nos pontos
+const TrocarNick = lazy(() => import('./BoasVindas.jsx').then(m => ({ default: m.TrocarNick })))
 
 function LinkMenu({ item, atual }) {
   const t = useT()
@@ -51,17 +51,13 @@ function Conta() {
   const conta = useConta()
   const [aberto, setAberto] = useState(false)
   const [erroAvatar, setErroAvatar] = useState('')
-  const [depositando, setDepositando] = useState(false)
-  const [assinando, setAssinando] = useState(false)
-  const jaAssina = Boolean(useNivelSub(conta?.id)) // quem já tem Premium ativo não vê o botão de assinar
+  const [trocandoNick, setTrocandoNick] = useState(false)
   // A foto do token é a do dia do login (vale 30 dias): troca pela atual da Steam
   const fotoAtual = useAvatar(conta?.id)
   const caixa = useRef(null)
   const painel = useRef(null)
   const celular = usePainelMobile(aberto && !!conta, painel)
   const naTela = el => celular ? createPortal(el, document.body) : el
-  const saldo = useSaldo(conta?.id, true, aberto) // o que sobra depois de gastar na loja: busca ao carregar a página e de novo ao abrir o menu; o último valor fica guardado
-  const pontos = saldo // null só na primeira vez, até o servidor responder (mostra "…" em vez de um número errado)
   const { conectado } = useAmigos()
   const seg = useSeguranca() // o apelido escolhido no site vale no lugar do nome da Steam
 
@@ -101,99 +97,12 @@ function Conta() {
         <span className="nx-conta-nome nx-dica">{nome}</span>
       </button>
       {aberto && naTela(
-        <div ref={painel} className={`nx-conta-menu cp-card${celular ? ' nx-painel-mobile' : ''}`} role="dialog" aria-modal={celular || undefined} aria-label={t('Minha conta')}>
-          <div className="cp-topo">
-            <span className="cp-av">
-              <ComMoldura steamId={conta.id}>
-                {avatar && erroAvatar !== avatar ? <img src={avatar} alt="" width="56" height="56" onError={() => setErroAvatar(avatar)} /> : <span className="cp-ini">{nome.slice(0, 2).toUpperCase()}</span>}
-              </ComMoldura>
-            </span>
-            <div className="cp-quem">
-              <b title={nome}>{nome}</b>
-              <span className={`cp-status${conectado ? ' on' : ''}`}>
-                <i aria-hidden="true" />
-                {conectado ? t('Online') : t('Offline')}
-              </span>
-            </div>
-            <button type="button" className="cp-fechar" onClick={() => setAberto(false)} aria-label={t('Fechar')}>
-              ×
-            </button>
-          </div>
-          <div className="cp-caixas">
-            <button
-              type="button"
-              className="cp-caixa cp-pontos"
-              title={t('Clique para depositar mais pontos')}
-              onClick={() => {
-                setAberto(false)
-                setDepositando(true)
-              }}
-            >
-              <img className="cp-logo" src="/assets/logos/logo-np-64.png" alt="" width="30" height="30" />
-              <b>{pontos == null ? '…' : Number(pontos).toLocaleString(localeAtual())}</b>
-              <small className="cp-pontos-rot">{t('PONTOS')}</small>
-              <span className="cp-pontos-dep">
-                <i aria-hidden="true">+</i>
-                {t('DEPOSITAR')}
-              </span>
-            </button>
-            <a className="cp-caixa cp-loja" href="/loja/" title={t('Gaste seus pontos em caixas de skins')}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M12 8v8M8 12h8" />
-              </svg>
-              <b>{t('ABRIR')}</b>
-              <small>{t('LOJA')}</small>
-            </a>
-          </div>
-          {!jaAssina && (
-            <button
-              type="button"
-              className="cp-premium"
-              onClick={() => {
-                setAberto(false)
-                setAssinando(true)
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="m12 2.5 2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9Z" />
-              </svg>
-              <span className="cp-premium-txt">
-                <b>{t('ASSINAR PREMIUM')}</b>
-                <small>{t('Emblema, molduras e mais')}</small>
-              </span>
-            </button>
-          )}
-          <a className="cp-perfil" href={linkPerfil(conta.id)}>
-            {t('VER PERFIL')}
-          </a>
-          <div className="cp-links">
-            <a href={linkPerfil(conta.id)+'&conta=1'}>{t('Configurações da conta')}</a>
-            <a href={`https://steamcommunity.com/profiles/${conta.id}`} target="_blank" rel="noopener">
-              {t('Perfil na Steam')}
-            </a>
-            <button
-              type="button"
-              onClick={() => {
-                setAberto(false)
-                sair({ irParaInicio: true })
-              }}
-            >
-              {t('Sair')}
-            </button>
-          </div>
+        <div ref={painel} className={`nx-conta-menu nc-card${celular ? ' nx-painel-mobile' : ''}`} role="dialog" aria-modal={celular || undefined} aria-label={t('Minha conta')}>
+          <ResumoMenuConta conta={conta} nome={nome} avatar={avatar} conectado={conectado} seg={seg} aoFechar={() => setAberto(false)} aoTrocarNick={() => { setAberto(false); setTrocandoNick(true) }} />
         </div>
       )}
-      {depositando && (
-        <Suspense fallback={null}>
-          <Deposito aoFechar={() => setDepositando(false)} />
-        </Suspense>
-      )}
-      {assinando && (
-        <Suspense fallback={null}>
-          <Deposito modo="sub" aoFechar={() => setAssinando(false)} />
-        </Suspense>
-      )}
+      {trocandoNick && <Suspense fallback={null}><TrocarNick atual={seg?.nick} aoFechar={() => setTrocandoNick(false)} /></Suspense>}
+
     </div>
   )
 }
@@ -428,17 +337,17 @@ export default function Nav({ pagina }) {
           </a>
           <div className="np-sidebar-reduzida">
             <button ref={botaoBusca} type="button" aria-label={t('Pesquisar no menu')} aria-expanded={menuAberto} aria-controls="np-menu-principal" onClick={() => setMenuAberto(true)}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg>
+              <IconeUI tipo="busca" tamanho={18}/>
             </button>
-            <a href="/lobby/" aria-label="Counter-Strike 2"><img src="/assets/logos/logo-np-64.png" alt="" width="24" height="24" /></a>
+            <a href="/lobby/" aria-label="Counter-Strike 2" title="Counter-Strike 2"><img src="/assets/logo%20cs2.webp" alt="" width="24" height="24" /></a>
           </div>
           <div className="np-sidebar-inicio">
             {pagina !== 'inicio' && <button className="np-menu-recolher" type="button" onClick={recolherMenu} aria-expanded={menuAberto} aria-controls="np-menu-principal">{t('Fechar')}</button>}
             <label className="np-pesquisa">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg>
+              <IconeUI tipo="busca" tamanho={18}/>
               <input ref={campoBusca} type="search" value={busca} onChange={(e) => setBusca(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape' && pagina !== 'inicio') recolherMenu() }} placeholder={t('Pesquisar')} aria-label={t('Pesquisar no menu')} aria-controls="np-menu-principal" />
             </label>
-            <a className="np-jogo" href="/lobby/"><img src="/assets/logos/logo-np-64.png" alt="" width="24" height="24" /><span>CS2</span></a>
+            <a className="np-jogo" href="/lobby/" aria-label="Counter-Strike 2" title="Counter-Strike 2"><img src="/assets/logo%20cs2.webp" alt="" width="24" height="24" /><span>CS2</span></a>
           </div>
           {/* Celular: no lugar da marca, o ícone e o nome da página atual */}
           <a className="nx-titulo" href="/" aria-label="Neura Project">

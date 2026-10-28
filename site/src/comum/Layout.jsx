@@ -1,3 +1,4 @@
+import './superficies.css'
 import { Suspense, lazy, useEffect } from 'react'
 import Avisos from './Avisos.jsx'
 import AvisoConvite from './AvisoConvite.jsx'
@@ -118,6 +119,11 @@ export default function Layout({ pagina, children }) {
   }, [])
   return (
     <>
+      <div className="np-fundo-fixo" aria-hidden="true" />
+      <svg className="np-acabamento-nav" aria-hidden="true" focusable="false">
+        <defs><mask id="np-moldura-nav-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%"><rect width="100%" height="100%" fill="white"/><rect className="np-moldura-recorte" rx="16" fill="black"/></mask></defs>
+        <foreignObject width="100%" height="100%" mask="url(#np-moldura-nav-mask)"><div className="np-moldura-fundo"/></foreignObject>
+      </svg>
       <Nav pagina={pagina} />
       <div className="np-conteudo">
         {pagina === 'inicio' && <BannerEvento />}

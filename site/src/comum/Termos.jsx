@@ -1,3 +1,4 @@
+import IconeUI from './IconeUI.jsx'
 // Caixa de Termos de Uso: aparece antes do login com a Steam e só deixa continuar com a caixinha de aceite marcada.
 //   if (!(await exigirTermos())) return   // true = já aceitou (esta versão) ou aceitou agora
 import { useEffect, useId, useRef, useState } from 'react'
@@ -53,10 +54,7 @@ function CaixaTermos({ aoResponder }) {
       <div className="trm" role="dialog" aria-modal="true" aria-labelledby={`${id}-t`} onClick={(e) => e.stopPropagation()}>
         <header className="trm-cab">
           <span className="trm-icone" aria-hidden="true">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 3 4 6v6c0 4.5 3.2 7.8 8 9 4.8-1.2 8-4.5 8-9V6Z" />
-              <path d="m9 12 2.2 2.2L15.5 10" />
-            </svg>
+            <IconeUI tipo="escudo" tamanho={26}/>
           </span>
           <div>
             <h2 id={`${id}-t`}>{t('Termos de Uso')}</h2>

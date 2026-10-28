@@ -141,7 +141,7 @@ export default [
   },
   {
     "id": "mapa-dust2",
-    "nome": "Dust Ii",
+    "nome": "Dust II",
     "arte": "mapas/mapa-dust2.png",
     "categoria": "mapas",
     "descricao": "Jogue e conclua 10 partidas em DUST II para conquistar a insígnia deste mapa. Não é necessário vencer."

@@ -1,3 +1,4 @@
+import IconeUI from '../../comum/IconeUI.jsx'
 import { useEffect, useState, useMemo } from 'react'
 import { pontosDaPartida } from '../../comum/pontos.js'
 import CarregandoPontos, { CarregandoNP } from '../../comum/Carregando.jsx'
@@ -29,41 +30,12 @@ function Svg({ children }) {
     </svg>
   )
 }
-const IconeElim = () => (
-  <Svg>
-    <circle cx="12" cy="12" r="8" />
-    <path d="M22 12h-4M6 12H2M12 6V2M12 22v-4" />
-  </Svg>
-)
-const IconeBomba = () => (
-  <Svg>
-    <path d="M12 2l2.4 5.6 6 .6-4.5 4 1.3 6L12 15l-5.2 3.2 1.3-6-4.5-4 6-.6z" />
-  </Svg>
-)
-const IconeDesarme = () => (
-  <Svg>
-    <circle cx="6" cy="6" r="3" />
-    <circle cx="6" cy="18" r="3" />
-    <path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12" />
-  </Svg>
-)
-const IconeTempo = () => (
-  <Svg>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 7v5l3 2" />
-  </Svg>
-)
-const IconeData = () => (
-  <Svg>
-    <rect x="3" y="5" width="18" height="16" rx="2" />
-    <path d="M16 3v4M8 3v4M3 10h18" />
-  </Svg>
-)
-const IconeDownload = () => (
-  <Svg>
-    <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
-  </Svg>
-)
+const IconeElim = () => <IconeUI tipo="partidas" tamanho={18}/>
+const IconeBomba = () => <IconeUI tipo="bomba" tamanho={18}/>
+const IconeDesarme = () => <IconeUI tipo="desarme" tamanho={18}/>
+const IconeTempo = () => <IconeUI tipo="relogio" tamanho={18}/>
+const IconeData = () => <IconeUI tipo="calendario" tamanho={18}/>
+const IconeDownload = () => <IconeUI tipo="download" tamanho={18}/>
 
 // Motivo do fim do round (código do jogo) -> ícone e texto
 const MOTIVOS = {

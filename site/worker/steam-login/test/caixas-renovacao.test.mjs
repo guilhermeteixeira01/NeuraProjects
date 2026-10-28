@@ -14,11 +14,11 @@ const ID = '76561198000000011'
 
 test('catálogo novo tem imagens válidas, preços positivos e IDs que não reutilizam caixas antigas', () => {
   const antigos = new Set(modelos.map((c) => c.id))
-  assert.equal(novas.length, 129)
+  assert.equal(novas.length, 130)
   assert.equal(new Set(novas.map((c) => c.id)).size, novas.length)
   for (const c of novas) {
     assert.ok(!antigos.has(c.id))
-    assert.ok(c.preco > 0 && c.itens.length > 0)
+    assert.ok((c.diaria && c.arquivada && c.preco === 0 || c.preco > 0) && c.itens.length > 0)
     assert.ok(fs.existsSync(new URL(`../../../public${c.img}`, import.meta.url)), c.img)
   }
   assert.ok(novas.find((c) => c.slug.includes('katowice')).preco > novas.find((c) => c.slug === 'caixa-stickers-stickers-classicos').preco)

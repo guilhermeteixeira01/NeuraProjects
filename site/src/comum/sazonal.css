@@ -251,3 +251,8 @@ html[data-desempenho='1'] .np-inicio .ix-destaques li a { box-shadow: none; tran
   .am-celular .am-fechar { min-width: 44px; min-height: 44px; }
   .am-celular :is(.am-rolagem, .nt-corpo, .pp-corpo) { min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
 }
+
+/* A ação de excluir não cria uma linha extra na mensagem. */
+.am-dm-lista .am-dm-msg .am-dm-apagar { position:absolute;top:4px;right:5px;display:grid;place-items:center;width:24px;height:24px;min-height:24px;padding:0;margin:0;border-radius:5px; }
+.am-dm-lista .am-dm-minha .am-dm-ts { margin-right:28px; }
+.am-dm-lista .am-dm-msg .am-dm-apagar:hover { background:#ef797918; }

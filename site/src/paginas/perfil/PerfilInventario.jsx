@@ -27,7 +27,7 @@ const abaInicial = () => {
   }
 }
 
-export default function PerfilInventario({ steamId, nome, resumoStatus, children, abaPerfil, aoTrocarAba }) {
+export default function PerfilInventario({ steamId, nome, resumoStatus, children, abaPerfil, aoTrocarAba, somenteInventario = false }) {
   const conta = useConta()
   const t = useT()
   const [topoLocal, setTopoLocal] = useState(abaInicial)
@@ -123,7 +123,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
 
   return (
     <div className="pf-topo-perfil">
-      <section className="pf-inv fx-entra" style={{ '--e': 1 }} aria-label={t('Perfil')}>
+      {!somenteInventario && <section className="pf-inv fx-entra" style={{ '--e': 1 }} aria-label={t('Perfil')}>
         <div className="pf-inv-topo">
           <div className="pf-inv-quem">
             {topo === 'status' ? (
@@ -203,12 +203,13 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
         {abaPerfil !== undefined && conta && conta.id !== steamId && (
           <div className="pf-inv-troca"><BotaoTrocas para={{ id: steamId, nome }} classe="inv-btn inv-btn-p" /></div>
         )}
-      </section>
+      </section>}
 
       {topo === 'status' ? (
         children
       ) : (
         <section className="pf-inv" aria-label={t('Inventário')}>
+          {somenteInventario && <header className="pf-inventario-cabecalho"><div><h2>{t('Inventário')}</h2><p>{inv ? t('{n} itens', { n: numero(todos.length) }) : '…'}</p></div>{conta && conta.id !== steamId && <BotaoTrocas para={{ id: steamId, nome }} classe="inv-btn inv-btn-p" />}</header>}
           <nav className="pf-inv-sub" role="tablist">
             {subs.map(([id, rotulo, n]) => (
               <button

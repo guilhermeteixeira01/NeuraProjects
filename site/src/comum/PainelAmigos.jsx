@@ -1,3 +1,4 @@
+import IconeUI from './IconeUI.jsx'
 // Painel "Social" (computador): botão na barra da direita e painel encostado nela, com duas abas:
 //   AMIGOS — a lista no estilo do Discord (Pedidos, Online, Ausente, Offline); o balão ao lado de cada amigo abre o chat direto com ele.
 //   CHATS  — as conversas (prévia da última mensagem, hora e não lidas); clicar abre a conversa (mensagens.js: histórico e envio).
@@ -17,16 +18,7 @@ import { InsigniasMini } from './Insignias.jsx'
 
 const CHAVE = 'np_amigos_aberto'
 
-export function IconeAmigos({ tamanho = 20 }) {
-  return (
-    <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="9" cy="8" r="3.5" />
-      <path d="M2.5 20a6.5 6.5 0 0 1 13 0" />
-      <path d="M16 4.6a3.5 3.5 0 0 1 0 6.8" />
-      <path d="M18.5 14.2A6.5 6.5 0 0 1 21.5 20" />
-    </svg>
-  )
-}
+export function IconeAmigos({ tamanho = 20 }) { return <IconeUI tipo="amigos" tamanho={tamanho}/> }
 
 function Foto({ a }) {
   const src = useAvatar(a.id, a.avatar)
@@ -34,13 +26,7 @@ function Foto({ a }) {
   return src && erro !== src ? <img src={src} alt="" loading="lazy" onError={() => setErro(src)} /> : <span className="am-ini">{(a.nome || '?').slice(0, 2).toUpperCase()}</span>
 }
 
-function IconeBalao({ tamanho = 16 }) {
-  return (
-    <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M21 12a8 8 0 0 1-11.65 7.11L4 20l1.3-4.74A8 8 0 1 1 21 12Z" />
-    </svg>
-  )
-}
+function IconeBalao({ tamanho = 16 }) { return <IconeUI tipo="mensagem" tamanho={tamanho}/> }
 
 function Linha({ a, st, visto, aoConversar, children }) {
   const t = useT()
@@ -253,7 +239,7 @@ function MensagemConversa({ m, minha, autor, aoApagar, ocupado }) {
     <li className={`am-dm-msg${minha ? ' am-dm-minha' : ''}`}>
       <div className="np-chat-autor"><Foto a={{ ...autor, id: m.de }} /><a href={linkPerfil(m.de)}>{autor?.nome || m.nome || t('Jogador')}</a><small className="am-dm-ts">{horaOuData(m.ts)}</small></div>
       <span className="am-dm-bolha">{m.texto}</span>
-      {minha && <button type="button" className="am-dm-apagar" disabled={ocupado} onClick={() => aoApagar(m.id)}>{t('Apagar mensagem')}</button>}
+      {minha && <button type="button" className="am-dm-apagar" title={t('Apagar mensagem')} aria-label={t('Apagar mensagem')} disabled={ocupado} onClick={() => aoApagar(m.id)}><IconeUI tipo="excluir" tamanho={14} /></button>}
     </li>
   )
 }
@@ -326,9 +312,7 @@ function Conversa({ id, eu, aoFechar }) {
     <>
       <div className="am-dm-cab">
         <button type="button" className="am-dm-voltar" onClick={aoFechar} aria-label={t('Voltar')}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
+          <IconeUI tipo="esquerda" tamanho={18}/>
         </button>
         <a className={`am-pessoa am-dm-pessoa am-${info?.st || 'offline'}`} href={linkPerfil(id)}>
           <span className="am-av">
@@ -352,9 +336,7 @@ function Conversa({ id, eu, aoFechar }) {
       <form className="am-dm-form" onSubmit={enviar}>
         <input type="text" value={texto} onChange={(e) => setTexto(e.target.value)} placeholder={t('Mensagem')} maxLength={1000} disabled={enviando || bloqueado} autoComplete="off" aria-label={t('Mensagem')} />
         <button type="submit" disabled={!texto.trim() || enviando || bloqueado} aria-label={t('Enviar')}>
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="m3 12 18-9-5 9 5 9-18-9Zm0 0h11" />
-          </svg>
+          <IconeUI tipo="enviar" tamanho={17}/>
         </button>
       </form>
       {erro && <p className="am-erro">{erro}</p>}

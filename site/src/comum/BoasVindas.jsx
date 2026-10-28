@@ -1,3 +1,4 @@
+import IconeUI from './IconeUI.jsx'
 // Primeira visita (logado): janela que não dá para fechar até a pessoa
 //   1) escolher o APELIDO (único, sem palavra imprópria; só Premium troca depois, a cada 15 dias),
 //   2) criar a SENHA DE SEGURANÇA (pedida para trocar itens e para vender no mercado: evita golpe e fraude) e
@@ -465,9 +466,7 @@ function JanelaConta({ aoFechar, children }) {
     <div className="bv-fundo" onClick={aoFechar}>
       <div className="bv" role="dialog" aria-modal="true" aria-labelledby="bv-titulo" onClick={(e) => e.stopPropagation()}>
         <button type="button" className="bv-fechar" onClick={aoFechar} aria-label={t('Fechar')}>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M6 6l12 12M18 6 6 18" />
-          </svg>
+          <IconeUI tipo="fechar" tamanho={18}/>
         </button>
         <div className="bv-passo">{children}</div>
       </div>

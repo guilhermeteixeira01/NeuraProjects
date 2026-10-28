@@ -1,3 +1,4 @@
+import IconeUI from '../../comum/IconeUI.jsx'
 import { comSenha } from '../../comum/seguranca.js'
 // Página de uma caixa (dentro da loja, com o carrossel de drops em cima): uma roleta parada por caixa escolhida (até 3), "Abrir por X NP",
 // os modos (Jester = chances iguais, Boost = itens melhores mais prováveis, Lightning = animação rápida), o som e o conteúdo da caixa.
@@ -96,21 +97,7 @@ const ICONES = {
   raio: 'M13 2 4 14h7l-1 8 9-12h-7l1-8Z',
 }
 // alto-falante (o corpo é preenchido; as ondas e o "x" são traços)
-function IconeSom({ ligado }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M3 9.5h3.5L11 5.5v13l-4.5-4H3z" fill="currentColor" stroke="none" />
-      {ligado ? (
-        <>
-          <path d="M14.5 9a4 4 0 0 1 0 6" />
-          <path d="M17.5 6.5a7.5 7.5 0 0 1 0 11" />
-        </>
-      ) : (
-        <path d="m15 9.5 5 5m0-5-5 5" />
-      )}
-    </svg>
-  )
-}
+function IconeSom({ ligado }) { return <IconeUI tipo={ligado ? 'som' : 'mudo'} tamanho={20}/> }
 
 // ── partículas ao ligar um modo: saem das molduras das roletas, na cor do modo (canvas por cima, não pega clique) ──
 function ParticulasModo({ modo, chave }) {
@@ -284,10 +271,7 @@ function JanelaEspeciais({ itens, achar, aoFechar }) {
       <div className="lj-chm" role="dialog" aria-modal="true" aria-label={t('Chances')} onClick={(e) => e.stopPropagation()}>
         <header>
           <h3>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z" />
-              <path d="m9 12 2 2 4-4" />
-            </svg>
+            <IconeUI tipo="escudo" tamanho={24}/>
             {t('Chances')}
           </h3>
           <button type="button" className="lj-chm-x" onClick={aoFechar} aria-label={t('Fechar')}>
@@ -363,6 +347,7 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
   const doInventario = modo ? 0 : Math.min(qtd, tem)
   const custo = preco == null ? null : preco * (qtd - doInventario)
   const rotuloAbrir = (deNovo) => {
+    if (c.arquivada && !tem) return t(c.diaria ? 'Disponível no próximo resgate' : 'Sem caixas no inventário')
     if (doInventario === qtd) return qtd === 1 ? t('Abrir do inventário') : t('Abrir {n} do inventário', { n: qtd })
     const pago = t(deNovo ? 'Abrir de novo por {n} NP' : 'Abrir por {n} NP', { n: numero(custo ?? 0) })
     return doInventario ? `${pago} + ${t('{n} do inventário', { n: doInventario })}` : pago
@@ -450,17 +435,13 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
     <section className="lj-cx" data-modo={modo || 'normal'} aria-label={c.nome}>
       <header className="lj-cx-topo">
         <button type="button" className="lj-cx-voltar" onClick={aoVoltar}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
+          <IconeUI tipo="esquerda" tamanho={18}/>
           {t('Voltar às caixas')}
         </button>
         <div className="lj-cx-titulo">
           <h1>
             <button type="button" className={`lj-cx-fav${favorita ? ' is-ativo' : ''}`} onClick={aoFavoritar} aria-pressed={favorita} aria-label={favorita ? t('Tirar das favoritas') : t('Marcar como favorita')} title={favorita ? t('Tirar das favoritas') : t('Marcar como favorita')}>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill={favorita ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
-                <path d="M12 20s-7-4.4-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.6-9 9-9 9Z" />
-              </svg>
+              <IconeUI tipo="favorito" tamanho={26}/>
             </button>
             {c.nome}
           </h1>
@@ -501,9 +482,7 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
         <div className="lj-cx-controles lj-cx-pos">
           <div className="lj-cx-qtd">
             <button type="button" className="lj-cx-voltar-res" onClick={voltarParaCaixa}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="m15 18-6-6 6-6" />
-              </svg>
+              <IconeUI tipo="esquerda" tamanho={16}/>
               {t('Voltar')}
             </button>
           </div>
@@ -513,7 +492,7 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
                 <Icone d="M12 2v12m0 0 4-4m-4 4-4-4M4 16v4h16v-4" />
                 {aVender.length ? t('Vender tudo por {n} NP', { n: numero(totalVenda) }) : t('Tudo vendido')}
               </button>
-              <button type="button" className="lj-cx-de-novo" disabled={preco == null} onClick={() => (falta ? setDepositando(true) : abrir(qtd, modo ? 'direto' : 'auto'))}>
+              <button type="button" className="lj-cx-de-novo" disabled={preco == null || (c.arquivada && !tem)} onClick={() => (falta ? setDepositando(true) : abrir(qtd, modo ? 'direto' : 'auto'))}>
                 <Icone d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4" />
                 {rotuloAbrir(true)}
               </button>
@@ -543,7 +522,7 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
           </div>
 
           <div className="lj-cx-abrir">
-            <button type="button" className="lj-cx-btn-abrir" disabled={girando || ocupado || preco == null} onClick={() => (falta ? setDepositando(true) : abrir(qtd, modo ? 'direto' : 'auto'))}>
+            <button type="button" className="lj-cx-btn-abrir" disabled={girando || ocupado || preco == null || (c.arquivada && !tem)} onClick={() => (falta ? setDepositando(true) : abrir(qtd, modo ? 'direto' : 'auto'))}>
               {girando ? t('Abrindo…') : preco == null ? t('Carregando…') : rotuloAbrir(false)}
             </button>
             {tem > 0 && (

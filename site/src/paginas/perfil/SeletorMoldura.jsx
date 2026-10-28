@@ -1,3 +1,6 @@
+import { createPortal } from 'react-dom'
+import { FUNDOS_PERFIL, imagemFundoPerfil, nomeFundoPerfil } from '../../../worker/steam-login/src/fundos-perfil.js'
+import IconeUI from '../../comum/IconeUI.jsx'
 import { useCallback, useEffect, useState } from 'react'
 import { CamadaMoldura, EmblemaDe, IconeDoCargo, SeloCargo, cargoDaMoldura, cargoDoCard, nivelDoCard, semSubMinima, subDaMoldura, subDoCard, useCargosIdsDe, useNivelSub, nivelDaMoldura, salvarPerfil, useConfigSite, usePerfis } from '../../comum/Moldura.jsx'
 import { tituloNivel, urlEmblema } from '../../comum/assinatura.js'
@@ -11,10 +14,7 @@ import { CARDS, TEMAS_CARD, ehAnimado, fundoCard, idCard, nomeCard, nomeTema, te
 
 function CadeadoMini({ tamanho = 12 }) {
   return (
-    <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="4" y="11" width="16" height="10" rx="2" />
-      <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-    </svg>
+    <IconeUI tipo="cadeado" tamanho={tamanho}/>
   )
 }
 
@@ -48,7 +48,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   }
   const travadoCard = (c) => (!admin && nivelDoCard(config, c) > nivelEf) || semCargoCard(c) || semSubC(c)
   const [falta, setFalta] = useState(0) // nível exigido, quando o worker recusa
-  const salvo = { moldura: perfil.moldura || null, card: perfil.card ? idCard(perfil.card) : null }
+  const salvo = { moldura: perfil.moldura || null, card: perfil.card ? idCard(perfil.card) : null, fundoPerfil: perfil.fundoPerfil || null }
   const [escolha, setEscolha] = useState(salvo)
   const [mexeu, setMexeu] = useState(false)
   const [aba, setAba] = useState('moldura') // 'moldura' | 'card'
@@ -67,8 +67,8 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
 
   // O perfil salvo pode chegar depois de abrir: enquanto não mexeu em nada, acompanha ele
   useEffect(() => {
-    if (!mexeu) setEscolha({ moldura: perfil.moldura || null, card: perfil.card ? idCard(perfil.card) : null })
-  }, [perfil.moldura, perfil.card, mexeu])
+    if (!mexeu) setEscolha({ moldura: perfil.moldura || null, card: perfil.card ? idCard(perfil.card) : null, fundoPerfil: perfil.fundoPerfil || null })
+  }, [perfil.moldura, perfil.card, perfil.fundoPerfil, mexeu])
 
   const cancelar = useCallback(() => fechar(), [fechar])
 
@@ -310,7 +310,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   const grupos = (colecao === 'todas' ? COLECOES : [colecao]).map((c) => [c, ordenar(MOLDURAS.filter((m) => m.colecao === c))]).filter(([, l]) => l.length)
   const algumaPresa = MOLDURAS.some((m) => travada(m.id))
   const moldura = molduraPorId(escolha.moldura)
-  const mudou = escolha.moldura !== salvo.moldura || escolha.card !== salvo.card
+  const mudou = escolha.moldura !== salvo.moldura || escolha.card !== salvo.card || escolha.fundoPerfil !== salvo.fundoPerfil
 
   const salvar = async () => {
     if (aoSalvar) {
@@ -322,7 +322,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
     try {
       // só manda o que mudou (o worker confere as travas de cada item novo; o que já estava salvo não é reavaliado)
       const mudancas = {}
-      for (const k of ['moldura', 'card']) if (escolha[k] !== salvo[k]) mudancas[k] = escolha[k]
+      for (const k of ['moldura', 'card', 'fundoPerfil']) if (escolha[k] !== salvo[k]) mudancas[k] = escolha[k]
       await salvarPerfil(mudancas)
       fechar()
     } catch (e) {
@@ -331,7 +331,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
     }
   }
 
-  return (
+  return createPortal(
     <div className="sm-fundo" onClick={cancelar}>
       <div className="sm-painel" role="dialog" aria-modal="true" aria-labelledby="sm-titulo" onClick={(e) => e.stopPropagation()}>
         <div className="sm-cab">
@@ -342,9 +342,10 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
         </div>
 
         <div className="sm-corpo">
-          <div className="sm-previa">
+          <div className={`sm-previa${aba === 'fundoPerfil' ? ' sm-previa-mapa' : ''}`}>
+            {aba === 'fundoPerfil' && <div className="sm-previa-fundo"><img src={imagemFundoPerfil(escolha.fundoPerfil)} alt={nomeFundoPerfil(escolha.fundoPerfil || 'mirage')} /><b>{nomeFundoPerfil(escolha.fundoPerfil || 'mirage')}</b></div>}
             {/* o card do perfil, na mesma proporção (282 × 395) */}
-            <div className="sm-previa-card" style={escolha.card ? { backgroundImage: fundoCard(escolha.card) } : undefined}>
+            {aba !== 'fundoPerfil' && <div className="sm-previa-card" style={escolha.card ? { backgroundImage: fundoCard(escolha.card) } : undefined}>
             <span className={`moldura-box sm-av${classeForma(escolha.moldura)}`}>
               {urlOk(avatar) && !erroAvatar ? (
                 <img src={avatar} alt="" onError={() => setErroAvatar(true)} />
@@ -355,16 +356,17 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
               <EmblemaDe steamId={steamId} />
             </span>
             <b>{nome}</b>
-            </div>
+            </div>}
             <div className="sm-resumo">
-              <button type="button" className={`sm-resumo-linha${aba === 'moldura' ? ' ativa' : ''}`} onClick={() => setAba('moldura')}>
+              {aba === 'fundoPerfil' && <div className="sm-resumo-linha ativa"><span className="sm-resumo-rot">{tr('Fundo do perfil')}</span><span className="sm-resumo-val">{nomeFundoPerfil(escolha.fundoPerfil || 'mirage')}</span></div>}
+              {aba !== 'fundoPerfil' && <><button type="button" className={`sm-resumo-linha${aba === 'moldura' ? ' ativa' : ''}`} onClick={() => setAba('moldura')}>
                 <span className="sm-resumo-rot">{tr('Moldura')}</span>
                 <span className="sm-resumo-val">{moldura ? moldura.nome : tr('Sem moldura')}</span>
               </button>
               <button type="button" className={`sm-resumo-linha${aba === 'card' ? ' ativa' : ''}`} onClick={() => setAba('card')}>
                 <span className="sm-resumo-rot">{tr('Card')}</span>
                 <span className="sm-resumo-val">{escolha.card ? nomeCard(escolha.card) : tr('Sem card')}</span>
-              </button>
+              </button></>}
             </div>
           </div>
 
@@ -373,6 +375,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
               {[
                 ['moldura', 'Moldura'],
                 ['card', 'Card'],
+                ['fundoPerfil', 'Fundo do perfil'],
               ].map(([id, rotulo]) => (
                 <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'active' : ''} onClick={() => setAba(id)}>
                   {tr(rotulo)}
@@ -431,6 +434,10 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                   )}
                 </div>
               </>
+            ) : aba === 'fundoPerfil' ? (
+              <div className="sm-rolagem"><p className="sm-aviso">{tr('Escolha o mapa que aparece no fundo do seu perfil.')}</p><div className="sm-grade-fundos">
+                {FUNDOS_PERFIL.map(id => <button key={id} type="button" className={`sm-fundo-mapa${(escolha.fundoPerfil || 'mirage') === id ? ' sel' : ''}`} aria-pressed={(escolha.fundoPerfil || 'mirage') === id} onClick={() => escolher('fundoPerfil', id)}><img src={imagemFundoPerfil(id)} alt="" loading="lazy" /><span>{nomeFundoPerfil(id)}</span></button>)}
+              </div></div>
             ) : (
               <>
                 <div className="sm-ferramentas">
@@ -493,6 +500,6 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
           </button>
         </div>
       </div>
-    </div>
+    </div>, document.body
   )
 }

@@ -1,3 +1,4 @@
+import IconeUI from './IconeUI.jsx'
 // Ícones usados em mais de uma página (traço na cor do texto)
 
 // Emblema do Discord (comunidade)
@@ -5,28 +6,10 @@ export function IconeDiscord({ tamanho = 18 }) {
   return <img className="ic-discord" src="/assets/logos/discord.png" alt="" width={tamanho} height={tamanho} aria-hidden="true" />
 }
 
-export function IconeMochila() {
-  return (
-    <svg className="nx-icone" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" />
-      <path d="M8 10h8" />
-      <path d="M8 18h8" />
-      <path d="M8 22v-6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v6" />
-      <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
-    </svg>
-  )
-}
+export function IconeMochila() { return <IconeUI tipo="inventario" tamanho={18} className="nx-icone"/> }
 
 // Loja: fachada com toldo
-export function IconeCaixa() {
-  return (
-    <svg className="nx-icone" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 9.5V20a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9.5" />
-      <path d="M3.2 9.2 5 3.6A1 1 0 0 1 6 3h12a1 1 0 0 1 .95.6l1.85 5.6a2.4 2.4 0 0 1-4.4 1.8 2.4 2.4 0 0 1-4.4 0 2.4 2.4 0 0 1-4.4 0 2.4 2.4 0 0 1-4.4-1.8Z" />
-      <path d="M9.5 21v-5.5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1V21" />
-    </svg>
-  )
-}
+export function IconeCaixa() { return <IconeUI tipo="loja" tamanho={18} className="nx-icone"/> }
 
 export function IconeSteam({ tamanho = 16 }) {
   return (
@@ -37,7 +20,7 @@ export function IconeSteam({ tamanho = 16 }) {
 }
 
 // Ícone genérico 24x24 de traço: <Icone tamanho={18}><path .../></Icone>
-export function Icone({ tamanho = 18, traco = 2, children, ...resto }) {
+export function Icone({ tamanho = 18, traco = 1.8, children, ...resto }) {
   return (
     <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={traco} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...resto}>
       {children}
@@ -45,24 +28,10 @@ export function Icone({ tamanho = 18, traco = 2, children, ...resto }) {
   )
 }
 
-export function IconeEscudo() {
-  return (
-    <svg className="nx-icone" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      <path d="m9 12 2 2 4-4" />
-    </svg>
-  )
-}
+export function IconeEscudo() { return <IconeUI tipo="escudo" tamanho={18} className="nx-icone"/> }
 
 // "Nenhum" (sem moldura, sem time): círculo cortado, dentro do anel tracejado do .sm-sem-icone
-export function IconeNenhum({ tamanho = 28 }) {
-  return (
-    <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="8.5" />
-      <path d="M6 18 18 6" />
-    </svg>
-  )
-}
+export function IconeNenhum({ tamanho = 28 }) { return <IconeUI tipo="nenhum" tamanho={tamanho} className="nx-icone"/> }
 
 // Ícones das páginas no menu (barra lateral e gaveta do celular)
 function IconeMenu({ children }) {
@@ -72,61 +41,16 @@ function IconeMenu({ children }) {
     </svg>
   )
 }
-export const IconeCasa = () => (
-  <IconeMenu>
-    <path d="M3 10.5 12 3l9 7.5" />
-    <path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5" />
-  </IconeMenu>
-)
-export const IconeMapa = () => (
-  <IconeMenu>
-    <path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z" />
-    <path d="M9 4v14" />
-    <path d="M15 6v14" />
-  </IconeMenu>
-)
-export const IconePartidas = () => (
-  <IconeMenu>
-    <circle cx="12" cy="12" r="8" />
-    <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
-    <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-  </IconeMenu>
-)
-export const IconeTrofeu = () => (
-  <IconeMenu>
-    <path d="M8 21h8M12 17v4" />
-    <path d="M7 4h10v5a5 5 0 0 1-10 0V4Z" />
-    <path d="M17 6h3v2a3 3 0 0 1-3 3M7 6H4v2a3 3 0 0 0 3 3" />
-  </IconeMenu>
-)
+export const IconeCasa = () => <IconeUI tipo="casa" tamanho={18} className="nx-icone"/>
+export const IconeMapa = () => <IconeUI tipo="mapa" tamanho={18} className="nx-icone"/>
+export const IconePartidas = () => <IconeUI tipo="partidas" tamanho={18} className="nx-icone"/>
+export const IconeTrofeu = () => <IconeUI tipo="trofeu" tamanho={18} className="nx-icone"/>
 
-export const IconePlay = () => (
-  <IconeMenu>
-    <path d="M7 4.5v15a.8.8 0 0 0 1.2.7l12-7.5a.8.8 0 0 0 0-1.4l-12-7.5A.8.8 0 0 0 7 4.5Z" />
-  </IconeMenu>
-)
+export const IconePlay = () => <IconeUI tipo="play" tamanho={18} className="nx-icone"/>
 
-export const IconeGrupo = () => (
-  <IconeMenu>
-    <circle cx="9" cy="8" r="3.5" />
-    <path d="M2.5 20a6.5 6.5 0 0 1 13 0" />
-    <path d="M16 4.6a3.5 3.5 0 0 1 0 6.8" />
-    <path d="M18.5 14.2A6.5 6.5 0 0 1 21.5 20" />
-  </IconeMenu>
-)
+export const IconeGrupo = () => <IconeUI tipo="amigos" tamanho={18} className="nx-icone"/>
 
-export const IconePerfil = () => (
-  <IconeMenu>
-    <circle cx="12" cy="8" r="4" />
-    <path d="M4 21a8 8 0 0 1 16 0" />
-  </IconeMenu>
-)
-export const IconeMais = () => (
-  <IconeMenu>
-    <circle cx="5" cy="12" r="1.6" fill="currentColor" />
-    <circle cx="12" cy="12" r="1.6" fill="currentColor" />
-    <circle cx="19" cy="12" r="1.6" fill="currentColor" />
-  </IconeMenu>
-)
+export const IconePerfil = () => <IconeUI tipo="perfil" tamanho={18} className="nx-icone"/>
+export const IconeMais = () => <IconeUI tipo="mais" tamanho={18} className="nx-icone"/>
 
 export const ICONES_MENU = { casa: IconeCasa, mapa: IconeMapa, partidas: IconePartidas, trofeu: IconeTrofeu, grupo: IconeGrupo, play: IconePlay, perfil: IconePerfil, mais: IconeMais, mochila: IconeMochila, caixa: IconeCaixa, escudo: IconeEscudo }

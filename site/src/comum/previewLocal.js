@@ -1,7 +1,9 @@
+import { estadoDiario } from '../../worker/steam-login/src/diario-core.js'
 import { progressoMissoes, ANO_EVENTOS } from '../../worker/steam-login/src/missoes-core.js'
 import { calendarioEventosInsignias } from './eventos.js'
 // Importado somente pelo servidor de desenvolvimento em loopback. Não autentica no worker real.
 import { CONFIG } from './config.js'
+import { INSIGNIAS } from './insignias.js'
 import catalogo from '../../worker/steam-login/src/caixas-iniciais.json'
 import { CONFIG_PADRAO, chancesDaCaixa, aplicarModo, faixasDeDesgaste, sortearAbertura, gerarFaixa, gerarFaixaFacas, valorDoItem } from '../../worker/steam-login/src/loja-core.js'
 
@@ -10,6 +12,15 @@ export function ativarPreviewLocal() {
   const id = '76561198000000011'
   const nome = 'Jogador de teste'
   const avatar = '/assets/logos/logo-np-64.png'
+  // Conquistas de demonstração: existem somente no navegador da prévia local.
+  const exemplos = [
+    ...INSIGNIAS.filter(i => i.categoria === 'combate').slice(0, 4),
+    ...INSIGNIAS.filter(i => i.categoria === 'mapas').slice(0, 3),
+    ...INSIGNIAS.filter(i => /^evento-(dia-do-trabalho|dia-da-mulher)-2026$/.test(i.id)),
+    ...INSIGNIAS.filter(i => i.loja).slice(0, 2),
+    ...INSIGNIAS.filter(i => i.id === 'top3'),
+  ]
+  const perfisDemo = { [id]: { nick: nome, insignias: Object.fromEntries(exemplos.map(i => [i.id, Date.parse('2026-10-26T12:00:00-03:00')])), vistos: { ins: exemplos.map(i => i.id), nivel: 100 } } }
   const caixas = catalogo.map(c => ({ ...c, chances: chancesDaCaixa(c, CONFIG_PADRAO) }))
   const pessoas = [{id,nome,avatar,st:'online',dono:true,cargo:'membro'}, {id:'76561198000000012',nome:'Luna · teste',avatar,st:'online',cargo:'membro'}, {id:'76561198000000013',nome:'Rafa · teste',avatar,st:'ausente',cargo:'membro'}, {id:'76561198000000014',nome:'Nico · teste',avatar,st:'jogando',cargo:'membro'}]
   const novoId = () => 'demo'+Math.random().toString(36).slice(2,10)
@@ -20,6 +31,7 @@ export function ativarPreviewLocal() {
   try { estado=JSON.parse(sessionStorage.getItem('np-preview-dados-v2')||'null')||estado } catch { /* estado inicial */ }
   estado.notificacoes ??= {lista:[{id:'demo-boas-vindas',titulo:'Bem-vindo à prévia local',texto:'Amigos, time, inventário e saldo são dados de demonstração.',link:'/lobby/',imagem:avatar,quando:Date.now()-60000,lida:false},{id:'demo-caixas',titulo:'Caixas prontas para testar',texto:'Abra caixas e veja o resultado no inventário de teste.',link:'/loja/',quando:Date.now()-120000,lida:false}],vistos:[],limpoEm:0}
   estado.conta ??= {nome:'',sobrenome:'',cpf:'',nascimento:'',discord:'',descricao:'Jogador da comunidade Neura.',faceit:'',privacidade:Object.fromEntries(['perfil','inventario','amigos','conquistas','convites'].map(k=>[k,'todos']))}
+  Object.assign(perfisDemo[id], estado.personalizacao || {})
   estado.hall ??= {estado:'sem-foto',camisa:'escura'}
   estado.amigos ??= pessoas.slice(1).map(p => p.id)
   const guardar=()=>{try{sessionStorage.setItem('np-preview-dados-v2',JSON.stringify(estado))}catch{/* sem armazenamento */}}
@@ -41,6 +53,7 @@ export function ativarPreviewLocal() {
   const config = { cargos: [], equipe: { dono: id, admins: [] }, selos: { dono: { pick: true, mostrar: false }, admin: { pick: true, mostrar: false } } }
   const respostas = {
     '/config': config,
+    '/perfis': perfisDemo,
     '/eu': { id, admin: true, dono: true, painel: true, abas: ['usuarios', 'molduras', 'cards', 'cargos', 'logs', 'servidor'] },
     '/conta/seguranca': { nick: nome, temSenha: true, email: 'teste@example.com', premium: true, podeTrocarNick: true },
     '/amigos': { amigos: pessoas.slice(1), recebidos: [], enviados: [] },
@@ -64,6 +77,20 @@ export function ativarPreviewLocal() {
     const metodo = init?.method || (input instanceof Request ? input.method : 'GET')
     let corpo={}
     try{corpo=JSON.parse(init?.body||(input instanceof Request?await input.clone().text():'{}'))}catch{/* leitura */}
+    if (rota === '/perfil' && metodo === 'POST') {
+      estado.personalizacao = {...estado.personalizacao, ...corpo}
+      Object.assign(perfisDemo[id], corpo)
+      guardar()
+      return Response.json({perfis:perfisDemo})
+    }
+    if(rota==='/loja/diario'||rota==='/loja/diario/pontos'||rota==='/loja/diario/caixa') {
+      const diaria=caixas.find(c=>c.slug==='caixa-diaria'), d=estadoDiario(estado.diario||{})
+      estado.diario??={}
+      let recebido=false
+      if(metodo==='POST'&&rota.endsWith('/pontos')&&!d.pontosResgatados){estado.diario.pontosDia=d.dia;estado.diario.sequencia=d.sequencia;estado.saldo+=d.pontos;recebido=true}
+      if(metodo==='POST'&&rota.endsWith('/caixa')&&!d.caixaResgatada){const k=novoId();estado.inv.itens[k]={t:'caixa',d:diaria.id,p:0};estado.inv.criado[k]=Date.now();estado.diario.caixaDia=d.dia;recebido=true}
+      guardar();return Response.json({...estadoDiario(estado.diario),recebido,caixa:diaria,caixasDisponiveis:Object.values(estado.inv.itens).filter(i=>i.t==='caixa'&&i.d===diaria.id).length})
+    }
     if (metodo !== 'GET') {
       if(rota==='/amigos') {
         if(corpo.acao==='remover')estado.amigos=estado.amigos.filter(a=>a!==corpo.id)
@@ -94,7 +121,11 @@ export function ativarPreviewLocal() {
         const resultados=[]
         for(let k=0;k<Math.max(1,Math.min(1,Number(corpo.qtd)||1));k++){
           const ganhou=sortearAbertura(cx,cfg,Math.random),faixa=gerarFaixa(cx,cfg,ganhou,Math.random),item=novoId(),v=valorDoItem(ganhou.item,ganhou.raridade)
-          estado.inv.itens[item]={...ganhou.item,st:0,a:[null,null,null,null,null]};estado.inv.criado[item]=Date.now();estado.saldo-=cx.preco;estado.abertas++
+          const fechada=Object.keys(estado.inv.itens).find(k=>estado.inv.itens[k].t==='caixa'&&estado.inv.itens[k].d===cx.id)
+          const usar=!!fechada&&(cx.arquivada||['inventario','auto'].includes(corpo.origem))
+          if(cx.arquivada&&!usar)return Response.json({erro:'sem-caixa'},{status:409})
+          if(usar){delete estado.inv.itens[fechada];delete estado.inv.criado[fechada]}else estado.saldo-=cx.preco
+          estado.inv.itens[item]={...ganhou.item,st:0,a:[null,null,null,null,null]};estado.inv.criado[item]=Date.now();estado.abertas++
           resultados.push({id:item,raridade:ganhou.raridade,indice:ganhou.indice,item:ganhou.item,faixa:faixa.itens,alvo:faixa.alvo,quase:faixa.quase,v,facas:ganhou.raridade===5?gerarFaixaFacas(cx,ganhou,Math.random):null})
         }
         guardar();return Response.json({saldo:estado.saldo,resultados,restantes:0,aberturasEspecial:estado.abertas,insignias:[]})
@@ -124,8 +155,9 @@ export function ativarPreviewLocal() {
     if(rota==='/admin/dados')return Response.json({...respostas['/admin/dados'],usuarios:Object.fromEntries(pessoas.map(p=>[p.id,p]))})
     if(rota==='/loja/drops'){const d={id:'demoDrop',ts:Date.now()-60000,r:4,v:14500,t:'arma',d:7,p:282,quem:pessoas[1].id,nome:pessoas[1].nome,avatar,caixa:caixas[0].slug};return Response.json({agora:Date.now(),recentes:[d],bons:[d],top:[d]})}
     if(rota==='/skins')return Response.json(estado.inv)
+    if(rota==='/skins/inventario')return Response.json({...estado.inv,valores:Object.fromEntries(Object.keys(estado.inv.itens).map(k=>[k,150])),simulacao:true})
     if(rota==='/loja/saldo')return Response.json({saldo:estado.saldo})
-    if(rota==='/loja')return Response.json({...respostas['/loja'],saldo:estado.saldo,pontos:estado.saldo,cfg:{...CONFIG_PADRAO,maxQtd:1},aberturasEspecial:estado.abertas})
+    if(rota==='/loja')return Response.json({...respostas['/loja'],fechadas:Object.fromEntries(caixas.map(c=>[c.id,Object.values(estado.inv.itens).filter(i=>i.t==='caixa'&&i.d===c.id).length])),caixas:caixas.filter(c=>!c.arquivada||c.diaria||Object.values(estado.inv.itens).some(i=>i.t==='caixa'&&i.d===c.id)).map(c=>({...c,foraDeVenda:!!c.arquivada})),saldo:estado.saldo,pontos:estado.saldo,cfg:{...CONFIG_PADRAO,maxQtd:1},aberturasEspecial:estado.abertas})
     if(rota==='/loja/valores')return Response.json({valores:Object.fromEntries(Object.keys(estado.inv.itens).map(k=>[k,{r:3,v:150}]))})
     if(rota==='/mercado')return Response.json({anuncios:[{id:'demoanuncio',vendedor:pessoas[1].id,vendedorNome:pessoas[1].nome,vendedorAvatar:avatar,item:itens.demoitem0,preco:450,ref:500,criado:Date.now()}]})
     if(rota==='/partidas/recentes')return Response.json([])

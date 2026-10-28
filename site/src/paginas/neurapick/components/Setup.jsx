@@ -1,3 +1,4 @@
+import IconeUI from '../../../comum/IconeUI.jsx'
 import { useEffect, useState } from 'react'
 import { ALL_MAPS, DEFAULT_POOL, POOL_SIZE, POOL_UPDATED, mapIcon, mapImage } from '../data/maps.js'
 import { FORMATS } from '../data/veto.js'
@@ -151,9 +152,7 @@ export default function Setup({ onStart }) {
                             <span className="mono-label">{tr('TIME {t}', { t })}</span>
                             {acharTime(times, nome) && (
                               <span className="da-lista" title={tr('Time cadastrado na lista: o logo veio de lá')}>
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                  <path d="M20 6 9 17l-5-5" />
-                                </svg>
+                                <IconeUI tipo="check" tamanho={10}/>
                                 {tr('DA LISTA')}
                               </span>
                             )}

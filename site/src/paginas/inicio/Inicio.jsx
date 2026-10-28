@@ -80,28 +80,6 @@ const LETREIRO = [
   [IC_SERVIDOR, 'Servidor competitivo'],
 ]
 
-const PRINCIPIOS = [
-  [
-    <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z" />,
-    'A comunidade decide junto',
-    'Sugestões e problemas chegam pela comunidade no Discord e viram prioridade. A gente constrói o que os jogadores realmente usam.',
-    'COMUNIDADE',
-  ],
-  [
-    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z" />,
-    'Ferramenta boa resolve problema real',
-    'Nada de recurso para enfeitar: cada sistema tira uma fricção de quem joga, do veto ao servidor.',
-    'PRODUTO',
-  ],
-  [
-    IC_ESCUDO,
-    'Partida justa',
-    'Lados definidos pelo veto, round faca, pausa com regra e demo de todo mapa: o resultado fica registrado para qualquer um conferir.',
-    'COMPETITIVO',
-  ],
-  [IC_RELOGIO, 'Sempre evoluindo', 'Os projetos recebem atualizações frequentes — e o que muda aparece primeiro na comunidade.', 'CONTÍNUO'],
-]
-
 // Âncoras das seções do índice vertical do topo
 
 const FICHA = [
@@ -140,97 +118,6 @@ export default function Inicio() {
   return (
     <Layout pagina="inicio">
       <main className="inicio np-inicio">
-        {/* TOPO */}
-        <section className="ix-hero">
-          <div className="wrap np-hub">
-          <div className="ix-hero-card">
-            <img className="np-hero-mapa" src="/neurapick/maps/mirage.jpg" width="1920" height="1080" alt="" decoding="async" />
-            <div className="ix-hero-texto">
-              <h1 className="fx-entra" style={{ '--e': 2 }}>
-                <span>{t('Jogue.')} {t('Compita.')}</span>
-                <span>{t('Evolua.')}</span>
-              </h1>
-              <p className="ix-lead fx-entra" style={{ '--e': 3 }}>
-                {t('Pick & Ban de CS2, servidor competitivo, estatísticas de cada mapa, ranking e níveis. Tudo feito por jogadores, para quem joga de verdade.')}
-              </p>
-              <div className="ix-acoes fx-entra" style={{ '--e': 4 }}>
-                <a className="btn btn-primary btn-lg" href="/lobby/">{t('Jogar')} {SETA}</a>
-                <a className="btn btn-ghost btn-lg" href="/partidas/">
-                  {t('Ver partidas')} {SETA}
-                </a>
-              </div>
-            </div>
-          </div>
-          <aside className="np-acesso">
-            <h2>{t('Seu próximo jogo')}</h2>
-            <p>{t('Jogue. Compita. Evolua.')}</p>
-            <a href="/lobby/"><Icone tamanho={22}>{IC_PESSOAS}</Icone><span><b>{t('Jogar')}</b><small>{t('Servidor competitivo')}</small></span>{SETA}</a>
-            <a href={conta ? linkPerfil(conta.id) : '/ranking/'}><Icone tamanho={22}>{IC_ALVO}</Icone><span><b>{t('Perfil')}</b><small>{t('Ranking, níveis e perfil')}</small></span>{SETA}</a>
-            <a href="/times/"><Icone tamanho={22}>{IC_ESCUDO}</Icone><span><b>{t('Times')}</b><small>{t('Comunidade em primeiro lugar')}</small></span>{SETA}</a>
-          </aside>
-          </div>
-        </section>
-
-        {/* FAIXA: números do servidor */}
-        <section className="wrap ix-faixa-sec" aria-label={t('Números do servidor')}>
-          <div className="ix-quadro fx-entra" style={{ '--e': 5 }}>
-            <div className="ix-quadro-in">
-              <div className="ix-faixa-titulo">
-                <b>{t('Jogue. Compita. Evolua.')}</b>
-              </div>
-              <dl className="ix-numeros">
-                <div>
-                  <dd>
-                    <Contador valor={numeros.mapas} />
-                  </dd>
-                  <dt>{t('MAPAS JOGADOS')}</dt>
-                </div>
-                <div>
-                  <dd>
-                    <Contador valor={numeros.jogadores} />
-                  </dd>
-                  <dt>{t('JOGADORES')}</dt>
-                </div>
-                <div>
-                  <dd>
-                    <Contador valor={numeros.kills} />
-                  </dd>
-                  <dt>KILLS</dt>
-                </div>
-              </dl>
-              <a className="btn btn-ghost ix-faixa-botao" href="/ranking/">
-                {t('Ver ranking')}
-              </a>
-            </div>
-          </div>
-        </section>
-
-        {/* EM DESTAQUE */}
-        <section className="wrap ix-dest-sec" aria-label={t('Em destaque')}>
-          <h2 className="ix-titulo-linha">
-            {t('Em destaque')}
-          </h2>
-          <ul className={`ix-destaques np-destaques-${verPick ? 'quatro' : 'tres'}`}>
-            {[
-              ['/partidas/', '/neurapick/maps/mirage.jpg', 'Partidas', 'Placar, rounds e demo de cada mapa'],
-              ['/ranking/', '/assets/insignia/web/arsenal-afiado-diamante.webp', 'Ranking', 'Níveis, XP e o top do servidor', 'azul'],
-              ['/loja/', '/assets/caixas/web/caixa-naruto-naruto.webp', 'Loja', 'Caixas de skins com Neura Pontos', 'ouro'],
-              ...(verPick ? [['/neurapick/', '/neurapick/maps/inferno.jpg', 'NeuraPick', 'Veto de mapas no padrão dos campeonatos']] : []),
-            ].map(([href, img, nome, texto, arte]) => (
-              <li key={href}>
-                <a href={href}>
-                  <span className={`ix-thumb${arte ? ` ix-thumb-arte ix-thumb-${arte}` : ''}`}>
-                    <img src={img} alt="" loading="lazy" decoding="async" />
-                  </span>
-                  <b>{t(nome)}</b>
-                  <small>{t(texto)}</small>
-                  <span className="np-destaque-seta" aria-hidden="true">{SETA}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
-
         <CentralComunidade partidas={numeros.partidas} ranking={numeros.ranking} />
 
         {/* LETREIRO */}
@@ -358,20 +245,6 @@ export default function Inicio() {
           </div>
         </section>
 
-        {/* COMO TRABALHAMOS: quatro colunas */}
-        <section className="ix-banda ix-banda-colunas" id="principios">
-          <div className="wrap">
-            <h2 className="ix-titulo-linha">{t('O que guia cada projeto')}</h2>
-            <ol className="ix-principios">
-              {PRINCIPIOS.map(([, titulo, texto], i) => (
-                <li key={titulo} className="reveal" style={{ '--d': `${i * 0.07}s` }}>
-                  <h3>{t(titulo)}</h3>
-                  <p>{t(texto)}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
 
       </main>
     </Layout>

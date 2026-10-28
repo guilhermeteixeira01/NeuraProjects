@@ -1,3 +1,4 @@
+import IconeUI from '../../comum/IconeUI.jsx'
 // Lobby: avisos do CS2 no topo da página (atualização do jogo e servidor em manutenção) e o painel de status do servidor.
 // Dados: worker GET /status/cs2 (src/status-cs2.js): { atualizacao: {titulo, data, url, gid} | null, servidor: {online, atualizando} }
 import { useState, useSyncExternalStore } from 'react'
@@ -94,12 +95,7 @@ export function AvisosCs2({ status }) {
   )
 }
 
-const IconeInfo = () => (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 11v5M12 8h.01" strokeLinecap="round" />
-  </svg>
-)
+const IconeInfo = () => <IconeUI tipo="info" tamanho={18}/>
 
 // Bandeiras desenhadas aqui mesmo (o Windows não mostra bandeiras em emoji)
 function Bandeira({ pais }) {
@@ -153,9 +149,6 @@ export function PainelServidor({ status }) {
   const rotulo = { online: 'Online', offline: 'Offline', manutencao: 'Em manutenção', desconhecido: 'Verificando…', indisponivel: 'Consulta indisponível' }[estado]
   return (
     <div className="lb-servidor-status">
-      <div className={`lb-estado lb-estado-${estado}`} role="status">
-        <i aria-hidden="true" /> <b>{t(rotulo)}</b>
-      </div>
       {estado === 'offline' && <p>{t('Servidor indisponível no momento.')}</p>}
       {estado === 'indisponivel' && <p>{t('Não foi possível confirmar o status do servidor. Tentando novamente.')}</p>}
       {estado === 'indisponivel' && <button type="button" className="lb-btn" onClick={atualizar}>{t('Verificar novamente')}</button>}
@@ -164,7 +157,7 @@ export function PainelServidor({ status }) {
           <li key={id} className={ativa ? `ativa lb-reg-${estado}` : 'em-breve'} title={ativa ? t(rotulo) : t('Em breve')}>
             <Bandeira pais={id} />
             <b>{nome}</b>
-            <small>{ativa ? t(rotulo) : t('Em breve')}</small>
+            <small role={ativa ? 'status' : undefined}>{ativa ? t(rotulo) : t('Em breve')}</small>
           </li>
         ))}
       </ul>

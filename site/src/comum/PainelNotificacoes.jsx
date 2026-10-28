@@ -1,3 +1,4 @@
+import IconeUI from './IconeUI.jsx'
 // Sino de notificações (barra da direita; no celular, na barra de cima): junta num painel só o que precisa de resposta
 // (convite para entrar no lobby, pedido de amizade) e o histórico do que já passou (partida nova, nível).
 // Os convites vêm do servidor, então quem não viu na hora encontra aqui. O painel usa o mesmo visual do de amigos.
@@ -14,14 +15,7 @@ import { miniaturaInsignia } from './insignias.js'
 import { useT } from './i18n.js'
 import { lerCaixasPublicas } from './loja.js'
 
-export function IconeSino({ tamanho = 20 }) {
-  return (
-    <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M6 9a6 6 0 1 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z" />
-      <path d="M10 20a2 2 0 0 0 4 0" />
-    </svg>
-  )
-}
+export function IconeSino({ tamanho = 20 }) { return <IconeUI tipo="sino" tamanho={tamanho}/> }
 
 function Foto({ p }) {
   const src = useAvatar(p.id, p.avatar)

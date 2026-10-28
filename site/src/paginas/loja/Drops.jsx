@@ -1,3 +1,4 @@
+import IconeUI from '../../comum/IconeUI.jsx'
 // Carrossel de drops ao vivo no topo da loja: o que os jogadores estão ganhando nas caixas (worker: GET /loja/drops, src/mercado.js).
 // Três botões à esquerda: relógio = tudo, na hora; joinha = drops bons (Épico para cima); estrela = os mais valiosos das últimas 24 h, só vermelhos (Lendário) e Item Raro Especial.
 // A lista pergunta ao worker a cada poucos segundos; o drop novo entra pela esquerda e empurra os outros. Passar o mouse mostra quem ganhou.
@@ -124,9 +125,7 @@ export default function Drops({ achar }) {
             <li key={x.id} className={novos.has(x.id) ? 'is-novo' : ''}>
               <a className="lj-tile" href={`/perfil/?id=${x.quem}`} style={{ '--cor': cor }} title={`${x.nome || t('Jogador')} · ${it.nome}${it.enfeite ? '' : ` | ${it.skin}`}`}>
                 <span className="lj-tile-arma">{it.img ? <img src={it.img} alt="" loading="lazy" draggable="false" /> : <span className="inv-sem-img" />}</span>
-                <svg className="lj-tile-origem" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-label={t('Aberto numa caixa')}>
-                  <path d="M3 7h18v4H3zM5 11v9h14v-9M10 15h4" />
-                </svg>
+                <IconeUI tipo="caixa" tamanho={14} className="lj-tile-origem"/>
                 <span className="lj-tile-nome">{it.enfeite ? it.nome : it.skin || it.nome}</span>
                 {/* passar o mouse: quem ganhou */}
                 <span className="lj-tile-quem">

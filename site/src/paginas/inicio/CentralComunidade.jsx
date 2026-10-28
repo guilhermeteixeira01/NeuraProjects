@@ -1,3 +1,6 @@
+import PartidaRecente from './PartidaRecente.jsx'
+import IconeUI from '../../comum/IconeUI.jsx'
+import PremiosDiarios from './PremiosDiarios.jsx'
 import { useEffect, useRef, useState } from 'react'
 import { useConta, entrar, linkPerfil } from '../../comum/conta.js'
 import { lerCaixasPublicas, lerDrops, useSaldo } from '../../comum/loja.js'
@@ -30,25 +33,8 @@ export default function CentralComunidade({ partidas, ranking }) {
   const caixa = caixas[indice] || caixas[0]
   const numero = (v) => Number(v || 0).toLocaleString(t.idioma || 'pt-BR')
   return <section className="wrap np-central" ref={raiz}>
-    <section className="np-painel-partidas">
-      <header className="np-bloco-cab"><h2>{t('Últimas partidas')}</h2><a href="/partidas/">{t('Ver todas')} →</a></header>
-      <div className="np-recentes">
-        {lista.map(p=><a className="np-recente" key={p.caminho || p.nome} href={'/partidas/'+String(p.caminho||p.nome).split('/').map(encodeURIComponent).join('/')+'/'}>
-          {getMap(p.mapa) && <img src={mapImage(p.mapa)} alt="" loading="lazy" width="480" height="270" />}
-          <div><b>{nomeMapa(p.mapa)}</b><small>{p.data}</small></div>
-          <span className="np-recente-placar"><span title={p.timeA}>{p.timeA}</span><strong className={p.placarA>p.placarB?'venceu':''}>{p.placarA}</strong><i>:</i><strong className={p.placarB>p.placarA?'venceu':''}>{p.placarB}</strong><span title={p.timeB}>{p.timeB}</span></span>
-          <small className="np-recente-serie">{p.serie || 'CS2 · 5v5'}</small>
-        </a>)}
-        {!lista.length && <p className="np-central-vazio">{t('As partidas registradas aparecem aqui.')}</p>}
-      </div>
-    </section>
     <div className="np-central-grade">
-      <aside className="np-jogador-painel">
-        <div className="np-jogador-quem"><img src={conta?.avatar || '/assets/logos/logo-np-64.png'} alt="" width="48" height="48" /><span><small>{t('Bem-vindo à comunidade')}</small><b>{conta?.nome || 'Neura Project'}</b></span></div>
-        <div className="np-pontos-painel"><small>{t('Neura Pontos')}</small><b>{conta ? saldo == null ? '…' : numero(saldo) : '—'}</b><span>{t('Seu saldo para usar na loja')}</span></div>
-        {conta ? <a className="btn btn-primary" href={linkPerfil(conta.id)}>{t('Ver perfil')} →</a> : <button className="btn btn-primary" onClick={entrar}>{t('Entrar')}</button>}
-        <a href="/inventario/">{t('Meu inventário')} →</a><a href="/equipes/">{t('Times')} →</a>
-      </aside>
+      <PremiosDiarios ativo={visivel} />
       <section className="np-destaques-painel">
         <header className="np-bloco-cab"><h2>{t('Destaques da comunidade')}</h2></header>
         <a className="np-destaque-jogador" href={destaque ? linkPerfil(destaque.steamId || destaque.id) : '/ranking/'}><span className="np-destaque-emblema">★</span><span><small>{t('Maior rating do ranking')}</small><b>{destaque?.nome || t('Ranking')}</b><small>{destaque ? `${numero(destaque.kills)} kills` : t('Acompanhe a evolução dos jogadores')}</small></span>{destaque && <strong>{destaque.rating.toFixed(2)}</strong>}</a>
@@ -60,5 +46,12 @@ export default function CentralComunidade({ partidas, ranking }) {
         {caixa ? <><div className="np-caixa-hero"><img src={caixa.img} alt={caixa.nome} width="220" height="220" loading="lazy" /><span><h3>{caixa.nome}</h3><p>{t('Explore o conteúdo e as chances de cada caixa.')}</p><a className="btn btn-primary" href={'/loja/?caixa='+encodeURIComponent(caixa.slug)}>{t('Ver caixa')} →</a></span></div><div className="np-caixa-seletor">{caixas.map((c,i)=><button key={c.id} aria-label={c.nome} aria-pressed={i===indice} onClick={()=>setIndice(i)}><img src={c.img} alt="" loading="lazy" width="54" height="54" /></button>)}</div></> : <a className="np-central-vazio" href="/loja/">{t('Explorar caixas na loja')} →</a>}
       </section>
     </div>
+    <section className="np-painel-partidas">
+      <header className="np-bloco-cab"><h2><IconeUI tipo="espadas" tamanho={18}/>{t('Últimas partidas')}</h2><a href="/partidas/">{t('Ver todas')} →</a></header>
+      <div className="np-recentes">
+        {lista.map(p=><PartidaRecente key={p.caminho || p.nome} partida={p} ativo={visivel} />)}
+        {!lista.length && <p className="np-central-vazio">{t('As partidas registradas aparecem aqui.')}</p>}
+      </div>
+    </section>
   </section>
 }

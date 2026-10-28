@@ -13,8 +13,10 @@
 .ig-categorias button:focus-visible { outline:2px solid #80b7ff; outline-offset:3px; }
 .ig-resultado { margin:18px 0; font-size:12px; color:var(--dim); }
 .ig-grade { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:20px; }
-.ig-card { --reflexo-x:25%; --reflexo-y:0%; position:relative; isolation:isolate; overflow:hidden; display:flex; flex-direction:column; min-width:0; border:1px solid #343943; border-radius:14px; background:linear-gradient(155deg,#242930,#14171c 65%); box-shadow:inset 0 1px 0 #ffffff12; transition:transform .25s,border-color .25s,box-shadow .25s; }
-.ig-card::after { content:''; position:absolute; inset:0; z-index:2; pointer-events:none; border-radius:inherit; background:radial-gradient(ellipse at var(--reflexo-x) var(--reflexo-y),#ffffff24,transparent 55%),linear-gradient(120deg,transparent 20%,#ffffff07 36%,#ffffff15 37%,transparent 54%); opacity:.65; transition:opacity .25s; }
+.ig-card { position:relative; isolation:isolate; overflow:hidden; display:flex; flex-direction:column; min-width:0; border:1px solid #343943; border-radius:14px; background:linear-gradient(155deg,#242930,#14171c 65%); box-shadow:inset 0 1px 0 #ffffff12; transition:transform .25s,border-color .25s,box-shadow .25s; }
+.ig-card::before { content:''; position:absolute; inset:-20% 0; z-index:3; pointer-events:none; background:linear-gradient(90deg,transparent 20%,#ffffff05 35%,#ffffff38 50%,#cce5ff12 60%,transparent 80%); transform:translateX(-160%) skewX(-18deg); animation:ig-brilho-passando 6s ease-in-out infinite; }
+@keyframes ig-brilho-passando { 0%,55% { transform:translateX(-160%) skewX(-18deg); } 90%,100% { transform:translateX(160%) skewX(-18deg); } }
+html[data-desempenho='1'] .ig-card::before { animation:none; content:none; }
 .ig-card-arte { display:grid; place-items:center; min-height:210px; padding:22px 24px 8px; background:radial-gradient(ellipse at 50% 60%,color-mix(in srgb,var(--ins-cor) 13%,transparent),transparent 65%); }
 .ig-card-arte img { width:100%; height:185px; object-fit:contain; filter:drop-shadow(0 12px 14px #0006); transition:transform .3s; }
 .ig-card-texto { padding:12px 22px 22px; flex:1; }
@@ -23,7 +25,7 @@
 .ig-card p { color:#adb5c3; font-size:13px; line-height:1.6; margin:0; }
 .ig-card footer { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; padding:15px 22px; border-top:1px solid #ffffff0b; font-size:11px; color:#8c98a9; }
 .ig-conquistada { color:#96ceb1; }
-@media(hover:hover) and (prefers-reduced-motion:no-preference) { .ig-card:hover { transform:translateY(-5px); border-color:#6381a5; box-shadow:0 18px 35px -20px #000a; } .ig-card:hover::after { opacity:1; } .ig-card:hover img { transform:scale(1.055); } }
+@media(hover:hover) and (prefers-reduced-motion:no-preference) { .ig-card:hover { transform:translateY(-5px); border-color:#6381a5; box-shadow:0 18px 35px -20px #000a; } .ig-card:hover img { transform:scale(1.055); } }
 .ig-vazio { padding:64px 24px; text-align:center; border:1px dashed #343943; border-radius:12px; }
 .ig-vazio h3 { margin:0 0 10px; font-size:20px; }
 .ig-vazio p { color:var(--dim); margin:0; font-size:14px; }
@@ -32,4 +34,4 @@
 .pf-sem-conquistas .ig-privado { display:block; padding:32px 0; color:var(--dim); }
 @media(max-width:600px) { .ig-pagina { padding-top:24px; } .ig-cabecalho { gap:12px; } .ig-total b { font-size:30px; } .ig-categorias { gap:6px; } .ig-categorias button { padding:10px; gap:8px; font-size:12px; } .ig-grade { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; } .ig-card-arte { min-height:145px; padding:15px 8px 0; } .ig-card-arte img { height:130px; } .ig-card-texto { padding:12px; } .ig-card h3 { font-size:17px; } .ig-card p { font-size:12px; line-height:1.5; } .ig-card footer { padding:12px; font-size:10px; } }
 @media(max-width:350px) { .ig-grade { grid-template-columns:1fr; } }
-@media(prefers-reduced-motion:reduce) { .ig-card,.ig-card::after,.ig-card img { transition:none; } }
+@media(prefers-reduced-motion:reduce) { .ig-card,.ig-card img { transition:none; } .ig-card::before { animation:none; content:none; } }

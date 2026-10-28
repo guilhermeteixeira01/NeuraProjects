@@ -1,0 +1,8 @@
+### Error
+SyntaxError: Unexpected token ','
+    at eval (eval at evaluate (:368:30), <anonymous>:2:38)
+    at UtilityScript.evaluate (<anonymous>:370:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+### Page
+- Page URL: http://127.0.0.1:5174/loja/?caixa=caixa-diaria
+- Page Title: Loja de caixas — Neura Project

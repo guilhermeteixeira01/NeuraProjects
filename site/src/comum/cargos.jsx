@@ -1,3 +1,4 @@
+import IconeUI from './IconeUI.jsx'
 // Ícones do selo dos cargos (Premium, VIP...): o admin escolhe um por cargo (aba Cargos). Estilo geométrico/futurista:
 // cantos retos, recortes vazados (par: evenodd) e alguns detalhes em traço (l). 24x24, na cor do cargo.
 // A lista de nomes também está no worker (ICONES_CARGO), que só aceita estes.
@@ -20,11 +21,5 @@ export const ICONES_CARGO = {
 
 // Desenho do ícone do cargo (sem ícone salvo ou ícone desconhecido: coroa, o de antes)
 export function IconeCargo({ icone, tamanho = 12, className, style }) {
-  const i = ICONES_CARGO[icone] || ICONES_CARGO.coroa
-  return (
-    <svg className={className} style={style} width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d={i.d} fillRule={i.par ? 'evenodd' : undefined} />
-      {i.l && <path d={i.l} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" strokeLinejoin="miter" />}
-    </svg>
-  )
+  return <IconeUI tipo={ICONES_CARGO[icone] ? icone : 'coroa'} tamanho={tamanho} className={className} style={style}/>
 }

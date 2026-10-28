@@ -210,16 +210,16 @@ test('toda insígnia do catálogo tem arte tratada e todas as secretas têm a ve
 
 test('as caixas iniciais são válidas (imagem existe, tem de tudo, pesos > 0)', () => {
   const dir = new URL('../../../public/assets/caixas/web/', import.meta.url)
-  assert.equal(CAIXAS.length, 129)
-  assert.equal(CAIXAS.filter((c) => c.arquivada).length, 0) // as 31 antigas foram apagadas (revisão 11)
+  assert.equal(CAIXAS.length, 130)
+  assert.equal(CAIXAS.filter((c) => c.arquivada && !c.diaria).length, 0) // as 31 antigas foram apagadas (revisão 11)
   const removidas = JSON.parse(fs.readFileSync(new URL('../src/caixas-removidas.json', import.meta.url), 'utf8'))
   assert.equal(removidas.length, 101)
   assert.ok(CAIXAS.every((c) => !removidas.includes(c.slug)))
   assert.equal(new Set(CAIXAS.map((c) => c.id)).size, CAIXAS.length)
   assert.equal(new Set(CAIXAS.map((c) => c.slug)).size, CAIXAS.length)
   for (const c of CAIXAS) {
-    assert.ok(fs.existsSync(new URL(`${c.slug}.webp`, dir)), c.slug)
-    assert.ok(c.preco > 0)
+    assert.ok(fs.existsSync(c.diaria ? new URL(`../../../public${c.img}`, import.meta.url) : new URL(`${c.slug}.webp`, dir)), c.slug)
+    assert.ok(c.diaria ? c.preco === 0 && c.arquivada : c.preco > 0)
     if (c.itens.every((x) => !x.t)) assert.ok(c.facas.length >= 5, c.slug + ' sem facas do tier especial') // caixas de arma
     else assert.equal(c.facas.length, 0) // facas e amuletos: sem tier de facas
     for (const r of [0, 1, 2, 3, 4]) assert.ok(c.itens.some((x) => x.r === r), `${c.slug} sem raridade ${r}`)

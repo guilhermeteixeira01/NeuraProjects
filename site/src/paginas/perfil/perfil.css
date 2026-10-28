@@ -1075,3 +1075,37 @@ html.sm-aberto { overflow: hidden; }
 .pf-inv-quem > b { line-height: 1.25; padding: 1px 0 2px; flex: none; }
 .pf-inv-quem > .pf-inv-rot, .pf-inv-quem > small { flex: none; }
 .pf-inv-item-qtd { color: rgb(255 255 255 / .75); font-size: 12px; letter-spacing: 0; }
+
+.sm-grade-fundos { display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;padding:16px; }
+.sm-fundo-mapa { position:relative;overflow:hidden;aspect-ratio:16/10;padding:0;border:2px solid transparent;border-radius:10px;background:#11151b;color:#fff;cursor:pointer; }
+.sm-fundo-mapa img { width:100%;height:100%;object-fit:cover;transition:transform .2s; }
+.sm-fundo-mapa span { position:absolute;inset:auto 0 0;padding:24px 12px 12px;background:linear-gradient(transparent,#080a0fee);text-align:left;font-weight:700; }
+.sm-fundo-mapa.sel { border-color:var(--blue-2,#3498db); }
+.sm-fundo-mapa:hover img { transform:scale(1.04); }
+.sm-previa-fundo { position:relative;overflow:hidden;border-radius:10px;aspect-ratio:16/10;flex:none; }
+.sm-previa-fundo img { width:100%;height:100%;object-fit:cover; }
+.sm-previa-fundo b { position:absolute;bottom:10px;left:12px;text-shadow:0 1px 4px #000; }
+.sm-abas button { min-width:0;letter-spacing:.5px; }
+@media(max-width:600px) { .sm-abas button { padding:8px 5px;font-size:11px; } .sm-grade-fundos { grid-template-columns:repeat(2,minmax(0,1fr));padding:12px;gap:8px; } }
+
+/* Cabeçalho e ações fixos; só as listas e a coluna da prévia rolam. */
+.sm-painel { box-sizing:border-box; }
+.sm-cab,.sm-rodape { flex-shrink:0;position:relative;z-index:2; }
+.sm-corpo { overflow:hidden; }
+.sm-lista { overflow:hidden; }
+.sm-previa { min-height:0;min-width:0;overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box; }
+.sm-previa-card,.sm-previa-fundo,.sm-resumo { flex-shrink:0;box-sizing:border-box; }
+.sm-previa-fundo { width:100%; }
+.sm-grade-fundos { flex:none;min-height:min-content;padding-inline:0; }
+.sm-previa-mapa { justify-content:flex-start; }
+.sm-previa-mapa .sm-resumo { margin-top:0; }
+@media(max-width:720px) {
+ .sm-previa { max-height:190px; }
+ .sm-previa>.sm-previa-fundo { grid-column:1;grid-row:1;width:104px;align-self:center; }
+ .sm-previa-mapa .sm-resumo { grid-column:2;grid-row:1; }
+ .sm-previa-mapa .sm-resumo-linha:not(.ativa) { display:none; }
+ .sm-rodape { flex-wrap:wrap; }
+ .sm-msg:empty { display:none; }
+}
+
+.sm-fundo { z-index:1200; }

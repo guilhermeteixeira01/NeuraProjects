@@ -1,3 +1,4 @@
+import IconeUI from './IconeUI.jsx'
 // Cartão de um item do inventário de skins (o mesmo do /inventario/ e da aba Skins do painel admin): arma sobre fundo transparente com a barra
 // da raridade, bolinhas dos times em que está equipada, StatTrak, chaveiro e adesivos no canto de baixo, nome, skin e desgaste.
 // item: { t, d, p, f, st, n, a, k, __id }   equip: { ct: {chave: id}, tr: {...} }   adesivos/chaveiros: Map(id do jogo -> linha do catálogo)
@@ -21,10 +22,7 @@ export function SeloPadrao({ item, classe = '' }) {
   if (!pr) return null
   return (
     <span className={`inv-gema inv-gema-${pr.tier} ${classe}`} title={`${pr.nome} · ${t('Padrão')} ${pr.seed} · ×${pr.mult}`}>
-      <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
-        <path d="M6 3h12l4 6-10 12L2 9z" fill="currentColor" opacity=".9" />
-        <path d="M2 9h20M9 3 7 9l5 12M15 3l2 6-5 12" fill="none" stroke="#fff" strokeOpacity=".55" strokeWidth="1" />
-      </svg>
+      <IconeUI tipo="gema" tamanho={13}/>
       <b>{pr.curto}</b>
     </span>
   )
@@ -38,10 +36,7 @@ export function GemaNome({ item }) {
   const dica = `${pr.curto} · ${t('Padrão')} ${pr.seed} · ×${pr.mult}`
   return (
     <span className={`inv-gema-i inv-gema-${pr.tier}`} data-dica={dica} role="img" aria-label={dica} tabIndex={0}>
-      <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
-        <path d="M6 3h12l4 6-10 12L2 9z" fill="currentColor" opacity=".92" />
-        <path d="M2 9h20M9 3 7 9l5 12M15 3l2 6-5 12" fill="none" stroke="#fff" strokeOpacity=".55" strokeWidth="1" />
-      </svg>
+      <IconeUI tipo="gema" tamanho={13}/>
     </span>
   )
 }

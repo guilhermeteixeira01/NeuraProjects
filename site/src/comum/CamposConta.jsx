@@ -1,3 +1,4 @@
+import IconeUI from './IconeUI.jsx'
 // Campos da conta com validação ao vivo, no jeito de aplicativo:
 //   CampoNick:  confere o formato e as palavras impróprias na hora (no próprio navegador) e, parado de digitar, pergunta ao worker se o
 //               apelido está livre (spinner → ✓ verde ou ✕ vermelho com o motivo). O botão só libera com o ✓.
@@ -41,17 +42,11 @@ function IconeEstado({ tipo }) {
   if (tipo === 'conferindo') return <i className="cc-spin" aria-hidden="true" />
   if (tipo === 'ok')
     return (
-      <svg className="cc-ico cc-ico-ok" viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="12" cy="12" r="10" />
-        <path d="m7 12.5 3.2 3.2L17 9" />
-      </svg>
+      <IconeUI tipo="check" tamanho={18} className="cc-ico cc-ico-ok"/>
     )
   if (tipo === 'erro')
     return (
-      <svg className="cc-ico cc-ico-erro" viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="12" cy="12" r="10" />
-        <path d="m8.5 8.5 7 7m0-7-7 7" />
-      </svg>
+      <IconeUI tipo="fechar" tamanho={18} className="cc-ico cc-ico-erro"/>
     )
   return null
 }
@@ -102,14 +97,9 @@ const NOMES_FORCA = ['Muito fraca', 'Fraca', 'Razoável', 'Boa', 'Forte']
 
 function Olho({ aberto }) {
   return aberto ? (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
+    <IconeUI tipo="olho" tamanho={18}/>
   ) : (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M3 3l18 18M10.6 6.1A9.8 9.8 0 0 1 12 6c6.4 0 10 6 10 6a17 17 0 0 1-3.2 3.9M6.6 6.6C3.7 8.4 2 12 2 12s3.6 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2" />
-    </svg>
+    <IconeUI tipo="ocultar" tamanho={18}/>
   )
 }
 
@@ -152,9 +142,7 @@ export function CampoSenha({ valor, aoMudar, rotulo, autoFocus = false, medidor 
             {a.req.map(([id, ok, texto]) => (
               <li key={id} className={ok ? 'ok' : ''}>
                 <i aria-hidden="true">
-                  <svg viewBox="0 0 24 24">
-                    <path d="m6 12.5 4 4L18 8" />
-                  </svg>
+                  <IconeUI tipo="check" tamanho={18}/>
                 </i>
                 {t(texto)}
               </li>

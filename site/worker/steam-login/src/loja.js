@@ -49,6 +49,7 @@ import { enderecoDoSite, pontosGanhos } from './ranking.js'
 import { registrar } from './registro.js'
 import { lerSkinsKv, limparSkins, novoIdItem, tirarItem } from './skins.js'
 import { valorDe, valoresDe } from './valor.js'
+import { diarioDoJogador } from './diario.js'
 
 const ID_STEAM = /^\d{17}$/
 const ITENS_MAX = 2000
@@ -233,7 +234,7 @@ async function partidasPremium(env, id) {
 
 // Ações que mexem no saldo ou mostram o saldo: antes delas entram os bônus para todos e o bônus Premium de partida
 const COM_SALDO = new Set(['saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir', 'vender', 'mercado-comprar', 'dep-creditar', 'cobrar'])
-const COM_CAIXAS = new Set(['estado', 'comprar', 'abrir'])
+const COM_CAIXAS = new Set(['estado', 'comprar', 'abrir', 'diario', 'diario-pontos', 'diario-caixa'])
 const novaNotif = (id, titulo, texto, link, extra = {}) => ({ id, titulo, texto, link, quando: Date.now(), lida: false, ...extra })
 
 // ── Durable Object do jogador ──
@@ -433,7 +434,7 @@ export class Loja {
     const [pontos, bonus, premium] = await Promise.all([pontosGanhos(this.env, id), lerDoc(this.env, 'loja-bonus', []), partidasPremium(this.env, id)])
     await this.aplicarBonus(id, bonus)
     await this.aplicarPremium(premium, id)
-    return pontos + ((await this.ctx.storage.get('afiliado-np')) || 0)
+    return pontos + ((await this.ctx.storage.get('afiliado-np')) || 0) + ((await this.ctx.storage.get('diario-np')) || 0)
   }
 
   async acao(p) {
@@ -442,6 +443,10 @@ export class Loja {
     const pontos = COM_SALDO.has(acao) ? await this.prepararSaldo(id) : 0
     const saldo = () => pontos - this.gastos()
     switch (acao) {
+      case 'diario':
+      case 'diario-pontos':
+      case 'diario-caixa':
+        return diarioDoJogador(this, id, acao, caixas)
       case 'missoes-sinc':
         return sincronizarMissoes(this,id,p.partidas||[],!!p.historico,Date.now(),p.acesso===true)
       case 'afiliado-recompensar':
@@ -596,7 +601,7 @@ export class Loja {
     // confere agora (cura insígnia que ficou sem gravar por falha antes) e devolve as ganhas; a rota grava no perfil o que faltar
     const { ganhas, progresso } = await this.conferirInsignias(caixas, fechadasPor)
     // à venda: ativas e não arquivadas; as arquivadas aparecem (marcadas foraDeVenda) só para quem tem uma fechada, para poder abrir
-    const ativas = caixas.filter((c) => c.ativa && (!c.arquivada || fechadasPor[c.id] > 0)).map((c) => (c.arquivada ? { ...c, foraDeVenda: true } : c))
+    const ativas = caixas.filter((c) => c.ativa && (!c.arquivada || c.diaria || fechadasPor[c.id] > 0)).map((c) => (c.arquivada ? { ...c, foraDeVenda: true } : c))
     return {
       ganhas,
       saldo: pontos - this.gastos(),
@@ -813,6 +818,7 @@ export async function rotaLojaPublica(env, cors, ctx) {
 }
 
 const ROTAS_LOJA = { 'GET /loja': 'estado', 'GET /loja/saldo': 'saldo', 'GET /loja/valores': 'valores', 'POST /loja/vender': 'vender', 'GET /loja/historico': 'historico', 'POST /loja/comprar': 'comprar', 'POST /loja/abrir': 'abrir' }
+Object.assign(ROTAS_LOJA, { 'GET /loja/diario': 'diario', 'POST /loja/diario/pontos': 'diario-pontos', 'POST /loja/diario/caixa': 'diario-caixa' })
 
 export async function rotaLoja(req, env, quem, cors, rota) {
   // Página de uma caixa (não precisa do objeto do jogador): desgastes com valor e chance, e os modos Jester/Boost

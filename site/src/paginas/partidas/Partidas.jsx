@@ -1,3 +1,4 @@
+import IconeUI from '../../comum/IconeUI.jsx'
 import { useEffect, useState } from 'react'
 import CarregandoPontos from '../../comum/Carregando.jsx'
 import Layout from '../../comum/Layout.jsx'
@@ -166,16 +167,12 @@ function BlocoSerie({ b, i, agora }) {
         <span className="serie-tag">{nomeCat(cat, t.idioma)}</span>
         {cancelada ? (
           <span className="serie-status cancelada">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M18 6 6 18M6 6l12 12" />
-            </svg>
+            <IconeUI tipo="fechar" tamanho={11}/>
             {t('CANCELADA')}
           </span>
         ) : acabou ? (
           <span className="serie-status fim">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M20 6 9 17l-5-5" />
-            </svg>
+            <IconeUI tipo="check" tamanho={11}/>
             {t('FINALIZADO')}
           </span>
         ) : iniciando ? (

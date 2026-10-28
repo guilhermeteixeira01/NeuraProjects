@@ -1,7 +1,7 @@
 /* Capa independente do painel: o avatar permanece inteiro sobre a borda. */
 .pf-hall-pagina { position: relative; isolation: isolate; padding-top: 0; }
 .pf-cover { position: absolute; z-index: -1; inset: 0 0 auto; height: 310px; overflow: hidden; pointer-events: none; }
-.pf-cover::before { content: ''; position: absolute; inset: -8px; background-image: var(--pf-cover, url('/neurapick/maps/mirage.jpg')); background-size: cover; background-position: center 42%; filter: blur(4px); opacity: .62; }
+.pf-cover::before { content: ''; position: absolute; inset: 0; background-image: var(--pf-cover, url('/neurapick/maps/mirage.jpg')); background-size: cover; background-position: center 42%; filter: none; opacity: .62; }
 .pf-cover::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgb(11 13 16 / .12), rgb(11 13 16 / .35) 38%, var(--bg, #0b0d10) 100%); }
 .pf-header-wrap { padding-top: 190px; margin-bottom: 28px; }
 .pf-profile-header { position: relative; max-width: 1180px; margin-inline: auto; border: 1px solid #292c32; border-radius: 16px; background: #101216; box-shadow: 0 14px 32px rgb(0 0 0 / .18); }
@@ -54,3 +54,7 @@
   .pf-profile-nav > :is(button,a) { flex: 1 0 28%; min-height: 42px; padding: 9px 7px; gap: 6px; font-size: 9px; letter-spacing: .035em; }
   .pf-profile-nav > :last-child { flex-grow: 2; }
 }
+.pf-inventario-pagina { padding-block:24px 48px; }
+.pf-inventario-cabecalho { display:flex; align-items:center; justify-content:space-between; gap:16px; padding-bottom:20px; }
+.pf-inventario-cabecalho h2 { font:700 28px/1.15 var(--font-display); margin:0 0 6px; }
+.pf-inventario-cabecalho p { color:var(--dim); margin:0; font-size:13px; }

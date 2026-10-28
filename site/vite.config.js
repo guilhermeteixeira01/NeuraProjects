@@ -138,7 +138,7 @@ function imagensDaPasta(id, subpasta, { recursivo = false, ignorar = [], animada
 export default defineConfig({
   plugins: [react(), dadosNoDev(), imagensDaPasta('virtual:selos-equipe', 'selos-equipe'), imagensDaPasta('virtual:cards-perfil', 'cards', { recursivo: true, ignorar: ['mini', 'med', 'parado'], animadas: true }), imagensDaPasta('virtual:cards-mini', 'cards/mini', { recursivo: true }), imagensDaPasta('virtual:cards-med', 'cards/med', { recursivo: true })],
   // O servidor de desenvolvimento não vigia as pastas de build: rodar `npm run build` com ele aberto derrubava o Vite (EBUSY no Windows)
-  server: { watch: { ignored: ['**/dist/**', '**/dist-ssr/**', '**/dist-final/**', '**/worker/**'] } },
+    server: { watch: { ignored: ['**/dist/**', '**/dist-ssr/**', '**/dist-final/**', '**/.wrangler/**'] } },
   build: {
     // Arquivos do React em /static/ (a pasta /assets/ é das imagens e dos dados do site)
     assetsDir: 'static',

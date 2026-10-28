@@ -1,3 +1,4 @@
+import IconeUI from '../../comum/IconeUI.jsx'
 // Times de jogadores: qualquer jogador cria um time (custa NP), vira o dono, escolhe imagem e se é público ou privado, convida gente, cria cargos com permissões
 // e tem um chat só do time. Dados e regras: worker/steam-login/src/equipes.js (aqui só aparece e chama).
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -271,10 +272,7 @@ function ChatDoTime({ time, eu, pode }) {
     <div className="eq-chat">
       <div className="eq-chat-topo">
         <button type="button" className={`eq-sino${mudo ? ' mudo' : ''}`} onClick={() => definirMudoEquipe(!mudo)} aria-pressed={mudo} title={mudo ? t('Som das mensagens do time desligado') : t('Som das mensagens do time ligado')}>
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0" />
-            {mudo && <path d="M3 3l18 18" />}
-          </svg>
+          <IconeUI tipo="sino" tamanho={16}/>
           {mudo ? t('Silenciado') : t('Som ligado')}
         </button>
       </div>

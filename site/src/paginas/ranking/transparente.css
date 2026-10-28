@@ -1,0 +1,15 @@
+/* A página inteira compartilha o fundo fixo azul/amarelo do site. */
+#root .ranking-page,
+#root .ranking-page :is(.hero,.secao,.ranking-arena) { background:transparent; }
+#root .ranking-page :is(.resumo .caixa,.barra-topo,.metricas,.tabela-card,.ranking-self,.ranking-list-heading,.linha,.linha.cab,.pod-info,.pod-baixo,.pod-mini) {
+ background:transparent;box-shadow:none;
+}
+#root .ranking-page :is(.resumo .caixa,.barra-topo,.metricas,.tabela-card,.ranking-self) {
+ border:1px solid #ffffff26;
+}
+#root .ranking-page .linha { border-color:#ffffff1f; }
+#root .ranking-page .linha.eu { border-left:3px solid var(--blue-2); }
+#root .ranking-page .metricas button { background:transparent; }
+#root .ranking-page .metricas button.active { background:transparent;box-shadow:inset 0 0 0 1px var(--blue-2);color:var(--blue-2); }
+#root .ranking-page .ranking-arena::before { mask-image:linear-gradient(180deg,transparent,#000 18%,#000 60%,transparent 94%); }
+#root .ranking-page .ranking-arena::after { background:linear-gradient(90deg,#080a0f55,transparent 28%,transparent 72%,#080a0f55); }

@@ -1,3 +1,5 @@
+import { imagemFundoPerfil } from '../../../worker/steam-login/src/fundos-perfil.js'
+import IconeUI from '../../comum/IconeUI.jsx'
 import PainelMissoes from '../../comum/PainelMissoes.jsx'
 import { useCallback, useEffect, useState } from 'react'
 import { lerApi, seForErroApi, enderecoApi } from '../../comum/api.js'
@@ -557,17 +559,7 @@ function DesempenhoRecente({ mapas, nivel, eu }) {
   )
 }
 
-function IconeCabecalho({ tipo }) {
-  const paths = {
-    perfil: 'M20 21v-2a7 7 0 0 0-14 0v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
-    inventario: 'M6 7h12v14H6zM9 7V4h6v3M9 11h6M9 15h6',
-    amigos: 'M16 21v-2a5 5 0 0 0-10 0v2M11 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M17 4a4 4 0 0 1 0 8M20 21v-2a5 5 0 0 0-3-4',
-    foto: 'M3 7h4l2-3h6l2 3h4v14H3zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
-    ajustes: 'M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
-    compartilhar: 'M8 12l8-5M8 12l8 5M5 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6M19 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6M19 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6',
-  }
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[tipo]} /></svg>
-}
+function IconeCabecalho({ tipo }) { return <IconeUI tipo={tipo} tamanho={18}/> }
 
 function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   const t = useT()
@@ -584,13 +576,6 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
     window.addEventListener('hashchange', atualizar)
     return () => window.removeEventListener('hashchange', atualizar)
   }, [])
-  const abrirFotoPersonalizada = () => {
-    trocarAbaPerfil('status')
-    setTimeout(() => {
-      const editor = document.querySelector('.hf-editar')
-      if (editor) { editor.open = true; editor.scrollIntoView({ behavior: 'smooth', block: 'center' }); editor.querySelector('summary')?.focus({ preventScroll: true }) }
-    }, 0)
-  }
   const compartilharPerfil = async () => {
     try {
       const url = new URL('/perfil/', location.origin)
@@ -601,6 +586,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   }
   const [contaAberta,setContaAberta] = useState(()=>typeof location!=='undefined'&&new URLSearchParams(location.search).get('conta')==='1')
   const nivel = useNivelDe(j)
+  const fundoPerfil = usePerfis()[j.steamId]?.fundoPerfil
   const card = useCardDe(j.steamId) // banner do card (janela Personalizar); some se for exclusivo de cargo que o jogador não tem
   // CS Rating do Premier: vem do ranking (deploy); sem ele (jogador sem partidas, ou deploy sem Leetify),
   // busca direto na Leetify (a API pública aceita chamada do navegador)
@@ -651,7 +637,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   return (
     <>
       <section className="secao pf-pagina pf-hall-pagina">
-        <div className="pf-cover" style={card ? { '--pf-cover': fundoCard(card) } : undefined} aria-hidden="true" />
+        <div className="pf-cover" style={{ '--pf-cover': `url("${imagemFundoPerfil(fundoPerfil)}")` }} aria-hidden="true" />
         <div className="wrap pf-header-wrap">
           <header className="pf-profile-header">
             <div className="pf-profile-row">
@@ -682,7 +668,6 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
               <a href="/ranking/"><SeloNivel nivel={nivel.nivel} tamanho={18} />{t('Ranking')}</a>
               <button type="button" aria-current={abaPerfil === 'amigos' ? 'page' : undefined} onClick={() => trocarAbaPerfil('amigos')}><IconeCabecalho tipo="amigos" />{t('Amigos')}</button>
               {eu && <button type="button" aria-current={abaPerfil === 'afiliado' ? 'page' : undefined} onClick={() => trocarAbaPerfil('afiliado')}><IconeCabecalho tipo="compartilhar" />{t('Afiliado')}</button>}
-              {eu && <button type="button" onClick={abrirFotoPersonalizada}><IconeCabecalho tipo="foto" />{t('Foto personalizada')}</button>}
             </nav>
             <span className="pf-header-feedback" role="status">{linkCopiado}</span>
           </header>
@@ -690,9 +675,9 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
         </div>
         <FundoHero quantidade={10} rastros={false} />
         {/* Estilo FACEIT: cartão do jogador na esquerda (a capa pode virar personalizável no futuro) e as informações no meio */}
-        {abaPerfil === 'insignias' ? <div className="wrap"><GaleriaInsignias steamId={j.steamId} /></div> : abaPerfil === 'missoes' && eu ? <div className="wrap"><PainelMissoes /></div> : abaPerfil === 'amigos' ? <div className="wrap"><AmigosDoPerfil key={j.steamId} id={j.steamId} eu={eu} /></div> : abaPerfil === 'afiliado' && eu ? <div className="wrap"><AfiliadoDoPerfil id={j.steamId} /></div> : <div className="wrap pf-layout">
+        {abaPerfil === 'inventario' ? <div className="wrap pf-inventario-pagina"><PerfilInventario key={j.steamId} steamId={j.steamId} nome={j.nome} abaPerfil="inventario" aoTrocarAba={trocarAbaPerfil} somenteInventario /></div> : abaPerfil === 'insignias' ? <div className="wrap"><GaleriaInsignias steamId={j.steamId} /></div> : abaPerfil === 'missoes' && eu ? <div className="wrap"><PainelMissoes /></div> : abaPerfil === 'amigos' ? <div className="wrap"><AmigosDoPerfil key={j.steamId} id={j.steamId} eu={eu} /></div> : abaPerfil === 'afiliado' && eu ? <div className="wrap"><AfiliadoDoPerfil id={j.steamId} /></div> : <div className="wrap pf-layout">
           <aside className="pf-lado">
-            <HallDaFama j={j} pos={pos} total={total} nivel={nivel} eu={eu}/>
+            <HallDaFama j={j} pos={pos} total={total} nivel={nivel} eu={eu} avatar={<Avatar id={j.steamId} src={j.avatar} nome={j.nome} classe="hf-avatar-imagem" />}/>
             <div className={`pf-cartao fx-entra${card ? ' com-card' : ''}`} style={{ '--e': 1, ...(card ? { backgroundImage: fundoCard(card) } : {}) }}>
               <ComMoldura steamId={j.steamId} emblema>
                 <Avatar id={j.steamId} src={j.avatar} nome={j.nome} classe="pf-av" />
@@ -767,10 +752,7 @@ function TravaLogin({ children }) {
       <div className="pf-trava-aviso" role="dialog" aria-modal="false" aria-labelledby="pf-trava-titulo">
         <div className="pf-trava-cartao">
           <span className="pf-trava-icone" aria-hidden="true">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="4" y="10" width="16" height="11" rx="2.5" />
-              <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-            </svg>
+            <IconeUI tipo="cadeado" tamanho={26}/>
           </span>
           <h2 id="pf-trava-titulo">{t('Entre para ver este perfil')}</h2>
           <p>{t('Estatísticas, histórico de partidas, armas e nível dos jogadores ficam disponíveis para quem entra com a conta Steam.')}</p>

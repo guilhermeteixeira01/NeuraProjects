@@ -1,3 +1,4 @@
+import { FUNDOS_PERFIL } from './fundos-perfil.js'
 import { pedirAoJogador } from './objetos.js'
 /*
  * Rotas do jogador logado sobre a própria conta:
@@ -37,6 +38,10 @@ export function validarPerfil(corpo) {
     const v = typeof corpo[campo] === 'string' ? corpo[campo].trim() : corpo[campo] ?? null
     if (v !== null && (typeof v !== 'string' || !regex.test(v))) throw new ErroPedido(campo)
     mudar[campo] = v
+  }
+  if ('fundoPerfil' in corpo) {
+    if (corpo.fundoPerfil !== null && !FUNDOS_PERFIL.includes(corpo.fundoPerfil)) throw new ErroPedido('fundoPerfil')
+    mudar.fundoPerfil = corpo.fundoPerfil
   }
   formato('moldura', ID_MOLDURA)
   formato('time', NOME_TIME)

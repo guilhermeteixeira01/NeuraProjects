@@ -1,3 +1,4 @@
+import IconeUI from './IconeUI.jsx'
 // Trocas entre jogadores, no estilo das propostas de troca da Steam (worker: src/trocas.js, rotas /trocas).
 //  - useTrocas + AvisoTroca: quantidade pendente, atualização ao vivo e a notificação no sino quando chega uma proposta.
 //  - BotaoTrocas: o botão; as janelas (proposta, escolher jogador, lista) ficam em TrocasJanelas.jsx e só baixam no clique.
@@ -90,9 +91,7 @@ export function BotaoTrocas({ para, classe = 'inv-btn', aoMudouInventario }) {
   return (
     <>
       <button type="button" className={`${classe} tr-botao`} onClick={() => setTela(para ? 'janela' : 'lista')}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7" />
-        </svg>
+        <IconeUI tipo="trocar" tamanho={16}/>
         {para ? t('Propor troca') : t('Trocas')}
         {!para && pendentes > 0 && <b className="tr-contagem">{pendentes}</b>}
       </button>
