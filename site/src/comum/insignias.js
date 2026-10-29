@@ -20,10 +20,11 @@ export const INSIGNIAS = [
 
 // Todas as "Mestre da [Caixa]" usam a mesma arte
 const arteDe = (id) => (ID_MESTRE.test(id) ? 'mestre-da-caixa' : insigniaMissao(id)?.id.replace(/-20\d{2}$/, '') || id)
-export const imagemInsignia = (id) => `/assets/insignia/web/${arteDe(id)}.webp`
+const NOVAS_ARTES_EVENTOS = new Set(["evento-holi", "evento-sao-patricio", "evento-dia-do-rock", "evento-oktoberfest", "evento-dia-dos-mortos", "evento-ano-novo-lunar", "evento-diwali"] )
+export const imagemInsignia = id => NOVAS_ARTES_EVENTOS.has(arteDe(id)) ? `/assets/insignia/eventos-2026/${arteDe(id)}.png` : `/assets/insignia/web/${arteDe(id)}.webp`
 // Miniatura de 128 px (~10 KB) para onde a insígnia aparece pequena (lista de amigos, fileira do perfil); gerada por
 // scripts/gerar-miniaturas.mjs. Se faltar, quem usa cai na imagem grande (onError).
-export const miniaturaInsignia = (id) => `/assets/insignia/mini/${arteDe(id)}.webp`
+export const miniaturaInsignia = id => NOVAS_ARTES_EVENTOS.has(arteDe(id)) ? imagemInsignia(id) : `/assets/insignia/mini/${arteDe(id)}.webp`
 export const insigniaPorId = (id) => INSIGNIAS.find((i) => i.id === id) || insigniaMissao(id) || null
 
 // Insígnias de um jogador, na ordem do catálogo: [{ ...insígnia, desde }]

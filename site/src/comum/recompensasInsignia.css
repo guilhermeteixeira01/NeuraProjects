@@ -1,0 +1,20 @@
+.ins-recompensas { position:relative;z-index:1;border-top:1px solid var(--border);padding-top:12px;margin-top:14px;width:100%; }
+.ins-recompensas h4 { margin:0 0 10px;font-size:11px;color:var(--ui-muted);font-weight:600; }
+.ins-recompensas ul { display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;padding:0;margin:0;list-style:none; }
+.ins-recompensas li { display:flex;align-items:center;gap:8px;min-width:0; }
+.ins-recompensas img { width:44px;height:44px;flex:none;object-fit:contain; }
+.ins-recompensas .ins-recompensa-fundo { object-fit:cover;border-radius:5px; }
+.ins-recompensas span { min-width:0;display:grid;gap:3px; }
+.ins-recompensas b { font-size:10px; }
+.ins-recompensas small { font-size:10px;color:var(--ui-muted);overflow-wrap:anywhere; }
+
+.ins-recompensas-bloqueadas img { filter:grayscale(1);opacity:.35; }
+.ins-recompensas-bloqueadas li span { opacity:.65; }
+.ins-recompensas-liberadas img { filter:none;opacity:1; }
+.ig-card>.ins-recompensas { box-sizing:border-box;width:auto;margin:0 20px 16px; }
+.ms-card .ins-recompensas ul { padding:0;line-height:normal; }
+@media(max-width:600px) { .ig-card>.ins-recompensas { margin-inline:12px; } .ins-recompensas ul { grid-template-columns:minmax(0,1fr); } }
+
+/* Centraliza o conjunto de recompensas nas insígnias já conquistadas. */
+.ig-card .ins-recompensas-liberadas h4 { text-align:center; }
+.ig-card .ins-recompensas-liberadas ul { grid-template-columns:minmax(0,max-content);justify-content:center; }

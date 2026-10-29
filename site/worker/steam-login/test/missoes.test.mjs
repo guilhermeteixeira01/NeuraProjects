@@ -42,9 +42,9 @@ test('retira concessões antecipadas e avisos; entrega no acesso durante o event
   assert.equal((await lerPerfil(f.env,id)).insignias[badge],acesso)
 })
 
-test('todas as 57 artes existem nas versões web e miniatura',()=>{
+test('todas as 64 artes possuem imagem válida para exibição e miniatura',()=>{
   const pasta=new URL('../../../public/assets/insignia/',import.meta.url)
-  for(const m of MISSOES)for(const tamanho of ['web','mini'])assert.ok(fs.statSync(new URL(`${tamanho}/${m.id}.webp`,pasta)).size>0,`${tamanho}/${m.id}`)
+  for(const m of MISSOES)for(const tamanho of ['web','mini'])assert.ok(fs.statSync(fs.existsSync(new URL(`${tamanho}/${m.id}.webp`,pasta)) ? new URL(`${tamanho}/${m.id}.webp`,pasta) : new URL(m.arte,pasta)).size>0,`${tamanho}/${m.id}`)
 })
 
 test('seis demos históricas preservam 133 rounds e participantes confirmados',()=>{
@@ -64,9 +64,9 @@ const agora=Date.parse('2026-10-27T12:00:00Z')
 const partida=(chave='a',mudar={})=>({chave,validada:true,presenteFinal:true,modo:'5v5',mapa:'de_dust2',venceu:false,kills:0,headshots:0,assistencias:0,clutches:0,plantios:0,desarmes:0,melhorRound:0,armas:{},...mudar})
 const obter=(ps,id,c={})=>progressoMissoes(ps,c,agora).lista.find(m=>m.id===id)
 
-test('catálogo tem exatamente 16 missões, 20 eventos e 21 mapas sem IDs repetidos',()=>{
-  assert.equal(new Set(MISSOES.map(m=>m.id)).size,57)
-  for(const [c,n] of [['combate',16],['eventos',20],['mapas',21]])assert.equal(MISSOES.filter(m=>m.categoria===c).length,n)
+test('catálogo tem exatamente 16 missões, 27 eventos e 21 mapas sem IDs repetidos',()=>{
+  assert.equal(new Set(MISSOES.map(m=>m.id)).size,64)
+  for(const [c,n] of [['combate',16],['eventos',27],['mapas',21]])assert.equal(MISSOES.filter(m=>m.categoria===c).length,n)
 })
 test('metas de combate são cumulativas, exclusivas de 5v5 e idempotentes por partida',()=>{
   const casos=[['headshot','headshots',100],['clutch','clutches',10],['ace','melhorRound',5],['demolidor','plantios',25],['desarmador','desarmes',25],['suporte','assistencias',100],['implacavel','kills',1000]]
@@ -116,7 +116,7 @@ test('eventos exigem acesso no período de Brasília, sem exigir partidas ou inv
   assert.equal(obter([],'evento-halloween-2026',cfg).concluida,false)
   assert.equal(obter([],'evento-natal-2026',cfg).concluida,false)
   const r=progressoMissoes([],cfg,agora)
-  assert.ok(r.pendencias.some(p=>p.id==='evento-dia-do-gamer'))
+  assert.ok(!r.pendencias.some(p=>p.id==='evento-dia-do-gamer'))
   assert.equal(obter([],'evento-natal-2026',{eventos:{'evento-natal':{ano:2025,inicio:'2025-01-01T00:00:00Z',fim:'2025-01-02T00:00:00Z'}}}).concluida,false)
 })
 test('resumo rejeita fonte não validada, cancelamento, bots e ausência de participação; vencedor precisa de elenco final',()=>{
@@ -155,7 +155,7 @@ test('API de missões é da própria conta e só admin pode ajustar regras',asyn
   assert.equal((await f.pedir('GET','/missoes')).status,401)
   assert.equal((await f.pedir('POST','/missoes',{quem:id,corpo:{kills:99999}})).status,404)
   assert.equal((await f.pedir('GET','/admin/missoes',{quem:id})).status,403)
-  const p=await f.pedir('GET','/admin/missoes',{quem:DONO});assert.equal(p.status,200);assert.equal(p.dados.catalogo.length,57)
+  const p=await f.pedir('GET','/admin/missoes',{quem:DONO});assert.equal(p.status,200);assert.equal(p.dados.catalogo.length,64)
   assert.equal((await f.pedir('POST','/admin/missoes',{quem:DONO,corpo:{eventos:{'evento-natal':{ano:2026,inicio:'2026-01-02',fim:'2026-01-01'}}}})).status,400)
   assert.equal((await f.pedir('POST','/admin/missoes',{quem:DONO,corpo:{metaMapas:7,mapas:{dust2:{mapa:'de_dust2',modo:'5v5',meta:4}}}})).status,200)
   assert.equal((await f.pedir('POST','/admin/missoes',{quem:DONO,corpo:{eventos:{'evento-ano-novo':{ano:2026,inicio:'2025-12-27T03:00:00Z',fim:'2026-01-07T03:00:00Z'}}}})).status,400)

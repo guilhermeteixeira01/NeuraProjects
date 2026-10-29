@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { chamarApi, lerTextoApi, seForErroApi, enderecoApi } from './api.js'
 import { useConta } from './conta.js'
-import { classeForma, molduraPorId, urlMoldura, urlParada } from './molduras.js'
-import { CONSULTA_CELULAR, EVENTO_DESEMPENHO, desempenhoAtivo } from './desempenho.js'
+import { podeUsarMolduraEvento, estiloFotoMoldura, classeForma, molduraPorId, urlMoldura, urlParada } from './molduras.js'
+import { EVENTO_DESEMPENHO, desempenhoAtivo } from './desempenho.js'
 import { useT } from './i18n.js'
 import { IconeCargo } from './cargos.jsx'
 import { useOrdemRanking } from './ranking.js'
@@ -500,12 +500,12 @@ function useDesempenho() {
   return ligado
 }
 
-// A moldura animada é um APNG de 1 a 10 MB. Para não pesar: celular/tablet, movimento reduzido e "Economia de dados" usam a
-// imagem parada (a miniatura, uns 18 KB). O mesmo vale no computador até a moldura aparecer na tela: só então carrega a animada.
+// Molduras animam também no celular. Movimento reduzido e economia de dados
+// preservam a versão parada; a animação só carrega quando aparece na tela.
 function useSemAnimacao() {
   const [sem, setSem] = useState(false)
   useEffect(() => {
-    const consultas = ['(prefers-reduced-motion: reduce)', CONSULTA_CELULAR].map((q) => window.matchMedia(q))
+    const consultas = ['(prefers-reduced-motion: reduce)'].map((q) => window.matchMedia(q))
     const ler = () => setSem(consultas.some((c) => c.matches) || !!navigator.connection?.saveData)
     ler()
     consultas.forEach((c) => c.addEventListener('change', ler))
@@ -563,7 +563,7 @@ export function ComMoldura({ steamId, children, cheio = false, emblema = true, s
   const daEquipe = steamId === config.equipe?.dono || !!config.equipe?.admins?.includes(steamId)
   const selo = emblema && nivelSub ? <EmblemaSub nivel={nivelSub} parado={semAnimacao} /> : null
   const faltaSub = !daEquipe && semSubMinima(subDaMoldura(config, id), nivelSub) // moldura só de assinantes e o jogador não tem o nível
-  if (soEmblema || !molduraPorId(id) || faltaSub || (exige && !cargos.includes(exige) && !(daEquipe && exige !== '_dono')))
+  if (soEmblema || !podeUsarMolduraEvento(id, perfil) || !molduraPorId(id) || faltaSub || (exige && !cargos.includes(exige) && !(daEquipe && exige !== '_dono')))
     return selo ? (
       <span className={`emblema-box${cheio ? ' cheio' : ''}`}>
         {children}
@@ -573,7 +573,7 @@ export function ComMoldura({ steamId, children, cheio = false, emblema = true, s
       children
     )
   return (
-    <span className={`moldura-box${cheio ? ' cheio' : ''}${classeForma(id)}`}>
+    <span className={`moldura-box${cheio ? ' cheio' : ''}${classeForma(id)}`} style={estiloFotoMoldura(id)}>
       {children}
       <CamadaMoldura id={id} />
       {selo}

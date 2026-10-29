@@ -20,3 +20,17 @@
 .cc-rodape p { font-size: 13px; color: var(--ui-muted); }
 .cc-seguranca { border-top: 1px solid var(--border); padding-top: 24px; margin-top: 24px; max-width: 650px; }
 @media(max-width:650px) { .cc-area { padding: 18px; } .cc-grade { grid-template-columns: minmax(0,1fr); } .cc-privacidade > div { align-items: flex-start; flex-direction: column; } .cc-rodape { flex-direction: column; align-items: stretch; } }
+
+/* Janela da conta no topo da interface, com desfoque restrito ao fundo do modal. */
+.cc-dialog { position:fixed;inset:0;margin:auto;padding:0;width:min(920px,calc(100% - 40px));max-width:none;max-height:calc(100dvh - 48px);border:1px solid var(--border-2);border-radius:16px;color:var(--text);background:var(--np-fundo-painel,#16191f);box-shadow:0 28px 90px #0009;overflow:hidden; }
+.cc-dialog::backdrop { background:rgb(3 6 12 / .68);backdrop-filter:blur(8px)!important;-webkit-backdrop-filter:blur(8px)!important; }
+.cc-dialog .cc-area { margin:0;padding:0 28px 28px;border:0;border-radius:0;background:transparent;max-height:calc(100dvh - 50px);overflow:auto;overscroll-behavior:contain;box-sizing:border-box; }
+.cc-dialog .cc-area>header { position:sticky;top:0;z-index:2;margin:0 -28px 24px;padding:20px 28px;border-bottom:1px solid var(--border);background:var(--np-fundo-painel,#16191f); }
+.cc-dialog .cc-area>header h2 { font-size:22px; }
+.cc-dialog .cc-seguranca { max-width:none; }
+@media(max-width:650px) {
+ .cc-dialog { width:calc(100% - 24px);max-height:calc(100dvh - 32px);border-radius:12px; }
+ .cc-dialog .cc-area { padding:0 16px 20px;max-height:calc(100dvh - 34px); }
+ .cc-dialog .cc-area>header { margin:0 -16px 20px;padding:16px;gap:10px; }
+ .cc-dialog .cc-area>header h2 { font-size:18px; }
+}

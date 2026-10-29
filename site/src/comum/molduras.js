@@ -1,329 +1,812 @@
-// Molduras de avatar (personalização do perfil). Arquivos em public/assets/molduras/<coleção>/<nome>:
-//   .png  = moldura animada (APNG; o avatar ocupa o círculo central, a moldura é 120% dele)
-//   .webp = imagem parada (tamanho original): miniatura da tela de escolha e moldura do modo "Melhorar desempenho"
-// Para adicionar: coloque os dois arquivos na pasta e uma linha aqui (o id é "<coleção>/<nome>").
-// fonte: 'neura' = feitas por nós (ferramentas/molduras/neura.mjs); 'steam' = Loja de Pontos da Steam;
-// 'decor' = Decor (comunidade). Steam e Decor: ferramentas/molduras/baixar.mjs. Pasta solta posta à mão
-// (public/assets/molduras/<Qualquer Nome>/*.gif|png): ferramentas/molduras/importar.mjs organiza e imprime as linhas.
-// forma: 'quadrada' = moldura feita para avatar quadrado (as da Steam); com ela o avatar fica quadrado em todas as
-// páginas. Sem forma = redonda.
-// escala: tamanho da moldura em relação ao avatar (padrão 1.2 = 120%). As quadradas têm a borda de dentro em lugares
-// diferentes: a escala de cada uma põe a borda um pouco por cima da foto (na frente dela, sem vão).
-// animada: final do arquivo animado quando não é APNG (ex.: '-anim.webp' = <nome>-anim.webp, WebP animado).
-
-export const COLECOES = [
-  'Neura',
-  'Neura Quadradas',
-  'Steam Neon & Elementos',
-  'Steam Lendas',
-  'Steam Tech',
-  'Decor',
-  'Decor Quadradas',
-  "Call of Duty",
-  "Creepy Crawlers",
-  "Fin",
-  "Flux Vol 2",
-  "Jujutsu Kaisen",
-  "My Hero Academia",
-  "Night Terrors",
-  "Star Wars",
-  "Street Fighter 6",
-  "Toy Story",
-  "Tron",
-  "Underworld",
-]
-
+// Catálogo das molduras atuais em assets/molduras. IDs estáveis e caminhos originais preservados.
+// Todas são estáticas e quadradas; a escala alinha a abertura de cada arte ao avatar.
+export const COLECOES = ['Times', 'Eventos', 'Outros']
 export const MOLDURAS = [
-  { id: 'neura/pulso-neon', nome: 'Pulso Neon', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/plasma', nome: 'Plasma', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/inferno', nome: 'Inferno', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/tempestade', nome: 'Tempestade', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/radar', nome: 'Radar', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/mira', nome: 'Mira', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/glitch', nome: 'Glitch', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/orbita', nome: 'Órbita', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/hexa', nome: 'Hexa', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/coroa', nome: 'Coroa', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/c4', nome: 'C4', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/vortice', nome: 'Vórtice', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/sonar', nome: 'Sonar', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/holograma', nome: 'Holograma', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/faiscas', nome: 'Faíscas', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/toxico', nome: 'Tóxico', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/prisma', nome: 'Prisma', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/cristal', nome: 'Cristal', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/batimento', nome: 'Batimento', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/nebulosa', nome: 'Nebulosa', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/lamina', nome: 'Lâmina', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/eclipse', nome: 'Eclipse', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/helice', nome: 'Hélice', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/runas', nome: 'Runas', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/geada', nome: 'Geada', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/equalizador', nome: 'Equalizador', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/inferno-azul', nome: 'Inferno Azul', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/inferno-roxo', nome: 'Inferno Roxo', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/inferno-verde', nome: 'Inferno Verde', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/neon-rosa', nome: 'Neon Rosa', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/neon-sol', nome: 'Neon Sol', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/rgb', nome: 'RGB', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/hud-redondo', nome: 'HUD Redondo', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/turbilhao-ciano', nome: 'Turbilhão Ciano', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/turbilhao-violeta', nome: 'Turbilhão Violeta', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/turbilhao-fogo', nome: 'Turbilhão de Fogo', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/turbilhao-gelo', nome: 'Turbilhão de Gelo', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/turbilhao-sangue', nome: 'Turbilhão Sangue', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/turbilhao-ouro', nome: 'Turbilhão Dourado', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/turbilhao-toxico', nome: 'Turbilhão Tóxico', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/turbilhao-rosa', nome: 'Turbilhão Rosa', colecao: 'Neura', fonte: 'neura' },
-  { id: 'neura/neon-quadrado', nome: 'Neon Quadrado', colecao: 'Neura Quadradas', fonte: 'neura', forma: 'quadrada' },
-  { id: 'neura/circuito', nome: 'Circuito', colecao: 'Neura Quadradas', fonte: 'neura', forma: 'quadrada' },
-  { id: 'neura/hud', nome: 'HUD', colecao: 'Neura Quadradas', fonte: 'neura', forma: 'quadrada' },
-  { id: 'neura/raio-quadrado', nome: 'Tempestade Quadrada', colecao: 'Neura Quadradas', fonte: 'neura', forma: 'quadrada' },
-  { id: 'neura/plasma-quadrado', nome: 'Plasma Quadrado', colecao: 'Neura Quadradas', fonte: 'neura', forma: 'quadrada' },
-  { id: 'neura/inferno-quadrado', nome: 'Inferno Quadrado', colecao: 'Neura Quadradas', fonte: 'neura', forma: 'quadrada' },
-  { id: 'neura/glitch-quadrado', nome: 'Glitch Quadrado', colecao: 'Neura Quadradas', fonte: 'neura', forma: 'quadrada' },
-  { id: 'neura/ouro-quadrado', nome: 'Ouro Quadrado', colecao: 'Neura Quadradas', fonte: 'neura', forma: 'quadrada' },
-  { id: 'neura/equalizador-quadrado', nome: 'Equalizador Quadrado', colecao: 'Neura Quadradas', fonte: 'neura', forma: 'quadrada' },
-  { id: 'neura/geada-quadrado', nome: 'Geada Quadrada', colecao: 'Neura Quadradas', fonte: 'neura', forma: 'quadrada' },
-  { id: 'neura/rgb-quadrado', nome: 'RGB Quadrado', colecao: 'Neura Quadradas', fonte: 'neura', forma: 'quadrada' },
-  { id: 'neura/dados-quadrado', nome: 'Fluxo de Dados', colecao: 'Neura Quadradas', fonte: 'neura', forma: 'quadrada' },
-  { id: 'neura/inferno-azul-quadrado', nome: 'Inferno Azul Quadrado', colecao: 'Neura Quadradas', fonte: 'neura', forma: 'quadrada' },
-  { id: 'neura/inferno-roxo-quadrado', nome: 'Inferno Roxo Quadrado', colecao: 'Neura Quadradas', fonte: 'neura', forma: 'quadrada' },
-  { id: 'neura/inferno-verde-quadrado', nome: 'Inferno Verde Quadrado', colecao: 'Neura Quadradas', fonte: 'neura', forma: 'quadrada' },
-  { id: 'neura/neon-rosa-quadrado', nome: 'Neon Rosa Quadrado', colecao: 'Neura Quadradas', fonte: 'neura', forma: 'quadrada' },
-  { id: 'neura/neon-sol-quadrado', nome: 'Neon Sol Quadrado', colecao: 'Neura Quadradas', fonte: 'neura', forma: 'quadrada' },
-  { id: 'steam-neon-cyber/neon-vermelho', nome: "Neon (vermelho)", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.19 },
-  { id: 'steam-neon-cyber/neon-classic', nome: "Neon Classic", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.19 },
-  { id: 'steam-neon-cyber/sea-wave-neon', nome: "Sea Wave Neon", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.08 },
-  { id: 'steam-neon-cyber/glitched-frame', nome: "Glitched Frame", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.19 },
-  { id: 'steam-neon-cyber/pixel-glitch', nome: "Pixel Glitch", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.18 },
-  { id: 'steam-elementos/cyan-fire', nome: "Cyan Fire", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.21 },
-  { id: 'steam-elementos/fire-aura', nome: "Fire Aura", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.32 },
-  { id: 'steam-elementos/burning-frame', nome: "Burning Frame", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.09 },
-  { id: 'steam-neon-elementos/bright-fire', nome: "Bright Fire", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.20 },
-  { id: 'steam-neon-elementos/magic-fire', nome: "Magic Fire", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.15 },
-  { id: 'steam-neon-elementos/blue-pulse', nome: "Blue Pulse", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.08 },
-  { id: 'steam-neon-elementos/orange-neon', nome: "Orange Neon", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.10 },
-  { id: 'steam-neon-elementos/green-lightning', nome: "Green Lightning", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.05 },
-  { id: 'steam-neon-elementos/neon-azul', nome: "Neon Azul", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.07 },
-  { id: 'steam-neon-elementos/fire-verde', nome: "Fire (verde)", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.21 },
-  { id: 'steam-neon-elementos/lightning', nome: "Lightning", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.20 },
-  { id: 'steam-neon-elementos/pink-plasma', nome: "Pink Plasma", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.19 },
-  { id: 'steam-neon-elementos/green-plasma', nome: "Green Plasma", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.18 },
-  { id: 'steam-neon-elementos/blue-plasma', nome: "Blue Plasma", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.18 },
-  { id: 'steam-neon-elementos/blue-cycle', nome: "Blue Cycle", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.11 },
-  { id: 'steam-neon-elementos/green-storm', nome: "Green Storm", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.04 },
-  { id: 'steam-neon-elementos/purple-storm', nome: "Purple Storm", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.06 },
-  { id: 'steam-neon-elementos/white-glow', nome: "White Glow", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.04 },
-  { id: 'steam-neon-elementos/cyan-line', nome: "Cyan Line", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.04 },
-  { id: 'steam-neon-elementos/red-cycle', nome: "Red Cycle", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.13 },
-  { id: 'steam-neon-elementos/radiant-quake', nome: "Radiant Quake", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.20 },
-  { id: 'steam-neon-elementos/comic-fire', nome: "Comic Fire", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.23 },
-  { id: 'steam-neon-elementos/shadow-fire', nome: "Shadow Fire", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.23 },
-  { id: 'steam-neon-elementos/fiery-halo', nome: "Fiery Halo", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.23 },
-  { id: 'steam-neon-elementos/arcflare-aura', nome: "Arcflare Aura", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.16 },
-  { id: 'steam-neon-elementos/pink-neon', nome: "Pink Neon", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.13 },
-  { id: 'steam-neon-elementos/red-neon-line', nome: "Red Neon Line", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.21 },
-  { id: 'steam-neon-elementos/burn', nome: "Burn", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.15 },
-  { id: 'steam-neon-elementos/wildfire', nome: "Wildfire", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.20 },
-  { id: 'steam-neon-elementos/purple-neon-line', nome: "Purple Neon Line", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.21 },
-  { id: 'steam-neon-elementos/green-neon-line', nome: "Green Neon Line", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.21 },
-  { id: 'steam-neon-elementos/blue-neon-line', nome: "Blue Neon Line", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.21 },
-  { id: 'steam-neon-elementos/flame-azul', nome: "Flame (azul)", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.29 },
-  { id: 'steam-neon-elementos/flame-verde', nome: "Flame (verde)", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.27 },
-  { id: 'steam-neon-elementos/flame-laranja', nome: "Flame (laranja)", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.29 },
-  { id: 'steam-neon-elementos/fire-border', nome: "Fire Border", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.21 },
-  { id: 'steam-neon-elementos/thick-flames', nome: "Thick Flames", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.26 },
-  { id: 'steam-neon-elementos/acid-flames', nome: "Acid Flames", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.21 },
-  { id: 'steam-neon-elementos/plasma-flames', nome: "Plasma Flames", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.26 },
-  { id: 'steam-neon-elementos/portal-laranja', nome: "Portal (laranja)", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.19 },
-  { id: 'steam-neon-elementos/portal-azul', nome: "Portal (azul)", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.21 },
-  { id: 'steam-neon-elementos/flaming-frame', nome: "Flaming Frame", colecao: 'Steam Neon & Elementos', fonte: 'steam', forma: 'quadrada', escala: 1.27 },
-  { id: 'steam-lendas/cosmic-planets', nome: "Cosmic Planets", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.16 },
-  { id: 'steam-lendas/shimmering-stars', nome: "Shimmering Stars", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.08 },
-  { id: 'steam-lendas/space-moon', nome: "Space Moon", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.04 },
-  { id: 'steam-lendas/luxury-gold', nome: "Luxury Gold", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.09 },
-  { id: 'steam-lendas/legendary-border', nome: "Legendary Border", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.14 },
-  { id: 'steam-lendas/skulls', nome: "Skulls", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.30 },
-  { id: 'steam-lendas/guns-frame', nome: "Guns Frame", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.19 },
-  { id: 'steam-lendas/assault-rifle', nome: "Assault Rifle", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.26 },
-  { id: 'steam-lendas/gunmetal', nome: "Gunmetal", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.21 },
-  { id: 'steam-lendas/temptation', nome: "Temptation", colecao: 'Steam Lendas', fonte: 'steam', escala: 1.12 }, // miolo redondo: avatar redondo
-  { id: 'steam-lendas/golden-leaves', nome: "Golden Leaves", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.26 },
-  { id: 'steam-lendas/comics', nome: "Comics", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.20 },
-  { id: 'steam-lendas/blood', nome: "Blood", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.19 },
-  { id: 'steam-lendas/ooze', nome: "Ooze", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.21 },
-  { id: 'steam-lendas/junk-frame', nome: "Junk Frame", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.29 },
-  { id: 'steam-lendas/wood', nome: "Wood", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.16 },
-  { id: 'steam-lendas/brick', nome: "Brick", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.21 },
-  { id: 'steam-lendas/navy-chain', nome: "Navy Chain", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.24 },
-  { id: 'steam-lendas/ornate-gold', nome: "Ornate Gold", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.21 },
-  { id: 'steam-lendas/bat-wings', nome: "Bat Wings", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.32 },
-  { id: 'steam-lendas/summer-flora', nome: "Summer Flora", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.32 },
-  { id: 'steam-lendas/gothic-portal', nome: "Gothic Portal", colecao: 'Steam Lendas', fonte: 'steam', forma: 'quadrada', escala: 1.32 },
-  { id: 'steam-tech/skull-border', nome: "Skull Border", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.32 },
-  { id: 'steam-tech/glitch-unstable', nome: "Glitch Unstable", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.23 },
-  { id: 'steam-tech/shadow-gradient', nome: "Shadow Gradient", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.27 },
-  { id: 'steam-tech/mainframe-vermelho', nome: "Mainframe (vermelho)", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.10 },
-  { id: 'steam-tech/mainframe-azul', nome: "Mainframe (azul)", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.09 },
-  { id: 'steam-tech/mainframe-rosa', nome: "Mainframe (rosa)", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.09 },
-  { id: 'steam-tech/cyberpunk-cyan', nome: "Cyberpunk Cyan", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.21 },
-  { id: 'steam-tech/wires', nome: "Wires", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.18 },
-  { id: 'steam-tech/multiplayer', nome: "Multiplayer", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.30 },
-  { id: 'steam-tech/three-star', nome: "Three Star", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.23 },
-  { id: 'steam-tech/undisputed-glitch', nome: "Undisputed Glitch", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.16 },
-  { id: 'steam-tech/glass', nome: "Glass", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.23 },
-  { id: 'steam-tech/darkage-roxo', nome: "DarkAge (roxo)", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.27 },
-  { id: 'steam-tech/darkage-vermelho', nome: "DarkAge (vermelho)", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.27 },
-  { id: 'steam-tech/darkage-rosa', nome: "DarkAge (rosa)", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.27 },
-  { id: 'steam-tech/darkage-azul', nome: "DarkAge (azul)", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.27 },
-  { id: 'steam-tech/layering-rgb', nome: "Layering RGB", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.19 },
-  { id: 'steam-tech/border-pink', nome: "Border Pink", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.16 },
-  { id: 'steam-tech/border-circuit', nome: "Border Circuit", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.21 },
-  { id: 'steam-tech/border-gold', nome: "Border Gold", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.16 },
-  { id: 'steam-tech/purple-tech', nome: "Purple Tech", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.14 },
-  { id: 'steam-tech/square-frame', nome: "Square Frame", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.27 },
-  { id: 'steam-tech/pipes', nome: "Pipes", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.30 },
-  { id: 'steam-tech/artistic', nome: "Artistic", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.19 },
-  { id: 'steam-tech/rhythm-pulse', nome: "Rhythm Pulse", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.14 },
-  { id: 'steam-tech/co-op-circles', nome: "Co-op Circles", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.09 },
-  { id: 'steam-tech/spiderweb', nome: "Spiderweb", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.15 },
-  { id: 'steam-tech/corruption', nome: "Corruption", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.24 },
-  { id: 'steam-tech/ar-interface-rosa', nome: "AR Interface (rosa)", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.20 },
-  { id: 'steam-tech/ar-interface-roxo', nome: "AR Interface (roxo)", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.20 },
-  { id: 'steam-tech/ar-interface-amarelo', nome: "AR Interface (amarelo)", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.20 },
-  { id: 'steam-tech/ar-interface-azul', nome: "AR Interface (azul)", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.20 },
-  { id: 'steam-tech/red-border', nome: "Red Border", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.06 },
-  { id: 'steam-tech/space-transmission', nome: "Space Transmission", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.09 },
-  { id: 'steam-tech/color-ring', nome: "Color Ring", colecao: 'Steam Tech', fonte: 'steam', escala: 1.2 }, // miolo redondo
-  { id: 'steam-tech/hologram', nome: "Hologram", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.27 },
-  { id: 'steam-tech/sci-fi-hologram', nome: "Sci-Fi Hologram", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.27 },
-  { id: 'steam-tech/sci-fi-frame', nome: "Sci-Fi Frame", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.29 },
-  { id: 'steam-tech/vortex', nome: "Vortex", colecao: 'Steam Tech', fonte: 'steam', escala: 1.2 }, // miolo redondo
-  { id: 'steam-tech/runic-circle', nome: "Runic Circle", colecao: 'Steam Tech', fonte: 'steam', escala: 1.2 }, // miolo redondo
-  { id: 'steam-tech/tech-corners', nome: "Tech Corners", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.04 },
-  { id: 'steam-tech/locked-on', nome: "Locked On", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.32 },
-  { id: 'steam-tech/red-pattern', nome: "Red Pattern", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.32 },
-  { id: 'steam-tech/noise-branco', nome: "Noise (branco)", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.18 },
-  { id: 'steam-tech/noise-verde', nome: "Noise (verde)", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.18 },
-  { id: 'steam-tech/mainframe-royal', nome: "Mainframe (royal)", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.11 },
-  { id: 'steam-tech/mainframe-verde', nome: "Mainframe (verde)", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.11 },
-  { id: 'steam-tech/neon-border-rgb', nome: "Neon Border RGB", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.32 },
-  { id: 'steam-tech/ready-to-copy', nome: "Ready to Copy", colecao: 'Steam Tech', fonte: 'steam', forma: 'quadrada', escala: 1.14 },
-  { id: 'fantasy/boiling-potion', nome: "Boiling Potion", colecao: 'Decor', fonte: 'decor' },
-  { id: 'fantasy/popping-hearts', nome: "Popping Hearts", colecao: 'Decor', fonte: 'decor' },
-  { id: 'fantasy/juryoku', nome: "Jūryoku", colecao: 'Decor', fonte: 'decor' },
-  { id: 'fantasy/kokusen-juryoku', nome: "Kokusen Jūryoku", colecao: 'Decor', fonte: 'decor' },
-  { id: 'fantasy/party-ball', nome: "Party Ball", colecao: 'Decor', fonte: 'decor' },
-  { id: 'fantasy/midori-juryoku', nome: "Midori Jūryoku", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/blue-soul', nome: "Blue Soul", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/red-soul', nome: "Red Soul", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/menacing', nome: "Menacing", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/string-lights', nome: "String Lights", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/anel-de-luz', nome: "Anel de Luz", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/ondas-neon', nome: "Ondas Neon", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/fumaca-branca', nome: "Fumaça Branca", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/espinhos-rubros', nome: "Espinhos Rubros", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/pincelada', nome: "Pincelada", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/fogo-e-gelo', nome: "Fogo e Gelo", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/mira-ciano', nome: "Mira Ciano", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/anel-turquesa', nome: "Anel Turquesa", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/particulas-ciano', nome: "Partículas Ciano", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/duplo-neon', nome: "Duplo Neon", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/ondas-rosa', nome: "Ondas Rosa", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/arco-vermelho', nome: "Arco Vermelho", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/runas-verdes', nome: "Runas Verdes", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/eclipse-branco', nome: "Eclipse Branco", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/circulo-arcano', nome: "Círculo Arcano", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/chama-magenta', nome: "Chama Magenta", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/aro-degrade', nome: "Aro Degradê", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/orbitas', nome: "Órbitas", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/satelites', nome: "Satélites", colecao: 'Decor', fonte: 'decor' },
-  { id: 'decor/neon-violeta', nome: "Neon Violeta", colecao: 'Decor Quadradas', fonte: 'decor', forma: 'quadrada', escala: 1.19 },
-  { id: 'decor/brasao-real', nome: "Brasão Real", colecao: 'Decor Quadradas', fonte: 'decor', forma: 'quadrada', escala: 1.32 },
-  { id: 'decor/raio-ciano', nome: "Raio Ciano", colecao: 'Decor Quadradas', fonte: 'decor', forma: 'quadrada', escala: 1.10 },
-  { id: 'decor/neon-arco-iris', nome: "Neon Arco-íris", colecao: 'Decor Quadradas', fonte: 'decor', forma: 'quadrada', escala: 1.21 },
-  { id: 'decor/cantos-laranja', nome: "Cantos Laranja", colecao: 'Decor Quadradas', fonte: 'decor', forma: 'quadrada', escala: 1.16 },
-  { id: 'decor/tech-azul', nome: "Tech Azul", colecao: 'Decor Quadradas', fonte: 'decor', forma: 'quadrada', escala: 1.18 },
-  { id: 'decor/glitch-duplo', nome: "Glitch Duplo", colecao: 'Decor Quadradas', fonte: 'decor', forma: 'quadrada', escala: 1.05 },
-  { id: 'decor/estrelas-roxas', nome: "Estrelas Roxas", colecao: 'Decor Quadradas', fonte: 'decor', forma: 'quadrada', escala: 1.24 },
-  { id: 'decor/trilha-verde', nome: "Trilha Verde", colecao: 'Decor Quadradas', fonte: 'decor', forma: 'quadrada', escala: 1.21 },
-  { id: 'decor/fumaca-roxa', nome: "Fumaça Roxa", colecao: 'Decor Quadradas', fonte: 'decor', forma: 'quadrada', escala: 1.25 },
-  { id: 'decor/tech-lavanda', nome: "Tech Lavanda", colecao: 'Decor Quadradas', fonte: 'decor', forma: 'quadrada', escala: 1.16 },
-  { id: 'decor/circuito-ciano', nome: "Circuito Ciano", colecao: 'Decor Quadradas', fonte: 'decor', forma: 'quadrada', escala: 1.10 },
-  { id: 'decor/matriz-roxa', nome: "Matriz Roxa", colecao: 'Decor Quadradas', fonte: 'decor', forma: 'quadrada', escala: 1.14 },
-  { id: 'decor/glitch-rosa', nome: "Glitch Rosa", colecao: 'Decor Quadradas', fonte: 'decor', forma: 'quadrada', escala: 1.08 },
-  { id: 'decor/glitch-branco', nome: "Glitch Branco", colecao: 'Decor Quadradas', fonte: 'decor', forma: 'quadrada', escala: 1.04 },
-  // Decorações no estilo Discord por tema (ferramentas/molduras/importar.mjs)
-  { id: 'call-of-duty/cymbal-monkey', nome: "Cymbal Monkey", colecao: "Call of Duty", fonte: 'decor' },
-  { id: 'call-of-duty/embrace-the-madness', nome: "Embrace the Madness", colecao: "Call of Duty", fonte: 'decor' },
-  { id: 'call-of-duty/hallucination', nome: "Hallucination", colecao: "Call of Duty", fonte: 'decor' },
-  { id: 'creepy-crawlers/black-widow', nome: "Black Widow", colecao: "Creepy Crawlers", fonte: 'decor' },
-  { id: 'creepy-crawlers/bug-hug', nome: "Bug Hug", colecao: "Creepy Crawlers", fonte: 'decor' },
-  { id: 'creepy-crawlers/bug-reveal', nome: "Bug Reveal", colecao: "Creepy Crawlers", fonte: 'decor' },
-  { id: 'creepy-crawlers/motyxia', nome: "Motyxia", colecao: "Creepy Crawlers", fonte: 'decor' },
-  { id: 'fin/shark-attack', nome: "Shark Attack", colecao: "Fin", fonte: 'decor' },
-  { id: 'flux-vol-2/cyclinglights-iridescent', nome: "Cycling Lights Iridescent", colecao: "Flux Vol 2", fonte: 'decor' },
-  { id: 'flux-vol-2/cyclinglights-rgb', nome: "Cycling Lights RGB", colecao: "Flux Vol 2", fonte: 'decor' },
-  { id: 'flux-vol-2/cyclinglights-vaporwave', nome: "Cycling Lights Vaporwave", colecao: "Flux Vol 2", fonte: 'decor' },
-  { id: 'jujutsu-kaisen/kento-nanami', nome: "Kento Nanami", colecao: "Jujutsu Kaisen", fonte: 'decor' },
-  { id: 'jujutsu-kaisen/mahito', nome: "Mahito", colecao: "Jujutsu Kaisen", fonte: 'decor', escala: 1.39 },
-  { id: 'jujutsu-kaisen/megumi-fushiguro', nome: "Megumi Fushiguro", colecao: "Jujutsu Kaisen", fonte: 'decor' },
-  { id: 'jujutsu-kaisen/nobara-kugisaki', nome: "Nobara Kugisaki", colecao: "Jujutsu Kaisen", fonte: 'decor' },
-  { id: 'jujutsu-kaisen/ryomen-sukuna', nome: "Ryomen Sukuna", colecao: "Jujutsu Kaisen", fonte: 'decor' },
-  { id: 'jujutsu-kaisen/satoru-gojo', nome: "Satoru Gojo", colecao: "Jujutsu Kaisen", fonte: 'decor' },
-  { id: 'jujutsu-kaisen/suguru-geto', nome: "Suguru Geto", colecao: "Jujutsu Kaisen", fonte: 'decor' },
-  { id: 'jujutsu-kaisen/yuji-itadori', nome: "Yuji Itadori", colecao: "Jujutsu Kaisen", fonte: 'decor' },
-  { id: 'my-hero-academia/all-might', nome: "All Might", colecao: "My Hero Academia", fonte: 'decor' },
-  { id: 'my-hero-academia/endeavor', nome: "Endeavor", colecao: "My Hero Academia", fonte: 'decor' },
-  { id: 'my-hero-academia/hawks', nome: "Hawks", colecao: "My Hero Academia", fonte: 'decor' },
-  { id: 'my-hero-academia/izuku-midoriya', nome: "Izuku Midoriya", colecao: "My Hero Academia", fonte: 'decor' },
-  { id: 'my-hero-academia/katsuki-bakugo', nome: "Katsuki Bakugo", colecao: "My Hero Academia", fonte: 'decor' },
-  { id: 'my-hero-academia/shoto-todoroki', nome: "Shoto Todoroki", colecao: "My Hero Academia", fonte: 'decor' },
-  { id: 'my-hero-academia/tomura-shigaraki', nome: "Tomura Shigaraki", colecao: "My Hero Academia", fonte: 'decor' },
-  { id: 'night-terrors/snack-time', nome: "Snack Time", colecao: "Night Terrors", fonte: 'decor' },
-  { id: 'night-terrors/trapped-souls', nome: "Trapped Souls", colecao: "Night Terrors", fonte: 'decor' },
-  { id: 'night-terrors/wraithling', nome: "Wraithling", colecao: "Night Terrors", fonte: 'decor' },
-  { id: 'star-wars/curious-bb-8', nome: "Curious BB-8", colecao: "Star Wars", fonte: 'decor' },
-  { id: 'star-wars/lightsabers-r-b', nome: "Lightsabers Vermelho e Azul", colecao: "Star Wars", fonte: 'decor' },
-  { id: 'star-wars/lightsabers-r-g', nome: "Lightsabers Vermelho e Verde", colecao: "Star Wars", fonte: 'decor' },
-  { id: 'star-wars/mando-s-flamethrower', nome: "Mando's Flamethrower", colecao: "Star Wars", fonte: 'decor' },
-  { id: 'star-wars/millennium-falcon-hyperdrive', nome: "Millennium Falcon Hyperdrive", colecao: "Star Wars", fonte: 'decor' },
-  { id: 'star-wars/r2-d2-on-tatooine', nome: "R2-D2 on Tatooine", colecao: "Star Wars", fonte: 'decor' },
-  { id: 'star-wars/sippy-soup', nome: "Sippy Soup", colecao: "Star Wars", fonte: 'decor' },
-  { id: 'star-wars/space-battle', nome: "Space Battle", colecao: "Star Wars", fonte: 'decor' },
-  { id: 'star-wars/yoda-on-dagobah', nome: "Yoda on Dagobah", colecao: "Star Wars", fonte: 'decor' },
-  { id: 'street-fighter-6/akuma', nome: "Akuma", colecao: "Street Fighter 6", fonte: 'decor' },
-  { id: 'street-fighter-6/cammy', nome: "Cammy", colecao: "Street Fighter 6", fonte: 'decor' },
-  { id: 'street-fighter-6/chun-li', nome: "Chun-Li", colecao: "Street Fighter 6", fonte: 'decor' },
-  { id: 'street-fighter-6/guile', nome: "Guile", colecao: "Street Fighter 6", fonte: 'decor' },
-  { id: 'street-fighter-6/juri', nome: "Juri", colecao: "Street Fighter 6", fonte: 'decor' },
-  { id: 'street-fighter-6/ken', nome: "Ken", colecao: "Street Fighter 6", fonte: 'decor' },
-  { id: 'street-fighter-6/m-bison', nome: "M. Bison", colecao: "Street Fighter 6", fonte: 'decor' },
-  { id: 'street-fighter-6/ryu', nome: "Ryu", colecao: "Street Fighter 6", fonte: 'decor' },
-  { id: 'toy-story/andy-s-room-clouds', nome: "Andy's Room Clouds", colecao: "Toy Story", fonte: 'decor' },
-  { id: 'toy-story/bo-peep', nome: "Bo Peep", colecao: "Toy Story", fonte: 'decor' },
-  { id: 'toy-story/buzz-lightyear', nome: "Buzz Lightyear", colecao: "Toy Story", fonte: 'decor' },
-  { id: 'toy-story/jessie', nome: "Jessie", colecao: "Toy Story", fonte: 'decor' },
-  { id: 'toy-story/rex', nome: "Rex", colecao: "Toy Story", fonte: 'decor' },
-  { id: 'toy-story/the-clawww', nome: "The Clawww", colecao: "Toy Story", fonte: 'decor' },
-  { id: 'toy-story/woody', nome: "Woody", colecao: "Toy Story", fonte: 'decor' },
-  { id: 'tron/ares-disc', nome: "Ares Disc", colecao: "Tron", fonte: 'decor' },
-  { id: 'tron/encom-grid', nome: "Encom Grid", colecao: "Tron", fonte: 'decor' },
-  { id: 'tron/hologram-disc', nome: "Hologram Disc", colecao: "Tron", fonte: 'decor' },
-  { id: 'tron/legacy-disc', nome: "Legacy Disc", colecao: "Tron", fonte: 'decor' },
-  { id: 'tron/light-cycles', nome: "Light Cycles", colecao: "Tron", fonte: 'decor' },
-  { id: 'underworld/hellflame', nome: "Hellflame", colecao: "Underworld", fonte: 'decor' },
-  { id: 'underworld/lord-of-the-dead-blue', nome: "Lord of the Dead Azul", colecao: "Underworld", fonte: 'decor' },
-  { id: 'underworld/lord-of-the-dead-red', nome: "Lord of the Dead Vermelho", colecao: "Underworld", fonte: 'decor' },
-  { id: 'underworld/styxspirits', nome: "Styx Spirits", colecao: "Underworld", fonte: 'decor' },
+  {
+    "id": "times/furia",
+    "nome": "FURIA",
+    "colecao": "Times",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.49,
+    "arquivo": "times/01_FURIA.png",
+    "abertura": {
+      "x": 82,
+      "y": 82,
+      "largura": 348,
+      "altura": 336,
+      "recorte": "polygon(72.99% 0.0%,75.0% 1.79%,83.05% 3.57%,87.93% 5.36%,89.66% 7.14%,90.52% 8.93%,90.8% 10.71%,91.67% 12.5%,92.24% 14.29%,96.26% 16.07%,97.13% 17.86%,97.7% 19.64%,98.28% 21.43%,98.56% 23.21%,98.28% 25.0%,98.28% 26.79%,98.28% 28.57%,98.28% 30.36%,97.99% 32.14%,97.99% 33.93%,98.56% 35.71%,99.43% 37.5%,99.71% 39.29%,99.71% 41.07%,99.43% 42.86%,98.85% 44.64%,98.85% 46.43%,98.85% 48.21%,98.85% 50.0%,98.85% 51.79%,98.85% 53.57%,98.85% 55.36%,98.85% 57.14%,98.85% 58.93%,98.85% 60.71%,98.85% 62.5%,99.71% 64.29%,99.71% 66.07%,99.71% 67.86%,99.14% 69.64%,97.13% 71.43%,95.69% 73.21%,94.54% 75.0%,93.68% 76.79%,92.53% 78.57%,92.53% 80.36%,92.82% 82.14%,93.39% 83.93%,93.68% 85.71%,91.38% 87.5%,89.08% 89.29%,87.36% 91.07%,86.21% 92.86%,80.75% 94.64%,74.71% 96.43%,61.21% 98.21%,58.33% 99.7%,41.38% 99.7%,38.51% 98.21%,25.0% 96.43%,18.97% 94.64%,13.51% 92.86%,12.36% 91.07%,10.63% 89.29%,8.62% 87.5%,6.32% 85.71%,6.61% 83.93%,6.9% 82.14%,7.18% 80.36%,7.18% 78.57%,6.32% 76.79%,5.17% 75.0%,4.02% 73.21%,2.59% 71.43%,0.57% 69.64%,0.0% 67.86%,0.0% 66.07%,0.0% 64.29%,0.86% 62.5%,1.15% 60.71%,0.86% 58.93%,0.86% 57.14%,0.86% 55.36%,0.86% 53.57%,0.86% 51.79%,0.86% 50.0%,0.86% 48.21%,0.86% 46.43%,0.86% 44.64%,0.29% 42.86%,0.0% 41.07%,0.0% 39.29%,0.29% 37.5%,1.15% 35.71%,1.72% 33.93%,1.72% 32.14%,1.72% 30.36%,1.72% 28.57%,1.72% 26.79%,1.44% 25.0%,1.15% 23.21%,1.44% 21.43%,2.01% 19.64%,2.59% 17.86%,3.45% 16.07%,7.47% 14.29%,8.05% 12.5%,8.91% 10.71%,9.2% 8.93%,10.06% 7.14%,12.07% 5.36%,16.95% 3.57%,24.71% 1.79%,26.72% 0.0%)"
+    }
+  },
+  {
+    "id": "times/navi",
+    "nome": "NAVI",
+    "colecao": "Times",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.65,
+    "arquivo": "times/02_NAVI.png",
+    "abertura": {
+      "x": 87,
+      "y": 86,
+      "largura": 338,
+      "altura": 318,
+      "recorte": "polygon(80.77% 0.0%,87.57% 1.89%,89.05% 3.77%,89.64% 5.66%,91.12% 7.55%,92.9% 9.43%,93.2% 11.32%,95.27% 13.21%,95.56% 15.09%,95.86% 16.98%,97.34% 18.87%,98.22% 20.75%,98.22% 22.64%,98.22% 24.53%,98.22% 26.42%,98.22% 28.3%,98.82% 30.19%,99.7% 32.08%,99.11% 33.96%,97.63% 35.85%,96.75% 37.74%,96.75% 39.62%,96.75% 41.51%,95.27% 43.4%,94.97% 45.28%,94.97% 47.17%,94.97% 49.06%,94.97% 50.94%,94.97% 52.83%,94.97% 54.72%,99.7% 56.6%,99.7% 58.49%,99.7% 60.38%,99.7% 62.26%,99.7% 64.15%,99.7% 66.04%,99.7% 67.92%,99.41% 69.81%,97.34% 71.7%,96.15% 73.58%,98.22% 75.47%,98.22% 77.36%,98.22% 79.25%,97.04% 81.13%,94.67% 83.02%,91.42% 84.91%,89.35% 86.79%,87.87% 88.68%,86.69% 90.57%,85.5% 92.45%,84.02% 94.34%,77.51% 96.23%,69.53% 98.11%,67.16% 99.69%,32.84% 99.69%,30.47% 98.11%,22.19% 96.23%,15.68% 94.34%,14.2% 92.45%,13.02% 90.57%,11.83% 88.68%,10.36% 86.79%,8.28% 84.91%,5.03% 83.02%,2.66% 81.13%,1.48% 79.25%,1.48% 77.36%,1.48% 75.47%,3.85% 73.58%,2.37% 71.7%,0.59% 69.81%,0.0% 67.92%,0.0% 66.04%,0.0% 64.15%,0.0% 62.26%,0.0% 60.38%,0.0% 58.49%,0.0% 56.6%,4.73% 54.72%,4.73% 52.83%,4.73% 50.94%,4.73% 49.06%,4.73% 47.17%,4.73% 45.28%,4.44% 43.4%,2.96% 41.51%,2.96% 39.62%,2.96% 37.74%,2.37% 35.85%,0.89% 33.96%,0.0% 32.08%,0.89% 30.19%,1.48% 28.3%,1.48% 26.42%,1.48% 24.53%,1.48% 22.64%,1.48% 20.75%,2.37% 18.87%,3.85% 16.98%,4.44% 15.09%,4.73% 13.21%,6.8% 11.32%,7.1% 9.43%,8.88% 7.55%,10.06% 5.66%,10.65% 3.77%,11.83% 1.89%,18.93% 0.0%)"
+    }
+  },
+  {
+    "id": "times/vitality",
+    "nome": "Vitality",
+    "colecao": "Times",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.61,
+    "arquivo": "times/03_Vitality.png",
+    "abertura": {
+      "x": 93,
+      "y": 88,
+      "largura": 327,
+      "altura": 313,
+      "recorte": "polygon(83.18% 0.0%,85.02% 1.92%,86.54% 3.83%,91.13% 5.75%,93.58% 7.67%,95.72% 9.58%,96.94% 11.5%,98.17% 13.42%,98.47% 15.34%,98.47% 17.25%,98.47% 19.17%,97.25% 21.09%,96.94% 23.0%,96.94% 24.92%,96.94% 26.84%,96.94% 28.75%,96.94% 30.67%,97.55% 32.59%,99.08% 34.5%,99.69% 36.42%,99.69% 38.34%,99.69% 40.26%,99.69% 42.17%,99.69% 44.09%,99.08% 46.01%,98.17% 47.92%,98.17% 49.84%,98.17% 51.76%,98.17% 53.67%,98.17% 55.59%,98.78% 57.51%,98.78% 59.42%,98.78% 61.34%,98.78% 63.26%,98.47% 65.18%,98.47% 67.09%,98.47% 69.01%,98.47% 70.93%,98.47% 72.84%,98.47% 74.76%,98.47% 76.68%,99.69% 78.59%,98.17% 80.51%,96.33% 82.43%,95.72% 84.35%,95.11% 86.26%,94.19% 88.18%,90.52% 90.1%,89.3% 92.01%,88.38% 93.93%,82.26% 95.85%,63.91% 97.76%,61.77% 99.68%,37.92% 99.68%,35.78% 97.76%,17.13% 95.85%,11.01% 93.93%,10.09% 92.01%,8.87% 90.1%,5.2% 88.18%,4.59% 86.26%,3.67% 84.35%,3.06% 82.43%,1.22% 80.51%,0.0% 78.59%,0.92% 76.68%,0.92% 74.76%,0.92% 72.84%,0.92% 70.93%,0.92% 69.01%,0.92% 67.09%,0.92% 65.18%,0.92% 63.26%,0.92% 61.34%,0.92% 59.42%,0.92% 57.51%,1.22% 55.59%,1.53% 53.67%,1.53% 51.76%,1.53% 49.84%,1.53% 47.92%,0.31% 46.01%,0.0% 44.09%,0.0% 42.17%,0.0% 40.26%,0.0% 38.34%,0.0% 36.42%,0.31% 34.5%,1.83% 32.59%,2.45% 30.67%,2.45% 28.75%,2.45% 26.84%,2.45% 24.92%,2.45% 23.0%,2.14% 21.09%,0.92% 19.17%,0.92% 17.25%,0.92% 15.34%,1.22% 13.42%,2.45% 11.5%,3.98% 9.58%,6.12% 7.67%,8.56% 5.75%,12.84% 3.83%,14.37% 1.92%,16.21% 0.0%)"
+    }
+  },
+  {
+    "id": "times/faze",
+    "nome": "FaZe",
+    "colecao": "Times",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.56,
+    "arquivo": "times/04_FaZe.png",
+    "abertura": {
+      "x": 89,
+      "y": 85,
+      "largura": 334,
+      "altura": 328,
+      "recorte": "polygon(78.74% 0.0%,78.14% 1.83%,90.72% 3.66%,93.11% 5.49%,95.21% 7.32%,95.51% 9.15%,95.21% 10.98%,96.11% 12.8%,98.8% 14.63%,99.1% 16.46%,99.1% 18.29%,99.1% 20.12%,99.1% 21.95%,97.9% 23.78%,97.31% 25.61%,97.31% 27.44%,97.31% 29.27%,97.31% 31.1%,97.31% 32.93%,97.6% 34.76%,97.6% 36.59%,99.7% 38.41%,99.7% 40.24%,99.7% 42.07%,99.7% 43.9%,99.7% 45.73%,98.5% 47.56%,98.5% 49.39%,98.5% 51.22%,98.5% 53.05%,99.4% 54.88%,99.7% 56.71%,99.7% 58.54%,99.7% 60.37%,99.4% 62.2%,97.9% 64.02%,97.31% 65.85%,97.31% 67.68%,97.31% 69.51%,96.11% 71.34%,95.21% 73.17%,98.2% 75.0%,98.2% 76.83%,98.2% 78.66%,97.31% 80.49%,96.41% 82.32%,95.51% 84.15%,94.31% 85.98%,91.92% 87.8%,89.82% 89.63%,88.32% 91.46%,81.14% 93.29%,79.04% 95.12%,70.66% 96.95%,67.37% 98.78%,62.28% 99.7%,37.43% 99.7%,32.34% 98.78%,29.34% 96.95%,20.66% 95.12%,18.56% 93.29%,11.38% 91.46%,9.88% 89.63%,7.78% 87.8%,5.39% 85.98%,4.19% 84.15%,3.29% 82.32%,2.4% 80.49%,1.5% 78.66%,1.5% 76.83%,1.5% 75.0%,4.79% 73.17%,3.89% 71.34%,2.69% 69.51%,2.4% 67.68%,2.4% 65.85%,1.8% 64.02%,0.6% 62.2%,0.0% 60.37%,0.0% 58.54%,0.0% 56.71%,0.6% 54.88%,1.2% 53.05%,1.2% 51.22%,1.2% 49.39%,1.2% 47.56%,0.0% 45.73%,0.0% 43.9%,0.0% 42.07%,0.0% 40.24%,0.0% 38.41%,2.1% 36.59%,2.1% 34.76%,2.4% 32.93%,2.4% 31.1%,2.4% 29.27%,2.4% 27.44%,2.4% 25.61%,1.8% 23.78%,0.6% 21.95%,0.6% 20.12%,0.6% 18.29%,0.6% 16.46%,0.9% 14.63%,3.59% 12.8%,4.49% 10.98%,4.49% 9.15%,4.49% 7.32%,6.59% 5.49%,8.98% 3.66%,21.56% 1.83%,21.26% 0.0%)"
+    }
+  },
+  {
+    "id": "times/g2",
+    "nome": "G2",
+    "colecao": "Times",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.5,
+    "arquivo": "times/05_G2.png",
+    "abertura": {
+      "x": 85,
+      "y": 93,
+      "largura": 342,
+      "altura": 325,
+      "recorte": "polygon(82.16% 0.0%,85.09% 1.85%,89.47% 3.69%,90.94% 5.54%,93.86% 7.38%,93.57% 9.23%,94.74% 11.08%,94.74% 12.92%,94.74% 14.77%,94.74% 16.62%,94.15% 18.46%,93.86% 20.31%,93.57% 22.15%,99.71% 24.0%,99.71% 25.85%,99.71% 27.69%,99.71% 29.54%,99.71% 31.38%,98.83% 33.23%,97.66% 35.08%,96.78% 36.92%,96.49% 38.77%,96.49% 40.62%,96.78% 42.46%,97.37% 44.31%,98.54% 46.15%,99.71% 48.0%,99.71% 49.85%,97.66% 51.69%,96.2% 53.54%,96.2% 55.38%,96.2% 57.23%,96.2% 59.08%,96.2% 60.92%,96.2% 62.77%,95.03% 64.62%,94.44% 66.46%,94.15% 68.31%,94.44% 70.15%,95.03% 72.0%,96.49% 73.85%,97.66% 75.69%,97.37% 77.54%,95.61% 79.38%,93.27% 81.23%,90.35% 83.08%,87.43% 84.92%,85.09% 86.77%,83.33% 88.62%,81.87% 90.46%,80.41% 92.31%,78.65% 94.15%,74.27% 96.0%,71.93% 97.85%,63.45% 99.69%,36.26% 99.69%,27.78% 97.85%,25.44% 96.0%,21.05% 94.15%,19.3% 92.31%,17.84% 90.46%,16.37% 88.62%,14.62% 86.77%,12.28% 84.92%,9.36% 83.08%,6.43% 81.23%,4.09% 79.38%,2.34% 77.54%,2.05% 75.69%,3.22% 73.85%,4.68% 72.0%,5.26% 70.15%,5.56% 68.31%,5.26% 66.46%,4.68% 64.62%,3.51% 62.77%,3.51% 60.92%,3.51% 59.08%,3.51% 57.23%,3.51% 55.38%,3.51% 53.54%,2.05% 51.69%,0.0% 49.85%,0.29% 48.0%,1.46% 46.15%,2.34% 44.31%,2.92% 42.46%,3.22% 40.62%,3.22% 38.77%,2.92% 36.92%,2.05% 35.08%,0.88% 33.23%,0.0% 31.38%,0.0% 29.54%,0.0% 27.69%,0.0% 25.85%,0.0% 24.0%,6.43% 22.15%,6.14% 20.31%,5.56% 18.46%,5.26% 16.62%,4.97% 14.77%,4.97% 12.92%,4.68% 11.08%,6.14% 9.23%,5.85% 7.38%,8.77% 5.54%,10.23% 3.69%,14.62% 1.85%,18.13% 0.0%)"
+    }
+  },
+  {
+    "id": "times/spirit",
+    "nome": "Spirit",
+    "colecao": "Times",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.54,
+    "arquivo": "times/06_Spirit.png",
+    "abertura": {
+      "x": 85,
+      "y": 86,
+      "largura": 342,
+      "altura": 328,
+      "recorte": "polygon(57.31% 0.0%,61.99% 1.83%,79.82% 3.66%,83.04% 5.49%,84.8% 7.32%,93.27% 9.15%,95.32% 10.98%,96.49% 12.8%,96.49% 14.63%,95.91% 16.46%,95.61% 18.29%,98.25% 20.12%,98.25% 21.95%,97.95% 23.78%,98.83% 25.61%,99.71% 27.44%,99.71% 29.27%,99.71% 31.1%,99.42% 32.93%,98.54% 34.76%,97.95% 36.59%,97.95% 38.41%,97.95% 40.24%,97.95% 42.07%,97.95% 43.9%,97.95% 45.73%,97.95% 47.56%,97.95% 49.39%,97.95% 51.22%,97.95% 53.05%,97.37% 54.88%,96.78% 56.71%,97.37% 58.54%,98.25% 60.37%,99.12% 62.2%,99.42% 64.02%,99.71% 65.85%,99.71% 67.68%,99.71% 69.51%,99.42% 71.34%,98.25% 73.17%,97.08% 75.0%,96.2% 76.83%,95.32% 78.66%,94.74% 80.49%,97.37% 82.32%,97.95% 84.15%,97.95% 85.98%,97.66% 87.8%,96.49% 89.63%,94.74% 91.46%,91.23% 93.29%,77.49% 95.12%,75.15% 96.95%,71.35% 98.78%,57.31% 99.7%,42.4% 99.7%,28.65% 98.78%,24.56% 96.95%,22.51% 95.12%,8.48% 93.29%,5.26% 91.46%,3.22% 89.63%,2.05% 87.8%,1.75% 85.98%,1.75% 84.15%,2.34% 82.32%,4.97% 80.49%,4.39% 78.66%,3.51% 76.83%,2.63% 75.0%,1.46% 73.17%,0.29% 71.34%,0.0% 69.51%,0.0% 67.68%,0.0% 65.85%,0.29% 64.02%,0.58% 62.2%,1.46% 60.37%,2.34% 58.54%,2.92% 56.71%,2.34% 54.88%,1.75% 53.05%,1.75% 51.22%,1.75% 49.39%,1.75% 47.56%,1.75% 45.73%,1.75% 43.9%,1.75% 42.07%,1.75% 40.24%,1.75% 38.41%,1.75% 36.59%,1.17% 34.76%,0.29% 32.93%,0.0% 31.1%,0.0% 29.27%,0.0% 27.44%,0.88% 25.61%,1.75% 23.78%,1.46% 21.95%,1.46% 20.12%,4.09% 18.29%,3.8% 16.46%,3.22% 14.63%,3.22% 12.8%,4.39% 10.98%,6.43% 9.15%,14.91% 7.32%,16.67% 5.49%,19.88% 3.66%,51.17% 1.83%,53.22% 0.0%)"
+    }
+  },
+  {
+    "id": "times/mouz",
+    "nome": "MOUZ",
+    "colecao": "Times",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.57,
+    "arquivo": "times/07_MOUZ.png",
+    "abertura": {
+      "x": 84,
+      "y": 83,
+      "largura": 345,
+      "altura": 336,
+      "recorte": "polygon(62.9% 0.0%,85.8% 1.79%,87.83% 3.57%,89.57% 5.36%,91.3% 7.14%,93.04% 8.93%,92.46% 10.71%,91.01% 12.5%,91.3% 14.29%,91.3% 16.07%,91.88% 17.86%,92.46% 19.64%,92.46% 21.43%,99.71% 23.21%,99.71% 25.0%,99.71% 26.79%,99.71% 28.57%,98.55% 30.36%,97.39% 32.14%,97.39% 33.93%,97.39% 35.71%,97.1% 37.5%,96.81% 39.29%,95.94% 41.07%,95.94% 42.86%,95.94% 44.64%,95.94% 46.43%,95.94% 48.21%,95.94% 50.0%,96.81% 51.79%,98.26% 53.57%,98.55% 55.36%,97.68% 57.14%,97.68% 58.93%,97.68% 60.71%,97.68% 62.5%,97.68% 64.29%,97.68% 66.07%,96.52% 67.86%,95.36% 69.64%,94.2% 71.43%,93.62% 73.21%,96.81% 75.0%,97.97% 76.79%,98.84% 78.57%,99.13% 80.36%,98.55% 82.14%,94.78% 83.93%,90.72% 85.71%,88.12% 87.5%,86.38% 89.29%,84.93% 91.07%,83.48% 92.86%,83.77% 94.64%,71.01% 96.43%,60.0% 98.21%,58.26% 99.7%,41.16% 99.7%,39.71% 98.21%,28.41% 96.43%,15.94% 94.64%,15.94% 92.86%,14.78% 91.07%,13.33% 89.29%,11.3% 87.5%,8.7% 85.71%,4.93% 83.93%,1.16% 82.14%,0.58% 80.36%,0.58% 78.57%,1.45% 76.79%,2.61% 75.0%,6.09% 73.21%,5.22% 71.43%,4.35% 69.64%,3.19% 67.86%,1.74% 66.07%,1.74% 64.29%,1.74% 62.5%,1.74% 60.71%,1.74% 58.93%,1.74% 57.14%,1.16% 55.36%,1.45% 53.57%,2.61% 51.79%,3.77% 50.0%,3.77% 48.21%,3.77% 46.43%,3.77% 44.64%,3.77% 42.86%,3.77% 41.07%,2.61% 39.29%,2.32% 37.5%,2.32% 35.71%,2.03% 33.93%,2.03% 32.14%,0.87% 30.36%,0.0% 28.57%,0.0% 26.79%,0.0% 25.0%,0.0% 23.21%,6.96% 21.43%,7.25% 19.64%,7.54% 17.86%,8.12% 16.07%,8.41% 14.29%,8.41% 12.5%,6.96% 10.71%,6.67% 8.93%,8.41% 7.14%,10.14% 5.36%,11.88% 3.57%,13.62% 1.79%,36.52% 0.0%)"
+    }
+  },
+  {
+    "id": "times/falcons",
+    "nome": "Falcons",
+    "colecao": "Times",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.52,
+    "arquivo": "times/08_Falcons.png",
+    "abertura": {
+      "x": 83,
+      "y": 81,
+      "largura": 346,
+      "altura": 340,
+      "recorte": "polygon(79.77% 0.0%,83.53% 1.76%,85.84% 3.53%,86.13% 5.29%,91.33% 7.06%,92.77% 8.82%,93.35% 10.59%,93.35% 12.35%,93.35% 14.12%,96.82% 15.88%,97.11% 17.65%,97.11% 19.41%,97.11% 21.18%,97.11% 22.94%,97.11% 24.71%,97.11% 26.47%,96.82% 28.24%,96.24% 30.0%,95.95% 31.76%,95.95% 33.53%,96.53% 35.29%,97.98% 37.06%,98.55% 38.82%,99.71% 40.59%,99.71% 42.35%,99.71% 44.12%,99.42% 45.88%,98.55% 47.65%,97.98% 49.41%,97.98% 51.18%,97.98% 52.94%,97.98% 54.71%,97.98% 56.47%,99.13% 58.24%,99.71% 60.0%,99.71% 61.76%,99.71% 63.53%,98.27% 65.29%,97.4% 67.06%,97.11% 68.82%,96.82% 70.59%,97.11% 72.35%,97.4% 74.12%,97.69% 75.88%,97.69% 77.65%,97.11% 79.41%,94.51% 81.18%,92.49% 82.94%,90.46% 84.71%,88.44% 86.47%,86.71% 88.24%,85.26% 90.0%,82.95% 91.76%,75.14% 93.53%,70.23% 95.29%,68.21% 97.06%,57.8% 98.82%,56.07% 99.71%,43.93% 99.71%,41.91% 98.82%,31.5% 97.06%,29.77% 95.29%,24.57% 93.53%,16.76% 91.76%,14.45% 90.0%,13.01% 88.24%,11.27% 86.47%,9.25% 84.71%,7.23% 82.94%,5.2% 81.18%,2.89% 79.41%,2.31% 77.65%,2.02% 75.88%,2.31% 74.12%,2.6% 72.35%,2.89% 70.59%,2.89% 68.82%,2.6% 67.06%,1.73% 65.29%,0.0% 63.53%,0.0% 61.76%,0.0% 60.0%,0.87% 58.24%,1.73% 56.47%,1.73% 54.71%,1.73% 52.94%,1.73% 51.18%,1.73% 49.41%,1.16% 47.65%,0.58% 45.88%,0.0% 44.12%,0.0% 42.35%,0.0% 40.59%,1.16% 38.82%,1.73% 37.06%,3.18% 35.29%,3.76% 33.53%,3.76% 31.76%,3.47% 30.0%,2.89% 28.24%,2.89% 26.47%,2.89% 24.71%,2.89% 22.94%,2.89% 21.18%,2.6% 19.41%,2.89% 17.65%,2.89% 15.88%,6.65% 14.12%,6.65% 12.35%,6.36% 10.59%,6.94% 8.82%,8.38% 7.06%,13.87% 5.29%,13.87% 3.53%,16.47% 1.76%,19.94% 0.0%)"
+    }
+  },
+  {
+    "id": "times/liquid",
+    "nome": "Liquid",
+    "colecao": "Times",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.51,
+    "arquivo": "times/09_Liquid.png",
+    "abertura": {
+      "x": 85,
+      "y": 81,
+      "largura": 343,
+      "altura": 343,
+      "recorte": "polygon(79.01% 0.0%,82.51% 1.75%,86.3% 3.5%,87.76% 5.25%,93.59% 7.0%,95.04% 8.75%,94.17% 10.5%,93.88% 12.24%,94.17% 13.99%,97.38% 15.74%,99.13% 17.49%,99.42% 19.24%,99.71% 20.99%,99.42% 22.74%,99.13% 24.49%,99.42% 26.24%,98.25% 27.99%,97.67% 29.74%,99.71% 31.49%,99.71% 33.24%,99.71% 34.99%,99.71% 36.73%,99.71% 38.48%,99.71% 40.23%,99.71% 41.98%,99.42% 43.73%,98.25% 45.48%,98.25% 47.23%,98.83% 48.98%,98.83% 50.73%,98.83% 52.48%,98.83% 54.23%,98.54% 55.98%,98.25% 57.73%,97.38% 59.48%,97.08% 61.22%,97.08% 62.97%,97.08% 64.72%,97.08% 66.47%,97.38% 68.22%,97.96% 69.97%,99.71% 71.72%,98.83% 73.47%,99.71% 75.22%,99.71% 76.97%,99.71% 78.72%,99.42% 80.47%,97.96% 82.22%,97.08% 83.97%,96.5% 85.71%,95.34% 87.46%,93.29% 89.21%,90.67% 90.96%,89.8% 92.71%,87.17% 94.46%,86.01% 96.21%,84.26% 97.96%,78.13% 99.71%,21.87% 99.71%,15.16% 97.96%,13.41% 96.21%,12.24% 94.46%,9.91% 92.71%,9.04% 90.96%,7.87% 89.21%,4.37% 87.46%,3.21% 85.71%,2.62% 83.97%,1.75% 82.22%,0.29% 80.47%,0.0% 78.72%,0.0% 76.97%,0.0% 75.22%,0.87% 73.47%,0.0% 71.72%,1.46% 69.97%,2.04% 68.22%,2.33% 66.47%,2.33% 64.72%,2.62% 62.97%,2.62% 61.22%,2.33% 59.48%,1.17% 57.73%,0.87% 55.98%,0.87% 54.23%,0.87% 52.48%,0.87% 50.73%,0.87% 48.98%,1.17% 47.23%,1.46% 45.48%,0.29% 43.73%,0.0% 41.98%,0.0% 40.23%,0.0% 38.48%,0.0% 36.73%,0.0% 34.99%,0.0% 33.24%,0.0% 31.49%,2.04% 29.74%,1.17% 27.99%,0.29% 26.24%,0.29% 24.49%,0.29% 22.74%,0.0% 20.99%,0.0% 19.24%,0.58% 17.49%,2.33% 15.74%,5.25% 13.99%,5.83% 12.24%,5.54% 10.5%,4.66% 8.75%,6.12% 7.0%,12.54% 5.25%,13.7% 3.5%,17.2% 1.75%,20.7% 0.0%)"
+    }
+  },
+  {
+    "id": "times/astralis",
+    "nome": "Astralis",
+    "colecao": "Times",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.55,
+    "arquivo": "times/10_Astralis.png",
+    "abertura": {
+      "x": 86,
+      "y": 81,
+      "largura": 340,
+      "altura": 335,
+      "recorte": "polygon(87.65% 0.0%,89.71% 1.79%,91.76% 3.58%,95.59% 5.37%,97.65% 7.16%,98.82% 8.96%,99.71% 10.75%,99.71% 12.54%,99.71% 14.33%,99.71% 16.12%,97.94% 17.91%,97.65% 19.7%,97.65% 21.49%,97.65% 23.28%,97.65% 25.07%,99.71% 26.87%,99.71% 28.66%,99.71% 30.45%,99.71% 32.24%,99.71% 34.03%,99.71% 35.82%,99.71% 37.61%,99.71% 39.4%,99.71% 41.19%,99.71% 42.99%,98.24% 44.78%,97.94% 46.57%,97.94% 48.36%,97.94% 50.15%,97.94% 51.94%,97.94% 53.73%,97.94% 55.52%,98.53% 57.31%,99.71% 59.1%,99.71% 60.9%,99.41% 62.69%,99.41% 64.48%,99.41% 66.27%,99.41% 68.06%,99.41% 69.85%,99.41% 71.64%,99.41% 73.43%,97.65% 75.22%,97.65% 77.01%,97.65% 78.81%,97.65% 80.6%,97.65% 82.39%,97.65% 84.18%,97.94% 85.97%,99.12% 87.76%,98.82% 89.55%,97.65% 91.34%,95.0% 93.13%,90.88% 94.93%,82.35% 96.72%,75.59% 98.51%,73.82% 99.7%,25.88% 99.7%,24.12% 98.51%,17.65% 96.72%,8.82% 94.93%,4.71% 93.13%,2.06% 91.34%,0.88% 89.55%,0.59% 87.76%,2.06% 85.97%,2.06% 84.18%,2.06% 82.39%,2.06% 80.6%,2.06% 78.81%,2.06% 77.01%,2.06% 75.22%,0.29% 73.43%,0.29% 71.64%,0.29% 69.85%,0.29% 68.06%,0.29% 66.27%,0.29% 64.48%,0.29% 62.69%,0.0% 60.9%,0.0% 59.1%,1.47% 57.31%,2.06% 55.52%,2.06% 53.73%,2.06% 51.94%,2.06% 50.15%,2.06% 48.36%,2.06% 46.57%,1.47% 44.78%,0.29% 42.99%,0.0% 41.19%,0.0% 39.4%,0.0% 37.61%,0.0% 35.82%,0.0% 34.03%,0.0% 32.24%,0.0% 30.45%,0.0% 28.66%,0.0% 26.87%,2.06% 25.07%,2.06% 23.28%,2.06% 21.49%,2.06% 19.7%,1.76% 17.91%,0.0% 16.12%,0.0% 14.33%,0.0% 12.54%,0.29% 10.75%,0.88% 8.96%,2.06% 7.16%,4.12% 5.37%,7.94% 3.58%,10.0% 1.79%,12.06% 0.0%)"
+    }
+  },
+  {
+    "id": "times/virtus-pro",
+    "nome": "Virtus.pro",
+    "colecao": "Times",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.45,
+    "arquivo": "times/11_Virtus-Pro.png",
+    "abertura": {
+      "x": 82,
+      "y": 86,
+      "largura": 348,
+      "altura": 327,
+      "recorte": "polygon(74.43% 0.0%,82.76% 1.83%,84.77% 3.67%,92.82% 5.5%,93.39% 7.34%,94.83% 9.17%,96.26% 11.01%,99.71% 12.84%,99.71% 14.68%,99.71% 16.51%,99.71% 18.35%,98.85% 20.18%,98.85% 22.02%,99.14% 23.85%,99.14% 25.69%,98.28% 27.52%,98.28% 29.36%,98.28% 31.19%,98.28% 33.03%,98.85% 34.86%,98.85% 36.7%,98.85% 38.53%,98.85% 40.37%,98.85% 42.2%,98.85% 44.04%,99.14% 45.87%,99.71% 47.71%,99.71% 49.54%,99.71% 51.38%,99.71% 53.21%,99.71% 55.05%,99.71% 56.88%,98.56% 58.72%,98.28% 60.55%,98.28% 62.39%,98.28% 64.22%,98.28% 66.06%,99.14% 67.89%,99.71% 69.72%,99.71% 71.56%,99.71% 73.39%,99.71% 75.23%,99.71% 77.06%,99.43% 78.9%,95.4% 80.73%,93.68% 82.57%,91.67% 84.4%,90.52% 86.24%,89.94% 88.07%,90.52% 89.91%,89.08% 91.74%,87.07% 93.58%,84.77% 95.41%,71.26% 97.25%,62.07% 99.08%,60.63% 99.69%,38.79% 99.69%,37.64% 99.08%,28.74% 97.25%,15.23% 95.41%,12.64% 93.58%,10.92% 91.74%,9.2% 89.91%,9.77% 88.07%,9.48% 86.24%,8.05% 84.4%,6.32% 82.57%,4.31% 80.73%,0.57% 78.9%,0.29% 77.06%,0.0% 75.23%,0.0% 73.39%,0.29% 71.56%,0.29% 69.72%,0.86% 67.89%,1.44% 66.06%,1.44% 64.22%,1.44% 62.39%,1.44% 60.55%,1.44% 58.72%,0.0% 56.88%,0.0% 55.05%,0.0% 53.21%,0.0% 51.38%,0.0% 49.54%,0.0% 47.71%,0.57% 45.87%,0.86% 44.04%,0.86% 42.2%,0.86% 40.37%,0.86% 38.53%,0.86% 36.7%,0.86% 34.86%,1.72% 33.03%,1.72% 31.19%,1.44% 29.36%,1.44% 27.52%,0.86% 25.69%,0.57% 23.85%,0.86% 22.02%,0.86% 20.18%,0.0% 18.35%,0.0% 16.51%,0.0% 14.68%,0.0% 12.84%,3.74% 11.01%,5.17% 9.17%,6.32% 7.34%,7.18% 5.5%,15.23% 3.67%,17.24% 1.83%,25.29% 0.0%)"
+    }
+  },
+  {
+    "id": "times/cloud9",
+    "nome": "Cloud9",
+    "colecao": "Times",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.53,
+    "arquivo": "times/12_Cloud9.png",
+    "abertura": {
+      "x": 89,
+      "y": 87,
+      "largura": 334,
+      "altura": 317,
+      "recorte": "polygon(85.03% 0.0%,88.32% 1.89%,90.12% 3.79%,92.51% 5.68%,96.41% 7.57%,97.01% 9.46%,95.51% 11.36%,95.81% 13.25%,99.7% 15.14%,99.7% 17.03%,99.7% 18.93%,99.7% 20.82%,99.4% 22.71%,98.8% 24.61%,98.5% 26.5%,98.5% 28.39%,98.5% 30.28%,98.8% 32.18%,99.1% 34.07%,99.4% 35.96%,99.4% 37.85%,98.2% 39.75%,97.01% 41.64%,95.21% 43.53%,94.31% 45.43%,95.21% 47.32%,96.41% 49.21%,97.6% 51.1%,99.7% 53.0%,99.7% 54.89%,99.7% 56.78%,99.7% 58.68%,99.7% 60.57%,99.7% 62.46%,99.7% 64.35%,98.8% 66.25%,97.9% 68.14%,97.31% 70.03%,97.01% 71.92%,97.31% 73.82%,97.9% 75.71%,99.1% 77.6%,99.4% 79.5%,98.8% 81.39%,97.31% 83.28%,88.62% 85.17%,88.32% 87.07%,88.92% 88.96%,91.02% 90.85%,90.72% 92.74%,88.92% 94.64%,84.73% 96.53%,79.94% 98.42%,58.98% 99.68%,41.02% 99.68%,19.76% 98.42%,15.27% 96.53%,11.08% 94.64%,9.28% 92.74%,8.68% 90.85%,10.78% 88.96%,11.38% 87.07%,11.08% 85.17%,2.4% 83.28%,0.9% 81.39%,0.6% 79.5%,0.6% 77.6%,1.8% 75.71%,2.4% 73.82%,2.69% 71.92%,2.4% 70.03%,1.8% 68.14%,0.9% 66.25%,0.0% 64.35%,0.0% 62.46%,0.0% 60.57%,0.0% 58.68%,0.0% 56.78%,0.0% 54.89%,0.3% 53.0%,2.1% 51.1%,3.29% 49.21%,4.79% 47.32%,5.39% 45.43%,4.49% 43.53%,2.69% 41.64%,1.5% 39.75%,0.3% 37.85%,0.3% 35.96%,0.6% 34.07%,0.9% 32.18%,1.2% 30.28%,1.5% 28.39%,1.5% 26.5%,0.9% 24.61%,0.3% 22.71%,0.3% 20.82%,0.3% 18.93%,0.0% 17.03%,0.0% 15.14%,3.89% 13.25%,4.19% 11.36%,2.69% 9.46%,3.59% 7.57%,7.49% 5.68%,9.58% 3.79%,11.38% 1.89%,14.67% 0.0%)"
+    }
+  },
+  {
+    "id": "eventos/halloween",
+    "nome": "Halloween",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.54,
+    "arquivo": "eventos/13_Halloween.png",
+    "abertura": {
+      "x": 86,
+      "y": 82,
+      "largura": 340,
+      "altura": 321,
+      "recorte": "polygon(75.59% 0.0%,80.29% 1.87%,81.18% 3.74%,87.06% 5.61%,91.76% 7.48%,91.47% 9.35%,92.06% 11.21%,92.94% 13.08%,92.94% 14.95%,95.59% 16.82%,96.76% 18.69%,97.94% 20.56%,98.82% 22.43%,99.12% 24.3%,99.12% 26.17%,98.82% 28.04%,98.53% 29.91%,96.18% 31.78%,97.65% 33.64%,98.53% 35.51%,98.82% 37.38%,99.71% 39.25%,99.71% 41.12%,99.71% 42.99%,99.71% 44.86%,99.71% 46.73%,98.82% 48.6%,98.24% 50.47%,98.24% 52.34%,98.24% 54.21%,98.24% 56.07%,98.24% 57.94%,98.82% 59.81%,99.71% 61.68%,99.71% 63.55%,99.71% 65.42%,99.71% 67.29%,98.53% 69.16%,95.59% 71.03%,95.29% 72.9%,94.41% 74.77%,93.82% 76.64%,96.76% 78.5%,96.47% 80.37%,94.41% 82.24%,91.76% 84.11%,85.0% 85.98%,85.0% 87.85%,84.12% 89.72%,74.41% 91.59%,75.29% 93.46%,75.29% 95.33%,74.12% 97.2%,63.24% 99.07%,56.18% 99.69%,53.82% 99.69%,36.76% 99.07%,25.59% 97.2%,24.41% 95.33%,24.41% 93.46%,25.59% 91.59%,15.88% 89.72%,14.71% 87.85%,14.71% 85.98%,7.94% 84.11%,5.29% 82.24%,3.24% 80.37%,2.94% 78.5%,6.18% 76.64%,5.29% 74.77%,4.41% 72.9%,4.12% 71.03%,1.18% 69.16%,0.0% 67.29%,0.0% 65.42%,0.0% 63.55%,0.0% 61.68%,0.88% 59.81%,1.76% 57.94%,1.76% 56.07%,1.76% 54.21%,1.76% 52.34%,1.47% 50.47%,0.88% 48.6%,0.0% 46.73%,0.0% 44.86%,0.0% 42.99%,0.0% 41.12%,0.0% 39.25%,1.18% 37.38%,1.18% 35.51%,2.06% 33.64%,3.53% 31.78%,1.18% 29.91%,0.88% 28.04%,0.88% 26.17%,0.88% 24.3%,0.88% 22.43%,1.76% 20.56%,2.94% 18.69%,4.41% 16.82%,6.76% 14.95%,6.76% 13.08%,7.65% 11.21%,8.24% 9.35%,7.94% 7.48%,12.65% 5.61%,18.53% 3.74%,19.71% 1.87%,24.12% 0.0%)"
+    },
+    "insignia": "evento-halloween-2026"
+  },
+  {
+    "id": "eventos/natal",
+    "nome": "Natal",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.54,
+    "arquivo": "eventos/14_Natal.png",
+    "abertura": {
+      "x": 93,
+      "y": 83,
+      "largura": 326,
+      "altura": 327,
+      "recorte": "polygon(75.77% 0.0%,75.46% 1.83%,84.66% 3.67%,86.5% 5.5%,83.13% 7.34%,86.2% 9.17%,92.64% 11.01%,92.94% 12.84%,92.02% 14.68%,92.64% 16.51%,95.09% 18.35%,97.55% 20.18%,97.55% 22.02%,96.01% 23.85%,98.16% 25.69%,99.39% 27.52%,99.69% 29.36%,97.85% 31.19%,99.08% 33.03%,99.39% 34.86%,98.47% 36.7%,97.85% 38.53%,97.85% 40.37%,97.85% 42.2%,97.85% 44.04%,97.85% 45.87%,98.77% 47.71%,99.69% 49.54%,99.69% 51.38%,99.69% 53.21%,99.69% 55.05%,99.69% 56.88%,99.69% 58.72%,99.39% 60.55%,98.16% 62.39%,96.63% 64.22%,97.55% 66.06%,98.47% 67.89%,99.39% 69.72%,99.39% 71.56%,99.39% 73.39%,99.08% 75.23%,97.24% 77.06%,96.32% 78.9%,95.71% 80.73%,95.71% 82.57%,95.71% 84.4%,92.02% 86.24%,94.17% 88.07%,90.18% 89.91%,89.26% 91.74%,79.45% 93.58%,76.99% 95.41%,65.34% 97.25%,63.5% 99.08%,62.58% 99.69%,37.12% 99.69%,36.5% 99.08%,34.66% 97.25%,22.7% 95.41%,20.55% 93.58%,10.74% 91.74%,9.51% 89.91%,5.52% 88.07%,4.6% 86.24%,4.29% 84.4%,3.99% 82.57%,3.68% 80.73%,3.07% 78.9%,2.15% 77.06%,0.61% 75.23%,0.61% 73.39%,0.61% 71.56%,0.61% 69.72%,1.23% 67.89%,2.45% 66.06%,3.07% 64.22%,1.53% 62.39%,0.31% 60.55%,0.0% 58.72%,0.0% 56.88%,0.0% 55.05%,0.0% 53.21%,0.0% 51.38%,0.0% 49.54%,1.23% 47.71%,2.15% 45.87%,2.15% 44.04%,2.15% 42.2%,2.15% 40.37%,2.15% 38.53%,1.23% 36.7%,0.31% 34.86%,0.92% 33.03%,2.45% 31.19%,0.0% 29.36%,0.61% 27.52%,1.84% 25.69%,3.99% 23.85%,2.15% 22.02%,2.15% 20.18%,4.91% 18.35%,7.06% 16.51%,7.67% 14.68%,6.75% 12.84%,7.36% 11.01%,13.5% 9.17%,16.87% 7.34%,13.19% 5.5%,14.72% 3.67%,24.54% 1.83%,24.23% 0.0%)"
+    },
+    "insignia": "evento-natal-2026"
+  },
+  {
+    "id": "eventos/ano-novo",
+    "nome": "Ano Novo",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.51,
+    "arquivo": "eventos/15_Ano-Novo.png",
+    "abertura": {
+      "x": 87,
+      "y": 80,
+      "largura": 338,
+      "altura": 340,
+      "recorte": "polygon(73.37% 0.0%,76.04% 1.76%,78.11% 3.53%,84.91% 5.29%,86.98% 7.06%,87.57% 8.82%,94.38% 10.59%,96.75% 12.35%,97.63% 14.12%,97.04% 15.88%,96.45% 17.65%,95.86% 19.41%,99.7% 21.18%,99.7% 22.94%,99.7% 24.71%,99.7% 26.47%,99.7% 28.24%,98.82% 30.0%,97.04% 31.76%,95.86% 33.53%,96.15% 35.29%,96.15% 37.06%,96.15% 38.82%,96.15% 40.59%,96.15% 42.35%,96.15% 44.12%,96.15% 45.88%,96.45% 47.65%,97.93% 49.41%,99.41% 51.18%,99.7% 52.94%,99.7% 54.71%,99.7% 56.47%,99.7% 58.24%,99.7% 60.0%,99.7% 61.76%,98.82% 63.53%,98.52% 65.29%,98.52% 67.06%,98.22% 68.82%,98.22% 70.59%,96.75% 72.35%,95.27% 74.12%,93.79% 75.88%,92.9% 77.65%,92.9% 79.41%,92.9% 81.18%,92.9% 82.94%,92.6% 84.71%,92.31% 86.47%,90.53% 88.24%,88.17% 90.0%,82.25% 91.76%,78.99% 93.53%,76.92% 95.29%,75.15% 97.06%,61.83% 98.82%,56.21% 99.71%,43.49% 99.71%,38.17% 98.82%,24.56% 97.06%,23.08% 95.29%,21.01% 93.53%,17.46% 91.76%,11.54% 90.0%,9.17% 88.24%,7.69% 86.47%,7.1% 84.71%,7.1% 82.94%,7.1% 81.18%,7.1% 79.41%,7.1% 77.65%,5.92% 75.88%,4.44% 74.12%,2.96% 72.35%,1.48% 70.59%,1.48% 68.82%,1.18% 67.06%,1.18% 65.29%,0.89% 63.53%,0.0% 61.76%,0.0% 60.0%,0.0% 58.24%,0.0% 56.47%,0.0% 54.71%,0.0% 52.94%,0.59% 51.18%,2.07% 49.41%,3.55% 47.65%,3.85% 45.88%,3.85% 44.12%,3.55% 42.35%,3.85% 40.59%,3.85% 38.82%,3.85% 37.06%,3.85% 35.29%,3.85% 33.53%,2.96% 31.76%,1.18% 30.0%,0.0% 28.24%,0.0% 26.47%,0.0% 24.71%,0.0% 22.94%,0.0% 21.18%,3.85% 19.41%,3.55% 17.65%,2.66% 15.88%,2.07% 14.12%,2.96% 12.35%,5.33% 10.59%,12.13% 8.82%,12.72% 7.06%,15.09% 5.29%,21.89% 3.53%,23.67% 1.76%,26.04% 0.0%)"
+    },
+    "insignia": "evento-ano-novo-2026"
+  },
+  {
+    "id": "eventos/carnaval",
+    "nome": "Carnaval",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.72,
+    "arquivo": "eventos/16_Carnaval.png",
+    "abertura": {
+      "x": 91,
+      "y": 85,
+      "largura": 331,
+      "altura": 328,
+      "recorte": "polygon(32.02% 0.0%,71.0% 1.83%,82.18% 3.66%,83.38% 5.49%,84.29% 7.32%,90.63% 9.15%,90.63% 10.98%,90.63% 12.8%,90.94% 14.63%,92.15% 16.46%,92.15% 18.29%,92.15% 20.12%,92.15% 21.95%,94.26% 23.78%,95.77% 25.61%,95.47% 27.44%,98.79% 29.27%,98.79% 31.1%,98.19% 32.93%,99.7% 34.76%,99.09% 36.59%,99.09% 38.41%,99.09% 40.24%,99.4% 42.07%,99.7% 43.9%,98.19% 45.73%,96.37% 47.56%,95.17% 49.39%,94.26% 51.22%,93.96% 53.05%,93.66% 54.88%,93.66% 56.71%,96.68% 58.54%,96.98% 60.37%,96.98% 62.2%,97.89% 64.02%,99.4% 65.85%,98.79% 67.68%,98.49% 69.51%,96.68% 71.34%,95.77% 73.17%,96.98% 75.0%,96.98% 76.83%,97.28% 78.66%,97.58% 80.49%,97.89% 82.32%,98.19% 84.15%,99.09% 85.98%,99.7% 87.8%,99.4% 89.63%,89.73% 91.46%,89.73% 93.29%,79.76% 95.12%,77.95% 96.95%,76.13% 98.78%,75.23% 99.7%,24.17% 99.7%,23.26% 98.78%,21.45% 96.95%,19.94% 95.12%,9.67% 93.29%,9.67% 91.46%,0.0% 89.63%,0.0% 87.8%,0.3% 85.98%,1.21% 84.15%,1.81% 82.32%,2.11% 80.49%,2.42% 78.66%,2.42% 76.83%,2.72% 75.0%,3.32% 73.17%,2.72% 71.34%,0.91% 69.51%,0.6% 67.68%,0.0% 65.85%,1.81% 64.02%,2.42% 62.2%,2.42% 60.37%,3.02% 58.54%,5.74% 56.71%,5.74% 54.88%,5.44% 53.05%,5.14% 51.22%,4.23% 49.39%,3.32% 47.56%,1.51% 45.73%,0.0% 43.9%,0.3% 42.07%,0.3% 40.24%,0.6% 38.41%,0.3% 36.59%,0.0% 34.76%,1.21% 32.93%,0.6% 31.1%,0.91% 29.27%,3.93% 27.44%,3.63% 25.61%,5.44% 23.78%,7.25% 21.95%,7.25% 20.12%,7.25% 18.29%,7.55% 16.46%,8.46% 14.63%,8.76% 12.8%,8.76% 10.98%,9.06% 9.15%,15.41% 7.32%,16.01% 5.49%,17.22% 3.66%,28.7% 1.83%,30.82% 0.0%)"
+    },
+    "insignia": "evento-carnaval-2026"
+  },
+  {
+    "id": "eventos/pascoa",
+    "nome": "Páscoa",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.52,
+    "arquivo": "eventos/17_Pascoa.png",
+    "abertura": {
+      "x": 79,
+      "y": 99,
+      "largura": 354,
+      "altura": 316,
+      "recorte": "polygon(76.84% 0.0%,81.64% 1.9%,87.29% 3.8%,91.81% 5.7%,92.37% 7.59%,93.22% 9.49%,94.35% 11.39%,97.74% 13.29%,96.61% 15.19%,95.76% 17.09%,98.87% 18.99%,98.02% 20.89%,98.02% 22.78%,96.05% 24.68%,97.46% 26.58%,99.72% 28.48%,98.87% 30.38%,98.59% 32.28%,95.48% 34.18%,96.89% 36.08%,98.87% 37.97%,98.02% 39.87%,97.46% 41.77%,96.89% 43.67%,96.89% 45.57%,96.89% 47.47%,96.89% 49.37%,99.72% 51.27%,99.72% 53.16%,99.72% 55.06%,99.72% 56.96%,98.87% 58.86%,95.48% 60.76%,96.33% 62.66%,98.02% 64.56%,96.05% 66.46%,95.76% 68.35%,93.79% 70.25%,96.05% 72.15%,95.2% 74.05%,94.07% 75.95%,93.5% 77.85%,93.22% 79.75%,90.68% 81.65%,91.24% 83.54%,92.66% 85.44%,85.88% 87.34%,83.9% 89.24%,82.77% 91.14%,82.2% 93.04%,74.29% 94.94%,63.84% 96.84%,60.45% 98.73%,59.04% 99.68%,57.63% 99.68%,39.55% 98.73%,36.16% 96.84%,25.71% 94.94%,17.8% 93.04%,16.95% 91.14%,15.82% 89.24%,13.84% 87.34%,7.06% 85.44%,8.76% 83.54%,9.32% 81.65%,6.5% 79.75%,6.21% 77.85%,5.65% 75.95%,4.52% 74.05%,3.67% 72.15%,5.93% 70.25%,4.24% 68.35%,3.95% 66.46%,1.98% 64.56%,3.67% 62.66%,4.24% 60.76%,0.85% 58.86%,0.28% 56.96%,0.0% 55.06%,0.0% 53.16%,0.0% 51.27%,2.82% 49.37%,3.11% 47.47%,3.11% 45.57%,2.82% 43.67%,2.26% 41.77%,1.69% 39.87%,1.13% 37.97%,2.82% 36.08%,4.24% 34.18%,1.41% 32.28%,0.85% 30.38%,0.0% 28.48%,2.26% 26.58%,3.95% 24.68%,2.26% 22.78%,1.69% 20.89%,0.85% 18.99%,4.24% 17.09%,3.11% 15.19%,2.26% 13.29%,5.37% 11.39%,6.78% 9.49%,7.34% 7.59%,8.19% 5.7%,12.71% 3.8%,18.08% 1.9%,22.32% 0.0%)"
+    },
+    "insignia": "evento-pascoa-2026"
+  },
+  {
+    "id": "eventos/festa-junina",
+    "nome": "Festa Junina",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.66,
+    "arquivo": "eventos/18_Festa-Junina.png",
+    "abertura": {
+      "x": 95,
+      "y": 80,
+      "largura": 322,
+      "altura": 325,
+      "recorte": "polygon(63.66% 0.0%,87.58% 1.85%,89.44% 3.69%,89.13% 5.54%,88.51% 7.38%,88.2% 9.23%,89.44% 11.08%,91.61% 12.92%,95.96% 14.77%,96.58% 16.62%,97.2% 18.46%,98.45% 20.31%,98.45% 22.15%,98.45% 24.0%,99.07% 25.85%,99.07% 27.69%,99.07% 29.54%,99.07% 31.38%,99.38% 33.23%,99.69% 35.08%,99.69% 36.92%,99.69% 38.77%,99.69% 40.62%,99.38% 42.46%,99.07% 44.31%,98.45% 46.15%,98.76% 48.0%,99.69% 49.85%,98.76% 51.69%,97.83% 53.54%,98.14% 55.38%,99.38% 57.23%,99.69% 59.08%,99.69% 60.92%,98.76% 62.77%,98.45% 64.62%,98.14% 66.46%,98.45% 68.31%,99.07% 70.15%,99.07% 72.0%,99.07% 73.85%,98.14% 75.69%,96.89% 77.54%,96.27% 79.38%,96.58% 81.23%,97.52% 83.08%,97.52% 84.92%,97.2% 86.77%,95.34% 88.62%,92.55% 90.46%,89.13% 92.31%,86.34% 94.15%,80.75% 96.0%,78.88% 97.85%,69.88% 99.69%,29.81% 99.69%,20.81% 97.85%,18.94% 96.0%,14.6% 94.15%,10.25% 92.31%,7.45% 90.46%,4.35% 88.62%,2.48% 86.77%,2.17% 84.92%,2.17% 83.08%,3.11% 81.23%,3.42% 79.38%,2.8% 77.54%,1.55% 75.69%,0.93% 73.85%,0.62% 72.0%,0.62% 70.15%,1.55% 68.31%,1.55% 66.46%,1.55% 64.62%,0.93% 62.77%,0.0% 60.92%,0.0% 59.08%,0.31% 57.23%,1.55% 55.38%,1.86% 53.54%,0.93% 51.69%,0.31% 49.85%,0.93% 48.0%,1.24% 46.15%,0.62% 44.31%,0.31% 42.46%,0.0% 40.62%,0.0% 38.77%,0.0% 36.92%,0.0% 35.08%,0.31% 33.23%,0.62% 31.38%,0.62% 29.54%,0.62% 27.69%,0.93% 25.85%,1.24% 24.0%,1.24% 22.15%,1.24% 20.31%,2.48% 18.46%,3.11% 16.62%,4.04% 14.77%,8.07% 12.92%,10.56% 11.08%,11.8% 9.23%,11.18% 7.38%,10.56% 5.54%,10.56% 3.69%,12.42% 1.85%,36.34% 0.0%)"
+    },
+    "insignia": "evento-festa-junina-2026"
+  },
+  {
+    "id": "eventos/namorados",
+    "nome": "Namorados",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.41,
+    "arquivo": "eventos/19_Namorados.png",
+    "abertura": {
+      "x": 78,
+      "y": 73,
+      "largura": 357,
+      "altura": 338,
+      "recorte": "polygon(76.47% 0.0%,82.63% 1.78%,85.99% 3.55%,87.39% 5.33%,89.08% 7.1%,89.92% 8.88%,90.48% 10.65%,91.32% 12.43%,93.0% 14.2%,95.8% 15.98%,98.6% 17.75%,99.72% 19.53%,99.72% 21.3%,99.72% 23.08%,99.16% 24.85%,98.32% 26.63%,97.48% 28.4%,96.64% 30.18%,96.08% 31.95%,95.8% 33.73%,95.8% 35.5%,96.36% 37.28%,97.48% 39.05%,99.72% 40.83%,99.72% 42.6%,99.72% 44.38%,98.88% 46.15%,98.04% 47.93%,98.6% 49.7%,99.44% 51.48%,99.72% 53.25%,99.44% 55.03%,97.76% 56.8%,96.36% 58.58%,95.52% 60.36%,95.24% 62.13%,94.96% 63.91%,95.24% 65.68%,95.8% 67.46%,97.2% 69.23%,99.16% 71.01%,99.44% 72.78%,98.04% 74.56%,97.48% 76.33%,97.2% 78.11%,97.48% 79.88%,95.24% 81.66%,91.6% 83.43%,89.64% 85.21%,88.52% 86.98%,87.68% 88.76%,86.83% 90.53%,83.75% 92.31%,80.67% 94.08%,78.99% 95.86%,77.59% 97.63%,76.75% 99.41%,75.35% 99.7%,24.37% 99.7%,22.69% 99.41%,21.85% 97.63%,20.73% 95.86%,19.05% 94.08%,15.97% 92.31%,12.61% 90.53%,12.04% 88.76%,11.2% 86.98%,9.8% 85.21%,8.12% 83.43%,4.2% 81.66%,2.24% 79.88%,2.24% 78.11%,1.96% 76.33%,1.4% 74.56%,0.28% 72.78%,0.28% 71.01%,2.24% 69.23%,3.64% 67.46%,4.2% 65.68%,4.48% 63.91%,4.48% 62.13%,3.92% 60.36%,3.08% 58.58%,1.68% 56.8%,0.28% 55.03%,0.0% 53.25%,0.0% 51.48%,1.12% 49.7%,1.4% 47.93%,0.56% 46.15%,0.0% 44.38%,0.0% 42.6%,0.0% 40.83%,1.96% 39.05%,3.08% 37.28%,3.64% 35.5%,3.92% 33.73%,3.64% 31.95%,2.8% 30.18%,1.96% 28.4%,1.12% 26.63%,0.28% 24.85%,0.0% 23.08%,0.0% 21.3%,0.0% 19.53%,0.84% 17.75%,3.64% 15.98%,6.72% 14.2%,8.4% 12.43%,8.96% 10.65%,9.52% 8.88%,10.36% 7.1%,12.04% 5.33%,13.73% 3.55%,16.81% 1.78%,22.97% 0.0%)"
+    },
+    "insignia": "evento-dia-dos-namorados-2026"
+  },
+  {
+    "id": "eventos/independencia",
+    "nome": "Independencia",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.55,
+    "arquivo": "eventos/20_Independencia.png",
+    "abertura": {
+      "x": 89,
+      "y": 98,
+      "largura": 334,
+      "altura": 309,
+      "recorte": "polygon(79.94% 0.0%,82.34% 1.94%,95.21% 3.88%,96.41% 5.83%,97.6% 7.77%,98.8% 9.71%,98.5% 11.65%,94.91% 13.59%,95.21% 15.53%,95.81% 17.48%,97.31% 19.42%,94.91% 21.36%,95.81% 23.3%,96.71% 25.24%,96.71% 27.18%,97.01% 29.13%,98.2% 31.07%,97.9% 33.01%,97.31% 34.95%,96.71% 36.89%,96.11% 38.83%,95.81% 40.78%,96.11% 42.72%,96.41% 44.66%,97.01% 46.6%,97.31% 48.54%,98.2% 50.49%,99.7% 52.43%,99.7% 54.37%,99.7% 56.31%,99.7% 58.25%,99.7% 60.19%,98.8% 62.14%,97.9% 64.08%,97.9% 66.02%,97.9% 67.96%,97.6% 69.9%,97.6% 71.84%,97.6% 73.79%,97.6% 75.73%,97.6% 77.67%,96.71% 79.61%,94.61% 81.55%,93.41% 83.5%,93.11% 85.44%,93.11% 87.38%,93.41% 89.32%,94.61% 91.26%,87.43% 93.2%,83.53% 95.15%,79.04% 97.09%,65.57% 99.03%,64.67% 99.68%,35.33% 99.68%,34.43% 99.03%,21.26% 97.09%,16.47% 95.15%,12.57% 93.2%,5.39% 91.26%,6.29% 89.32%,6.59% 87.38%,6.59% 85.44%,6.29% 83.5%,5.09% 81.55%,2.99% 79.61%,2.1% 77.67%,2.1% 75.73%,2.1% 73.79%,2.1% 71.84%,2.1% 69.9%,2.1% 67.96%,1.8% 66.02%,1.8% 64.08%,1.2% 62.14%,0.0% 60.19%,0.0% 58.25%,0.0% 56.31%,0.0% 54.37%,0.0% 52.43%,1.5% 50.49%,2.4% 48.54%,2.69% 46.6%,3.59% 44.66%,3.89% 42.72%,3.89% 40.78%,3.59% 38.83%,3.29% 36.89%,2.4% 34.95%,1.8% 33.01%,1.5% 31.07%,2.69% 29.13%,2.99% 27.18%,2.99% 25.24%,3.89% 23.3%,4.79% 21.36%,2.69% 19.42%,3.89% 17.48%,4.49% 15.53%,4.79% 13.59%,1.2% 11.65%,0.9% 9.71%,2.4% 7.77%,3.59% 5.83%,4.49% 3.88%,17.37% 1.94%,20.06% 0.0%)"
+    },
+    "insignia": "evento-independencia-2026"
+  },
+  {
+    "id": "eventos/dia-das-criancas",
+    "nome": "Dia das Crianças",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.49,
+    "arquivo": "eventos/21_Dia-das-Criancas.png",
+    "abertura": {
+      "x": 87,
+      "y": 90,
+      "largura": 338,
+      "altura": 327,
+      "recorte": "polygon(78.4% 0.0%,86.69% 1.83%,90.24% 3.67%,91.42% 5.5%,91.72% 7.34%,93.49% 9.17%,96.75% 11.01%,98.22% 12.84%,98.22% 14.68%,98.22% 16.51%,98.22% 18.35%,97.63% 20.18%,97.04% 22.02%,96.75% 23.85%,97.04% 25.69%,97.93% 27.52%,98.52% 29.36%,98.52% 31.19%,98.52% 33.03%,97.93% 34.86%,97.63% 36.7%,97.93% 38.53%,97.93% 40.37%,96.75% 42.2%,95.86% 44.04%,95.27% 45.87%,99.7% 47.71%,99.7% 49.54%,99.7% 51.38%,99.7% 53.21%,99.7% 55.05%,99.7% 56.88%,98.52% 58.72%,98.52% 60.55%,98.52% 62.39%,98.22% 64.22%,97.34% 66.06%,95.27% 67.89%,96.45% 69.72%,96.45% 71.56%,96.45% 73.39%,95.27% 75.23%,94.97% 77.06%,94.97% 78.9%,95.56% 80.73%,95.86% 82.57%,95.27% 84.4%,91.12% 86.24%,90.53% 88.07%,85.8% 89.91%,83.43% 91.74%,82.54% 93.58%,81.95% 95.41%,78.4% 97.25%,66.86% 99.08%,65.98% 99.69%,33.73% 99.69%,32.84% 99.08%,21.6% 97.25%,17.75% 95.41%,17.16% 93.58%,16.27% 91.74%,13.91% 89.91%,9.47% 88.07%,8.58% 86.24%,4.44% 84.4%,4.14% 82.57%,4.14% 80.73%,4.73% 78.9%,4.73% 77.06%,4.44% 75.23%,3.55% 73.39%,3.25% 71.56%,3.25% 69.72%,4.44% 67.89%,2.37% 66.06%,1.48% 64.22%,1.18% 62.39%,1.18% 60.55%,1.18% 58.72%,0.0% 56.88%,0.0% 55.05%,0.0% 53.21%,0.0% 51.38%,0.0% 49.54%,0.0% 47.71%,4.44% 45.87%,3.85% 44.04%,2.96% 42.2%,1.78% 40.37%,1.78% 38.53%,2.07% 36.7%,1.78% 34.86%,1.48% 33.03%,1.18% 31.19%,1.18% 29.36%,1.78% 27.52%,2.66% 25.69%,3.25% 23.85%,2.96% 22.02%,2.07% 20.18%,1.48% 18.35%,1.48% 16.51%,1.48% 14.68%,1.78% 12.84%,2.96% 11.01%,6.51% 9.17%,7.99% 7.34%,8.58% 5.5%,9.76% 3.67%,13.31% 1.83%,21.6% 0.0%)"
+    },
+    "insignia": "evento-dia-das-criancas-2026"
+  },
+  {
+    "id": "eventos/sao-patricio",
+    "nome": "São Patrício",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.41,
+    "arquivo": "eventos/22_Sao-Patricio.png",
+    "abertura": {
+      "x": 78,
+      "y": 89,
+      "largura": 356,
+      "altura": 321,
+      "recorte": "polygon(75.84% 0.0%,80.34% 1.87%,83.71% 3.74%,91.57% 5.61%,91.57% 7.48%,91.57% 9.35%,91.57% 11.21%,92.13% 13.08%,92.7% 14.95%,93.26% 16.82%,94.1% 18.69%,93.82% 20.56%,93.26% 22.43%,93.26% 24.3%,93.82% 26.17%,96.63% 28.04%,97.47% 29.91%,96.63% 31.78%,96.91% 33.64%,99.72% 35.51%,99.72% 37.38%,99.72% 39.25%,99.72% 41.12%,99.72% 42.99%,99.72% 44.86%,99.72% 46.73%,99.72% 48.6%,99.72% 50.47%,99.72% 52.34%,99.72% 54.21%,99.72% 56.07%,99.72% 57.94%,99.72% 59.81%,99.44% 61.68%,99.72% 63.55%,98.31% 65.42%,97.75% 67.29%,97.47% 69.16%,97.47% 71.03%,97.75% 72.9%,96.63% 74.77%,95.79% 76.64%,95.79% 78.5%,96.35% 80.37%,93.54% 82.24%,95.22% 84.11%,94.38% 85.98%,93.26% 87.85%,91.85% 89.72%,91.29% 91.59%,91.29% 93.46%,91.85% 95.33%,80.06% 97.2%,79.21% 99.07%,71.07% 99.69%,28.65% 99.69%,20.51% 99.07%,19.66% 97.2%,15.45% 95.33%,8.43% 93.46%,8.43% 91.59%,7.87% 89.72%,6.46% 87.85%,5.34% 85.98%,4.49% 84.11%,6.18% 82.24%,3.65% 80.37%,3.93% 78.5%,4.21% 76.64%,3.09% 74.77%,1.97% 72.9%,2.25% 71.03%,2.53% 69.16%,2.25% 67.29%,1.4% 65.42%,0.0% 63.55%,0.28% 61.68%,0.28% 59.81%,0.0% 57.94%,0.0% 56.07%,0.0% 54.21%,0.0% 52.34%,0.0% 50.47%,0.0% 48.6%,0.0% 46.73%,0.0% 44.86%,0.0% 42.99%,0.0% 41.12%,0.0% 39.25%,0.0% 37.38%,0.0% 35.51%,3.09% 33.64%,3.09% 31.78%,2.53% 29.91%,3.37% 28.04%,5.9% 26.17%,6.46% 24.3%,6.46% 22.43%,5.9% 20.56%,5.62% 18.69%,6.46% 16.82%,7.02% 14.95%,7.87% 13.08%,8.15% 11.21%,8.15% 9.35%,8.15% 7.48%,8.15% 5.61%,16.01% 3.74%,19.38% 1.87%,23.88% 0.0%)"
+    },
+    "insignia": "evento-sao-patricio-2026"
+  },
+  {
+    "id": "eventos/ano-novo-lunar",
+    "nome": "Ano Novo Lunar",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.55,
+    "arquivo": "eventos/23_Ano-Novo-Lunar.png",
+    "abertura": {
+      "x": 86,
+      "y": 85,
+      "largura": 335,
+      "altura": 343,
+      "recorte": "polygon(74.93% 0.0%,78.81% 1.75%,78.81% 3.5%,87.76% 5.25%,90.45% 7.0%,91.64% 8.75%,92.84% 10.5%,91.04% 12.24%,88.36% 13.99%,88.96% 15.74%,94.33% 17.49%,94.03% 19.24%,94.93% 20.99%,97.91% 22.74%,99.4% 24.49%,99.1% 26.24%,98.81% 27.99%,97.01% 29.74%,97.31% 31.49%,96.72% 33.24%,97.01% 34.99%,93.43% 36.73%,95.82% 38.48%,97.91% 40.23%,98.51% 41.98%,98.81% 43.73%,97.91% 45.48%,97.91% 47.23%,99.4% 48.98%,99.7% 50.73%,99.4% 52.48%,99.4% 54.23%,97.31% 55.98%,96.42% 57.73%,95.52% 59.48%,89.85% 61.22%,89.25% 62.97%,95.22% 64.72%,97.01% 66.47%,97.91% 68.22%,99.4% 69.97%,94.63% 71.72%,98.51% 73.47%,97.01% 75.22%,96.12% 76.97%,96.12% 78.72%,96.42% 80.47%,97.61% 82.22%,95.22% 83.97%,93.73% 85.71%,91.04% 87.46%,90.45% 89.21%,90.75% 90.96%,92.54% 92.71%,77.01% 94.46%,78.81% 96.21%,80.6% 97.96%,79.1% 99.71%,22.39% 99.71%,20.6% 97.96%,22.69% 96.21%,24.48% 94.46%,8.96% 92.71%,10.45% 90.96%,10.75% 89.21%,10.45% 87.46%,7.46% 85.71%,6.27% 83.97%,3.88% 82.22%,5.07% 80.47%,5.37% 78.72%,5.07% 76.97%,4.48% 75.22%,2.69% 73.47%,6.87% 71.72%,2.09% 69.97%,3.58% 68.22%,4.48% 66.47%,5.97% 64.72%,12.24% 62.97%,11.34% 61.22%,5.67% 59.48%,4.78% 57.73%,3.88% 55.98%,1.79% 54.23%,2.09% 52.48%,1.49% 50.73%,2.09% 48.98%,3.28% 47.23%,3.58% 45.48%,2.69% 43.73%,2.99% 41.98%,5.67% 40.23%,5.37% 38.48%,8.06% 36.73%,4.18% 34.99%,4.48% 33.24%,3.88% 31.49%,4.18% 29.74%,2.69% 27.99%,2.09% 26.24%,2.09% 24.49%,0.6% 22.74%,0.0% 20.99%,0.0% 19.24%,0.0% 17.49%,0.6% 15.74%,12.84% 13.99%,10.15% 12.24%,8.36% 10.5%,9.55% 8.75%,10.75% 7.0%,13.73% 5.25%,22.39% 3.5%,22.69% 1.75%,26.57% 0.0%)"
+    },
+    "insignia": "evento-ano-novo-lunar-2026"
+  },
+  {
+    "id": "eventos/dia-dos-mortos",
+    "nome": "Dia dos Mortos",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.56,
+    "arquivo": "eventos/24_Dia-dos-Mortos.png",
+    "abertura": {
+      "x": 78,
+      "y": 90,
+      "largura": 356,
+      "altura": 321,
+      "recorte": "polygon(83.71% 0.0%,84.55% 1.87%,87.92% 3.74%,89.61% 5.61%,91.01% 7.48%,92.13% 9.35%,92.98% 11.21%,93.54% 13.08%,94.66% 14.95%,95.79% 16.82%,94.38% 18.69%,93.82% 20.56%,93.82% 22.43%,98.31% 24.3%,99.44% 26.17%,99.72% 28.04%,99.72% 29.91%,99.72% 31.78%,98.6% 33.64%,98.03% 35.51%,98.03% 37.38%,95.51% 39.25%,98.6% 41.12%,99.72% 42.99%,99.72% 44.86%,99.72% 46.73%,99.72% 48.6%,96.35% 50.47%,94.94% 52.34%,93.82% 54.21%,93.82% 56.07%,95.51% 57.94%,99.44% 59.81%,99.44% 61.68%,98.88% 63.55%,98.31% 65.42%,98.31% 67.29%,98.6% 69.16%,95.22% 71.03%,96.35% 72.9%,96.91% 74.77%,97.19% 76.64%,94.66% 78.5%,93.26% 80.37%,92.7% 82.24%,92.13% 84.11%,91.29% 85.98%,90.73% 87.85%,91.01% 89.72%,90.45% 91.59%,83.43% 93.46%,81.46% 95.33%,80.62% 97.2%,75.56% 99.07%,74.72% 99.69%,25.0% 99.69%,24.44% 99.07%,19.1% 97.2%,18.26% 95.33%,16.29% 93.46%,9.27% 91.59%,8.99% 89.72%,8.99% 87.85%,8.71% 85.98%,7.58% 84.11%,7.02% 82.24%,6.74% 80.37%,5.06% 78.5%,2.81% 76.64%,3.09% 74.77%,3.37% 72.9%,4.49% 71.03%,1.12% 69.16%,1.4% 67.29%,1.4% 65.42%,1.12% 63.55%,0.56% 61.68%,0.56% 59.81%,4.21% 57.94%,5.9% 56.07%,5.9% 54.21%,4.78% 52.34%,3.37% 50.47%,0.0% 48.6%,0.0% 46.73%,0.0% 44.86%,0.0% 42.99%,1.12% 41.12%,4.49% 39.25%,1.69% 37.38%,1.69% 35.51%,1.12% 33.64%,0.0% 31.78%,0.0% 29.91%,0.0% 28.04%,0.56% 26.17%,1.4% 24.3%,5.9% 22.43%,6.18% 20.56%,5.34% 18.69%,4.21% 16.82%,5.06% 14.95%,6.46% 13.08%,6.74% 11.21%,7.87% 9.35%,8.71% 7.48%,10.11% 5.61%,11.8% 3.74%,15.45% 1.87%,16.29% 0.0%)"
+    },
+    "insignia": "evento-dia-dos-mortos-2026"
+  },
+  {
+    "id": "eventos/verao",
+    "nome": "Verão",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.59,
+    "arquivo": "eventos/25_Verao.png",
+    "abertura": {
+      "x": 85,
+      "y": 90,
+      "largura": 343,
+      "altura": 326,
+      "recorte": "polygon(34.99% 0.0%,91.84% 1.84%,94.75% 3.68%,96.5% 5.52%,97.38% 7.36%,97.96% 9.2%,98.25% 11.04%,98.25% 12.88%,97.38% 14.72%,97.08% 16.56%,97.08% 18.4%,97.67% 20.25%,99.71% 22.09%,99.71% 23.93%,99.42% 25.77%,98.25% 27.61%,97.08% 29.45%,95.63% 31.29%,95.92% 33.13%,96.21% 34.97%,96.5% 36.81%,97.08% 38.65%,97.38% 40.49%,97.96% 42.33%,98.83% 44.17%,99.13% 46.01%,97.08% 47.85%,95.92% 49.69%,96.5% 51.53%,97.96% 53.37%,97.08% 55.21%,93.29% 57.06%,94.17% 58.9%,94.75% 60.74%,94.46% 62.58%,94.46% 64.42%,94.46% 66.26%,94.75% 68.1%,94.75% 69.94%,93.0% 71.78%,91.84% 73.62%,90.67% 75.46%,90.09% 77.3%,89.8% 79.14%,89.5% 80.98%,89.5% 82.82%,90.09% 84.66%,90.67% 86.5%,87.76% 88.34%,91.84% 90.18%,91.55% 92.02%,90.38% 93.87%,69.68% 95.71%,66.47% 97.55%,64.72% 99.39%,64.14% 99.69%,35.28% 99.69%,34.69% 99.39%,33.53% 97.55%,30.03% 95.71%,9.04% 93.87%,7.87% 92.02%,7.58% 90.18%,11.95% 88.34%,9.04% 86.5%,9.33% 84.66%,9.91% 82.82%,9.91% 80.98%,9.62% 79.14%,9.33% 77.3%,8.75% 75.46%,7.58% 73.62%,6.41% 71.78%,4.66% 69.94%,4.66% 68.1%,4.96% 66.26%,4.96% 64.42%,4.96% 62.58%,4.66% 60.74%,5.25% 58.9%,6.12% 57.06%,2.33% 55.21%,1.75% 53.37%,2.92% 51.53%,3.5% 49.69%,2.62% 47.85%,0.29% 46.01%,0.87% 44.17%,1.46% 42.33%,2.04% 40.49%,2.62% 38.65%,2.92% 36.81%,3.21% 34.97%,3.5% 33.13%,3.79% 31.29%,2.33% 29.45%,1.17% 27.61%,0.0% 25.77%,0.0% 23.93%,0.0% 22.09%,1.75% 20.25%,2.33% 18.4%,2.33% 16.56%,2.04% 14.72%,1.46% 12.88%,1.17% 11.04%,1.46% 9.2%,2.04% 7.36%,3.21% 5.52%,4.96% 3.68%,7.58% 1.84%,33.53% 0.0%)"
+    },
+    "insignia": "evento-verao-2026"
+  },
+  {
+    "id": "eventos/inverno",
+    "nome": "Inverno",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.58,
+    "arquivo": "eventos/26_Inverno.png",
+    "abertura": {
+      "x": 85,
+      "y": 77,
+      "largura": 342,
+      "altura": 328,
+      "recorte": "polygon(72.22% 0.0%,77.49% 1.83%,83.63% 3.66%,89.18% 5.49%,90.35% 7.32%,91.23% 9.15%,92.11% 10.98%,92.69% 12.8%,94.15% 14.63%,95.32% 16.46%,95.32% 18.29%,95.91% 20.12%,96.2% 21.95%,96.49% 23.78%,96.78% 25.61%,96.2% 27.44%,95.61% 29.27%,95.32% 31.1%,98.83% 32.93%,99.71% 34.76%,99.71% 36.59%,99.71% 38.41%,99.71% 40.24%,99.42% 42.07%,96.78% 43.9%,96.49% 45.73%,96.2% 47.56%,95.61% 49.39%,96.2% 51.22%,96.78% 53.05%,99.12% 54.88%,99.71% 56.71%,99.71% 58.54%,99.71% 60.37%,99.71% 62.2%,99.71% 64.02%,99.71% 65.85%,99.71% 67.68%,99.71% 69.51%,99.42% 71.34%,97.08% 73.17%,94.74% 75.0%,93.57% 76.83%,93.27% 78.66%,93.27% 80.49%,92.98% 82.32%,92.69% 84.15%,89.18% 85.98%,88.6% 87.8%,88.3% 89.63%,88.01% 91.46%,87.43% 93.29%,78.65% 95.12%,73.68% 96.95%,73.1% 98.78%,71.64% 99.7%,27.78% 99.7%,26.61% 98.78%,26.02% 96.95%,21.05% 95.12%,12.28% 93.29%,11.99% 91.46%,11.7% 89.63%,11.11% 87.8%,10.53% 85.98%,7.02% 84.15%,6.73% 82.32%,6.43% 80.49%,6.43% 78.66%,6.14% 76.83%,4.97% 75.0%,2.63% 73.17%,0.58% 71.34%,0.0% 69.51%,0.0% 67.68%,0.0% 65.85%,0.0% 64.02%,0.0% 62.2%,0.0% 60.37%,0.0% 58.54%,0.0% 56.71%,0.58% 54.88%,2.92% 53.05%,3.51% 51.22%,4.09% 49.39%,3.8% 47.56%,3.22% 45.73%,2.92% 43.9%,0.58% 42.07%,0.0% 40.24%,0.0% 38.41%,0.0% 36.59%,0.0% 34.76%,0.88% 32.93%,4.39% 31.1%,4.09% 29.27%,3.8% 27.44%,3.22% 25.61%,3.22% 23.78%,3.51% 21.95%,3.8% 20.12%,4.68% 18.29%,4.68% 16.46%,5.85% 14.63%,7.31% 12.8%,7.89% 10.98%,8.48% 9.15%,9.36% 7.32%,10.82% 5.49%,16.08% 3.66%,22.22% 1.83%,28.65% 0.0%)"
+    },
+    "insignia": "evento-inverno-2026"
+  },
+  {
+    "id": "eventos/primavera",
+    "nome": "Primavera",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.53,
+    "arquivo": "eventos/27_Primavera.png",
+    "abertura": {
+      "x": 71,
+      "y": 83,
+      "largura": 370,
+      "altura": 339,
+      "recorte": "polygon(67.03% 0.0%,80.81% 1.77%,83.24% 3.54%,83.78% 5.31%,85.41% 7.08%,89.46% 8.85%,91.08% 10.62%,92.16% 12.39%,96.49% 14.16%,96.76% 15.93%,96.22% 17.7%,95.14% 19.47%,98.65% 21.24%,99.46% 23.01%,99.73% 24.78%,99.73% 26.55%,99.73% 28.32%,98.65% 30.09%,96.22% 31.86%,95.95% 33.63%,93.78% 35.4%,91.89% 37.17%,90.81% 38.94%,90.27% 40.71%,90.0% 42.48%,90.0% 44.25%,90.81% 46.02%,92.16% 47.79%,94.05% 49.56%,94.86% 51.33%,95.95% 53.1%,95.95% 54.87%,94.05% 56.64%,92.16% 58.41%,91.35% 60.18%,90.81% 61.95%,90.27% 63.72%,90.54% 65.49%,91.08% 67.26%,92.43% 69.03%,93.78% 70.8%,96.49% 72.57%,96.76% 74.34%,96.49% 76.11%,93.78% 77.88%,87.03% 79.65%,86.49% 81.42%,90.81% 83.19%,90.54% 84.96%,89.46% 86.73%,90.0% 88.5%,91.08% 90.27%,89.46% 92.04%,84.05% 93.81%,80.27% 95.58%,78.65% 97.35%,76.22% 99.12%,69.46% 99.71%,30.27% 99.71%,23.78% 99.12%,21.35% 97.35%,19.46% 95.58%,15.41% 93.81%,10.54% 92.04%,8.65% 90.27%,10.0% 88.5%,10.27% 86.73%,9.46% 84.96%,8.92% 83.19%,13.51% 81.42%,12.97% 79.65%,6.22% 77.88%,3.51% 76.11%,2.97% 74.34%,3.24% 72.57%,6.22% 70.8%,7.3% 69.03%,4.05% 67.26%,3.51% 65.49%,3.24% 63.72%,3.24% 61.95%,3.51% 60.18%,7.57% 58.41%,5.95% 56.64%,4.05% 54.87%,4.05% 53.1%,5.14% 51.33%,5.68% 49.56%,7.84% 47.79%,9.19% 46.02%,9.73% 44.25%,9.73% 42.48%,9.73% 40.71%,8.92% 38.94%,7.84% 37.17%,5.95% 35.4%,3.78% 33.63%,3.78% 31.86%,1.08% 30.09%,0.0% 28.32%,0.0% 26.55%,0.0% 24.78%,0.27% 23.01%,1.08% 21.24%,4.86% 19.47%,3.51% 17.7%,2.97% 15.93%,3.51% 14.16%,7.84% 12.39%,8.65% 10.62%,10.54% 8.85%,14.32% 7.08%,15.95% 5.31%,16.76% 3.54%,18.92% 1.77%,32.97% 0.0%)"
+    },
+    "insignia": "evento-primavera-2026"
+  },
+  {
+    "id": "eventos/outono",
+    "nome": "Outono",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.58,
+    "arquivo": "eventos/28_Outono.png",
+    "abertura": {
+      "x": 86,
+      "y": 83,
+      "largura": 341,
+      "altura": 332,
+      "recorte": "polygon(64.81% 0.0%,77.42% 1.81%,82.11% 3.61%,83.28% 5.42%,88.56% 7.23%,91.79% 9.04%,92.08% 10.84%,94.43% 12.65%,94.72% 14.46%,94.72% 16.27%,99.41% 18.07%,99.12% 19.88%,98.83% 21.69%,98.83% 23.49%,99.41% 25.3%,99.71% 27.11%,97.07% 28.92%,96.48% 30.72%,94.72% 32.53%,96.48% 34.34%,95.89% 36.14%,97.95% 37.95%,99.71% 39.76%,99.41% 41.57%,99.41% 43.37%,99.71% 45.18%,99.12% 46.99%,97.65% 48.8%,96.77% 50.6%,96.77% 52.41%,96.77% 54.22%,97.36% 56.02%,98.83% 57.83%,99.41% 59.64%,98.83% 61.45%,98.53% 63.25%,98.24% 65.06%,98.53% 66.87%,98.83% 68.67%,99.41% 70.48%,95.31% 72.29%,94.43% 74.1%,92.96% 75.9%,94.13% 77.71%,94.13% 79.52%,94.13% 81.33%,91.2% 83.13%,89.44% 84.94%,85.92% 86.75%,85.92% 88.55%,84.16% 90.36%,78.3% 92.17%,79.47% 93.98%,78.59% 95.78%,73.02% 97.59%,70.09% 99.4%,69.79% 99.7%,29.91% 99.7%,29.33% 99.4%,26.69% 97.59%,21.11% 95.78%,19.94% 93.98%,21.11% 92.17%,15.25% 90.36%,13.49% 88.55%,13.49% 86.75%,9.97% 84.94%,8.5% 83.13%,5.57% 81.33%,5.28% 79.52%,5.57% 77.71%,6.45% 75.9%,4.99% 74.1%,4.11% 72.29%,0.0% 70.48%,0.59% 68.67%,0.88% 66.87%,1.17% 65.06%,0.88% 63.25%,0.59% 61.45%,0.0% 59.64%,0.59% 57.83%,2.05% 56.02%,2.64% 54.22%,2.64% 52.41%,2.64% 50.6%,2.05% 48.8%,0.59% 46.99%,0.0% 45.18%,0.0% 43.37%,0.0% 41.57%,0.0% 39.76%,1.76% 37.95%,3.81% 36.14%,2.93% 34.34%,4.99% 32.53%,2.93% 30.72%,2.35% 28.92%,0.0% 27.11%,0.0% 25.3%,0.59% 23.49%,0.59% 21.69%,0.29% 19.88%,0.0% 18.07%,4.69% 16.27%,4.69% 14.46%,4.99% 12.65%,7.33% 10.84%,7.92% 9.04%,10.85% 7.23%,16.13% 5.42%,17.3% 3.61%,21.99% 1.81%,34.6% 0.0%)"
+    },
+    "insignia": "evento-outono-2026"
+  },
+  {
+    "id": "outros/neon-azul",
+    "nome": "Neon Azul",
+    "colecao": "Outros",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.48,
+    "arquivo": "outros/29_Neon-Azul.png",
+    "abertura": {
+      "x": 87,
+      "y": 80,
+      "largura": 339,
+      "altura": 339,
+      "recorte": "polygon(83.19% 0.0%,86.73% 1.77%,88.2% 3.54%,89.68% 5.31%,92.92% 7.08%,94.99% 8.85%,96.17% 10.62%,96.46% 12.39%,96.76% 14.16%,95.87% 15.93%,99.12% 17.7%,99.12% 19.47%,99.12% 21.24%,99.12% 23.01%,99.12% 24.78%,99.12% 26.55%,99.12% 28.32%,99.41% 30.09%,98.53% 31.86%,97.35% 33.63%,97.35% 35.4%,97.35% 37.17%,97.35% 38.94%,97.35% 40.71%,97.35% 42.48%,97.35% 44.25%,97.35% 46.02%,97.35% 47.79%,98.53% 49.56%,99.71% 51.33%,99.71% 53.1%,99.12% 54.87%,99.41% 56.64%,99.71% 58.41%,99.71% 60.18%,99.71% 61.95%,99.71% 63.72%,99.41% 65.49%,99.12% 67.26%,97.94% 69.03%,97.35% 70.8%,97.35% 72.57%,97.35% 74.34%,97.35% 76.11%,97.35% 77.88%,97.94% 79.65%,98.53% 81.42%,95.58% 83.19%,96.76% 84.96%,95.87% 86.73%,95.58% 88.5%,94.69% 90.27%,93.22% 92.04%,91.15% 93.81%,88.2% 95.58%,86.43% 97.35%,84.96% 99.12%,84.07% 99.71%,15.34% 99.71%,14.75% 99.12%,12.98% 97.35%,11.5% 95.58%,8.26% 93.81%,6.19% 92.04%,4.72% 90.27%,4.13% 88.5%,3.54% 86.73%,2.95% 84.96%,3.83% 83.19%,0.88% 81.42%,1.47% 79.65%,2.36% 77.88%,2.36% 76.11%,2.36% 74.34%,2.36% 72.57%,2.36% 70.8%,1.47% 69.03%,0.29% 67.26%,0.0% 65.49%,0.0% 63.72%,0.0% 61.95%,0.0% 60.18%,0.0% 58.41%,0.0% 56.64%,0.29% 54.87%,0.0% 53.1%,0.0% 51.33%,0.88% 49.56%,2.06% 47.79%,2.06% 46.02%,2.06% 44.25%,2.06% 42.48%,2.06% 40.71%,2.06% 38.94%,2.06% 37.17%,2.06% 35.4%,2.06% 33.63%,0.88% 31.86%,0.0% 30.09%,0.29% 28.32%,0.29% 26.55%,0.29% 24.78%,0.29% 23.01%,0.29% 21.24%,0.29% 19.47%,0.29% 17.7%,3.54% 15.93%,2.65% 14.16%,2.95% 12.39%,3.54% 10.62%,4.42% 8.85%,6.49% 7.08%,9.73% 5.31%,11.21% 3.54%,12.68% 1.77%,78.47% 0.0%)"
+    }
+  },
+  {
+    "id": "outros/dragao-rubi",
+    "nome": "Dragão Rubi",
+    "colecao": "Outros",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.56,
+    "arquivo": "outros/30_Dragao-Rubi.png",
+    "abertura": {
+      "x": 82,
+      "y": 80,
+      "largura": 349,
+      "altura": 327,
+      "recorte": "polygon(63.61% 0.0%,77.65% 1.83%,79.08% 3.67%,78.51% 5.5%,86.82% 7.34%,86.25% 9.17%,95.42% 11.01%,96.85% 12.84%,97.42% 14.68%,97.13% 16.51%,96.56% 18.35%,98.85% 20.18%,99.14% 22.02%,99.43% 23.85%,99.43% 25.69%,96.28% 27.52%,95.99% 29.36%,95.7% 31.19%,95.42% 33.03%,95.42% 34.86%,95.99% 36.7%,96.56% 38.53%,97.42% 40.37%,98.85% 42.2%,99.43% 44.04%,99.43% 45.87%,99.14% 47.71%,99.71% 49.54%,98.57% 51.38%,96.85% 53.21%,97.13% 55.05%,98.57% 56.88%,99.71% 58.72%,99.71% 60.55%,99.71% 62.39%,99.71% 64.22%,99.71% 66.06%,99.14% 67.89%,97.13% 69.72%,95.7% 71.56%,94.56% 73.39%,93.98% 75.23%,96.85% 77.06%,95.99% 78.9%,95.13% 80.73%,90.83% 82.57%,87.97% 84.4%,85.67% 86.24%,83.95% 88.07%,82.81% 89.91%,81.95% 91.74%,85.96% 93.58%,83.95% 95.41%,74.5% 97.25%,75.07% 99.08%,75.36% 99.69%,24.36% 99.69%,24.36% 99.08%,25.21% 97.25%,15.47% 95.41%,13.75% 93.58%,17.48% 91.74%,16.62% 89.91%,15.47% 88.07%,13.75% 86.24%,11.75% 84.4%,8.88% 82.57%,4.58% 80.73%,3.44% 78.9%,2.58% 77.06%,5.44% 75.23%,4.87% 73.39%,4.01% 71.56%,2.29% 69.72%,0.29% 67.89%,0.0% 66.06%,0.0% 64.22%,0.0% 62.39%,0.0% 60.55%,0.0% 58.72%,0.86% 56.88%,2.29% 55.05%,2.87% 53.21%,0.86% 51.38%,0.0% 49.54%,0.57% 47.71%,0.29% 45.87%,0.0% 44.04%,0.86% 42.2%,2.01% 40.37%,2.87% 38.53%,3.72% 36.7%,4.01% 34.86%,4.01% 33.03%,4.01% 31.19%,3.72% 29.36%,3.15% 27.52%,0.29% 25.69%,0.29% 23.85%,0.29% 22.02%,0.57% 20.18%,3.15% 18.35%,2.29% 16.51%,2.01% 14.68%,2.58% 12.84%,4.01% 11.01%,13.47% 9.17%,12.89% 7.34%,21.2% 5.5%,20.63% 3.67%,22.06% 1.83%,36.1% 0.0%)"
+    }
+  },
+  {
+    "id": "outros/fenix",
+    "nome": "Fênix",
+    "colecao": "Outros",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.55,
+    "arquivo": "outros/31_Fenix.png",
+    "abertura": {
+      "x": 82,
+      "y": 83,
+      "largura": 348,
+      "altura": 332,
+      "recorte": "polygon(81.61% 0.0%,85.63% 1.81%,87.93% 3.61%,90.23% 5.42%,91.67% 7.23%,92.24% 9.04%,92.24% 10.84%,93.97% 12.65%,93.97% 14.46%,93.97% 16.27%,94.54% 18.07%,95.98% 19.88%,96.26% 21.69%,96.84% 23.49%,97.41% 25.3%,98.28% 27.11%,99.43% 28.92%,99.71% 30.72%,99.71% 32.53%,97.41% 34.34%,97.41% 36.14%,96.84% 37.95%,96.55% 39.76%,95.98% 41.57%,95.98% 43.37%,96.26% 45.18%,96.55% 46.99%,97.41% 48.8%,98.56% 50.6%,96.84% 52.41%,97.13% 54.22%,97.13% 56.02%,97.13% 57.83%,97.13% 59.64%,97.13% 61.45%,94.83% 63.25%,95.11% 65.06%,95.69% 66.87%,96.55% 68.67%,97.13% 70.48%,97.7% 72.29%,97.99% 74.1%,98.28% 75.9%,98.28% 77.71%,97.99% 79.52%,83.91% 81.33%,82.47% 83.13%,81.9% 84.94%,81.32% 86.75%,80.17% 88.55%,79.31% 90.36%,72.7% 92.17%,69.25% 93.98%,67.24% 95.78%,66.38% 97.59%,60.06% 99.4%,59.2% 99.7%,40.8% 99.7%,39.66% 99.4%,33.33% 97.59%,32.47% 95.78%,30.46% 93.98%,27.01% 92.17%,20.4% 90.36%,19.54% 88.55%,18.68% 86.75%,18.1% 84.94%,17.24% 83.13%,15.8% 81.33%,2.01% 79.52%,1.44% 77.71%,1.44% 75.9%,1.72% 74.1%,2.3% 72.29%,2.59% 70.48%,3.45% 68.67%,4.02% 66.87%,4.6% 65.06%,4.89% 63.25%,2.59% 61.45%,2.59% 59.64%,2.59% 57.83%,2.59% 56.02%,2.59% 54.22%,2.87% 52.41%,1.72% 50.6%,2.3% 48.8%,3.16% 46.99%,3.74% 45.18%,3.74% 43.37%,3.74% 41.57%,3.45% 39.76%,2.87% 37.95%,2.3% 36.14%,2.3% 34.34%,0.0% 32.53%,0.0% 30.72%,0.29% 28.92%,1.44% 27.11%,2.3% 25.3%,2.87% 23.49%,3.45% 21.69%,3.74% 19.88%,5.17% 18.07%,5.75% 16.27%,6.03% 14.46%,5.75% 12.65%,7.47% 10.84%,7.47% 9.04%,8.05% 7.23%,9.48% 5.42%,12.07% 3.61%,14.08% 1.81%,17.24% 0.0%)"
+    }
+  },
+  {
+    "id": "outros/galaxia",
+    "nome": "Galáxia",
+    "colecao": "Outros",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.55,
+    "arquivo": "outros/32_Galaxia.png",
+    "abertura": {
+      "x": 80,
+      "y": 83,
+      "largura": 353,
+      "altura": 327,
+      "recorte": "polygon(71.67% 0.0%,78.47% 1.83%,81.87% 3.67%,84.14% 5.5%,85.55% 7.34%,91.78% 9.17%,93.77% 11.01%,95.47% 12.84%,96.03% 14.68%,96.88% 16.51%,98.3% 18.35%,97.17% 20.18%,96.03% 22.02%,94.62% 23.85%,93.2% 25.69%,92.07% 27.52%,94.62% 29.36%,94.9% 31.19%,95.18% 33.03%,95.75% 34.86%,94.62% 36.7%,97.17% 38.53%,98.3% 40.37%,99.43% 42.2%,98.3% 44.04%,97.17% 45.87%,96.6% 47.71%,96.03% 49.54%,96.03% 51.38%,96.32% 53.21%,97.17% 55.05%,98.3% 56.88%,99.72% 58.72%,99.72% 60.55%,99.72% 62.39%,99.15% 64.22%,95.75% 66.06%,95.75% 67.89%,96.88% 69.72%,96.03% 71.56%,94.9% 73.39%,93.77% 75.23%,92.63% 77.06%,91.5% 78.9%,90.93% 80.73%,90.65% 82.57%,90.65% 84.4%,90.93% 86.24%,88.67% 88.07%,88.1% 89.91%,86.12% 91.74%,81.3% 93.58%,80.45% 95.41%,70.82% 97.25%,66.01% 99.08%,58.07% 99.69%,41.36% 99.69%,33.14% 99.08%,28.61% 97.25%,19.26% 95.41%,18.13% 93.58%,13.31% 91.74%,11.61% 89.91%,10.48% 88.07%,8.78% 86.24%,9.07% 84.4%,9.07% 82.57%,8.5% 80.73%,7.93% 78.9%,6.8% 77.06%,5.95% 75.23%,4.82% 73.39%,3.4% 71.56%,2.27% 69.72%,3.68% 67.89%,3.97% 66.06%,0.28% 64.22%,0.0% 62.39%,0.0% 60.55%,0.0% 58.72%,1.13% 56.88%,2.55% 55.05%,3.12% 53.21%,3.4% 51.38%,3.4% 49.54%,2.83% 47.71%,2.55% 45.87%,1.13% 44.04%,0.28% 42.2%,1.13% 40.37%,2.27% 38.53%,4.82% 36.7%,3.97% 34.86%,4.25% 33.03%,4.53% 31.19%,4.82% 29.36%,7.65% 27.52%,6.23% 25.69%,4.82% 23.85%,3.4% 22.02%,2.27% 20.18%,1.13% 18.35%,2.83% 16.51%,3.4% 14.68%,3.97% 12.84%,5.95% 11.01%,7.93% 9.17%,13.88% 7.34%,15.58% 5.5%,17.56% 3.67%,20.96% 1.83%,27.76% 0.0%)"
+    }
+  },
+  {
+    "id": "outros/samurai",
+    "nome": "Samurai",
+    "colecao": "Outros",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.62,
+    "arquivo": "outros/33_Samurai.png",
+    "abertura": {
+      "x": 85,
+      "y": 100,
+      "largura": 342,
+      "altura": 308,
+      "recorte": "polygon(73.1% 0.0%,88.01% 1.95%,90.64% 3.9%,92.4% 5.84%,93.86% 7.79%,95.03% 9.74%,96.2% 11.69%,96.78% 13.64%,94.74% 15.58%,93.86% 17.53%,93.86% 19.48%,94.74% 21.43%,98.83% 23.38%,98.54% 25.32%,96.78% 27.27%,96.78% 29.22%,98.25% 31.17%,98.83% 33.12%,98.25% 35.06%,97.66% 37.01%,97.66% 38.96%,97.08% 40.91%,96.49% 42.86%,96.2% 44.81%,95.61% 46.75%,95.03% 48.7%,95.61% 50.65%,99.71% 52.6%,98.25% 54.55%,97.66% 56.49%,98.54% 58.44%,99.71% 60.39%,99.71% 62.34%,99.71% 64.29%,99.71% 66.23%,95.61% 68.18%,94.44% 70.13%,93.86% 72.08%,93.86% 74.03%,94.15% 75.97%,93.57% 77.92%,90.64% 79.87%,88.3% 81.82%,86.55% 83.77%,85.09% 85.71%,88.6% 87.66%,89.47% 89.61%,89.18% 91.56%,88.01% 93.51%,72.22% 95.45%,71.05% 97.4%,66.96% 99.35%,66.08% 99.68%,33.63% 99.68%,32.75% 99.35%,28.65% 97.4%,27.78% 95.45%,11.7% 93.51%,10.53% 91.56%,10.23% 89.61%,11.11% 87.66%,14.62% 85.71%,13.16% 83.77%,11.4% 81.82%,9.06% 79.87%,6.43% 77.92%,5.56% 75.97%,6.14% 74.03%,5.85% 72.08%,5.56% 70.13%,4.09% 68.18%,0.29% 66.23%,0.0% 64.29%,0.0% 62.34%,0.0% 60.39%,1.46% 58.44%,2.05% 56.49%,1.46% 54.55%,0.0% 52.6%,4.09% 50.65%,4.68% 48.7%,4.09% 46.75%,3.51% 44.81%,3.22% 42.86%,2.63% 40.91%,2.05% 38.96%,2.05% 37.01%,1.75% 35.06%,0.88% 33.12%,1.46% 31.17%,3.22% 29.22%,2.92% 27.27%,1.17% 25.32%,0.88% 23.38%,4.97% 21.43%,5.85% 19.48%,5.85% 17.53%,4.97% 15.58%,3.22% 13.64%,3.51% 11.69%,4.68% 9.74%,5.85% 7.79%,7.31% 5.84%,9.36% 3.9%,11.99% 1.95%,70.47% 0.0%)"
+    }
+  },
+  {
+    "id": "outros/oceano",
+    "nome": "Oceano",
+    "colecao": "Outros",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.62,
+    "arquivo": "outros/34_Oceano.png",
+    "abertura": {
+      "x": 82,
+      "y": 83,
+      "largura": 348,
+      "altura": 328,
+      "recorte": "polygon(62.07% 0.0%,85.34% 1.83%,86.21% 3.66%,87.07% 5.49%,87.36% 7.32%,89.66% 9.15%,95.69% 10.98%,96.84% 12.8%,97.13% 14.63%,93.1% 16.46%,93.68% 18.29%,97.7% 20.12%,97.41% 21.95%,96.84% 23.78%,96.26% 25.61%,95.69% 27.44%,95.11% 29.27%,95.11% 31.1%,95.11% 32.93%,93.68% 34.76%,92.24% 36.59%,91.38% 38.41%,90.8% 40.24%,90.52% 42.07%,90.52% 43.9%,91.09% 45.73%,91.67% 47.56%,92.53% 49.39%,93.39% 51.22%,95.4% 53.05%,96.26% 54.88%,97.7% 56.71%,99.43% 58.54%,99.71% 60.37%,99.71% 62.2%,99.43% 64.02%,97.13% 65.85%,95.69% 67.68%,99.14% 69.51%,99.14% 71.34%,98.56% 73.17%,97.41% 75.0%,95.69% 76.83%,95.4% 78.66%,87.93% 80.49%,90.23% 82.32%,91.95% 84.15%,90.52% 85.98%,89.37% 87.8%,77.01% 89.63%,83.33% 91.46%,84.77% 93.29%,83.05% 95.12%,82.47% 96.95%,80.75% 98.78%,78.16% 99.7%,21.55% 99.7%,19.25% 98.78%,17.53% 96.95%,16.67% 95.12%,14.94% 93.29%,16.38% 91.46%,22.7% 89.63%,20.69% 87.8%,9.48% 85.98%,8.05% 84.15%,9.48% 82.32%,11.78% 80.49%,4.31% 78.66%,4.31% 76.83%,2.3% 75.0%,1.44% 73.17%,0.57% 71.34%,0.86% 69.51%,4.02% 67.68%,2.59% 65.85%,0.29% 64.02%,0.0% 62.2%,0.0% 60.37%,0.29% 58.54%,2.01% 56.71%,3.45% 54.88%,4.31% 53.05%,6.32% 51.22%,7.47% 49.39%,8.33% 47.56%,8.91% 45.73%,9.2% 43.9%,9.2% 42.07%,8.91% 40.24%,8.33% 38.41%,7.47% 36.59%,6.03% 34.76%,4.89% 32.93%,4.89% 31.1%,4.6% 29.27%,4.31% 27.44%,3.45% 25.61%,2.87% 23.78%,2.3% 21.95%,2.01% 20.12%,6.32% 18.29%,6.61% 16.46%,2.59% 14.63%,2.87% 12.8%,4.02% 10.98%,10.06% 9.15%,12.64% 7.32%,12.64% 5.49%,13.51% 3.66%,14.37% 1.83%,37.64% 0.0%)"
+    }
+  },
+  {
+    "id": "outros/realeza",
+    "nome": "Realeza",
+    "colecao": "Outros",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.53,
+    "arquivo": "outros/35_Realeza.png",
+    "abertura": {
+      "x": 89,
+      "y": 93,
+      "largura": 335,
+      "altura": 318,
+      "recorte": "polygon(85.37% 0.0%,89.55% 1.89%,91.34% 3.77%,91.64% 5.66%,94.93% 7.55%,96.72% 9.43%,97.91% 11.32%,98.81% 13.21%,99.4% 15.09%,99.1% 16.98%,99.1% 18.87%,99.1% 20.75%,99.7% 22.64%,99.7% 24.53%,99.7% 26.42%,99.7% 28.3%,99.4% 30.19%,99.1% 32.08%,99.7% 33.96%,99.7% 35.85%,99.7% 37.74%,97.91% 39.62%,96.42% 41.51%,95.82% 43.4%,95.52% 45.28%,96.12% 47.17%,97.61% 49.06%,99.1% 50.94%,99.7% 52.83%,99.7% 54.72%,99.7% 56.6%,99.7% 58.49%,99.7% 60.38%,99.4% 62.26%,97.61% 64.15%,96.42% 66.04%,96.12% 67.92%,96.42% 69.81%,97.31% 71.7%,98.21% 73.58%,97.91% 75.47%,97.61% 77.36%,97.31% 79.25%,97.31% 81.13%,97.61% 83.02%,97.91% 84.91%,98.21% 86.79%,99.1% 88.68%,99.7% 90.57%,94.33% 92.45%,87.76% 94.34%,81.19% 96.23%,78.21% 98.11%,73.73% 99.69%,25.67% 99.69%,21.19% 98.11%,18.21% 96.23%,11.94% 94.34%,5.07% 92.45%,0.0% 90.57%,0.6% 88.68%,1.19% 86.79%,1.79% 84.91%,2.09% 83.02%,2.09% 81.13%,2.09% 79.25%,2.09% 77.36%,1.49% 75.47%,1.19% 73.58%,2.39% 71.7%,2.99% 69.81%,3.28% 67.92%,2.99% 66.04%,1.79% 64.15%,0.0% 62.26%,0.0% 60.38%,0.0% 58.49%,0.0% 56.6%,0.0% 54.72%,0.0% 52.83%,0.3% 50.94%,1.79% 49.06%,3.28% 47.17%,3.88% 45.28%,3.58% 43.4%,2.99% 41.51%,1.49% 39.62%,0.0% 37.74%,0.0% 35.85%,0.0% 33.96%,0.3% 32.08%,0.0% 30.19%,0.0% 28.3%,0.0% 26.42%,0.0% 24.53%,0.0% 22.64%,0.3% 20.75%,0.6% 18.87%,0.3% 16.98%,0.0% 15.09%,0.6% 13.21%,1.79% 11.32%,2.99% 9.43%,4.48% 7.55%,8.06% 5.66%,8.06% 3.77%,9.85% 1.89%,13.73% 0.0%)"
+    }
+  },
+  {
+    "id": "outros/tatico-cs",
+    "nome": "Tático CS",
+    "colecao": "Outros",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.57,
+    "arquivo": "outros/36_Tatico-CS.png",
+    "abertura": {
+      "x": 93,
+      "y": 87,
+      "largura": 326,
+      "altura": 320,
+      "recorte": "polygon(89.88% 0.0%,93.87% 1.88%,96.32% 3.75%,98.16% 5.62%,98.77% 7.5%,98.77% 9.38%,98.77% 11.25%,98.77% 13.12%,98.77% 15.0%,98.77% 16.88%,99.39% 18.75%,99.39% 20.62%,99.39% 22.5%,99.39% 24.38%,99.08% 26.25%,98.47% 28.12%,98.47% 30.0%,98.16% 31.87%,98.16% 33.75%,98.47% 35.62%,98.77% 37.5%,98.47% 39.38%,98.16% 41.25%,98.16% 43.12%,98.16% 45.0%,98.16% 46.88%,98.16% 48.75%,98.16% 50.62%,99.08% 52.5%,99.69% 54.37%,99.69% 56.25%,99.69% 58.13%,99.69% 60.0%,99.69% 61.88%,99.69% 63.75%,99.69% 65.62%,99.69% 67.5%,99.69% 69.38%,99.08% 71.25%,99.08% 73.12%,99.39% 75.0%,99.39% 76.88%,99.39% 78.75%,99.08% 80.62%,99.69% 82.5%,98.77% 84.38%,96.93% 86.25%,96.93% 88.12%,96.93% 90.0%,96.32% 91.88%,95.09% 93.75%,94.48% 95.62%,90.49% 97.5%,64.72% 99.38%,64.11% 99.69%,35.58% 99.69%,35.28% 99.38%,9.2% 97.5%,5.52% 95.62%,4.91% 93.75%,3.37% 91.88%,2.76% 90.0%,2.76% 88.12%,2.76% 86.25%,0.92% 84.38%,0.0% 82.5%,0.61% 80.62%,0.31% 78.75%,0.31% 76.88%,0.61% 75.0%,0.61% 73.12%,0.61% 71.25%,0.0% 69.38%,0.0% 67.5%,0.0% 65.62%,0.0% 63.75%,0.0% 61.88%,0.0% 60.0%,0.0% 58.13%,0.0% 56.25%,0.0% 54.37%,0.61% 52.5%,1.53% 50.62%,1.53% 48.75%,1.53% 46.88%,1.53% 45.0%,1.53% 43.12%,1.53% 41.25%,1.53% 39.38%,0.92% 37.5%,1.53% 35.62%,1.53% 33.75%,1.53% 31.87%,1.53% 30.0%,1.53% 28.12%,0.61% 26.25%,0.31% 24.38%,0.31% 22.5%,0.31% 20.62%,0.31% 18.75%,1.23% 16.88%,1.23% 15.0%,1.23% 13.12%,1.23% 11.25%,1.23% 9.38%,1.23% 7.5%,1.84% 5.62%,3.37% 3.75%,5.83% 1.88%,10.12% 0.0%)"
+    }
+  },
+  {
+    "id": "eventos/holi",
+    "nome": "Holi",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.5,
+    "arquivo": "eventos/01_Holi.png",
+    "abertura": {
+      "x": 86,
+      "y": 86,
+      "largura": 341,
+      "altura": 328,
+      "recorte": "polygon(68.91% 0.0%,74.49% 1.83%,87.1% 3.66%,88.27% 5.49%,88.86% 7.32%,88.86% 9.15%,88.86% 10.98%,88.56% 12.8%,89.15% 14.63%,93.55% 16.46%,94.43% 18.29%,95.31% 20.12%,96.19% 21.95%,97.95% 23.78%,99.71% 25.61%,99.71% 27.44%,98.53% 29.27%,98.53% 31.1%,99.71% 32.93%,99.71% 34.76%,97.36% 36.59%,96.48% 38.41%,95.89% 40.24%,95.89% 42.07%,95.89% 43.9%,95.01% 45.73%,95.01% 47.56%,95.31% 49.39%,95.6% 51.22%,96.48% 53.05%,96.19% 54.88%,97.36% 56.71%,97.95% 58.54%,97.95% 60.37%,99.41% 62.2%,97.65% 64.02%,93.26% 65.85%,95.89% 67.68%,97.07% 69.51%,97.65% 71.34%,97.95% 73.17%,97.65% 75.0%,97.65% 76.83%,97.95% 78.66%,93.55% 80.49%,92.67% 82.32%,92.08% 84.15%,90.91% 85.98%,90.62% 87.8%,89.15% 89.63%,88.27% 91.46%,85.63% 93.29%,83.87% 95.12%,64.81% 96.95%,63.34% 98.78%,62.46% 99.7%,37.24% 99.7%,35.78% 98.78%,33.72% 96.95%,15.25% 95.12%,13.78% 93.29%,11.44% 91.46%,9.68% 89.63%,8.8% 87.8%,9.09% 85.98%,7.33% 84.15%,6.74% 82.32%,5.87% 80.49%,4.11% 78.66%,2.05% 76.83%,2.05% 75.0%,1.47% 73.17%,1.76% 71.34%,2.35% 69.51%,3.81% 67.68%,6.45% 65.85%,1.47% 64.02%,1.17% 62.2%,1.47% 60.37%,0.59% 58.54%,2.35% 56.71%,2.64% 54.88%,3.23% 53.05%,4.11% 51.22%,5.28% 49.39%,4.99% 47.56%,4.99% 45.73%,2.93% 43.9%,3.23% 42.07%,2.93% 40.24%,2.35% 38.41%,2.35% 36.59%,0.0% 34.76%,0.0% 32.93%,0.88% 31.1%,0.88% 29.27%,0.0% 27.44%,0.0% 25.61%,1.47% 23.78%,3.23% 21.95%,4.11% 20.12%,4.99% 18.29%,6.16% 16.46%,10.26% 14.63%,10.56% 12.8%,10.56% 10.98%,10.56% 9.15%,10.56% 7.32%,11.14% 5.49%,12.32% 3.66%,24.93% 1.83%,30.79% 0.0%)"
+    },
+    "insignia": "evento-holi-2026"
+  },
+  {
+    "id": "eventos/dia-do-rock",
+    "nome": "Dia do Rock",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.52,
+    "arquivo": "eventos/02_Dia-do-Rock.png",
+    "abertura": {
+      "x": 88,
+      "y": 93,
+      "largura": 336,
+      "altura": 301,
+      "recorte": "polygon(84.23% 0.0%,88.39% 1.99%,91.67% 3.99%,93.75% 5.98%,95.54% 7.97%,96.73% 9.97%,97.32% 11.96%,97.32% 13.95%,97.32% 15.95%,96.43% 17.94%,96.43% 19.93%,96.43% 21.93%,99.11% 23.92%,99.11% 25.91%,99.11% 27.91%,99.11% 29.9%,99.11% 31.89%,99.11% 33.89%,99.11% 35.88%,99.11% 37.87%,98.51% 39.87%,98.51% 41.86%,98.51% 43.85%,98.51% 45.85%,98.51% 47.84%,99.7% 49.83%,99.7% 51.83%,99.7% 53.82%,99.7% 55.81%,99.7% 57.81%,99.7% 59.8%,99.4% 61.79%,99.4% 63.79%,99.4% 65.78%,99.4% 67.77%,99.11% 69.77%,97.32% 71.76%,95.54% 73.75%,93.75% 75.75%,92.86% 77.74%,91.67% 79.73%,91.07% 81.73%,90.48% 83.72%,90.48% 85.71%,90.48% 87.71%,88.39% 89.7%,86.61% 91.69%,85.42% 93.69%,83.93% 95.68%,67.86% 97.67%,62.8% 99.67%,37.8% 99.67%,32.14% 97.67%,15.77% 95.68%,14.58% 93.69%,13.39% 91.69%,11.31% 89.7%,9.23% 87.71%,9.23% 85.71%,9.23% 83.72%,8.63% 81.73%,8.04% 79.73%,6.85% 77.74%,5.95% 75.75%,4.17% 73.75%,2.38% 71.76%,0.6% 69.77%,0.6% 67.77%,0.6% 65.78%,0.6% 63.79%,0.6% 61.79%,0.0% 59.8%,0.0% 57.81%,0.0% 55.81%,0.0% 53.82%,0.0% 51.83%,0.0% 49.83%,1.49% 47.84%,1.49% 45.85%,1.49% 43.85%,1.49% 41.86%,1.49% 39.87%,0.6% 37.87%,0.6% 35.88%,0.6% 33.89%,0.6% 31.89%,0.6% 29.9%,0.6% 27.91%,0.6% 25.91%,0.6% 23.92%,3.57% 21.93%,3.57% 19.93%,3.57% 17.94%,2.68% 15.95%,2.38% 13.95%,2.38% 11.96%,3.27% 9.97%,4.17% 7.97%,5.95% 5.98%,8.33% 3.99%,11.61% 1.99%,15.48% 0.0%)"
+    },
+    "insignia": "evento-dia-do-rock-2026"
+  },
+  {
+    "id": "eventos/oktoberfest",
+    "nome": "Oktoberfest",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.53,
+    "arquivo": "eventos/03_Oktoberfest.png",
+    "abertura": {
+      "x": 89,
+      "y": 89,
+      "largura": 335,
+      "altura": 304,
+      "recorte": "polygon(72.54% 0.0%,79.7% 1.97%,88.66% 3.95%,94.33% 5.92%,94.93% 7.89%,95.52% 9.87%,97.31% 11.84%,96.72% 13.82%,96.72% 15.79%,97.01% 17.76%,98.51% 19.74%,98.81% 21.71%,98.81% 23.68%,99.1% 25.66%,98.51% 27.63%,98.21% 29.61%,98.51% 31.58%,99.1% 33.55%,99.1% 35.53%,99.1% 37.5%,99.1% 39.47%,98.51% 41.45%,95.52% 43.42%,94.63% 45.39%,95.22% 47.37%,95.22% 49.34%,95.52% 51.32%,99.1% 53.29%,97.31% 55.26%,94.63% 57.24%,93.13% 59.21%,92.54% 61.18%,91.94% 63.16%,92.24% 65.13%,92.54% 67.11%,95.22% 69.08%,95.22% 71.05%,96.12% 73.03%,99.4% 75.0%,98.81% 76.97%,98.81% 78.95%,99.1% 80.92%,99.1% 82.89%,98.81% 84.87%,98.51% 86.84%,97.61% 88.82%,96.42% 90.79%,94.33% 92.76%,91.94% 94.74%,87.16% 96.71%,81.79% 98.68%,74.33% 99.67%,25.37% 99.67%,17.91% 98.68%,12.54% 96.71%,7.76% 94.74%,5.07% 92.76%,3.28% 90.79%,1.79% 88.82%,0.9% 86.84%,0.6% 84.87%,0.6% 82.89%,0.3% 80.92%,0.9% 78.95%,0.6% 76.97%,0.0% 75.0%,3.28% 73.03%,4.18% 71.05%,4.18% 69.08%,6.87% 67.11%,7.46% 65.13%,7.76% 63.16%,6.87% 61.18%,6.57% 59.21%,5.07% 57.24%,2.39% 55.26%,0.3% 53.29%,3.88% 51.32%,4.48% 49.34%,4.48% 47.37%,4.78% 45.39%,3.88% 43.42%,0.9% 41.45%,0.3% 39.47%,0.6% 37.5%,0.3% 35.53%,0.6% 33.55%,0.9% 31.58%,1.49% 29.61%,1.19% 27.63%,0.6% 25.66%,0.6% 23.68%,0.6% 21.71%,0.9% 19.74%,2.39% 17.76%,2.69% 15.79%,2.69% 13.82%,2.09% 11.84%,3.88% 9.87%,4.48% 7.89%,5.07% 5.92%,10.75% 3.95%,20.0% 1.97%,27.16% 0.0%)"
+    },
+    "insignia": "evento-oktoberfest-2026"
+  },
+  {
+    "id": "eventos/diwali",
+    "nome": "Diwali",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.56,
+    "arquivo": "eventos/04_Diwali.png",
+    "abertura": {
+      "x": 92,
+      "y": 95,
+      "largura": 328,
+      "altura": 317,
+      "recorte": "polygon(82.62% 0.0%,87.8% 1.89%,91.46% 3.79%,94.82% 5.68%,97.26% 7.57%,99.09% 9.46%,99.7% 11.36%,99.7% 13.25%,99.7% 15.14%,99.7% 17.03%,99.7% 18.93%,99.7% 20.82%,99.7% 22.71%,99.7% 24.61%,99.7% 26.5%,99.7% 28.39%,99.7% 30.28%,99.09% 32.18%,98.78% 34.07%,99.39% 35.96%,99.7% 37.85%,99.7% 39.75%,99.7% 41.64%,99.7% 43.53%,99.7% 45.43%,99.7% 47.32%,99.7% 49.21%,99.7% 51.1%,99.7% 53.0%,99.7% 54.89%,99.7% 56.78%,99.7% 58.68%,98.48% 60.57%,97.56% 62.46%,96.65% 64.35%,96.34% 66.25%,96.34% 68.14%,96.65% 70.03%,97.87% 71.92%,96.65% 73.82%,95.12% 75.71%,94.21% 77.6%,93.29% 79.5%,92.99% 81.39%,92.07% 83.28%,91.46% 85.17%,92.07% 87.07%,86.89% 88.96%,84.15% 90.85%,82.62% 92.74%,82.32% 94.64%,82.32% 96.53%,73.48% 98.42%,69.51% 99.68%,29.88% 99.68%,26.52% 98.42%,17.38% 96.53%,17.68% 94.64%,17.07% 92.74%,15.55% 90.85%,13.11% 88.96%,7.93% 87.07%,8.23% 85.17%,7.93% 83.28%,6.71% 81.39%,6.4% 79.5%,5.49% 77.6%,4.57% 75.71%,3.05% 73.82%,2.13% 71.92%,3.05% 70.03%,3.35% 68.14%,3.35% 66.25%,3.05% 64.35%,2.13% 62.46%,1.22% 60.57%,0.0% 58.68%,0.0% 56.78%,0.0% 54.89%,0.0% 53.0%,0.0% 51.1%,0.0% 49.21%,0.0% 47.32%,0.0% 45.43%,0.0% 43.53%,0.0% 41.64%,0.0% 39.75%,0.0% 37.85%,0.3% 35.96%,0.91% 34.07%,0.91% 32.18%,0.0% 30.28%,0.0% 28.39%,0.0% 26.5%,0.0% 24.61%,0.0% 22.71%,0.0% 20.82%,0.0% 18.93%,0.0% 17.03%,0.3% 15.14%,0.0% 13.25%,0.0% 11.36%,0.61% 9.46%,2.44% 7.57%,5.18% 5.68%,8.54% 3.79%,12.2% 1.89%,16.77% 0.0%)"
+    },
+    "insignia": "evento-diwali-2026"
+  },
+  {
+    "id": "eventos/dia-do-trabalho",
+    "nome": "Dia do Trabalho",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.55,
+    "arquivo": "eventos/05_Dia-do-Trabalho.png",
+    "abertura": {
+      "x": 91,
+      "y": 85,
+      "largura": 330,
+      "altura": 320,
+      "recorte": "polygon(79.09% 0.0%,80.61% 1.88%,89.09% 3.75%,89.09% 5.62%,90.3% 7.5%,90.0% 9.38%,93.33% 11.25%,96.97% 13.12%,99.7% 15.0%,98.18% 16.88%,98.18% 18.75%,98.18% 20.62%,98.18% 22.5%,98.18% 24.38%,99.39% 26.25%,99.7% 28.12%,99.7% 30.0%,99.7% 31.87%,99.7% 33.75%,99.7% 35.62%,99.7% 37.5%,99.7% 39.38%,99.7% 41.25%,95.76% 43.12%,96.36% 45.0%,98.79% 46.88%,97.27% 48.75%,98.18% 50.62%,96.67% 52.5%,98.48% 54.37%,98.18% 56.25%,96.67% 58.13%,95.15% 60.0%,94.85% 61.88%,94.85% 63.75%,95.76% 65.62%,98.48% 67.5%,98.48% 69.38%,98.48% 71.25%,98.48% 73.12%,98.48% 75.0%,98.48% 76.88%,98.79% 78.75%,95.45% 80.62%,90.91% 82.5%,86.97% 84.38%,86.97% 86.25%,83.64% 88.12%,84.85% 90.0%,80.61% 91.88%,77.58% 93.75%,70.0% 95.62%,66.36% 97.5%,64.24% 99.38%,63.64% 99.69%,36.06% 99.69%,35.45% 99.38%,33.33% 97.5%,29.39% 95.62%,22.12% 93.75%,19.39% 91.88%,15.15% 90.0%,16.06% 88.12%,12.73% 86.25%,13.03% 84.38%,8.79% 82.5%,4.55% 80.62%,0.91% 78.75%,1.21% 76.88%,1.52% 75.0%,1.52% 73.12%,1.52% 71.25%,1.52% 69.38%,1.52% 67.5%,3.94% 65.62%,4.85% 63.75%,4.85% 61.88%,4.85% 60.0%,3.03% 58.13%,1.82% 56.25%,1.52% 54.37%,3.03% 52.5%,1.52% 50.62%,2.42% 48.75%,0.91% 46.88%,3.33% 45.0%,4.24% 43.12%,0.0% 41.25%,0.0% 39.38%,0.0% 37.5%,0.0% 35.62%,0.0% 33.75%,0.0% 31.87%,0.0% 30.0%,0.0% 28.12%,0.61% 26.25%,1.52% 24.38%,1.52% 22.5%,1.52% 20.62%,1.52% 18.75%,1.52% 16.88%,0.0% 15.0%,2.73% 13.12%,6.67% 11.25%,9.7% 9.38%,9.7% 7.5%,10.61% 5.62%,10.61% 3.75%,19.09% 1.88%,20.91% 0.0%)"
+    },
+    "insignia": "evento-dia-do-trabalho-2026"
+  },
+  {
+    "id": "eventos/dia-da-mulher",
+    "nome": "Dia da Mulher",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.54,
+    "arquivo": "eventos/06_Dia-da-Mulher.png",
+    "abertura": {
+      "x": 90,
+      "y": 88,
+      "largura": 332,
+      "altura": 310,
+      "recorte": "polygon(78.31% 0.0%,86.14% 1.94%,90.96% 3.87%,93.98% 5.81%,95.78% 7.74%,96.69% 9.68%,95.78% 11.61%,93.98% 13.55%,93.07% 15.48%,92.17% 17.42%,91.87% 19.35%,91.87% 21.29%,92.47% 23.23%,93.67% 25.16%,94.88% 27.1%,96.39% 29.03%,99.1% 30.97%,99.7% 32.9%,99.7% 34.84%,99.7% 36.77%,99.7% 38.71%,99.7% 40.65%,99.7% 42.58%,99.7% 44.52%,99.7% 46.45%,99.7% 48.39%,99.1% 50.32%,98.19% 52.26%,97.59% 54.19%,99.7% 56.13%,99.7% 58.06%,99.7% 60.0%,99.7% 61.94%,99.7% 63.87%,99.1% 65.81%,98.49% 67.74%,98.49% 69.68%,98.19% 71.61%,98.19% 73.55%,96.69% 75.48%,94.58% 77.42%,87.95% 79.35%,87.05% 81.29%,86.75% 83.23%,87.05% 85.16%,87.95% 87.1%,89.46% 89.03%,90.36% 90.97%,92.17% 92.9%,75.0% 94.84%,65.66% 96.77%,62.95% 98.71%,61.75% 99.68%,37.95% 99.68%,36.75% 98.71%,34.04% 96.77%,24.7% 94.84%,7.53% 92.9%,9.64% 90.97%,10.24% 89.03%,12.05% 87.1%,12.65% 85.16%,12.95% 83.23%,12.65% 81.29%,11.75% 79.35%,5.42% 77.42%,3.01% 75.48%,1.51% 73.55%,1.51% 71.61%,6.93% 69.68%,1.2% 67.74%,0.6% 65.81%,0.0% 63.87%,0.0% 61.94%,0.0% 60.0%,0.0% 58.06%,0.0% 56.13%,2.11% 54.19%,1.51% 52.26%,0.9% 50.32%,0.0% 48.39%,0.0% 46.45%,0.0% 44.52%,0.0% 42.58%,0.0% 40.65%,0.0% 38.71%,0.0% 36.77%,0.0% 34.84%,0.0% 32.9%,0.6% 30.97%,3.31% 29.03%,4.82% 27.1%,6.02% 25.16%,7.23% 23.23%,7.83% 21.29%,7.83% 19.35%,7.53% 17.42%,6.93% 15.48%,5.72% 13.55%,4.22% 11.61%,3.31% 9.68%,4.22% 7.74%,6.02% 5.81%,8.73% 3.87%,13.55% 1.94%,21.69% 0.0%)"
+    },
+    "insignia": "evento-dia-da-mulher-2026"
+  },
+  {
+    "id": "eventos/dia-das-maes",
+    "nome": "Dia das Mães",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.56,
+    "arquivo": "eventos/07_Dia-das-Maes.png",
+    "abertura": {
+      "x": 92,
+      "y": 84,
+      "largura": 328,
+      "altura": 314,
+      "recorte": "polygon(78.35% 0.0%,80.18% 1.91%,82.62% 3.82%,88.11% 5.73%,89.02% 7.64%,93.29% 9.55%,92.99% 11.46%,94.21% 13.38%,94.51% 15.29%,99.39% 17.2%,99.7% 19.11%,99.7% 21.02%,99.7% 22.93%,99.7% 24.84%,99.7% 26.75%,99.7% 28.66%,99.7% 30.57%,99.7% 32.48%,99.7% 34.39%,99.7% 36.31%,99.39% 38.22%,98.78% 40.13%,98.48% 42.04%,98.17% 43.95%,98.17% 45.86%,98.17% 47.77%,98.48% 49.68%,99.09% 51.59%,99.7% 53.5%,99.7% 55.41%,99.7% 57.32%,99.7% 59.24%,99.7% 61.15%,99.7% 63.06%,99.7% 64.97%,99.7% 66.88%,99.7% 68.79%,99.7% 70.7%,99.7% 72.61%,96.34% 74.52%,96.65% 76.43%,96.34% 78.34%,95.43% 80.25%,92.99% 82.17%,91.16% 84.08%,86.59% 85.99%,87.8% 87.9%,80.18% 89.81%,77.44% 91.72%,75.61% 93.63%,74.39% 95.54%,64.94% 97.45%,60.37% 99.36%,59.15% 99.68%,40.55% 99.68%,39.33% 99.36%,34.76% 97.45%,25.61% 95.54%,24.09% 93.63%,22.26% 91.72%,19.82% 89.81%,12.5% 87.9%,13.11% 85.99%,8.54% 84.08%,7.01% 82.17%,4.27% 80.25%,3.35% 78.34%,3.35% 76.43%,3.66% 74.52%,0.3% 72.61%,0.3% 70.7%,0.0% 68.79%,0.0% 66.88%,0.0% 64.97%,0.0% 63.06%,0.0% 61.15%,0.0% 59.24%,0.0% 57.32%,0.0% 55.41%,0.0% 53.5%,0.61% 51.59%,1.22% 49.68%,1.52% 47.77%,1.83% 45.86%,1.52% 43.95%,1.52% 42.04%,0.91% 40.13%,0.3% 38.22%,0.0% 36.31%,0.0% 34.39%,0.0% 32.48%,0.0% 30.57%,0.0% 28.66%,0.0% 26.75%,0.0% 24.84%,0.0% 22.93%,0.0% 21.02%,0.0% 19.11%,0.3% 17.2%,5.18% 15.29%,5.49% 13.38%,7.01% 11.46%,6.71% 9.55%,10.98% 7.64%,11.89% 5.73%,17.38% 3.82%,19.82% 1.91%,29.57% 0.0%)"
+    },
+    "insignia": "evento-dia-das-maes-2026"
+  },
+  {
+    "id": "eventos/dia-dos-pais",
+    "nome": "Dia dos Pais",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.51,
+    "arquivo": "eventos/08_Dia-dos-Pais.png",
+    "abertura": {
+      "x": 87,
+      "y": 86,
+      "largura": 338,
+      "altura": 307,
+      "recorte": "polygon(73.08% 0.0%,81.36% 1.95%,85.5% 3.91%,88.17% 5.86%,90.24% 7.82%,90.24% 9.77%,92.6% 11.73%,95.27% 13.68%,96.75% 15.64%,96.75% 17.59%,96.75% 19.54%,94.97% 21.5%,94.67% 23.45%,94.67% 25.41%,94.67% 27.36%,94.67% 29.32%,94.67% 31.27%,95.27% 33.22%,96.75% 35.18%,98.22% 37.13%,98.52% 39.09%,98.52% 41.04%,98.52% 43.0%,98.52% 44.95%,98.52% 46.91%,98.52% 48.86%,98.52% 50.81%,98.52% 52.77%,98.22% 54.72%,97.63% 56.68%,97.34% 58.63%,97.34% 60.59%,97.34% 62.54%,97.63% 64.5%,98.52% 66.45%,99.7% 68.4%,99.7% 70.36%,99.7% 72.31%,99.41% 74.27%,99.11% 76.22%,98.22% 78.18%,97.34% 80.13%,95.27% 82.08%,94.67% 84.04%,94.08% 85.99%,93.2% 87.95%,91.72% 89.9%,89.64% 91.86%,85.5% 93.81%,84.32% 95.77%,78.4% 97.72%,72.78% 99.67%,26.92% 99.67%,21.3% 97.72%,15.38% 95.77%,14.2% 93.81%,10.06% 91.86%,7.99% 89.9%,6.8% 87.95%,5.62% 85.99%,5.03% 84.04%,4.73% 82.08%,2.37% 80.13%,1.48% 78.18%,0.89% 76.22%,0.3% 74.27%,0.0% 72.31%,0.0% 70.36%,0.0% 68.4%,1.18% 66.45%,2.07% 64.5%,2.37% 62.54%,2.37% 60.59%,2.37% 58.63%,2.37% 56.68%,1.48% 54.72%,1.48% 52.77%,1.48% 50.81%,1.18% 48.86%,1.18% 46.91%,1.48% 44.95%,1.48% 43.0%,1.48% 41.04%,1.18% 39.09%,1.48% 37.13%,2.96% 35.18%,4.44% 33.22%,5.03% 31.27%,5.03% 29.32%,5.03% 27.36%,5.03% 25.41%,5.03% 23.45%,4.73% 21.5%,2.96% 19.54%,2.96% 17.59%,3.25% 15.64%,4.44% 13.68%,7.4% 11.73%,9.47% 9.77%,9.76% 7.82%,11.54% 5.86%,14.2% 3.91%,18.34% 1.95%,26.63% 0.0%)"
+    },
+    "insignia": "evento-dia-dos-pais-2026"
+  },
+  {
+    "id": "eventos/consciencia-negra",
+    "nome": "Consciência Negra",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.52,
+    "arquivo": "eventos/09_Consciencia-Negra.png",
+    "abertura": {
+      "x": 88,
+      "y": 98,
+      "largura": 337,
+      "altura": 313,
+      "recorte": "polygon(87.83% 0.0%,90.8% 1.92%,92.58% 3.83%,92.88% 5.75%,93.77% 7.67%,94.96% 9.58%,96.14% 11.5%,97.92% 13.42%,97.92% 15.34%,97.92% 17.25%,97.92% 19.17%,97.92% 21.09%,97.92% 23.0%,97.92% 24.92%,97.33% 26.84%,95.85% 28.75%,94.96% 30.67%,94.96% 32.59%,94.96% 34.5%,94.96% 36.42%,94.96% 38.34%,94.96% 40.26%,95.25% 42.17%,95.25% 44.09%,94.96% 46.01%,94.66% 47.92%,94.66% 49.84%,95.55% 51.76%,96.44% 53.67%,96.74% 55.59%,97.03% 57.51%,97.63% 59.42%,98.81% 61.34%,99.7% 63.26%,99.7% 65.18%,99.7% 67.09%,99.7% 69.01%,99.7% 70.93%,99.7% 72.84%,99.7% 74.76%,99.41% 76.68%,99.41% 78.59%,99.11% 80.51%,97.92% 82.43%,96.14% 84.35%,94.66% 86.26%,92.28% 88.18%,92.88% 90.1%,92.88% 92.01%,91.1% 93.93%,89.32% 95.85%,75.07% 97.76%,66.17% 99.68%,33.23% 99.68%,24.33% 97.76%,10.39% 95.85%,8.31% 93.93%,6.53% 92.01%,6.53% 90.1%,7.12% 88.18%,4.75% 86.26%,3.26% 84.35%,1.78% 82.43%,0.3% 80.51%,0.3% 78.59%,0.0% 76.68%,0.0% 74.76%,0.0% 72.84%,0.0% 70.93%,0.0% 69.01%,0.0% 67.09%,0.0% 65.18%,0.0% 63.26%,0.59% 61.34%,1.78% 59.42%,2.37% 57.51%,2.67% 55.59%,3.26% 53.67%,3.86% 51.76%,4.75% 49.84%,5.04% 47.92%,4.45% 46.01%,4.15% 44.09%,4.15% 42.17%,4.75% 40.26%,4.75% 38.34%,4.75% 36.42%,4.75% 34.5%,4.75% 32.59%,4.75% 30.67%,3.56% 28.75%,2.08% 26.84%,1.48% 24.92%,1.48% 23.0%,1.48% 21.09%,1.48% 19.17%,1.48% 17.25%,1.48% 15.34%,1.48% 13.42%,3.26% 11.5%,4.75% 9.58%,5.93% 7.67%,6.53% 5.75%,7.12% 3.83%,8.61% 1.92%,11.87% 0.0%)"
+    },
+    "insignia": "evento-consciencia-negra-2026"
+  },
+  {
+    "id": "eventos/black-friday",
+    "nome": "Black Friday",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.55,
+    "arquivo": "eventos/10_Black-Friday.png",
+    "abertura": {
+      "x": 91,
+      "y": 87,
+      "largura": 330,
+      "altura": 308,
+      "recorte": "polygon(76.36% 0.0%,78.48% 1.95%,80.3% 3.9%,92.42% 5.84%,94.24% 7.79%,96.06% 9.74%,97.88% 11.69%,98.18% 13.64%,96.36% 15.58%,95.45% 17.53%,95.45% 19.48%,95.45% 21.43%,95.45% 23.38%,95.45% 25.32%,95.45% 27.27%,96.06% 29.22%,97.88% 31.17%,99.7% 33.12%,99.7% 35.06%,99.7% 37.01%,99.7% 38.96%,99.7% 40.91%,99.7% 42.86%,99.7% 44.81%,99.7% 46.75%,99.7% 48.7%,99.7% 50.65%,99.7% 52.6%,99.7% 54.55%,99.7% 56.49%,99.7% 58.44%,99.7% 60.39%,99.7% 62.34%,98.48% 64.29%,96.97% 66.23%,96.36% 68.18%,96.36% 70.13%,96.36% 72.08%,96.36% 74.03%,96.36% 75.97%,93.94% 77.92%,91.52% 79.87%,89.7% 81.82%,87.58% 83.77%,85.45% 85.71%,83.33% 87.66%,81.52% 89.61%,72.73% 91.56%,70.91% 93.51%,68.48% 95.45%,66.06% 97.4%,64.24% 99.35%,63.33% 99.68%,36.36% 99.68%,35.45% 99.35%,33.33% 97.4%,30.91% 95.45%,29.09% 93.51%,26.97% 91.56%,18.48% 89.61%,16.36% 87.66%,14.24% 85.71%,12.12% 83.77%,10.0% 81.82%,8.48% 79.87%,5.76% 77.92%,3.33% 75.97%,3.33% 74.03%,3.33% 72.08%,3.33% 70.13%,3.33% 68.18%,3.03% 66.23%,1.21% 64.29%,0.0% 62.34%,0.0% 60.39%,0.0% 58.44%,0.0% 56.49%,0.0% 54.55%,0.0% 52.6%,0.0% 50.65%,0.0% 48.7%,0.0% 46.75%,0.0% 44.81%,0.0% 42.86%,0.0% 40.91%,0.0% 38.96%,0.0% 37.01%,0.0% 35.06%,0.3% 33.12%,1.82% 31.17%,3.64% 29.22%,4.55% 27.27%,4.55% 25.32%,4.55% 23.38%,4.55% 21.43%,4.55% 19.48%,4.55% 17.53%,3.33% 15.58%,1.82% 13.64%,1.82% 11.69%,3.64% 9.74%,5.45% 7.79%,7.58% 5.84%,19.39% 3.9%,21.21% 1.95%,23.64% 0.0%)"
+    },
+    "insignia": "evento-black-friday-2026"
+  },
+  {
+    "id": "eventos/dia-do-gamer",
+    "nome": "Dia do Gamer",
+    "colecao": "Eventos",
+    "fonte": "neura",
+    "forma": "quadrada",
+    "escala": 1.52,
+    "arquivo": "eventos/11_Dia-do-Gamer.png",
+    "abertura": {
+      "x": 88,
+      "y": 97,
+      "largura": 336,
+      "altura": 313,
+      "recorte": "polygon(82.14% 0.0%,88.1% 1.92%,89.58% 3.83%,91.37% 5.75%,95.83% 7.67%,95.54% 9.58%,96.13% 11.5%,97.62% 13.42%,97.92% 15.34%,97.92% 17.25%,97.92% 19.17%,97.92% 21.09%,98.51% 23.0%,97.92% 24.92%,97.92% 26.84%,97.92% 28.75%,97.92% 30.67%,97.92% 32.59%,99.11% 34.5%,99.7% 36.42%,99.7% 38.34%,98.51% 40.26%,97.92% 42.17%,97.92% 44.09%,97.92% 46.01%,97.92% 47.92%,97.92% 49.84%,97.92% 51.76%,99.4% 53.67%,99.4% 55.59%,99.4% 57.51%,99.4% 59.42%,99.4% 61.34%,99.11% 63.26%,97.62% 65.18%,95.83% 67.09%,95.83% 69.01%,95.83% 70.93%,95.83% 72.84%,97.02% 74.76%,97.32% 76.68%,97.32% 78.59%,97.32% 80.51%,96.43% 82.43%,94.64% 84.35%,93.45% 86.26%,92.26% 88.18%,87.5% 90.1%,84.82% 92.01%,83.04% 93.93%,81.55% 95.85%,64.58% 97.76%,61.9% 99.68%,37.8% 99.68%,35.12% 97.76%,18.45% 95.85%,16.67% 93.93%,14.88% 92.01%,13.1% 90.1%,7.44% 88.18%,6.55% 86.26%,5.06% 84.35%,3.57% 82.43%,2.38% 80.51%,2.38% 78.59%,2.38% 76.68%,2.68% 74.76%,4.17% 72.84%,4.17% 70.93%,4.17% 69.01%,3.87% 67.09%,2.08% 65.18%,0.6% 63.26%,0.3% 61.34%,0.3% 59.42%,0.3% 57.51%,0.3% 55.59%,0.3% 53.67%,1.79% 51.76%,1.79% 49.84%,1.79% 47.92%,1.79% 46.01%,1.79% 44.09%,1.79% 42.17%,1.19% 40.26%,0.0% 38.34%,0.0% 36.42%,0.89% 34.5%,1.79% 32.59%,2.08% 30.67%,1.79% 28.75%,2.08% 26.84%,1.79% 24.92%,1.19% 23.0%,1.79% 21.09%,1.79% 19.17%,1.79% 17.25%,1.79% 15.34%,2.08% 13.42%,3.57% 11.5%,4.17% 9.58%,3.87% 7.67%,8.63% 5.75%,10.12% 3.83%,11.9% 1.92%,17.56% 0.0%)"
+    },
+    "insignia": "evento-dia-do-gamer-2026"
+  }
 ]
+const PORID = new Map(MOLDURAS.map(m => [m.id, m]))
+export const molduraPorId = id => id ? PORID.get(id) || null : null
+export const urlMoldura = id => {
+  const m = molduraPorId(id)
+  return m ? `/assets/molduras/${m.arquivo.split('/').map(encodeURIComponent).join('/')}` : null
+}
+// As artes novas são estáticas: a miniatura e o modo de desempenho usam o mesmo arquivo válido.
+export const urlMiniatura = urlMoldura
+export const urlParada = urlMoldura
+export const classeForma = id => molduraPorId(id)?.forma === 'quadrada' ? ' quadrada moldura-ajustada' : ''
 
-const PORID = new Map(MOLDURAS.map((m) => [m.id, m]))
-export const molduraPorId = (id) => (id ? PORID.get(id) || null : null)
-export const urlMoldura = (id) => `/assets/molduras/${id}${molduraPorId(id)?.animada || '.png'}`
-export const urlMiniatura = (id) => `/assets/molduras/${id}.webp`
-// Moldura parada ("Melhorar desempenho"): a mesma imagem estática da miniatura, no tamanho original da moldura
-export const urlParada = urlMiniatura
-// Classe da caixa do avatar para a forma da moldura ('' = redonda)
-export const classeForma = (id) => (molduraPorId(id)?.forma === 'quadrada' ? ' quadrada' : '')
+export const estiloFotoMoldura = id => {
+ const a = molduraPorId(id)?.abertura
+ if (!a) return undefined
+ return {
+  '--moldura-proporcao': `${a.largura} / ${a.altura}`,
+  '--moldura-largura': `${512 / a.largura * 100}%`,
+  '--moldura-altura': `${512 / a.altura * 100}%`,
+  '--moldura-esquerda': `${-a.x / a.largura * 100}%`,
+  '--moldura-topo': `${-a.y / a.altura * 100}%`,
+  '--moldura-recorte': a.recorte,
+ }
+}
+
+export const podeUsarMolduraEvento = (id, perfil) => {
+ const m = molduraPorId(id)
+ return !m?.insignia || !!perfil?.insignias?.[m.insignia]
+}

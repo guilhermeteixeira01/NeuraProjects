@@ -1,4 +1,4 @@
-import { imagemFundoPerfil } from '../../../worker/steam-login/src/fundos-perfil.js'
+import { imagemFundoPerfil, podeUsarFundoPerfil } from '../../../worker/steam-login/src/fundos-perfil.js'
 import IconeUI from '../../comum/IconeUI.jsx'
 import PainelMissoes from '../../comum/PainelMissoes.jsx'
 import { useCallback, useEffect, useState } from 'react'
@@ -586,7 +586,8 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   }
   const [contaAberta,setContaAberta] = useState(()=>typeof location!=='undefined'&&new URLSearchParams(location.search).get('conta')==='1')
   const nivel = useNivelDe(j)
-  const fundoPerfil = usePerfis()[j.steamId]?.fundoPerfil
+  const perfilFundo = usePerfis()[j.steamId]
+  const fundoPerfil = podeUsarFundoPerfil(perfilFundo?.fundoPerfil, perfilFundo) ? perfilFundo?.fundoPerfil : null
   const card = useCardDe(j.steamId) // banner do card (janela Personalizar); some se for exclusivo de cargo que o jogador não tem
   // CS Rating do Premier: vem do ranking (deploy); sem ele (jogador sem partidas, ou deploy sem Leetify),
   // busca direto na Leetify (a API pública aceita chamada do navegador)

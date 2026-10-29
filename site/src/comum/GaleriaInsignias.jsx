@@ -1,3 +1,4 @@
+import RecompensasInsignia from './RecompensasInsignia.jsx'
 import { useState } from 'react'
 import { usePerfis } from './Moldura.jsx'
 import { imagemInsignia, insigniasDe } from './insignias.js'
@@ -15,6 +16,7 @@ function CardInsignia({ insignia: i }) {
       <span className="ig-card-categoria">{t(CATEGORIAS[categoriaDe(i)] || 'Comunidade')}</span>
       <h3>{t(i.nome)}</h3><p>{t(i.descricao)}</p>
     </div>
+    <RecompensasInsignia id={i.id} conquistada />
     <footer><span className="ig-conquistada">✓ {t('Conquistada')}</span>{i.desde && <time dateTime={new Date(i.desde).toISOString()}>{new Date(i.desde).toLocaleDateString(localeAtual())}</time>}</footer>
   </article>
 }

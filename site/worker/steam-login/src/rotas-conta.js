@@ -1,4 +1,5 @@
-import { FUNDOS_PERFIL } from './fundos-perfil.js'
+import { podeUsarMolduraEvento } from '../../../src/comum/molduras.js'
+import { FUNDOS_PERFIL, podeUsarFundoPerfil } from './fundos-perfil.js'
 import { pedirAoJogador } from './objetos.js'
 /*
  * Rotas do jogador logado sobre a própria conta:
@@ -95,6 +96,8 @@ export async function salvarPerfil(req, env, quem, config, cors) {
   const mudar = validarPerfil(await lerCorpo(req))
   const admin = ehAdmin(quem.id, env, config)
   const perfis = await lerPerfis(env)
+  if (mudar.moldura && !podeUsarMolduraEvento(mudar.moldura, perfis[quem.id])) throw new ErroPermissao('molduraInsignia')
+  if ('fundoPerfil' in mudar && !podeUsarFundoPerfil(mudar.fundoPerfil, perfis[quem.id])) throw new ErroPermissao('fundoInsignia')
   // Bloqueado não troca o que os outros veem (moldura, time...); tema, idioma e desempenho são só de quem olha: continuam livres
   if (perfis[quem.id]?.bloqueado && !admin && Object.keys(mudar).some((k) => !PREFERENCIAS.includes(k))) throw new ErroPermissao('bloqueado')
   if (mudar.ocultoRanking && !admin) throw new ErroPermissao('admin') // só dono e admins se escondem do ranking

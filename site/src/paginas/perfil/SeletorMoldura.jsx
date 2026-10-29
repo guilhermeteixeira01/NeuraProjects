@@ -1,10 +1,10 @@
 import { createPortal } from 'react-dom'
-import { FUNDOS_PERFIL, imagemFundoPerfil, nomeFundoPerfil } from '../../../worker/steam-login/src/fundos-perfil.js'
+import { FUNDOS_PERFIL, MAPAS_FUNDO, FUNDOS_EVENTO, eventoDoFundo, podeUsarFundoPerfil, imagemFundoPerfil, nomeFundoPerfil } from '../../../worker/steam-login/src/fundos-perfil.js'
 import IconeUI from '../../comum/IconeUI.jsx'
 import { useCallback, useEffect, useState } from 'react'
 import { CamadaMoldura, EmblemaDe, IconeDoCargo, SeloCargo, cargoDaMoldura, cargoDoCard, nivelDoCard, semSubMinima, subDaMoldura, subDoCard, useCargosIdsDe, useNivelSub, nivelDaMoldura, salvarPerfil, useConfigSite, usePerfis } from '../../comum/Moldura.jsx'
 import { tituloNivel, urlEmblema } from '../../comum/assinatura.js'
-import { COLECOES, MOLDURAS, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
+import { COLECOES, MOLDURAS, podeUsarMolduraEvento, estiloFotoMoldura, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { urlOk } from '../../comum/dados.js'
 import { useT } from '../../comum/i18n.js'
 import { IconeNenhum } from '../../comum/Icones.jsx'
@@ -40,7 +40,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   const meuNivelSub = useNivelSub(steamId)
   const semSubM = (id) => !admin && semSubMinima(subDaMoldura(config, id), meuNivelSub)
   const semSubC = (c) => !admin && semSubMinima(subDoCard(config, c), meuNivelSub)
-  const travada = (id) => (!admin && nivelDaMoldura(config, id) > nivelEf) || semCargo(id) || semSubM(id)
+  const travada = (id) => !podeUsarMolduraEvento(id, perfil) || (!admin && nivelDaMoldura(config, id) > nivelEf) || semCargo(id) || semSubM(id)
   // Cards (banners): mesmas travas das molduras, configuradas na aba Cards do painel admin
   const semCargoCard = (c) => {
     const cg = cargoDoCard(config, c)
@@ -97,6 +97,10 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
     const faltaSub = semSubM(m.id)
     const cargo = cargoDaMoldura(config, m.id)
     const nv = nivelDaMoldura(config, m.id)
+    if (!podeUsarMolduraEvento(m.id, perfil)) return <button key={m.id} type="button" className="sm-item presa" disabled title={`Requer a insígnia ${m.nome} 2026`} aria-label={`${m.nome} · requer insígnia do evento 2026`}>
+      <span className="sm-arte"><img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" /><span className="sm-vidro" aria-hidden="true"><CadeadoMini tamanho={16} /></span></span>
+      <span className="sm-nome">{m.nome}</span><span className="sm-req"><CadeadoMini />{tr('Insígnia do evento')}</span>
+    </button>
     const titulo = !presa
       ? `${m.nome} · ${m.colecao}`
       : semCargo(m.id)
@@ -327,7 +331,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
       fechar()
     } catch (e) {
       setFalta(e.dados?.precisa || 0)
-      setEstado(['login', 'nivel', 'bloqueado', 'cargo', 'cardNivel', 'cardCargo', 'sub', 'cardSub'].includes(e.message) ? e.message : 'erro')
+      setEstado(['molduraInsignia', 'fundoInsignia', 'login', 'nivel', 'bloqueado', 'cargo', 'cardNivel', 'cardCargo', 'sub', 'cardSub'].includes(e.message) ? e.message : 'erro')
     }
   }
 
@@ -346,7 +350,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
             {aba === 'fundoPerfil' && <div className="sm-previa-fundo"><img src={imagemFundoPerfil(escolha.fundoPerfil)} alt={nomeFundoPerfil(escolha.fundoPerfil || 'mirage')} /><b>{nomeFundoPerfil(escolha.fundoPerfil || 'mirage')}</b></div>}
             {/* o card do perfil, na mesma proporção (282 × 395) */}
             {aba !== 'fundoPerfil' && <div className="sm-previa-card" style={escolha.card ? { backgroundImage: fundoCard(escolha.card) } : undefined}>
-            <span className={`moldura-box sm-av${classeForma(escolha.moldura)}`}>
+            <span className={`moldura-box sm-av${classeForma(escolha.moldura)}`} style={estiloFotoMoldura(escolha.moldura)}>
               {urlOk(avatar) && !erroAvatar ? (
                 <img src={avatar} alt="" onError={() => setErroAvatar(true)} />
               ) : (
@@ -435,9 +439,19 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                 </div>
               </>
             ) : aba === 'fundoPerfil' ? (
-              <div className="sm-rolagem"><p className="sm-aviso">{tr('Escolha o mapa que aparece no fundo do seu perfil.')}</p><div className="sm-grade-fundos">
-                {FUNDOS_PERFIL.map(id => <button key={id} type="button" className={`sm-fundo-mapa${(escolha.fundoPerfil || 'mirage') === id ? ' sel' : ''}`} aria-pressed={(escolha.fundoPerfil || 'mirage') === id} onClick={() => escolher('fundoPerfil', id)}><img src={imagemFundoPerfil(id)} alt="" loading="lazy" /><span>{nomeFundoPerfil(id)}</span></button>)}
-              </div></div>
+              <div className="sm-rolagem">
+                <p className="sm-aviso">{tr('Fundos de evento liberam com a insígnia correspondente de 2026.')}</p>
+                {[[tr('Mapas'), MAPAS_FUNDO], [tr('Eventos'), FUNDOS_EVENTO.map(f => f.id)]].map(([titulo, ids]) => <section className="sm-grupo" key={titulo}>
+                  <h4 className="sm-grupo-cab">{titulo}<small>{ids.length}</small></h4>
+                  <div className="sm-grade-fundos">{ids.map(id => {
+                    const evento = eventoDoFundo(id), liberado = podeUsarFundoPerfil(id, perfil)
+                    return <button key={id} type="button" className={`sm-fundo-mapa${(escolha.fundoPerfil || 'mirage') === id ? ' sel' : ''}${liberado ? '' : ' bloqueado'}`} aria-pressed={(escolha.fundoPerfil || 'mirage') === id} disabled={!liberado} title={liberado ? nomeFundoPerfil(id) : `Requer a insígnia ${evento.evento} 2026`} onClick={() => escolher('fundoPerfil', id)}>
+                      <img src={imagemFundoPerfil(id)} alt="" loading="lazy" />
+                      <span>{nomeFundoPerfil(id)}{!liberado && <small><CadeadoMini />{tr('Requer insígnia')} · {evento.evento} 2026</small>}</span>
+                    </button>
+                  })}</div>
+                </section>)}
+              </div>
             ) : (
               <>
                 <div className="sm-ferramentas">
@@ -482,6 +496,8 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
 
         <div className="sm-rodape">
           <span className="sm-msg" role="status">
+            {estado === 'molduraInsignia' && tr('Você precisa da insígnia deste evento para usar essa moldura.')}
+            {estado === 'fundoInsignia' && tr('Você precisa da insígnia deste evento para usar esse fundo.')}
             {estado === 'erro' && tr('Não deu para salvar. Tente de novo.')}
             {estado === 'login' && tr('Seu login venceu. Entre de novo com a Steam.')}
             {estado === 'nivel' && tr('Essa moldura libera no nível {n}.', { n: falta })}

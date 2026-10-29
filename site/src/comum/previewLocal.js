@@ -1,3 +1,5 @@
+import { podeUsarMolduraEvento } from './molduras.js'
+import { podeUsarFundoPerfil } from '../../worker/steam-login/src/fundos-perfil.js'
 import { estadoDiario } from '../../worker/steam-login/src/diario-core.js'
 import { progressoMissoes, ANO_EVENTOS } from '../../worker/steam-login/src/missoes-core.js'
 import { calendarioEventosInsignias } from './eventos.js'
@@ -78,6 +80,8 @@ export function ativarPreviewLocal() {
     let corpo={}
     try{corpo=JSON.parse(init?.body||(input instanceof Request?await input.clone().text():'{}'))}catch{/* leitura */}
     if (rota === '/perfil' && metodo === 'POST') {
+      if (corpo.moldura && !podeUsarMolduraEvento(corpo.moldura,perfisDemo[id])) return Response.json({erro:'molduraInsignia'},{status:403})
+      if ('fundoPerfil' in corpo && !podeUsarFundoPerfil(corpo.fundoPerfil,perfisDemo[id])) return Response.json({erro:'fundoInsignia'},{status:403})
       estado.personalizacao = {...estado.personalizacao, ...corpo}
       Object.assign(perfisDemo[id], corpo)
       guardar()

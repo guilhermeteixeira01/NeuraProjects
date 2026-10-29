@@ -1109,3 +1109,8 @@ html.sm-aberto { overflow: hidden; }
 }
 
 .sm-fundo { z-index:1200; }
+
+.sm-fundo-mapa.bloqueado { cursor:not-allowed;border-color:var(--border); }
+.sm-fundo-mapa.bloqueado img { opacity:.48;filter:saturate(.25); }
+.sm-fundo-mapa.bloqueado:hover img { transform:none; }
+.sm-fundo-mapa span small { display:flex;align-items:center;gap:5px;margin-top:5px;font-size:10px;font-weight:500;color:#d1d8e3; }

@@ -81,5 +81,15 @@ export function calendarioEventosInsignias(ano) {
   periodo('black-friday',sexta-7*DIA,sexta+4*DIA)
   periodo('verao',utc(ano,12,21),utc(ano+1,3,20));periodo('outono',utc(ano,3,20),utc(ano,6,21))
   periodo('inverno',utc(ano,6,21),utc(ano,9,22));periodo('primavera',utc(ano,9,22),utc(ano,12,21))
+  // Datas civis de um dia; o fim é exclusivo e convertido para Brasília por periodo().
+  for (const [id,mes,dia] of [['sao-patricio',3,17],['dia-do-rock',7,13],['dia-do-trabalho',5,1],['dia-da-mulher',3,8],['dia-do-gamer',8,29],['consciencia-negra',11,20]]) periodo(id,utc(ano,mes,dia),utc(ano,mes,dia+1))
+  periodo('dia-dos-mortos',utc(ano,11,1),utc(ano,11,3))
+  // Datas móveis verificadas da edição 2026. Outros anos não reutilizam datas lunares.
+  if (ano === 2026) {
+    periodo('holi',utc(ano,3,4),utc(ano,3,5))
+    periodo('ano-novo-lunar',utc(ano,2,17),utc(ano,2,18))
+    periodo('diwali',utc(ano,11,8),utc(ano,11,9))
+    periodo('oktoberfest',utc(ano,9,19),utc(ano,10,5))
+  }
   return calendario
 }

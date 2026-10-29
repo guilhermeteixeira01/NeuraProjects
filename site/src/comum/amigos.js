@@ -2,7 +2,7 @@
 //  - lista (GET /amigos): amigos, pedidos recebidos e enviados, com nome e foto;
 //  - presença (WebSocket /presenca): online / ausente / offline de cada amigo, ao vivo, e "visto por último";
 //    a mesma conexão traz o meu perfil quando o admin muda algo nele (evento np-perfil-ao-vivo).
-// Ausente: aba em segundo plano ou 5 min sem mexer no mouse/teclado. A conexão volta sozinha se cair.
+// Ausente após 5 min sem atividade, inclusive entre páginas e abas.
 import { useEffect, useState } from 'react'
 import { ErroApi, chamarApi, enderecoApi } from './api.js'
 import { criarAtualizador } from './atualizador.js'
@@ -58,15 +58,26 @@ function mandarStatus(st) {
   if (ws?.readyState === 1) ws.send(st)
 }
 let ultimaAtividade = 0
+const chaveAtividade = () => `np-presenca-atividade:${dono}`
+function lerAtividade() {
+  try { return Number(localStorage.getItem(chaveAtividade())) || 0 } catch { return ultimaAtividade }
+}
+function conferirAtividade() {
+  clearTimeout(ocioso)
+  if (!dono) return
+  ultimaAtividade = Math.max(ultimaAtividade, Math.min(Date.now(), lerAtividade()))
+  const restante = OCIOSO_MS - (Date.now() - ultimaAtividade)
+  mandarStatus(restante > 0 ? 'online' : 'ausente')
+  if (restante > 0) ocioso = setTimeout(conferirAtividade, restante)
+}
 const atividade = () => {
   if (document.visibilityState !== 'visible') return
   if (!dono || (Date.now() - ultimaAtividade < 1000 && meuStatus === 'online')) return
   ultimaAtividade = Date.now()
-  mandarStatus('online')
-  clearTimeout(ocioso)
-  ocioso = setTimeout(() => mandarStatus('ausente'), OCIOSO_MS)
+  try { localStorage.setItem(chaveAtividade(), String(ultimaAtividade)) } catch { /* armazenamento indisponível */ }
+  conferirAtividade()
 }
-const visibilidade = () => (document.visibilityState === 'visible' ? atividade() : mandarStatus('ausente'))
+const visibilidade = () => document.visibilityState === 'visible' ? atividade() : conferirAtividade()
 
 // Conexão que parou de responder (PC dormiu, rede trocou) não dispara "close" na hora: derruba e liga de novo sem esperar
 function verificar() {
@@ -125,11 +136,10 @@ function conectar(id) {
     if (ws !== socket) return
     atualizarLista()
     window.dispatchEvent(new Event('np-reconectou'))
-    atividade()
+    conferirAtividade()
     tentativas = 0
     publicar({ conectado: true })
-    meuStatus = 'online'
-    if (document.visibilityState !== 'visible') mandarStatus('ausente')
+    socket.send(meuStatus)
     clearInterval(pingar)
     ultimoSinal = Date.now()
     pingar = setInterval(verificar, 15000) // mantém a conexão viva e percebe quando ela morreu sem avisar
@@ -203,14 +213,16 @@ function ligar(id) {
   ligadoPara = id
   if (!id) return
   dono = id
+  ultimaAtividade = lerAtividade() || Date.now()
+  conferirAtividade()
   carregarLista()
   conectar(id)
   if (!window.__npAmigosEventos) {
     window.__npAmigosEventos = true
     for (const ev of ['mousemove', 'keydown', 'pointerdown', 'scroll', 'focus']) window.addEventListener(ev, atividade, { passive: true })
     document.addEventListener('visibilitychange', visibilidade)
+    window.addEventListener('storage', (e) => { if (dono && e.key === chaveAtividade()) conferirAtividade() })
     for (const ev of ['visibilitychange', 'focus', 'online']) (ev === 'visibilitychange' ? document : window).addEventListener(ev, acordou)
-    atividade()
   }
 }
 

@@ -132,6 +132,18 @@ const IC_CADEADO = (
   </>
 )
 
+const PERSONAGENS_LOBBY = ['02_deserto', '04_comando', '03_mascara_dourada', '01_mascara_hockey', '05_balaclava']
+
+function PersonagemSlot({ indice, ocupado }) {
+  const [pronto, setPronto] = useState(false)
+  const base = `/assets/Lobby/${PERSONAGENS_LOBBY[indice]}`
+  const colorido = ocupado && pronto
+  return <>
+    <img className={`lb-personagem lb-personagem-oculto${!colorido ? ' lb-personagem-visivel' : ''}`} src={`${base}_oculto_pb.png`} alt="" aria-hidden="true" draggable="false" decoding="async" />
+    <img className={`lb-personagem lb-personagem-colorido${colorido ? ' lb-personagem-visivel' : ''}`} src={`${base}_colorido.png`} onLoad={() => setPronto(true)} alt="" aria-hidden="true" draggable="false" decoding="async" />
+  </>
+}
+
 // Um lugar do grupo com alguém (ou convite pendente): o fundo é o card que a pessoa escolheu no perfil
 function Pessoa({ pessoa: bruta, lider, pendente, centro, souLider, eu, aoRemover, ocupado, nivelDe: nivelDoJogador }) {
   const t = useT()
@@ -565,9 +577,9 @@ function Conteudo({ status }) {
   // O dono do grupo (líder) fica sempre no meio, seja você ou outra pessoa
   const outros = [...dados.membros.filter((m) => m.id !== dados.lider).map((p) => ({ pessoa: p })), ...dados.convites.map((p) => ({ pessoa: p, pendente: true }))]
   const meu = dados.membros.find((m) => m.id === dados.lider) || dados.membros[0]
-  // Sempre 5 cartões: o último (direita) é o "Encontrar lobbies" e só vira jogador quando o 5º entra (ou é convidado); se ele sai, volta
+  // Sempre cinco slots iguais; a busca de outros lobbies fica na barra de ferramentas.
   const ORDEM = [1, 3, 0, 4]
-  const lugares = [{ pessoa: null }, { pessoa: null }, { pessoa: meu, lider: true, centro: true }, { pessoa: null }, { encontrar: true }]
+  const lugares = [{ pessoa: null }, { pessoa: null }, { pessoa: meu, lider: true, centro: true }, { pessoa: null }, { pessoa: null }]
   outros.slice(0, 4).forEach((o, i) => (lugares[ORDEM[i]] = o))
   const livres = dados.max - dados.membros.length - dados.convites.length
 
@@ -639,11 +651,15 @@ function Conteudo({ status }) {
               + {t('Convidar amigo')}
             </button>
           )}
+          <button type="button" className="lb-btn lb-btn-g lb-encontrar-btn" onClick={() => setEncontrando(true)}>
+            <Marca d={IC_BUSCA} tamanho={17} /> {t('Encontrar lobbies')}
+            {dados.convitesRecebidos.length > 0 && <span className="lb-encontrar-contagem">{dados.convitesRecebidos.length}</span>}
+          </button>
           {dados.souLider ? (
             <label className={`lb-toggle${dados.publico ? ' ligado' : ''}`}>
               <Marca d={IC_PESSOAS} tamanho={17} />
               <span className="lb-contagem">{dados.membros.length}</span>
-              <b>{t('Grupo público')}</b>
+              <b>{dados.publico ? t('Grupo público') : t('Grupo privado')}</b>
               <input type="checkbox" role="switch" checked={dados.publico} disabled={ocupado} onChange={(e) => fazer('publico', undefined, e.target.checked)} />
               <i aria-hidden="true" />
             </label>
@@ -651,7 +667,7 @@ function Conteudo({ status }) {
             <span className="lb-toggle lb-toggle-fixo">
               <Marca d={IC_PESSOAS} tamanho={17} />
               <span className="lb-contagem">{dados.membros.length}</span>
-              <b>{dados.publico ? t('Grupo público') : t('Só por convite')}</b>
+              <b>{dados.publico ? t('Grupo público') : t('Grupo privado')}</b>
             </span>
           )}
           {!sozinho && (
@@ -670,15 +686,9 @@ function Conteudo({ status }) {
 
       <div className="lb-palco lb-palco-cenario">
         {lugares.map((l, i) => (
-          <div className={`lb-cena-slot${l.centro ? ' lb-cena-centro' : ''}${l.pessoa ? ' lb-cena-ocupado' : ''}`} key={l.pessoa?.id || `lugar-${i}`}>
-            <img className="lb-personagem" src={`/assets/Lobby/web/personagem-${[2, 4, 1, 3, 5][i]}.webp`} alt="" aria-hidden="true" draggable="false" decoding="async" />
-            {l.encontrar ? (
-              <button type="button" className="lb-lugar lb-encontrar" onClick={() => setEncontrando(true)}>
-                <Marca d={IC_BUSCA} tamanho={22} />
-                <b>{t('Encontrar lobbies')}</b>
-                {dados.convitesRecebidos.length > 0 && <span className="lb-badge">{dados.convitesRecebidos.length}</span>}
-              </button>
-            ) : l.pessoa ? (
+          <div className={`lb-cena-slot${l.centro ? ' lb-cena-centro' : ''}${l.pessoa && !l.pendente ? ' lb-cena-ocupado' : ''}`} key={`lugar-${i}`}>
+            <PersonagemSlot indice={i} ocupado={!!l.pessoa && !l.pendente} />
+            {l.pessoa ? (
               <Pessoa {...l} eu={eu} souLider={dados.souLider} ocupado={ocupado || !!dados.busca} nivelDe={nivelDoJogador} aoRemover={(id) => fazer('remover', id)} />
             ) : (
               <Vazio podeConvidar={!dados.busca} aoConvidar={() => setConvidando(true)} />

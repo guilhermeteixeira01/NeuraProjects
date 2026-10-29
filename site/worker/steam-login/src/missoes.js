@@ -111,7 +111,7 @@ export async function salvarConfigMissoes(env,c) {
   const config={ativa:c.ativa!==false,metaMapas:Math.max(1,Math.min(10000,Math.round(Number(c.metaMapas)||10))),eventos:{},mapas:{}}
   for(const [id,p] of Object.entries(c.eventos||{})) {
     const base=calendarioEventosInsignias(ANO_EVENTOS)[id]
-    if(!MISSOES.some(m=>m.id===id&&m.categoria==='eventos')||!p||Number(p.ano)!==ANO_EVENTOS||!/(Z|[+-]\d{2}:\d{2})$/.test(p.inicio||'')||!/(Z|[+-]\d{2}:\d{2})$/.test(p.fim||'')||!(Date.parse(p.fim)>Date.parse(p.inicio))||anoBrasilia(Date.parse(p.inicio))!==ANO_EVENTOS||(base&&Date.parse(p.fim)<Date.parse(base.fim)))throw new ErroPedido('evento')
+    if(!MISSOES.some(m=>m.id===id&&m.categoria==='eventos')||!p||Number(p.ano)!==ANO_EVENTOS||!/(Z|[+-]\d{2}:\d{2})$/.test(p.inicio||'')||!/(Z|[+-]\d{2}:\d{2})$/.test(p.fim||'')||!(Date.parse(p.fim)>Date.parse(p.inicio))||anoBrasilia(Date.parse(p.inicio))!==ANO_EVENTOS||(base&&Math.floor(Date.parse(p.fim)/1000)<Math.floor(Date.parse(base.fim)/1000)))throw new ErroPedido('evento')
     config.eventos[id]={ano:Number(p.ano),inicio:p.inicio,fim:p.fim}
   }
   for(const [id,p] of Object.entries(c.mapas||{})) {

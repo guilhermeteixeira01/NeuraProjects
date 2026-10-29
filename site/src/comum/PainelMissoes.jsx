@@ -1,3 +1,4 @@
+import RecompensasInsignia from './RecompensasInsignia.jsx'
 import { useCallback,useEffect,useState } from 'react'
 import { chamarApi } from './api.js'
 import { imagemInsignia } from './insignias.js'
@@ -28,6 +29,7 @@ function Missao({m,pendente}) {
     {m.categoria==='eventos'&&m.inicio&&m.fim&&<small>De {new Date(m.inicio).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})} até {new Date(m.fim).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})}</small>}
     {m.categoria!=='eventos'&&<><progress value={Math.min(m.atual,m.meta)} max={m.meta} aria-label={`Progresso de ${m.nome}`}/><b>{Math.min(m.atual,m.meta)} / {m.meta}</b></>}
     {m.detalhes&&<details><summary>Ver requisitos</summary><ul>{Object.entries(m.detalhes).map(([id,d])=><li key={id}>{id.replace(/^de_/,'')}: {Math.min(d.atual,d.meta)}/{d.meta}</li>)}</ul></details>}
+    <RecompensasInsignia id={m.id} conquistada={!!m.recebida} />
     {m.recebida&&<small>Recebida em {new Date(m.recebida).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})}</small>}
   </article>
 }

@@ -27,3 +27,5 @@
 .ms-config-linha { display:grid; grid-template-columns:minmax(120px,1fr) repeat(2,minmax(0,1fr)); gap:10px; padding:12px 0; border-bottom:1px solid var(--border); }
 .ms-config-pendencias { color:var(--ui-accent); font-size:12px; line-height:1.7; }
 @media(max-width:600px){.ms-grade{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ms-card{padding:12px}.ms-arte,.ms-arte img{height:100px;width:100%}.ms-card h3{font-size:14px}.ms-card p{font-size:11px}.ms-config-linha{grid-template-columns:minmax(0,1fr)}.ms-config{padding:14px}}
+
+.ms-card:not(.ms-recebida) .ms-arte img { filter:grayscale(1);opacity:.35; }

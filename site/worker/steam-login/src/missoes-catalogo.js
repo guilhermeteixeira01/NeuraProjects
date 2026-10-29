@@ -1,5 +1,54 @@
 export default [
   {
+    "id": "evento-diwali",
+    "nome": "Diwali",
+    "arte": "eventos-2026/evento-diwali.png",
+    "categoria": "eventos",
+    "descricao": "Acesse sua conta durante o evento para conquistar esta insígnia e liberar suas recompensas."
+  },
+  {
+    "id": "evento-ano-novo-lunar",
+    "nome": "Ano Novo Lunar",
+    "arte": "eventos-2026/evento-ano-novo-lunar.png",
+    "categoria": "eventos",
+    "descricao": "Acesse sua conta durante o evento para conquistar esta insígnia e liberar suas recompensas."
+  },
+  {
+    "id": "evento-dia-dos-mortos",
+    "nome": "Dia dos Mortos",
+    "arte": "eventos-2026/evento-dia-dos-mortos.png",
+    "categoria": "eventos",
+    "descricao": "Acesse sua conta durante o evento para conquistar esta insígnia e liberar suas recompensas."
+  },
+  {
+    "id": "evento-oktoberfest",
+    "nome": "Oktoberfest",
+    "arte": "eventos-2026/evento-oktoberfest.png",
+    "categoria": "eventos",
+    "descricao": "Acesse sua conta durante o evento para conquistar esta insígnia e liberar suas recompensas."
+  },
+  {
+    "id": "evento-dia-do-rock",
+    "nome": "Dia do Rock",
+    "arte": "eventos-2026/evento-dia-do-rock.png",
+    "categoria": "eventos",
+    "descricao": "Acesse sua conta durante o evento para conquistar esta insígnia e liberar suas recompensas."
+  },
+  {
+    "id": "evento-sao-patricio",
+    "nome": "São Patrício",
+    "arte": "eventos-2026/evento-sao-patricio.png",
+    "categoria": "eventos",
+    "descricao": "Acesse sua conta durante o evento para conquistar esta insígnia e liberar suas recompensas."
+  },
+  {
+    "id": "evento-holi",
+    "nome": "Holi",
+    "arte": "eventos-2026/evento-holi.png",
+    "categoria": "eventos",
+    "descricao": "Acesse sua conta durante o evento para conquistar esta insígnia e liberar suas recompensas."
+  },
+  {
     "id": "evento-natal",
     "nome": "Natal",
     "arte": "eventos-2026/evento-natal.png",

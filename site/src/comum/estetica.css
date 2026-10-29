@@ -377,7 +377,7 @@ textarea {
    As versões pequenas (dentro de listas e janelas) ficam onde estão. ── */
 .cnp:not(.cnp-pq):not(.cnp-tela) .cnp-anel { position: fixed; left: 50%; top: 50%; margin: -66px 0 0 -66px; z-index: 50; }
 
-/* ── Fundo do site inteiro: brilhos suaves nas cores da moldura (azul em cima, dourado embaixo), um granulado leve e uma vinheta nas bordas.
+/* ── Fundo do site inteiro: brilhos suaves nas cores da moldura (azul em cima, dourado embaixo), uma vinheta suave nas bordas.
    Fica parado (fixed) enquanto o conteúdo rola. Vale em todas as páginas (todas carregam este arquivo por último) e também no tema escuro;
    os temas claros têm a versão clara. Só o modo de desempenho continua com a cor lisa (site.css). ── */
 :root {
@@ -386,7 +386,6 @@ textarea {
     radial-gradient(50vw 45vh at 96% 104%, rgb(245 197 66 / 0.08), transparent 70%),
     radial-gradient(40vw 40vh at 70% 30%, rgb(52 152 219 / 0.035), transparent 70%),
     radial-gradient(120% 90% at 50% 40%, transparent 55%, rgb(0 0 0 / 0.35)),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
     var(--bg);
 }
 html[data-tema='claro'],
