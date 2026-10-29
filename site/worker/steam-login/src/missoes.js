@@ -45,6 +45,7 @@ export async function sincronizarMissoes(obj,id,novas=[],buscarHistorico=false,a
   }
   let perfil=await lerPerfil(obj.env,id)
   const bloqueadas=new Set(progresso.lista.filter(m=>m.categoria==='eventos'&&(!m.inicio||Date.parse(m.inicio)>agora)).map(m=>m.id))
+  bloqueadas.add('top3') // apaga também notificações antigas da conquista descontinuada
   const revogar=new Set([...Object.keys(perfil?.insignias||{}),...obj.sql.exec('SELECT id FROM missoes_concessoes').toArray().map(r=>r.id)].filter(id=>bloqueadas.has(id)))
   if(revogar.size){
     const {mapa}=await mudar(obj.env,'perfis',[id],atuais=>{if(!atuais[id])return;const insignias={...atuais[id].insignias};for(const k of revogar)delete insignias[k];atuais[id]={...atuais[id],insignias}})

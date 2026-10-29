@@ -177,19 +177,6 @@ export async function darInsignias(env, porJogador) {
   for (const id of mudaram) await avisarPerfil(env, id, mapa[id])
 }
 
-// Insígnia "top3": quem aparece no top 3 do ranking ganha e não perde mais (cron)
-export async function darInsigniaTop3(env) {
-  const [ranking, perfis] = await Promise.all([lerRanking(env), lerPerfis(env)])
-  const agora = Date.now()
-  const novos = Object.fromEntries(
-    ordemRanking(ranking, perfis)
-      .slice(0, 3)
-      .filter((j) => !perfis[j.steamId]?.insignias?.top3)
-      .map((j) => [j.steamId, { top3: agora }]),
-  )
-  await darInsignias(env, novos)
-}
-
 // ── Cargos ──
 // Os que o admin deu + os automáticos ("top N do ranking": entra e sai sozinho com a posição)
 export function cargosDoJogador(id, perfis, config, ranking) {

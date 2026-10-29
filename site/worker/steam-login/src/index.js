@@ -40,7 +40,7 @@ import { rotaNotificacoes } from './notificacoes.js'
 import { semDerrubar } from './objetos.js'
 import { rotaPagamentos, rotaWebhookAsaas } from './pagamentos.js'
 import { rotaPartidaServidor, rotaPartidasPublico } from './partidas-novas.js'
-import { darInsigniaTop3, lerConfig, tirarExclusivasSemCargo } from './perfis.js'
+import { lerConfig, tirarExclusivasSemCargo } from './perfis.js'
 import { atualizarPremier, rotaAvatares, rotaBuscarUsuarios, rotaConfig, rotaJogador, rotaNicks, rotaPerfis, rotaPremier } from './publico.js'
 import { registrar } from './registro.js'
 import { rotaConta, rotaEu, salvarPerfil } from './rotas-conta.js'
@@ -178,12 +178,12 @@ async function atender(req, env, ctx) {
 }
 
 export default {
-  // Cron (wrangler.toml, a cada 10 min): quem saiu do top N perde o cargo automático (e a moldura exclusiva dele), o top 3 ganha a insígnia
+  // Cron (wrangler.toml, a cada 10 min): quem saiu do top N perde o cargo automático (e a moldura exclusiva dele), sem conceder insígnias pelo ranking
   // e, na primeira rodada de cada hora, o Premier (Leetify) é atualizado
   async scheduled(evento, env, ctx) {
     ctx.waitUntil(semDerrubar(corrigirEventosAntecipados(env), 'cron: corrigir eventos antecipados'))
     ctx.waitUntil(semDerrubar(limparInventariosCaixasAntigas(env), 'cron: remover caixas antigas sem reembolso'))
-    ctx.waitUntil(semDerrubar(lerConfig(env).then((config) => tirarExclusivasSemCargo(env, config)).then(() => darInsigniaTop3(env)), 'cron: cargos e insígnia top 3'))
+    ctx.waitUntil(semDerrubar(lerConfig(env).then((config) => tirarExclusivasSemCargo(env, config)), 'cron: cargos'))
     if (new Date(evento.scheduledTime).getUTCMinutes() < 10) ctx.waitUntil(semDerrubar(atualizarPremier(env), 'cron: Premier'))
   },
 

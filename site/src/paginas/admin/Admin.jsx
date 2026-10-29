@@ -196,6 +196,12 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar, abas = [], u
   const previa = nivelDe(u.xpBase + (Number(ajuste) || 0), u.mapas)
 
   useEffect(() => {
+    const anterior = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = anterior }
+  }, [])
+
+  useEffect(() => {
     // com o seletor de moldura/time aberto, o Esc fecha só ele
     const tecla = (e) => e.key === 'Escape' && !personalizando && fechar()
     document.addEventListener('keydown', tecla)
@@ -212,7 +218,14 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar, abas = [], u
       setEstado(mensagemErro(e))
     }
   }
-  const salvar = () => enviar({ moldura: moldura || null, card: card || null, xp: Math.round(Number(ajuste) || 0), bloqueado, cargos: meus, insignias })
+  const salvar = () => {
+    const campos = { xp: Math.round(Number(ajuste) || 0), bloqueado, cargos: meus }
+    if (moldura !== (u.perfil.moldura || '')) campos.moldura = moldura || null
+    if (card !== (u.perfil.card || '')) campos.card = card || null
+    const originais = Object.keys(u.perfil.insignias || {}).filter(id => !!insigniaPorId(id))
+    if (insignias.length !== originais.length || insignias.some(id => !originais.includes(id))) campos.insignias = insignias
+    enviar(campos)
+  }
   const limpar = async () => (await confirmar(tr('Apagar moldura, ajuste de XP, cargos e bloqueio de {nome}? (as insígnias ficam)', { nome: u.nome || u.id }), { perigo: true, ok: tr('Apagar') })) && enviar({ limpar: true })
   // Apaga a senha de segurança (hash + sal): o jogador perde o acesso com a senha antiga e consegue criar uma nova da próxima vez que precisar.
   const resetarSenha = async () => {
@@ -226,8 +239,8 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar, abas = [], u
     }
   }
 
-  return (
-    <div className="sm-fundo" onClick={fechar}>
+  return createPortal(
+    <div className="sm-fundo adm-ed-fundo" onClick={fechar}>
       <div className={`adm-janela${secao === 'itens' ? ' adm-janela-larga' : ''}`} role="dialog" aria-modal="true" aria-labelledby="adm-ed-titulo" onClick={(e) => e.stopPropagation()}>
         <div className="sm-cab">
           <h2 id="adm-ed-titulo">{u.nome || u.id}</h2>
@@ -357,12 +370,12 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar, abas = [], u
                 <button key={i.id} type="button" className={`adm-insignia${insignias.includes(i.id) ? ' ligado' : ''}`} aria-pressed={insignias.includes(i.id)} onClick={() => trocarInsignia(i.id)} title={tr(i.descricao)}>
                   <img src={imagemInsignia(i.id)} alt="" loading="lazy" />
                   <b>{tr(i.nome)}</b>
-                  {i.auto && <small className="adm-auto">{tr('auto · top {n}', { n: 3 })}</small>}
+                  {i.missao && <small className="adm-auto">{tr(i.categoria === 'eventos' ? 'Evento' : 'Missão')}</small>}
                   <i aria-hidden="true">{insignias.includes(i.id) ? '✓' : '+'}</i>
                 </button>
               ))}
             </div>
-            <small>{tr('Ao salvar, o jogador vê o aviso "Você recebeu uma nova insígnia!" com som. A Top 3 é dada sozinha para quem aparece no top 3 do ranking e não sai mais.')}</small>
+            <small>{tr('Selecione as insígnias e salve para entregar ao jogador. Eventos futuros permanecem bloqueados. O ranking não concede insígnias.')}</small>
           </div>
 
           <label className="adm-check">
@@ -399,7 +412,7 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar, abas = [], u
         </>
         )}
       </div>
-    </div>
+    </div>, document.body
   )
 }
 

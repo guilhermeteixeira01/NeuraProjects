@@ -63,6 +63,13 @@ export class Dados {
   async ler(colecao, ids) {
     if (ids !== undefined && (!Array.isArray(ids) || ids.length > 1000)) throw new ErroPedido('ids')
     await this.migrar(colecao, ids)
+    // Correção única da antiga concessão automática pelo ranking. Preserva as demais conquistas.
+    if (colecao === 'perfis' && !this.migrada('retirar-insignia-top3-v1')) {
+      this.ctx.storage.transactionSync(() => {
+        this.sql.exec("UPDATE itens SET dados = json_remove(dados, '$.insignias.top3'), ver = ver + 1 WHERE colecao = 'perfis' AND json_type(dados, '$.insignias.top3') IS NOT NULL")
+        this.sql.exec('INSERT INTO migradas (chave) VALUES (?)', 'retirar-insignia-top3-v1')
+      })
+    }
     const linhas = ids
       ? ids.flatMap((id) => this.sql.exec('SELECT id, ver, dados FROM itens WHERE colecao = ? AND id = ?', colecao, String(id)).toArray())
       : this.sql.exec('SELECT id, ver, dados FROM itens WHERE colecao = ?', colecao).toArray()

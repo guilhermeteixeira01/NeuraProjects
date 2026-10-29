@@ -35,8 +35,8 @@ const XP_LIMITE = 1000000 // ajuste de XP do admin: de -1.000.000 a +1.000.000
 const IMAGEM_SELO = /^[A-Za-z0-9._-]{1,80}\.(png|webp|avif|svg|jpe?g|gif)$/i // arquivo de public/assets/selos-equipe/ do site
 // Ícones do selo do cargo (o desenho de cada um fica no site: src/comum/cargos.jsx)
 const ICONES_CARGO = ['coroa', 'cifrao', 'estrela', 'diamante', 'raio', 'escudo', 'fogo', 'caveira', 'trofeu', 'coracao', 'verificado', 'mira', 'microfone', 'controle']
-// Insígnias dadas à mão (arte e descrição ficam no site: src/comum/insignias.js). "top3" também vem sozinha (cron)
-const INSIGNIAS = ['top3', 'staff', 'embaixador', 'designer']
+// A antiga insígnia top3 foi descontinuada; troféus continuam ligados ao ranking.
+const INSIGNIAS = ['staff', 'embaixador', 'designer']
 
 // ── Linha do log para cada ação do painel ──
 const ROTULO_ADMIN = {
@@ -141,7 +141,7 @@ async function adminPerfil(corpo, env, config, cors) {
     if (lista.some((i) => !INSIGNIAS.includes(i) && !ehInsigniaLoja(i) && !insigniaMissao(i))) throw new ErroPedido('insignia')
     const tinha = antes.insignias || {}
     if(lista.some(i=>!tinha[i]&&insigniaMissao(i)?.categoria==='eventos')){
-      const elegiveis=new Set(progressoMissoes([],await configMissoes(env)).lista.filter(m=>m.categoria==='eventos'&&m.concluida).map(m=>m.id))
+      const elegiveis=new Set(progressoMissoes([],await configMissoes(env)).lista.filter(m=>m.categoria==='eventos'&&(m.eventoAtivo||m.estadoEvento==='encerrado')).map(m=>m.id))
       if(lista.some(i=>!tinha[i]&&insigniaMissao(i)?.categoria==='eventos'&&!elegiveis.has(i)))throw new ErroPedido('evento-nao-encerrado')
     }
     for (const k of Object.keys(tinha)) if (ID_MESTRE.test(k) && !lista.includes(k)) lista.push(k) // "Mestre da [Caixa]" não tem caixinha no painel: o que já ganhou fica
