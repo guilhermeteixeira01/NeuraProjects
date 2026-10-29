@@ -1,5 +1,28 @@
 [
   {
+    "nome": "2026-10-28_23-32_de_nuke_time_Te1xe1ra-x-time_caos",
+    "data": "2026-10-28 23:32",
+    "mapa": "de_nuke",
+    "timeA": "time_Te1xe1ra",
+    "timeB": "time_caos",
+    "placarA": 13,
+    "placarB": 6,
+    "serie": "MD1 · mapa 1/1",
+    "caminho": "neura-project/md1/2026-10-28_23-32_de_nuke_time_Te1xe1ra-x-time_caos",
+    "categoria": "md1",
+    "serieId": "2026-10-28_23-28_time_Te1xe1ra-x-time_caos",
+    "serieTimeA": "time_Te1xe1ra",
+    "serieTimeB": "time_caos",
+    "serieVitoriasA": 1,
+    "serieVitoriasB": 0,
+    "serieMapas": [
+      "de_nuke"
+    ],
+    "serieCancelada": false,
+    "logoA": null,
+    "logoB": null
+  },
+  {
     "nome": "2026-10-28_22-25_de_mirage_time_Te1xe1ra-x-time_Senna",
     "data": "2026-10-28 22:25",
     "mapa": "de_mirage",
