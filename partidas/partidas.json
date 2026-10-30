@@ -1,5 +1,28 @@
 [
   {
+    "nome": "2026-10-30_22-37_de_cache_time_Te1xe1ra-x-time_777",
+    "data": "2026-10-30 22:37",
+    "mapa": "de_cache",
+    "timeA": "time_Te1xe1ra",
+    "timeB": "time_777",
+    "placarA": 13,
+    "placarB": 10,
+    "serie": "MD1 · mapa 1/1",
+    "caminho": "neura-project/md1/2026-10-30_22-37_de_cache_time_Te1xe1ra-x-time_777",
+    "categoria": "md1",
+    "serieId": "2026-10-30_22-31_time_Te1xe1ra-x-time_777",
+    "serieTimeA": "time_Te1xe1ra",
+    "serieTimeB": "time_777",
+    "serieVitoriasA": 1,
+    "serieVitoriasB": 0,
+    "serieMapas": [
+      "de_cache"
+    ],
+    "serieCancelada": false,
+    "logoA": null,
+    "logoB": null
+  },
+  {
     "nome": "2026-10-28_23-32_de_nuke_time_Te1xe1ra-x-time_caos",
     "data": "2026-10-28 23:32",
     "mapa": "de_nuke",
