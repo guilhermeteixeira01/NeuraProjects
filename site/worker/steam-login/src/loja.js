@@ -50,7 +50,8 @@ import { registrar } from './registro.js'
 import { lerSkinsKv, limparSkins, novoIdItem, tirarItem } from './skins.js'
 import { valorDe, valoresDe } from './valor.js'
 import { diarioDoJogador } from './diario.js'
-import { aplicarNaPartida, consumiveisDoJogador, sortearConsumivelCaixa } from './consumiveis.js'
+import { aplicarNaPartida, consumiveisDoJogador } from './consumiveis.js'
+import { gravarCatalogo, lerCatalogo, oferta, oficialDoJogador } from './loja-oficial.js'
 
 const ID_STEAM = /^\d{17}$/
 const ITENS_MAX = 2000
@@ -235,7 +236,7 @@ async function partidasPremium(env, id) {
 }
 
 // Ações que mexem no saldo ou mostram o saldo: antes delas entram os bônus para todos e o bônus Premium de partida
-const COM_SALDO = new Set(['saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir', 'vender', 'mercado-comprar', 'dep-creditar', 'cobrar'])
+const COM_SALDO = new Set(['saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir', 'vender', 'mercado-comprar', 'dep-creditar', 'cobrar', 'oficial-ler', 'oficial-comprar', 'oficial-dar'])
 const COM_CAIXAS = new Set(['estado', 'comprar', 'abrir', 'diario', 'diario-pontos', 'diario-caixa'])
 const novaNotif = (id, titulo, texto, link, extra = {}) => ({ id, titulo, texto, link, quando: Date.now(), lida: false, ...extra })
 
@@ -454,6 +455,11 @@ export class Loja {
       case 'consumivel-cancelar':
       case 'consumivel-dar':
         return consumiveisDoJogador(this, acao, p)
+      case 'oficial-ler':
+      case 'oficial-comprar':
+      case 'oficial-dar':
+      case 'oficial-posse':
+        return oficialDoJogador(this, acao, saldo, p)
       case 'consumivel-partida':
         return aplicarNaPartida(this, p)
       case 'missoes-sinc':
@@ -804,9 +810,7 @@ export class Loja {
     const novas = await this.conferirInsignias(caixas, await this.fechadas(id))
     // quantas dessa caixa ainda sobram no inventário (a tela "Abrir outra" usa para contar o que já tem antes de cobrar)
     const restantes = Object.values(limpo.itens).filter((it) => it.t === 'caixa' && it.d === caixa.id).length
-    // chance de vir um Boost ou Freeze (itens de partida do lobby) junto com o item
-    const consumivel = await sortearConsumivelCaixa(this, rndSeguro)
-    return { saldo: saldo(), resultados, restantes, ...(consumivel ? { consumivel } : {}), aberturasEspecial: this.abertasParaEspecial(), insignias: novas.ids, insigniasTs: novas.ts }
+    return { saldo: saldo(), resultados, restantes, aberturasEspecial: this.abertasParaEspecial(), insignias: novas.ids, insigniasTs: novas.ts }
   }
 }
 
@@ -839,6 +843,18 @@ Object.assign(ROTAS_LOJA, { 'GET /loja/diario': 'diario', 'POST /loja/diario/pon
 ROTAS_LOJA['GET /loja/premium-partidas'] = 'premium-partidas'
 
 export async function rotaLoja(req, env, quem, cors, rota) {
+  // Mercado oficial (src/loja-oficial.js): catálogo + o que o jogador já tem; comprar resolve a oferta aqui e cobra no objeto dele
+  if (rota === '/loja/oficial' && req.method === 'GET') {
+    const [catalogo, dados] = await Promise.all([lerCatalogo(env), pedirAoJogador(env, quem.id, { acao: 'oficial-ler' })])
+    return json({ catalogo, ...dados }, 200, cors)
+  }
+  if (rota === '/loja/oficial/comprar' && req.method === 'POST') {
+    const corpo = await lerCorpo(req)
+    const o = oferta(await lerCatalogo(env), { tipo: corpo.tipo, id: corpo.id, qtd: corpo.qtd })
+    const dados = await pedirAoJogador(env, quem.id, { acao: 'oficial-comprar', ...o })
+    await registrar(env, { tipo: 'mercado', quem: quem.id, texto: `comprou no mercado oficial (${o.motivo.replace(/^mercado: /, '')}) por ${o.preco.toLocaleString('pt-BR')} NP` })
+    return json(dados, 200, cors)
+  }
   // Página de uma caixa (não precisa do objeto do jogador): desgastes com valor e chance, e os modos Jester/Boost
   if (rota === '/loja/caixa' && req.method === 'GET') {
     const [lista, config] = await Promise.all([lerCaixas(env), lerConfigLoja(env)])
@@ -868,6 +884,9 @@ export async function rotaLoja(req, env, quem, cors, rota) {
 const novoBonus = (env, bonus) => mudarDoc(env, 'loja-bonus', (lista) => [...lista, { id: Math.max(0, ...lista.map((b) => b.id)) + 1, ts: Date.now(), ...bonus }].slice(-200), [])
 
 export async function rotaAdminLoja(req, env, rota, cors) {
+  // Catálogo do mercado oficial: GET lê; POST grava o catálogo inteiro
+  if (rota === '/admin/loja-oficial' && req.method === 'GET') return json(await lerCatalogo(env), 200, cors)
+  if (rota === '/admin/loja-oficial') return json(await gravarCatalogo(env, await lerCorpo(req)), 200, cors)
   // Boost/Freeze de um jogador: GET ?id= lê; POST { alvo, tipo, qtd (> 0 dá, < 0 tira) }
   if (rota === '/admin/consumiveis' && req.method === 'GET') return json(await pedirAoJogador(env, idDaUrl(new URL(req.url)), { acao: 'consumiveis' }), 200, cors)
   if (rota === '/admin/consumiveis') {

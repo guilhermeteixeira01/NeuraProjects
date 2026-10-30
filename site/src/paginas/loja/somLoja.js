@@ -1,3 +1,4 @@
+import { somMudo as siteMudo } from '../../comum/som.js'
 // Sons da loja (feitos na hora com Web Audio, sem arquivo): tick da roleta, abertura, parada e revelação por raridade.
 // Se um dia quiser os sons do jogo, ponha os .wav em public/loja/sounds/ com os nomes de ARQUIVOS abaixo e liste-os em SONS_COM_ARQUIVO:
 // eles têm preferência (são pré-carregados) e o som sintetizado só entra quando não há arquivo.
@@ -156,7 +157,7 @@ const SINTESE = {
 }
 
 export function som(nome, arg) {
-  if (typeof window === 'undefined' || pref.mudo || pref.vol <= 0) return
+  if (typeof window === 'undefined' || pref.mudo || pref.vol <= 0 || siteMudo()) return
   try {
     const a = carregados[nome]
     if (a) {

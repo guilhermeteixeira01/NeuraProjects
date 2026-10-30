@@ -12,7 +12,7 @@
  *   POST /equipes/<acao>        (login) -> criar, editar, imagem-salvar, entrar, sair, convidar, convite-cancelar, convite-aceitar, convite-recusar, expulsar,
  *                                           cargo-salvar, cargo-apagar, cargo-dar, transferir, apagar, chat-enviar, chat-apagar
  *   GET  /equipes/chat          (login) -> { mensagens }
- *   GET  /equipes/publico       (público) -> { times: [{ nome, tag, logo }] }
+ *   GET  /equipes/publico       (público) -> { times: [{ nome, tag, logo, n, ids, descricao, aberto, criada }] }
  *   GET  /equipes/imagem?id=&v= (público) -> a imagem do time (WebP/PNG/JPEG, guardada no próprio objeto)
  */
 import { mandarPara } from './amigos.js'
@@ -116,9 +116,13 @@ export class Equipes {
   async acao({ acao, quem, ...p }) {
     // Sem login: a lista pública (carrossel, Pick & Ban, plugin) e a imagem de um time
     if (acao === 'publico') {
-      const linhas = this.sql.exec('SELECT id, nome, tag, img_ver FROM equipes ORDER BY nome COLLATE NOCASE LIMIT 500').toArray()
-      const membros = Object.fromEntries(this.sql.exec('SELECT m.steam, e.nome FROM membros m JOIN equipes e ON e.id = m.equipe').toArray().map((m) => [m.steam, m.nome]))
-      return { membros, times: linhas.map((e) => ({ nome: e.nome, tag: e.tag, logo: linkImagem(e) })) }
+      const linhas = this.sql.exec('SELECT id, nome, tag, descricao, publico, dono, criada, img_ver FROM equipes ORDER BY nome COLLATE NOCASE LIMIT 500').toArray()
+      const todos = this.sql.exec('SELECT m.steam, m.equipe, e.nome FROM membros m JOIN equipes e ON e.id = m.equipe').toArray()
+      const membros = Object.fromEntries(todos.map((m) => [m.steam, m.nome]))
+      const porTime = Map.groupBy(todos, (m) => m.equipe)
+      // página /times/: quantos membros, o dono primeiro e até 5 rostos, descrição curta e se qualquer um pode entrar
+      const ids = (e) => { const l = (porTime.get(e.id) || []).map((m) => m.steam); return [...l.filter((x) => x === e.dono), ...l.filter((x) => x !== e.dono)].slice(0, 5) }
+      return { membros, times: linhas.map((e) => ({ nome: e.nome, tag: e.tag, logo: linkImagem(e), n: porTime.get(e.id)?.length || 0, ids: ids(e), descricao: String(e.descricao || '').slice(0, 160), aberto: !!e.publico, criada: e.criada || 0 })) }
     }
     if (acao === 'imagem') return { imagem: this.sql.exec('SELECT imagem FROM equipes WHERE id = ?', String(p.id)).toArray()[0]?.imagem || '' }
     if (!ID_STEAM.test(String(quem))) throw new ErroLogin('login')

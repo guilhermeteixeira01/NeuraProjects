@@ -1,3 +1,4 @@
+import { somMudo } from '../../../comum/som.js'
 // Sons do veto. Cada som usa o arquivo em public/neurapick/sounds/ se existir;
 // senão toca uma versão gerada no navegador (Web Audio), sem arquivo nenhum.
 // ban/pick/lado são os sons do pick/ban do Premier do CS2 (sounds/ui/panorama/ no pak01 do jogo):
@@ -11,8 +12,8 @@ const FILES = {
   timer: 'timer.wav',
 }
 
-// 0 a 1 (1 = volume original do arquivo)
-const VOLUME = 0.9
+// 0 a 1 (1 = volume original do arquivo). Baixo de propósito: o pick/ban toca várias vezes seguidas no lobby
+const VOLUME = 0.3
 
 // Carrega os arquivos já na abertura da página: só os que carregarem de verdade são usados.
 // (Na geração do HTML no build não existe Audio: pula.)
@@ -79,6 +80,7 @@ const SYNTH = {
 }
 
 export function playSound(name) {
+  if (somMudo()) return
   try {
     const audio = loaded[name]
     if (audio) {

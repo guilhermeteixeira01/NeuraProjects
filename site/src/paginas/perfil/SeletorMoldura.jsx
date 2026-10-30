@@ -10,7 +10,53 @@ import { useT } from '../../comum/i18n.js'
 import { IconeNenhum } from '../../comum/Icones.jsx'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { corNivel, rotuloNivel } from '../../comum/niveis.js'
+import { EVENTO_OFICIAL, lerOficial } from '../../comum/loja.js'
 import { CARDS, TEMAS_CARD, ehAnimado, fundoCard, idCard, nomeCard, nomeTema, temaCard, urlMiniCard } from '../../comum/cardsPerfil.js'
+
+// Catálogo do mercado oficial + o que o jogador já comprou (null enquanto carrega ou para admin): { venda: Set('tipo:id'), possui, preco(tipo, id) }
+function useOficial(ativo) {
+  const [d, setD] = useState(null)
+  useEffect(() => {
+    if (!ativo) return
+    let vivo = true
+    const ler = () =>
+      lerOficial().then(
+        (r) => {
+          if (!vivo) return
+          const venda = new Set(r.catalogo.itens.map((x) => `${x.tipo}:${x.id}`))
+          for (const k of r.catalogo.kits) for (const t of ['moldura', 'card', 'fundo']) if (k[t]) venda.add(`${t}:${k[t]}`)
+          setD({ venda, possui: r.possui, preco: (tipo, id) => r.catalogo.itens.find((x) => x.tipo === tipo && x.id === id)?.preco })
+        },
+        () => {},
+      )
+    ler()
+    window.addEventListener(EVENTO_OFICIAL, ler)
+    return () => {
+      vivo = false
+      window.removeEventListener(EVENTO_OFICIAL, ler)
+    }
+  }, [ativo])
+  return d
+}
+
+// Enfeite à venda no mercado oficial que o jogador ainda não comprou: travado, com o preço e o caminho para comprar
+function ItemNaLoja({ classe, img, nome, preco, tr }) {
+  return (
+    <a className={`${classe} presa sm-na-loja`} href="/loja/?aba=personalizacao" title={tr('{nome}: à venda na loja de personalização', { nome })}>
+      <span className="sm-arte">
+        <img src={img} alt="" loading="lazy" />
+        <span className="sm-vidro" aria-hidden="true">
+          <CadeadoMini tamanho={16} />
+        </span>
+      </span>
+      <span className="sm-nome">{nome}</span>
+      <span className="sm-req sm-req-loja">
+        <IconeUI tipo="loja" tamanho={12} />
+        {preco ? `${Number(preco).toLocaleString('pt-BR')} NP` : tr('Em kit na loja')}
+      </span>
+    </a>
+  )
+}
 
 function CadeadoMini({ tamanho = 12 }) {
   return (
@@ -40,13 +86,17 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   const meuNivelSub = useNivelSub(steamId)
   const semSubM = (id) => !admin && semSubMinima(subDaMoldura(config, id), meuNivelSub)
   const semSubC = (c) => !admin && semSubMinima(subDoCard(config, c), meuNivelSub)
-  const travada = (id) => !podeUsarMolduraEvento(id, perfil) || (!admin && nivelDaMoldura(config, id) > nivelEf) || semCargo(id) || semSubM(id)
+  // Mercado oficial: enfeite à venda fica travado até comprar; comprado passa por cima das outras travas (o worker confere igual)
+  const oficial = useOficial(!admin && !inicial)
+  const comprado = (tipo, id) => !!oficial?.possui?.[tipo]?.includes(id)
+  const naLoja = (tipo, id) => !admin && !!oficial?.venda.has(`${tipo}:${id}`) && !comprado(tipo, id)
+  const travada = (id) => naLoja('moldura', id) || (!comprado('moldura', id) && (!podeUsarMolduraEvento(id, perfil) || (!admin && nivelDaMoldura(config, id) > nivelEf) || semCargo(id) || semSubM(id)))
   // Cards (banners): mesmas travas das molduras, configuradas na aba Cards do painel admin
   const semCargoCard = (c) => {
     const cg = cargoDoCard(config, c)
     return !!cg && !meusCargos.includes(cg.id) && !(admin && !cg.id.startsWith('_'))
   }
-  const travadoCard = (c) => (!admin && nivelDoCard(config, c) > nivelEf) || semCargoCard(c) || semSubC(c)
+  const travadoCard = (c) => naLoja('card', c) || (!comprado('card', c) && ((!admin && nivelDoCard(config, c) > nivelEf) || semCargoCard(c) || semSubC(c)))
   const [falta, setFalta] = useState(0) // nível exigido, quando o worker recusa
   const salvo = { moldura: perfil.moldura || null, card: perfil.card ? idCard(perfil.card) : null, fundoPerfil: perfil.fundoPerfil || null }
   const [escolha, setEscolha] = useState(salvo)
@@ -97,7 +147,8 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
     const faltaSub = semSubM(m.id)
     const cargo = cargoDaMoldura(config, m.id)
     const nv = nivelDaMoldura(config, m.id)
-    if (!podeUsarMolduraEvento(m.id, perfil)) return <button key={m.id} type="button" className="sm-item presa" disabled title={`Requer a insígnia ${m.nome} 2026`} aria-label={`${m.nome} · requer insígnia do evento 2026`}>
+    if (naLoja('moldura', m.id)) return <ItemNaLoja key={m.id} classe="sm-item" img={urlMiniatura(m.id)} nome={m.nome} preco={oficial.preco('moldura', m.id)} tr={tr} />
+    if (!comprado('moldura', m.id) && !podeUsarMolduraEvento(m.id, perfil)) return <button key={m.id} type="button" className="sm-item presa" disabled title={`Requer a insígnia ${m.nome} 2027`} aria-label={`${m.nome} · requer insígnia do evento 2027`}>
       <span className="sm-arte"><img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" /><span className="sm-vidro" aria-hidden="true"><CadeadoMini tamanho={16} /></span></span>
       <span className="sm-nome">{m.nome}</span><span className="sm-req"><CadeadoMini />{tr('Insígnia do evento')}</span>
     </button>
@@ -204,6 +255,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
     const nv = nivelDoCard(config, c)
     const semC = semCargoCard(c)
     const chave = 'c:' + c
+    if (naLoja('card', c)) return <ItemNaLoja key={c} classe="sm-item sm-item-card" img={urlMiniCard(c)} nome={nomeCard(c)} preco={oficial.preco('card', c)} tr={tr} />
     return (
       <button
         key={c}
@@ -331,7 +383,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
       fechar()
     } catch (e) {
       setFalta(e.dados?.precisa || 0)
-      setEstado(['molduraInsignia', 'fundoInsignia', 'login', 'nivel', 'bloqueado', 'cargo', 'cardNivel', 'cardCargo', 'sub', 'cardSub'].includes(e.message) ? e.message : 'erro')
+      setEstado(['mercado', 'molduraInsignia', 'fundoInsignia', 'login', 'nivel', 'bloqueado', 'cargo', 'cardNivel', 'cardCargo', 'sub', 'cardSub'].includes(e.message) ? e.message : 'erro')
     }
   }
 
@@ -439,14 +491,15 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
               </>
             ) : aba === 'fundoPerfil' ? (
               <div className="sm-rolagem">
-                <p className="sm-aviso">{tr('Fundos de evento liberam com a insígnia correspondente de 2026.')}</p>
+                <p className="sm-aviso">{tr('Fundos de evento liberam com a insígnia correspondente de 2027.')}</p>
                 {[[tr('Mapas'), MAPAS_FUNDO], [tr('Eventos'), FUNDOS_EVENTO.map(f => f.id)]].map(([titulo, ids]) => <section className="sm-grupo" key={titulo}>
                   <h4 className="sm-grupo-cab">{titulo}<small>{ids.length}</small></h4>
                   <div className="sm-grade-fundos">{ids.map(id => {
-                    const evento = eventoDoFundo(id), liberado = podeUsarFundoPerfil(id, perfil)
-                    return <button key={id} type="button" className={`sm-fundo-mapa${(escolha.fundoPerfil || 'mirage') === id ? ' sel' : ''}${liberado ? '' : ' bloqueado'}`} aria-pressed={(escolha.fundoPerfil || 'mirage') === id} disabled={!liberado} title={liberado ? nomeFundoPerfil(id) : `Requer a insígnia ${evento.evento} 2026`} onClick={() => escolher('fundoPerfil', id)}>
+                    const evento = eventoDoFundo(id), liberado = comprado('fundo', id) || podeUsarFundoPerfil(id, perfil)
+                    if (naLoja('fundo', id)) return <ItemNaLoja key={id} classe="sm-fundo-mapa" img={imagemFundoPerfil(id)} nome={nomeFundoPerfil(id)} preco={oficial.preco('fundo', id)} tr={tr} />
+                    return <button key={id} type="button" className={`sm-fundo-mapa${(escolha.fundoPerfil || 'mirage') === id ? ' sel' : ''}${liberado ? '' : ' bloqueado'}`} aria-pressed={(escolha.fundoPerfil || 'mirage') === id} disabled={!liberado} title={liberado ? nomeFundoPerfil(id) : `Requer a insígnia ${evento.evento} 2027`} onClick={() => escolher('fundoPerfil', id)}>
                       <img src={imagemFundoPerfil(id)} alt="" loading="lazy" />
-                      <span>{nomeFundoPerfil(id)}{!liberado && <small><CadeadoMini />{tr('Requer insígnia')} · {evento.evento} 2026</small>}</span>
+                      <span>{nomeFundoPerfil(id)}{!liberado && <small><CadeadoMini />{tr('Requer insígnia')} · {evento.evento} 2027</small>}</span>
                     </button>
                   })}</div>
                 </section>)}
@@ -495,6 +548,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
 
         <div className="sm-rodape">
           <span className="sm-msg" role="status">
+            {estado === 'mercado' && tr('Esse item está à venda no mercado oficial: compre na loja para usar.')}
             {estado === 'molduraInsignia' && tr('Você precisa da insígnia deste evento para usar essa moldura.')}
             {estado === 'fundoInsignia' && tr('Você precisa da insígnia deste evento para usar esse fundo.')}
             {estado === 'erro' && tr('Não deu para salvar. Tente de novo.')}

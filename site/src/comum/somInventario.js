@@ -1,3 +1,4 @@
+import { somMudo as siteMudo } from './som.js'
 // Sons do inventário de skins (/inventario/). Cada som usa o arquivo de public/inventario/sounds/ se existir; senão toca uma versão
 // gerada no navegador (Web Audio), sem arquivo nenhum. Os nomes dos arquivos são os do jogo (sounds/ui/panorama/ no pak01 do CS2):
 // para ter os sons originais, extraia estes .wav do jogo e coloque na pasta public/inventario/sounds/.
@@ -85,7 +86,7 @@ export const definirSom = (ligado) => {
 }
 
 export function tocar(nome) {
-  if (typeof window === 'undefined' || somMudo()) return
+  if (typeof window === 'undefined' || somMudo() || siteMudo()) return
   try {
     const a = carregados[nome]
     if (a) {

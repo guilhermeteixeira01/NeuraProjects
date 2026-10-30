@@ -51,6 +51,7 @@ const ROTULO_ADMIN = {
   '/admin/loja-bonus': 'apagou um bônus de pontos para todos',
   '/admin/loja-bonus-caixa': 'deu um bônus de caixa para todos',
   '/admin/consumiveis': 'mexeu nos itens de partida (Boost/Freeze)',
+  '/admin/loja-oficial': 'mudou o catálogo do mercado oficial',
   '/admin/pagamento-config': 'mudou a configuração dos depósitos',
   '/admin/assinatura-planos': 'mudou os planos de assinatura',
   '/admin/zerar-tudo': 'ZEROU TUDO',
@@ -326,10 +327,11 @@ const ROTAS_ADMIN = {
   '/admin/loja-bonus': { metodos: ['GET', 'POST'], precisa: 'pontos', atender: (c) => rotaAdminLoja(c.req, c.env, c.rota, c.cors) },
   '/admin/loja-saldo': { metodos: ['GET'], precisa: 'pontos', atender: (c) => rotaAdminLoja(c.req, c.env, c.rota, c.cors) },
   '/admin/consumiveis': { metodos: ['GET', 'POST'], precisa: 'pontos', atender: (c) => rotaAdminLoja(c.req, c.env, c.rota, c.cors) },
+  '/admin/loja-oficial': { metodos: ['GET', 'POST'], precisa: 'pontos', atender: (c) => rotaAdminLoja(c.req, c.env, c.rota, c.cors) },
 }
 
 // Rotas que leem o corpo elas mesmas (repassam o pedido): o corpo é lido de uma cópia para conferir a permissão e escrever o log
-const LEEM_O_CORPO = new Set(['/admin/consumiveis', '/admin/assinatura-planos', '/admin/pagamento-config', '/admin/skin', '/admin/caixas', '/admin/caixas-lista', '/admin/loja-config', '/admin/loja-pontos', '/admin/loja-bonus-caixa', '/admin/loja-bonus'])
+const LEEM_O_CORPO = new Set(['/admin/consumiveis', '/admin/loja-oficial', '/admin/assinatura-planos', '/admin/pagamento-config', '/admin/skin', '/admin/caixas', '/admin/caixas-lista', '/admin/loja-config', '/admin/loja-pontos', '/admin/loja-bonus-caixa', '/admin/loja-bonus'])
 
 export async function rotaAdmin(req, env, quem, config, cors, rota, url) {
   const abas = await abasDe(quem.id, env, config)

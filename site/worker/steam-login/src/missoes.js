@@ -1,4 +1,7 @@
 import { MISSOES, ANO_EVENTOS, anoBrasilia, progressoMissoes, resumoMissao, insigniaMissao } from './missoes-core.js'
+import { podeUsarMolduraEvento } from '../../../src/comum/molduras.js'
+import { podeUsarFundoPerfil } from './fundos-perfil.js'
+import { lerPosse, possui } from './loja-oficial.js'
 import { calendarioEventosInsignias } from '../../../src/comum/eventos.js'
 import { lerDoc, gravarDoc, mudar, mudarDoc } from './dados.js'
 import { lerUsuarios } from './usuarios.js'
@@ -10,6 +13,8 @@ import { ErroPedido } from './erros.js'
 import { json } from './http.js'
 import { enderecoDoSite } from './ranking.js'
 
+// Insígnia de evento de uma edição passada (ex.: evento-natal-2026 quando ANO_EVENTOS = 2027)
+export const eventoVencido=k=>/^evento-.+-20\d{2}$/.test(k)&&!k.endsWith(`-${ANO_EVENTOS}`)
 export function iniciarMissoes(obj) {
   obj.sql.exec('CREATE TABLE IF NOT EXISTS missoes_partidas (chave TEXT PRIMARY KEY, dados TEXT NOT NULL)')
   obj.sql.exec('CREATE TABLE IF NOT EXISTS missoes_concessoes (id TEXT PRIMARY KEY, quando INTEGER NOT NULL, perfilado INTEGER NOT NULL DEFAULT 0, notificada INTEGER NOT NULL DEFAULT 0)')
@@ -39,23 +44,29 @@ export async function sincronizarMissoes(obj,id,novas=[],buscarHistorico=false,a
   }
   const acessosEventos=Object.fromEntries(obj.sql.exec('SELECT id,quando FROM missoes_eventos_acessos').toArray().map(r=>[r.id,r.quando]))
   const progresso=progressoMissoes(partidas,{...config,acessosEventos},agora)
-  const retro=await lerDoc(obj.env,'missoes-eventos-retroativos-2026',null)
-  if(retro?.usuarios?.includes(id))for(const m of progresso.lista){
-    if(m.categoria==='eventos'&&retro.eventos.includes(m.id)&&m.estadoEvento==='encerrado'&&Date.parse(m.fim)<=retro.quando&&retro.quando<=agora){m.concluida=true;m.atual=1;m.quandoRetroativo=retro.quando}
-  }
   let perfil=await lerPerfil(obj.env,id)
   const bloqueadas=new Set(progresso.lista.filter(m=>m.categoria==='eventos'&&(!m.inicio||Date.parse(m.inicio)>agora)).map(m=>m.id))
   bloqueadas.add('top3') // apaga também notificações antigas da conquista descontinuada
-  const revogar=new Set([...Object.keys(perfil?.insignias||{}),...obj.sql.exec('SELECT id FROM missoes_concessoes').toArray().map(r=>r.id)].filter(id=>bloqueadas.has(id)))
+  // Insígnias de evento de edições passadas (2026...) saem do perfil: os eventos valem só para a edição atual (ANO_EVENTOS)
+  const revogar=new Set([...Object.keys(perfil?.insignias||{}),...obj.sql.exec('SELECT id FROM missoes_concessoes').toArray().map(r=>r.id)].filter(id=>bloqueadas.has(id)||eventoVencido(id)))
   if(revogar.size){
-    const {mapa}=await mudar(obj.env,'perfis',[id],atuais=>{if(!atuais[id])return;const insignias={...atuais[id].insignias};for(const k of revogar)delete insignias[k];atuais[id]={...atuais[id],insignias}})
+    const posse=await lerPosse(obj)
+    const {mapa}=await mudar(obj.env,'perfis',[id],atuais=>{
+      if(!atuais[id])return
+      const insignias={...atuais[id].insignias};for(const k of revogar)delete insignias[k]
+      const p={...atuais[id],insignias}
+      // moldura/fundo de evento sem a insígnia (e sem compra no mercado oficial) sai do perfil
+      if(p.moldura&&!p.molduraLivre&&!podeUsarMolduraEvento(p.moldura,p)&&!possui(posse,'moldura',p.moldura))delete p.moldura
+      if(p.fundoPerfil&&!podeUsarFundoPerfil(p.fundoPerfil,p)&&!possui(posse,'fundo',p.fundoPerfil))delete p.fundoPerfil
+      atuais[id]=p
+    })
     perfil=mapa[id];await avisarPerfil(obj.env,id,perfil)
     obj.ctx.storage.transactionSync(()=>{for(const k of revogar)obj.sql.exec('DELETE FROM missoes_concessoes WHERE id = ?',k)})
   }
   const avisos=await obj.ctx.storage.get('notifs')||docVazio()
-  const apagar=[...new Set([...revogar,...avisos.lista.filter(n=>bloqueadas.has(n.insignia)||bloqueadas.has(n.id.replace(/^ins:/,''))).map(n=>n.insignia||n.id.replace(/^ins:/,''))])]
+  const apagar=[...new Set([...revogar,...avisos.lista.filter(n=>[n.insignia,n.id.replace(/^ins:/,'')].some(k=>k&&(bloqueadas.has(k)||eventoVencido(k)))).map(n=>n.insignia||n.id.replace(/^ins:/,''))])]
   if(apagar.length)await obj.ctx.storage.put('notifs',juntar(avisos,{removidas:Object.fromEntries(apagar.map(k=>[`ins:${k}`,agora]))}))
-  obj.ctx.storage.transactionSync(()=>{for(const m of progresso.lista)if(config.ativa!==false&&m.concluida&&!perfil?.insignias?.[m.id])obj.sql.exec('INSERT OR IGNORE INTO missoes_concessoes (id,quando) VALUES (?,?)',m.id,m.quandoRetroativo||(m.categoria==='eventos'?acessosEventos[m.id]:agora))})
+  obj.ctx.storage.transactionSync(()=>{for(const m of progresso.lista)if(config.ativa!==false&&m.concluida&&!perfil?.insignias?.[m.id])obj.sql.exec('INSERT OR IGNORE INTO missoes_concessoes (id,quando) VALUES (?,?)',m.id,m.categoria==='eventos'?acessosEventos[m.id]:agora)})
   const entregar=obj.sql.exec('SELECT * FROM missoes_concessoes WHERE perfilado = 0').toArray()
   if(entregar.length) {
     await darInsignias(obj.env,{[id]:Object.fromEntries(entregar.map(m=>[m.id,m.quando]))})
@@ -63,8 +74,7 @@ export async function sincronizarMissoes(obj,id,novas=[],buscarHistorico=false,a
   }
   for(const r of obj.sql.exec('SELECT * FROM missoes_concessoes WHERE perfilado = 1 AND notificada = 0 LIMIT 60').toArray()) {
     const m=insigniaMissao(r.id);if(!m)continue
-    const retroativa=retro?.usuarios?.includes(id)&&retro.eventos.includes(r.id)&&r.quando===retro.quando
-    const texto=m.categoria==='eventos'?(retroativa?`Você recebeu a insígnia ${m.nome.toUpperCase()} na liberação dos eventos passados de 2026!`:`Você recebeu a insígnia ${m.nome.toUpperCase()} por acessar a Neura Project durante o evento!`):`Você conquistou a insígnia ${m.nome.toUpperCase()} da Neura Project!`
+    const texto=m.categoria==='eventos'?`Você recebeu a insígnia ${m.nome.toUpperCase()} por acessar a Neura Project durante o evento!`:`Você conquistou a insígnia ${m.nome.toUpperCase()} da Neura Project!`
     await obj.notificar({id:`ins:${r.id}`,titulo:texto,texto:m.descricao,insignia:r.id,quando:r.quando,lida:false,link:'/perfil/#missoes'})
     obj.sql.exec('UPDATE missoes_concessoes SET notificada = 1 WHERE id = ?',r.id)
   }
@@ -79,28 +89,11 @@ export async function registrarMissoesPartida(env,chave,partida) {
   }
 }
 // Repara também contas offline; não depende de o jogador abrir a aba de missões.
+// Também tira as insígnias de evento de edições passadas (2026) de quem ainda as tem.
 export async function corrigirEventosAntecipados(env,agora=Date.now()) {
-  await distribuirEventosPassados2026(env,agora)
   const config=await configMissoes(env,agora),progresso=progressoMissoes([],config,agora)
   const bloqueadas=new Set(progresso.lista.filter(m=>m.categoria==='eventos'&&(!m.inicio||Date.parse(m.inicio)>agora)).map(m=>m.id))
-  for(const [id,p] of Object.entries(await lerPerfis(env)))if(Object.keys(p.insignias||{}).some(k=>bloqueadas.has(k)))await pedirAoJogador(env,id,{acao:'missoes-sinc'})
-}
-// Uma única fotografia do calendário e das contas existentes. Eventos futuros
-// e contas criadas depois continuam exigindo acesso autenticado no período.
-export async function distribuirEventosPassados2026(env,agora=Date.now()) {
-  const config=await configMissoes(env,agora)
-  if(config.ativa===false)return
-  let campanha=await lerDoc(env,'missoes-eventos-retroativos-2026',null)
-  if(!campanha){
-    const eventos=progressoMissoes([],config,agora).lista.filter(m=>m.categoria==='eventos'&&m.estadoEvento==='encerrado').map(m=>m.id)
-    const usuarios=[...new Set([...Object.keys(await lerUsuarios(env)),...Object.keys(await lerPerfis(env))])]
-    campanha=await mudarDoc(env,'missoes-eventos-retroativos-2026',atual=>atual||{quando:agora,eventos,usuarios,concluidos:[]})
-  }
-  for(const id of campanha.usuarios.filter(id=>!campanha.concluidos.includes(id)).slice(0,20)){
-    await pedirAoJogador(env,id,{acao:'missoes-sinc'})
-    await mudarDoc(env,'missoes-eventos-retroativos-2026',c=>({...c,concluidos:[...new Set([...c.concluidos,id])]}))
-  }
-  return campanha
+  for(const [id,p] of Object.entries(await lerPerfis(env)))if(Object.keys(p.insignias||{}).some(k=>bloqueadas.has(k)||eventoVencido(k)))await pedirAoJogador(env,id,{acao:'missoes-sinc'})
 }
 export const rotaMissoes = async (env,quem,cors) => json(await pedirAoJogador(env,quem.id,{acao:'missoes-sinc',historico:true,acesso:true}),200,{...cors,'Cache-Control':'no-store'})
 export async function lerPainelMissoes(env) {

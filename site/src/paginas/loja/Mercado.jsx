@@ -1,4 +1,4 @@
-// Aba MERCADO da loja: skins que os jogadores anunciaram no inventário ("Vender no mercado"), com quem está vendendo e o preço que escolheu.
+// Aba LOJA DE SKINS da loja (mercado entre jogadores; a LOJA DE PERSONALIZAÇÃO é o MercadoOficial.jsx): skins que os jogadores anunciaram no inventário ("Vender no mercado"), com quem está vendendo e o preço que escolheu.
 // Comprar desconta os NP e põe o item no inventário; o vendedor recebe os NP e uma notificação (worker: src/mercado.js).
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useConta } from '../../comum/conta.js'
@@ -27,7 +27,7 @@ const ORDENS = [
 ]
 const numero = (n) => Number(n).toLocaleString('pt-BR')
 
-export default function AbaMercado({ saldo, aoMudarSaldo }) {
+export default function MercadoJogadores({ saldo, aoMudarSaldo }) {
   const t = useT()
   const conta = useConta()
   const [anuncios, setAnuncios] = useState(null)
@@ -148,21 +148,25 @@ export default function AbaMercado({ saldo, aoMudarSaldo }) {
               valor={a.preco}
               extra={
                 <div className="lj-anuncio">
-                  <a className="lj-anuncio-vendedor" href={`/perfil/?id=${a.vendedor}`} title={t('Vendido por')}>
-                    {a.vendedorAvatar ? <img src={a.vendedorAvatar} alt="" width="20" height="20" loading="lazy" /> : <i aria-hidden="true" />}
-                    <span>{meu ? t('Você está vendendo') : a.vendedorNome || t('Jogador')}</span>
-                  </a>
-                  <BotaoInspecionar item={{ ...a.item, __id: a.id }} classe="insp-linha" />
-                  {a.ref != null && <small className="lj-anuncio-ref">{t('Referência: {n} NP', { n: numero(a.ref) })}</small>}
-                  {meu ? (
-                    <button type="button" className="lj-btn" disabled={ocupado === a.id} onClick={() => cancelar(a)}>
-                      {ocupado === a.id ? t('Cancelando…') : t('Cancelar venda')}
-                    </button>
-                  ) : (
-                    <button type="button" className="lj-btn lj-btn-p" disabled={!!ocupado} onClick={() => comprar(a)}>
-                      {ocupado === a.id ? t('Comprando…') : t('Comprar')}
-                    </button>
-                  )}
+                  <div className="lj-anuncio-topo">
+                    <a className="lj-anuncio-vendedor" href={'/perfil/?id=' + a.vendedor} title={t('Vendido por')}>
+                      {a.vendedorAvatar ? <img src={a.vendedorAvatar} alt="" width="22" height="22" loading="lazy" /> : <i aria-hidden="true" />}
+                      <span>{meu ? t('Você está vendendo') : a.vendedorNome || t('Jogador')}</span>
+                    </a>
+                    {a.ref != null && <small className="lj-anuncio-ref" title={t('Referência: {n} NP', { n: numero(a.ref) })}>{t('Ref. {n}', { n: numero(a.ref) })}</small>}
+                  </div>
+                  <div className="lj-anuncio-acoes">
+                    <BotaoInspecionar item={{ ...a.item, __id: a.id }} classe="lj-anuncio-insp" />
+                    {meu ? (
+                      <button type="button" className="lj-btn" disabled={ocupado === a.id} onClick={() => cancelar(a)}>
+                        {ocupado === a.id ? t('Cancelando…') : t('Cancelar venda')}
+                      </button>
+                    ) : (
+                      <button type="button" className="lj-btn lj-btn-p" disabled={!!ocupado} onClick={() => comprar(a)}>
+                        {ocupado === a.id ? t('Comprando…') : t('Comprar')}
+                      </button>
+                    )}
+                  </div>
                 </div>
               }
             />

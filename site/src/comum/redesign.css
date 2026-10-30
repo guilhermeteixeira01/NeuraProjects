@@ -311,3 +311,7 @@ code, pre { font-family: Consolas, monospace; }
   .inv-nada { padding-block: 40px; font-size: 15px; }
   .inicio .projeto, .inicio .projeto.grande { padding: 28px; }
 }
+
+/* Botão de som da barra (som.js): desligado fica apagado com o alto-falante riscado */
+.nx-som .nx-config-btn.is-mudo { color: var(--dim-2); opacity: .75; }
+.nx-som .nx-config-btn:not(.is-mudo) svg { color: var(--ui-accent); }

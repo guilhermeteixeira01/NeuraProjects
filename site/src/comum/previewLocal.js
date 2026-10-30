@@ -6,8 +6,9 @@ import { calendarioEventosInsignias } from './eventos.js'
 // Importado somente pelo servidor de desenvolvimento em loopback. Não autentica no worker real.
 import { CONFIG } from './config.js'
 import { INSIGNIAS } from './insignias.js'
+import { CARDS } from './cardsPerfil.js'
 import catalogo from '../../worker/steam-login/src/caixas-iniciais.json'
-import { CONFIG_PADRAO as CONFIG_BASE, chancesDaCaixa, aplicarModo, faixasDeDesgaste, sortearAbertura, gerarFaixa, gerarFaixaFacas, valorDoItem } from '../../worker/steam-login/src/loja-core.js'
+import { CONFIG_PADRAO as CONFIG_BASE, chancesDaCaixa, aplicarModo, faixasDeDesgaste, sortearAbertura, gerarFaixa, gerarFaixaFacas, valorDoItem, progressoInsignias } from '../../worker/steam-login/src/loja-core.js'
 const CONFIG_PADRAO = { ...CONFIG_BASE, porCaixa: true }
 
 export function ativarPreviewLocal() {
@@ -19,7 +20,7 @@ export function ativarPreviewLocal() {
   const exemplos = [
     ...INSIGNIAS.filter(i => i.categoria === 'combate').slice(0, 4),
     ...INSIGNIAS.filter(i => i.categoria === 'mapas').slice(0, 3),
-    ...INSIGNIAS.filter(i => /^evento-(dia-do-trabalho|dia-da-mulher)-2026$/.test(i.id)),
+    ...INSIGNIAS.filter(i => /^evento-(dia-do-trabalho|dia-da-mulher)-2027$/.test(i.id)),
     ...INSIGNIAS.filter(i => i.loja).slice(0, 2),
     ...INSIGNIAS.filter(i => i.id === 'top3'),
   ]
@@ -33,7 +34,7 @@ export function ativarPreviewLocal() {
   let estado={saldo:250000,abertas:36,inv:{v:2,itens,equip:{ct:{},tr:{}},criado:Object.fromEntries(Object.keys(itens).map(k=>[k,Date.now()]))},mensagens:[{id:'demomsg1',de:pessoas[1].id,texto:'Bora jogar com o pessoal hoje?',ts:Date.now()-180000},{id:'demomsg2',de:id,texto:'Bora! Vou montar o grupo.',ts:Date.now()-120000},{id:'demomsg3',de:pessoas[1].id,texto:'Esse é o chat de demonstração.',ts:Date.now()-60000}],chat:[{id:'demochat',de:pessoas[1].id,nome:pessoas[1].nome,texto:'Bem-vindos ao time de teste!',ts:Date.now()-60000}]}
   try { estado=JSON.parse(sessionStorage.getItem('np-preview-dados-v2')||'null')||estado } catch { /* estado inicial */ }
   estado.notificacoes ??= {lista:[{id:'demo-boas-vindas',titulo:'Bem-vindo à prévia local',texto:'Amigos, time, inventário e saldo são dados de demonstração.',link:'/lobby/',imagem:avatar,quando:Date.now()-60000,lida:false},{id:'demo-caixas',titulo:'Caixas prontas para testar',texto:'Abra caixas e veja o resultado no inventário de teste.',link:'/loja/',quando:Date.now()-120000,lida:false}],vistos:[],limpoEm:0}
-  if (!estado.notificacoes.lista.some((n) => n.id === 'demo-mercado')) estado.notificacoes.lista.unshift({id:'demo-mercado',titulo:'Sua skin foi vendida no mercado!',texto:'Luna · teste comprou AK-47 | Redline por 450 NP. Os pontos já estão na sua conta.',link:'/loja/?aba=mercado',imagem:avatar,raridade:4,quando:Date.now()-30000,lida:false})
+  if (!estado.notificacoes.lista.some((n) => n.id === 'demo-mercado')) estado.notificacoes.lista.unshift({id:'demo-mercado',titulo:'Sua skin foi vendida no mercado!',texto:'Luna · teste comprou AK-47 | Redline por 450 NP. Os pontos já estão na sua conta.',link:'/loja/?aba=skins',imagem:avatar,raridade:4,quando:Date.now()-30000,lida:false})
   estado.conta ??= {nome:'',sobrenome:'',cpf:'',nascimento:'',discord:'',descricao:'Jogador da comunidade Neura.',faceit:'',privacidade:Object.fromEntries(['perfil','inventario','amigos','conquistas','convites'].map(k=>[k,'todos']))}
   Object.assign(perfisDemo[id], estado.personalizacao || {})
   estado.hall ??= {estado:'sem-foto',camisa:'escura'}
@@ -65,9 +66,9 @@ export function ativarPreviewLocal() {
     '/status/cs2': { atualizacao: null, servidor: { online: true, atualizando: false } },
     '/dm': { conversas: [{...pessoas[1],amigo:true,ts:Date.now()-60000,texto:'Esse é o chat de demonstração.',naoLidas:0}] }, '/trocas': { recebidas: [], enviadas: [] },
     '/notificacoes': { doc: { lista: [], vistos: [], limpoEm: 0 } },
-    '/equipes/publico': { times: [time] }, '/equipes/meu': { time, convites: [], custo: 1000 }, '/equipes': { equipes: [time] },
+    '/equipes/publico': { times: [{ ...time, n: pessoas.length, ids: pessoas.map((p) => p.steamId || p.id).filter(Boolean).slice(0, 5), aberto: true }, { nome: 'Furia Mix', tag: 'FMX', logo: '', n: 5, ids: [], descricao: 'Mix das quartas.', aberto: false, criada: Date.now() - 86400000 * 3 }, { nome: 'Os Brabos', tag: 'BRB', logo: '', n: 2, ids: [], descricao: '', aberto: true, criada: Date.now() - 86400000 * 90 }] }, '/equipes/meu': { time, convites: [], custo: 1000 }, '/equipes': { equipes: [time] },
     '/mercado': { anuncios: [] }, '/skins': { v: 2, itens: {}, equip: { ct: {}, tr: {} }, criado: {} },
-    '/loja': { saldo: 5000, pontos: 5000, cfg: { maxQtd: 1 }, caixas, fechadas: {}, insignias: [], ganhas: {} },
+    '/loja': { saldo: 5000, pontos: 5000, cfg: { maxQtd: 1 }, caixas, fechadas: {}, insignias: progressoInsignias({ abertas: 37, facas: 1 }, caixas).map((i) => ({ id: i.id, nome: i.nome, descricao: i.descricao, cor: i.cor, secreta: !!i.secreta, grupo: i.grupo || null, nivel: i.nivel || null, meta: i.meta, atual: i.atual, ganhou: i.ok ? Date.now() : 0 })), ganhas: {} },
     '/loja/saldo': { saldo: 5000 }, '/loja/caixas': caixas, '/loja/drops': { recentes: [], bons: [], top: [], agora: Date.now() },
     '/admin/dados': { usuarios: { [id]: { nome, avatar } }, perfis: {}, config, dono: id },
     '/admin/logs': { logs: [], total: 0 }, '/admin/servidor/status': { estado: 'rodando', total: 0, logs: [] },
@@ -100,6 +101,19 @@ export function ativarPreviewLocal() {
       else if(corpo.acao==='silenciar')cg.msgs=cg.msgs.filter(m=>m.de!==corpo.id)
       else if(corpo.acao==='fixar')cg.fixado=String(corpo.texto||'').trim()?{texto:String(corpo.texto).trim().slice(0,200),tom:corpo.tom||'aviso',por:id,ts:Date.now()}:null
       guardar();return Response.json({ok:true,...(msg?{msg}:{}),fixado:cg.fixado})
+    }
+    // Mercado oficial: catálogo de demonstração (o admin edita em /admin/loja-oficial)
+    if(rota==='/loja/oficial'||rota==='/loja/oficial/comprar'||rota==='/admin/loja-oficial') {
+      const c=estado.consumiveis??={boost:2,freeze:1,ativo:null}
+      estado.oficial??={catalogo:{consumiveis:{boost:2500,freeze:1500},itens:[{tipo:'moldura',id:'times/furia',preco:3000},{tipo:'moldura',id:'times/navi',preco:3000},{tipo:'fundo',id:'nuke',preco:1500},{tipo:'card',id:CARDS[0],preco:2000},{tipo:'card',id:CARDS[1],preco:2200}],kits:[{id:'kit-demo',nome:'Kit Neura',card:CARDS[2],moldura:'times/vitality',fundo:'inferno',preco:6000}]},possui:{moldura:[],card:[],fundo:[]}}
+      const o=estado.oficial
+      if(rota==='/admin/loja-oficial'){if(metodo==='POST'){o.catalogo={...o.catalogo,...corpo};guardar()}return Response.json(o.catalogo)}
+      if(rota==='/loja/oficial/comprar'){
+        if(['boost','freeze'].includes(corpo.tipo))c[corpo.tipo]+=Number(corpo.qtd)||1
+        else{const k=o.catalogo.kits.find(k=>k.id===corpo.id);for(const [t,v] of k?['card','moldura','fundo'].filter(t=>k[t]).map(t=>[t,k[t]]):[[corpo.tipo,corpo.id]])if(!o.possui[t].includes(v))o.possui[t].push(v)}
+        guardar();return Response.json({saldo:4321,possui:o.possui,consumiveis:c})
+      }
+      return Response.json({catalogo:o.catalogo,possui:o.possui,consumiveis:c,saldo:5000})
     }
     if(rota.startsWith('/loja/consumiveis')) {
       const c=estado.consumiveis??={boost:2,freeze:1,ativo:null}

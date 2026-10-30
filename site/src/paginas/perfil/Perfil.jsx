@@ -12,7 +12,8 @@ import { FundoHero } from '../../comum/HeroFundo.jsx'
 import { IconeSteam } from '../../comum/Icones.jsx'
 import { nomeArma, somarArmas, urlArma } from '../../comum/armas.js'
 import { SkinsDoJogador, useSkinDaArma, useSkinsEquipadas } from '../../comum/skinsPerfil.js'
-import { mapIcon, nomeMapa } from '../../comum/mapas.js'
+import { mapImage, nomeMapa } from '../../comum/mapas.js'
+import { acharTime, useTimes } from '../../comum/times.js'
 import { NIVEIS, NIVEL_ELITE, textoNivel } from '../../comum/niveis.js'
 import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, salvarPerfil, useAdmin, useCardDe, usePerfis, useTimeDe } from '../../comum/Moldura.jsx'
 import Premier from '../../comum/Premier.jsx'
@@ -152,82 +153,81 @@ function quando(iso, local = 'pt-BR') {
   ]
 }
 
-// Histórico de partidas: uma linha por mapa, com a faixa da cor do resultado na esquerda (verde vitória, vermelho derrota)
+// Partidas recentes (estilo bigcs): faixa da cor do resultado à esquerda, data, K/D/A com o K/D, placar no meio (time · placar · adversário),
+// tipo (série ou mix), miniatura do mapa e o XP ganho/perdido. O fundo da linha é a arte do mapa, bem apagada, do lado direito.
+function LogoTime({ nome, times }) {
+  const [erro, setErro] = useState(false)
+  const logo = acharTime(times, nome)?.logo
+  if (/^https?:\/\//.test(logo || '') && !erro) return <img className="pf-pr-logo" src={logo} alt="" loading="lazy" onError={() => setErro(true)} />
+  return <i className="pf-pr-logo pf-pr-logo-letra" aria-hidden="true">{String(nome || '?').trim().slice(0, 1).toUpperCase()}</i>
+}
 function Historico({ mapas }) {
   const t = useT()
+  const times = useTimes()
   const [qtd, setQtd] = useState(POR_PAGINA)
   return (
-    <div className="pf-hist-card spot">
-      <div className="pf-card-cab">
-        <h2>{t('Histórico de partidas')}</h2>
-        <span className="mono">{t('{n} MAPAS', { n: mapas.length })}</span>
+    <section className="pf-hist-card pf-pr spot" aria-label={t('Partidas recentes')}>
+      <div className="pf-pr-cab">
+        <h2>{t('Partidas recentes')}</h2>
+        <span className="pf-pr-total">{t('{n} MAPAS', { n: mapas.length })}</span>
       </div>
-      <div className="pf-hist">
-        <div className="pf-hist-cab" aria-hidden="true">
-          <span>{t('Data')}</span>
-          <span>{t('Pontuação')}</span>
-          <span className="pf-c-partida">{t('Partida')}</span>
-          <span className="pf-c-xp">XP</span>
-          <span>{t('Rating')}</span>
-          <span>K / D / A</span>
-          <span>{t('Mapa')}</span>
-        </div>
+      <div className="pf-pr-colunas" aria-hidden="true">
+        <span>{t('Data')}</span>
+        <span>K / D / A</span>
+        <span className="pf-pr-c-placar">{t('Placar')}</span>
+        <span>{t('Tipo')}</span>
+        <span>{t('Mapa')}</span>
+        <span>XP</span>
+      </div>
+      <ol className="pf-pr-lista">
         {mapas.slice(0, qtd).map((m) => {
           const [dia, hora] = quando(m.data, t.local)
+          const kd = m.mortes ? m.kills / m.mortes : m.kills
+          const xp = Number(m.xp) || 0
           return (
-            <a key={m.caminho} className={`pf-hist-linha ${m.venceu ? 'v' : 'd'}`} href={linkPartida(m.caminho)}>
-              <span className="pf-c-data">
-                <b>{dia}</b>
-                <small>{hora}</small>
-              </span>
-              <span className="pf-c-placar">
-                <i className="pf-vd-tag">{m.venceu ? t('V') : t('D')}</i>
-                <span>
-                  <b className={m.venceu ? 'ganhou' : 'perdeu'}>{m.placar[0]}</b> : {m.placar[1]}
+            <li key={m.caminho}>
+              <a className={`pf-pr-linha ${m.venceu ? 'v' : 'd'}`} href={linkPartida(m.caminho)} style={{ '--mapa': `url("${mapImage(m.mapa)}")` }} aria-label={`${nomeMapa(m.mapa)}, ${m.venceu ? t('vitória') : t('derrota')} ${m.placar[0]}–${m.placar[1]}`}>
+                <span className="pf-pr-data">
+                  <b>{dia}</b>
+                  <small>{hora}</small>
                 </span>
-              </span>
-              <span className="pf-c-partida">
-                <span>
-                  {m.time} <em>vs</em> {m.adversario}
+                <span className="pf-pr-kda">
+                  <b>
+                    {m.kills} / {m.mortes} / {m.assist}
+                  </b>
+                  <small>{t('{n} K/D', { n: fmt(kd, 2) })}</small>
                 </span>
-                {m.serie && <small>{m.serie}</small>}
-              </span>
-              <span className={`pf-c-xp pf-xp-mapa${m.xp < 0 ? ' perdeu' : ''}`}>
-                {m.xp !== 0 && <i aria-hidden="true">{m.xp < 0 ? '↓' : '↑'}</i>} {Math.abs(m.xp)}
-              </span>
-              <span className="pf-c-rating">
-                <span className={`rt rt-${classeRating(m.rating)}`}>
-                  {fmt(m.rating, 2)}
-                  <i style={{ width: `${Math.min(100, Math.max(4, (m.rating / 2) * 100))}%` }} />
-                </span>
-                {m.mvp && (
-                  <span className="pf-mvp" title={t('MVP da partida')}>
-                    ★
+                <span className="pf-pr-placar">
+                  <span className="pf-pr-time">
+                    <b title={m.time}>{m.time}</b>
+                    <LogoTime nome={m.time} times={times} />
                   </span>
-                )}
-              </span>
-              <span className="pf-c-kda">
-                <b>
-                  {m.kills} / {m.mortes} / {m.assist}
-                </b>
-                <small>
-                  ADR {fmt(m.adr, 1)} · HS {m.hs}%
-                </small>
-              </span>
-              <span className="pf-c-mapa">
-                <img src={mapIcon(m.mapa)} alt="" loading="lazy" onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
-                {nomeMapa(m.mapa)}
-              </span>
-            </a>
+                  <span className="pf-pr-pontos">
+                    {m.placar[0]} <i>:</i> {m.placar[1]}
+                  </span>
+                  <span className="pf-pr-time pf-pr-adv">
+                    <LogoTime nome={m.adversario} times={times} />
+                    <b title={m.adversario}>{m.adversario}</b>
+                  </span>
+                </span>
+                <span className="pf-pr-tipo" title={m.serie || t('Partida')}>
+                  <IconeUI tipo="espadas" tamanho={18} />
+                </span>
+                <span className="pf-pr-mapa" title={nomeMapa(m.mapa)}>
+                  <img src={mapImage(m.mapa)} alt="" loading="lazy" onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
+                </span>
+                <span className={`pf-pr-xp${xp > 0 ? ' ganhou' : xp < 0 ? ' perdeu' : ''}`}>{xp > 0 ? `+${xp}` : xp}</span>
+              </a>
+            </li>
           )
         })}
-      </div>
+      </ol>
       {qtd < mapas.length && (
-        <button type="button" className="pf-mais" onClick={() => setQtd((q) => q + POR_PAGINA)}>
+        <button type="button" className="pf-pr-mais" onClick={() => setQtd((q) => q + POR_PAGINA)}>
           {t('Mostrar mais ({n})', { n: mapas.length - qtd })}
         </button>
       )}
-    </div>
+    </section>
   )
 }
 

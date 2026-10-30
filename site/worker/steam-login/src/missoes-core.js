@@ -1,6 +1,6 @@
 import CATALOGO from './missoes-catalogo.js'
 import { calendarioEventosInsignias } from '../../../src/comum/eventos.js'
-export const ANO_EVENTOS = 2026
+export const ANO_EVENTOS = 2027
 export const MISSOES = CATALOGO
 export const EXPLORADOR = ['de_dust2','de_mirage','de_inferno','de_nuke','de_ancient','de_anubis','de_overpass']
 export const MAPAS_MISSOES = Object.fromEntries([
@@ -78,7 +78,7 @@ export function progressoMissoes(partidas,config={},agora=Date.now()) {
     } else {
       id=idEventoMissao(m.id,ano)
       const periodo=config.eventos?.[m.id]
-      if(!periodo || periodo.ano!==ano || !Number.isFinite(Date.parse(periodo.inicio)) || !Number.isFinite(Date.parse(periodo.fim)) || anoBrasilia(Date.parse(periodo.inicio))!==ano || Date.parse(periodo.fim)<=Date.parse(periodo.inicio) || (calendario[m.id]&&Math.floor(Date.parse(periodo.fim)/1000)<Math.floor(Date.parse(calendario[m.id].fim)/1000)))pendencias.push({id:m.id,motivo:'Configure o período da edição 2026, sem antecipar seu encerramento.'})
+      if(!periodo || periodo.ano!==ano || !Number.isFinite(Date.parse(periodo.inicio)) || !Number.isFinite(Date.parse(periodo.fim)) || anoBrasilia(Date.parse(periodo.inicio))!==ano || Date.parse(periodo.fim)<=Date.parse(periodo.inicio) || (calendario[m.id]&&Math.floor(Date.parse(periodo.fim)/1000)<Math.floor(Date.parse(calendario[m.id].fim)/1000)))pendencias.push({id:m.id,motivo:`Configure o período da edição ${ano}, sem antecipar seu encerramento.`})
       else {
         const inicio=Date.parse(periodo.inicio),fim=Date.parse(periodo.fim),acesso=Number(config.acessosEventos?.[id])
         evento={inicio:periodo.inicio,fim:periodo.fim,eventoAtivo:agora>=inicio&&agora<=fim,estadoEvento:agora<inicio?'aguardando':agora>fim?'encerrado':'ativo'}

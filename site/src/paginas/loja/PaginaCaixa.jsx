@@ -343,7 +343,6 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
   const [autoMenu, setAutoMenu] = useState(false)
   const [autoQtd, setAutoQtd] = useState(10)
   const [avisoAuto, setAvisoAuto] = useState('')
-  const [itemBonus, setItemBonus] = useState(null) // 'boost' | 'freeze': veio um item de partida junto com o da caixa
 
   useEffect(() => {
     setRapida(lerRapida())
@@ -420,7 +419,6 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
     setResultado(null)
     setVendidos(new Set())
     setErroVenda('')
-    setItemBonus(null)
     setAbrindo({ qtd: q, origem, chave: Date.now() })
   }
 
@@ -553,7 +551,6 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
             aoOutra={(n) => abrir(n || 1, modo ? 'direto' : 'auto')}
             aoResultado={(r, info) => {
               setResultado(r)
-              setItemBonus(info?.consumivel || null)
               aoAbriu() // saldo novo (o "Abrir de novo" confere)
               seguirAuto(info)
             }}
@@ -588,11 +585,6 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
               </button>
             </span>
             {erroVenda && <small className="lj-cx-falta">{erroVenda}</small>}
-            {itemBonus && (
-              <a className={`lj-cx-item-bonus lj-cx-item-${itemBonus}`} href="/lobby/">
-                <b>+1 {itemBonus === 'boost' ? 'Boost' : 'Freeze'}</b> {t('de bônus! Use no lobby antes da partida.')}
-              </a>
-            )}
           </div>
           <div className="lj-cx-modos">
             {botaoPular}

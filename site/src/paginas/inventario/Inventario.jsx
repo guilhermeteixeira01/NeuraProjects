@@ -724,6 +724,7 @@ function Conteudo() {
       const c = e.target.closest?.('.inv-cartao')
       if (c && !c.contains(e.relatedTarget)) tocar('hover')
     }
+    document.body.dataset.som = 'nao' // esta página tem os sons próprios do inventário: os sons gerais do site (som.js) ficam quietos
     document.addEventListener('pointerdown', apertou)
     document.addEventListener('click', tocou)
     document.addEventListener('pointerover', sobre)
@@ -1179,7 +1180,7 @@ function Conteudo() {
           ))}
           {!anuncios.length && (
             <li className="inv-nada">
-              {t('Você não tem nada à venda. Clique numa arma, adesivo ou chaveiro e escolha "Vender no mercado" para anunciar pelo preço que quiser.')} <a href="/loja/?aba=mercado">{t('Ver o mercado')}</a>
+              {t('Você não tem nada à venda. Clique numa arma, adesivo ou chaveiro e escolha "Vender no mercado" para anunciar pelo preço que quiser.')} <a href="/loja/?aba=skins">{t('Ver o mercado')}</a>
             </li>
           )}
         </ul>

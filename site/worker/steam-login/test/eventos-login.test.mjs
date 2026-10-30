@@ -6,7 +6,7 @@ import { progressoMissoes } from '../src/missoes-core.js'
 import { calendarioEventosInsignias } from '../../../src/comum/eventos.js'
 import { lerPerfil } from '../src/perfis.js'
 
-const badge='evento-halloween-2026',cfg={eventos:calendarioEventosInsignias(2026)}
+const badge='evento-halloween-2027',cfg={eventos:calendarioEventosInsignias(2027)}
 const inicio=Date.parse(cfg.eventos['evento-halloween'].inicio),fim=Date.parse(cfg.eventos['evento-halloween'].fim)
 const evento=(acesso,agora)=>progressoMissoes([],{...cfg,acessosEventos:{[badge]:acesso}},agora).lista.find(m=>m.id===badge)
 
@@ -25,7 +25,7 @@ test('só acesso autenticado concede: data original e aviso únicos persistem de
   assert.equal((await lerPerfil(f.env,id))?.insignias?.[badge],undefined)
   await sincronizarMissoes(a,id,[],false,acesso,true)
   assert.equal((await lerPerfil(f.env,id)).insignias[badge],acesso)
-  assert.equal((await lerPerfil(f.env,id)).insignias['evento-outono-2026'],undefined)
+  assert.equal((await lerPerfil(f.env,id)).insignias['evento-outono-2027'],undefined)
   await sincronizarMissoes(a,id,[],false,acesso+86400000,true)
   await sincronizarMissoes(a,id,[],false,fim+86400000,true)
   assert.equal((await lerPerfil(f.env,id)).insignias[badge],acesso)

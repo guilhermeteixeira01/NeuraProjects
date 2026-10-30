@@ -13,9 +13,9 @@ test('fundo de perfil aceita apenas mapas do catálogo e pode ser removido', () 
 test('fundo de evento exige a insígnia da edição correta, inclusive para administrador', async () => {
  const { env, pedir } = ambiente(), quem = '76561198000000877', fundoPerfil = 'inferno-halloween'
  assert.equal((await pedir('POST','/perfil',{quem,corpo:{fundoPerfil}})).status,403)
- await mudarPerfil(env,quem,{insignias:{'evento-natal-2026':1,'evento-halloween-2025':1}})
+ await mudarPerfil(env,quem,{insignias:{'evento-natal-2027':1,'evento-halloween-2026':1}})
  assert.equal((await pedir('POST','/perfil',{quem,corpo:{fundoPerfil}})).status,403)
- await mudarPerfil(env,quem,{insignias:{'evento-halloween-2026':1}})
+ await mudarPerfil(env,quem,{insignias:{'evento-halloween-2027':1}})
  const liberado=await pedir('POST','/perfil',{quem,corpo:{fundoPerfil}})
  assert.equal(liberado.status,200)
  assert.equal(liberado.dados.perfis[quem].fundoPerfil,fundoPerfil)

@@ -5,20 +5,27 @@
 import { useEffect, useMemo, useState } from 'react'
 import { lerApi, seForErroApi } from '../../comum/api.js'
 import { CarregandoNP } from '../../comum/Carregando.jsx'
-import { GemaNome, nomeDoDesgaste } from '../../comum/CartaoSkin.jsx'
+import IconeUI from '../../comum/IconeUI.jsx'
+import CartaoSkin from '../../comum/CartaoSkin.jsx'
 import { InspecionarSkin, podeInspecionar } from '../../comum/InspecionarSkin.jsx'
 import { useT } from '../../comum/i18n.js'
 import { useConta } from '../../comum/conta.js'
 import { BotaoTrocas } from '../../comum/Trocas.jsx'
 import { lerCaixasPublicas } from '../../comum/loja.js'
-import { corEnfeite, descrever, indicar, urlImg, useCatalogo } from '../../comum/skins.js'
+import { corEnfeite, descrever, indicar, useCatalogo } from '../../comum/skins.js'
 import { RARIDADES_CS, raridadeCsDaCor } from '../../../worker/steam-login/src/loja-core.js'
 import { padraoRaro } from '../../../worker/steam-login/src/padroes.js'
 
 const GUARDADOS = new Set(['adesivo', 'chaveiro', 'caixa'])
+// Abas de itens (as mesmas do inventário do jogador) e ordenação
+const ABAS_ITENS = ['tudo', 'arma', 'faca', 'luva']
+const ORDENS = [
+  ['valor', 'Mais caro'],
+  ['raridade', 'Raridade'],
+  ['recente', 'Mais recentes'],
+  ['nome', 'Nome'],
+]
 const numero = (n) => Number(n).toLocaleString('pt-BR')
-// FN / MW / FT / WW / BS
-const sigla = (f) => (f < 0.07 ? 'FN' : f < 0.15 ? 'MW' : f < 0.38 ? 'FT' : f < 0.45 ? 'WW' : 'BS')
 const abaInicial = () => {
   try {
     return location.hash === '#inventario' ? 'inventario' : 'status'
@@ -36,7 +43,9 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
   const [inv, setInv] = useState(null)
   const [resumo, setResumo] = useState(null)
   const [erro, setErro] = useState(false)
-  const [aba, setAba] = useState('itens')
+  const [aba, setAba] = useState('tudo')
+  const [busca, setBusca] = useState('')
+  const [ordem, setOrdem] = useState('valor')
   const [rar, setRar] = useState('todas') // filtro de raridade (0..6 como no jogo)
   const [inspecionando, setInspecionando] = useState(null)
   const [caixasLoja, setCaixasLoja] = useState([])
@@ -76,12 +85,23 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
   const rarDe = (it) => (it.t === 'faca' || it.t === 'luva' ? 6 : raridadeCsDaCor(descrever(it, idx).cor))
   // todos os itens de arma, do mais valioso para o mais barato
   const todosItens = useMemo(() => todos.filter((i) => !GUARDADOS.has(i.t) && i.t !== 'agente').sort((a, b) => valorDe(b) - valorDe(a)), [todos, inv]) // eslint-disable-line react-hooks/exhaustive-deps
+  const q = busca.trim().toLowerCase()
+  const daAba = useMemo(() => todosItens.filter((i) => aba === 'tudo' || i.t === aba), [todosItens, aba])
   const contagemRar = useMemo(() => {
     const c = Array(7).fill(0)
-    for (const i of todosItens) c[rarDe(i)]++
+    for (const i of daAba) c[rarDe(i)]++
     return c
-  }, [todosItens, idx]) // eslint-disable-line react-hooks/exhaustive-deps
-  const itens = useMemo(() => (rar === 'todas' ? todosItens : todosItens.filter((i) => rarDe(i) === rar)), [todosItens, rar, idx]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [daAba, idx]) // eslint-disable-line react-hooks/exhaustive-deps
+  const itens = useMemo(() => {
+    const nome = (i) => descrever(i, idx).titulo || ''
+    const lista = daAba.filter((i) => (rar === 'todas' || rarDe(i) === rar) && (!q || `${descrever(i, idx).titulo} ${descrever(i, idx).subtitulo} ${i.n || ''}`.toLowerCase().includes(q)))
+    return lista.sort((a, b) => {
+      if (ordem === 'raridade') return rarDe(b) - rarDe(a) || valorDe(b) - valorDe(a)
+      if (ordem === 'recente') return (inv?.criado?.[b.__id] || 0) - (inv?.criado?.[a.__id] || 0)
+      if (ordem === 'nome') return nome(a).localeCompare(nome(b))
+      return valorDe(b) - valorDe(a) || nome(a).localeCompare(nome(b))
+    })
+  }, [daAba, rar, q, ordem, idx]) // eslint-disable-line react-hooks/exhaustive-deps
   const guardados = (tipo) => {
     const g = new Map()
     // id: uma das unidades (o valor de adesivo/chaveiro vem por item do worker; todas as unidades valem o mesmo)
@@ -101,8 +121,12 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
   const valorTotal = useMemo(() => todosItens.reduce((a, i) => a + valorDe(i), 0), [todosItens, inv]) // eslint-disable-line react-hooks/exhaustive-deps
   const raros = useMemo(() => todosItens.filter((i) => padraoRaro(i)).length, [todosItens])
 
+  const contaTipo = (tipo) => todosItens.filter((i) => tipo === 'tudo' || i.t === tipo).length
   const subs = [
-    ['itens', 'ITENS', todosItens.length],
+    ['tudo', 'TUDO', contaTipo('tudo')],
+    ['arma', 'ARMAS', contaTipo('arma')],
+    ['faca', 'FACAS', contaTipo('faca')],
+    ['luva', 'LUVAS', contaTipo('luva')],
     ['adesivos', 'ADESIVOS', listaAdesivos.reduce((a, g) => a + g.n, 0)],
     ['chaveiros', 'CHAVEIROS', listaChaveiros.reduce((a, g) => a + g.n, 0)],
     ['caixas', 'CAIXAS', caixas.reduce((a, g) => a + g.n, 0)],
@@ -232,8 +256,22 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
             <p className="pf-inv-vazio">{t('Não consegui carregar o inventário agora.')}</p>
           ) : !inv || !armas.dados ? (
             <CarregandoNP pequeno />
-          ) : aba === 'itens' ? (
+          ) : ABAS_ITENS.includes(aba) ? (
             <>
+              <div className="pf-inv-barra">
+                <label className="pf-inv-busca">
+                  <IconeUI tipo="busca" tamanho={16} />
+                  <input type="search" placeholder={t('Pesquisar no inventário')} value={busca} onChange={(e) => setBusca(e.target.value)} />
+                </label>
+                <span className="pf-inv-total">{t('{n} itens', { n: numero(itens.length) })}</span>
+                <select className="pf-inv-ordem" value={ordem} onChange={(e) => setOrdem(e.target.value)} aria-label={t('Ordenar')}>
+                  {ORDENS.map(([id, nome]) => (
+                    <option key={id} value={id}>
+                      {t(nome)}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="inv-rar pf-inv-rar" role="group" aria-label={t('Filtrar por raridade')}>
                 <button type="button" className={rar === 'todas' ? 'is-ativo' : ''} onClick={() => setRar('todas')}>
                   {t('Todas')}
@@ -250,41 +288,10 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
               <p className="pf-inv-vazio">{t('Nada por aqui.')}</p>
             ) : (
               <>
-                <ul className="pf-inv-grade">
-                  {itens.map((it) => {
-                    const d = descrever(it, idx)
-                    const valor = valorDe(it)
-                    const f = Number(it.f)
-                    const arma = it.t === 'arma'
-                    const adesivosColados = arma ? (it.a || []).filter((s) => s?.i) : []
-                    const charm = arma && it.k?.i > 0 ? mapaCh.get(it.k.i) : null
-                    return (
-                      <li key={it.__id}>
-                        <button type="button" className="pf-inv-item" style={{ '--cor': d.cor || '#6b6f76' }} onClick={() => podeInspecionar(it) && setInspecionando(it)} title={t('Inspecionar')}>
-                          <span className="pf-inv-item-arte">{d.img ? <img src={d.img} alt="" loading="lazy" draggable="false" /> : null}</span>
-                          <span className="pf-inv-item-preco">{numero(valor)} NP</span>
-                          {it.st ? <span className="pf-inv-item-st">StatTrak™</span> : null}
-                          {(adesivosColados.length > 0 || charm) && (
-                            <span className="pf-inv-enf">
-                              {charm && <img className="pf-inv-enf-ch" src={urlImg(charm[2], 64)} alt="" loading="lazy" />}
-                              {adesivosColados.map((s, k) => (
-                                <img key={k} src={urlImg(mapaAd.get(s.i)?.[2], 64)} alt="" loading="lazy" />
-                              ))}
-                            </span>
-                          )}
-                          <span className="pf-inv-item-nome">
-                            <span className="pf-inv-nome-linha">
-                              <GemaNome item={it} />
-                              <small>{it.n ? `${d.titulo} «${it.n}»` : d.titulo}</small>
-                            </span>
-                            <b>
-                              <em title={t(nomeDoDesgaste(f))}>({sigla(f)})</em> {d.subtitulo}
-                            </b>
-                          </span>
-                        </button>
-                      </li>
-                    )
-                  })}
+                <ul className="inv-itens pf-inv-cartoes">
+                  {itens.map((it) => (
+                    <CartaoSkin key={it.__id} item={it} idx={idx} adesivos={mapaAd} chaveiros={mapaCh} valor={valorDe(it)} aoAbrirMenu={() => podeInspecionar(it) && setInspecionando(it)} />
+                  ))}
                 </ul>
               </>
             )}
@@ -305,29 +312,36 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
                 )}
               </div>
             )}
-            <ul className="pf-inv-grade pf-inv-grade-pq">
+            <ul className="inv-itens pf-inv-cartoes">
               {[...(aba === 'adesivos' ? listaAdesivos : aba === 'chaveiros' ? listaChaveiros : caixas)]
                 .filter((g) => aba === 'caixas' || rar === 'todas' || rarEnf(g.d) === rar)
                 .sort((a, b) => aba === 'caixas' ? 0 : rarEnf(b.d) - rarEnf(a.d))
                 .map((g) => {
-                const linha = aba === 'adesivos' ? mapaAd.get(g.d) : aba === 'chaveiros' ? mapaCh.get(g.d) : null
-                const cx = aba === 'caixas' ? caixasLoja.find((c) => c.id === g.d) : null
-                const nomeG = cx ? cx.nome : linha?.[1] || `#${g.d}`
-                const cor = cx?.cor || (linha ? corEnfeite(aba === 'adesivos' ? 'adesivo' : 'chaveiro', linha) : '#6b6f76')
-                const imgG = cx ? cx.img : linha ? urlImg(linha[2], 256) : ''
                 // valor de uma unidade: a caixa vale o preço dela na loja; adesivo/chaveiro, o valor de mercado que o worker manda
-                const valorG = aba === 'caixas' ? cx?.preco : inv?.valores?.[g.id]
+                const qtd = g.n > 1 && <span className="pf-inv-qtd">×{g.n}</span>
+                if (aba !== 'caixas') {
+                  const item = { t: aba === 'adesivos' ? 'adesivo' : 'chaveiro', d: g.d, p: 0, __id: g.id }
+                  return <CartaoSkin key={`${aba}${g.d}`} item={item} idx={idx} adesivos={mapaAd} chaveiros={mapaCh} valor={inv?.valores?.[g.id]} aoAbrirMenu={() => setInspecionando(item)} extra={qtd} />
+                }
+                const cx = caixasLoja.find((c) => c.id === g.d)
                 return (
-                  <li key={`${aba}${g.d}`}>
-                    <button type="button" className="pf-inv-item pf-inv-item-fixo pf-inv-item-ench" style={{ '--cor': cor }} disabled={aba === 'caixas'} onClick={() => aba !== 'caixas' && setInspecionando({ t: aba === 'adesivos' ? 'adesivo' : 'chaveiro', d: g.d, p: 0 })} title={t('Inspecionar')}>
-                      <span className="pf-inv-item-arte">{imgG ? <img src={imgG} alt="" loading="lazy" draggable="false" /> : null}</span>
-                      {g.n > 1 && <span className="pf-inv-item-st pf-inv-item-qtd">×{g.n}</span>}
-                      <span className="pf-inv-item-preco">{valorG != null ? `${numero(valorG)} NP` : '…'}</span>
-                      <span className="pf-inv-item-nome">
-                        <small>{aba === 'adesivos' ? t('Adesivo') : aba === 'chaveiros' ? t('Chaveiro') : t('Caixa fechada')}</small>
-                        <b>{nomeG}</b>
+                  <li key={`caixa${g.d}`}>
+                    <div className="inv-cartao inv-cartao-fixo" style={{ '--cor': cx?.cor || '#6b6f76' }}>
+                      <span className="inv-cartao-arte">
+                        <span className="inv-arma-box">{cx?.img ? <img className="inv-arma-img" src={cx.img} alt="" loading="lazy" draggable="false" /> : <span className="inv-sem-img inv-arma-img" aria-hidden="true" />}</span>
                       </span>
-                    </button>
+                      <span className="inv-cartao-nome">
+                        <b>{cx ? cx.nome : `#${g.d}`}</b>
+                        <small>{t('Caixa fechada')}</small>
+                        {cx?.preco != null && (
+                          <span className="inv-cartao-valor">
+                            <img src="/assets/logos/logo-np-64.png" alt="" width="14" height="14" />
+                            {numero(cx.preco)} NP
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    {qtd}
                   </li>
                 )
               })}

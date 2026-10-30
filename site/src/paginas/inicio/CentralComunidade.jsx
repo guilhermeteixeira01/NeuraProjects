@@ -37,7 +37,7 @@ export default function CentralComunidade({ partidas, ranking }) {
         <header className="np-bloco-cab"><h2>{t('Destaques da comunidade')}</h2></header>
         <a className="np-destaque-jogador" href={destaque ? linkPerfil(destaque.steamId || destaque.id) : '/ranking/'}><span className="np-destaque-emblema">★</span><span><small>{t('Maior rating do ranking')}</small><b>{destaque?.nome || t('Ranking')}</b><small>{destaque ? `${numero(destaque.kills)} kills` : t('Acompanhe a evolução dos jogadores')}</small></span>{destaque && <strong>{destaque.rating.toFixed(2)}</strong>}</a>
         <a className="np-destaque-drop" href="/loja/"><span className="np-destaque-emblema">◇</span><span><small>{t('Drop em destaque')}</small><b>{drop?.n || t('Drops da comunidade')}</b><small>{drop?.nome || t('Veja os itens que os jogadores estão encontrando')}</small></span>{drop && <strong>{numero(drop.v)} NP</strong>}</a>
-        <a className="np-mercado-link" href="/loja/?aba=mercado"><b>{t('Mercado da comunidade')} →</b><span>{t('Explore os itens anunciados pelos jogadores.')}</span></a>
+        <a className="np-mercado-link" href="/loja/?aba=skins"><b>{t('Mercado da comunidade')} →</b><span>{t('Explore os itens anunciados pelos jogadores.')}</span></a>
       </section>
       <CaixasDestaque />
 

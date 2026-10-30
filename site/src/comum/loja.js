@@ -15,6 +15,11 @@ export const lerDetalhesCaixa = (id) => chamar(`/loja/caixa?id=${id}`)
 export const lerConsumiveis = () => chamar('/loja/consumiveis')
 export const ativarConsumivel = (tipo) => chamar('/loja/consumiveis/ativar', { tipo })
 export const cancelarConsumivel = () => chamar('/loja/consumiveis/cancelar', {})
+// Mercado oficial (worker: src/loja-oficial.js): { catalogo: { consumiveis, itens, kits }, possui: { moldura, card, fundo }, consumiveis, saldo }
+export const lerOficial = () => chamar('/loja/oficial')
+// tipo: 'boost' | 'freeze' (qtd) | 'moldura' | 'card' | 'fundo' | 'kit' (id)
+export const comprarOficial = (tipo, id, qtd) => chamar('/loja/oficial/comprar', { tipo, id, qtd })
+export const EVENTO_OFICIAL = 'np-oficial' // comprou algo: o Personalizar e o lobby releem
 // Valor de venda de cada item do inventário: { <id do item>: { r: raridade 0..6, v: NP } } (o servidor calcula)
 export const lerValores = async () => (await chamar('/loja/valores')).valores || {}
 // Vende itens (skin, faca ou luva) por NP: { saldo, total, vendidos, inv }

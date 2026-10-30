@@ -1,3 +1,4 @@
+import { somMudo as siteMudo } from '../../comum/som.js'
 // Música de fundo do Ranking (evento sazonal): toca em loop quando a página abre.
 // Preferências (mudo e volume) ficam no navegador: localStorage np_ranking_som = { mudo, vol }.
 const ARQUIVO = '/assets/Ranking/La Valse Des Monstres - José Borja del Pozo González.mp3'
@@ -27,8 +28,9 @@ function instancia() {
 export function iniciar(pref) {
   const a = instancia()
   if (!a) return
-  a.volume = pref.mudo ? 0 : pref.vol
-  if (pref.mudo) return
+  const mudo = pref.mudo || siteMudo()
+  a.volume = mudo ? 0 : pref.vol
+  if (mudo) return
   const tentar = () => a.play().catch(() => {})
   tentar()
   const liberar = () => {

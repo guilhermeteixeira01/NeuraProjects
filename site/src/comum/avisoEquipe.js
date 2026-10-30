@@ -4,6 +4,7 @@
 //  - silenciado (botão do sino no chat do time): só a bolinha, sem som.
 // As mensagens chegam pelo evento np-equipe-chat (comum/amigos.js, ao vivo pela presença).
 import { useEffect, useState } from 'react'
+import { somMudo } from './som.js'
 
 const CHAVE_MUDO = 'np_eq_mudo'
 const EVENTO = 'np-eq-aviso'
@@ -26,6 +27,7 @@ const avisar = () => window.dispatchEvent(new Event(EVENTO))
 
 // "plim" curto gerado no navegador (sem arquivo de som)
 function tocar() {
+  if (somMudo()) return
   try {
     ctx ??= new (window.AudioContext || window.webkitAudioContext)()
     if (ctx.state === 'suspended') ctx.resume().catch(() => {})

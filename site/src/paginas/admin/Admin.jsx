@@ -19,6 +19,7 @@ import CartaoSkin from '../../comum/CartaoSkin.jsx'
 import { confirmar } from '../../comum/Dialogos.jsx'
 import AdminCaixas from './AdminCaixas.jsx'
 import AdminPontos, { ConfigDepositos } from './AdminPontos.jsx'
+import MercadoOficialAdmin from './AdminMercado.jsx'
 import AdminLogs from './AdminLogs.jsx'
 import AdminServidor from './AdminServidor.jsx'
 import AdminPlanos from './AdminPlanos.jsx'
@@ -1989,6 +1990,7 @@ export default function Admin() {
                 opcoes={[
                   ['caixas', 'Caixas', tem('caixas')],
                   ['assinatura', 'Assinatura Premium', tem('assinaturas')],
+                  ['mercado', 'Mercado oficial', tem('pontos')],
                   ['depositos', 'Depósitos', tem('pontos')],
                 ]}
               >
@@ -2000,6 +2002,8 @@ export default function Admin() {
                       <AdminPlanos />
                       <Assinaturas key={JSON.stringify(painel.config.subMeses || {})} config={painel.config} usuarios={usuarios} aoSalvarConfig={(config) => setPainel((p) => ({ ...p, config }))} aoSalvarPerfis={(perfis) => setPainel((p) => ({ ...p, perfis }))} />
                     </>
+                  ) : sub === 'mercado' ? (
+                    <MercadoOficialAdmin />
                   ) : (
                     <ConfigDepositos />
                   )

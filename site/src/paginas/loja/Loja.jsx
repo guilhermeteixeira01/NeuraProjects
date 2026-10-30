@@ -6,7 +6,8 @@ import { entrar, loginAtivo, useConta } from '../../comum/conta.js'
 import { useT } from '../../comum/i18n.js'
 import { avisarSaldo, lerLoja } from '../../comum/loja.js'
 import { useAcharItem } from './Abertura.jsx'
-import AbaMercado from './Mercado.jsx'
+import MercadoJogadores from './Mercado.jsx'
+import MercadoOficial from './MercadoOficial.jsx'
 import Deposito from './Deposito.jsx'
 import { CarregandoNP } from '../../comum/Carregando.jsx'
 import Drops from './Drops.jsx'
@@ -54,87 +55,17 @@ function CartaoCaixa({ c, tem, aoAbrir }) {
   )
 }
 
-// ── insígnias das caixas: progresso (37/50), níveis e secretas ──
-const GRUPOS = { colecionador: 'Colecionador de Caixas', arsenal: 'Arsenal Afiado' }
-const arte = (i, ganha) => {
-  const base = i.id.startsWith('mestre-') ? 'mestre-da-caixa' : i.id
-  return `/assets/insignia/${ganha ? 'web' : i.secreta ? 'secreta' : 'bloqueada'}/${base}.webp`
-}
-function Barra({ atual, meta }) {
-  return (
-    <span className="lj-progresso">
-      <i style={{ width: `${Math.min(100, (atual / meta) * 100)}%` }} />
-      <small>
-        {numero(Math.min(atual, meta))}/{numero(meta)}
-      </small>
-    </span>
-  )
-}
-function AbaInsignias({ lista }) {
-  const t = useT()
-  const itens = lista.filter((i) => !i.id.startsWith('mestre-'))
-  const mestres = lista.filter((i) => i.id.startsWith('mestre-'))
-  const grupos = []
-  for (const i of itens) {
-    if (i.grupo) {
-      const g = grupos.find((x) => x.grupo === i.grupo)
-      if (g) g.niveis.push(i)
-      else grupos.push({ grupo: i.grupo, niveis: [i] })
-    } else grupos.push({ unica: i })
-  }
-  const unica = (i) => {
-    const ganha = i.ganhou > 0
-    const oculta = i.secreta && !ganha
-    return (
-      <li key={i.id} className={`lj-ins${ganha ? ' lj-ganha' : ''}`} style={{ '--cor': i.cor }}>
-        <img src={arte(i, ganha)} alt="" loading="lazy" draggable="false" />
-        <b>{oculta ? '???' : t(i.nome)}</b>
-        <small>{oculta ? t('Insígnia secreta') : t(i.descricao)}</small>
-        {!ganha && !oculta && <Barra atual={i.atual} meta={i.meta} />}
-        {ganha && <em>{t('Conquistada')}</em>}
-      </li>
-    )
-  }
-  return (
-    <div className="lj-insignias">
-      <ul className="lj-ins-grade">
-        {grupos.map((g) => {
-          if (g.unica) return unica(g.unica)
-          const ganhas = g.niveis.filter((n) => n.ganhou > 0)
-          const atual = ganhas[ganhas.length - 1]
-          const proximo = g.niveis.find((n) => !(n.ganhou > 0))
-          const mostrar = atual || g.niveis[0]
-          return (
-            <li key={g.grupo} className={`lj-ins lj-ins-grupo${atual ? ' lj-ganha' : ''}`} style={{ '--cor': mostrar.cor }}>
-              <img src={arte(mostrar, !!atual)} alt="" loading="lazy" draggable="false" />
-              <b>{t(GRUPOS[g.grupo] || g.grupo)}</b>
-              <small>{atual ? t('Nível {n} de {total}', { n: atual.nivel, total: g.niveis.length }) : t('Nível 0 de {total}', { total: g.niveis.length })}</small>
-              <span className="lj-niveis">
-                {g.niveis.map((n) => (
-                  <img key={n.id} src={arte(n, n.ganhou > 0)} alt={t(n.nome)} title={`${t(n.nome)} · ${t(n.descricao)}`} loading="lazy" className={n.ganhou > 0 ? 'ok' : ''} />
-                ))}
-              </span>
-              {proximo ? (
-                <>
-                  <small className="lj-prox">{t('Próximo: {d}', { d: t(proximo.descricao) })}</small>
-                  <Barra atual={proximo.atual} meta={proximo.meta} />
-                </>
-              ) : (
-                <em>{t('Nível máximo')}</em>
-              )}
-            </li>
-          )
-        })}
-      </ul>
-      {mestres.length > 0 && (
-        <>
-          <h3 className="lj-ins-titulo">{t('Mestre da Caixa')}</h3>
-          <p className="lj-ins-dica">{t('Consiga todas as skins (as facas não contam) de cada caixa.')}</p>
-          <ul className="lj-ins-grade lj-ins-mestres">{mestres.map(unica)}</ul>
-        </>
-      )}
-    </div>
-  )
+// Abas da loja: caixas, loja de skins (mercado entre jogadores) e loja de personalização (mercado oficial).
+// ?aba=mercado (links antigos) abre a loja de skins. As insígnias das caixas ficam na aba Missões do perfil.
+const ABAS = [
+  ['caixas', 'CAIXAS'],
+  ['skins', 'LOJA DE SKINS'],
+  ['personalizacao', 'LOJA DE PERSONALIZAÇÃO'],
+]
+function abaDaUrl() {
+  if (typeof location === 'undefined') return 'caixas'
+  const a = new URLSearchParams(location.search).get('aba')
+  return a === 'mercado' ? 'skins' : ABAS.some(([id]) => id === a) ? a : 'caixas'
 }
 
 function Conteudo() {
@@ -143,7 +74,7 @@ function Conteudo() {
   const achar = useAcharItem()
   const [dados, setDados] = useState(null)
   const [erroCarga, setErroCarga] = useState(false)
-  const [aba, setAba] = useState(() => (typeof location !== 'undefined' && new URLSearchParams(location.search).get('aba') === 'mercado' ? 'mercado' : 'caixas'))
+  const [aba, setAba] = useState(abaDaUrl)
   const [aberta, setAberta] = useState(null) // id da caixa com a página aberta
   const [abrirAuto, setAbrirAuto] = useState(null) // id da caixa que veio do inventário para abrir: abre na página dela (roleta embutida)
   const [aviso, setAviso] = useState('')
@@ -270,11 +201,7 @@ function Conteudo() {
       {depositando && <Deposito aoFechar={() => setDepositando(false)} aoPagar={carregar} />}
 
       <nav className="lj-abas" role="tablist">
-        {[
-          ['caixas', 'CAIXAS'],
-          ['mercado', 'MERCADO'],
-          ['insignias', 'INSÍGNIAS'],
-        ].map(([id, nome]) => (
+        {ABAS.map(([id, nome]) => (
           <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'is-ativo' : ''} onClick={() => setAba(id)}>
             {t(nome)}
           </button>
@@ -319,10 +246,10 @@ function Conteudo() {
             )
           })}
         </>
-      ) : aba === 'mercado' ? (
-        <AbaMercado saldo={dados.saldo} aoMudarSaldo={carregar} />
+      ) : aba === 'skins' ? (
+        <MercadoJogadores saldo={dados.saldo} aoMudarSaldo={carregar} />
       ) : (
-        <AbaInsignias lista={dados.insignias} />
+        <MercadoOficial saldo={dados.saldo} />
       )}
 
     </>

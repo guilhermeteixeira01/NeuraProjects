@@ -3,6 +3,7 @@ import { useCallback,useEffect,useState } from 'react'
 import { chamarApi } from './api.js'
 import { imagemInsignia } from './insignias.js'
 import './missoes.css'
+import InsigniasLoja from './InsigniasLoja.jsx'
 
 export default function PainelMissoes() {
   const [dados,setDados]=useState(null),[categoria,setCategoria]=useState('combate'),[erro,setErro]=useState('')
@@ -12,11 +13,12 @@ export default function PainelMissoes() {
   return <section className="ms-painel">
     <h2>Missões e insígnias</h2><p>As conquistas são entregues automaticamente após a confirmação do sistema. O histórico validado também conta.</p>
     {dados?.simulacao&&<p role="status">Prévia local: progresso ilustrativo, sem conceder recompensas reais.</p>}
-    <div className="ms-abas" role="tablist" aria-label="Categorias de missões">{[['combate','Combate 5v5'],['mapas','Mapas'],['eventos','Eventos anuais']].map(([id,nome])=><button type="button" key={id} role="tab" aria-selected={categoria===id} onClick={()=>setCategoria(id)}>{nome}</button>)}</div>
+    <div className="ms-abas" role="tablist" aria-label="Categorias de missões">{[['combate','Combate 5v5'],['mapas','Mapas'],['eventos','Eventos anuais'],['caixas','Caixas da loja']].map(([id,nome])=><button type="button" key={id} role="tab" aria-selected={categoria===id} onClick={()=>setCategoria(id)}>{nome}</button>)}</div>
     {categoria==='eventos'&&<p>Entre na sua conta em pelo menos um dia do período do evento para receber a insígnia. A data da conquista será a do seu primeiro acesso válido, no horário de Brasília.</p>}
-    {dados&&categoria!=='eventos'&&<p className="ms-aviso">{dados.partidasValidadas||0} partidas com dados de missões confirmados. Estatísticas que não existem no histórico não são estimadas.</p>}
+    {categoria==='caixas'&&<p>Insígnias de abrir caixas na loja: o progresso conta cada caixa aberta e cada skin conseguida.</p>}
+    {dados&&!['eventos','caixas'].includes(categoria)&&<p className="ms-aviso">{dados.partidasValidadas||0} partidas com dados de missões confirmados. Estatísticas que não existem no histórico não são estimadas.</p>}
     {!dados&&!erro&&<p role="status">Conferindo conquistas…</p>}
-    <div className="ms-grade">{lista.map(m=><Missao key={m.id} m={m} pendente={(dados.pendencias||[]).some(p=>p.id===m.id||m.id.startsWith(p.id+'-'))}/>)}</div>
+    {categoria==='caixas'?<InsigniasLoja/>:<div className="ms-grade">{lista.map(m=><Missao key={m.id} m={m} pendente={(dados.pendencias||[]).some(p=>p.id===m.id||m.id.startsWith(p.id+'-'))}/>)}</div>}
     {erro&&<p role="alert">{erro} <button type="button" onClick={carregar}>Tentar novamente</button></p>}
   </section>
 }

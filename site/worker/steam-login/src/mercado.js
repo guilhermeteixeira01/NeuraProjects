@@ -184,7 +184,7 @@ export class Mercado {
       id: `mercado:${a.id}`,
       titulo: 'Sua skin foi vendida no mercado!',
       texto: `${String(comprador?.nome || 'Alguém')} comprou ${a.nome || 'o seu item'} por ${a.preco.toLocaleString('pt-BR')} NP. Os pontos já estão na sua conta.`,
-      link: '/loja/?aba=mercado',
+      link: '/loja/?aba=skins',
       ...(comprador?.avatar ? { imagem: String(comprador.avatar) } : {}),
       ...(Number.isInteger(valorDe(a.item)?.r) ? { raridade: valorDe(a.item).r } : {}), // o cartão da notificação fica na cor da raridade
       quando: Date.now(),

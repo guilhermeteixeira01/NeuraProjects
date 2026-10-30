@@ -1,6 +1,6 @@
 // Itens de partida do lobby: Boost (vitória na próxima partida vale XP em dobro) e Freeze (a próxima partida não ganha nem perde XP).
 // Ficam no objeto do jogador (Loja), chave "consumiveis": { boost, freeze, ativo: { tipo, desde } | null, aplicados: [caminho] }.
-// Ativar gasta 1 na hora; cancelar antes da partida devolve. Saem nas caixas (chance a cada abertura) e no resgate diário.
+// Ativar gasta 1 na hora; cancelar antes da partida devolve. Compra no mercado oficial (src/loja-oficial.js) e resgate diário; não saem em caixa.
 //
 // Efeito: quando o plugin manda a partida (POST /servidor/partida), quem tinha um item ativado ANTES do início dela recebe o efeito
 // no ajuste de XP do perfil (perfil.xp, o mesmo do admin, somado ao XP das partidas no site e no worker). O ranking.json continua
@@ -15,8 +15,6 @@ export const TIPOS_CONSUMIVEL = ['boost', 'freeze']
 export const NOME_CONSUMIVEL = { boost: 'Boost', freeze: 'Freeze' }
 const MAX_POR_TIPO = 99
 const MAX_APLICADOS = 30 // partidas já processadas (o plugin pode mandar a mesma partida de novo)
-// abertura de caixa: chance de vir um item junto (metade Boost, metade Freeze)
-export const CHANCE_CONSUMIVEL_CAIXA = 0.06
 // resgate diário: no dia 4 da sequência vem 1 Freeze, no dia 7 vem 1 Boost
 export const CONSUMIVEL_DIARIO = { 4: 'freeze', 7: 'boost' }
 
@@ -62,21 +60,12 @@ export async function consumiveisDoJogador(obj, acao, p) {
   return publico(c)
 }
 
-// Dá itens ao jogador (caixa, resgate diário). aviso: texto da notificação (opcional)
+// Dá itens ao jogador (resgate diário). aviso: texto da notificação (opcional)
 export async function ganharConsumivel(obj, tipo, qtd = 1, aviso) {
   const c = await ler(obj)
   c[tipoOk(tipo)] = Math.min(MAX_POR_TIPO, c[tipo] + qtd)
   await gravarComAviso(obj, c, aviso && notificacao(`consumivel:${tipo}:${Date.now()}`, aviso, tipo === 'boost' ? 'Ative no lobby antes da partida: se vencer, o XP ganho vale em dobro.' : 'Ative no lobby antes da partida: ela não ganha nem perde XP.'))
   return publico(c)
-}
-
-// Abertura de caixa: sorteia (ou não) um item junto. Devolve o tipo que veio ou null
-export async function sortearConsumivelCaixa(obj, rnd = Math.random) {
-  const r = rnd()
-  if (r >= CHANCE_CONSUMIVEL_CAIXA) return null
-  const tipo = r < CHANCE_CONSUMIVEL_CAIXA / 2 ? 'boost' : 'freeze'
-  await ganharConsumivel(obj, tipo, 1)
-  return tipo
 }
 
 // A partida terminou: o item ativado antes do início dela é gasto e devolve quanto XP corrigir no perfil

@@ -9,6 +9,7 @@ import { IDIOMAS, useT } from './i18n.js'
 import { escolherDesempenho, escolherIdioma, escolherTema } from './preferencias.js'
 import { EVENTO_TEMA, TEMAS, temaAtual } from './tema.js'
 import { useSeguranca } from './seguranca.js'
+import { definirMudo, tocarSom, useSomMudo } from './som.js'
 
 const TrocarNick = lazy(() => import('./BoasVindas.jsx').then((m) => ({ default: m.TrocarNick }))) // só baixa no clique
 const TrocarSenha = lazy(() => import('./BoasVindas.jsx').then((m) => ({ default: m.TrocarSenha })))
@@ -150,6 +151,24 @@ export default function Configuracoes() {
           </label>
         </div>
       )}
+    </div>
+  )
+}
+
+// Alto-falante da barra: liga/desliga todos os sons do site (som.js)
+export function BotaoSom() {
+  const t = useT()
+  const mudo = useSomMudo()
+  const trocar = () => {
+    definirMudo(!mudo)
+    if (mudo) tocarSom('sucesso') // acabou de ligar: confirma com um som
+  }
+  return (
+    <div className="nx-config nx-som">
+      <button type="button" data-som="nao" className={`nx-config-btn${mudo ? ' is-mudo' : ''}`} aria-pressed={!mudo} aria-label={mudo ? t('Ligar sons do site') : t('Desligar sons do site')} onClick={trocar}>
+        <IconeUI tipo={mudo ? 'mudo' : 'som'} tamanho={19} />
+        <span className="nx-dica" aria-hidden="true">{mudo ? t('Sons desligados') : t('Sons ligados')}</span>
+      </button>
     </div>
   )
 }

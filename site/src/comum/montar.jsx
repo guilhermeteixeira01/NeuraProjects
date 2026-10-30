@@ -4,6 +4,7 @@ import { createRoot, hydrateRoot } from 'react-dom/client'
 // de uma página para outra. Carrega antes do CSS da página (src/entradas/<página>.css), que vem depois e ganha dele.
 import './site.css'
 import { capturarIndicacao } from './indicacao.js'
+import { ligarSonsDoSite } from './som.js'
 
 // Liga a página no navegador.
 // No site publicado o HTML já vem pronto (gerado no deploy, bom para o Google) e o React só "assume" ele;
@@ -11,6 +12,7 @@ import { capturarIndicacao } from './indicacao.js'
 // e o próprio componente busca os dados.
 export async function montar(Pagina) {
   capturarIndicacao()
+  ligarSonsDoSite()
   if (import.meta.env.DEV && ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) {
     const { ativarPreviewLocal } = await import('./previewLocal.js')
     ativarPreviewLocal()

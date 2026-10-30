@@ -14,3 +14,4 @@
 
 /* Itens de partida (Boost/Freeze) ao lado do JOGAR e o visual do painel: por último, ganha dos anteriores */
 @import '../paginas/lobby/acao.css';
+@import '../comum/acabamento.css';

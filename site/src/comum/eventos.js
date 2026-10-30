@@ -84,12 +84,14 @@ export function calendarioEventosInsignias(ano) {
   // Datas civis de um dia; o fim é exclusivo e convertido para Brasília por periodo().
   for (const [id,mes,dia] of [['sao-patricio',3,17],['dia-do-rock',7,13],['dia-do-trabalho',5,1],['dia-da-mulher',3,8],['dia-do-gamer',8,29],['consciencia-negra',11,20]]) periodo(id,utc(ano,mes,dia),utc(ano,mes,dia+1))
   periodo('dia-dos-mortos',utc(ano,11,1),utc(ano,11,3))
-  // Datas móveis verificadas da edição 2026. Outros anos não reutilizam datas lunares.
-  if (ano === 2026) {
-    periodo('holi',utc(ano,3,4),utc(ano,3,5))
-    periodo('ano-novo-lunar',utc(ano,2,17),utc(ano,2,18))
-    periodo('diwali',utc(ano,11,8),utc(ano,11,9))
-    periodo('oktoberfest',utc(ano,9,19),utc(ano,10,5))
+  // Datas móveis verificadas por edição (calendários lunares não se repetem de um ano para o outro)
+  const MOVEIS = {
+    2026: { holi: [3, 4], 'ano-novo-lunar': [2, 17], diwali: [11, 8], oktoberfest: [[9, 19], [10, 5]] },
+    2027: { holi: [3, 22], 'ano-novo-lunar': [2, 6], diwali: [10, 29], oktoberfest: [[9, 18], [10, 4]] },
+  }
+  for (const [id, d] of Object.entries(MOVEIS[ano] || {})) {
+    if (Array.isArray(d[0])) periodo(id, utc(ano, d[0][0], d[0][1]), utc(ano, d[1][0], d[1][1]))
+    else periodo(id, utc(ano, d[0], d[1]), utc(ano, d[0], d[1] + 1))
   }
   return calendario
 }

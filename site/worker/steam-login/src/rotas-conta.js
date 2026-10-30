@@ -1,6 +1,7 @@
 import { podeUsarMolduraEvento } from '../../../src/comum/molduras.js'
 import { FUNDOS_PERFIL, podeUsarFundoPerfil } from './fundos-perfil.js'
 import { pedirAoJogador } from './objetos.js'
+import { aVenda, lerCatalogo, possui } from './loja-oficial.js'
 /*
  * Rotas do jogador logado sobre a própria conta:
  *   GET  /eu                   -> quem é o dono do token, se é admin e quais abas do painel vê (registra a visita para o painel)
@@ -97,14 +98,28 @@ export async function salvarPerfil(req, env, quem, config, cors) {
   const mudar = validarPerfil(await lerCorpo(req))
   const admin = ehAdmin(quem.id, env, config)
   const perfis = await lerPerfis(env)
-  if (mudar.moldura && !podeUsarMolduraEvento(mudar.moldura, perfis[quem.id])) throw new ErroPermissao('molduraInsignia')
-  if ('fundoPerfil' in mudar && !podeUsarFundoPerfil(mudar.fundoPerfil, perfis[quem.id])) throw new ErroPermissao('fundoInsignia')
+  // Enfeite à venda no mercado oficial: só quem comprou usa; comprado passa por cima das outras travas (nível, cargo, assinatura, insígnia)
+  const comprados = new Set()
+  const pedidos = [['moldura', mudar.moldura], ['card', mudar.card], ['fundo', mudar.fundoPerfil]].filter(([, id]) => id)
+  if (pedidos.length && !admin) {
+    const venda = aVenda(await lerCatalogo(env))
+    const travados = pedidos.filter(([t, id]) => venda.has(`${t}:${id}`))
+    if (travados.length) {
+      const { possui: posse } = await pedirAoJogador(env, quem.id, { acao: 'oficial-posse' })
+      for (const [t, id] of travados) {
+        if (!possui(posse, t, id)) throw new ErroPermissao('mercado', { tipo: t, id })
+        comprados.add(t)
+      }
+    }
+  }
+  if (mudar.moldura && !comprados.has('moldura') && !podeUsarMolduraEvento(mudar.moldura, perfis[quem.id])) throw new ErroPermissao('molduraInsignia')
+  if ('fundoPerfil' in mudar && !comprados.has('fundo') && !podeUsarFundoPerfil(mudar.fundoPerfil, perfis[quem.id])) throw new ErroPermissao('fundoInsignia')
   // Bloqueado não troca o que os outros veem (moldura, time...); tema, idioma e desempenho são só de quem olha: continuam livres
   if (perfis[quem.id]?.bloqueado && !admin && Object.keys(mudar).some((k) => !PREFERENCIAS.includes(k))) throw new ErroPermissao('bloqueado')
   if (mudar.ocultoRanking && !admin) throw new ErroPermissao('admin') // só dono e admins se escondem do ranking
   if (!admin) {
-    if (mudar.moldura) await conferirItem(env, quem, config, perfis, { item: mudar.moldura, nivelPor: 'molduraPorNivel', tabelaNivel: 'nivelMoldura', tabelaCargo: 'molduraCargo', tabelaSub: 'molduraSub', erros: { sub: 'sub', nivel: 'nivel', cargo: 'cargo' } })
-    if (mudar.card) await conferirItem(env, quem, config, perfis, { item: mudar.card, nivelPor: 'cardPorNivel', tabelaNivel: 'nivelCard', tabelaCargo: 'cardCargo', tabelaSub: 'cardSub', erros: { sub: 'cardSub', nivel: 'cardNivel', cargo: 'cardCargo' } })
+    if (mudar.moldura && !comprados.has('moldura')) await conferirItem(env, quem, config, perfis, { item: mudar.moldura, nivelPor: 'molduraPorNivel', tabelaNivel: 'nivelMoldura', tabelaCargo: 'molduraCargo', tabelaSub: 'molduraSub', erros: { sub: 'sub', nivel: 'nivel', cargo: 'cargo' } })
+    if (mudar.card && !comprados.has('card')) await conferirItem(env, quem, config, perfis, { item: mudar.card, nivelPor: 'cardPorNivel', tabelaNivel: 'nivelCard', tabelaCargo: 'cardCargo', tabelaSub: 'cardSub', erros: { sub: 'cardSub', nivel: 'cardNivel', cargo: 'cardCargo' } })
   }
   // molduraLivre: moldura posta por um admin aparece sempre (as outras exclusivas somem se o cargo sair)
   if ('moldura' in mudar) mudar.molduraLivre = admin && mudar.moldura ? true : null

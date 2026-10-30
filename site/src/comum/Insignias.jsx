@@ -19,6 +19,7 @@ const caiNaGrande = (id) => (e) => {
 }
 import { desempenhoAtivo } from './desempenho.js'
 import { localeAtual, useT } from './i18n.js'
+import { somMudo } from './som.js'
 
 function Item({ i }) {
   const t = useT()
@@ -155,6 +156,7 @@ export function prepararSom() {
 // Som de conquista (também usado pelo aviso de skin nova)
 export const tocarConquista = () => tocar()
 function tocar() {
+  if (somMudo()) return
   const ctx = contexto()
   if (!ctx || ctx.state !== 'running') {
     somPendente = true // toca quando o navegador liberar (primeiro toque)

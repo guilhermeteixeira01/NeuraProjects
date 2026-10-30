@@ -512,7 +512,7 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
 
   // embutida: a página da caixa mostra os botões do resultado (Vender tudo, Abrir de novo)
   useEffect(() => {
-    if (embutida && fase === 'resultado' && resultados.length) aoResultado?.(resultados, { saldo: dados?.saldo, restantes: dados?.restantes || 0, consumivel: dados?.consumivel })
+    if (embutida && fase === 'resultado' && resultados.length) aoResultado?.(resultados, { saldo: dados?.saldo, restantes: dados?.restantes || 0 })
   }, [fase]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
