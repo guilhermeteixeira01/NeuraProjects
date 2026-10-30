@@ -99,3 +99,6 @@
 .lj-anuncio-acoes .lj-btn { width: 100%; min-height: 36px; padding: 0 12px; font-size: 13px; }
 .insp-botao.lj-anuncio-insp { width: 36px; height: 36px; padding: 0; border-radius: 8px; }
 .insp-botao.lj-anuncio-insp span { display: none; }
+
+/* abas da loja (Caixas / Loja de skins / Loja geral) centralizadas */
+.lj-pagina .lj-abas:not(#_) { margin-inline: auto; justify-content: center; }
