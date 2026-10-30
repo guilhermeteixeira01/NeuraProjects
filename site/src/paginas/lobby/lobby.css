@@ -78,11 +78,14 @@
 .lb-coroa { position: absolute; top: -26px; left: 50%; transform: translateX(-50%); color: var(--accent); }
 .lb-pessoa .lb-av { position: relative; display: block; width: clamp(78px, 6.4vw, 122px); aspect-ratio: 1; margin-bottom: 4px; }
 .lb-centro .lb-av { width: clamp(90px, 7.2vw, 136px); }
-/* A caixa da moldura ocupa o lugar do avatar (sem isso ela pega o tamanho da foto da Steam, 184px); com moldura a altura
-   deixa de ser fixa, para a margem da moldura (superficies.css) empurrar o nick para baixo da arte */
+/* A caixa da moldura ocupa o lugar do avatar (sem isso ela pega o tamanho da foto da Steam, 184px). Com moldura o avatar
+   encolhe para a arte inteira (~1,5x o avatar) caber no card, a altura deixa de ser fixa e a arte ganha espaço em cima
+   (22cqw, a sobra típica acima da foto) e embaixo (a margem da superficies.css): fica centrada e longe do nick. */
 .lb-pessoa .lb-av > :is(.moldura-box, .emblema-box) { width: 100%; }
-.lb-pessoa .lb-av:has(> .moldura-box) { aspect-ratio: auto; container-type: inline-size; }
-.lb-pessoa .lb-av:has(> .moldura-box) > .lb-bolinha { bottom: auto; top: calc(100cqw - 17px); }
+.lb-pessoa .lb-av:has(> .moldura-box) { width: clamp(58px, 4.4vw, 84px); aspect-ratio: auto; container-type: inline-size; margin-bottom: 6px; }
+.lb-centro .lb-av:has(> .moldura-box) { width: clamp(64px, 4.9vw, 94px); }
+.lb-pessoa .lb-av > .moldura-box { margin-top: 22cqw; }
+.lb-pessoa .lb-av:has(> .moldura-box) > .lb-bolinha { bottom: auto; top: calc(122cqw - 17px); }
 .lb-av img, .lb-ini { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; max-width: none; }
 .lb-ini { display: grid; place-items: center; background: var(--panel-2); font: 700 clamp(16px, 2vw, 26px) var(--font-display); color: var(--dim); }
 .lb-bolinha { position: absolute; right: 3px; bottom: 3px; z-index: 3; width: 14px; height: 14px; border-radius: 50%; border: 3px solid #101114; background: #6d717b; }
