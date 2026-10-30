@@ -191,8 +191,8 @@ html[data-desempenho='1'] .np-inicio .ix-destaques li a { box-shadow: none; tran
 .np-caixa-vitrine img { width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 8px 18px rgb(0 0 0 / .4)); }
 .np-caixa-vitrine b,.np-caixa-vitrine small { display:none; }
 .np-carrossel-borda { --arte: calc(var(--pista) / var(--abertura)); position:absolute; top:calc(var(--encaixe) - var(--arte) * var(--gancho-topo)); width:var(--arte); height:var(--arte); object-fit:contain; z-index:4; pointer-events:none; }
-.np-carrossel-borda-esquerda { --gancho-topo: .189; --abertura: .605; left:-24px; }
-.np-carrossel-borda-direita { --gancho-topo: .167; --abertura: .624; right:-24px; }
+.np-carrossel-borda-esquerda { --gancho-topo: .189; --abertura: .605; left:calc(var(--arte) * -.12); }
+.np-carrossel-borda-direita { --gancho-topo: .167; --abertura: .624; right:calc(var(--arte) * -.12); }
 @media(max-width:650px) {
  .lj-cx-roletas { --cenario:250px; width:100%; }
  .lj-cx-roletas .lj-faixas[data-n] .lj-trilho .lj-cartao,

@@ -6,6 +6,7 @@ import { comSenha } from '../../comum/seguranca.js'
 // (Abertura embutida). Chances, preços dos modos e valores por desgaste vêm do servidor (GET /loja/caixa).
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useFaixaDisponivel } from '../../comum/faixaDisponivel.js'
 import { seForErroApi } from '../../comum/api.js'
 import Deposito from './Deposito.jsx'
 import { useT } from '../../comum/i18n.js'
@@ -310,6 +311,8 @@ function JanelaEspeciais({ itens, achar, aoFechar }) {
 
 export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abrirDoInventario = false, aoAbrirDoInventario, ocupado = false, achar, favorita, aoFavoritar, aoVoltar, aoAbriu }) {
   const t = useT()
+  const carrossel = useRef(null)
+  useFaixaDisponivel(carrossel, 8)
   const maximo = Math.min(maxQtd, MAX_POR_VEZ)
   const [qtd, setQtd] = useState(1)
   const [modo, setModo] = useState(null) // null | 'jester' | 'boost'
@@ -449,7 +452,7 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
         </div>
       </header>
 
-      <div className="lj-cx-roletas">
+      <div className="lj-cx-roletas" ref={carrossel}>
             <img className="np-carrossel-borda np-carrossel-borda-esquerda" src="/assets/caixas/carrocel/jason-esquerda.webp" alt="" aria-hidden="true" width="900" height="900" />
             <img className="np-carrossel-borda np-carrossel-borda-direita" src="/assets/caixas/carrocel/ghostface-direita.webp" alt="" aria-hidden="true" width="900" height="900" />
         {abrindo ? (

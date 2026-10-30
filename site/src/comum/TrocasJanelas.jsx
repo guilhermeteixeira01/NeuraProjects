@@ -13,6 +13,44 @@ import { lerCaixasPublicas } from './loja.js'
 import { comSenha } from './seguranca.js'
 import { descrever, indicar, urlImg, useCatalogo, corEnfeite } from './skins.js'
 import { lerTrocas } from './Trocas.jsx'
+import { calcularResumoTroca } from './resumoTroca.js'
+
+const numeroNP = valor => Math.round(valor).toLocaleString('pt-BR')
+const referenciaItem = (item, valor, cat) => {
+  if (typeof valor === 'number' && Number.isFinite(valor) && valor >= 0) return valor
+  if (item?.t === 'caixa') {
+    const preco = cat.caixas.find(c => c.id === item.d)?.preco
+    if (typeof preco === 'number' && Number.isFinite(preco) && preco >= 0) return preco
+  }
+  return null
+}
+
+function ResumoTroca({ dou, recebo, cat }) {
+  const t = useT()
+  const resumo = calcularResumoTroca(
+    dou.map(i => referenciaItem(i.item, i.valor, cat)),
+    recebo.map(i => referenciaItem(i.item, i.valor, cat)),
+  )
+  const valor = v => v === null ? t('Sem cotação completa') : `${numeroNP(v)} NP`
+  const diferenca = resumo.diferenca
+  return (
+    <section className={`tr-resumo${diferenca > 0 ? ' tr-resumo-ganho' : diferenca < 0 ? ' tr-resumo-perda' : ''}`} aria-label={t('Resumo de valores da troca')} aria-live="polite" aria-atomic="true">
+      <h4>{t('Resumo de valores')}</h4>
+      <dl>
+        <div><dt>{t('Você entrega')} · {dou.length} {t('item(ns)')}</dt><dd>{valor(resumo.oferecido)}</dd></div>
+        <div><dt>{t('Você recebe')} · {recebo.length} {t('item(ns)')}</dt><dd>{valor(resumo.recebido)}</dd></div>
+      </dl>
+      <p className="tr-resumo-diferenca">
+        {!dou.length && !recebo.length ? t('Selecione os itens para comparar os valores.')
+          : diferenca === null ? t('Não é possível calcular a diferença sem o valor de todos os itens.')
+          : diferenca > 0 ? t('Você ganha {n} NP em valor de itens.', { n: numeroNP(diferenca) })
+          : diferenca < 0 ? t('Você perde {n} NP em valor de itens.', { n: numeroNP(-diferenca) })
+          : t('Troca equilibrada: diferença de 0 NP.')}
+      </p>
+      <small>{t('Valores de referência dos itens. Esta troca não movimenta seu saldo de NP.')}</small>
+    </section>
+  )
+}
 
 const MENSAGENS = {
   jogador: 'Jogador não encontrado (ele precisa já ter entrado no site).',
@@ -186,6 +224,8 @@ export function JanelaTroca({ para, aoFechar, aoEnviada }) {
 
   const inv = aba === 'meu' ? meu : dele
   const escolhidos = aba === 'meu' ? dar : pedir
+  const oferecidos = dar.map(id => ({ id, item: meu?.itens?.[id], valor: meu?.valores?.[id] }))
+  const pedidos = pedir.map(id => ({ id, item: dele?.itens?.[id], valor: dele?.valores?.[id] }))
   const lista = useMemo(
     () =>
       Object.entries(inv?.itens || {})
@@ -288,6 +328,7 @@ export function JanelaTroca({ para, aoFechar, aoEnviada }) {
             </h3>
             <small>{t('Estes são os itens que você receberá na troca.')}</small>
             {slots(pedir, dele, (id) => setPedir(pedir.filter((x) => x !== id)))}
+            <ResumoTroca dou={oferecidos} recebo={pedidos} cat={cat} />
             <label className="tr-msg">
               {t('Inclua uma mensagem com a sua proposta:')}
               <textarea value={msg} maxLength={200} onChange={(e) => setMsg(e.target.value)} rows={2} />
@@ -308,6 +349,7 @@ export function JanelaTroca({ para, aoFechar, aoEnviada }) {
               {t('Você escolheu {n} item(ns) para dar, mas não pediu nada de {nome}. Se ele(a) aceitar, você perde os itens e não recebe nada em troca.', { n: dar.length, nome: para.nome })}
             </p>
             <p>{t('Quer mesmo dar de presente? Para trocar, volte e escolha o que você quer receber em "Inventário dele(a)".')}</p>
+            <ResumoTroca dou={oferecidos} recebo={pedidos} cat={cat} />
             <div className="tr-presente-botoes">
               <button type="button" className="inv-btn" onClick={() => setPresente(false)}>
                 {t('Voltar e escolher')}
@@ -414,6 +456,7 @@ function CartaoProposta({ p, eu, cat, aoMudar }) {
           <div className="tr-prop-itens">{recebo.length ? recebo.map((i) => <ItemTroca key={i.id} item={i.item} id={i.id} cat={cat} pequeno />) : <small>{t('Nada')}</small>}</div>
         </div>
       </div>
+      <ResumoTroca dou={dou} recebo={recebo} cat={cat} />
       {erro && <p className="tr-erro">{t(textoErro({ message: erro }))}</p>}
       {p.estado === 'pendente' && (
         <footer>

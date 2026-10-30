@@ -20,6 +20,7 @@ import { Fila, objetoGlobal, responder } from './objetos.js'
 import { registrar } from './registro.js'
 import { limparSkins, lerSkins, mudarSkins, novoIdItem, tirarItem } from './skins.js'
 import { lerUsuarios } from './usuarios.js'
+import { valorDe } from './valor.js'
 
 const ID_STEAM = /^\d{17}$/
 const MAX_ITENS = 20 // por lado
@@ -137,6 +138,10 @@ export class Trocas {
 
   listar(quem) {
     const minhas = this.sql.exec('SELECT * FROM trocas WHERE de = ? OR para = ? ORDER BY criada DESC', quem, quem).toArray().map(deLinha)
+    // Cotação de referência atual, calculada pelo servidor, inclusive para propostas antigas.
+    for (const proposta of minhas) {
+      for (const lado of ['dar', 'pedir']) proposta[lado] = proposta[lado].map(i => ({ ...i, valor: valorDe(i.item)?.v ?? null }))
+    }
     const pendente = (x) => x.estado === 'pendente'
     return {
       recebidas: minhas.filter((x) => pendente(x) && x.para === quem),

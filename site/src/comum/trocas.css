@@ -37,6 +37,16 @@ button.tr-item:hover { background: rgb(255 255 255 / .06); }
 .tr-slot.cheio { border-style: solid; background: rgb(255 255 255 / .08); }
 .tr-slot .tr-item { padding: 2px; }
 .tr-estado { margin: 4px 0; color: var(--dim); font-size: 13px; }
+.tr-resumo { --tr-sinal: var(--dim); min-width: 0; margin: 12px 0; padding: 14px 16px; border: 1px solid var(--border-2); border-left: 3px solid var(--tr-sinal); border-radius: 8px; background: var(--panel, #121317); }
+.tr-resumo.tr-resumo-ganho { --tr-sinal: #3ddc84; }
+.tr-resumo.tr-resumo-perda { --tr-sinal: #ff7a7a; }
+.tr-resumo h4 { margin: 0 0 12px; font: 700 13px var(--font-body); color: var(--text); }
+.tr-resumo dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.tr-resumo dl > div { display: grid; gap: 5px; min-width: 0; }
+.tr-resumo dt { font: 500 11px/1.5 var(--font-body); color: var(--dim); }
+.tr-resumo dd { margin: 0; font: 700 16px/1.4 var(--font-body); color: var(--text); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.tr-resumo .tr-resumo-diferenca { margin: 12px 0 6px; font: 600 13px/1.5 var(--font-body); color: var(--tr-sinal); }
+.tr-resumo > small { display: block; font: 400 10.5px/1.5 var(--font-body); color: var(--dim); }
 .tr-msg { display: grid; gap: 4px; font-size: 12px; color: var(--dim); }
 .tr-msg textarea, .tr-busca { width: 100%; box-sizing: border-box; background: rgb(0 0 0 / .3); border: 1px solid rgb(255 255 255 / .14); color: var(--text); border-radius: 8px; padding: 8px 10px; font: 13px var(--font-body); resize: vertical; }
 .tr-busca { margin: 10px 0; }

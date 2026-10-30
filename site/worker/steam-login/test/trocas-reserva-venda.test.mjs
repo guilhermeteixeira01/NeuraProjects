@@ -28,6 +28,21 @@ test('oferecidos e pedidos somem de novas trocas; servidor impede reutilizar em 
   assert.ok((await f.inventario(A))[f.a]);assert.ok((await f.inventario(B))[f.b])
 })
 
+test('propostas trazem cotações oficiais dos dois lados sem movimentar NP',async()=>{
+  const f=await fixture()
+  const va=(await f.pedir('GET',`/skins/inventario?id=${A}`,{quem:A})).dados.valores[f.a]
+  const vb=(await f.pedir('GET',`/skins/inventario?id=${B}`,{quem:B})).dados.valores[f.b]
+  const saldo=(await f.pedir('GET','/loja/saldo',{quem:A})).dados.saldo
+  assert.equal((await f.propor(A,B,[f.a],[f.b])).status,200)
+  const enviadas=(await f.pedir('GET','/trocas',{quem:A})).dados.enviadas[0]
+  const recebidas=(await f.pedir('GET','/trocas',{quem:B})).dados.recebidas[0]
+  assert.equal(enviadas.dar[0].valor,va)
+  assert.equal(enviadas.pedir[0].valor,vb)
+  assert.deepEqual(recebidas.dar,enviadas.dar)
+  assert.deepEqual(recebidas.pedir,enviadas.pedir)
+  assert.equal((await f.pedir('GET','/loja/saldo',{quem:A})).dados.saldo,saldo)
+})
+
 test('recusa e expiração liberam reservas; concorrência permite apenas uma proposta',async()=>{
   const f=await fixture()
   const propostas=await Promise.all([f.propor(A,B,[f.a],[f.b]),f.propor(A,C,[f.a],[])])
