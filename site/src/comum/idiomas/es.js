@@ -1604,4 +1604,14 @@ export default {
   "Conferindo conquistas…": "Revisando logros…",
   // Loja de skins / loja de personalização e insígnias das caixas nas Missões
   "Ref. {n}": "Ref. {n}",
+  // Painel da loja de personalização
+  "Item à venda fica travado no Personalizar até o jogador comprar. Preço 0 tira o Boost/Freeze da venda.": "Los objetos a la venta quedan bloqueados en Personalizar hasta que el jugador los compre. Precio 0 quita Boost/Freeze de la venta.",
+  "Fundos": "Fondos",
+  "Buscar...": "Buscar...",
+  "Vender separados": "Vender por separado",
+  "Kit": "Kit",
+  "Salvo.": "Guardado.",
+  "Posto à venda.": "Puesto a la venta.",
+  "Kit criado.": "Kit creado.",
+  "Dê um nome ao kit.": "Ponle un nombre al kit.",
 }

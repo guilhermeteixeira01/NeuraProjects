@@ -26,20 +26,46 @@
 .adm-console, .sv-console { border-radius: 8px; font-family: Consolas, monospace; }
 @media(max-width:700px) { .adm-resumo { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; } .adm-resumo .caixa { padding: 16px; } .adm-bloco, .adm-dobra { padding: 16px; } .adm-abas button { flex: 1 1 100px; padding-inline: 10px; } .adm-ferramentas { align-items: stretch; } .adm-chips { gap: 5px; } .adm-tabela-box { max-width: 100%; } }
 
-/* Mercado oficial (aba Loja do painel) */
-.adm-mo h3 { margin: 0 0 6px; font: 700 18px var(--font-display); }
-.adm-mo h4 { margin: 18px 0 8px; color: var(--dim); font: 700 12px var(--font-body); letter-spacing: .14em; text-transform: uppercase; }
-.adm-mo-linha { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
-.adm-mo-campo { display: grid; gap: 4px; min-width: 150px; color: var(--dim); font-size: 12px; }
-.adm-mo-campo input, .adm-mo-campo select { min-height: 36px; padding: 0 10px; border: 1px solid var(--border-2); border-radius: 7px; background: var(--bg-soft); color: var(--text); font: 500 13px var(--font-body); }
-.adm-mo-campo:has(input[list]) { flex: 1 1 220px; }
-.adm-mo-preco { min-width: 110px; max-width: 130px; }
-.adm-mo-salvar { min-height: 36px; padding: 0 16px; border: 0; border-radius: 7px; background: var(--ui-accent, #f5c542); color: #17150e; font: 700 12.5px var(--font-body); cursor: pointer; }
-.adm-mo-salvar:disabled { opacity: .5; cursor: default; }
-.adm-mo-lista { display: grid; gap: 6px; margin: 10px 0 0; padding: 0; list-style: none; }
-.adm-mo-lista li { display: grid; grid-template-columns: 44px minmax(0, 1fr) 110px auto; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 8px; background: rgb(255 255 255 / .03); }
-.adm-mo-lista img, .adm-mo-lista li > i { width: 44px; height: 44px; border-radius: 6px; object-fit: cover; background: #0d0f13; }
+/* Loja de personalização (aba Loja do painel): sem cartão de fundo, escolha clicando nas miniaturas */
+.adm-mo { display: grid; gap: 14px; }
+.adm-mo-cab h3 { margin: 0; font: 700 20px var(--font-display); }
+.adm-mo-cab p { margin: 4px 0 0; color: var(--dim); font-size: 13px; }
+.adm-mo h4 { margin: 10px 0 0; color: var(--dim); font: 700 11.5px var(--font-body); letter-spacing: .14em; text-transform: uppercase; }
+.adm-mo input { min-height: 36px; padding: 0 10px; border: 1px solid var(--border-2); border-radius: 8px; background: var(--bg-soft); color: var(--text); font: 600 13px var(--font-body); }
+.adm-mo-consumiveis { display: flex; flex-wrap: wrap; gap: 10px; }
+.adm-mo-consumiveis label, .adm-mo-preco { display: inline-flex; align-items: center; gap: 8px; }
+.adm-mo-consumiveis span { min-width: 54px; font: 700 13px var(--font-body); }
+.adm-mo-consumiveis input, .adm-mo-preco input { width: 110px; }
+.adm-mo-consumiveis small, .adm-mo-preco small { color: var(--dim); font-size: 12px; }
+.adm-mo-barra { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.adm-mo-abas { display: flex; gap: 4px; }
+.adm-mo-abas button { padding: 7px 14px; border: 0; border-radius: 999px; background: rgb(255 255 255 / .05); color: var(--dim); font: 700 12.5px var(--font-body); cursor: pointer; }
+.adm-mo-abas button.is-ativo { background: var(--ui-accent, #f5c542); color: #17150e; }
+.adm-mo-busca { flex: 1 1 200px; }
+.adm-mo-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; max-height: 300px; margin: 0; padding: 2px; overflow-y: auto; list-style: none; }
+.adm-mo-grade-fundo { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.adm-mo-grade button { display: grid; gap: 4px; width: 100%; padding: 6px; border: 0; border-radius: 8px; background: rgb(255 255 255 / .03); color: var(--text); cursor: pointer; box-shadow: inset 0 0 0 1px rgb(255 255 255 / .05); }
+.adm-mo-grade button:hover { background: rgb(255 255 255 / .07); }
+.adm-mo-grade button.is-sel { box-shadow: inset 0 0 0 2px var(--ui-accent, #f5c542); background: color-mix(in srgb, var(--ui-accent, #f5c542) 10%, transparent); }
+.adm-mo-grade button.is-venda::after { content: 'NP'; justify-self: start; padding: 0 5px; border-radius: 4px; background: rgb(61 220 132 / .15); color: var(--green); font: 800 9.5px var(--font-body); }
+.adm-mo-grade img { width: 100%; aspect-ratio: 1; object-fit: contain; }
+.adm-mo-grade-card img { aspect-ratio: 282 / 395; object-fit: cover; border-radius: 5px; }
+.adm-mo-grade-fundo img { aspect-ratio: 16 / 9; object-fit: cover; border-radius: 5px; }
+.adm-mo-grade span { overflow: hidden; font-size: 11px; text-align: left; white-space: nowrap; text-overflow: ellipsis; }
+.adm-mo-acao { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px; border-radius: 10px; background: rgb(255 255 255 / .03); }
+.adm-mo-escolhas { display: flex; flex-wrap: wrap; gap: 6px; flex-basis: 100%; }
+.adm-mo-escolhas button { padding: 5px 10px; border: 0; border-radius: 999px; background: color-mix(in srgb, var(--ui-accent, #f5c542) 14%, transparent); color: var(--text); font: 600 12px var(--font-body); cursor: pointer; }
+.adm-mo-escolhas small { color: var(--ui-accent, #f5c542); font-weight: 800; }
+.adm-mo-nome { flex: 1 1 160px; }
+.adm-mo-btn { min-height: 36px; padding: 0 16px; border: 0; border-radius: 8px; background: var(--ui-accent, #f5c542); color: #17150e; font: 700 12.5px var(--font-body); cursor: pointer; }
+.adm-mo-btn-2 { background: rgb(255 255 255 / .1); color: var(--text); }
+.adm-mo-btn:disabled { opacity: .5; cursor: default; }
+.adm-mo-lista { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.adm-mo-lista li { display: grid; grid-template-columns: 40px minmax(0, 1fr) 110px 32px; align-items: center; gap: 12px; padding: 6px 8px; border-radius: 8px; background: rgb(255 255 255 / .03); }
+.adm-mo-lista img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; background: #0d0f13; }
 .adm-mo-lista span { display: grid; min-width: 0; }
+.adm-mo-lista b { overflow: hidden; font-size: 13px; white-space: nowrap; text-overflow: ellipsis; }
 .adm-mo-lista small { overflow: hidden; color: var(--dim); font-size: 11.5px; white-space: nowrap; text-overflow: ellipsis; }
-.adm-mo-lista input { min-height: 32px; padding: 0 8px; border: 1px solid var(--border-2); border-radius: 6px; background: var(--bg-soft); color: var(--text); }
-.adm-mo-lista button { min-height: 32px; padding: 0 12px; border: 0; border-radius: 6px; background: rgb(255 70 85 / .12); color: var(--red); font: 700 12px var(--font-body); cursor: pointer; }
+.adm-mo-lista button { width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: rgb(255 70 85 / .12); color: var(--red); font: 700 16px var(--font-body); cursor: pointer; }
+.adm-mo-ok { margin: 0; color: var(--green); font-size: 12.5px; }
+.adm-mo-erro { margin: 0; color: var(--red); font-size: 12.5px; }

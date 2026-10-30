@@ -59,7 +59,7 @@ export function ativarPreviewLocal() {
   const respostas = {
     '/config': config,
     '/perfis': perfisDemo,
-    '/eu': { id, admin: true, dono: true, painel: true, abas: ['usuarios', 'molduras', 'cards', 'cargos', 'logs', 'servidor'] },
+    '/eu': { id, admin: true, dono: true, painel: true, abas: ['usuarios', 'molduras', 'cards', 'cargos', 'pontos', 'logs', 'servidor'] },
     '/conta/seguranca': { nick: nome, temSenha: true, email: 'teste@example.com', premium: true, podeTrocarNick: true },
     '/amigos': { amigos: pessoas.slice(1), recebidos: [], enviados: [] },
     '/lobby': { eu: id, lider: id, souLider: true, publico: false, max: 5, membros: [{ id, nome, avatar, st: 'online' }], convites: [], convitesRecebidos: [], abertos: [], emLobby: [], emPartida: [], partida: null },
