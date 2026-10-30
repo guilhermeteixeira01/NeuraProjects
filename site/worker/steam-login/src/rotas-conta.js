@@ -1,7 +1,7 @@
 import { podeUsarMolduraEvento } from '../../../src/comum/molduras.js'
 import { FUNDOS_PERFIL, podeUsarFundoPerfil } from './fundos-perfil.js'
 import { pedirAoJogador } from './objetos.js'
-import { aVenda, lerCatalogo, possui } from './loja-oficial.js'
+import { aVenda, lerCatalogo, possui, retirarEnfeitesSemCompra } from './loja-oficial.js'
 /*
  * Rotas do jogador logado sobre a própria conta:
  *   GET  /eu                   -> quem é o dono do token, se é admin e quais abas do painel vê (registra a visita para o painel)
@@ -101,14 +101,13 @@ export async function salvarPerfil(req, env, quem, config, cors) {
   // Enfeite à venda no mercado oficial: só quem comprou usa; comprado passa por cima das outras travas (nível, cargo, assinatura, insígnia)
   const comprados = new Set()
   const pedidos = [['moldura', mudar.moldura], ['card', mudar.card], ['fundo', mudar.fundoPerfil]].filter(([, id]) => id)
-  if (pedidos.length && !admin) {
+  if (pedidos.length) {
     const venda = aVenda(await lerCatalogo(env))
-    const travados = pedidos.filter(([t, id]) => venda.has(`${t}:${id}`))
-    if (travados.length) {
+    {
       const { possui: posse } = await pedirAoJogador(env, quem.id, { acao: 'oficial-posse' })
-      for (const [t, id] of travados) {
-        if (!possui(posse, t, id)) throw new ErroPermissao('mercado', { tipo: t, id })
-        comprados.add(t)
+      for (const [t, id] of pedidos) {
+        if (possui(posse, t, id)) comprados.add(t)
+        else if (venda.has(`${t}:${id}`)) throw new ErroPermissao('mercado', { tipo: t, id })
       }
     }
   }
@@ -134,6 +133,7 @@ export async function salvarPerfil(req, env, quem, config, cors) {
 
 // GET /eu: toda página com login chama; registra a visita (nome/avatar do próprio login) para o painel
 export async function rotaEu(env, quem, config, cors) {
+  await retirarEnfeitesSemCompra(env, await lerCatalogo(env), quem.id)
   const abas = await abasDe(quem.id, env, config)
   await semDerrubar(registrarUsuario(env, quem.id, { nome: quem.nome, avatar: quem.avatar }, true), 'registro da visita')
   await semDerrubar(pedirAoJogador(env,quem.id,{acao:'missoes-sinc',historico:true,acesso:true}), 'missões da conta')

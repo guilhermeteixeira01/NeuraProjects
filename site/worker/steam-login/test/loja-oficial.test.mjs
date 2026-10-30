@@ -3,11 +3,31 @@ import assert from 'node:assert/strict'
 import { ambiente } from './ambiente.mjs'
 import { pedirAoJogador } from '../src/objetos.js'
 import { limparCatalogo } from '../src/loja-oficial.js'
+import { mudarPerfil, lerPerfil } from '../src/perfis.js'
 
 const A = '76561198000000961', B = '76561198000000962'
 const MOLDURA = 'times/furia', CARD = 'neura/neura-ouro.svg'
 const catalogo = { consumiveis: { boost: 300, freeze: 200 }, itens: [{ tipo: 'moldura', id: MOLDURA, preco: 500 }], kits: [{ id: 'kit-neura', nome: 'Kit Neura', moldura: 'times/navi', card: CARD, fundo: 'nuke', preco: 900 }] }
 const darNp = (env, id, valor) => pedirAoJogador(env, id, { acao: 'creditar', valor })
+
+test('publicar catálogo retira enfeites sem compra, inclusive kits, e preserva os comprados', async () => {
+  const { pedir, env } = ambiente()
+  await mudarPerfil(env, A, { moldura: MOLDURA, molduraLivre: true, card: CARD, fundoPerfil: 'nuke', tema: 'escuro' })
+  await mudarPerfil(env, B, { moldura: MOLDURA })
+  await pedir('POST', '/admin/loja-oficial', { quem: env.DONO, corpo: catalogo })
+  await darNp(env, B, 1000)
+  await pedir('POST', '/loja/oficial/comprar', { quem: B, corpo: { tipo: 'moldura', id: MOLDURA } })
+  await mudarPerfil(env, A, { moldura: MOLDURA, molduraLivre: true, card: CARD, fundoPerfil: 'nuke' })
+  await mudarPerfil(env, B, { moldura: MOLDURA })
+  const r = await pedir('POST', '/admin/loja-oficial', { quem: env.DONO, corpo: catalogo })
+  assert.equal(r.status, 200)
+  assert.deepEqual(await lerPerfil(env, A), { tema: 'escuro' })
+  assert.equal((await lerPerfil(env, B)).moldura, MOLDURA)
+  // Contas antigas também são corrigidas no próximo acesso.
+  await mudarPerfil(env, A, { card: CARD })
+  assert.equal((await pedir('GET', '/eu', { quem: A })).status, 200)
+  assert.equal((await lerPerfil(env, A)).card, undefined)
+})
 
 test('catálogo descarta preço zero, id que não existe e item repetido', () => {
   const c = limparCatalogo({ consumiveis: { boost: 0 }, itens: [{ tipo: 'moldura', id: MOLDURA, preco: 10 }, { tipo: 'moldura', id: MOLDURA, preco: 20 }, { tipo: 'moldura', id: 'nao/existe', preco: 5 }, { tipo: 'fundo', id: 'nuke', preco: 0 }], kits: [{ nome: 'vazio', preco: 10 }] })

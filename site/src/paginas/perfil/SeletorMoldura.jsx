@@ -87,9 +87,9 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   const semSubM = (id) => !admin && semSubMinima(subDaMoldura(config, id), meuNivelSub)
   const semSubC = (c) => !admin && semSubMinima(subDoCard(config, c), meuNivelSub)
   // Mercado oficial: enfeite à venda fica travado até comprar; comprado passa por cima das outras travas (o worker confere igual)
-  const oficial = useOficial(!admin && !inicial)
+  const oficial = useOficial(!inicial)
   const comprado = (tipo, id) => !!oficial?.possui?.[tipo]?.includes(id)
-  const naLoja = (tipo, id) => !admin && !!oficial?.venda.has(`${tipo}:${id}`) && !comprado(tipo, id)
+  const naLoja = (tipo, id) => !inicial && !!oficial?.venda.has(`${tipo}:${id}`) && !comprado(tipo, id)
   const travada = (id) => naLoja('moldura', id) || (!comprado('moldura', id) && (!podeUsarMolduraEvento(id, perfil) || (!admin && nivelDaMoldura(config, id) > nivelEf) || semCargo(id) || semSubM(id)))
   // Cards (banners): mesmas travas das molduras, configuradas na aba Cards do painel admin
   const semCargoCard = (c) => {
@@ -397,7 +397,8 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
           </button>
         </div>
 
-        <div className="sm-corpo">
+        {!inicial && !oficial && <p role="status">{tr('Carregando catálogo da loja…')}</p>}
+        <div className="sm-corpo" inert={!inicial && !oficial}>
           <div className={`sm-previa${aba === 'fundoPerfil' ? ' sm-previa-mapa' : ''}`}>
             {aba === 'fundoPerfil' && <div className="sm-previa-fundo"><img src={imagemFundoPerfil(escolha.fundoPerfil)} alt={nomeFundoPerfil(escolha.fundoPerfil || 'mirage')} /><b>{nomeFundoPerfil(escolha.fundoPerfil || 'mirage')}</b></div>}
             {/* o card do perfil, na mesma proporção (282 × 395) */}
@@ -564,7 +565,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
           <button type="button" className="btn btn-ghost" onClick={cancelar}>
             {tr('Cancelar')}
           </button>
-          <button type="button" className="btn btn-primary" onClick={salvar} disabled={estado === 'salvando' || !mudou}>
+          <button type="button" className="btn btn-primary" onClick={salvar} disabled={estado === 'salvando' || !mudou || (!inicial && !oficial)}>
             {estado === 'salvando' ? tr('Salvando…') : tr('Salvar')}
           </button>
         </div>

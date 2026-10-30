@@ -29,6 +29,7 @@ export default function MercadoOficialAdmin() {
   const [escolha, setEscolha] = useState({}) // { moldura?, card?, fundo? } clicados na grade
   const [preco, setPreco] = useState(1000)
   const [nomeKit, setNomeKit] = useState('')
+  const [editandoKit, setEditandoKit] = useState(null)
 
   useEffect(() => {
     chamar('/admin/loja-oficial').then(setCat, () => setEstado({ texto: t('Não deu para ler o catálogo.'), ok: false }))
@@ -40,6 +41,10 @@ export default function MercadoOficialAdmin() {
   }, [tipo, busca])
 
   const salvar = async (proximo, texto = t('Salvo.')) => {
+    if ([...proximo.itens, ...proximo.kits].some(x => !inteiro(x.preco))) {
+      setEstado({ texto: t('Coloque um preço maior que zero.'), ok: false })
+      return false
+    }
     setOcupado(true)
     try {
       setCat(await chamar('/admin/loja-oficial', proximo))
@@ -67,12 +72,13 @@ export default function MercadoOficialAdmin() {
     if (!inteiro(preco)) return setEstado({ texto: t('Coloque um preço maior que zero.'), ok: false })
     const id = `kit-${nomeKit.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30) || 'novo'}-${Date.now().toString(36).slice(-4)}`
     const kit = { id, nome: nomeKit.trim(), preco: inteiro(preco), ...Object.fromEntries(escolhidas.map((tp) => [tp, escolha[tp]])) }
-    if (await salvar({ ...cat, kits: [...cat.kits, kit] }, t('Kit criado.'))) {
+    if (await salvar({ ...cat, kits: editandoKit ? cat.kits.map(k => k.id === editandoKit ? { ...kit, id: editandoKit } : k) : [...cat.kits, kit] }, t(editandoKit ? 'Kit atualizado.' : 'Kit criado.'))) {
+      setEditandoKit(null)
       setEscolha({})
       setNomeKit('')
     }
   }
-  const mudarPreco = (lista, alvo, valor) => setCat((c) => ({ ...c, [lista]: c[lista].map((y) => (y === alvo ? { ...y, preco: inteiro(valor) } : y)) }))
+  const mudarPreco = (lista, alvo, valor) => setCat((c) => ({ ...c, [lista]: c[lista].map((y) => (y === alvo ? { ...y, preco: valor } : y)) }))
 
   return (
     <section className="adm-mo">
@@ -81,11 +87,12 @@ export default function MercadoOficialAdmin() {
         <p>{t('Item à venda fica travado no Personalizar até o jogador comprar. Preço 0 tira o Boost/Freeze da venda.')}</p>
       </header>
 
+      <fieldset disabled={ocupado} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
       <div className="adm-mo-consumiveis">
         {['boost', 'freeze'].map((k) => (
           <label key={k}>
             <span>{k === 'boost' ? 'Boost' : 'Freeze'}</span>
-            <input type="number" min="0" value={cat.consumiveis[k]} onChange={(e) => setCat((c) => ({ ...c, consumiveis: { ...c.consumiveis, [k]: inteiro(e.target.value) } }))} onBlur={() => salvar(cat)} />
+            <input type="number" min="0" value={cat.consumiveis[k]} onChange={(e) => setCat((c) => ({ ...c, consumiveis: { ...c.consumiveis, [k]: inteiro(e.target.value) } }))} />
             <small>NP</small>
           </label>
         ))}
@@ -131,8 +138,9 @@ export default function MercadoOficialAdmin() {
           </button>
           <input className="adm-mo-nome" value={nomeKit} maxLength={60} placeholder={t('Nome do kit')} onChange={(e) => setNomeKit(e.target.value)} />
           <button type="button" className="adm-mo-btn adm-mo-btn-2" disabled={ocupado} onClick={criarKit}>
-            {t('Criar kit')}
+            {t(editandoKit ? 'Salvar kit' : 'Criar kit')}
           </button>
+          {editandoKit && <button type="button" disabled={ocupado} onClick={() => { setEditandoKit(null); setEscolha({}); setNomeKit('') }}>{t('Cancelar')}</button>}
         </div>
       )}
 
@@ -143,11 +151,12 @@ export default function MercadoOficialAdmin() {
             <img src={infoEnfeite(k.card ? 'card' : k.moldura ? 'moldura' : 'fundo', k.card || k.moldura || k.fundo).img} alt="" loading="lazy" />
             <span>
               <b>{k.nome}</b>
+              <button type="button" disabled={ocupado} onClick={() => { setEditandoKit(k.id); setNomeKit(k.nome); setPreco(k.preco); setEscolha(Object.fromEntries(TIPOS.filter(([tp]) => k[tp]).map(([tp]) => [tp, k[tp]]))) }}>{t('Editar kit')}</button>
               <small>
                 {t('Kit')} · {['card', 'moldura', 'fundo'].filter((p) => k[p]).map((p) => infoEnfeite(p, k[p]).nome).join(' · ')}
               </small>
             </span>
-            <input type="number" min="1" value={k.preco} aria-label={t('Preço (NP)')} onChange={(e) => mudarPreco('kits', k, e.target.value)} onBlur={() => salvar(cat)} />
+            <input type="number" min="1" value={k.preco} aria-label={t('Preço (NP)')} onChange={(e) => mudarPreco('kits', k, e.target.value)} />
             <button type="button" aria-label={t('Tirar')} disabled={ocupado} onClick={() => salvar({ ...cat, kits: cat.kits.filter((y) => y !== k) })}>
               ×
             </button>
@@ -162,7 +171,7 @@ export default function MercadoOficialAdmin() {
                 <b>{info.nome}</b>
                 <small>{t(rotulo(x.tipo))}</small>
               </span>
-              <input type="number" min="1" value={x.preco} aria-label={t('Preço (NP)')} title={`${numero(x.preco)} NP`} onChange={(e) => mudarPreco('itens', x, e.target.value)} onBlur={() => salvar(cat)} />
+              <input type="number" min="1" value={x.preco} aria-label={t('Preço (NP)')} title={`${numero(x.preco)} NP`} onChange={(e) => mudarPreco('itens', x, e.target.value)} />
               <button type="button" aria-label={t('Tirar')} disabled={ocupado} onClick={() => salvar({ ...cat, itens: cat.itens.filter((y) => y !== x) })}>
                 ×
               </button>
@@ -170,6 +179,8 @@ export default function MercadoOficialAdmin() {
           )
         })}
       </ul>
+      <button type="button" className="adm-mo-btn" disabled={ocupado} onClick={() => salvar(cat)}>{t('Salvar alterações')}</button>
+      </fieldset>
       {estado.texto && <p className={estado.ok ? 'adm-mo-ok' : 'adm-mo-erro'} role="status">{estado.texto}</p>}
     </section>
   )

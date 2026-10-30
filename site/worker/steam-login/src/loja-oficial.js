@@ -14,7 +14,10 @@
  *   GET|POST /admin/loja-oficial                (admin) -> catálogo
  */
 import { MOLDURAS } from '../../../src/comum/molduras.js'
-import { lerDoc, mudarDoc } from './dados.js'
+import { lerDoc, mudarDoc, mudar } from './dados.js'
+import { lerPerfis } from './perfis.js'
+import { pedirAoJogador } from './objetos.js'
+import { avisarPerfil } from './amigos.js'
 import { ErroConflito, ErroNaoEncontrado, ErroPedido } from './erros.js'
 import { FUNDOS_PERFIL } from './fundos-perfil.js'
 import { TIPOS_CONSUMIVEL, publico as consumiveisPublicos } from './consumiveis.js'
@@ -60,7 +63,39 @@ export function limparCatalogo(c = {}) {
 }
 
 export const lerCatalogo = async (env) => limparCatalogo((await lerDoc(env, 'loja-oficial')) || {})
-export const gravarCatalogo = (env, c) => mudarDoc(env, 'loja-oficial', () => limparCatalogo(c))
+export const gravarCatalogo = async (env, c) => {
+  const catalogo = await mudarDoc(env, 'loja-oficial', () => limparCatalogo(c))
+  await retirarEnfeitesSemCompra(env, catalogo)
+  return catalogo
+}
+
+// Confere a posse fora da transação; dentro dela revalida os campos atuais para não apagar uma edição concorrente.
+export async function retirarEnfeitesSemCompra(env, catalogo, jogador) {
+  const venda = aVenda(catalogo)
+  if (!venda.size) return
+  const campos = { moldura: 'moldura', card: 'card', fundo: 'fundoPerfil' }
+  const perfis = await lerPerfis(env)
+  for (const [id, perfil] of Object.entries(perfis)) {
+    if (jogador && id !== jogador) continue
+    if (!TIPOS_ENFEITE.some(t => venda.has(`${t}:${perfil[campos[t]]}`))) continue
+    const { possui: posse } = await pedirAoJogador(env, id, { acao: 'oficial-posse' })
+    const { mapa, resultado } = await mudar(env, 'perfis', [id], atuais => {
+      const p = atuais[id]
+      if (!p) return false
+      let mudou = false
+      for (const t of TIPOS_ENFEITE) {
+        const campo = campos[t]
+        if (venda.has(`${t}:${p[campo]}`) && !possui(posse, t, p[campo])) {
+          delete p[campo]
+          if (t === 'moldura') delete p.molduraLivre
+          mudou = true
+        }
+      }
+      return mudou
+    })
+    if (resultado) await avisarPerfil(env, id, mapa[id])
+  }
+}
 
 // "moldura:times/furia" de tudo que está à venda (solto ou em kit): trava no Personalizar até comprar
 export function aVenda(catalogo) {
