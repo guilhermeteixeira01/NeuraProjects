@@ -5,7 +5,8 @@ import IconeUI from './IconeUI.jsx'
 //   MENSAGENS — as conversas diretas (prévia da última mensagem, hora e não lidas); clicar abre a conversa (mensagens.js: histórico e envio).
 // Abre por cima do site (não empurra a página); fecha com Esc ou clicando fora.
 // Aberto/fechado fica guardado no navegador. Amigos e presença: comum/amigos.js. Chat direto: comum/mensagens.js.
-import { Suspense, lazy, useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, memo, useCallback, useEffect, useRef, useState } from 'react'
+import { useLinhaVisivel } from './linhaVisivel.js'
 import { createPortal } from 'react-dom'
 import { lerApi, seForErroApi } from './api.js'
 import { acaoAmizade, buscarJogadores, relacaoCom, tempoDesde, useAmigos } from './amigos.js'
@@ -28,18 +29,28 @@ export function IconeAmigos({ tamanho = 20 }) { return <IconeUI tipo="amigos" ta
 function Foto({ a }) {
   const src = useAvatar(a.id, a.avatar)
   const [erro, setErro] = useState('')
-  return src && erro !== src ? <img src={src} alt="" loading="lazy" onError={() => setErro(src)} /> : <span className="am-ini">{(a.nome || '?').slice(0, 2).toUpperCase()}</span>
+  return src && erro !== src ? <img src={src} alt="" loading="lazy" decoding="async" width="34" height="34" onError={() => setErro(src)} /> : <span className="am-ini">{(a.nome || '?').slice(0, 2).toUpperCase()}</span>
 }
 
 function IconeBalao({ tamanho = 16 }) { return <IconeUI tipo="mensagem" tamanho={tamanho}/> }
 
-function Linha({ a, st, visto, aoConversar, children }) {
+const Linha = memo(function Linha({ a, st, visto, aoConversar, children, leve = false }) {
+  const ref = useRef(null)
+  const [visivel, mostrar] = useLinhaVisivel(ref, leve)
+  return (
+    <li ref={ref} className={`am-linha am-${st}${leve ? ' am-linha-leve' : ''}`} tabIndex={visivel ? undefined : 0} aria-label={visivel ? undefined : a.nome || a.id} onFocusCapture={mostrar}>
+      {visivel && <ConteudoLinha a={a} st={st} visto={visto} aoConversar={aoConversar} leve={leve}>{children}</ConteudoLinha>}
+    </li>
+  )
+})
+
+function ConteudoLinha({ a, st, visto, aoConversar, children, leve }) {
   const t = useT()
   return (
-    <li className={`am-linha am-${st}`}>
+    <>
       <a className="am-pessoa" href={linkPerfil(a.id)} title={a.nome || a.id}>
         <span className="am-av">
-          <ComMoldura steamId={a.id} emblema>
+          <ComMoldura steamId={a.id} emblema parado={leve}>
             <Foto a={a} />
           </ComMoldura>
           <i className="am-bolinha" aria-label={t(st === 'online' ? 'Online' : st === 'jogando' ? 'Jogando' : st === 'ausente' ? 'Ausente' : 'Offline')} />
@@ -60,7 +71,7 @@ function Linha({ a, st, visto, aoConversar, children }) {
         </button>
       )}
       {children}
-    </li>
+    </>
   )
 }
 
@@ -412,6 +423,11 @@ export default function PainelAmigos({ celular = false }) {
     if (!aberto) setConversaCom(null) // fechou o painel: a próxima vez que abrir volta para a lista (não para o meio de uma conversa)
   }, [aberto])
 
+  const abrirConversa = useCallback((id) => {
+    setAba('chats')
+    setConversaCom(id)
+  }, [])
+
   if (!podeVer) return null
   const amigos = lista?.amigos || []
   const st = (a) => status[a.id]?.st || 'offline'
@@ -438,10 +454,6 @@ export default function PainelAmigos({ celular = false }) {
   }
 
   // Clicou no balão de um amigo (aba Amigos) ou numa conversa (aba Chats): abre essa conversa
-  const abrirConversa = (id) => {
-    setAba('chats')
-    setConversaCom(id)
-  }
 
   const alertas = recebidos.length + naoLidas // selo no botão da barra: pedidos de amizade + mensagens não lidas
 
@@ -522,22 +534,22 @@ export default function PainelAmigos({ celular = false }) {
             </Grupo>
             <Grupo titulo={t('JOGANDO')} n={jogando.length}>
               {jogando.map((a) => (
-                <Linha key={a.id} a={a} st="jogando" aoConversar={abrirConversa} />
+                <Linha key={a.id} a={a} st="jogando" aoConversar={abrirConversa} leve={celular} />
               ))}
             </Grupo>
             <Grupo titulo={t('ONLINE')} n={online.length}>
               {online.map((a) => (
-                <Linha key={a.id} a={a} st="online" aoConversar={abrirConversa} />
+                <Linha key={a.id} a={a} st="online" aoConversar={abrirConversa} leve={celular} />
               ))}
             </Grupo>
             <Grupo titulo={t('AUSENTE')} n={ausentes.length}>
               {ausentes.map((a) => (
-                <Linha key={a.id} a={a} st="ausente" aoConversar={abrirConversa} />
+                <Linha key={a.id} a={a} st="ausente" aoConversar={abrirConversa} leve={celular} />
               ))}
             </Grupo>
             <Grupo titulo={t('OFFLINE')} n={offline.length} classe="am-off">
               {offline.map((a) => (
-                <Linha key={a.id} a={a} st="offline" visto={status[a.id]?.visto} aoConversar={abrirConversa} />
+                <Linha key={a.id} a={a} st="offline" visto={status[a.id]?.visto} aoConversar={abrirConversa} leve={celular} />
               ))}
             </Grupo>
             {lista && !amigos.length && !recebidos.length && (

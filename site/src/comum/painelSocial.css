@@ -25,6 +25,21 @@
   clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
   background: linear-gradient(90deg, var(--brilho), transparent 60%), linear-gradient(180deg, #14161bc7, #0a0b0eb3); box-shadow: inset var(--barra-w) 0 0 var(--barra); transition: box-shadow .15s; }
 .am-social:not(#_) .am-linha:hover { --barra-w: 3px; }
+@media(max-width:1024px) {
+  .am-social.am-celular:not(#_) .am-linha-leve { min-height: 52px; }
+  .am-social.am-celular:not(#_) .am-linha::before {
+    background: #12151a;
+    box-shadow: none;
+    border-left: 2px solid var(--barra);
+    transition: none;
+  }
+  .am-social.am-celular:not(#_) .am-off .am-pessoa { opacity: 1; }
+  .am-social.am-celular:not(#_) .am-off .am-nome b { color: #a4a8b1; }
+  .am-social.am-celular:not(#_) .am-off .am-txt small { color: var(--dim-2); }
+  .am-social.am-celular:not(#_) .ins-mini img { filter: none; }
+  .am-social.am-celular:not(#_) .emblema-sub img { filter: none; }
+  .am-social.am-celular:not(#_) .am-conversar { transition: none; }
+}
 .am-social:not(#_) .am-linha.am-online { --barra: var(--green); --brilho: color-mix(in srgb, var(--green) 8%, transparent); }
 .am-social:not(#_) .am-linha.am-jogando { --barra: #3b82f6; --brilho: color-mix(in srgb, #3b82f6 10%, transparent); }
 .am-social:not(#_) .am-linha.am-ausente { --barra: #f5a524; --brilho: color-mix(in srgb, #f5a524 7%, transparent); }

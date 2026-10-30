@@ -551,14 +551,14 @@ export function CamadaMoldura({ id, parada = false }) {
 // lobby, amigos, perfil...), menos onde o chamador decide que fica poluído (ex.: pódio do ranking, com a moldura do carnaval).
 // O tamanho do emblema já é proporcional ao avatar (site.css: .emblema-sub), então ele nunca fica grande demais num lugar pequeno.
 // soEmblema mantém listas e avisos sem moldura, sem adicionar emblemas.
-export function ComMoldura({ steamId, children, cheio = false, emblema = false, soEmblema = false }) {
+export function ComMoldura({ steamId, children, cheio = false, emblema = false, soEmblema = false, parado = false }) {
   const perfil = usePerfis()[steamId] || {}
   const config = useConfigSite()
   const cargos = useCargosIdsDe(steamId)
   const nivelSub = useNivelSub(steamId)
   const desempenho = useDesempenho()
   const semMovimento = useSemAnimacao()
-  const semAnimacao = desempenho || semMovimento // Diamond/Elite/Legend viram a imagem parada (os dois hooks sempre rodam)
+  const semAnimacao = parado || desempenho || semMovimento // listas mobile usam o mesmo emblema, sem decodificar animações
   const id = perfil.moldura
   const exige = config.molduraCargo?.[id]
   // Dono e admins usam qualquer moldura (exclusiva de cargo também)
@@ -577,7 +577,7 @@ export function ComMoldura({ steamId, children, cheio = false, emblema = false, 
   return (
     <span className={`moldura-box${cheio ? ' cheio' : ''}${classeForma(id)}`} style={estiloFotoMoldura(id)}>
       {children}
-      <CamadaMoldura id={id} />
+      <CamadaMoldura id={id} parada={parado} />
       {selo}
     </span>
   )
