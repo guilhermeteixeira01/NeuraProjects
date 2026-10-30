@@ -1,8 +1,10 @@
-// Acrescenta ao catálogo (src/comum/molduras.js) as molduras novas que estão em public/assets/molduras/<pasta>/ e ainda não estão lá.
+// Acrescenta ao catálogo (src/comum/molduras.js) as molduras novas que estão em public/assets/molduras/<pasta>/[<coleção>/] e ainda não
+// estão lá. Organização: times/Brasil, times/Internacional, eventos/, outros/<Coleção>/ (ex.: outros/Chainsaw-Man/02_Power.png).
 // Para cada arte (PNG 512×512 com o centro transparente) acha o buraco onde entra o avatar: os pixels transparentes ligados ao
 // centro. Daí sai a "abertura" (caixa do buraco) e o "recorte" (contorno do buraco, uma linha a cada 1/56 da altura, em % da caixa),
 // no mesmo formato das molduras que já estavam no catálogo. As que já existem não mudam.
-// A coleção de cada moldura nova vem da tabela COLECAO_DE (por nome do arquivo); o que não estiver lá vai para "Outros".
+// A coleção vem da subpasta de outros/ (ou da tabela COLECAO_DE, por nome do arquivo); o que não achar vai para "Outros".
+// Em todas (novas e antigas) grava também abertura.fundo: a última linha com arte, para o espaço que a moldura ocupa abaixo do avatar.
 //
 // Uso (na pasta site/):  node scripts/gerar-molduras.mjs            grava o catálogo
 //                        node scripts/gerar-molduras.mjs --conferir  só compara o cálculo com as molduras já catalogadas
@@ -80,8 +82,16 @@ export async function calcularAbertura(arquivo) {
     dir.push(`${pct(((b - x0 + 1) / largura) * 100)} ${py}`)
     esq.push(`${pct(((a - x0) / largura) * 100)} ${py}`)
   }
-  return { x: x0, y: y0, largura, altura, recorte: `polygon(${[...dir, ...esq.reverse()].join(',')})` }
+  let fundo = h
+  while (fundo > y1 + 1 && !temArte(data, w, fundo - 1)) fundo--
+  return { x: x0, y: y0, largura, altura, fundo, recorte: `polygon(${[...dir, ...esq.reverse()].join(',')})` }
 }
+
+// linha y tem algum pixel visível da arte
+const temArte = (data, w, y) => { for (let x = 0; x < w; x++) if (data[(y * w + x) * 4 + 3] > 24) return true; return false }
+
+// pasta de outros/ -> coleção (Pokemon -> Pokémon, Diversos -> Outros, Chainsaw-Man -> Chainsaw Man)
+const colecaoDaPasta = (sub) => (sub === 'Diversos' ? 'Outros' : COLECOES.find((c) => slug(c) === slug(sub)) || null)
 
 const slug = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
@@ -96,18 +106,36 @@ async function principal() {
   }
   const conhecidos = new Set(MOLDURAS.map((m) => m.arquivo))
   const novas = []
+  // PNGs de cada pasta e das subpastas dela: [pasta, subpasta | null, arquivo]
+  const pngs = []
   for (const pasta of fs.readdirSync(pastaMolduras)) {
     const dir = path.join(pastaMolduras, pasta)
     if (!fs.statSync(dir).isDirectory()) continue
-    for (const f of fs.readdirSync(dir).filter((f) => /\.png$/i.test(f)).sort()) {
-      const arquivo = `${pasta}/${f}`
-      if (conhecidos.has(arquivo)) continue
-      const base = f.replace(/^\d+_/, '').replace(/\.png$/i, '')
-      const [colecao, nome] = COLECAO_DE[base] || ['Outros', base.replace(/-/g, ' ')]
-      const abertura = await calcularAbertura(path.join(dir, f))
-      novas.push({ id: `${pasta}/${slug(base)}`, nome, colecao, fonte: 'neura', forma: 'quadrada', escala: Math.round((512 / abertura.largura) * 100) / 100, arquivo, abertura })
-      console.log(`+ ${arquivo} -> ${colecao} / ${nome} (abertura ${abertura.largura}×${abertura.altura})`)
+    for (const f of fs.readdirSync(dir).sort()) {
+      if (/\.png$/i.test(f)) pngs.push([pasta, null, f])
+      else if (fs.statSync(path.join(dir, f)).isDirectory())
+        for (const g of fs.readdirSync(path.join(dir, f)).filter((g) => /\.png$/i.test(g)).sort()) pngs.push([pasta, f, g])
     }
+  }
+  for (const [pasta, sub, f] of pngs) {
+    const arquivo = [pasta, sub, f].filter(Boolean).join('/')
+    if (conhecidos.has(arquivo)) continue
+    const base = f.replace(/^\d+_/, '').replace(/\.png$/i, '')
+    const daPasta = pasta === 'times' ? 'Times' : pasta === 'eventos' ? 'Eventos' : sub && colecaoDaPasta(sub)
+    const tabela = COLECAO_DE[base] && (!daPasta || COLECAO_DE[base][0] === daPasta) ? COLECAO_DE[base] : null
+    const [colecao, nome] = tabela || [daPasta || 'Outros', base.replace(/-/g, ' ')]
+    // id com uma barra só (o worker exige pasta/nome): a subpasta de outros/ entra no nome (outros/chainsaw-man-power)
+    const id = `${pasta}/${sub && pasta === 'outros' ? `${slug(sub)}-` : ''}${slug(base)}`
+    const abertura = await calcularAbertura(path.join(pastaMolduras, arquivo))
+    novas.push({ id, nome, colecao, fonte: 'neura', forma: 'quadrada', escala: Math.round((512 / abertura.largura) * 100) / 100, arquivo, abertura })
+    console.log(`+ ${arquivo} -> ${colecao} / ${nome} (abertura ${abertura.largura}×${abertura.altura})`)
+  }
+  // fundo das que já estavam (só ele entra; abertura e recorte ficam como estão)
+  for (const m of MOLDURAS) {
+    if (!m.abertura || m.abertura.fundo != null) continue
+    const { fundo } = await calcularAbertura(path.join(pastaMolduras, m.arquivo))
+    const { recorte, ...resto } = m.abertura
+    m.abertura = { ...resto, fundo, recorte }
   }
   const ids = new Set(MOLDURAS.map((m) => m.id))
   for (const m of novas) if (ids.has(m.id)) throw new Error(`id repetido: ${m.id}`)

@@ -53,6 +53,9 @@ body *,body *::before,body *::after {
 
 /* A foto ocupa a abertura real da arte, sem esticar nem escapar pelos cantos. */
 .moldura-box.moldura-ajustada { height:auto!important;aspect-ratio:var(--moldura-proporcao); }
+/* Espaço depois do avatar para a parte de baixo da arte: o nick dos cards fica abaixo da moldura, não por baixo dela.
+   --moldura-px vem do Moldura.jsx (só em avatar de card; nos pequenos fica 0). */
+.moldura-box.moldura-ajustada { margin-bottom:calc(var(--moldura-sobra,0) * var(--moldura-px,0px))!important; }
 .moldura-box.moldura-ajustada>img,
 .moldura-box.moldura-ajustada>span:not(.moldura):not(.emblema-sub) {
  height:auto!important;aspect-ratio:var(--moldura-proporcao);object-fit:cover;object-position:center;

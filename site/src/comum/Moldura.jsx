@@ -543,6 +543,24 @@ export function CamadaMoldura({ id, parada = false }) {
   return <span ref={ref} className="moldura" aria-hidden="true" style={{ backgroundImage: `url("${url}")`, ...(m.escala ? { '--escala': m.escala } : {}) }} />
 }
 
+// A arte da moldura passa por baixo do avatar e cobria o nick logo abaixo: a caixa guarda a própria largura em --moldura-px
+// e o site.css dá a ela uma margem de baixo do tamanho dessa sobra (--moldura-sobra, em molduras.js). Avatar pequeno
+// (listas, chat, nav, abaixo de FOLGA_MIN) fica sem a margem, para não abrir as linhas. Um ResizeObserver só para todas.
+const FOLGA_MIN = 44
+let observador = null
+function folgaMoldura(el) {
+  if (!el || typeof ResizeObserver === 'undefined') return
+  observador ||= new ResizeObserver((itens) => {
+    for (const { target, contentRect } of itens) {
+      const w = Math.round(contentRect.width)
+      if (w >= FOLGA_MIN) target.style.setProperty('--moldura-px', `${w}px`)
+      else target.style.removeProperty('--moldura-px')
+    }
+  })
+  observador.observe(el)
+  return () => observador.unobserve(el)
+}
+
 // Envolve o avatar e põe a moldura do jogador por cima (sem moldura, devolve o avatar como está).
 // cheio: o avatar ocupa 100% do pai (ex.: avatar do pódio do ranking, que tem tamanho fixo).
 // Moldura exclusiva de um cargo que o jogador perdeu (ex.: saiu do top 3) some na hora e o worker tira do perfil.
@@ -575,7 +593,7 @@ export function ComMoldura({ steamId, children, cheio = false, emblema = false, 
       children
     )
   return (
-    <span className={`moldura-box${cheio ? ' cheio' : ''}${classeForma(id)}`} style={estiloFotoMoldura(id)}>
+    <span ref={folgaMoldura} className={`moldura-box${cheio ? ' cheio' : ''}${classeForma(id)}`} style={estiloFotoMoldura(id)}>
       {children}
       <CamadaMoldura id={id} parada={parado} />
       {selo}
