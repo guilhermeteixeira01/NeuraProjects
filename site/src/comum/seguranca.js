@@ -72,12 +72,15 @@ export function useSeguranca(acompanhar = false) {
         .catch(seForErroApi())
     ler()
     window.addEventListener(EVENTO_SEGURANCA, ler)
+    const perfilAtualizado = (e) => { if (e.detail?.id === id) ler() }
+    window.addEventListener('np-perfil-ao-vivo', perfilAtualizado)
     const atualizar = () => { if (document.visibilityState !== 'hidden') ler() }
     const timer = acompanhar ? setInterval(atualizar, 60000) : null
     if (acompanhar) window.addEventListener('focus', atualizar)
     return () => {
       vivo = false
       window.removeEventListener(EVENTO_SEGURANCA, ler)
+      window.removeEventListener('np-perfil-ao-vivo', perfilAtualizado)
       clearInterval(timer)
       window.removeEventListener('focus', atualizar)
     }

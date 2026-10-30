@@ -70,7 +70,7 @@ function Jogador({ pessoa: bruta, lider }) {
     <div className={`sala-jog${lider ? ' lider' : ''}${card ? ' com-card' : ''}`} style={card ? { '--card-fundo': `url("${urlCard(card)}")` } : undefined}>
       {lider && <small className="sala-jog-lider">{t('Líder')}</small>}
       <a className="sala-av" href={linkPerfil(pessoa.id)} title={pessoa.nome || pessoa.id}>
-        <ComMoldura steamId={pessoa.id} emblema>
+        <ComMoldura steamId={pessoa.id}>
           <Foto p={pessoa} />
         </ComMoldura>
       </a>

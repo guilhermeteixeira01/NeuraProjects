@@ -118,6 +118,10 @@ export class Contas {
       return dono && dono.steam !== c.steam ? { livre: false, erro: 'nick-em-uso' } : { livre: true, seu: !!dono }
     }
     if (a === 'nick') return this.definirNick(c.steam, c.nick, !!c.premium, !!c.admin)
+    if (a === 'reset-nick') {
+      this.sql.exec('UPDATE contas SET nick = NULL, chave = NULL, nick_em = NULL WHERE steam = ?', c.steam)
+      return this.estado(c.steam, false)
+    }
     if (a === 'senha') return this.definirSenha(c.steam, String(c.senha ?? ''), c.atual == null ? null : String(c.atual))
     if (a === 'verificar') return this.verificar(c.steam, String(c.senha ?? ''))
     if (a === 'reset-senha') {

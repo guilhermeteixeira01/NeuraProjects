@@ -5,7 +5,7 @@ import Layout from '../../comum/Layout.jsx'
 import { entrar, linkPerfil, loginAtivo, useConta } from '../../comum/conta.js'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
-import { CamadaMoldura, CargosDe, ComMoldura, EmblemaDe, IconeEquipe, SELOS_PADRAO, SeloCargo, SeloEquipe, cargosComEquipe, chamar, nomeDoCargo, useAdmin } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, CargosDe, ComMoldura, IconeEquipe, SELOS_PADRAO, SeloCargo, SeloEquipe, cargosComEquipe, chamar, nomeDoCargo, useAdmin } from '../../comum/Moldura.jsx'
 import { COLECOES, MOLDURAS, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { NIVEL_MAX, nivelDe, rotuloNivel, textoNivel } from '../../comum/niveis.js'
@@ -106,31 +106,20 @@ function Usuarios({ usuarios, painel, dono, editar }) {
           ))}
         </div>
       </div>
-      <div className="tabela adm-tabela-box">
-        <table className="adm-tabela">
-          <thead>
-            <tr>
-              <th />
-              <th className="esq">{tr('JOGADOR')}</th>
-              <th className="esq">{tr('NÍVEL')}</th>
-              <th className="esq">{tr('SITUAÇÃO')}</th>
-              <th>{tr('ÚLTIMO ACESSO')}</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="adm-usuarios-grade">
             {visiveis.map((u) => {
               return (
-                <tr key={u.id}>
-                  <td className="adm-col-editar">
+                <article key={u.id} className="adm-usuario-card" aria-label={u.nome || u.id}>
+                  <div className="adm-usuario-acao">
                     <button type="button" className="btn btn-ghost adm-editar" onClick={() => editar(u)}>
                       {tr('Editar')}
                     </button>
-                  </td>
-                  <td className="esq">
+                  </div>
+                  <div className="adm-usuario-identidade">
                     <span className="adm-jog">
-                      <ComMoldura steamId={u.id}>
+                      <span className="adm-usuario-avatar"><ComMoldura steamId={u.id}>
                         <Avatar id={u.id} src={u.avatar} nome={u.nome} />
-                      </ComMoldura>
+                      </ComMoldura></span>
                       <span>
                         <span className="adm-nome-linha">
                           <a href={linkPerfil(u.id)}>{u.nome || tr('Sem nome')}</a>
@@ -140,8 +129,8 @@ function Usuarios({ usuarios, painel, dono, editar }) {
                         <small className="mono">{u.id}</small>
                       </span>
                     </span>
-                  </td>
-                  <td className="esq">
+                  </div>
+                  <div className="adm-usuario-nivel"><small>{tr('Nível e XP')}</small>
                     <span className="adm-nivel">
                       <SeloNivel nivel={u.nivel.nivel} tamanho={28} />
                       <span>
@@ -149,10 +138,11 @@ function Usuarios({ usuarios, painel, dono, editar }) {
                         {u.ajuste !== 0 && <small className={u.ajuste > 0 ? 'mais' : 'menos'}>{u.ajuste > 0 ? `+${fmt(u.ajuste)}` : fmt(u.ajuste)} {tr('ajuste')}</small>}
                       </span>
                     </span>
-                  </td>
-                  <td className="esq">
+                  </div>
+                  <div className="adm-usuario-situacao"><small>{tr('Situação')}</small>
                     {/* No máximo 1 selo e o "+N" com o resto. Dono/Admin não entram aqui: viram o ícone ao lado do nome */}
                     <span className="adm-tags">
+                      {!u.perfil.bloqueado && !(u.perfil.cargos || []).length && !u.auto.length && <span className="adm-usuario-regular">{tr('Regular')}</span>}
                       {u.perfil.bloqueado && <i className="bloq">{tr('BLOQUEADO')}</i>}
                       <CargosDe
                         max={1}
@@ -164,13 +154,11 @@ function Usuarios({ usuarios, painel, dono, editar }) {
                         ]}
                       />
                     </span>
-                  </td>
-                  <td className="mono">{u.usuario ? dataBr(u.usuario.visto) : <span className="adm-nunca">{tr('nunca entrou')}</span>}</td>
-                </tr>
+                  </div>
+                  <div className="adm-usuario-acesso"><small>{tr('Último acesso')}</small>{u.usuario ? dataBr(u.usuario.visto) : <span className="adm-nunca">{tr('nunca entrou')}</span>}</div>
+                </article>
               )
             })}
-          </tbody>
-        </table>
         {visiveis.length === 0 && <p className="adm-vazio">{tr('Ninguém encontrado.')}</p>}
       </div>
     </div>
@@ -239,6 +227,15 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar, abas = [], u
     }
   }
 
+  const limparNick = async () => {
+    if (!(await confirmar(tr('Limpar o nick de {nome}? O jogador poderá escolher outro gratuitamente, sem esperar e sem precisar de Premium.', { nome: u.nome || u.id }), { perigo: true, ok: tr('Limpar nick') }))) return
+    setEstado('salvando')
+    try {
+      await chamar('/admin/nick-reset', { id: u.id })
+      setEstado(tr('Nick limpo. O jogador já pode escolher outro.'))
+    } catch (e) { setEstado(mensagemErro(e)) }
+  }
+
   return createPortal(
     <div className="sm-fundo adm-ed-fundo" onClick={fechar}>
       <div className={`adm-janela${secao === 'itens' ? ' adm-janela-larga' : ''}`} role="dialog" aria-modal="true" aria-labelledby="adm-ed-titulo" onClick={(e) => e.stopPropagation()}>
@@ -274,7 +271,6 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar, abas = [], u
             <span className={`moldura-box adm-ed-av${classeForma(moldura)}`}>
               <Avatar id={u.id} src={u.avatar} nome={u.nome} classe="adm-ed-img" />
               <CamadaMoldura id={moldura} />
-              <EmblemaDe steamId={u.id} />
             </span>
             <div>
               <b>{u.nome || tr('Sem nome')}</b>
@@ -394,6 +390,9 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar, abas = [], u
           <button type="button" className="btn btn-ghost adm-perigo" onClick={limpar} disabled={estado === 'salvando'}>
             {tr('Limpar perfil')}
           </button>
+          {souDono && (
+            <button type="button" className="btn btn-ghost adm-perigo" onClick={limparNick} disabled={estado === 'salvando'}>{tr('Limpar nick')}</button>
+          )}
           {souDono && (
             <button type="button" className="btn btn-ghost adm-perigo" onClick={resetarSenha} disabled={estado === 'salvando'} title={tr('Remove a senha de segurança: o jogador consegue criar outra')}>
               {tr('Remover senha')}

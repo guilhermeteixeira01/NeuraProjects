@@ -326,7 +326,7 @@ export default function Deposito({ nomeInicial = '', modo = 'deposito', aoFechar
           ['dep-ben-mold', t('Molduras exclusivas'), t('só para Premium'), t('Molduras animadas do avatar que ninguém mais pode usar.')],
           ['dep-ben-card', t('Cards exclusivos'), t('só para Premium'), t('Fundos de card do perfil liberados só para quem assina.')],
           ['dep-ben-caixa', t('Caixa exclusiva por semana'), t('em breve'), t('Uma caixa especial grátis toda semana, só para assinantes.')],
-          ['dep-ben-selo', t('Emblema Premium'), t('no perfil'), t('O emblema evolui com o tempo de assinatura, do Subscriber ao Legend, e aparece no seu avatar em todo o site.')],
+          ['dep-ben-selo', t('Emblema Premium'), t('no perfil'), t('O emblema evolui com o tempo de assinatura, do Subscriber ao Legend, e aparece somente no seu perfil.')],
         ].map(([cls, titulo, tag, texto]) => (
           <li key={cls} className={`dep-ben-item ${cls}`}>
             <span className="dep-ben-icone">{ICONES_BEN[cls]}</span>

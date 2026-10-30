@@ -13,13 +13,15 @@ export async function registrarUsuario(env, id, perfil, visita = false, entradaR
   const { resultado } = await mudar(env, 'usuarios', [id], (usuarios) => {
     const novo = !usuarios[id]
     const antes = usuarios[id] || {}
-    const apelido = perfil.apelido || antes.apelido || ''
-    const nome = apelido || perfil.nome || antes.nome || ''
+    const limpar = perfil.apelido === null
+    const apelido = limpar ? '' : perfil.apelido || antes.apelido || ''
+    const nome = apelido || perfil.nome || (limpar ? id : antes.nome) || ''
     const mudou = !usuarios[id] || nome !== antes.nome || (perfil.avatar && perfil.avatar !== antes.avatar)
     if (visita && !mudou && Date.now() - new Date(antes.visto || 0).getTime() < HORA_MS) return
     const agora = new Date().toISOString()
     usuarios[id] = { ...antes, nome, ...(apelido ? { apelido } : {}), avatar: perfil.avatar || antes.avatar || '', primeiro: antes.primeiro || agora, visto: agora,
       ...(novo && entradaRef !== null ? { indicacaoEntrada: { ref: entradaRef } } : {}) }
+    if (limpar) delete usuarios[id].apelido
     return { novo, indicacaoEntrada: usuarios[id].indicacaoEntrada }
   })
   return resultado

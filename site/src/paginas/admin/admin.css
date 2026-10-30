@@ -673,3 +673,33 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
  .adm-ed-fundo input,.adm-ed-fundo select,.adm-busca { font-size:16px; }
  .adm-ed-topo { gap:10px; }
 }
+/* Grade própria de jogadores: sem converter células de tabela em cards. */
+.adm-usuarios-grade { display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:14px; }
+.adm-usuario-card { display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:'identidade identidade' 'nivel situacao' 'acesso acao';gap:18px 12px;padding:20px;border:1px solid var(--border-2);border-radius:12px;background:var(--np-fundo-painel,#16191f);min-width:0;align-content:start;transition:border-color .18s; }
+.adm-usuario-card:hover,.adm-usuario-card:focus-within { border-color:#428de880; }
+.adm-usuario-identidade { grid-area:identidade;min-width:0;padding-bottom:16px;border-bottom:1px solid var(--border); }
+.adm-usuario-card .adm-jog { display:flex;gap:16px;min-width:0;width:100%; }
+.adm-usuario-avatar { display:flex;align-items:center;justify-content:center;width:44px;height:48px;flex:0 0 44px;margin:4px; }
+.adm-usuario-avatar>.moldura-box,.adm-usuario-avatar>.emblema-box { width:100%; }
+.adm-usuario-avatar .adm-av { width:100%;height:44px;max-width:100%; }
+.adm-usuario-card .adm-jog>span:last-child { min-width:0;gap:5px; }
+.adm-usuario-card .adm-nome-linha { display:flex;align-items:center;gap:6px;min-width:0; }
+.adm-usuario-card .adm-nome-linha a { font-size:15px;line-height:1.35;overflow-wrap:anywhere; }
+.adm-usuario-card .adm-jog small { font-size:10px;letter-spacing:.02em; }
+.adm-usuario-nivel { grid-area:nivel; }
+.adm-usuario-situacao { grid-area:situacao; }
+.adm-usuario-acesso { grid-area:acesso;font-size:11px;color:var(--dim);align-self:center;line-height:1.5; }
+.adm-usuario-nivel,.adm-usuario-situacao,.adm-usuario-acesso { display:flex;flex-direction:column;gap:7px;min-width:0; }
+.adm-usuario-card small:not(.mono) { font-size:10px;color:var(--dim-2); }
+.adm-usuario-card .adm-tags { min-height:28px;align-items:center;flex-wrap:wrap; }
+.adm-usuario-regular { font-size:12px;color:var(--dim); }
+.adm-usuario-acao { grid-area:acao;align-self:end;justify-self:end; }
+.adm-usuario-acao .adm-editar { min-height:40px;padding:8px 18px;border-color:#428de847;color:var(--blue-2);font-size:12px; }
+.adm-usuarios-grade>.adm-vazio { grid-column:1/-1; }
+@media(max-width:720px) {
+ .adm-usuarios-grade { gap:12px; }
+ .adm-usuario-card { padding:16px;gap:16px 12px; }
+ .adm-usuario-acao .adm-editar { min-height:44px; }
+ .adm-ferramentas .adm-chips { flex-wrap:nowrap;overflow-x:auto;max-width:100%;padding-bottom:6px; }
+ .adm-ferramentas .adm-chips button { flex-shrink:0; }
+}

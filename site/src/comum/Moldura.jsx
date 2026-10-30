@@ -547,9 +547,9 @@ export function CamadaMoldura({ id, parada = false }) {
 // cheio: o avatar ocupa 100% do pai (ex.: avatar do pódio do ranking, que tem tamanho fixo).
 // Moldura exclusiva de um cargo que o jogador perdeu (ex.: saiu do top 3) some na hora e o worker tira do perfil.
 // Vale também para moldura posta por admin: exclusiva só aparece para quem tem o cargo (o worker ainda tira do perfil).
-// emblema: põe também o emblema da assinatura Premium no canto superior direito do avatar (ligado em todos os lugares; emblema={false} desliga).
-// soEmblema: avatar sem moldura (listas, avisos) que mesmo assim leva o emblema.
-export function ComMoldura({ steamId, children, cheio = false, emblema = true, soEmblema = false }) {
+// Emblema Premium é opt-in, usado somente na identidade do titular no perfil.
+// soEmblema mantém listas e avisos sem moldura, sem adicionar emblemas.
+export function ComMoldura({ steamId, children, cheio = false, emblema = false, soEmblema = false }) {
   const perfil = usePerfis()[steamId] || {}
   const config = useConfigSite()
   const cargos = useCargosIdsDe(steamId)

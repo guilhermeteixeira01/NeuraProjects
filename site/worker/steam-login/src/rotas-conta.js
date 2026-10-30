@@ -21,6 +21,7 @@ import { esquecerJogador } from './publico.js'
 import { lerRanking, nivelDoJogador } from './ranking.js'
 import { registrar } from './registro.js'
 import { registrarUsuario } from './usuarios.js'
+import { resumosSteam } from './steam.js'
 import { concluirAfiliacao } from './afiliado.js'
 
 export const ID_MOLDURA = /^[a-z0-9-]{1,40}\/[a-z0-9-]{1,60}$/
@@ -183,5 +184,9 @@ export async function rotaConta(req, env, quem, config, cors, rota, url) {
 export async function aplicarApelido(env, id, nick, avatar) {
   lembrarApelido(id, nick)
   await esquecerJogador(id)
-  await registrarUsuario(env, id, { apelido: nick, ...(avatar ? { avatar } : {}) })
+  let nome
+  if (nick === null) {
+    try { nome = (await resumosSteam(env, [id], 2500)).get(id)?.nome } catch { /* a escolha de novo nick continua liberada se a Steam estiver indisponível */ }
+  }
+  await registrarUsuario(env, id, { apelido: nick, ...(nome ? { nome } : {}), ...(avatar ? { avatar } : {}) })
 }

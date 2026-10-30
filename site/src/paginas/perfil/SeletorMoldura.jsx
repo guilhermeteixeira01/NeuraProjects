@@ -2,7 +2,7 @@ import { createPortal } from 'react-dom'
 import { FUNDOS_PERFIL, MAPAS_FUNDO, FUNDOS_EVENTO, eventoDoFundo, podeUsarFundoPerfil, imagemFundoPerfil, nomeFundoPerfil } from '../../../worker/steam-login/src/fundos-perfil.js'
 import IconeUI from '../../comum/IconeUI.jsx'
 import { useCallback, useEffect, useState } from 'react'
-import { CamadaMoldura, EmblemaDe, IconeDoCargo, SeloCargo, cargoDaMoldura, cargoDoCard, nivelDoCard, semSubMinima, subDaMoldura, subDoCard, useCargosIdsDe, useNivelSub, nivelDaMoldura, salvarPerfil, useConfigSite, usePerfis } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, IconeDoCargo, SeloCargo, cargoDaMoldura, cargoDoCard, nivelDoCard, semSubMinima, subDaMoldura, subDoCard, useCargosIdsDe, useNivelSub, nivelDaMoldura, salvarPerfil, useConfigSite, usePerfis } from '../../comum/Moldura.jsx'
 import { tituloNivel, urlEmblema } from '../../comum/assinatura.js'
 import { COLECOES, MOLDURAS, podeUsarMolduraEvento, estiloFotoMoldura, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { urlOk } from '../../comum/dados.js'
@@ -357,7 +357,6 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                 <span className="sm-ini">{String(nome || '?').slice(0, 2).toUpperCase()}</span>
               )}
               <CamadaMoldura id={escolha.moldura} />
-              <EmblemaDe steamId={steamId} />
             </span>
             <b>{nome}</b>
             </div>}

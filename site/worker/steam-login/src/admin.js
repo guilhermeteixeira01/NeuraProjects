@@ -55,6 +55,7 @@ const ROTULO_ADMIN = {
   '/admin/zerar-tudo': 'ZEROU TUDO',
   '/admin/senha-reset': 'apagou a senha de segurança do jogador',
   '/admin/nick': 'trocou o apelido do jogador',
+  '/admin/nick-reset': 'limpou o apelido e liberou nova escolha',
 }
 const ROTULO_SERVIDOR = { iniciar: 'iniciou o servidor de CS2', parar: 'parou o servidor de CS2', reiniciar: 'reiniciou o servidor de CS2', comando: 'mandou comando ao servidor de CS2', gameinfo: 'conferiu o gameinfo.gi (Metamod) do servidor de CS2', plugins: 'atualizou o Metamod e o CounterStrikeSharp do servidor de CS2' }
 function descreverAcao(rota, quem, c) {
@@ -270,6 +271,12 @@ async function adminAdmins(corpo, env, cors) {
 async function adminConta(rota, corpo, env, cors) {
   if (!ID_STEAM.test(String(corpo.id || ''))) throw new ErroPedido('id')
   if (rota === '/admin/senha-reset') return json(await chamarContas(env, { acao: 'reset-senha', steam: corpo.id }), 200, cors)
+  if (rota === '/admin/nick-reset') {
+    const r = await chamarContas(env, { acao: 'reset-nick', steam: corpo.id })
+    await aplicarApelido(env, corpo.id, null)
+    await avisarPerfil(env, corpo.id, (await lerPerfis(env))[corpo.id] || {})
+    return json(r, 200, cors)
+  }
   const r = await chamarContas(env, { acao: 'nick', steam: corpo.id, nick: corpo.nick, premium: true, admin: true })
   await aplicarApelido(env, corpo.id, r.nick)
   return json(r, 200, cors)
@@ -302,6 +309,7 @@ const ROTAS_ADMIN = {
   '/admin/admins': { metodos: ['POST'], precisa: 'admins', atender: (c) => adminAdmins(c.corpo, c.env, c.cors) },
   '/admin/senha-reset': { metodos: ['POST'], precisa: 'dono', atender: (c) => adminConta(c.rota, c.corpo, c.env, c.cors) },
   '/admin/nick': { metodos: ['POST'], precisa: 'dono', atender: (c) => adminConta(c.rota, c.corpo, c.env, c.cors) },
+  '/admin/nick-reset': { metodos: ['POST'], precisa: 'dono', atender: (c) => adminConta(c.rota, c.corpo, c.env, c.cors) },
   '/admin/zerar-tudo': { metodos: ['POST'], precisa: 'dono', atender: (c) => adminZerar(c.corpo, c.env, c.quem, c.cors) },
   '/admin/logs': { metodos: ['GET'], precisa: 'logs', atender: (c) => rotaAdminLogs(c.url, c.env, c.cors) },
   '/admin/assinatura-planos': { metodos: ['GET', 'POST'], precisa: 'assinaturas', atender: (c) => rotaAdminPlanosSub(c.req, c.env, c.cors) },

@@ -155,7 +155,7 @@ function Pessoa({ pessoa: bruta, lider, pendente, centro, souLider, eu, aoRemove
     <div className={`lb-lugar lb-pessoa${centro ? ' lb-centro' : ''}${pendente ? ' lb-pendente' : ''}${pessoa.id === eu ? ' lb-eu' : ''}${card ? ' com-card' : ''}`} style={card ? { '--card-fundo': `url("${urlCard(card)}")` } : undefined}>
       {lider && <Coroa />}
       <a className="lb-av" href={linkPerfil(pessoa.id)} title={pessoa.nome || pessoa.id}>
-        <ComMoldura steamId={pessoa.id} emblema>
+        <ComMoldura steamId={pessoa.id}>
           <Foto p={pessoa} />
         </ComMoldura>
         {!pendente && <i className={`lb-bolinha st-${pessoa.st || 'offline'}`} aria-hidden="true" />}
