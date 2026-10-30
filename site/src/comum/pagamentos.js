@@ -1,5 +1,5 @@
 // Depósito de NP com Pix ou cartão (worker: src/pagamentos.js, pelo Asaas). O servidor calcula tudo; aqui só chamamos.
-import { chamarApi } from './api.js'
+import { ErroApi, chamarApi } from './api.js'
 
 const chamar = chamarApi
 
@@ -11,12 +11,16 @@ export const criarPagamento = (metodo, centavos, nome, cpf, extra) => chamar('/p
 // Renovação automática no cartão: { ativa, valor, proxima } · cancelar para de cobrar (o mês já pago continua)
 export const lerRecorrencia = () => chamar('/pagamentos/recorrencia')
 export const cancelarRecorrencia = () => chamar('/pagamentos/recorrencia', {})
-export const lerPlanosSub = () => chamar('/pagamentos/planos').then((d) => d.planos)
+export const lerPlanosSub = () => chamar('/pagamentos/planos').then((d) => (Array.isArray(d?.planos) ? d.planos : []))
 // { estado: 'pendente' | 'pago' | 'estornado', np?, saldo? }  (o servidor confere no Asaas e credita)
 export const estadoPagamento = (id) => chamar(`/pagamentos/estado?id=${encodeURIComponent(id)}`)
 
 // Configuração dos depósitos (mínimo, NP por real, pacotes e bônus): o dono muda no painel, o servidor calcula com ela
-export const lerConfigPagamento = () => chamar('/pagamentos/config').then((d) => d.cfg)
+export const lerConfigPagamento = () => chamar('/pagamentos/config').then((d) => {
+  // resposta sem a config (servidor antigo ou prévia local): o Deposito fica com os valores de fábrica
+  if (!Array.isArray(d?.cfg?.pacotes) || !d.cfg.pacotes.length) throw new ErroApi('config')
+  return d.cfg
+})
 
 export const MENSAGENS_PAGAMENTO = {
   indisponivel: 'Os depósitos ainda não estão ativos. Volte em breve!',

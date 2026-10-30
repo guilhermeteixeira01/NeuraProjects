@@ -32,7 +32,7 @@ export default function PremiosDiarios({ ativo = true }) {
     try{
       const d=await chamarApi(`/loja/diario/${tipo}`,{})
       setDados({...d,recebidoEm:Date.now()})
-      if(tipo==='pontos') { setAviso(d.recebido?t('+{n} NP recebidos!',{n:d.pontos}):t('Você já resgatou os pontos de hoje.')); const saldo=await lerSaldo();avisarSaldo(saldo.saldo) }
+      if(tipo==='pontos') { setAviso(d.recebido?t('+{n} NP recebidos!',{n:d.pontos})+(d.consumivel?` ${t('+1 {item} para usar no lobby',{item:d.consumivel==='boost'?'Boost':'Freeze'})}`:''):t('Você já resgatou os pontos de hoje.')); const saldo=await lerSaldo();avisarSaldo(saldo.saldo) }
       else if(d.caixasDisponiveis>0)location.assign(`/loja/?abrir=${d.caixa.id}`)
     }catch(e){setErro(t(e?.message==='cheio'?'Seu inventário está cheio. Libere espaço para receber a caixa.':'Não foi possível resgatar agora. Tente novamente.'))}finally{setOcupado('')}
   }
@@ -40,10 +40,12 @@ export default function PremiosDiarios({ ativo = true }) {
   const relogio=[Math.floor(segundos/3600),Math.floor(segundos%3600/60),segundos%60].map(n=>String(n).padStart(2,'0')).join(':')
   const hora=Number(new Intl.DateTimeFormat('pt-BR',{hour:'numeric',hourCycle:'h23',timeZone:'America/Sao_Paulo'}).format(new Date()))
   const pontos=dados?.recompensas || PONTOS_DIARIOS, dia=dados?.sequencia || 1
+  // itens de partida do lobby que vêm junto em alguns dias da sequência (o worker manda; sem resposta, o padrão)
+  const itensDia=dados?.consumiveisDiario || {4:'freeze',7:'boost'}
   return <aside className="pd-card">
     <div className="pd-quem"><span><AvatarInicio id={conta?.id} foto={conta?.avatar}/>{conta&&<i/>}</span><div><small>{t(hora<12?'Bom dia,':hora<18?'Boa tarde,':'Boa noite,')}</small><b>{seg?.nick || conta?.nome || 'Neura Project'}</b></div></div>
     <section className="pd-login"><div className="pd-recompensa"><span className="pd-icone"><IconeConta tipo="presente"/></span><div><h3>{t('Login diário')}</h3><p>{t('Dia {dia} de 7 · +{np} NP',{dia,np:dados?.pontos || pontos[0]})}</p></div><button type="button" disabled={!!ocupado || (!!conta && (!dados || dados.pontosResgatados))} onClick={()=>resgatar('pontos')}>{ocupado==='pontos'?'…':dados?.pontosResgatados?t('Feito'):t('Resgatar')}</button></div>
-      <ol className="pd-semana">{pontos.map((np,i)=><li key={np} className={i+1===dia?'atual':i+1<dia?'feito':''}><span>{i===6?<IconeConta tipo="presente"/>:i+1}</span><b>{np}</b></li>)}</ol>
+      <ol className="pd-semana">{pontos.map((np,i)=><li key={np} className={i+1===dia?'atual':i+1<dia?'feito':''}><span>{i===6?<IconeConta tipo="presente"/>:i+1}</span><b>{np}</b>{itensDia[i+1]&&<em className={`pd-item pd-item-${itensDia[i+1]}`} title={t('+1 {item} para usar no lobby',{item:itensDia[i+1]==='boost'?'Boost':'Freeze'})}>+{itensDia[i+1]==='boost'?'⚡':'❄'}</em>}</li>)}</ol>
     </section>
     <section className="pd-caixa"><img className="pd-caixa-arte" src="/assets/caixas/neura-projects-caixa-diaria.png" alt="" width="52" height="52"/><div><h3>{t('Caixa diária')}</h3><p>{dados?.caixaResgatada&&!dados.caixasDisponiveis?t('Resgatada hoje'):t('Grátis, uma por dia')}</p></div><button type="button" disabled={!!ocupado || (!!conta && (!dados || (dados.caixaResgatada&&!dados.caixasDisponiveis)))} onClick={()=>resgatar('caixa')}>{ocupado==='caixa'?'…':dados?.caixaResgatada&&!dados.caixasDisponiveis?t('Amanhã'):t('Abrir')}</button></section>
     {erro&&<p className="pd-erro" role="alert">{erro}</p>}{aviso&&<p className="pd-aviso" role="status">{aviso}</p>}

@@ -2,7 +2,7 @@ import { createPortal } from 'react-dom'
 import { FUNDOS_PERFIL, MAPAS_FUNDO, FUNDOS_EVENTO, eventoDoFundo, podeUsarFundoPerfil, imagemFundoPerfil, nomeFundoPerfil } from '../../../worker/steam-login/src/fundos-perfil.js'
 import IconeUI from '../../comum/IconeUI.jsx'
 import { useCallback, useEffect, useState } from 'react'
-import { CamadaMoldura, IconeDoCargo, SeloCargo, cargoDaMoldura, cargoDoCard, nivelDoCard, semSubMinima, subDaMoldura, subDoCard, useCargosIdsDe, useNivelSub, nivelDaMoldura, salvarPerfil, useConfigSite, usePerfis } from '../../comum/Moldura.jsx'
+import { CamadaMoldura, folgaMoldura, IconeDoCargo, SeloCargo, cargoDaMoldura, cargoDoCard, nivelDoCard, semSubMinima, subDaMoldura, subDoCard, useCargosIdsDe, useNivelSub, nivelDaMoldura, salvarPerfil, useConfigSite, usePerfis } from '../../comum/Moldura.jsx'
 import { tituloNivel, urlEmblema } from '../../comum/assinatura.js'
 import { COLECOES, MOLDURAS, podeUsarMolduraEvento, estiloFotoMoldura, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { urlOk } from '../../comum/dados.js'
@@ -350,7 +350,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
             {aba === 'fundoPerfil' && <div className="sm-previa-fundo"><img src={imagemFundoPerfil(escolha.fundoPerfil)} alt={nomeFundoPerfil(escolha.fundoPerfil || 'mirage')} /><b>{nomeFundoPerfil(escolha.fundoPerfil || 'mirage')}</b></div>}
             {/* o card do perfil, na mesma proporção (282 × 395) */}
             {aba !== 'fundoPerfil' && <div className="sm-previa-card" style={escolha.card ? { backgroundImage: fundoCard(escolha.card) } : undefined}>
-            <span className={`moldura-box sm-av${classeForma(escolha.moldura)}`} style={estiloFotoMoldura(escolha.moldura)}>
+            <span ref={folgaMoldura} className={`moldura-box sm-av${classeForma(escolha.moldura)}`} style={estiloFotoMoldura(escolha.moldura)}>
               {urlOk(avatar) && !erroAvatar ? (
                 <img src={avatar} alt="" onError={() => setErroAvatar(true)} />
               ) : (

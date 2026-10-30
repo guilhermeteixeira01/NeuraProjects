@@ -14,6 +14,7 @@ import { ordenarRanking } from '../../comum/ranking.js'
 import { useAmigos } from '../../comum/amigos.js'
 import { useAvatar } from '../../comum/avatares.js'
 import { acaoLobby, useLobby, useRelogio } from '../../comum/lobby.js'
+import { ativarConsumivel, cancelarConsumivel, lerConsumiveis } from '../../comum/loja.js'
 import SalaVeto from './SalaVeto.jsx'
 import { AvisosCs2, PainelServidor, useStatusCs2 } from './StatusCs2.jsx'
 import { playSound } from '../neurapick/data/sounds.js'
@@ -351,6 +352,83 @@ function TempoBusca({ desde }) {
   return <>{`${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`}</>
 }
 
+// ── Itens de partida (Boost / Freeze): ao lado do JOGAR. Ativar gasta 1 na hora e vale para a próxima partida que COMEÇAR depois
+// (o worker aplica quando a partida chega do servidor); cancelar antes devolve. Um ativado por vez. Teclas 1 e 2 ativam/cancelam.
+const ITENS_PARTIDA = [
+  { tipo: 'boost', tecla: '1', nome: 'BOOST', cor: '#f5a524', dica: 'Se vencer a próxima partida ranqueada, o XP ganho vale em dobro.', d: 'M13 2 4 14h7l-1 8 9-12h-7l1-8Z' },
+  { tipo: 'freeze', tecla: '2', nome: 'FREEZE', cor: '#4fc3f7', dica: 'Na próxima partida ranqueada você não ganha nem perde XP.', d: 'M12 2v20M4.9 6.5l14.2 11M19.1 6.5 4.9 17.5M9 3.5l3 2.5 3-2.5M9 20.5l3-2.5 3 2.5M3.2 9.6l3.7.6-1.3 3.5M20.8 9.6l-3.7.6 1.3 3.5M3.2 14.4l3.7-.6M20.8 14.4l-3.7-.6' },
+]
+const ERROS_ITEM = { 'sem-item': 'Você não tem esse item.', 'ja-ativo': 'Você já tem um item ativado: cancele antes de trocar.' }
+
+function useItensPartida(logado) {
+  const [estado, setEstado] = useState(null) // { boost, freeze, ativo }
+  const [erro, setErro] = useState('')
+  const [mexendo, setMexendo] = useState(false)
+  useEffect(() => {
+    if (!logado) return
+    let vivo = true
+    const ler = () => lerConsumiveis().then((d) => vivo && setEstado(d), () => {})
+    ler()
+    // uma partida terminou (ou chegou item de caixa/resgate): o sino avisa e o lobby confere de novo
+    window.addEventListener('np-notificacoes', ler)
+    window.addEventListener('focus', ler)
+    return () => {
+      vivo = false
+      window.removeEventListener('np-notificacoes', ler)
+      window.removeEventListener('focus', ler)
+    }
+  }, [logado])
+  const alternar = async (tipo) => {
+    if (mexendo || !estado) return
+    setErro('')
+    setMexendo(true)
+    try {
+      const ativo = estado.ativo?.tipo === tipo
+      playSound(ativo ? 'lado' : 'pick')
+      setEstado(await (ativo ? cancelarConsumivel() : ativarConsumivel(tipo)))
+    } catch (e) {
+      setErro(ERROS_ITEM[e.message] || 'Não deu para usar o item agora. Tente de novo.')
+    } finally {
+      setMexendo(false)
+    }
+  }
+  return { estado, erro, mexendo, alternar }
+}
+
+function ItemPartida({ item, qtd, ativo, outro, desativado, aoClicar }) {
+  const t = useT()
+  const vazio = !qtd && !ativo
+  const status = ativo
+    ? t('Ativado para a próxima partida · clique para cancelar')
+    : outro
+      ? t('{nome} já está ativado · cancele antes de trocar', { nome: outro })
+      : vazio
+        ? t('Você não tem · sai em caixas e presentes')
+        : t('Você tem {n} · clique para ativar', { n: qtd })
+  return (
+    <span className={`lb-item lb-item-${item.tipo}${ativo ? ' is-ativo' : ''}${vazio ? ' is-vazio' : ''}`} style={{ '--item': item.cor }}>
+      <button type="button" className="lb-item-botao" onClick={aoClicar} disabled={desativado} aria-pressed={ativo} aria-label={`${item.nome}: ${status}`} aria-keyshortcuts={item.tecla}>
+        <i className="lb-item-tecla" aria-hidden="true">{item.tecla}</i>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill={item.tipo === 'boost' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={item.tipo === 'boost' ? 0 : 1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d={item.d} />
+        </svg>
+        <i className="lb-item-qtd" aria-hidden="true">×{qtd}</i>
+      </button>
+      <small className="lb-item-nome">{item.nome}</small>
+      <span className="lb-item-dica" role="tooltip">
+        <b>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill={item.tipo === 'boost' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={item.tipo === 'boost' ? 0 : 2} strokeLinecap="round" aria-hidden="true">
+            <path d={item.d} />
+          </svg>
+          {item.nome}
+        </b>
+        <span>{t(item.dica)}</span>
+        <em>{status}</em>
+      </span>
+    </span>
+  )
+}
+
 function Painel({ dados, fazer, ocupado, status }) {
   const t = useT()
   const [aba, setAba] = useState('tipo')
@@ -401,6 +479,31 @@ function Painel({ dados, fazer, ocupado, status }) {
     fazer('cancelar-busca')
   }
   const completo = dados.membros.length >= dados.max
+  const itens = useItensPartida(!!dados.eu)
+  const ativo = itens.estado?.ativo?.tipo
+  // teclas 1 e 2 (fora de campos de texto): ativam/cancelam o Boost e o Freeze
+  const alternarItem = useRef(itens.alternar)
+  alternarItem.current = itens.alternar
+  useEffect(() => {
+    const tecla = (e) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || e.repeat || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName) || e.target?.isContentEditable) return
+      const item = ITENS_PARTIDA.find((i) => i.tecla === e.key)
+      if (item) alternarItem.current(item.tipo)
+    }
+    document.addEventListener('keydown', tecla)
+    return () => document.removeEventListener('keydown', tecla)
+  }, [])
+  const slot = (item) => (
+    <ItemPartida
+      key={item.tipo}
+      item={item}
+      qtd={itens.estado?.[item.tipo] ?? 0}
+      ativo={ativo === item.tipo}
+      outro={ativo && ativo !== item.tipo ? ITENS_PARTIDA.find((i) => i.tipo === ativo)?.nome : ''}
+      desativado={!itens.estado || itens.mexendo}
+      aoClicar={() => itens.alternar(item.tipo)}
+    />
+  )
   return (
     <section className="lb-painel" aria-label={t('Partida')}>
       <div className="lb-buscar-faixa">
@@ -416,6 +519,8 @@ function Painel({ dados, fazer, ocupado, status }) {
             </span>
           </p>
         )}
+        <div className="lb-acao">
+        {slot(ITENS_PARTIDA[0])}
         {dados.busca ? (
           <button type="button" className="lb-buscar buscando" disabled={!dados.souLider || ocupado} onClick={cancelar} title={dados.souLider ? t('Cancelar busca') : undefined}>
             <TempoBusca desde={dados.busca} />
@@ -423,10 +528,13 @@ function Painel({ dados, fazer, ocupado, status }) {
           </button>
         ) : (
           <button type="button" className={`lb-buscar${completo && dados.souLider ? ' pronto' : ''}`} disabled={!completo || !dados.souLider || ocupado} onClick={buscar}>
-            {t('BUSCAR PARTIDA')}
+            {t('JOGAR')}
             <small>{!completo ? `${dados.membros.length}/${dados.max}` : dados.souLider ? MODOS.find((m) => m.id === modo).rotulo : t('Só o líder busca')}</small>
           </button>
         )}
+        {slot(ITENS_PARTIDA[1])}
+        </div>
+        {itens.erro && <p className="lb-item-erro" role="status">{t(itens.erro)}</p>}
       </div>
 
       <div className="lb-abas-painel" role="tablist">

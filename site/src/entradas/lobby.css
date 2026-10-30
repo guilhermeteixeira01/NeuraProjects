@@ -11,3 +11,6 @@
 @import '../comum/plataforma.css';
 @import '../comum/sazonal.css';
 @import '../paginas/lobby/cenario.css';
+
+/* Itens de partida (Boost/Freeze) ao lado do JOGAR e o visual do painel: por último, ganha dos anteriores */
+@import '../paginas/lobby/acao.css';

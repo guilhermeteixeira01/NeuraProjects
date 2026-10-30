@@ -50,6 +50,7 @@ import { registrar } from './registro.js'
 import { lerSkinsKv, limparSkins, novoIdItem, tirarItem } from './skins.js'
 import { valorDe, valoresDe } from './valor.js'
 import { diarioDoJogador } from './diario.js'
+import { aplicarNaPartida, consumiveisDoJogador, sortearConsumivelCaixa } from './consumiveis.js'
 
 const ID_STEAM = /^\d{17}$/
 const ITENS_MAX = 2000
@@ -448,6 +449,13 @@ export class Loja {
       case 'diario-pontos':
       case 'diario-caixa':
         return diarioDoJogador(this, id, acao, caixas)
+      case 'consumiveis':
+      case 'consumivel-ativar':
+      case 'consumivel-cancelar':
+      case 'consumivel-dar':
+        return consumiveisDoJogador(this, acao, p)
+      case 'consumivel-partida':
+        return aplicarNaPartida(this, p)
       case 'missoes-sinc':
         return sincronizarMissoes(this,id,p.partidas||[],!!p.historico,Date.now(),p.acesso===true)
       case 'afiliado-recompensar':
@@ -796,7 +804,9 @@ export class Loja {
     const novas = await this.conferirInsignias(caixas, await this.fechadas(id))
     // quantas dessa caixa ainda sobram no inventário (a tela "Abrir outra" usa para contar o que já tem antes de cobrar)
     const restantes = Object.values(limpo.itens).filter((it) => it.t === 'caixa' && it.d === caixa.id).length
-    return { saldo: saldo(), resultados, restantes, aberturasEspecial: this.abertasParaEspecial(), insignias: novas.ids, insigniasTs: novas.ts }
+    // chance de vir um Boost ou Freeze (itens de partida do lobby) junto com o item
+    const consumivel = await sortearConsumivelCaixa(this, rndSeguro)
+    return { saldo: saldo(), resultados, restantes, ...(consumivel ? { consumivel } : {}), aberturasEspecial: this.abertasParaEspecial(), insignias: novas.ids, insigniasTs: novas.ts }
   }
 }
 
@@ -824,6 +834,7 @@ export async function rotaLojaPublica(env, cors, ctx) {
 }
 
 const ROTAS_LOJA = { 'GET /loja': 'estado', 'GET /loja/saldo': 'saldo', 'GET /loja/valores': 'valores', 'POST /loja/vender': 'vender', 'GET /loja/historico': 'historico', 'POST /loja/comprar': 'comprar', 'POST /loja/abrir': 'abrir' }
+Object.assign(ROTAS_LOJA, { 'GET /loja/consumiveis': 'consumiveis', 'POST /loja/consumiveis/ativar': 'consumivel-ativar', 'POST /loja/consumiveis/cancelar': 'consumivel-cancelar' })
 Object.assign(ROTAS_LOJA, { 'GET /loja/diario': 'diario', 'POST /loja/diario/pontos': 'diario-pontos', 'POST /loja/diario/caixa': 'diario-caixa' })
 ROTAS_LOJA['GET /loja/premium-partidas'] = 'premium-partidas'
 
@@ -839,7 +850,7 @@ export async function rotaLoja(req, env, quem, cors, rota) {
   if (!acao) throw new ErroNaoEncontrado('rota')
   const corpo = req.method === 'POST' ? await lerCorpo(req) : {}
   if (acao === 'vender') await exigirSenha(env, quem.id, corpo.senha)
-  const dados = await pedirAoJogador(env, quem.id, { acao, caixa: corpo.caixa, qtd: corpo.qtd, ids: corpo.ids, origem: corpo.origem, modo: MODOS.includes(corpo.modo) ? corpo.modo : undefined })
+  const dados = await pedirAoJogador(env, quem.id, { acao, caixa: corpo.caixa, qtd: corpo.qtd, ids: corpo.ids, origem: corpo.origem, tipo: typeof corpo.tipo === 'string' ? corpo.tipo : undefined, modo: MODOS.includes(corpo.modo) ? corpo.modo : undefined })
   if (acao === 'vender' && dados.total > 0) await registrar(env, { tipo: 'venda', quem: quem.id, texto: `vendeu ${dados.vendidos} item(ns) para a loja por ${Number(dados.total).toLocaleString('pt-BR')} NP` })
   if (acao === 'abrir') {
     // o que saiu da caixa entra no carrossel de drops ao vivo (aparece depois que a roleta termina) e quem abriu entra na lista do /admin/loja-retro
@@ -857,6 +868,13 @@ export async function rotaLoja(req, env, quem, cors, rota) {
 const novoBonus = (env, bonus) => mudarDoc(env, 'loja-bonus', (lista) => [...lista, { id: Math.max(0, ...lista.map((b) => b.id)) + 1, ts: Date.now(), ...bonus }].slice(-200), [])
 
 export async function rotaAdminLoja(req, env, rota, cors) {
+  // Boost/Freeze de um jogador: GET ?id= lê; POST { alvo, tipo, qtd (> 0 dá, < 0 tira) }
+  if (rota === '/admin/consumiveis' && req.method === 'GET') return json(await pedirAoJogador(env, idDaUrl(new URL(req.url)), { acao: 'consumiveis' }), 200, cors)
+  if (rota === '/admin/consumiveis') {
+    const c = await lerCorpo(req)
+    if (!ID_STEAM.test(c.alvo || '')) throw new ErroPedido('id')
+    return json(await pedirAoJogador(env, c.alvo, { acao: 'consumivel-dar', tipo: c.tipo, qtd: c.qtd, aviso: true }), 200, cors)
+  }
   if (rota === '/admin/loja-saldo') return json(await pedirAoJogador(env, idDaUrl(new URL(req.url)), { acao: 'saldo', movimentos: true }), 200, cors)
   if (rota === '/admin/caixas-lista') return json(await lerCaixas(env), 200, cors)
   if (rota === '/admin/loja-bonus' && req.method === 'GET') {

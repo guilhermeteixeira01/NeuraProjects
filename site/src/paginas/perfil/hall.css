@@ -9,7 +9,7 @@
 .hf-jogador-card {
  --hf-cor:#788594;position:relative;isolation:isolate;overflow:hidden;box-sizing:border-box;
  display:flex;flex-direction:column;align-items:center;width:100%;padding:20px 18px;
- border:1px solid #ffffff26;border-radius:14px;background:#101114 center/cover no-repeat;color:#f4f5f7;text-align:center;
+ border:1px solid #ffffff26;border-radius:14px;background:#101114 center/cover no-repeat;background-origin:border-box;color:#f4f5f7;text-align:center;
 }
 .hf-jogador-card.hf-top-1 { --hf-cor:#dfb951;border-color:var(--hf-cor); }
 .hf-jogador-card.hf-top-2 { --hf-cor:#bdcbdc;border-color:var(--hf-cor); }

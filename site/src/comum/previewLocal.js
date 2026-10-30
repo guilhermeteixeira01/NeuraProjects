@@ -101,6 +101,12 @@ export function ativarPreviewLocal() {
       else if(corpo.acao==='fixar')cg.fixado=String(corpo.texto||'').trim()?{texto:String(corpo.texto).trim().slice(0,200),tom:corpo.tom||'aviso',por:id,ts:Date.now()}:null
       guardar();return Response.json({ok:true,...(msg?{msg}:{}),fixado:cg.fixado})
     }
+    if(rota.startsWith('/loja/consumiveis')) {
+      const c=estado.consumiveis??={boost:2,freeze:1,ativo:null}
+      if(rota.endsWith('/ativar')){if(c.ativo)return Response.json({erro:'ja-ativo'},{status:409});if(!(c[corpo.tipo]>0))return Response.json({erro:'sem-item'},{status:409});c[corpo.tipo]--;c.ativo={tipo:corpo.tipo,desde:Date.now()}}
+      if(rota.endsWith('/cancelar')&&c.ativo){c[c.ativo.tipo]++;c.ativo=null}
+      guardar();return Response.json(c)
+    }
     if(rota==='/loja/diario'||rota==='/loja/diario/pontos'||rota==='/loja/diario/caixa') {
       const diaria=caixas.find(c=>c.slug==='caixa-diaria'), d=estadoDiario(estado.diario||{})
       estado.diario??={}

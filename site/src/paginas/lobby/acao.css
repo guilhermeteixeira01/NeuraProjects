@@ -1,0 +1,94 @@
+/* ══════ Painel do lobby: Boost · JOGAR · Freeze no centro, abas dos lados e os cartões de modo ══════ */
+.lb-conteudo > .lb-painel {
+  background:
+    radial-gradient(60% 120% at 50% 0%, rgb(255 122 26 / .1), transparent 60%),
+    linear-gradient(180deg, #14171d, #0f1115);
+  border-top: 1px solid rgb(255 255 255 / .06);
+  box-shadow: 0 -24px 60px -30px rgb(0 0 0 / .9);
+}
+
+/* faixa do meio: os dois itens em volta do botão (antes só o botão, com max-width de 320px) */
+.lb-painel .lb-buscar-faixa { max-width: none; padding: 12px 24px 10px; }
+.lb-acao { display: flex; align-items: center; gap: 22px; }
+
+/* JOGAR: pílula laranja (desligado = cinza, buscando = cronômetro) */
+.lb-painel .lb-buscar {
+  min-width: 270px; height: 62px; padding: 0 34px; border: 0; border-radius: 16px; display: grid; place-content: center; gap: 2px;
+  font: 900 21px var(--font-display); letter-spacing: .32em; text-indent: .32em; color: rgb(255 255 255 / .45);
+  background: linear-gradient(180deg, #2a2f38, #1f232a); box-shadow: inset 0 1px 0 rgb(255 255 255 / .06);
+  transition: filter .15s, transform .15s, box-shadow .2s;
+}
+.lb-painel .lb-buscar small { font: 700 10.5px var(--font-body); letter-spacing: .12em; text-indent: 0; color: rgb(255 255 255 / .38); }
+.lb-painel .lb-buscar.pronto {
+  color: #fff; background: linear-gradient(180deg, #ff8a2b, #f05a0e);
+  box-shadow: 0 0 0 1px rgb(255 160 80 / .45) inset, 0 10px 34px -8px rgb(255 98 20 / .75), 0 0 60px -20px #ff7a1a;
+}
+.lb-painel .lb-buscar.pronto small { color: rgb(255 255 255 / .78); }
+.lb-painel .lb-buscar.pronto:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+.lb-painel .lb-buscar.buscando { color: #fff; letter-spacing: .08em; text-indent: 0; background: linear-gradient(180deg, #2b3340, #1f2530); box-shadow: 0 0 0 1px rgb(255 138 43 / .5) inset; }
+
+/* item (Boost/Freeze): círculo com o anel na cor do item, a tecla no canto e a quantidade embaixo */
+.lb-item { position: relative; display: grid; justify-items: center; gap: 6px; }
+.lb-item-botao {
+  position: relative; display: grid; place-items: center; width: 60px; height: 60px; padding: 0; border-radius: 50%; cursor: pointer;
+  border: 3px solid color-mix(in srgb, var(--item) 70%, transparent); color: var(--item);
+  background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--item) 18%, #1a1e25), #12151b 70%);
+  box-shadow: 0 6px 18px -8px rgb(0 0 0 / .9); transition: transform .15s, box-shadow .2s, border-color .2s, filter .2s;
+}
+.lb-item-botao:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 22px -4px var(--item); }
+.lb-item-botao:disabled { cursor: progress; }
+.lb-item-botao:focus-visible { outline: 2px solid var(--item); outline-offset: 3px; }
+.lb-item.is-vazio .lb-item-botao { border-color: rgb(255 255 255 / .14); color: rgb(255 255 255 / .35); background: #15181e; }
+.lb-item.is-vazio .lb-item-botao:hover:not(:disabled) { box-shadow: none; }
+.lb-item.is-ativo .lb-item-botao { border-color: var(--item); color: #fff; background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--item) 55%, #1a1e25), color-mix(in srgb, var(--item) 20%, #12151b) 75%); animation: lb-item-pulsa 1.8s ease-in-out infinite; }
+@keyframes lb-item-pulsa { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--item) 55%, transparent), 0 0 18px -6px var(--item); } 50% { box-shadow: 0 0 0 7px transparent, 0 0 28px -2px var(--item); } }
+@media (prefers-reduced-motion: reduce) { .lb-item.is-ativo .lb-item-botao { animation: none; box-shadow: 0 0 24px -4px var(--item); } }
+html[data-desempenho='1'] .lb-item.is-ativo .lb-item-botao { animation: none; box-shadow: 0 0 24px -4px var(--item); }
+.lb-item-tecla { position: absolute; top: -7px; left: -7px; display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 4px; border-radius: 6px; border: 1px solid rgb(255 255 255 / .16); background: #0d0f13; color: #fff; font: 800 11px/1 var(--font-body); font-style: normal; }
+.lb-item-qtd { position: absolute; right: -9px; bottom: -6px; padding: 2px 6px; border-radius: 999px; border: 1px solid rgb(255 255 255 / .14); background: #0d0f13; color: rgb(255 255 255 / .85); font: 800 10.5px/1.2 var(--font-body); font-style: normal; }
+.lb-item.is-ativo .lb-item-qtd { border-color: var(--item); }
+.lb-item-nome { font: 800 10px var(--font-body); letter-spacing: .14em; color: rgb(255 255 255 / .55); }
+.lb-item.is-ativo .lb-item-nome { color: var(--item); }
+
+/* dica em cima do item (passar o mouse ou focar) */
+.lb-item-dica {
+  position: absolute; bottom: calc(100% + 12px); left: 50%; z-index: 30; display: grid; gap: 8px; width: 280px; padding: 14px 16px; border-radius: 12px; text-align: left;
+  border: 1px solid rgb(255 255 255 / .08); background: #12151b; box-shadow: 0 16px 40px rgb(0 0 0 / .6);
+  opacity: 0; pointer-events: none; transform: translate(-50%, 6px); transition: opacity .15s, transform .15s;
+}
+.lb-item-dica::after { content: ''; position: absolute; top: 100%; left: 50%; margin-left: -8px; border: 8px solid transparent; border-top-color: #12151b; }
+.lb-item:hover .lb-item-dica, .lb-item-botao:focus-visible ~ .lb-item-dica { opacity: 1; transform: translate(-50%, 0); }
+.lb-item-dica b { display: flex; align-items: center; gap: 8px; color: var(--item); font: 900 13px var(--font-body); letter-spacing: .14em; }
+.lb-item-dica > span { color: rgb(255 255 255 / .82); font: 500 14px/1.45 var(--font-body); }
+.lb-item-dica em { justify-self: start; padding: 4px 10px; border-radius: 6px; background: rgb(255 255 255 / .06); color: rgb(255 255 255 / .6); font: 700 11.5px var(--font-body); font-style: normal; }
+.lb-item.is-ativo .lb-item-dica em { background: color-mix(in srgb, var(--item) 18%, transparent); color: var(--item); }
+.lb-item-erro { position: absolute; top: 100%; left: 50%; translate: -50% 0; margin: 2px 0 0; width: max-content; max-width: 420px; color: #ff8a80; font: 600 12px var(--font-body); }
+
+/* abas: texto mais discreto, a ativa com o sublinhado brilhando */
+.lb-painel .lb-abas-painel button { color: rgb(255 255 255 / .6); font-size: 13px; letter-spacing: .08em; transition: color .15s; }
+.lb-painel .lb-abas-painel button:hover { color: #fff; }
+.lb-painel .lb-abas-painel button.ativa { color: var(--accent); }
+.lb-painel .lb-abas-painel button.ativa::after { height: 3px; border-radius: 3px 3px 0 0; box-shadow: 0 0 14px var(--accent); }
+
+/* cartões de modo */
+.lb-painel .lb-modo {
+  position: relative; border-radius: 14px; border: 1px solid rgb(255 255 255 / .08); text-align: left; cursor: pointer;
+  background: linear-gradient(160deg, #1a1e26, #121419 70%); transition: border-color .15s, transform .15s, box-shadow .2s;
+}
+.lb-painel .lb-modo:hover:not(:disabled):not(.sel) { border-color: rgb(255 255 255 / .22); transform: translateY(-2px); }
+.lb-painel .lb-modo.sel:not(.lb-modo-premium) { border-color: #4f8dff; box-shadow: 0 0 0 1px #4f8dff, 0 14px 40px -18px rgb(79 141 255 / .7); }
+/* marca de escolhido no canto */
+.lb-painel .lb-modo.sel::after { content: '✓'; position: absolute; top: 14px; right: 14px; z-index: 4; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #4f8dff; color: #fff; font: 900 12px/1 var(--font-body); }
+.lb-painel .lb-modo-premium.sel::after { background: #ffd34d; color: #2a1d00; left: auto; width: 22px; animation: none; }
+.lb-painel .lb-modo-cab { padding: 18px 20px 14px; border-bottom: 1px solid rgb(255 255 255 / .05); }
+.lb-painel .lb-modo-itens { padding: 12px; gap: 8px; }
+.lb-painel .lb-modo-itens span { border-radius: 8px; border: 1px solid rgb(255 255 255 / .05); background: rgb(255 255 255 / .03); }
+.lb-painel .lb-modo:not(.lb-modo-premium) .lb-modo-itens svg { color: #4f8dff; }
+
+/* telas mais estreitas: a faixa do JOGAR sai de cima das abas e vira uma linha própria */
+@media (max-width: 1180px) {
+  .lb-conteudo > .lb-painel { grid-template-rows: auto 64px minmax(0, 1fr); height: auto; max-height: none; flex: none; }
+  .lb-painel .lb-buscar-faixa { grid-area: 1 / 1; padding-top: 18px; }
+  .lb-painel .lb-abas-painel { grid-area: 2 / 1; min-height: 64px; }
+  .lb-painel .lb-painel-corpo { grid-row: 3; height: 300px; }
+}

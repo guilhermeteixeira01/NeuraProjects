@@ -414,7 +414,8 @@ const MENSAGENS = {
 //   embutida: roda dentro da página da caixa (sem tela cheia); rapida: Lightning (animação curta); modo: 'jester' | 'boost' | undefined
 //   (embutida) aoResultado(resultados): tudo parou; vendidos: Set dos ids já vendidos; vendendo: venda em andamento; aoVender([ids])
 //   espera: o que mostrar (embutida) enquanto o servidor sorteia
-export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoOutra, embutida = false, rapida = false, modo, aoResultado, vendidos = SEM_VENDIDOS, vendendo = false, aoVender, espera = null }) {
+//   pularAnimacao: as roletas param direto no item (ligar no meio do giro também para na hora); aoErro(codigo): o servidor recusou
+export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoOutra, embutida = false, rapida = false, pularAnimacao = false, modo, aoResultado, aoErro, vendidos = SEM_VENDIDOS, vendendo = false, aoVender, espera = null }) {
   const t = useT()
   const achar = useAcharItem()
   const [fase, setFase] = useState('carregando') // carregando | roleta | facas | resultado | erro
@@ -423,7 +424,10 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
   const [paradas, setParadas] = useState(0)
   const [faca, setFaca] = useState(0) // qual das facas sorteadas está na roleta vertical
   const [pref, setPref] = useState(preferenciaAtual())
-  const pular = useRef(false)
+  const pular = useRef(pularAnimacao)
+  useEffect(() => {
+    if (pularAnimacao) pular.current = true
+  }, [pularAnimacao])
   const [tremer, setTremer] = useState(false)
   const [restantes, setRestantes] = useState(0) // caixas dessa que ainda sobram no inventário (contam antes de cobrar)
   const [qtdOutra, setQtdOutra] = useState(1) // quantas caixas "Abrir outra" abre de uma vez
@@ -468,6 +472,7 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
         if (!montado.current) return
         setErro(MENSAGENS[e.message] || 'Não deu para abrir agora. Tente de novo.')
         setFase('erro')
+        aoErro?.(e.message)
       },
     )
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -507,7 +512,7 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
 
   // embutida: a página da caixa mostra os botões do resultado (Vender tudo, Abrir de novo)
   useEffect(() => {
-    if (embutida && fase === 'resultado' && resultados.length) aoResultado?.(resultados)
+    if (embutida && fase === 'resultado' && resultados.length) aoResultado?.(resultados, { saldo: dados?.saldo, restantes: dados?.restantes || 0, consumivel: dados?.consumivel })
   }, [fase]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -550,7 +555,7 @@ export default function Abertura({ caixa, qtd, origem, maxQtd = 5, aoFechar, aoO
             <input type="range" min="0" max="1" step="0.05" value={pref.vol} onChange={(e) => mudarSom({ vol: Number(e.target.value), mudo: false })} aria-label={t('Volume')} />
           </span>
         )}
-        {/* sem "Pular animação": a roleta sempre vai até o fim (o Lightning da página da caixa deixa ela mais curta) */}
+        {/* "Pular animação" e "Abrir automático" ficam na página da caixa (pularAnimacao) */}
       </div>
 
       {/* Enquanto o servidor responde, conserva o cenário inicial e sua altura. */}

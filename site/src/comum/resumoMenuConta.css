@@ -21,3 +21,9 @@
 /* Com moldura a arte passa ~1/4 do avatar para cada lado: espaço em volta para ela não cobrir o nome nem encostar na borda */
 .nx-conta-menu.nc-card .nc-topo>.moldura-box.moldura-ajustada { flex-shrink:0; width:48px; margin:12px 14px 12px 8px!important; }
 .nx-conta-menu.nc-card .nc-topo>.moldura-box.moldura-ajustada>img { width:100%; }
+/* "Seja Premium": só para quem ainda não assina, entre os botões principais e os atalhos */
+.nx-conta-menu.nc-card .nc-premium { position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; gap:11px; width:calc(100% - 28px); margin:0 14px 16px; padding:11px 14px; border:0; border-radius:10px; cursor:pointer; text-align:left; color:#2a1d00; background:linear-gradient(135deg,#ffd54a,#f5a524); box-shadow:0 8px 22px -12px #f5a524; transition:filter .15s, transform .15s; }
+.nx-conta-menu.nc-card .nc-premium:hover { filter:brightness(1.08); transform:translateY(-1px); }
+.nx-conta-menu.nc-card .nc-premium span { display:grid; gap:2px; }
+.nx-conta-menu.nc-card .nc-premium b { font:800 13px var(--font-display, inherit); letter-spacing:.08em; }
+.nx-conta-menu.nc-card .nc-premium small { font:600 11px var(--font-body); opacity:.8; }

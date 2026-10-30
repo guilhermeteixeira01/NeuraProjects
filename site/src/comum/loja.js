@@ -11,6 +11,10 @@ export const comprarCaixa = (caixa, qtd) => chamar('/loja/comprar', { caixa, qtd
 export const abrirCaixa = (caixa, qtd, origem, modo) => chamar('/loja/abrir', { caixa, qtd, origem, ...(modo ? { modo } : {}) })
 // Página da caixa: { itens, facas: [[{ nome, p, v }] por desgaste], modos: { jester|boost: { preco, chances } } }
 export const lerDetalhesCaixa = (id) => chamar(`/loja/caixa?id=${id}`)
+// Itens de partida do lobby (Boost/Freeze): { boost, freeze, ativo: { tipo, desde } | null }
+export const lerConsumiveis = () => chamar('/loja/consumiveis')
+export const ativarConsumivel = (tipo) => chamar('/loja/consumiveis/ativar', { tipo })
+export const cancelarConsumivel = () => chamar('/loja/consumiveis/cancelar', {})
 // Valor de venda de cada item do inventário: { <id do item>: { r: raridade 0..6, v: NP } } (o servidor calcula)
 export const lerValores = async () => (await chamar('/loja/valores')).valores || {}
 // Vende itens (skin, faca ou luva) por NP: { saldo, total, vendidos, inv }

@@ -21,6 +21,7 @@ import { iniciarAvisoEquipe, useAvisoEquipe } from './avisoEquipe.js'
 import { useAmigos } from './amigos.js'
 import ResumoMenuConta from './ResumoMenuConta.jsx'
 
+const Deposito = lazy(() => import("../paginas/loja/Deposito.jsx")) // só baixa quando alguém clica em "Seja Premium"
 const TrocarNick = lazy(() => import('./BoasVindas.jsx').then(m => ({ default: m.TrocarNick })))
 
 function LinkMenu({ item, atual }) {
@@ -52,6 +53,7 @@ function Conta() {
   const [aberto, setAberto] = useState(false)
   const [erroAvatar, setErroAvatar] = useState('')
   const [trocandoNick, setTrocandoNick] = useState(false)
+  const [assinando, setAssinando] = useState(false)
   // A foto do token é a do dia do login (vale 30 dias): troca pela atual da Steam
   const fotoAtual = useAvatar(conta?.id)
   const caixa = useRef(null)
@@ -98,10 +100,11 @@ function Conta() {
       </button>
       {aberto && naTela(
         <div ref={painel} className={`nx-conta-menu nc-card${celular ? ' nx-painel-mobile' : ''}`} role="dialog" aria-modal={celular || undefined} aria-label={t('Minha conta')}>
-          <ResumoMenuConta conta={conta} nome={nome} avatar={avatar} conectado={conectado} seg={seg} aoFechar={() => setAberto(false)} aoTrocarNick={() => { setAberto(false); setTrocandoNick(true) }} />
+          <ResumoMenuConta conta={conta} nome={nome} avatar={avatar} conectado={conectado} seg={seg} aoFechar={() => setAberto(false)} aoTrocarNick={() => { setAberto(false); setTrocandoNick(true) }} aoAssinar={() => { setAberto(false); setAssinando(true) }} />
         </div>
       )}
       {trocandoNick && <Suspense fallback={null}><TrocarNick atual={seg?.nick} aoFechar={() => setTrocandoNick(false)} /></Suspense>}
+      {assinando && <Suspense fallback={null}><Deposito modo="sub" aoFechar={() => setAssinando(false)} /></Suspense>}
 
     </div>
   )

@@ -65,3 +65,13 @@ body *,body *::before,body *::after {
  width:var(--moldura-largura);height:var(--moldura-altura);
  left:var(--moldura-esquerda);top:var(--moldura-topo);
 }
+
+/* Cards de jogador com banner: borda forte desenhada por dentro (outline, não mexe no tamanho nem briga com border/box-shadow
+   de cada página), para o banner não parecer cortado nas pontas onde a borda translúcida deixava ver o fundo. */
+:root { --card-borda:#4a5366; }
+html:is([data-tema='claro'],[data-tema='branco']) { --card-borda:#9aa3b2; }
+:is(.hf-jogador-card,.sm-previa-card,.pf-cartao.com-card,.lb-pessoa.com-card,.sala-jog.com-card,.pod.com-card) {
+ outline:2px solid var(--card-borda);outline-offset:-2px;
+}
+.hf-jogador-card:is(.hf-top-1,.hf-top-2,.hf-top-3) { outline-color:var(--hf-cor); }
+.ranking-arena .pod.com-card { outline:0; }

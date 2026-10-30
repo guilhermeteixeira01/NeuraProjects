@@ -60,14 +60,20 @@ export function useFavoritas() {
   return { fav, alternar }
 }
 
-// Lightning fica lembrado neste navegador
-const lerRapida = () => {
+// Lightning e "Pular animação" ficam lembrados neste navegador; o "Abrir automático" não (precisa ser ligado de novo a cada vez)
+const lerLigado = (chave) => {
   try {
-    return localStorage.getItem('np_loja_rapida') === '1'
+    return localStorage.getItem(chave) === '1'
   } catch {
     return false
   }
 }
+const lerRapida = () => lerLigado('np_loja_rapida')
+// abertura automática: no máximo AUTO_MAX caixas por vez, uma de cada; para sozinha quando acabam as caixas/NP
+const AUTO_MAX = 50
+const AUTO_OPCOES = [5, 10, 25, 50]
+const AUTO_PAUSA = 1800 // ms mostrando o item ganho antes da próxima
+const AUTO_PAUSA_RAPIDA = 900 // com "Pular animação"
 
 // ── botão hexagonal com a dica em cima (quantidade, Jester, Boost, Lightning, som) ──
 // acende / acendeFundo: cor própria do botão quando ligado (o Lightning acende amarelo mesmo dentro do Jester roxo ou do Boost laranja)
@@ -96,6 +102,8 @@ const ICONES = {
   jester: 'M3 8l3.5 9h11L21 8l-4.5 3.5L12 5l-4.5 6.5L3 8Zm3.5 11h11v2h-11z',
   boost: 'M6 13l6-6 6 6M6 19l6-6 6 6',
   raio: 'M13 2 4 14h7l-1 8 9-12h-7l1-8Z',
+  pular: 'M3 5l8 7-8 7V5Zm9 0l8 7-8 7V5Z',
+  auto: 'M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4',
 }
 // alto-falante (o corpo é preenchido; as ondas e o "x" são traços)
 function IconeSom({ ligado }) { return <IconeUI tipo={ligado ? 'som' : 'mudo'} tamanho={20}/> }
@@ -328,11 +336,22 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
   const [vendidos, setVendidos] = useState(() => new Set())
   const [vendendo, setVendendo] = useState(false)
   const [erroVenda, setErroVenda] = useState('')
+  const [pularAnim, setPularAnim] = useState(false)
+  const [auto, setAuto] = useState(null) // abertura automática rodando: { total, feitas }
+  const autoRef = useRef(null) // o mesmo, para os callbacks da roleta e o timer
+  const timerAuto = useRef(0)
+  const [autoMenu, setAutoMenu] = useState(false)
+  const [autoQtd, setAutoQtd] = useState(10)
+  const [avisoAuto, setAvisoAuto] = useState('')
+  const [itemBonus, setItemBonus] = useState(null) // 'boost' | 'freeze': veio um item de partida junto com o da caixa
 
   useEffect(() => {
     setRapida(lerRapida())
+    setPularAnim(lerLigado('np_loja_pular'))
     setSomLigado(!preferenciaAtual().mudo)
   }, [])
+  // saiu da página da caixa: nada continua abrindo sozinho
+  useEffect(() => () => clearTimeout(timerAuto.current), [])
 
   useEffect(() => {
     let vivo = true
@@ -386,12 +405,65 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
     definirPreferencia({ mudo: somLigado })
     setSomLigado(!somLigado)
   }
+  // ligar no meio do giro também para a roleta na hora
+  const alternarPular = () => {
+    setPularAnim((v) => {
+      try {
+        localStorage.setItem('np_loja_pular', v ? '0' : '1')
+      } catch {
+        // só nesta visita
+      }
+      return !v
+    })
+  }
   const abrir = (q, origem) => {
     setResultado(null)
     setVendidos(new Set())
     setErroVenda('')
+    setItemBonus(null)
     setAbrindo({ qtd: q, origem, chave: Date.now() })
   }
+
+  // ── abertura automática ──
+  // por que não dá para abrir mais uma ('' = dá): sem caixa no inventário e sem NP para pagar (o servidor confere de novo)
+  const motivoParar = (sal, temAgora) => {
+    if (preco == null) return t('Não deu para abrir agora. Tente de novo.')
+    const doInv = modo ? 0 : Math.min(1, temAgora)
+    if (c.arquivada && !doInv) return t('Você não tem essa caixa no inventário.')
+    if (preco * (1 - doInv) > (sal ?? 0)) return t('Você não tem Neura Pontos suficientes.')
+    return ''
+  }
+  const qtdAuto = Math.max(1, Math.min(AUTO_MAX, Math.floor(Number(autoQtd)) || 1))
+  const pararAuto = (aviso = '') => {
+    clearTimeout(timerAuto.current)
+    autoRef.current = null
+    setAuto(null)
+    setAvisoAuto(aviso)
+  }
+  const iniciarAuto = () => {
+    const motivo = motivoParar(saldo, tem)
+    if (motivo) return setAvisoAuto(motivo)
+    setAutoMenu(false)
+    setAvisoAuto('')
+    autoRef.current = { total: qtdAuto, feitas: 0 }
+    setAuto(autoRef.current)
+    abrir(1, modo ? 'direto' : 'auto')
+  }
+  // uma caixa terminou: conta e, se ainda dá (caixa no inventário ou NP), abre a próxima depois de mostrar o item
+  const seguirAuto = (info) => {
+    const a = autoRef.current
+    if (!a) return
+    const feitas = a.feitas + 1
+    if (feitas >= a.total) return pararAuto(t('Abertura automática concluída: {n} caixas.', { n: feitas }))
+    const motivo = motivoParar(info?.saldo, info?.restantes || 0)
+    if (motivo) return pararAuto(`${t('Abertura automática parada ({n} de {total}).', { n: feitas, total: a.total })} ${motivo}`)
+    autoRef.current = { ...a, feitas }
+    setAuto(autoRef.current)
+    timerAuto.current = setTimeout(() => autoRef.current && abrir(1, modo ? 'direto' : 'auto'), pularAnim ? AUTO_PAUSA_RAPIDA : AUTO_PAUSA)
+  }
+  // estimativa do menu: as do inventário primeiro (fora dos modos), o resto pago
+  const autoPagas = modo ? qtdAuto : Math.max(0, qtdAuto - tem)
+  const autoCusto = preco == null ? null : autoPagas * preco
   // veio do botão "Abrir" do inventário: abre uma das caixas que já tem aqui mesmo, na roleta da página (uma vez só)
   const abriuDoInventario = useRef(false)
   useEffect(() => {
@@ -402,6 +474,7 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [abrirDoInventario, tem])
   const voltarParaCaixa = () => {
+    if (autoRef.current) pararAuto(t('Abertura automática parada.'))
     setAbrindo(null)
     setResultado(null)
     aoAbriu()
@@ -433,6 +506,16 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
   </div>
   const aVender = (resultado || []).filter((r) => !vendidos.has(r.id))
   const totalVenda = aVender.reduce((a, r) => a + (r.v || 0), 0)
+  const botaoPular = (
+    <Hex ativo={pularAnim} cor="#4fd1c5" acende="#4fd1c5" acendeFundo="#0c3f3b" titulo={t('Pular animação')} dica={t('A roleta para direto no item ganho')} aoClicar={alternarPular}>
+      <Icone d={ICONES.pular} preenchido />
+    </Hex>
+  )
+  const botaoAuto = (
+    <Hex ativo={!!auto || autoMenu} cor="#2ecc71" acende="#2ecc71" acendeFundo="#0d3a24" titulo={t('Abrir automático')} dica={t('Abre várias caixas seguidas, uma de cada vez')} desativado={girando || !!auto || ocupado || preco == null || (c.arquivada && !tem)} aoClicar={() => { setAutoMenu((v) => !v); setAvisoAuto('') }}>
+      <Icone d={ICONES.auto} />
+    </Hex>
+  )
 
   return (
     <section className="lj-cx" data-modo={modo || 'normal'} aria-label={c.nome}>
@@ -460,6 +543,7 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
             key={abrindo.chave}
             embutida
             rapida={rapida}
+            pularAnimacao={pularAnim}
             modo={modo || undefined}
             caixa={{ ...c, preco: preco ?? c.preco }}
             qtd={abrindo.qtd}
@@ -467,12 +551,15 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
             maxQtd={maximo}
             aoFechar={voltarParaCaixa}
             aoOutra={(n) => abrir(n || 1, modo ? 'direto' : 'auto')}
-            aoResultado={(r) => {
+            aoResultado={(r, info) => {
               setResultado(r)
+              setItemBonus(info?.consumivel || null)
               aoAbriu() // saldo novo (o "Abrir de novo" confere)
+              seguirAuto(info)
             }}
+            aoErro={() => autoRef.current && pararAuto(t('Abertura automática parada.'))}
             vendidos={vendidos}
-            vendendo={vendendo}
+            vendendo={vendendo || !!auto}
             aoVender={vender}
             espera={espera}
           />
@@ -491,18 +578,24 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
           </div>
           <div className="lj-cx-abrir">
             <span className="lj-cx-pos-botoes">
-              <button type="button" className="lj-cx-vender-tudo" disabled={vendendo || !aVender.length} onClick={() => vender(aVender.map((r) => r.id))}>
+              <button type="button" className="lj-cx-vender-tudo" disabled={vendendo || !!auto || !aVender.length} onClick={() => vender(aVender.map((r) => r.id))}>
                 <Icone d="M12 2v12m0 0 4-4m-4 4-4-4M4 16v4h16v-4" />
                 {aVender.length ? t('Vender tudo por {n} NP', { n: numero(totalVenda) }) : t('Tudo vendido')}
               </button>
-              <button type="button" className="lj-cx-de-novo" disabled={preco == null || (c.arquivada && !tem)} onClick={() => (falta ? setDepositando(true) : abrir(qtd, modo ? 'direto' : 'auto'))}>
-                <Icone d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4" />
+              <button type="button" className="lj-cx-de-novo" disabled={!!auto || preco == null || (c.arquivada && !tem)} onClick={() => (falta ? setDepositando(true) : abrir(qtd, modo ? 'direto' : 'auto'))}>
+                <Icone d={ICONES.auto} />
                 {rotuloAbrir(true)}
               </button>
             </span>
             {erroVenda && <small className="lj-cx-falta">{erroVenda}</small>}
+            {itemBonus && (
+              <a className={`lj-cx-item-bonus lj-cx-item-${itemBonus}`} href="/lobby/">
+                <b>+1 {itemBonus === 'boost' ? 'Boost' : 'Freeze'}</b> {t('de bônus! Use no lobby antes da partida.')}
+              </a>
+            )}
           </div>
           <div className="lj-cx-modos">
+            {botaoPular}
             <Hex ativo={rapida} cor="#f5c518" acende="#f5c518" acendeFundo="#5a4707" titulo="Lightning" dica={t('Acelere a animação de abertura da caixa')} aoClicar={alternarRapida}>
               <Icone d={ICONES.raio} preenchido />
             </Hex>
@@ -542,6 +635,8 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
             <Hex ativo={modo === 'boost'} desativado={girando} cor="#ff6b5b" titulo="Boost Mode" dica={t('Chances aumentadas para itens melhores ({n} NP)', { n: det ? numero(det.modos.boost.preco) : '…' })} aoClicar={() => alternarModo('boost')}>
               <Icone d={ICONES.boost} />
             </Hex>
+            {botaoPular}
+            {botaoAuto}
             <Hex ativo={rapida} cor="#f5c518" acende="#f5c518" acendeFundo="#5a4707" titulo="Lightning" dica={t('Acelere a animação de abertura da caixa')} aoClicar={alternarRapida}>
               <Icone d={ICONES.raio} preenchido />
             </Hex>
@@ -551,6 +646,50 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
           </div>
         </div>
       )}
+
+      {/* abertura automática: menu da quantidade (antes) ou o progresso com o "Parar" (rodando) */}
+      {auto ? (
+        <div className="lj-cx-auto is-rodando" role="status">
+          <span className="lj-cx-auto-txt">
+            <b>{t('Abertura automática')}</b> {t('{n} de {total}', { n: Math.min(auto.feitas + 1, auto.total), total: auto.total })}
+          </span>
+          <i className="lj-cx-auto-barra" aria-hidden="true">
+            <u style={{ width: `${(auto.feitas / auto.total) * 100}%` }} />
+          </i>
+          <button type="button" className="lj-cx-auto-parar" onClick={() => pararAuto(t('Abertura automática parada.'))}>
+            {t('Parar')}
+          </button>
+        </div>
+      ) : (
+        autoMenu && (
+          <div className="lj-cx-auto" role="group" aria-label={t('Abrir automático')}>
+            <span className="lj-cx-auto-txt">
+              <b>{t('Abrir automático')}</b> {t('Quantas caixas?')}
+            </span>
+            <div className="lj-cx-auto-opcoes">
+              {AUTO_OPCOES.map((n) => (
+                <button key={n} type="button" className={qtdAuto === n ? 'is-ativo' : ''} aria-pressed={qtdAuto === n} onClick={() => setAutoQtd(n)}>
+                  {n}
+                </button>
+              ))}
+              <input type="number" min="1" max={AUTO_MAX} inputMode="numeric" value={autoQtd} onChange={(e) => setAutoQtd(e.target.value)} onBlur={() => setAutoQtd(qtdAuto)} aria-label={t('Quantidade')} />
+            </div>
+            <small className="lj-cx-auto-custo">
+              {autoCusto == null ? '…' : autoPagas < qtdAuto ? t('Até {n} NP ({k} do inventário)', { n: numero(autoCusto), k: qtdAuto - autoPagas }) : t('Até {n} NP', { n: numero(autoCusto) })}
+              {autoCusto != null && saldo != null && autoCusto > saldo && <em> · {t('Para sozinho quando acabarem os NP.')}</em>}
+            </small>
+            <span className="lj-cx-auto-acoes">
+              <button type="button" className="lj-cx-auto-iniciar" disabled={girando || ocupado || preco == null} onClick={iniciarAuto}>
+                {t('Iniciar')}
+              </button>
+              <button type="button" className="lj-cx-auto-cancelar" onClick={() => setAutoMenu(false)}>
+                {t('Cancelar')}
+              </button>
+            </span>
+          </div>
+        )
+      )}
+      {avisoAuto && !auto && <p className="lj-cx-auto-aviso" role="status">{avisoAuto}</p>}
 
       <h2 className="lj-cx-sub">{t('Conteúdo da caixa')}</h2>
       <ul className="lj-cx-grade">

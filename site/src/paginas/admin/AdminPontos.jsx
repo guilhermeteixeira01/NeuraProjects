@@ -206,9 +206,65 @@ export default function AdminPontos({ usuarios, fixo = null, modo = 'tudo' }) {
         </div>
       )}
     </div>
+      {alvo === 'jogador' && id && modo !== 'todos' && <ItensPartidaAdmin id={id} />}
       {modo !== 'jogador' && <BonusSalvos versao={bonusVersao} />}
       {modo === 'tudo' && <ConfigDepositos />}
     </>
+  )
+}
+
+// Itens de partida do lobby (Boost / Freeze) de um jogador: quantos tem, qual está ativado, e dar ou tirar (o worker avisa o jogador no sino)
+function ItensPartidaAdmin({ id }) {
+  const t = useT()
+  const [itens, setItens] = useState(null)
+  const [qtd, setQtd] = useState(1)
+  const [estado, setEstado] = useState({ texto: '', ok: true })
+  const [ocupado, setOcupado] = useState(false)
+  useEffect(() => {
+    let vivo = true
+    setItens(null)
+    chamar(`/admin/consumiveis?id=${id}`).then((r) => vivo && setItens(r), () => vivo && setEstado({ texto: t('Não deu para ler os itens.'), ok: false }))
+    return () => {
+      vivo = false
+    }
+  }, [id, t])
+  const mudar = async (tipo, sinal) => {
+    const n = Math.max(1, Math.min(99, Math.round(Number(qtd) || 1)))
+    setOcupado(true)
+    setEstado({ texto: '', ok: true })
+    try {
+      setItens(await chamar('/admin/consumiveis', { alvo: id, tipo, qtd: sinal * n }))
+      setEstado({ texto: t('Pronto.'), ok: true })
+    } catch (e) {
+      setEstado({ texto: t(erroTexto(e)), ok: false })
+    } finally {
+      setOcupado(false)
+    }
+  }
+  return (
+    <div className="caixa adm-pt adm-itens-partida">
+      <p className="adm-dar-dica">{t('Itens de partida do lobby. Boost: vitória na próxima partida vale XP em dobro. Freeze: a próxima partida não ganha nem perde XP.')}</p>
+      <div className="adm-pt-linha">
+        <input type="number" min="1" max="99" value={qtd} onChange={(e) => setQtd(e.target.value)} aria-label={t('Quantidade')} />
+      </div>
+      {[['boost', 'Boost'], ['freeze', 'Freeze']].map(([tipo, nome]) => (
+        <div key={tipo} className="adm-pt-grupo">
+          <b>
+            {nome}: {itens ? itens[tipo] : '…'}
+            {itens?.ativo?.tipo === tipo && <em> · {t('ativado para a próxima partida')}</em>}
+          </b>
+          <div className="adm-pt-seg">
+            <button type="button" disabled={ocupado || !itens} onClick={() => mudar(tipo, 1)}>
+              + {t('Dar')}
+            </button>
+            <button type="button" disabled={ocupado || !itens || !itens[tipo]} onClick={() => mudar(tipo, -1)}>
+              − {t('Tirar')}
+            </button>
+          </div>
+        </div>
+      ))}
+      {estado.texto && <p className={estado.ok ? 'adm-dar-estado' : 'adm-pt-erro'}>{estado.texto}</p>}
+    </div>
   )
 }
 

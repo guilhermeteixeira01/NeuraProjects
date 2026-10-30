@@ -548,7 +548,7 @@ export function CamadaMoldura({ id, parada = false }) {
 // (listas, chat, nav, abaixo de FOLGA_MIN) fica sem a margem, para não abrir as linhas. Um ResizeObserver só para todas.
 const FOLGA_MIN = 44
 let observador = null
-function folgaMoldura(el) {
+export function folgaMoldura(el) {
   if (!el || typeof ResizeObserver === 'undefined') return
   observador ||= new ResizeObserver((itens) => {
     for (const { target, contentRect } of itens) {

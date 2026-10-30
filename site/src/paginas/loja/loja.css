@@ -518,6 +518,30 @@ html.lj-travado .nx-rolagem { display: none !important; }
 .lj-vender-um.is-vendido { border-color: rgb(255 255 255 / .2); color: rgb(255 255 255 / .6); background: rgb(15 25 45 / .9); }
 @keyframes lj-vender-entra { from { opacity: 0; transform: translate(-10px, -50%); } to { opacity: 1; transform: translateY(-50%); } }
 
+/* ══════ Abrir automático: menu da quantidade e barra de progresso com o "Parar" ══════ */
+.lj-cx-controles.is-girando .lj-cx-modos .lj-hex-caixa:nth-child(4), .lj-cx-pos .lj-hex:disabled { opacity: .45; }
+.lj-cx-auto { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 18px; max-width: 900px; margin: 6px auto 0; padding: 14px 18px; border-radius: 10px;
+  border: 1px solid rgb(46 204 113 / .35); background: rgb(10 30 32 / .75); }
+.lj-cx-auto-txt { color: rgb(255 255 255 / .75); font-size: 15px; }
+.lj-cx-auto-txt b { color: #2ecc71; margin-right: 4px; }
+.lj-cx-auto-opcoes { display: flex; gap: 6px; align-items: center; }
+.lj-cx-auto-opcoes button, .lj-cx-auto-opcoes input { min-width: 44px; height: 36px; padding: 0 10px; border-radius: 6px; border: 1px solid rgb(255 255 255 / .2); background: #0e1a38; color: #fff; font: 600 15px var(--font-body); }
+.lj-cx-auto-opcoes button { cursor: pointer; }
+.lj-cx-auto-opcoes button.is-ativo { border-color: #2ecc71; background: #0d3a24; }
+.lj-cx-auto-opcoes input { width: 70px; text-align: center; }
+.lj-cx-auto-custo { color: rgb(255 255 255 / .6); font-size: 13px; }
+.lj-cx-auto-custo em { color: #f5c518; font-style: normal; }
+.lj-cx-auto-acoes { display: flex; gap: 8px; }
+.lj-cx-auto-iniciar, .lj-cx-auto-parar, .lj-cx-auto-cancelar { height: 38px; padding: 0 18px; border-radius: 6px; font: 600 15px var(--font-body); cursor: pointer; }
+.lj-cx-auto-iniciar { border: 0; background: #2ecc71; color: #062314; }
+.lj-cx-auto-iniciar:disabled { opacity: .5; cursor: not-allowed; }
+.lj-cx-auto-cancelar { border: 1px solid rgb(255 255 255 / .2); background: transparent; color: #fff; }
+.lj-cx-auto-parar { border: 2px solid #ff6b6b; background: rgb(60 15 20 / .85); color: #fff; }
+.lj-cx-auto-parar:hover { background: rgb(90 20 28 / .95); }
+.lj-cx-auto-barra { flex: 1 1 200px; max-width: 360px; height: 8px; border-radius: 4px; background: rgb(255 255 255 / .12); overflow: hidden; }
+.lj-cx-auto-barra u { display: block; height: 100%; background: #2ecc71; transition: width .3s; }
+.lj-cx-auto-aviso { margin: 8px auto 0; text-align: center; color: rgb(255 255 255 / .75); font-size: 14px; }
+
 .lj-cx-pos-botoes { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 .lj-cx-vender-tudo, .lj-cx-de-novo { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-width: 300px; padding: 16px 28px; border-radius: 6px; color: #fff; font: 600 19px var(--font-body); cursor: pointer; transition: background .15s; }
 .lj-cx-vender-tudo { border: 2px solid #2ecc71; background: rgb(14 52 50 / .9); }
@@ -732,3 +756,9 @@ img.lj-emblema { width: 92px; height: auto; object-fit: contain; filter: drop-sh
 .lj-rev-cartao { position: relative; }
 @media (prefers-reduced-motion: reduce) { .lj-esp-progresso.is-proxima, .lj-cx-esp-barra u::after { animation: none; } }
 .lj-cx-tem { color: rgb(255 255 255 / .55); font: 500 12.5px var(--font-body); }
+
+/* Boost/Freeze que veio junto com a abertura (leva ao lobby) */
+.lj-cx-item-bonus { margin-top: 10px; padding: 6px 14px; border-radius: 999px; font-size: 13.5px; color: #fff; text-decoration: none; border: 1px solid var(--cor-item); background: color-mix(in srgb, var(--cor-item) 16%, transparent); animation: lj-vender-entra .35s ease-out both; }
+.lj-cx-item-bonus b { color: var(--cor-item); }
+.lj-cx-item-boost { --cor-item: #f5a524; }
+.lj-cx-item-freeze { --cor-item: #4fc3f7; }

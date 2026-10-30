@@ -50,6 +50,7 @@ const ROTULO_ADMIN = {
   '/admin/loja-pontos': 'mexeu nos pontos',
   '/admin/loja-bonus': 'apagou um bônus de pontos para todos',
   '/admin/loja-bonus-caixa': 'deu um bônus de caixa para todos',
+  '/admin/consumiveis': 'mexeu nos itens de partida (Boost/Freeze)',
   '/admin/pagamento-config': 'mudou a configuração dos depósitos',
   '/admin/assinatura-planos': 'mudou os planos de assinatura',
   '/admin/zerar-tudo': 'ZEROU TUDO',
@@ -70,6 +71,7 @@ function descreverAcao(rota, quem, c) {
   if (rota === '/admin/perfil') texto = c.limpar ? 'apagou os dados do jogador' : c.sub === null ? 'removeu a assinatura' : `editou o perfil (${chaves.join(', ') || 'sem mudanças'})`
   else if (rota === '/admin/admins') texto = c.admin === true ? 'promoveu a administrador' : 'removeu de administrador'
   else if (rota === '/admin/loja-pontos') texto = `${c.acao || 'mexeu'} ${c.valor ?? ''} NP ${c.alvo === 'todos' ? 'para TODOS' : ''}${c.motivo ? ` (${String(c.motivo).slice(0, 60)})` : ''}`.replace(/ +/g, ' ').trim()
+  else if (rota === '/admin/consumiveis') texto = `${Number(c.qtd) > 0 ? 'deu' : 'tirou'} ${Math.abs(Number(c.qtd) || 0)} ${c.tipo === 'freeze' ? 'Freeze' : 'Boost'}`
   else if (rota === '/admin/skin') texto = c.remover ? 'tirou uma skin do jogador' : 'deu itens ao jogador'
   else if (chaves.length && rota === '/admin/config') texto = `mudou as configurações (${chaves.join(', ')})`
   const alvo = ID_STEAM.test(String(c.id || c.alvo || '')) ? String(c.id || c.alvo) : ''
@@ -323,10 +325,11 @@ const ROTAS_ADMIN = {
   '/admin/loja-bonus-caixa': { metodos: ['POST'], precisa: 'pontos', atender: (c) => rotaAdminLoja(c.req, c.env, c.rota, c.cors) },
   '/admin/loja-bonus': { metodos: ['GET', 'POST'], precisa: 'pontos', atender: (c) => rotaAdminLoja(c.req, c.env, c.rota, c.cors) },
   '/admin/loja-saldo': { metodos: ['GET'], precisa: 'pontos', atender: (c) => rotaAdminLoja(c.req, c.env, c.rota, c.cors) },
+  '/admin/consumiveis': { metodos: ['GET', 'POST'], precisa: 'pontos', atender: (c) => rotaAdminLoja(c.req, c.env, c.rota, c.cors) },
 }
 
 // Rotas que leem o corpo elas mesmas (repassam o pedido): o corpo é lido de uma cópia para conferir a permissão e escrever o log
-const LEEM_O_CORPO = new Set(['/admin/assinatura-planos', '/admin/pagamento-config', '/admin/skin', '/admin/caixas', '/admin/caixas-lista', '/admin/loja-config', '/admin/loja-pontos', '/admin/loja-bonus-caixa', '/admin/loja-bonus'])
+const LEEM_O_CORPO = new Set(['/admin/consumiveis', '/admin/assinatura-planos', '/admin/pagamento-config', '/admin/skin', '/admin/caixas', '/admin/caixas-lista', '/admin/loja-config', '/admin/loja-pontos', '/admin/loja-bonus-caixa', '/admin/loja-bonus'])
 
 export async function rotaAdmin(req, env, quem, config, cors, rota, url) {
   const abas = await abasDe(quem.id, env, config)

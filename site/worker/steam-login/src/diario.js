@@ -3,6 +3,7 @@ import { novoIdItem } from './skins.js'
 import { docVazio, juntar } from './notif-core.js'
 
 import { estadoDiario } from './diario-core.js'
+import { CONSUMIVEL_DIARIO, NOME_CONSUMIVEL, ganharConsumivel } from './consumiveis.js'
 
 export async function diarioDoJogador(obj, id, acao, caixas) {
   const s = (await obj.ctx.storage.get('diario')) || {}
@@ -31,5 +32,8 @@ export async function diarioDoJogador(obj, id, acao, caixas) {
     // Recibo, pontos, caixa e aviso são gravados juntos; a fila da Loja impede resgates concorrentes.
     await obj.ctx.storage.put(gravar)
   }
-  return { ...estadoDiario(dados), recebido, caixa: { id: caixa.id, nome: caixa.nome, img: caixa.img, slug: caixa.slug }, caixasDisponiveis: Object.values(inv.itens).filter(i => i.t === 'caixa' && i.d === caixa.id).length }
+  // dias 4 e 7 da sequência: um item de partida junto com os NP
+  const consumivel = acao === 'diario-pontos' && recebido ? CONSUMIVEL_DIARIO[estado.sequencia] : null
+  if (consumivel) await ganharConsumivel(obj, consumivel, 1, `Resgate diário: +1 ${NOME_CONSUMIVEL[consumivel]}`)
+  return { ...estadoDiario(dados), recebido, ...(consumivel ? { consumivel } : {}), consumiveisDiario: CONSUMIVEL_DIARIO, caixa: { id: caixa.id, nome: caixa.nome, img: caixa.img, slug: caixa.slug }, caixasDisponiveis: Object.values(inv.itens).filter(i => i.t === 'caixa' && i.d === caixa.id).length }
 }
