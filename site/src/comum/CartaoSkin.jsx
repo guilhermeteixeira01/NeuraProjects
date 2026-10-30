@@ -3,9 +3,10 @@ import IconeUI from './IconeUI.jsx'
 // da raridade, bolinhas dos times em que está equipada, StatTrak, chaveiro e adesivos no canto de baixo, nome, skin e desgaste.
 // item: { t, d, p, f, st, n, a, k, __id }   equip: { ct: {chave: id}, tr: {...} }   adesivos/chaveiros: Map(id do jogo -> linha do catálogo)
 // aoAbrirMenu: o que fazer ao clicar (menu do botão direito no inventário); sem ele o cartão é só para olhar. extra: algo embaixo (ex.: botão "Tirar").
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { LADOS_TIME, chaveEquip, corEnfeite, descrever, urlImg } from './skins.js'
 import { useT } from './i18n.js'
+import DicaSkin, { temDica } from './DicaSkin.jsx'
 import { padraoRaro } from '../../worker/steam-login/src/padroes.js'
 
 function Imagem({ src, classe = '' }) {
@@ -52,6 +53,32 @@ export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
   const d = enfeite ? { titulo: linha?.[1] || `#${item.d}`, subtitulo: t(item.t === 'adesivo' ? 'Adesivo' : 'Chaveiro'), img: urlImg(linha?.[2], 256), cor: corEnfeite(item.t, linha) } : descrever(item, idx)
   const chave = chaveEquip(item)
   const lados = LADOS_TIME.filter(([l]) => equip?.[l]?.[chave] === item.__id)
+  // Ficha da skin ao parar o mouse em cima (só com mouse; some ao clicar, rolar ou sair)
+  const [dica, setDica] = useState(null)
+  const espera = useRef(0)
+  const comDica = idx && temDica(item)
+  const fecharDica = () => {
+    clearTimeout(espera.current)
+    setDica(null)
+  }
+  useEffect(() => {
+    if (!dica) return
+    addEventListener('scroll', fecharDica, true)
+    return () => removeEventListener('scroll', fecharDica, true)
+  }, [dica])
+  useEffect(() => () => clearTimeout(espera.current), [])
+  const eventosDica = comDica
+    ? {
+        onPointerEnter: (e) => {
+          if (e.pointerType !== 'mouse') return
+          const alvo = e.currentTarget
+          clearTimeout(espera.current)
+          espera.current = setTimeout(() => setDica(alvo), 250)
+        },
+        onPointerLeave: fecharDica,
+        onPointerDown: fecharDica,
+      }
+    : {}
   const corpo = (
     <>
       <span className="inv-cartao-arte">
@@ -98,6 +125,7 @@ export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
     <li>
       {aoAbrirMenu ? (
         <button
+          {...eventosDica}
           type="button"
           className={`inv-cartao${selecionado ? ' inv-cartao-sel' : ''}`}
           aria-pressed={selecionado === undefined ? undefined : selecionado}
@@ -111,10 +139,11 @@ export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
           {corpo}
         </button>
       ) : (
-        <div className="inv-cartao inv-cartao-fixo" style={{ '--cor': d.cor || '#6b6f76' }}>
+        <div {...eventosDica} className="inv-cartao inv-cartao-fixo" style={{ '--cor': d.cor || '#6b6f76' }}>
           {corpo}
         </div>
       )}
+      {dica && <DicaSkin item={item} idx={idx} alvo={dica} />}
       {extra}
     </li>
   )

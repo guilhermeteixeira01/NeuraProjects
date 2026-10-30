@@ -1,0 +1,22 @@
+/* Ficha da skin ao passar o mouse num cartão (DicaSkin.jsx) */
+.dica-skin {
+  position: fixed; z-index: 9000; width: min(400px, calc(100vw - 20px)); box-sizing: border-box;
+  padding: 16px 18px 18px; border-radius: 6px; pointer-events: none;
+  background: rgb(22 24 28 / .97); border: 1px solid rgb(255 255 255 / .08); box-shadow: 0 14px 40px rgb(0 0 0 / .55);
+  color: #d6dbe2; font-size: 14px; line-height: 1.45; text-align: left;
+  animation: dica-skin-entra .12s ease-out;
+}
+@keyframes dica-skin-entra { from { opacity: 0; transform: translateY(4px); } }
+.dica-skin-topo { display: flex; align-items: center; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid rgb(255 255 255 / .1); }
+.dica-skin-colecao { width: 48px; height: 48px; object-fit: contain; flex: none; }
+.dica-skin-topo b { display: block; color: #fff; font-size: 15px; font-weight: 700; }
+.dica-skin-topo span { display: block; color: #c7ccd4; }
+.dica-skin-dados { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 12px 0 0; padding: 0 0 12px 8px; border-bottom: 1px solid rgb(255 255 255 / .1); }
+.dica-skin-dados dt { color: #9aa1ab; }
+.dica-skin-dados dd { margin: 0; color: #fff; font-weight: 600; }
+.dica-skin-dados small { color: #8a919b; font-weight: 400; margin-left: 4px; }
+.dica-skin-equipe { display: flex; align-items: center; gap: 6px; }
+.dica-skin-lado { width: 15px; height: 15px; object-fit: contain; flex: none; }
+.dica-skin-texto p { margin: 12px 0 0; }
+.dica-skin-frase { font-style: italic; color: #c7ccd4; }
+@media (hover: none) { .dica-skin { display: none; } }
