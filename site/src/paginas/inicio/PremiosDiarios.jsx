@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import AvatarInicio from './AvatarInicio.jsx'
 import { chamarApi } from '../../comum/api.js'
 import { entrar, useConta } from '../../comum/conta.js'
 import { useT } from '../../comum/i18n.js'
@@ -40,7 +41,7 @@ export default function PremiosDiarios({ ativo = true }) {
   const hora=Number(new Intl.DateTimeFormat('pt-BR',{hour:'numeric',hourCycle:'h23',timeZone:'America/Sao_Paulo'}).format(new Date()))
   const pontos=dados?.recompensas || PONTOS_DIARIOS, dia=dados?.sequencia || 1
   return <aside className="pd-card">
-    <div className="pd-quem"><span><img src={conta?.avatar || '/assets/logos/logo-np-64.png'} alt="" width="48" height="48"/>{conta&&<i/>}</span><div><small>{t(hora<12?'Bom dia,':hora<18?'Boa tarde,':'Boa noite,')}</small><b>{seg?.nick || conta?.nome || 'Neura Project'}</b></div></div>
+    <div className="pd-quem"><span><AvatarInicio id={conta?.id} foto={conta?.avatar}/>{conta&&<i/>}</span><div><small>{t(hora<12?'Bom dia,':hora<18?'Boa tarde,':'Boa noite,')}</small><b>{seg?.nick || conta?.nome || 'Neura Project'}</b></div></div>
     <section className="pd-login"><div className="pd-recompensa"><span className="pd-icone"><IconeConta tipo="presente"/></span><div><h3>{t('Login diário')}</h3><p>{t('Dia {dia} de 7 · +{np} NP',{dia,np:dados?.pontos || pontos[0]})}</p></div><button type="button" disabled={!!ocupado || (!!conta && (!dados || dados.pontosResgatados))} onClick={()=>resgatar('pontos')}>{ocupado==='pontos'?'…':dados?.pontosResgatados?t('Feito'):t('Resgatar')}</button></div>
       <ol className="pd-semana">{pontos.map((np,i)=><li key={np} className={i+1===dia?'atual':i+1<dia?'feito':''}><span>{i===6?<IconeConta tipo="presente"/>:i+1}</span><b>{np}</b></li>)}</ol>
     </section>

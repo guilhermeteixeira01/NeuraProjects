@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import AvatarInicio from './AvatarInicio.jsx'
 import { tempoDesde } from '../../comum/amigos.js'
 import { mapImage, nomeMapa, getMap } from '../../comum/mapas.js'
 import { useT } from '../../comum/i18n.js'
@@ -21,6 +22,6 @@ export default function PartidaRecente({ partida: p, ativo }) {
     {getMap(p.mapa) && <img className="np-partida-mapa" src={mapImage(p.mapa)} alt="" loading="lazy" width="480" height="270"/>}
     <header><b>{nomeMapa(p.mapa)}</b><time dateTime={Number.isFinite(quando) ? new Date(quando).toISOString() : undefined} title={p.data}>{Number.isFinite(quando) ? tempoDesde(quando,t) : p.data}</time></header>
     <div className="np-partida-placar"><span title={p.timeA}>{time(p.timeA)}</span><strong className={p.placarA>p.placarB?'venceu':''}>{p.placarA}</strong><i>×</i><strong className={p.placarB>p.placarA?'venceu':''}>{p.placarB}</strong><span title={p.timeB}>{time(p.timeB)}</span></div>
-    <footer>{mvp ? <><img src={mvp.avatar || '/assets/logos/logo-np-64.png'} alt="" loading="lazy" width="26" height="26"/><div><small>MVP</small><b>{apelidoDe(perfis,mvp.steamId,mvp.nome)}</b></div><span>{Number(mvp.rating||0).toFixed(2)} · {mvp.kills}K</span></> : <span>{p.serie || 'CS2 · 5v5'}</span>}</footer>
+    <footer>{mvp ? <><AvatarInicio id={mvp.steamId || mvp.id} foto={mvp.avatar} tamanho={26}/><div><small>MVP</small><b>{apelidoDe(perfis,mvp.steamId,mvp.nome)}</b></div><span>{Number(mvp.rating||0).toFixed(2)} · {mvp.kills}K</span></> : <span>{p.serie || 'CS2 · 5v5'}</span>}</footer>
   </a>
 }
