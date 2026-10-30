@@ -1,0 +1,49 @@
+/* Caixas em destaque: painel da Central da página inicial (paginas/inicio/CaixasDestaque.jsx), no estilo do widget do bigcs:
+   cabeçalho em caixa alta com o preço numa pílula, arte + nome + "Abrir caixa", fileira de itens e miniaturas das caixas. */
+.lj-destaque { display: flex; flex-direction: column; min-width: 0; }
+.lj-dq-cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.lj-dq-cab h2 { display: flex; align-items: center; gap: 9px; margin: 0; font: 700 13px var(--font-body); letter-spacing: .14em; text-transform: uppercase; }
+.lj-dq-cab h2 svg { color: var(--orange); flex: none; }
+.lj-dq-saldo { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 6px; background: color-mix(in srgb, var(--orange) 16%, transparent); color: #ffb37a; font: 700 12px var(--font-body); letter-spacing: .04em; white-space: nowrap; }
+
+.lj-dq-cartao { position: relative; flex: 1; display: grid; grid-template-columns: minmax(110px, 140px) minmax(0, 1fr); grid-template-areas: "arte info" "itens itens"; align-content: center; gap: 4px 20px; padding: 18px 20px 6px; isolation: isolate; }
+.lj-dq-cartao::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(260px 200px at 16% 32%, color-mix(in srgb, var(--cor, var(--orange)) 24%, transparent), transparent 72%); }
+.lj-dq-arte { grid-area: arte; display: block; width: 100%; aspect-ratio: 1 / 1.1; padding: 0; border: 0; background: none; cursor: pointer; }
+.lj-dq-arte img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 12px 18px rgb(0 0 0 / .55)); transition: transform .25s; }
+.lj-dq-arte:hover img { transform: scale(1.05) rotate(-1.5deg); }
+.lj-dq-info { grid-area: info; display: flex; flex-direction: column; justify-content: center; gap: 8px; min-width: 0; }
+.lj-dq-info b { display: block; margin: 0; padding: 0; font: 700 19px/1.2 var(--font-display); letter-spacing: .02em; text-transform: uppercase; overflow-wrap: anywhere; }
+.lj-dq-info p { margin: 0; color: var(--dim); font-size: 12.5px; line-height: 1.5; }
+.lj-dq-abrir { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; padding: 11px 20px; border: 0; border-radius: 9px; background: linear-gradient(180deg, #ff8a2b, var(--orange)); color: #1a0f03; font: 700 14px var(--font-body); cursor: pointer; box-shadow: 0 6px 18px color-mix(in srgb, var(--orange) 30%, transparent); transition: filter .15s, transform .15s; }
+.lj-dq-abrir:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+/* fileira de itens: rola para o lado, com as pontas sumindo (como o carrossel do bigcs) */
+.lj-dq-itens { grid-area: itens; list-style: none; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(84px, 1fr); gap: 8px; margin: 14px -20px 0; padding: 2px 20px 4px; overflow-x: auto; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, transparent, #000 20px, #000 calc(100% - 20px), transparent); mask-image: linear-gradient(90deg, transparent, #000 20px, #000 calc(100% - 20px), transparent); }
+.lj-dq-itens::-webkit-scrollbar { display: none; }
+.lj-dq-itens li { position: relative; display: grid; justify-items: center; gap: 6px; padding: 10px 6px 8px; border-radius: 10px; background: linear-gradient(180deg, rgb(255 255 255 / .03), color-mix(in srgb, var(--cor) 16%, transparent)); border: 1px solid color-mix(in srgb, var(--cor) 45%, transparent); }
+.lj-dq-item-arte { display: block; width: 100%; aspect-ratio: 4 / 3; }
+.lj-dq-item-arte img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 6px rgb(0 0 0 / .5)); }
+.lj-dq-item-preco { display: inline-flex; align-items: center; gap: 4px; font: 700 12px var(--font-body); color: var(--text); white-space: nowrap; }
+.lj-dq-carregando { grid-column: 1 / -1; height: 92px; border-radius: 10px; background: linear-gradient(90deg, rgb(255 255 255 / .03), rgb(255 255 255 / .09), rgb(255 255 255 / .03)); background-size: 200% 100%; animation: lj-dq-shimmer 1.4s linear infinite; }
+@keyframes lj-dq-shimmer { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .lj-dq-carregando { animation: none; } }
+
+/* miniaturas das caixas: a do meio é a que está na tela */
+.lj-dq-nav { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 12px 16px 16px; }
+.lj-dq-nav > button { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--dim); cursor: pointer; flex: none; }
+.lj-dq-nav > button:hover { color: var(--text); background: rgb(255 255 255 / .08); }
+.lj-dq-miniaturas { display: flex; align-items: center; gap: 10px; }
+.lj-dq-miniaturas button { display: grid; place-items: center; width: 46px; height: 46px; padding: 4px; border-radius: 8px; border: 1px solid rgb(255 255 255 / .1); background: rgb(255 255 255 / .04); cursor: pointer; opacity: .55; transition: opacity .15s, border-color .15s; }
+.lj-dq-miniaturas button:hover { opacity: .85; }
+.lj-dq-miniaturas img { width: 100%; height: 100%; object-fit: contain; }
+.lj-dq-miniaturas button.is-ativo { opacity: 1; width: 52px; height: 52px; border-color: var(--orange); background: color-mix(in srgb, var(--orange) 14%, transparent); }
+
+@media (max-width: 700px) {
+  .lj-dq-cab { padding: 14px; }
+  .lj-dq-cartao { grid-template-columns: 100px minmax(0, 1fr); gap: 4px 14px; padding: 14px 14px 4px; }
+  .lj-dq-info b { font-size: 16px; }
+  .lj-dq-info p { font-size: 12px; }
+  .lj-dq-abrir { padding: 9px 16px; font-size: 13px; }
+  .lj-dq-itens { grid-auto-columns: 76px; margin-inline: -14px; padding-inline: 14px; }
+  .lj-dq-item-preco { font-size: 11px; }
+}

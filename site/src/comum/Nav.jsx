@@ -87,7 +87,7 @@ function Conta() {
   return (
     <div className="nx-conta" ref={caixa}>
       <button type="button" className="nx-conta-btn" aria-label={t('Minha conta')} aria-haspopup="dialog" aria-expanded={aberto} onClick={() => setAberto((a) => !a)}>
-        <ComMoldura steamId={conta.id}>
+        <ComMoldura steamId={conta.id} emblema>
           {avatar && erroAvatar !== avatar ? (
             <img src={avatar} alt="" width="28" height="28" onError={() => setErroAvatar(avatar)} />
           ) : (

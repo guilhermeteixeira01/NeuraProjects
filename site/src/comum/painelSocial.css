@@ -1,0 +1,121 @@
+/* Abas AMIGOS e MENSAGENS do painel da direita (PainelAmigos.jsx) no mesmo desenho do CHAT global (chatGlobal.css):
+   cartões com canto cortado e barra de cor à esquerda, avatar redondo com anel, campo arredondado com o botão amarelo.
+   A barra mostra o status do amigo: verde online, azul jogando, amarelo ausente, cinza offline.
+   ":not(#_)" dá peso de id às regras: este arquivo carrega antes do CSS de cada página (site.css, sazonal.css...) e precisa ganhar dele. */
+.am-social:not(#_) { --sc-acento: var(--ui-accent, #f5c542); }
+
+/* busca de amigo: igual ao campo do chat */
+.am-social:not(#_) .am-busca { margin: 0 10px 6px; padding: 0; border: 0; background: none; }
+.am-social:not(#_) .am-busca input { width: 100%; height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid transparent; color: var(--text); font: 500 13px var(--font-body);
+  background: linear-gradient(#0c0d10f5, #0c0d10f5) padding-box, linear-gradient(90deg, rgb(255 255 255 / .1), rgb(255 255 255 / .04)) border-box; box-shadow: none; }
+.am-social:not(#_) .am-busca input:focus { outline: none; background: linear-gradient(#0c0d10f5, #0c0d10f5) padding-box, linear-gradient(90deg, var(--sc-acento), color-mix(in srgb, var(--sc-acento) 25%, transparent)) border-box;
+  box-shadow: 0 0 18px color-mix(in srgb, var(--sc-acento) 14%, transparent); }
+
+/* títulos dos grupos (JOGANDO — 1) */
+.am-social:not(#_) .am-grupo { margin: 0; padding: 0 8px; border: 0; background: none; }
+.am-social:not(#_) .am-grupo h4 { margin: 10px 4px 6px; color: var(--dim-2); font: 800 10px var(--font-body); letter-spacing: .18em; }
+.am-social:not(#_) .am-grupo ul, .am-social:not(#_) .am-chats-lista, .am-social:not(#_) .am-achados { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.am-social:not(#_) .am-chats-lista { padding: 4px 8px 10px; }
+.am-social:not(#_) .am-achados { margin-top: 8px; }
+
+/* cartão de cada pessoa (amigo, conversa, resultado da busca) */
+.am-social:not(#_) .am-linha { --barra: rgb(255 255 255 / .16); --brilho: transparent; --barra-w: 2px; position: relative; isolation: isolate; display: flex; align-items: center; gap: 6px;
+  margin: 0; padding: 8px 8px 8px 12px; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.am-social:not(#_) .am-linha::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  background: linear-gradient(90deg, var(--brilho), transparent 60%), linear-gradient(180deg, #14161bc7, #0a0b0eb3); box-shadow: inset var(--barra-w) 0 0 var(--barra); transition: box-shadow .15s; }
+.am-social:not(#_) .am-linha:hover { --barra-w: 3px; }
+.am-social:not(#_) .am-linha.am-online { --barra: var(--green); --brilho: color-mix(in srgb, var(--green) 8%, transparent); }
+.am-social:not(#_) .am-linha.am-jogando { --barra: #3b82f6; --brilho: color-mix(in srgb, #3b82f6 10%, transparent); }
+.am-social:not(#_) .am-linha.am-ausente { --barra: #f5a524; --brilho: color-mix(in srgb, #f5a524 7%, transparent); }
+.am-social:not(#_) .am-linha.am-pedido { --barra: var(--sc-acento); --brilho: color-mix(in srgb, var(--sc-acento) 8%, transparent); }
+.am-social:not(#_) .am-linha.am-chat-naolida { --barra: var(--sc-acento); --brilho: color-mix(in srgb, var(--sc-acento) 10%, transparent); }
+
+.am-social:not(#_) .am-pessoa { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 0; border: 0; background: none; color: var(--text); text-align: left; text-decoration: none; cursor: pointer; }
+.am-social:not(#_) .am-av { position: relative; flex: none; width: 34px; height: 34px; }
+.am-social:not(#_) .am-av img, .am-social:not(#_) .am-av .am-ini { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 1.5px rgb(255 255 255 / .12); }
+.am-social:not(#_) .am-av .moldura-box, .am-social:not(#_) .am-av .emblema-box { width: 34px; height: 34px; }
+.am-social:not(#_) .am-bolinha { position: absolute; right: -1px; bottom: -1px; z-index: 4; width: 11px; height: 11px; border: 2px solid #0b0c0f; border-radius: 50%; }
+.am-social:not(#_) .am-txt { display: grid; gap: 2px; min-width: 0; }
+.am-social:not(#_) .am-nome { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.am-social:not(#_) .am-nome b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 12.5px var(--font-body); }
+.am-social:not(#_) .am-txt small { color: var(--dim); font-size: 11px; }
+.am-social:not(#_) .am-jogando { color: #6aa5ff; font-weight: 700; }
+
+/* botões dos cartões */
+.am-social:not(#_) .am-conversar { flex: none; display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 0; border-radius: 50%; background: rgb(255 255 255 / .06); color: var(--dim); cursor: pointer; transition: background .15s, color .15s; }
+.am-social:not(#_) .am-conversar:hover { background: color-mix(in srgb, var(--sc-acento) 18%, transparent); color: var(--sc-acento); }
+.am-social:not(#_) :is(.am-sim, .am-nao) { width: 28px; height: 28px; border-radius: 50%; border: 0; font-weight: 800; cursor: pointer; }
+.am-social:not(#_) .am-sim { background: var(--green); color: #06210f; }
+.am-social:not(#_) .am-nao { background: rgb(255 255 255 / .08); color: var(--text); }
+.am-social:not(#_) :is(.am-cancelar, .am-adicionar) { padding: 6px 12px; border: 0; border-radius: 999px; background: rgb(255 255 255 / .08); color: var(--text); font: 700 11px var(--font-body); cursor: pointer; }
+.am-social:not(#_) .am-adicionar { background: var(--sc-acento); color: #17150e; }
+.am-social:not(#_) .am-ver-enviados { margin: 10px 4px 6px; padding: 0; border: 0; background: none; color: var(--dim-2); font: 800 10px var(--font-body); letter-spacing: .18em; cursor: pointer; }
+
+/* lista de conversas */
+.am-social:not(#_) .am-chat-btn .am-txt { flex: 1 1 0; }
+.am-social:not(#_) .am-chat-linha1 { justify-content: space-between; gap: 8px; }
+.am-social:not(#_) .am-chat-hora { flex: none; color: var(--dim-2); font: 600 10px var(--font-body); }
+.am-social:not(#_) .am-chat-linha2 { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.am-social:not(#_) .am-chat-prevista { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.am-social:not(#_) .am-chat-badge { flex: none; min-width: 18px; height: 18px; padding: 0 5px; display: grid; place-items: center; border-radius: 999px; background: var(--sc-acento); color: #17150e; font: 800 10px var(--font-body); font-style: normal; }
+
+/* conversa aberta */
+.am-social:not(#_) .am-dm-cab { position: relative; isolation: isolate; display: flex; align-items: center; gap: 8px; margin: 0 10px 6px; padding: 8px 10px; border: 0; background: none; }
+.am-social:not(#_) .am-dm-cab::before { content: ''; position: absolute; inset: 0; z-index: -1; clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px)); background: linear-gradient(180deg, #14161bc7, #0a0b0eb3); }
+.am-social:not(#_) .am-dm-voltar { flex: none; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: rgb(255 255 255 / .06); color: var(--text); cursor: pointer; }
+.am-social:not(#_) .am-dm-voltar:hover { background: rgb(255 255 255 / .12); }
+.am-social:not(#_) .am-dm-pessoa b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 13px var(--font-body); }
+.am-social:not(#_) .am-dm-cab > .am-dm-apagar { flex: none; margin-left: auto; padding: 5px 10px; border: 0; border-radius: 999px; background: rgb(255 255 255 / .06); color: var(--dim); font: 700 10.5px var(--font-body); cursor: pointer; }
+.am-social:not(#_) .am-dm-cab > .am-dm-apagar:hover { color: var(--red); background: color-mix(in srgb, var(--red) 12%, transparent); }
+
+.am-social:not(#_) .am-dm-lista { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 4px 8px 8px; list-style: none; }
+.am-social:not(#_) .am-dm-msg { --barra: rgb(255 255 255 / .16); --brilho: transparent; position: relative; isolation: isolate; display: block; margin: 0; padding: 9px 10px 9px 12px; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.am-social:not(#_) .am-dm-msg::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  background: linear-gradient(90deg, var(--brilho), transparent 60%), linear-gradient(180deg, #14161bc7, #0a0b0eb3); box-shadow: inset 2px 0 0 var(--barra); }
+.am-social:not(#_) .am-dm-minha { --barra: var(--sc-acento); --brilho: color-mix(in srgb, var(--sc-acento) 9%, transparent); }
+.am-social:not(#_) .am-dm-msg .np-chat-autor { display: flex; align-items: center; gap: 8px; min-width: 0; padding-right: 24px; }
+.am-social:not(#_) .am-dm-msg .np-chat-autor img, .am-social:not(#_) .am-dm-msg .np-chat-autor .am-ini { position: static; flex: none; width: 30px; height: 30px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 1.5px rgb(255 255 255 / .12); }
+.am-social:not(#_) .am-dm-msg .np-chat-autor a { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font: 700 12.5px var(--font-body); text-decoration: none; }
+.am-social:not(#_) .am-dm-msg .np-chat-autor a:hover { text-decoration: underline; }
+.am-social:not(#_) .am-dm-ts { margin-left: auto; flex: none; color: var(--dim-2); font: 600 10px var(--font-body); }
+.am-social:not(#_) .am-dm-bolha { display: block; margin: 6px 0 0 38px; padding: 0; border: 0; border-radius: 0; background: none; color: rgb(244 241 234 / .92); font-size: 12.5px; line-height: 1.45; overflow-wrap: anywhere; white-space: pre-wrap; box-shadow: none; }
+.am-social:not(#_) .am-dm-msg > .am-dm-apagar { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--dim); opacity: 0; cursor: pointer; transition: opacity .15s; }
+.am-social:not(#_) .am-dm-msg:hover > .am-dm-apagar, .am-social:not(#_) .am-dm-msg > .am-dm-apagar:focus-visible { opacity: 1; }
+.am-social:not(#_) .am-dm-msg > .am-dm-apagar:hover { color: var(--red); background: rgb(255 255 255 / .06); }
+
+/* campo da conversa: igual ao do chat global */
+.am-social:not(#_) .am-dm-form { position: relative; flex: none; display: flex; align-items: center; gap: 6px; margin: 4px 10px 12px; padding: 4px 4px 4px 14px; border-radius: 999px; border: 1px solid transparent;
+  background: linear-gradient(#0c0d10f5, #0c0d10f5) padding-box, linear-gradient(90deg, rgb(255 255 255 / .1), rgb(255 255 255 / .04)) border-box; box-shadow: none; }
+.am-social:not(#_) .am-dm-form:focus-within { background: linear-gradient(#0c0d10f5, #0c0d10f5) padding-box, linear-gradient(90deg, var(--sc-acento), color-mix(in srgb, var(--sc-acento) 25%, transparent)) border-box;
+  box-shadow: 0 8px 22px rgb(0 0 0 / .45), 0 0 18px color-mix(in srgb, var(--sc-acento) 16%, transparent); }
+.am-social:not(#_) .am-dm-form input { flex: 1 1 0; min-width: 0; height: 32px; padding: 0 4px; border: 0; background: none; color: var(--text); font: 500 13px var(--font-body); box-shadow: none; }
+.am-social:not(#_) .am-dm-form input:focus-visible { outline: none; }
+.am-social:not(#_) .am-dm-form button { flex: none; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; cursor: pointer;
+  background: linear-gradient(135deg, #ffd65c, var(--sc-acento)); color: #17150e; box-shadow: 0 4px 12px color-mix(in srgb, var(--sc-acento) 30%, transparent); transition: transform .15s, opacity .15s; }
+.am-social:not(#_) .am-dm-form button:hover:not(:disabled) { transform: scale(1.06); }
+.am-social:not(#_) .am-dm-form button:disabled { opacity: .3; box-shadow: none; cursor: default; }
+
+@media (prefers-reduced-motion: reduce) {
+  .am-social:not(#_) .am-linha::before, .am-social:not(#_) :is(.am-dm-form button, .am-conversar) { transition: none; }
+}
+
+/* ── Notificações (PainelNotificacoes.jsx): os mesmos cartões; a barra é amarela (aviso) ── */
+.am-social:not(#_).nt-painel .am-rolagem { padding-top: 4px; }
+.am-social:not(#_) .nt-item { --barra: var(--sc-acento); --brilho: color-mix(in srgb, var(--sc-acento) 7%, transparent); }
+.am-social:not(#_) .nt-pede { --barra: var(--green); --brilho: color-mix(in srgb, var(--green) 8%, transparent); }
+.am-social:not(#_) .nt-corpo { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 0; border: 0; background: none; color: var(--text); text-decoration: none; }
+.am-social:not(#_) a.nt-corpo:hover b { text-decoration: underline; }
+.am-social:not(#_) .nt-ins { flex: none; width: 34px; height: 34px; object-fit: contain; border-radius: 8px; }
+.am-social:not(#_) .nt-txt { display: grid; gap: 2px; min-width: 0; }
+.am-social:not(#_) .nt-txt b { font: 700 12.5px var(--font-body); overflow-wrap: anywhere; }
+.am-social:not(#_) .nt-txt small { color: var(--dim); font-size: 11px; line-height: 1.4; }
+.am-social:not(#_) .nt-quando { color: var(--dim-2); font: 600 10px var(--font-body); }
+.am-social:not(#_) .am-grupo h4:has(.nt-limpar) { display: flex; align-items: center; justify-content: space-between; }
+.am-social:not(#_) .nt-limpar { padding: 4px 10px; border: 0; border-radius: 999px; background: rgb(255 255 255 / .06); color: var(--dim); font: 700 10px var(--font-body); letter-spacing: .06em; cursor: pointer; }
+.am-social:not(#_) .nt-limpar:hover { color: var(--text); background: rgb(255 255 255 / .12); }
+.am-social:not(#_) .am-botoes { display: flex; gap: 6px; flex: none; }
+.am-social:not(#_) .am-fechar { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border-radius: 50%; }
+.am-social:not(#_) .nt-item.nt-raridade { --barra: var(--cor); --brilho: color-mix(in srgb, var(--cor) 14%, transparent); }
+.am-social:not(#_) .nt-raridade .nt-txt b { color: color-mix(in srgb, var(--cor) 55%, var(--text)); }

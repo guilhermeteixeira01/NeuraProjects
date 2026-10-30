@@ -140,7 +140,7 @@ function Linha({ j, pos, m, max, i, eu }) {
       </span>
       <span className="jog">
         <a className="jog-av" href={perfil(j)} aria-hidden="true" tabIndex={-1}>
-          <ComMoldura steamId={j.steamId}>
+          <ComMoldura steamId={j.steamId} emblema>
             <Avatar j={j} classe="av" />
           </ComMoldura>
         </a>

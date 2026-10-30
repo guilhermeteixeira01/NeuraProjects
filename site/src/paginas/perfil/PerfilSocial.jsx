@@ -22,7 +22,7 @@ export function AmigosDoPerfil({ id, eu }) {
   return <section className="pf-social-panel" aria-labelledby="pf-amigos-titulo">
     <div className="pf-social-title"><h2 id="pf-amigos-titulo">{t('Amigos')} <small>{amigos?.length ?? '—'}</small></h2>{eu && <button type="button" onClick={() => { const b = [...document.querySelectorAll('.nx-amigos-btn')].find(e => e.getClientRects().length); if (b?.getAttribute('aria-expanded') !== 'true') b?.click() }}>{t('Achar jogadores')}</button>}</div>
     {erro ? <div className="pf-social-empty" role="alert">{t('Não foi possível carregar os amigos.')} <button type="button" onClick={() => setVersao(v => v + 1)}>{t('Tentar novamente')}</button></div> : !eu && publico?.permitido === false ? <p className="pf-social-empty">{t('Este jogador mantém sua lista de amigos privada.')}</p> : !amigos ? <CarregandoNP pequeno /> : amigos.length === 0 ? <p className="pf-social-empty">{t('Nenhum amigo para mostrar por enquanto.')}</p> : <div className="pf-friends-grid">{amigos.map(a => <article className="pf-friend-card" key={a.id}>
-      <a className="pf-friend-identity" href={`/perfil/?id=${a.id}`}><ComMoldura steamId={a.id}><img src={a.avatar || '/assets/logos/logo-np-64.png'} alt="" width="48" height="48" loading="lazy" /></ComMoldura><span><b>{a.nome || a.id}</b><StatusAmigo id={a.id} /></span></a>
+      <a className="pf-friend-identity" href={`/perfil/?id=${a.id}`}><ComMoldura steamId={a.id} emblema><img src={a.avatar || '/assets/logos/logo-np-64.png'} alt="" width="48" height="48" loading="lazy" /></ComMoldura><span><b>{a.nome || a.id}</b><StatusAmigo id={a.id} /></span></a>
       <BotaoAmizade id={a.id} rotuloAmigo={t('Desfazer amizade')} />
     </article>)}</div>}
   </section>

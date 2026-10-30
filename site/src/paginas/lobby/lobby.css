@@ -68,24 +68,26 @@
 /* os lugares: você no meio (maior, com a coroa se for o líder) + "Encontrar lobbies" */
 .lb-palco { display: flex; align-items: center; justify-content: center; gap: 30px; margin: 30px 0 0; padding-top: 22px; }
 .lb-lugar {
+  /* o avatar, o nome e a pílula escalam com clamp() em vw (abaixo), em vez de um tamanho fixo que sobra grande demais
+     quando o card aperta no meio da tela (computador mais estreito, antes dos 5 cartões ficarem lado a lado). */
   position: relative; flex: none; width: 170px; height: 238px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
   padding: 18px 10px 14px; border-radius: 14px; border: 1px solid rgb(var(--tinta) / .09); background: #101114; color: var(--text); text-align: center;
   font-family: var(--font-body); transition: border-color .15s, background .15s, transform .15s;
 }
 .lb-centro { width: 190px; height: 252px; border-color: rgb(var(--tinta) / .16); background: linear-gradient(180deg, #16171b, #101114); }
 .lb-coroa { position: absolute; top: -26px; left: 50%; transform: translateX(-50%); color: var(--accent); }
-.lb-pessoa .lb-av { position: relative; display: block; width: 100px; height: 100px; margin-bottom: 4px; }
-.lb-centro .lb-av { width: 112px; height: 112px; }
+.lb-pessoa .lb-av { position: relative; display: block; width: clamp(78px, 6.4vw, 122px); aspect-ratio: 1; margin-bottom: 4px; }
+.lb-centro .lb-av { width: clamp(90px, 7.2vw, 136px); }
 .lb-av img, .lb-ini { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; max-width: none; }
-.lb-ini { display: grid; place-items: center; background: var(--panel-2); font: 700 26px var(--font-display); color: var(--dim); }
+.lb-ini { display: grid; place-items: center; background: var(--panel-2); font: 700 clamp(16px, 2vw, 26px) var(--font-display); color: var(--dim); }
 .lb-bolinha { position: absolute; right: 3px; bottom: 3px; z-index: 3; width: 14px; height: 14px; border-radius: 50%; border: 3px solid #101114; background: #6d717b; }
 .lb-bolinha.st-online { background: var(--green); }
 .lb-bolinha.st-ausente { background: #f5a524; }
 .lb-bolinha.st-jogando { background: #3b82f6; }
 .lb-amigo-nome small.lb-em-lobby { color: #f5a524; font-weight: 700; }
-.lb-nome { display: flex; align-items: center; justify-content: center; gap: 3px; max-width: 100%; font: 700 15px var(--font-body); }
+.lb-nome { display: flex; align-items: center; justify-content: center; gap: 3px; max-width: 100%; font: 700 clamp(14px, 1vw, 17px) var(--font-body); }
 .lb-nome span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lb-pilula { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 4px 12px 4px 5px; border-radius: 999px; font: 700 12.5px var(--font-body); background: rgb(var(--tinta) / .07); white-space: nowrap; }
+.lb-pilula { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 4px 12px 4px 5px; border-radius: 999px; font: 700 clamp(11.5px, .86vw, 12.5px) var(--font-body); background: rgb(var(--tinta) / .07); white-space: nowrap; }
 .lb-pilula-espera { padding: 6px 12px; color: var(--dim); font-weight: 600; }
 .lb-pendente { border-style: dashed; }
 .lb-pendente .lb-av, .lb-pendente .lb-nome { opacity: .55; }
@@ -103,7 +105,7 @@
 .lb-vazio:active { transform: scale(.985); }
 .lb-inerte { cursor: default; }
 .lb-inerte:hover { border-color: rgb(var(--tinta) / .09); color: rgb(var(--tinta) / .28); background: #101114; }
-.lb-mais { font: 200 76px/1 var(--font-body); }
+.lb-mais { font: 200 clamp(44px, 4.6vw, 76px)/1 var(--font-body); }
 .lb-encontrar { cursor: pointer; font-size: 15px; color: var(--dim); }
 .lb-encontrar b { font-weight: 700; color: var(--dim); }
 .lb-encontrar:hover { border-color: rgb(var(--tinta) / .22); color: var(--text); background: #15161a; }
@@ -196,9 +198,6 @@
   .lb-palco { gap: 12px; }
   .lb-lugar { width: auto; flex: 1 1 0; min-width: 0; height: 220px; }
   .lb-centro { flex-grow: 1.12; height: 234px; }
-  .lb-pessoa .lb-av { width: 78px; height: 78px; }
-  .lb-centro .lb-av { width: 90px; height: 90px; }
-  .lb-mais { font-size: 60px; }
 }
 
 /* Só no computador: no celular/tablet (até 1024px, onde a barra da esquerda some) a página mostra só o aviso */
@@ -519,9 +518,6 @@ html[data-desempenho] .lb-modo-premium::before, html[data-desempenho] .lb-modo-p
 .lb-toggle, .lb-btn { font-size: clamp(13px, .9vw, 15px); }
 .lb-lugar { width: clamp(160px, 11vw, 205px); height: clamp(226px, 15.4vw, 288px); }
 .lb-centro { width: clamp(180px, 12.4vw, 228px); height: clamp(240px, 16.4vw, 304px); }
-.lb-pessoa .lb-av { width: clamp(92px, 6.4vw, 122px); height: clamp(92px, 6.4vw, 122px); }
-.lb-centro .lb-av { width: clamp(104px, 7.2vw, 136px); height: clamp(104px, 7.2vw, 136px); }
-.lb-nome { font-size: clamp(15px, 1vw, 17px); }
 .lb-encontrar { font-size: clamp(15px, 1vw, 17px); }
 .lb-buscar { font-size: clamp(22px, 1.6vw, 26px); min-width: clamp(230px, 16vw, 280px); }
 .lb-abas-painel button, .lb-abas-painel button small { font-size: clamp(14px, .95vw, 16px); }
@@ -530,8 +526,6 @@ html[data-desempenho] .lb-modo-premium::before, html[data-desempenho] .lb-modo-p
 @media (max-width: 1280px) {
   .lb-lugar { width: auto; height: 220px; }
   .lb-centro { height: 234px; }
-  .lb-pessoa .lb-av { width: 78px; height: 78px; }
-  .lb-centro .lb-av { width: 90px; height: 90px; }
   .lb-abas-painel { gap: 22px; padding: 0 18px; }
   .lb-painel-corpo { padding: 20px 18px; }
 }

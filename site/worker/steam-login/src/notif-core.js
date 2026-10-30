@@ -24,6 +24,8 @@ export function limparDoc(d) {
         ...(n.insignia ? { insignia: String(n.insignia).slice(0, 80) } : {}),
         ...(n.cargo ? { cargo: String(n.cargo).slice(0, 80) } : {}),
         ...(Number.isFinite(Number(n.nivel)) && n.nivel !== null && n.nivel !== undefined ? { nivel: Number(n.nivel) } : {}),
+        ...(Number.isInteger(n.raridade) && n.raridade >= 0 && n.raridade <= 5 ? { raridade: n.raridade } : {}), // item (skin): cor da raridade no cartão
+
         quando: Number(n.quando) || 0,
         lida: !!n.lida,
       }))

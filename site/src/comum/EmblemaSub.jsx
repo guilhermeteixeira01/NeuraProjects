@@ -62,7 +62,7 @@ function JanelaPremium({ nivel, parado, aoFechar }) {
           {t('Este jogador está no nível {nivel}.', { nivel: nivel.nome })}
           {nivel.proximo && ` ${t('Evolui para {proximo} com mais tempo de assinatura.', { proximo: nivel.proximo.nome })}`}
         </p>
-        <p className="pm-texto">{t('Seja Premium e evolua o seu emblema com o tempo de assinatura, do Subscriber até o Legend. O emblema aparece somente no seu perfil.')}</p>
+        <p className="pm-texto">{t('Seja Premium e evolua o seu emblema com o tempo de assinatura, do Subscriber até o Legend. O emblema aparece no seu avatar em todo o site.')}</p>
         <div className="pm-rodape">
           <button type="button" className="pm-fechar" onClick={aoFechar}>
             {t('FECHAR')}

@@ -22,6 +22,8 @@ const MAX_AMIGOS = 300
 const ACOES = ['pedir', 'aceitar', 'recusar', 'cancelar', 'remover']
 const DM_MAX = 500 // mensagens guardadas por conversa (as mais antigas somem)
 const DM_PREVIA_MAX = 80 // tamanho da prévia na lista de conversas
+const CHAT_GLOBAL_MAX = 150 // mensagens guardadas no chat global (as mais antigas somem)
+const CHAT_GLOBAL_TEXTO = 240 // caracteres por mensagem
 
 // Lobby (grupo para jogar junto, como o da FACEIT): o líder + até 4 membros. Fica no armazenamento do próprio objeto de presença
 // (consistente, sem KV): lobbies = { "<SteamID do líder>": { membros: [ids], convites: [ids], publico: bool } }.
@@ -231,6 +233,22 @@ export const avisarPerfil = (env, id, perfil) => mandarPara(env, [id], { tipo: '
 export async function rotaChat(req, env, quem, cors) {
   const corpo = req.method === 'POST' ? JSON.stringify(await lerCorpo(req)) : undefined
   return reenviar(await presenca(env).fetch('https://presenca/chat', { method: req.method, headers: { 'X-Id': quem.id }, body: corpo }), cors)
+}
+
+// GET /chat/global (público, com cache curto) e POST /chat/global { acao: enviar|apagar|silenciar|fixar, ... } (login; admin = dono/admins)
+export async function rotaChatGlobal(req, env, cors, quem = null, admin = false, ctx = null) {
+  if (req.method === 'GET') {
+    const cache = caches.default
+    const chave = new Request(new URL('/chat/global', req.url).toString())
+    const salvo = await cache.match(chave)
+    if (salvo) return reenviar(salvo, cors)
+    const r = await presenca(env).fetch('https://presenca/chat-global')
+    const corpo = await r.text()
+    if (r.ok && ctx) ctx.waitUntil(cache.put(chave, new Response(corpo, { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=3' } })))
+    return reenviar(new Response(corpo, { status: r.status, headers: { 'Content-Type': 'application/json; charset=utf-8' } }), cors)
+  }
+  const corpo = JSON.stringify(await lerCorpo(req))
+  return reenviar(await presenca(env).fetch('https://presenca/chat-global', { method: 'POST', headers: { 'X-Id': quem.id, 'X-Admin': admin ? '1' : '0' }, body: corpo }), cors)
 }
 
 // GET /dm -> lista de conversas · GET /dm?com=<id> -> histórico com um amigo (marca como lida) · POST /dm { com, texto } -> envia
@@ -930,6 +948,58 @@ export class Presenca {
     return { ok: true }
   }
 
+  // ── Chat global (painel da direita do site) ──
+  // "chatGlobal" = { msgs: [{ id, de, nome, avatar, texto, ts }] (as últimas CHAT_GLOBAL_MAX), fixado: { texto, tom, por, ts } | null,
+  // silenciados: { "<id>": até quando (ms) } }. Qualquer um lê (GET público); com login escreve. Dono/admin (X-Admin: 1, conferido no
+  // worker) apagam mensagens, silenciam alguém por um tempo e fixam um aviso no topo. Toda mudança vai ao vivo para todas as abas abertas.
+  ultimoGlobal = new Map()
+  filaGlobal = new Fila()
+  async chatGlobal(req) {
+    const doc = (await this.state.storage.get('chatGlobal')) || { msgs: [], fixado: null, silenciados: {} }
+    if (req.method === 'GET') return { mensagens: doc.msgs, fixado: doc.fixado }
+
+    const eu = req.headers.get('X-Id')
+    if (!ID_STEAM.test(String(eu))) throw new ErroPedido('id')
+    const admin = req.headers.get('X-Admin') === '1'
+    const { acao, texto, id, minutos, tom } = await lerCorpo(req)
+    const agora = Date.now()
+    const limpar = (t, max) => String(t || '').replace(/[\u0000-\u001f\u007f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max)
+    let aviso
+    if (acao === 'enviar') {
+      const ate = doc.silenciados[eu] || 0
+      if (ate > agora) throw new ErroPermissao('silenciado', { ate })
+      const limpo = limpar(texto, CHAT_GLOBAL_TEXTO)
+      if (!limpo) throw new ErroPedido('mensagem')
+      if (agora - (this.ultimoGlobal.get(eu) || 0) < 1000) throw new ErroLimite('devagar')
+      this.ultimoGlobal.set(eu, agora)
+      const info = (await nomesDe(this.env, [eu]))[eu] || {}
+      const msg = { id: `${agora.toString(36)}${Math.random().toString(36).slice(2, 6)}`, de: eu, nome: info.nome || eu, avatar: info.avatar || '', texto: limpo, ts: agora }
+      doc.msgs = [...doc.msgs, msg].slice(-CHAT_GLOBAL_MAX)
+      aviso = { tipo: 'chat-global', msg }
+    } else {
+      if (!admin) throw new ErroPermissao('admin')
+      if (acao === 'apagar') {
+        doc.msgs = doc.msgs.filter((m) => m.id !== id)
+        aviso = { tipo: 'chat-global-apagada', id }
+      } else if (acao === 'silenciar') {
+        if (!ID_STEAM.test(String(id))) throw new ErroPedido('id')
+        const min = Math.min(Math.max(Number(minutos) || 10, 1), 7 * 24 * 60)
+        doc.silenciados[id] = agora + min * 60000
+        for (const [k, v] of Object.entries(doc.silenciados)) if (v <= agora) delete doc.silenciados[k]
+        doc.msgs = doc.msgs.filter((m) => m.de !== id) // silenciar também tira o que a pessoa já escreveu
+        aviso = { tipo: 'chat-global-silenciado', id }
+      } else if (acao === 'fixar') {
+        const limpo = limpar(texto, 200)
+        doc.fixado = limpo ? { texto: limpo, tom: ['aviso', 'evento', 'torneio', 'promo'].includes(tom) ? tom : 'aviso', por: eu, ts: agora } : null
+        aviso = { tipo: 'chat-global-fixado', fixado: doc.fixado }
+      } else throw new ErroPedido('acao')
+    }
+    await this.state.storage.put('chatGlobal', doc)
+    const enviar = JSON.stringify(aviso)
+    for (const ws of this.state.getWebSockets()) enviarSeguro(ws, enviar)
+    return { ok: true, ...(aviso.msg ? { msg: aviso.msg } : {}), fixado: doc.fixado }
+  }
+
   // /mandar: mensagem para as abas de uma lista de jogadores · /todos: para todas as abas abertas
   async avisar(caminho, req) {
     const { ids = [], msg } = await lerCorpo(req)
@@ -949,6 +1019,7 @@ export class Presenca {
       this.jogandoAgora = new Set()
       await this.sincronizarJogando((await this.state.storage.get('partidas')) || {})
     }
+    if (url.pathname === '/chat-global') return responder(() => this.filaGlobal.rodar(() => this.chatGlobal(req)))
     if (url.pathname === '/servidor/sinal') return responder(async () => ({ visto: this.ultimoSinalServidor || (await this.state.storage.get('servidorVisto')) || 0 }))
     const rotas = {
       '/amigos': () => this.amigosPedido(req),

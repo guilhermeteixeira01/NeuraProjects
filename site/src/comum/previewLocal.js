@@ -32,6 +32,7 @@ export function ativarPreviewLocal() {
   let estado={saldo:250000,abertas:36,inv:{v:2,itens,equip:{ct:{},tr:{}},criado:Object.fromEntries(Object.keys(itens).map(k=>[k,Date.now()]))},mensagens:[{id:'demomsg1',de:pessoas[1].id,texto:'Bora jogar com o pessoal hoje?',ts:Date.now()-180000},{id:'demomsg2',de:id,texto:'Bora! Vou montar o grupo.',ts:Date.now()-120000},{id:'demomsg3',de:pessoas[1].id,texto:'Esse é o chat de demonstração.',ts:Date.now()-60000}],chat:[{id:'demochat',de:pessoas[1].id,nome:pessoas[1].nome,texto:'Bem-vindos ao time de teste!',ts:Date.now()-60000}]}
   try { estado=JSON.parse(sessionStorage.getItem('np-preview-dados-v2')||'null')||estado } catch { /* estado inicial */ }
   estado.notificacoes ??= {lista:[{id:'demo-boas-vindas',titulo:'Bem-vindo à prévia local',texto:'Amigos, time, inventário e saldo são dados de demonstração.',link:'/lobby/',imagem:avatar,quando:Date.now()-60000,lida:false},{id:'demo-caixas',titulo:'Caixas prontas para testar',texto:'Abra caixas e veja o resultado no inventário de teste.',link:'/loja/',quando:Date.now()-120000,lida:false}],vistos:[],limpoEm:0}
+  if (!estado.notificacoes.lista.some((n) => n.id === 'demo-mercado')) estado.notificacoes.lista.unshift({id:'demo-mercado',titulo:'Sua skin foi vendida no mercado!',texto:'Luna · teste comprou AK-47 | Redline por 450 NP. Os pontos já estão na sua conta.',link:'/loja/?aba=mercado',imagem:avatar,raridade:4,quando:Date.now()-30000,lida:false})
   estado.conta ??= {nome:'',sobrenome:'',cpf:'',nascimento:'',discord:'',descricao:'Jogador da comunidade Neura.',faceit:'',privacidade:Object.fromEntries(['perfil','inventario','amigos','conquistas','convites'].map(k=>[k,'todos']))}
   Object.assign(perfisDemo[id], estado.personalizacao || {})
   estado.hall ??= {estado:'sem-foto',camisa:'escura'}
@@ -86,6 +87,17 @@ export function ativarPreviewLocal() {
       Object.assign(perfisDemo[id], corpo)
       guardar()
       return Response.json({perfis:perfisDemo})
+    }
+    if(rota==='/chat/global') {
+      estado.chatGlobal??={msgs:[{id:'cg1',de:pessoas[1].id,nome:pessoas[1].nome,avatar,texto:'Alguém pra um mix agora?',ts:Date.now()-240000},{id:'cg2',de:pessoas[2].id,nome:pessoas[2].nome,avatar,texto:'Bora! Falta 1 no lobby.',ts:Date.now()-200000},{id:'cg3',de:pessoas[3].id,nome:pessoas[3].nome,avatar,texto:'Acabei de tirar uma faca na caixa diária 😱',ts:Date.now()-90000}],fixado:{texto:'Torneio 5x5 sábado às 20h — inscrições abertas no Discord!',tom:'torneio',por:id,ts:Date.now()-3600000}}
+      const cg=estado.chatGlobal
+      if(metodo==='GET')return Response.json({mensagens:cg.msgs,fixado:cg.fixado})
+      let msg
+      if(corpo.acao==='enviar'){const texto=String(corpo.texto||'').trim().slice(0,240);if(!texto)return Response.json({erro:'mensagem'},{status:400});msg={id:novoId(),de:id,nome,avatar,texto,ts:Date.now()};cg.msgs=[...cg.msgs,msg].slice(-150)}
+      else if(corpo.acao==='apagar')cg.msgs=cg.msgs.filter(m=>m.id!==corpo.id)
+      else if(corpo.acao==='silenciar')cg.msgs=cg.msgs.filter(m=>m.de!==corpo.id)
+      else if(corpo.acao==='fixar')cg.fixado=String(corpo.texto||'').trim()?{texto:String(corpo.texto).trim().slice(0,200),tom:corpo.tom||'aviso',por:id,ts:Date.now()}:null
+      guardar();return Response.json({ok:true,...(msg?{msg}:{}),fixado:cg.fixado})
     }
     if(rota==='/loja/diario'||rota==='/loja/diario/pontos'||rota==='/loja/diario/caixa') {
       const diaria=caixas.find(c=>c.slug==='caixa-diaria'), d=estadoDiario(estado.diario||{})

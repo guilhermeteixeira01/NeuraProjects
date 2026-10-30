@@ -14,6 +14,10 @@ import { ComMoldura, SeloCargo, useConfigSite, usePerfis, usePerfisFrescos } fro
 import { miniaturaInsignia } from './insignias.js'
 import { useT } from './i18n.js'
 import { lerCaixasPublicas } from './loja.js'
+import './painelSocial.css'
+
+// Notificação de item (skin vendida no mercado) vem com a raridade: o cartão fica na cor dela, como no chat e na loja
+const COR_RARIDADE = ['#b0c3d9', '#4b69ff', '#8847ff', '#d32ce6', '#eb4b4b', '#e4ae39']
 
 export function IconeSino({ tamanho = 20 }) { return <IconeUI tipo="sino" tamanho={tamanho}/> }
 
@@ -165,7 +169,7 @@ export default function PainelNotificacoes({ celular = false }) {
       </button>
       {aberto &&
         naTela(
-          <aside className={`am-painel nt-painel${celular ? ' am-celular' : ''}`} aria-label={t('Notificações')}>
+          <aside className={`am-painel am-social nt-painel${celular ? ' am-celular' : ''}`} aria-label={t('Notificações')}>
             <div className="am-cab">
               <b>{t('Notificações')}</b>
               <button type="button" className="am-fechar" onClick={() => setAberto(false)} aria-label={t('Fechar')}>
@@ -231,7 +235,7 @@ export default function PainelNotificacoes({ celular = false }) {
                     {lista.map((n) => {
                       const Corpo = n.link ? 'a' : 'div'
                       return (
-                        <li key={n.id} className="am-linha nt-item">
+                        <li key={n.id} className={`am-linha nt-item${COR_RARIDADE[n.raridade] ? ' nt-raridade' : ''}`} style={COR_RARIDADE[n.raridade] ? { '--cor': COR_RARIDADE[n.raridade] } : undefined}>
                           <Corpo className="nt-corpo" {...(n.link ? { href: n.link } : {})}>
                             <Emblema n={n} cargos={cargos} />
                             <span className="nt-txt">

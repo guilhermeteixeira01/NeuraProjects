@@ -1,0 +1,89 @@
+/* Chat global (ChatGlobal.jsx), aba CHAT do painel da direita. Mesmo desenho do chat do bigcs (cartões com canto cortado, barra de
+   cor à esquerda, avatar com o nível, campo arredondado), nas cores da Neura: o destaque é o amarelo do site (--ui-accent). */
+.cg-chat { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; }
+
+/* aviso fixado pela staff */
+.cg-fixado { --tom: var(--ui-accent, #f5c542); position: relative; overflow: hidden; margin: 0 10px 8px; padding: 10px 12px; border-radius: 10px;
+  background: radial-gradient(130% 90% at 0% 0%, color-mix(in srgb, var(--tom) 30%, transparent), transparent 65%), linear-gradient(160deg, #16171cf5, #090a0df5);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tom) 50%, transparent), 0 0 22px color-mix(in srgb, var(--tom) 16%, transparent); }
+.cg-tom-evento { --tom: #3ddc84; }
+.cg-tom-torneio { --tom: #3498db; }
+.cg-tom-promo { --tom: #ff7a1a; }
+.cg-fixado-tag { display: inline-flex; align-items: center; gap: 5px; color: var(--tom); font: 800 10px var(--font-body); letter-spacing: .18em; text-transform: uppercase; }
+.cg-fixado p { margin: 5px 0 0; color: var(--text); font-size: 12.5px; line-height: 1.45; overflow-wrap: anywhere; }
+
+/* lista */
+.cg-lista { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 6px 8px 8px; list-style: none; overflow-y: auto; scrollbar-width: thin; }
+.cg-lista > li:first-child { margin-top: auto; } /* poucas mensagens: ficam embaixo, perto do campo */
+.cg-vazio { color: var(--dim); text-align: center; font-size: 12px; padding: 16px; }
+
+/* o canto cortado fica no fundo (::before): no próprio cartão o clip-path cortaria o menu de moderação */
+.cg-linha, .cg-drop { --barra: rgb(255 255 255 / .16); --brilho: transparent; --barra-w: 2px; position: relative; isolation: isolate; padding: 9px 10px 9px 12px; }
+.cg-linha::before, .cg-drop::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  background: linear-gradient(90deg, var(--brilho), transparent 60%), linear-gradient(180deg, #14161bc7, #0a0b0eb3);
+  box-shadow: inset var(--barra-w) 0 0 var(--barra); transition: box-shadow .15s; }
+.cg-linha:hover, .cg-drop:hover { --barra: rgb(255 255 255 / .4); --barra-w: 3px; }
+.cg-linha:has(.cg-mod-menu) { z-index: 5; }
+.cg-minha { --barra: var(--ui-accent, #f5c542); --brilho: color-mix(in srgb, var(--ui-accent, #f5c542) 9%, transparent); }
+.cg-drop { --barra: var(--cor); --brilho: color-mix(in srgb, var(--cor) 14%, transparent); }
+
+.cg-autor { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.cg-ava { position: relative; flex: none; width: 30px; height: 30px; }
+.cg-ava img { display: block; width: 30px; height: 30px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 1.5px rgb(255 255 255 / .12); }
+.cg-ava .moldura-box, .cg-ava .emblema-box { width: 30px; height: 30px; }
+.cg-ava .cg-nivel { position: absolute; right: -6px; bottom: -5px; z-index: 4; }
+.cg-nome { display: inline-flex; align-items: center; gap: 4px; min-width: 0; color: var(--text); font: 700 12.5px var(--font-body); text-decoration: none; }
+.cg-nome span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cg-nome:hover span { text-decoration: underline; }
+.cg-autor time { margin-left: auto; flex: none; color: var(--dim-2); font: 600 10px var(--font-body); font-variant-numeric: tabular-nums; }
+.cg-texto { margin: 6px 0 0 38px; color: rgb(244 241 234 / .92); font-size: 12.5px; line-height: 1.45; overflow-wrap: anywhere; white-space: pre-wrap; }
+
+/* moderação (dono/admin) */
+.cg-mod { position: relative; flex: none; }
+.cg-mod > button { width: 22px; height: 22px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--dim); font: 700 14px/1 var(--font-body); cursor: pointer; opacity: 0; transition: opacity .15s; }
+.cg-linha:hover .cg-mod > button, .cg-mod > button:focus-visible, .cg-mod > button[aria-expanded='true'] { opacity: 1; }
+.cg-mod > button:hover { background: rgb(255 255 255 / .08); color: var(--text); }
+.cg-mod-menu, .cg-mais-menu { position: absolute; z-index: 20; display: grid; min-width: 150px; padding: 4px; border-radius: 8px; border: 1px solid var(--border-2); background: var(--panel); box-shadow: 0 12px 30px rgb(0 0 0 / .5); }
+.cg-mod-menu { top: 24px; right: 0; }
+.cg-mod-menu button, .cg-mais-menu button { padding: 7px 10px; border: 0; border-radius: 6px; background: none; color: var(--text); font: 600 12px var(--font-body); text-align: left; cursor: pointer; }
+.cg-mod-menu button:hover, .cg-mais-menu button:hover { background: rgb(255 255 255 / .07); }
+.cg-mod-menu button:first-child { color: var(--red); }
+
+/* cartão de drop */
+.cg-drop-corpo { display: flex; align-items: center; gap: 10px; margin: 6px 0 0 38px; color: var(--text); text-decoration: none; }
+.cg-drop-arte { flex: none; width: 54px; height: 40px; }
+.cg-drop-arte img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 8px color-mix(in srgb, var(--cor) 45%, transparent)); }
+.cg-drop-info { display: grid; gap: 3px; min-width: 0; font-size: 12px; }
+.cg-drop-info > span { color: var(--dim); }
+.cg-drop-info b { color: var(--cor); font-weight: 700; }
+.cg-drop-info small { display: inline-flex; align-items: center; gap: 5px; color: var(--dim-2); font-size: 11px; }
+.cg-drop-info small img { width: 16px; height: 16px; object-fit: contain; }
+.cg-drop-corpo:hover b { text-decoration: underline; }
+
+/* campo de mensagem */
+.cg-erro { margin: 0 12px 6px; color: var(--red); font-size: 11.5px; }
+.cg-compor { position: relative; flex: none; display: flex; align-items: center; gap: 6px; margin: 4px 10px 12px; padding: 4px 4px 4px 12px; border-radius: 999px;
+  border: 1px solid transparent; background: linear-gradient(#0c0d10f5, #0c0d10f5) padding-box, linear-gradient(90deg, rgb(255 255 255 / .1), rgb(255 255 255 / .04)) border-box; }
+.cg-compor:focus-within { background: linear-gradient(#0c0d10f5, #0c0d10f5) padding-box, linear-gradient(90deg, var(--ui-accent, #f5c542), color-mix(in srgb, var(--ui-accent, #f5c542) 25%, transparent)) border-box;
+  box-shadow: 0 8px 22px rgb(0 0 0 / .45), 0 0 18px color-mix(in srgb, var(--ui-accent, #f5c542) 16%, transparent); }
+.cg-compor:has(.cg-mais) { padding-left: 4px; }
+.cg-compor input { flex: 1 1 0; min-width: 0; height: 32px; padding: 0 4px; border: 0; background: none; color: var(--text); font: 500 13px var(--font-body); }
+.cg-compor input:focus-visible { outline: none; }
+.cg-enviar, .cg-mais-btn { flex: none; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; cursor: pointer; transition: transform .15s, opacity .15s; }
+.cg-enviar { background: linear-gradient(135deg, #ffd65c, var(--ui-accent, #f5c542)); color: #17150e; box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-accent, #f5c542) 30%, transparent); }
+.cg-enviar:hover:not(:disabled) { transform: scale(1.06); }
+.cg-enviar:disabled { opacity: .3; box-shadow: none; cursor: default; }
+.cg-mais { position: relative; flex: none; }
+.cg-mais-btn { background: rgb(255 255 255 / .07); color: var(--text); }
+.cg-mais-btn:hover { background: rgb(255 255 255 / .13); }
+.cg-mais-menu { bottom: 40px; left: 0; }
+.cg-entrar { flex: none; margin: 4px 10px 12px; padding: 11px 14px; border: 0; border-radius: 999px; background: var(--ui-accent, #f5c542); color: #17150e; font: 800 12.5px var(--font-body); cursor: pointer; }
+.cg-entrar:hover { filter: brightness(1.08); }
+
+@media (prefers-reduced-motion: reduce) { .cg-linha::before, .cg-drop::before, .cg-enviar { transition: none; } }
+
+/* o site tem uma regra geral de botão com canto de 4px (e mais forte que estas): ":not(#_)" garante os botões redondos do chat */
+.cg-chat:not(#_) :is(.cg-enviar, .cg-mais-btn) { border-radius: 50%; }
+.cg-chat:not(#_) .cg-entrar { border-radius: 999px; }
+.cg-chat:not(#_) .cg-mod > button { border-radius: 6px; }

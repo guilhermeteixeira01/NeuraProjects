@@ -171,6 +171,8 @@ function conectar(id) {
     else if (m.tipo === 'hall') window.dispatchEvent(new Event('np-hall'))
     // Mensagem nova no chat da sala da partida (comum/ChatSala.jsx)
     else if (m.tipo === 'chat') window.dispatchEvent(new CustomEvent('np-chat', { detail: m }))
+    // Chat global (painel da direita): mensagem nova, apagada, alguém silenciado ou aviso fixado (comum/ChatGlobal.jsx)
+    else if (String(m.tipo).startsWith('chat-global')) window.dispatchEvent(new CustomEvent('np-chat-global', { detail: m }))
     // Mensagem nova no chat direto com um amigo (comum/mensagens.js)
     else if (m.tipo === 'dm-atualizou') window.dispatchEvent(new CustomEvent('np-dm-atualizou', { detail: m }))
     else if (m.tipo === 'dm') window.dispatchEvent(new CustomEvent('np-dm', { detail: m }))

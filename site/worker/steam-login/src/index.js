@@ -29,7 +29,7 @@ import { rotaAdmin } from './admin.js'
 import { rotaAfiliado } from './afiliado.js'
 import { hallPublico, imagemHall, rotaHall } from './hall.js'
 import { rotaDadosConta, rotaPerfilPublico, rotaAmigosPerfil, exigirVisibilidade, filtrarConquistasPublicas } from './conta-dados.js'
-import { rotaAmigos, rotaChat, rotaDm, rotaLobby, rotaPresenca, rotaServidor } from './amigos.js'
+import { rotaAmigos, rotaChat, rotaChatGlobal, rotaDm, rotaLobby, rotaPresenca, rotaServidor } from './amigos.js'
 import { conferirToken, exigirLogin, login, origensPermitidas, retorno } from './auth.js'
 import { ErroApi, ErroLogin, ErroNaoEncontrado, ErroPedido, ErroPermissao, ErroServico } from './erros.js'
 import { rotaEquipes, rotaImagemEquipe, rotaListaPublicaEquipes } from './equipes.js'
@@ -40,7 +40,7 @@ import { rotaNotificacoes } from './notificacoes.js'
 import { semDerrubar } from './objetos.js'
 import { rotaPagamentos, rotaWebhookAsaas } from './pagamentos.js'
 import { rotaPartidaServidor, rotaPartidasPublico } from './partidas-novas.js'
-import { lerConfig, tirarExclusivasSemCargo } from './perfis.js'
+import { ehAdmin, lerConfig, tirarExclusivasSemCargo } from './perfis.js'
 import { atualizarPremier, rotaAvatares, rotaBuscarUsuarios, rotaConfig, rotaJogador, rotaNicks, rotaPerfis, rotaPremier } from './publico.js'
 import { registrar } from './registro.js'
 import { rotaConta, rotaEu, salvarPerfil } from './rotas-conta.js'
@@ -100,6 +100,7 @@ const PUBLICAS = {
   'GET /equipes/publico': (c) => rotaListaPublicaEquipes(c.url, c.env),
   'GET /equipes/imagem': (c) => rotaImagemEquipe(c.req, c.url, c.env, c.ctx),
   'POST /pagamentos/webhook': (c) => rotaWebhookAsaas(c.req, c.env),
+  'GET /chat/global': (c) => rotaChatGlobal(c.req, c.env, { ...qualquerOrigem, 'Cache-Control': 'no-store' }, null, false, c.ctx),
   'GET /loja/drops': (c) => rotaDrops(c.req, c.env, qualquerOrigem, c.ctx),
   'GET /loja/perfil': (c) => rotaLojaPerfil(c.url, c.env, { ...qualquerOrigem, 'Cache-Control': 'public, max-age=5' }),
   'GET /loja/caixas': (c) => rotaLojaPublica(c.env, qualquerOrigem, c.ctx),
@@ -134,6 +135,7 @@ const COM_LOGIN = [
   ['/usuarios/buscar', so('GET', (c) => rotaBuscarUsuarios(c.url, c.env, c.quem, c.cors))],
   ['/lobby', async (c) => { if(c.req.method==='POST'){const p=await lerCorpo(c.req.clone());if(p.acao==='convidar')await exigirVisibilidade(c.req,c.env,p.id,'convites',c.quem.id)}return rotaLobby(c.req,c.env,c.quem,c.cors) }],
   ['/chat', (c) => rotaChat(c.req, c.env, c.quem, c.cors)],
+  ['/chat/global', so('POST', (c) => rotaChatGlobal(c.req, c.env, c.cors, c.quem, ehAdmin(c.quem.id, c.env, c.config)))],
   ['/dm', (c) => rotaDm(c.req, c.env, c.quem, c.cors, c.url)],
   ['/skins', (c) => rotaSkins(c.req, c.env, c.quem, c.cors)],
   ['/skins/presentes', so('POST', (c) => rotaSkinsPresentes(c.req, c.env, c.quem, c.cors))],

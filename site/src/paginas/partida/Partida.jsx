@@ -317,7 +317,7 @@ function ItemDestaque({ e, valor, rotulo, ehMvp }) {
   const tr = useT()
   return (
     <a className={`mvp-item spot mvp-${e.time}`} href={linkPerfil(e.steamId)} title={tr('Perfil de {nome}', { nome: e.nome })}>
-      <ComMoldura steamId={e.steamId}>
+      <ComMoldura steamId={e.steamId} emblema>
         <Avatar e={e} classe="av" />
       </ComMoldura>
       <b className={ehMvp ? `t-${e.time}` : ''}>{e.nome}</b>
@@ -352,7 +352,7 @@ function Destaques({ jogadores, porRating, totalRounds, nomeTime }) {
         {/* Card grande do MVP (igual ao da sala da FACEIT) */}
         <div className={`mvp-card spot mvp-${mvp.time}`}>
           <a className="mvp-perfil" href={linkPerfil(mvp.steamId)} title={tr('Perfil de {nome}', { nome: mvp.nome })}>
-            <ComMoldura steamId={mvp.steamId}>
+            <ComMoldura steamId={mvp.steamId} emblema>
               <Avatar e={mvp} classe="mvp-av" />
             </ComMoldura>
             <b>{mvp.nome}</b>
@@ -487,7 +487,7 @@ function TabelaUtil({ doTime, mvp }) {
               <tr key={e.steamId} style={{ '--i': linha }}>
                 <td>
                   <a className="player" href={linkPerfil(e.steamId)}>
-                    <ComMoldura steamId={e.steamId}>
+                    <ComMoldura steamId={e.steamId} emblema>
                       <Avatar e={e} classe="av" />
                     </ComMoldura>
                     <span>{e.nome}</span>
@@ -610,7 +610,7 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
                 <tr key={e.steamId} style={{ '--i': linha }}>
                   <td>
                     <a className="player" href={linkPerfil(e.steamId)}>
-                      <ComMoldura steamId={e.steamId}>
+                      <ComMoldura steamId={e.steamId} emblema>
                         <Avatar e={e} classe="av" />
                       </ComMoldura>
                       <span>{e.nome}</span>

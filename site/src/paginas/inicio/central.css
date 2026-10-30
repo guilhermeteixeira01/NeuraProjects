@@ -140,7 +140,7 @@
 @media(max-width:1024px) { .np-rodape { padding-bottom:calc(64px + env(safe-area-inset-bottom)); } }
 .np-rodape { margin-top:24px;padding-top:20px; }
 #root .np-conteudo>main { margin-bottom:0;padding-bottom:0; }
-.np-inicio>section:last-child { margin-bottom:0;padding-bottom:0; }
+.np-inicio>section:last-child { margin-bottom:0;padding-bottom:clamp(56px,6vw,96px); } /* espaço antes do rodapé: sem ele o rodapé encostava no texto da última seção */
 
 /* O rodapé compartilha o fundo da página, evitando uma faixa de cor na transição. */
 .np-rodape { background:transparent;border-top:0;box-shadow:none; }

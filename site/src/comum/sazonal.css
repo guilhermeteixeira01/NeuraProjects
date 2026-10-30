@@ -137,7 +137,7 @@ html[data-desempenho='1'] .np-inicio .ix-destaques li a { box-shadow: none; tran
 .am-painel:not(.nt-painel):not(.pp-painel) { background: var(--ui-surface); }
 .am-painel:not(.nt-painel):not(.pp-painel) .am-abas { margin: 8px; padding: 4px; background: #080b0c; border-color: #22272a; border-radius: 12px; }
 .am-painel:not(.nt-painel):not(.pp-painel) .am-abas button { font-size: 10px; font-weight: 800; letter-spacing: .1em; }
-.am-painel:not(.nt-painel):not(.pp-painel) .am-abas button:last-child { order: -1; }
+.am-painel:not(.nt-painel):not(.pp-painel) .am-abas:not(.am-abas-tres) button:last-child { order: -1; }
 .np-chat-contagem { margin-left: 6px; font-size: 9px; letter-spacing: 0; }
 .am-painel:not(.nt-painel):not(.pp-painel) .am-dm-lista { padding: 2px 7px 10px; }
 .am-dm-lista .am-dm-msg { padding: 8px 7px 8px 44px; min-height: 52px; position: relative; border-radius: 0; gap: 3px; background: linear-gradient(100deg,#191d20,#0c0f12); }

@@ -132,7 +132,7 @@ function CardTime({ nome, t, jogadores, modo, mvp }) {
         {porJogador.map(({ e, v }) => (
           <a key={e.steamId} className="gu-nome" href={linkPerfil(e.steamId)} title={tr('Perfil de {nome}', { nome: e.nome })}>
             <span className="gu-num">{soma(v)}</span>
-            <ComMoldura steamId={e.steamId}>
+            <ComMoldura steamId={e.steamId} emblema>
               <Avatar e={e} />
             </ComMoldura>
             <span className={`gu-nick${e === mvp ? ` t-${t}` : ''}`}>{e.nome}</span>

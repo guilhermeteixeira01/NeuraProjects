@@ -1,16 +1,21 @@
 import IconeUI from './IconeUI.jsx'
-// Painel "Social" (computador): botão na barra da direita e painel encostado nela, com duas abas:
-//   AMIGOS — a lista no estilo do Discord (Pedidos, Online, Ausente, Offline); o balão ao lado de cada amigo abre o chat direto com ele.
-//   CHATS  — as conversas (prévia da última mensagem, hora e não lidas); clicar abre a conversa (mensagens.js: histórico e envio).
+// Painel "Social" (computador): botão na barra da direita e painel encostado nela, com três abas:
+//   CHAT      — o chat global do site (ChatGlobal.jsx): mensagens de todo mundo e os drops das caixas. Sem login dá para ler.
+//   AMIGOS    — a lista no estilo do Discord (Pedidos, Online, Ausente, Offline); o balão ao lado de cada amigo abre o chat direto com ele.
+//   MENSAGENS — as conversas diretas (prévia da última mensagem, hora e não lidas); clicar abre a conversa (mensagens.js: histórico e envio).
 // Abre por cima do site (não empurra a página); fecha com Esc ou clicando fora.
-// Aberto/fechado e a última aba ficam guardados no navegador. Amigos e presença: comum/amigos.js. Chat: comum/mensagens.js.
-import { useEffect, useRef, useState } from 'react'
+// Aberto/fechado fica guardado no navegador. Amigos e presença: comum/amigos.js. Chat direto: comum/mensagens.js.
+import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { lerApi, seForErroApi } from './api.js'
 import { acaoAmizade, buscarJogadores, relacaoCom, tempoDesde, useAmigos } from './amigos.js'
 import { apagarChat, carregarMensagens, definirConversaAberta, enviarMensagem, horaOuData, useConversas } from './mensagens.js'
 import { useAvatar } from './avatares.js'
-import { linkPerfil, useConta } from './conta.js'
+import { linkPerfil, loginAtivo, useConta } from './conta.js'
+
+import './painelSocial.css'
+
+const ChatGlobal = lazy(() => import('./ChatGlobal.jsx')) // só baixa quando o painel abre na aba CHAT
 import { lerJson } from './dados.js'
 import { CargosDe, ComMoldura, IconeEquipe } from './Moldura.jsx'
 import { useT } from './i18n.js'
@@ -34,7 +39,7 @@ function Linha({ a, st, visto, aoConversar, children }) {
     <li className={`am-linha am-${st}`}>
       <a className="am-pessoa" href={linkPerfil(a.id)} title={a.nome || a.id}>
         <span className="am-av">
-          <ComMoldura steamId={a.id}>
+          <ComMoldura steamId={a.id} emblema>
             <Foto a={a} />
           </ComMoldura>
           <i className="am-bolinha" aria-label={t(st === 'online' ? 'Online' : st === 'jogando' ? 'Jogando' : st === 'ausente' ? 'Ausente' : 'Offline')} />
@@ -196,7 +201,7 @@ function ItemChat({ c, eu, aoAbrir }) {
     <li className={`am-linha am-chat-item am-${c.st}${c.naoLidas ? ' am-chat-naolida' : ''}`}>
       <button type="button" className="am-pessoa am-chat-btn" onClick={() => aoAbrir(c.id)} title={c.nome || c.id}>
         <span className="am-av">
-          <ComMoldura steamId={c.id}>
+          <ComMoldura steamId={c.id} emblema>
             <Foto a={c} />
           </ComMoldura>
           <i className="am-bolinha" />
@@ -316,7 +321,7 @@ function Conversa({ id, eu, aoFechar }) {
         </button>
         <a className={`am-pessoa am-dm-pessoa am-${info?.st || 'offline'}`} href={linkPerfil(id)}>
           <span className="am-av">
-            <ComMoldura steamId={id}>
+            <ComMoldura steamId={id} emblema>
               <Foto a={info || { id }} />
             </ComMoldura>
             <i className="am-bolinha" />
@@ -352,8 +357,9 @@ export default function PainelAmigos({ celular = false }) {
   const [aberto, setAberto] = useState(false)
   const [ocupado, setOcupado] = useState(null)
   const [verEnviados, setVerEnviados] = useState(false)
-  const [aba, setAba] = useState('amigos') // 'amigos' | 'chats'
+  const [aba, setAba] = useState('global') // 'global' | 'amigos' | 'chats'
   const [conversaCom, setConversaCom] = useState(null) // id do amigo cuja conversa está aberta (substitui o conteúdo do painel)
+  const podeVer = !!eu || loginAtivo() // sem login o painel abre só com o chat global (para ler)
 
   useEffect(() => {
     if (celular) return
@@ -366,16 +372,16 @@ export default function PainelAmigos({ celular = false }) {
   useEffect(() => {
     if (celular) {
       // tela cheia: a página por trás não rola
-      document.documentElement.classList.toggle('amigos-cel-aberto', !!(aberto && eu))
+      document.documentElement.classList.toggle('amigos-cel-aberto', !!(aberto && podeVer))
       return
     }
-    document.documentElement.classList.toggle('amigos-aberto', !!(aberto && eu))
+    document.documentElement.classList.toggle('amigos-aberto', !!(aberto && podeVer))
     try {
       localStorage.setItem(CHAVE, aberto ? '1' : '0')
     } catch {
       // ignora
     }
-  }, [aberto, eu])
+  }, [aberto, podeVer])
 
   // Por cima do site: fecha com Esc ou clicando fora (no painel e no botão, não)
   useEffect(() => {
@@ -398,7 +404,7 @@ export default function PainelAmigos({ celular = false }) {
     if (!aberto) setConversaCom(null) // fechou o painel: a próxima vez que abrir volta para a lista (não para o meio de uma conversa)
   }, [aberto])
 
-  if (!eu) return null
+  if (!podeVer) return null
   const amigos = lista?.amigos || []
   const st = (a) => status[a.id]?.st || 'offline'
   const porNome = (x, y) => (x.nome || '').localeCompare(y.nome || '')
@@ -446,7 +452,7 @@ export default function PainelAmigos({ celular = false }) {
         </span>
       </button>
       {aberto && naTela(
-        <aside className={`am-painel${celular ? ' am-celular' : ''}${conversaCom ? ' am-painel-dm' : ''}`} aria-label={t('Social')} onClick={(e) => celular && e.target.closest('a') && setAberto(false)}>
+        <aside className={`am-painel am-social${celular ? ' am-celular' : ''}${conversaCom ? ' am-painel-dm' : ''}`} aria-label={t('Social')} onClick={(e) => celular && e.target.closest('a') && setAberto(false)}>
           <div className="am-cab">
             <b>{t('Social')}</b>
             {!conversaCom && (
@@ -459,18 +465,29 @@ export default function PainelAmigos({ celular = false }) {
             </button>
           </div>
           {(
-            <div className="am-abas" role="tablist">
-              <button type="button" role="tab" aria-selected={!conversaCom && aba === 'amigos'} className={!conversaCom && aba === 'amigos' ? 'am-aba-ativa' : ''} onClick={() => { setConversaCom(null); setAba('amigos') }}>
-                {t('AMIGOS')}
-                <span className="np-chat-contagem">{jogando.length + online.length + ausentes.length}/{amigos.length}</span>
-              </button>
-              <button type="button" role="tab" aria-selected={!!conversaCom || aba === 'chats'} className={conversaCom || aba === 'chats' ? 'am-aba-ativa' : ''} onClick={() => { setAba('chats'); if (!conversaCom && conversas?.length) abrirConversa(conversas[0].id) }}>
+            <div className="am-abas am-abas-tres" role="tablist">
+              <button type="button" role="tab" aria-selected={!conversaCom && aba === 'global'} className={!conversaCom && aba === 'global' ? 'am-aba-ativa' : ''} onClick={() => { setConversaCom(null); setAba('global') }}>
                 {t('CHAT')}
-                {naoLidas > 0 && <em className="am-aba-badge">{naoLidas > 9 ? '9+' : naoLidas}</em>}
               </button>
+              {eu && (
+                <button type="button" role="tab" aria-selected={!conversaCom && aba === 'amigos'} className={!conversaCom && aba === 'amigos' ? 'am-aba-ativa' : ''} onClick={() => { setConversaCom(null); setAba('amigos') }}>
+                  {t('AMIGOS')}
+                  <span className="np-chat-contagem">{jogando.length + online.length + ausentes.length}/{amigos.length}</span>
+                </button>
+              )}
+              {eu && (
+                <button type="button" role="tab" aria-selected={!!conversaCom || aba === 'chats'} className={conversaCom || aba === 'chats' ? 'am-aba-ativa' : ''} onClick={() => { setAba('chats'); if (!conversaCom && conversas?.length) abrirConversa(conversas[0].id) }}>
+                  {t('MENSAGENS')}
+                  {naoLidas > 0 && <em className="am-aba-badge">{naoLidas > 9 ? '9+' : naoLidas}</em>}
+                </button>
+              )}
             </div>
           )}
-          {conversaCom ? (
+          {!conversaCom && (aba === 'global' || !eu) ? (
+            <Suspense fallback={<p className="am-vazio">{t('Carregando…')}</p>}>
+              <ChatGlobal />
+            </Suspense>
+          ) : conversaCom ? (
             <Conversa id={conversaCom} eu={eu} aoFechar={() => setConversaCom(null)} />
           ) : aba === 'chats' ? (
             <div className="am-rolagem">
