@@ -117,6 +117,7 @@ async function atualizarCaixas(env) {
 export async function lerConfigLoja(env) {
   const c = await lerDoc(env, 'loja-config')
   return {
+    porCaixa: true,
     taxas: Array.isArray(c?.taxas) && c.taxas.length === 6 ? c.taxas.map((t) => num(t, 0, 100, 0)) : CONFIG_PADRAO.taxas,
     desgaste: Array.isArray(c?.desgaste) && c.desgaste.length === 5 ? c.desgaste : CONFIG_PADRAO.desgaste,
     maxQtd: 1,
@@ -489,6 +490,11 @@ export class Loja {
         return this.zerar(p.bonusMax)
       case 'saldo':
         return { saldo: saldo(), ganhos: pontos, gastos: this.gastos(), movimentos: p.movimentos ? this.movimentos() : undefined }
+      case 'premium-partidas': {
+        try { await this.aplicarPremium(await partidasPremium(this.env, id), id) }
+        catch (e) { if (e.codigo !== 'historico') throw e }
+        return { partidas: Object.fromEntries(this.sql.exec('SELECT partida, valor FROM premium_partidas WHERE valor > 0').toArray().map(m => [m.partida, m.valor])) }
+      }
       case 'estado':
         return this.estado(id, caixas, cfg, pontos)
       case 'comprar':
@@ -819,6 +825,7 @@ export async function rotaLojaPublica(env, cors, ctx) {
 
 const ROTAS_LOJA = { 'GET /loja': 'estado', 'GET /loja/saldo': 'saldo', 'GET /loja/valores': 'valores', 'POST /loja/vender': 'vender', 'GET /loja/historico': 'historico', 'POST /loja/comprar': 'comprar', 'POST /loja/abrir': 'abrir' }
 Object.assign(ROTAS_LOJA, { 'GET /loja/diario': 'diario', 'POST /loja/diario/pontos': 'diario-pontos', 'POST /loja/diario/caixa': 'diario-caixa' })
+ROTAS_LOJA['GET /loja/premium-partidas'] = 'premium-partidas'
 
 export async function rotaLoja(req, env, quem, cors, rota) {
   // Página de uma caixa (não precisa do objeto do jogador): desgastes com valor e chance, e os modos Jester/Boost

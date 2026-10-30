@@ -101,9 +101,29 @@ function fatiasDaRaridade(itens, tipo, fracaoRaridade, preco) {
   // quem subiu fica no mínimo; os outros dividem o que sobrou na mesma proporção de antes
   return fatias.map((f, i) => (sobe[i] ? minimas[i] : (f / resto) * (1 - fixo)))
 }
+// Cada caixa tem sua própria distribuição. A configuração global é a base;
+// o conteúdo e a relação valor/preço reduzem o peso das categorias caras.
+// Jester resolve a configuração antes de definir suas chances iguais.
+export function taxasDaCaixa(caixa, cfg) {
+  if (!cfg.porCaixa) return cfg.taxas
+  const preco = Math.max(1, Number(caixa.preco) || 1)
+  return cfg.taxas.map((base, r) => {
+    const itens = r === 5 ? caixa.facas : caixa.itens.filter(it => it.r === r)
+    const ativos = itens.filter(it => it.w > 0)
+    if (!ativos.length) return 0
+    const pesos = ativos.map(it => {
+      const tipo = it.t || (r === 5 ? 'faca' : 'arma')
+      const valor = valoradorDeItem ? Number(valoradorDeItem({ ...it, t: tipo })) : 0
+      // Sem cotação, usa apenas o peso do catálogo, sem inventar preço.
+      return it.w / (1 + Math.pow(Math.max(0, valor || 0) / preco, 2))
+    })
+    return base * pesos.reduce((a, b) => a + b, 0) / ativos.length
+  })
+}
+
 // fração (0..1) de cada raridade na caixa: só as raridades que ela tem
 const fracoesDasRaridades = (caixa, cfg) => {
-  const taxas = cfg.taxas.map((t, r) => (r === 5 ? (caixa.facas.length ? t : 0) : caixa.itens.some((it) => it.r === r) ? t : 0))
+  const taxas = taxasDaCaixa(caixa, cfg).map((t, r) => (r === 5 ? (caixa.facas.length ? t : 0) : caixa.itens.some((it) => it.r === r) ? t : 0))
   const total = taxas.reduce((a, b) => a + b, 0) || 1
   return taxas.map((t) => t / total)
 }
@@ -143,7 +163,7 @@ export function sortearAbertura(caixa, cfg, rnd) {
   const porRaridade = [0, 1, 2, 3, 4].map((r) => caixa.itens.map((it, i) => ({ it, i })).filter((x) => x.it.r === r))
   const tem = (r) => (r === 5 ? caixa.facas.length > 0 : porRaridade[r].length > 0)
   // só as raridades que a caixa tem (as chances das outras são redistribuídas na mesma proporção)
-  const raridade = sortearPeso(cfg.taxas.map((t, r) => (tem(r) ? t : 0)), rnd)
+  const raridade = sortearPeso(taxasDaCaixa(caixa, cfg).map((t, r) => (tem(r) ? t : 0)), rnd)
   if (raridade < 0) throw new Error('caixa vazia')
   let origem
   let indice
@@ -185,7 +205,7 @@ export function sortearEspecial(caixa, cfg, rnd) {
 // Cada posição: { r, i } (i = índice em caixa.itens) ou { r: 5 } (card dourado "?"). `quase` = o vencedor não é faca e um vizinho é o card dourado.
 export function gerarFaixa(caixa, cfg, ganhou, rnd, n = 60, alvo = 51) {
   const porRaridade = [0, 1, 2, 3, 4].map((r) => caixa.itens.map((it, i) => ({ it, i })).filter((x) => x.it.r === r))
-  const pesos = cfg.taxas.map((t, r) => (r === 5 ? (caixa.facas.length ? 2.2 : 0) : porRaridade[r].length ? t : 0)) // o dourado aparece mais no enchimento do que sai de verdade (expectativa)
+  const pesos = taxasDaCaixa(caixa, cfg).map((t, r) => (r === 5 ? (caixa.facas.length ? 2.2 : 0) : porRaridade[r].length ? t : 0))
   const itens = []
   for (let k = 0; k < n; k++) {
     const r = sortearPeso(pesos, rnd)
@@ -221,6 +241,7 @@ export function faixasDeDesgaste(cfg, skinMin, skinMax) {
 export const MODOS = ['jester', 'boost']
 const BOOST = [0.5, 0.8, 1.4, 2.2, 3, 3]
 export function aplicarModo(caixa, cfg, modo) {
+  cfg = { ...cfg, taxas: taxasDaCaixa(caixa, cfg), porCaixa: false }
   if (modo === 'jester') {
     const contagem = [0, 1, 2, 3, 4].map((r) => caixa.itens.filter((i) => i.r === r).length).concat(caixa.facas.length)
     return { caixa: { ...caixa, itens: caixa.itens.map((i) => ({ ...i, w: 1, igual: true })), facas: caixa.facas.map((f) => ({ ...f, w: 1, igual: true })) }, cfg: { ...cfg, taxas: contagem } }
@@ -232,9 +253,9 @@ export function aplicarModo(caixa, cfg, modo) {
 // Chances reais de cada item da caixa (%), para a página da caixa mostrar com transparência
 export function chancesDaCaixa(caixa, cfg) {
   const porRaridade = [0, 1, 2, 3, 4].map((r) => caixa.itens.map((it, i) => ({ it, i })).filter((x) => x.it.r === r))
-  const taxas = cfg.taxas.map((t, r) => (r === 5 ? (caixa.facas.length ? t : 0) : porRaridade[r].length ? t : 0))
+  const taxas = taxasDaCaixa(caixa, cfg).map((t, r) => (r === 5 ? (caixa.facas.length ? t : 0) : porRaridade[r].length ? t : 0))
   const total = taxas.reduce((a, b) => a + b, 0) || 1
-  const raridades = taxas.map((t) => Math.round((t / total) * 10000) / 100)
+  const raridades = taxas.map((t) => (t / total) * 100)
   const itens = caixa.itens.map(() => 0)
   const fracoes = fracoesDasRaridades(caixa, cfg)
   porRaridade.forEach((lista, r) => {

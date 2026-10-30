@@ -7,7 +7,8 @@ import { calendarioEventosInsignias } from './eventos.js'
 import { CONFIG } from './config.js'
 import { INSIGNIAS } from './insignias.js'
 import catalogo from '../../worker/steam-login/src/caixas-iniciais.json'
-import { CONFIG_PADRAO, chancesDaCaixa, aplicarModo, faixasDeDesgaste, sortearAbertura, gerarFaixa, gerarFaixaFacas, valorDoItem } from '../../worker/steam-login/src/loja-core.js'
+import { CONFIG_PADRAO as CONFIG_BASE, chancesDaCaixa, aplicarModo, faixasDeDesgaste, sortearAbertura, gerarFaixa, gerarFaixaFacas, valorDoItem } from '../../worker/steam-login/src/loja-core.js'
+const CONFIG_PADRAO = { ...CONFIG_BASE, porCaixa: true }
 
 export function ativarPreviewLocal() {
   if (window.__npPreviewAtivo) return
@@ -88,6 +89,7 @@ export function ativarPreviewLocal() {
       guardar()
       return Response.json({perfis:perfisDemo})
     }
+    if(rota==='/loja/premium-partidas') return Response.json({partidas:estado.premiumPartidas || {}})
     if(rota==='/chat/global') {
       estado.chatGlobal??={msgs:[{id:'cg1',de:pessoas[1].id,nome:pessoas[1].nome,avatar,texto:'Alguém pra um mix agora?',ts:Date.now()-240000},{id:'cg2',de:pessoas[2].id,nome:pessoas[2].nome,avatar,texto:'Bora! Falta 1 no lobby.',ts:Date.now()-200000},{id:'cg3',de:pessoas[3].id,nome:pessoas[3].nome,avatar,texto:'Acabei de tirar uma faca na caixa diária 😱',ts:Date.now()-90000}],fixado:{texto:'Torneio 5x5 sábado às 20h — inscrições abertas no Discord!',tom:'torneio',por:id,ts:Date.now()-3600000}}
       const cg=estado.chatGlobal

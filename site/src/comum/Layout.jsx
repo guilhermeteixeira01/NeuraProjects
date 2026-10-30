@@ -1,5 +1,6 @@
 import './superficies.css'
-import { Suspense, lazy, useEffect } from 'react'
+import { Suspense, lazy, useEffect, useRef } from 'react'
+import { useFundoMobile } from './fundoMobile.js'
 import Avisos from './Avisos.jsx'
 import AvisoConvite from './AvisoConvite.jsx'
 import AceitarPartida from './AceitarPartida.jsx'
@@ -77,6 +78,8 @@ export function useRevelar(seletor = '.reveal', classe = 'is-visible', opcoes = 
 
 // Estrutura de toda página: menu, conteúdo e avisos de novidade (o site não tem mais rodapé)
 export default function Layout({ pagina, children }) {
+  const conteudo = useRef(null)
+  useFundoMobile(conteudo)
   useRevelar()
   useLuzCursor() // cards com a classe "spot" ganham a luz que segue o cursor
   // Trocar de página: se a próxima demorar, aparece o carregamento da NP por cima (some sozinho quando a página nova abre).
@@ -125,7 +128,7 @@ export default function Layout({ pagina, children }) {
         <foreignObject width="100%" height="100%" mask="url(#np-moldura-nav-mask)"><div className="np-moldura-fundo"/></foreignObject>
       </svg>
       <Nav pagina={pagina} />
-      <div className="np-conteudo">
+      <div className="np-conteudo" ref={conteudo}>
         {pagina === 'inicio' && <BannerEvento />}
         <PortaoBoasVindas />
         {children}

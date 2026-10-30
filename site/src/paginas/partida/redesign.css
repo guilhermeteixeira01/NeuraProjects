@@ -36,3 +36,20 @@
 .mvp-perfil b { font: 600 21px var(--font-display); }
 .mvp-card .mono-label { font: 500 12px var(--font-body); letter-spacing: 0; color: var(--ui-muted); }
 @media(max-width:650px) { .mvp-card { padding: 18px; gap: 20px; } }
+.mvp-avatar { display: inline-flex; flex: none; width: 112px; }
+.mapa-premium-pontos { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; margin: 24px 0; padding: 20px 24px; border: 1px solid rgb(245 197 66 / .2); border-left: 3px solid var(--accent); border-radius: 8px; background: var(--ui-surface, var(--panel)); }
+.mapa-premium-pontos > div { display: grid; gap: 5px; }
+.mapa-premium-pontos > div b { color: var(--text); font: 700 15px var(--font-body); }
+.mapa-premium-pontos > div span { color: var(--dim); font: 400 12px var(--font-body); }
+.mapa-premium-pontos dl { display: flex; flex-wrap: wrap; gap: 16px 28px; margin: 0; }
+.mapa-premium-pontos dl > div { display: grid; gap: 5px; }
+.mapa-premium-pontos dt { color: var(--dim); font: 500 11px var(--font-body); }
+.mapa-premium-pontos dd { margin: 0; color: var(--text); font: 700 16px var(--font-body); font-variant-numeric: tabular-nums; }
+.mapa-premium-pontos dl > div:last-child dd { color: var(--accent); }
+@media(max-width:650px) {
+  .mvp-perfil { display: grid; grid-template-columns: 88px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 20px; row-gap: 6px; text-align: left; }
+  .mvp-perfil > .mvp-avatar { grid-column: 1; grid-row: 1 / 3; width: 68px; margin: 10px; align-self: center; }
+  .mvp-avatar .mvp-av { width: 68px; height: 68px; }
+  .mvp-perfil > b { grid-column: 2; grid-row: 1; min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+  .mvp-perfil > .mono-label { grid-column: 2; grid-row: 2; min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+}

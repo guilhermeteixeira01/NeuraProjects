@@ -3492,8 +3492,24 @@ html:is([data-tema='claro'], [data-tema='branco']) .cp-caixa b { color: #111; }
 .cp-logo { width: 26px; height: 26px; object-fit: contain; margin-bottom: 4px; }
 /* Emblema da assinatura: maior e no canto superior direito do avatar, passando um pouco da borda (como no exemplo) */
 /* clamp: proporcional ao avatar, mas com teto; em avatares grandes (perfil, pódio, cartões) ele não cresce junto */
-.emblema-sub { width: clamp(16px, 36%, 30px) !important; top: -10% !important; right: -12% !important; }
-.nx-direita .emblema-sub, .nx-nav .emblema-sub { width: clamp(18px, 40%, 22px) !important; }
+.emblema-sub {
+  width: clamp(16px, 35%, 32px) !important;
+  top: 0 !important;
+  right: 0 !important;
+  /* Apoiado no canto externo do aro: o centro da foto fica livre. */
+  transform: translate(30%, -20%) !important;
+}
+.nx-direita .emblema-sub, .nx-nav .emblema-sub { width: clamp(14px, 35%, 20px) !important; }
+/* Com moldura, a referência é a extremidade da arte, não a abertura da foto. */
+.moldura-box > .emblema-sub {
+  top: -10% !important;
+  right: -10% !important;
+  transform: translate(0, 0) !important;
+}
+.moldura-box.moldura-ajustada > .emblema-sub {
+  top: calc(var(--moldura-topo) + 8%) !important;
+  right: calc(100% - var(--moldura-esquerda) - var(--moldura-largura) + 5%) !important;
+}
 
 /* aviso de adesivo/chaveiro: imagem quadrada, menor, sem passar por cima dos textos */
 .skin-palco-emb { aspect-ratio: auto; height: 190px; overflow: hidden; }

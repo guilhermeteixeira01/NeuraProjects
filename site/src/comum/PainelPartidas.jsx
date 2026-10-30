@@ -7,6 +7,8 @@ import { useConta } from './conta.js'
 import { lerJson } from './dados.js'
 import { localeAtual, useT } from './i18n.js'
 import { mapImage, nomeMapa } from './mapas.js'
+import './painelPartidas.css'
+import { useBonusPartidas } from './bonusPartidas.js'
 
 const linkPartida = (caminho) => `/partidas/${String(caminho).split('/').map(encodeURIComponent).join('/')}/`
 
@@ -22,27 +24,31 @@ function dataCurta(texto) {
   return `${dia}, ${m[3]} ${mes} ${m[1]}, ${m[4]}:${m[5]}`.toUpperCase()
 }
 
-function Cartao({ p }) {
+function Cartao({ p, bonus = 0 }) {
   const t = useT()
   const [meu, deles] = p.placar || [0, 0]
   const mapa = String(p.mapa || '')
   return (
     <a className={`pp-card ${p.venceu ? 'v' : 'd'}`} href={linkPartida(p.caminho)} style={{ '--mapa': `url("${mapImage(mapa)}")` }}>
-      <span className="pp-data">{dataCurta(p.data)}</span>
+      <span className="pp-card-topo">
+        <span className="pp-data">{dataCurta(p.data)}</span>
+        {p.pontos > 0 && (
+          <span className="pp-pontos" title={t('Neura Pontos ganhos neste mapa')}>+{p.pontos + bonus} NP</span>
+        )}
+      </span>
       <b className="pp-time">{p.adversario || p.time}</b>
       <span className="pp-mapa">
         {nomeMapa(mapa)} • 5v5
       </span>
-      {p.pontos > 0 && (
-        <span className="pp-pontos" title={t('Neura Pontos ganhos neste mapa')}>
-          +{p.pontos} NP
-        </span>
-      )}
+      {bonus > 0 && <span className="pp-bonus">{p.pontos} NP + <b>{bonus} NP Premium</b></span>}
       <span className="pp-placar">
+        <span className="pp-resultado">
         <i className="pp-selo" title={p.venceu ? t('Vitória') : t('Derrota')}>
           {p.venceu ? t('V') : t('D')}
         </i>
-        <span>
+        <span>{p.venceu ? t('Vitória') : t('Derrota')}</span>
+        </span>
+        <span className="pp-resultado-numeros">
           <b className={p.venceu ? 'v' : 'd'}>{meu}</b> : {deles}
         </span>
       </span>
@@ -55,6 +61,7 @@ export default function PainelPartidas({ celular = false }) {
   const t = useT()
   const conta = useConta()
   const [aberto, setAberto] = useState(false)
+  const bonus = useBonusPartidas(aberto)
   usePainelMobile(aberto && celular && !!conta)
   const [lista, setLista] = useState(null)
 
@@ -105,7 +112,7 @@ export default function PainelPartidas({ celular = false }) {
               <>
                 <h4 className="pp-grupo">{t('Passado')}</h4>
                 {lista.map((p) => (
-                  <Cartao key={p.caminho} p={p} />
+                  <Cartao key={p.caminho} p={p} bonus={bonus[p.caminho] || 0} />
                 ))}
               </>
             )}

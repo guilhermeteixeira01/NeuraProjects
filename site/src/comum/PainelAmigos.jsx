@@ -242,7 +242,15 @@ function MensagemConversa({ m, minha, autor, aoApagar, ocupado }) {
   const t = useT()
   return (
     <li className={`am-dm-msg${minha ? ' am-dm-minha' : ''}`}>
-      <div className="np-chat-autor"><Foto a={{ ...autor, id: m.de }} /><a href={linkPerfil(m.de)}>{autor?.nome || m.nome || t('Jogador')}</a><small className="am-dm-ts">{horaOuData(m.ts)}</small></div>
+      <div className="np-chat-autor">
+        <span className="am-dm-avatar">
+          <ComMoldura steamId={m.de} emblema>
+            <Foto a={{ ...autor, id: m.de }} />
+          </ComMoldura>
+        </span>
+        <a href={linkPerfil(m.de)}>{autor?.nome || m.nome || t('Jogador')}</a>
+        <small className="am-dm-ts">{horaOuData(m.ts)}</small>
+      </div>
       <span className="am-dm-bolha">{m.texto}</span>
       {minha && <button type="button" className="am-dm-apagar" title={t('Apagar mensagem')} aria-label={t('Apagar mensagem')} disabled={ocupado} onClick={() => aoApagar(m.id)}><IconeUI tipo="excluir" tamanho={14} /></button>}
     </li>

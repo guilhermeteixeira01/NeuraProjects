@@ -7,7 +7,8 @@ import { useAoVivo } from '../../comum/aoVivo.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
 import GraficoUtil from './GraficoUtil.jsx'
 import { lerJson, urlOk } from '../../comum/dados.js'
-import { linkPerfil } from '../../comum/conta.js'
+import { linkPerfil, useConta } from '../../comum/conta.js'
+import { useBonusPartidas } from '../../comum/bonusPartidas.js'
 import { fundoMapa, getMap, mapIcon, nomeMapa } from '../../comum/mapas.js'
 import { ComMoldura, comApelidos, usePerfis } from '../../comum/Moldura.jsx'
 import { desempenhoAtivo } from '../../comum/desempenho.js'
@@ -352,9 +353,11 @@ function Destaques({ jogadores, porRating, totalRounds, nomeTime }) {
         {/* Card grande do MVP (igual ao da sala da FACEIT) */}
         <div className={`mvp-card spot mvp-${mvp.time}`}>
           <a className="mvp-perfil" href={linkPerfil(mvp.steamId)} title={tr('Perfil de {nome}', { nome: mvp.nome })}>
+            <span className="mvp-avatar">
             <ComMoldura steamId={mvp.steamId} emblema>
               <Avatar e={mvp} classe="mvp-av" />
             </ComMoldura>
+            </span>
             <b>{mvp.nome}</b>
             <span className={`mono-label t-${mvp.time}`}>{nomeTime(mvp.time)}</span>
           </a>
@@ -557,7 +560,7 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
           </span>
           <span className="sep" />
           <span title={tr('Neura Pontos que cada jogador do time recebe por este mapa')}>
-            {tr('Pontos por jogador')} <b className="team-pontos">+{pontosDaPartida(vencedor === t, d.inicio)} NP</b>
+            {tr('Pontos base por jogador')} <b className="team-pontos">+{pontosDaPartida(vencedor === t, d.inicio)} NP</b>
           </span>
           <span className="sep" />
           <span>
@@ -671,6 +674,26 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
   )
 }
 
+function PontosPremiumMapa({ d, vencedor }) {
+  const t = useT()
+  const conta = useConta()
+  const jogador = d.jogadores?.find(j => j.steamId === conta?.id)
+  const recibos = useBonusPartidas(!!jogador)
+  const bonus = recibos[d.caminho] || 0
+  if (!jogador || !bonus) return null
+  const base = pontosDaPartida(jogador.time === vencedor, d.inicio)
+  return (
+    <section className="mapa-premium-pontos" aria-label={t('Seus pontos neste mapa')}>
+      <div><b>{t('Seus pontos neste mapa')}</b><span>{t('Bônus Premium recebido')}</span></div>
+      <dl>
+        <div><dt>{t('Partida')}</dt><dd>+{base} NP</dd></div>
+        <div><dt>Premium</dt><dd>+{bonus} NP</dd></div>
+        <div><dt>{t('Total')}</dt><dd>+{base + bonus} NP</dd></div>
+      </dl>
+    </section>
+  )
+}
+
 function Conteudo({ d }) {
   const tr = useT()
   const [comecou, setComecou] = useState(false)
@@ -752,6 +775,7 @@ function Conteudo({ d }) {
       </div>
       <Banner d={d} nomeTime={nomeTime} vencedor={vencedor} porRating={porRating} comecou={comecou} />
       <main className="wrap partida-conteudo">
+        <PontosPremiumMapa d={d} vencedor={vencedor} />
         {d.serie && <Serie serie={d.serie} nomeTime={nomeTime} jogos={jogos} caminhoAtual={d.caminho} anuncio={anuncio} agora={agora} />}
         {mvp && <Destaques jogadores={jogadores} porRating={porRating} totalRounds={totalRounds} nomeTime={nomeTime} />}
         {d.rounds?.length > 0 && <Rounds d={d} nomeTime={nomeTime} />}

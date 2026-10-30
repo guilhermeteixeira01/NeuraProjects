@@ -1,0 +1,38 @@
+/* O mesmo cartão dos chats, com mais área para o mapa e o resultado. */
+.pp-painel:not(#_) { width: 420px; background: var(--ui-surface, var(--panel)); }
+.pp-painel:not(#_) .pp-corpo { padding: 8px 12px 20px; gap: 12px; }
+.pp-painel:not(#_) .pp-grupo { margin: 12px 4px 4px; font: 600 13px var(--font-body); }
+.pp-painel:not(#_) .pp-card {
+  position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 1fr);
+  gap: 6px; align-content: center; min-height: 174px; padding: 18px 20px;
+  overflow: visible; border: 0; border-radius: 0; background: none;
+  color: var(--text); transition: transform .15s;
+}
+.pp-painel:not(#_) .pp-card::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  background: linear-gradient(90deg, #101217f5 0%, #101217dc 52%, #10121794), var(--mapa) center / cover;
+  box-shadow: inset 3px 0 var(--cor-resultado), inset 0 1px rgb(255 255 255 / .05);
+  transition: filter .15s;
+}
+.pp-painel:not(#_) .pp-card:hover { filter: none; transform: translateY(-2px); }
+.pp-painel:not(#_) .pp-card:hover::before { filter: brightness(1.2); }
+.pp-painel:not(#_) .pp-card:focus-visible { outline: 2px solid var(--ui-accent, var(--accent)); outline-offset: 3px; }
+.pp-painel:not(#_) .pp-card-topo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; margin-bottom: 5px; }
+.pp-painel:not(#_) .pp-data { min-width: 0; font: 500 10px/1.5 var(--font-body); letter-spacing: .035em; color: #a9acb5; }
+.pp-painel:not(#_) .pp-pontos { position: static; flex: none; margin: 0; padding: 5px 8px; border-radius: 5px; border: 1px solid rgb(245 197 66 / .25); background: rgb(245 197 66 / .08); color: #f5c542; font: 700 11px/1.2 var(--font-body); backdrop-filter: none; }
+.pp-painel:not(#_) .pp-time { min-width: 0; font: 700 20px/1.3 var(--font-body); overflow-wrap: anywhere; }
+.pp-painel:not(#_) .pp-mapa { font: 400 13px/1.4 var(--font-body); color: #aeb2bc; }
+.pp-painel:not(#_) .pp-bonus { font: 500 11px/1.5 var(--font-body); color: var(--dim); }
+.pp-painel:not(#_) .pp-bonus b { color: #f5c542; font-weight: 600; }
+.pp-painel:not(#_) .pp-placar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; padding-top: 12px; border-top: 1px solid rgb(255 255 255 / .08); font: 600 18px/1.2 var(--font-body); }
+.pp-painel:not(#_) .pp-resultado { display: inline-flex; align-items: center; gap: 8px; color: var(--cor-resultado); font: 600 12px var(--font-body); }
+.pp-painel:not(#_) .pp-selo { width: 23px; height: 23px; background: color-mix(in srgb, var(--cor-resultado) 13%, transparent); border: 1px solid color-mix(in srgb, var(--cor-resultado) 35%, transparent); color: var(--cor-resultado); font-size: 11px; }
+.pp-painel:not(#_) .pp-resultado-numeros { white-space: nowrap; font-variant-numeric: tabular-nums; }
+@media(max-width:1024px) {
+  .pp-painel.am-celular:not(#_) { width: auto; }
+  .pp-painel.am-celular:not(#_) .pp-card { min-height: 180px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .pp-painel:not(#_) .pp-card, .pp-painel:not(#_) .pp-card::before { transition: none; }
+}

@@ -18,7 +18,7 @@
 .cg-vazio { color: var(--dim); text-align: center; font-size: 12px; padding: 16px; }
 
 /* o canto cortado fica no fundo (::before): no próprio cartão o clip-path cortaria o menu de moderação */
-.cg-linha, .cg-drop { --barra: rgb(255 255 255 / .16); --brilho: transparent; --barra-w: 2px; position: relative; isolation: isolate; padding: 9px 10px 9px 12px; }
+.cg-linha, .cg-drop { --barra: rgb(255 255 255 / .16); --brilho: transparent; --barra-w: 2px; position: relative; isolation: isolate; display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; grid-template-rows: auto auto; align-content: center; column-gap: 10px; row-gap: 4px; min-height: 78px; padding: 14px 16px; }
 .cg-linha::before, .cg-drop::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
   clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
   background: linear-gradient(90deg, var(--brilho), transparent 60%), linear-gradient(180deg, #14161bc7, #0a0b0eb3);
@@ -28,19 +28,20 @@
 .cg-minha { --barra: var(--ui-accent, #f5c542); --brilho: color-mix(in srgb, var(--ui-accent, #f5c542) 9%, transparent); }
 .cg-drop { --barra: var(--cor); --brilho: color-mix(in srgb, var(--cor) 14%, transparent); }
 
-.cg-autor { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.cg-ava { position: relative; flex: none; width: 30px; height: 30px; }
+.cg-autor { display: contents; }
+.cg-ava { position: relative; grid-column: 1; grid-row: 1 / 3; align-self: center; justify-self: center; flex: none; width: 30px; height: 30px; }
 .cg-ava img { display: block; width: 30px; height: 30px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 1.5px rgb(255 255 255 / .12); }
 .cg-ava .moldura-box, .cg-ava .emblema-box { width: 30px; height: 30px; }
 .cg-ava .cg-nivel { position: absolute; right: -6px; bottom: -5px; z-index: 4; }
-.cg-nome { display: inline-flex; align-items: center; gap: 4px; min-width: 0; color: var(--text); font: 700 12.5px var(--font-body); text-decoration: none; }
+.cg-nome { display: inline-flex; grid-column: 2; grid-row: 1; align-self: center; align-items: center; gap: 4px; min-width: 0; color: var(--text); font: 700 12.5px/1.4 var(--font-body); text-decoration: none; }
 .cg-nome span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cg-nome:hover span { text-decoration: underline; }
-.cg-autor time { margin-left: auto; flex: none; color: var(--dim-2); font: 600 10px var(--font-body); font-variant-numeric: tabular-nums; }
-.cg-texto { margin: 6px 0 0 38px; color: rgb(244 241 234 / .92); font-size: 12.5px; line-height: 1.45; overflow-wrap: anywhere; white-space: pre-wrap; }
+.cg-autor time { grid-column: 3; grid-row: 1; align-self: center; margin: 0; flex: none; color: var(--dim-2); font: 600 10px/1.4 var(--font-body); font-variant-numeric: tabular-nums; }
+.cg-linha:has(.cg-mod) time { margin-right: 18px; }
+.cg-texto { grid-column: 2 / 4; grid-row: 2; min-width: 0; margin: 0; color: rgb(244 241 234 / .92); font-size: 12.5px; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-wrap; }
 
 /* moderação (dono/admin) */
-.cg-mod { position: relative; flex: none; }
+.cg-mod { position: absolute; top: 8px; right: 8px; flex: none; }
 .cg-mod > button { width: 22px; height: 22px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--dim); font: 700 14px/1 var(--font-body); cursor: pointer; opacity: 0; transition: opacity .15s; }
 .cg-linha:hover .cg-mod > button, .cg-mod > button:focus-visible, .cg-mod > button[aria-expanded='true'] { opacity: 1; }
 .cg-mod > button:hover { background: rgb(255 255 255 / .08); color: var(--text); }
@@ -51,7 +52,7 @@
 .cg-mod-menu button:first-child { color: var(--red); }
 
 /* cartão de drop */
-.cg-drop-corpo { display: flex; align-items: center; gap: 10px; margin: 6px 0 0 38px; color: var(--text); text-decoration: none; }
+.cg-drop-corpo { display: flex; grid-column: 2 / 4; grid-row: 2; min-width: 0; align-items: center; gap: 10px; margin: 0; color: var(--text); text-decoration: none; }
 .cg-drop-arte { flex: none; width: 54px; height: 40px; }
 .cg-drop-arte img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 8px color-mix(in srgb, var(--cor) 45%, transparent)); }
 .cg-drop-info { display: grid; gap: 3px; min-width: 0; font-size: 12px; }

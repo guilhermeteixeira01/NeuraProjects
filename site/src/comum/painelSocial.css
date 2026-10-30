@@ -70,17 +70,19 @@
 .am-social:not(#_) .am-dm-cab > .am-dm-apagar:hover { color: var(--red); background: color-mix(in srgb, var(--red) 12%, transparent); }
 
 .am-social:not(#_) .am-dm-lista { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 4px 8px 8px; list-style: none; }
-.am-social:not(#_) .am-dm-msg { --barra: rgb(255 255 255 / .16); --brilho: transparent; position: relative; isolation: isolate; display: block; margin: 0; padding: 9px 10px 9px 12px; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.am-social:not(#_) .am-dm-msg { --barra: rgb(255 255 255 / .16); --brilho: transparent; position: relative; isolation: isolate; display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; grid-template-rows: auto auto; align-content: center; column-gap: 10px; row-gap: 4px; min-height: 78px; margin: 0; padding: 14px 16px; border: 0; border-radius: 0; background: none; box-shadow: none; }
 .am-social:not(#_) .am-dm-msg::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
   clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
   background: linear-gradient(90deg, var(--brilho), transparent 60%), linear-gradient(180deg, #14161bc7, #0a0b0eb3); box-shadow: inset 2px 0 0 var(--barra); }
 .am-social:not(#_) .am-dm-minha { --barra: var(--sc-acento); --brilho: color-mix(in srgb, var(--sc-acento) 9%, transparent); }
-.am-social:not(#_) .am-dm-msg .np-chat-autor { display: flex; align-items: center; gap: 8px; min-width: 0; padding-right: 24px; }
+.am-social:not(#_) .am-dm-msg .np-chat-autor { display: contents; }
+.am-social:not(#_) .am-dm-avatar { position: relative; display: inline-flex; grid-column: 1; grid-row: 1 / 3; align-self: center; justify-self: center; flex: none; width: 30px; height: 30px; margin: 0; overflow: visible; }
 .am-social:not(#_) .am-dm-msg .np-chat-autor img, .am-social:not(#_) .am-dm-msg .np-chat-autor .am-ini { position: static; flex: none; width: 30px; height: 30px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 1.5px rgb(255 255 255 / .12); }
-.am-social:not(#_) .am-dm-msg .np-chat-autor a { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font: 700 12.5px var(--font-body); text-decoration: none; }
+.am-social:not(#_) .am-dm-msg .np-chat-autor a { grid-column: 2; grid-row: 1; align-self: center; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font: 700 12.5px/1.4 var(--font-body); text-decoration: none; }
 .am-social:not(#_) .am-dm-msg .np-chat-autor a:hover { text-decoration: underline; }
-.am-social:not(#_) .am-dm-ts { margin-left: auto; flex: none; color: var(--dim-2); font: 600 10px var(--font-body); }
-.am-social:not(#_) .am-dm-bolha { display: block; margin: 6px 0 0 38px; padding: 0; border: 0; border-radius: 0; background: none; color: rgb(244 241 234 / .92); font-size: 12.5px; line-height: 1.45; overflow-wrap: anywhere; white-space: pre-wrap; box-shadow: none; }
+.am-social:not(#_) .am-dm-ts { grid-column: 3; grid-row: 1; align-self: center; margin: 0; flex: none; color: var(--dim-2); font: 600 10px/1.4 var(--font-body); }
+.am-social:not(#_) .am-dm-minha .am-dm-ts { margin-right: 18px; }
+.am-social:not(#_) .am-dm-bolha { display: block; grid-column: 2 / 4; grid-row: 2; min-width: 0; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; color: rgb(244 241 234 / .92); font-size: 12.5px; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-wrap; box-shadow: none; }
 .am-social:not(#_) .am-dm-msg > .am-dm-apagar { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--dim); opacity: 0; cursor: pointer; transition: opacity .15s; }
 .am-social:not(#_) .am-dm-msg:hover > .am-dm-apagar, .am-social:not(#_) .am-dm-msg > .am-dm-apagar:focus-visible { opacity: 1; }
 .am-social:not(#_) .am-dm-msg > .am-dm-apagar:hover { color: var(--red); background: rgb(255 255 255 / .06); }

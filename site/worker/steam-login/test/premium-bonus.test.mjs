@@ -16,6 +16,18 @@ test('cada mapa Premium paga uma vez e gera notificação não lida com valor',a
   assert.equal(n.length,2);assert.ok(n.every(x=>x.lida===false&&x.titulo.includes('+350 NP')&&x.texto.includes('já está no seu saldo')))
 })
 
+test('painel e estatísticas consultam recibos próprios mesmo após vencer o Premium, sem duplicar crédito',async()=>{
+  const f=ambiente(),a=ator(f)
+  await a.aplicarPremium(mapas,A)
+  const r=await f.pedir('GET','/loja/premium-partidas',{quem:A})
+  assert.equal(r.status,200)
+  assert.deepEqual(r.dados.partidas,{'partida-1':350,'partida-2':350})
+  const outro=await f.pedir('GET','/loja/premium-partidas',{quem:'76561198000000842'})
+  assert.equal(outro.status,200)
+  assert.deepEqual(outro.dados.partidas,{})
+  assert.equal(credito(a),700)
+})
+
 test('crédito e recibo revertem juntos se a transação falhar',async()=>{
   const f=ambiente(),a=ator(f),mov=a.movimentar.bind(a)
   a.movimentar=(...args)=>{mov(...args);throw Error('falha no crédito')}

@@ -1,5 +1,6 @@
 import IconeUI from '../../comum/IconeUI.jsx'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { seForErroApi } from '../../comum/api.js'
 import Layout from '../../comum/Layout.jsx'
 import { entrar, loginAtivo, useConta } from '../../comum/conta.js'
@@ -157,7 +158,7 @@ function TelaInteira({ titulo, subtitulo, aviso, aoFechar, confirmar, rotuloConf
     document.addEventListener('keydown', tecla)
     return () => document.removeEventListener('keydown', tecla)
   }, [aoFechar])
-  return (
+  return createPortal(
     <div className="inv-tela" role="dialog" aria-modal="true" aria-label={titulo}>
       <header className="inv-tela-cab">
         <h2>{titulo}</h2>
@@ -189,7 +190,8 @@ function TelaInteira({ titulo, subtitulo, aviso, aoFechar, confirmar, rotuloConf
           {t('FECHAR')}
         </button>
       </footer>
-    </div>
+    </div>,
+    document.body,
   )
 }
 
