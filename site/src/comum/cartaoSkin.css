@@ -29,6 +29,7 @@
 .inv-marca { width: 13px; height: 13px; }
 .inv-cartao-fixo { cursor: default; }
 .inv-itens { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 16px 14px; }
+@media (max-width: 700px) { .inv-itens { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 10px; } .inv-itens > li { min-width: 0; } .inv-cartao-nome b, .inv-cartao-nome small { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; } }
 /* valor do item em NP (inventário) ou preço do anúncio (mercado) */
 .inv-cartao-valor { display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; color: #f5c518; font: 700 12px var(--font-body); }
 .inv-cartao-valor img { width: 14px; height: 14px; }

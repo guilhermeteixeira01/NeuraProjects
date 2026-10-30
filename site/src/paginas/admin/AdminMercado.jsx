@@ -1,4 +1,4 @@
-// Loja de personalização (aba Loja do painel): preço do Boost e do Freeze, molduras/cards/fundos à venda e kits (card + moldura + fundo).
+// Loja geral (aba Loja do painel): preço do Boost e do Freeze, molduras/cards/fundos à venda e kits (card + moldura + fundo).
 // Escolhe-se clicando na miniatura; enfeite à venda (solto ou em kit) fica travado no Personalizar até o jogador comprar.
 // Worker: src/loja-oficial.js (GET/POST /admin/loja-oficial).
 import { useEffect, useMemo, useState } from 'react'
@@ -77,7 +77,7 @@ export default function MercadoOficialAdmin() {
   return (
     <section className="adm-mo">
       <header className="adm-mo-cab">
-        <h3>{t('Loja de personalização')}</h3>
+        <h3>{t('Loja geral')}</h3>
         <p>{t('Item à venda fica travado no Personalizar até o jogador comprar. Preço 0 tira o Boost/Freeze da venda.')}</p>
       </header>
 

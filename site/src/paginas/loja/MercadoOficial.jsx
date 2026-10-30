@@ -1,4 +1,4 @@
-// Loja de personalização (aba LOJA DE PERSONALIZAÇÃO da loja): o site vende por NP os itens de partida do lobby (Boost/Freeze) e os
+// Loja geral (aba LOJA GERAL da loja): o site vende por NP os itens de partida do lobby (Boost/Freeze) e os
 // enfeites do perfil que o admin pôs à venda: molduras, cards, fundos de perfil e kits (card + moldura + fundo juntos).
 // Enfeite comprado fica liberado para sempre no Personalizar do perfil. Worker: src/loja-oficial.js.
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -74,7 +74,7 @@ export default function MercadoOficial({ saldo }) {
       return setAviso({ texto: t(ERROS.saldo), ok: false })
     }
     const texto = n ? t('Comprar {n}x {item} por {preco} NP?', { n, item: nome, preco: numero(preco) }) : t('Comprar {item} por {preco} NP? Ele fica liberado para sempre no Personalizar do seu perfil.', { item: nome, preco: numero(preco) })
-    if (!(await confirmar(texto, { titulo: t('Loja de personalização'), ok: t('Comprar') }))) return
+    if (!(await confirmar(texto, { titulo: t('Loja geral'), ok: t('Comprar') }))) return
     setOcupado(`${tipo}:${id || ''}`)
     try {
       const r = await comprarOficial(tipo, id, n)
@@ -94,7 +94,7 @@ export default function MercadoOficial({ saldo }) {
   if (!conta)
     return (
       <div className="mo-vazio">
-        <p>{t('Entre com a Steam para ver a loja de personalização.')}</p>
+        <p>{t('Entre com a Steam para ver a loja geral.')}</p>
         <button type="button" className="lj-btn lj-btn-p" onClick={entrar}>
           {t('Entrar')}
         </button>
@@ -141,7 +141,7 @@ export default function MercadoOficial({ saldo }) {
   }
 
   return (
-    <section className="mo" aria-label={t('Loja de personalização')}>
+    <section className="mo" aria-label={t('Loja geral')}>
       <nav className="mo-secoes" role="tablist" aria-label={t('Seções do mercado oficial')}>
         {SECOES.map(([id, rotulo]) => (
           <button key={id} type="button" role="tab" aria-selected={secao === id} className={secao === id ? 'is-ativo' : ''} onClick={() => setSecao(id)}>

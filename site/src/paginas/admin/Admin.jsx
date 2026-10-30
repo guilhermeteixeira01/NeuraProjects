@@ -1990,7 +1990,7 @@ export default function Admin() {
                 opcoes={[
                   ['caixas', 'Caixas', tem('caixas')],
                   ['assinatura', 'Assinatura Premium', tem('assinaturas')],
-                  ['mercado', 'Loja de personalização', tem('pontos')],
+                  ['mercado', 'Loja geral', tem('pontos')],
                   ['depositos', 'Depósitos', tem('pontos')],
                 ]}
               >

@@ -42,7 +42,7 @@ function useOficial(ativo) {
 // Enfeite à venda no mercado oficial que o jogador ainda não comprou: travado, com o preço e o caminho para comprar
 function ItemNaLoja({ classe, img, nome, preco, tr }) {
   return (
-    <a className={`${classe} presa sm-na-loja`} href="/loja/?aba=personalizacao" title={tr('{nome}: à venda na loja de personalização', { nome })}>
+    <a className={`${classe} presa sm-na-loja`} href="/loja/?aba=geral" title={tr('{nome}: à venda na loja geral', { nome })}>
       <span className="sm-arte">
         <img src={img} alt="" loading="lazy" />
         <span className="sm-vidro" aria-hidden="true">

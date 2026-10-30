@@ -1,4 +1,4 @@
-// Aba LOJA DE SKINS da loja (mercado entre jogadores; a LOJA DE PERSONALIZAÇÃO é o MercadoOficial.jsx): skins que os jogadores anunciaram no inventário ("Vender no mercado"), com quem está vendendo e o preço que escolheu.
+// Aba LOJA DE SKINS da loja (mercado entre jogadores; a LOJA GERAL é o MercadoOficial.jsx): skins que os jogadores anunciaram no inventário ("Vender no mercado"), com quem está vendendo e o preço que escolheu.
 // Comprar desconta os NP e põe o item no inventário; o vendedor recebe os NP e uma notificação (worker: src/mercado.js).
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useConta } from '../../comum/conta.js'

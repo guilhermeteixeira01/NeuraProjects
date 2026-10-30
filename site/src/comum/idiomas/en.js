@@ -1590,21 +1590,21 @@ export default {
   "Filtrar": "Filter",
   "Buscar time ou tag...": "Search team or tag...",
   "Nenhum time criado ainda.": "No teams created yet.",
-  // Loja de skins / loja de personalização e insígnias das caixas nas Missões
+  // Loja de skins / loja geral e insígnias das caixas nas Missões
   "LOJA DE SKINS": "SKIN STORE",
-  "LOJA DE PERSONALIZAÇÃO": "CUSTOMIZATION STORE",
-  "Loja de personalização": "Customization store",
+  "LOJA GERAL": "GENERAL STORE",
+  "Loja geral": "General store",
   "Loja de skins": "Skin store",
   "Personalização": "Customization",
-  "Entre com a Steam para ver a loja de personalização.": "Sign in with Steam to see the customization store.",
-  "Esse item está à venda na loja de personalização: compre para usar.": "This item is sold in the customization store: buy it to use it.",
-  "{nome}: à venda na loja de personalização": "{nome}: for sale in the customization store",
+  "Entre com a Steam para ver a loja geral.": "Sign in with Steam to see the general store.",
+  "Esse item está à venda na loja geral: compre para usar.": "This item is sold in the general store: buy it to use it.",
+  "{nome}: à venda na loja geral": "{nome}: for sale in the general store",
   "Em kit na loja": "In a store kit",
   "Não foi possível conferir as insígnias das caixas. Tente novamente.": "Could not load the case badges. Try again.",
   "Conferindo conquistas…": "Checking achievements…",
-  // Loja de skins / loja de personalização e insígnias das caixas nas Missões
+  // Loja de skins / loja geral e insígnias das caixas nas Missões
   "Ref. {n}": "Ref. {n}",
-  // Painel da loja de personalização
+  // Painel da loja geral
   "Item à venda fica travado no Personalizar até o jogador comprar. Preço 0 tira o Boost/Freeze da venda.": "Items for sale stay locked in customization until the player buys them. Price 0 removes Boost/Freeze from sale.",
   "Fundos": "Backgrounds",
   "Buscar...": "Search...",

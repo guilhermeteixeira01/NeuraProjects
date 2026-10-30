@@ -55,16 +55,17 @@ function CartaoCaixa({ c, tem, aoAbrir }) {
   )
 }
 
-// Abas da loja: caixas, loja de skins (mercado entre jogadores) e loja de personalização (mercado oficial).
+// Abas da loja: caixas, loja de skins (mercado entre jogadores) e loja geral (mercado oficial).
 // ?aba=mercado (links antigos) abre a loja de skins. As insígnias das caixas ficam na aba Missões do perfil.
 const ABAS = [
   ['caixas', 'CAIXAS'],
   ['skins', 'LOJA DE SKINS'],
-  ['personalizacao', 'LOJA DE PERSONALIZAÇÃO'],
+  ['geral', 'LOJA GERAL'],
 ]
 function abaDaUrl() {
   if (typeof location === 'undefined') return 'caixas'
   const a = new URLSearchParams(location.search).get('aba')
+  if (a === 'personalizacao') return 'geral' // link antigo
   return a === 'mercado' ? 'skins' : ABAS.some(([id]) => id === a) ? a : 'caixas'
 }
 

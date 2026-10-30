@@ -1590,21 +1590,21 @@ export default {
   "Filtrar": "Filtrar",
   "Buscar time ou tag...": "Buscar equipo o tag...",
   "Nenhum time criado ainda.": "Aún no hay equipos creados.",
-  // Loja de skins / loja de personalização e insígnias das caixas nas Missões
+  // Loja de skins / loja geral e insígnias das caixas nas Missões
   "LOJA DE SKINS": "TIENDA DE SKINS",
-  "LOJA DE PERSONALIZAÇÃO": "TIENDA DE PERSONALIZACIÓN",
-  "Loja de personalização": "Tienda de personalización",
+  "LOJA GERAL": "TIENDA GENERAL",
+  "Loja geral": "Tienda general",
   "Loja de skins": "Tienda de skins",
   "Personalização": "Personalización",
-  "Entre com a Steam para ver a loja de personalização.": "Inicia sesión con Steam para ver la tienda de personalización.",
-  "Esse item está à venda na loja de personalização: compre para usar.": "Este objeto está a la venta en la tienda de personalización: cómpralo para usarlo.",
-  "{nome}: à venda na loja de personalização": "{nome}: a la venta en la tienda de personalización",
+  "Entre com a Steam para ver a loja geral.": "Inicia sesión con Steam para ver la tienda general.",
+  "Esse item está à venda na loja geral: compre para usar.": "Este objeto está a la venta en la tienda general: cómpralo para usarlo.",
+  "{nome}: à venda na loja geral": "{nome}: a la venta en la tienda general",
   "Em kit na loja": "En un kit de la tienda",
   "Não foi possível conferir as insígnias das caixas. Tente novamente.": "No se pudieron cargar las insignias de las cajas. Inténtalo de nuevo.",
   "Conferindo conquistas…": "Revisando logros…",
-  // Loja de skins / loja de personalização e insígnias das caixas nas Missões
+  // Loja de skins / loja geral e insígnias das caixas nas Missões
   "Ref. {n}": "Ref. {n}",
-  // Painel da loja de personalização
+  // Painel da loja geral
   "Item à venda fica travado no Personalizar até o jogador comprar. Preço 0 tira o Boost/Freeze da venda.": "Los objetos a la venta quedan bloqueados en Personalizar hasta que el jugador los compre. Precio 0 quita Boost/Freeze de la venta.",
   "Fundos": "Fondos",
   "Buscar...": "Buscar...",

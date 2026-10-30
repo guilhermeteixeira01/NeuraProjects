@@ -18,7 +18,7 @@ export default function RodapeComunidade() {
         <div className="np-rodape-marca"><img src="/assets/logos/logo-np-64.png" alt="" width="46" height="46" /><b>NEURA PROJECT</b><p>{t('Uma comunidade para evoluir, criar amizades e construir o futuro no competitivo.')}</p><button type="button" onClick={copiar}>{copiado ? t('Link copiado') : t('Compartilhar a comunidade')}</button>{erro && <small role="status">neuraproject.com.br</small>}</div>
         {[
           ['Competir', [['Jogar','/lobby/'],['Partidas','/partidas/'],['Ranking','/ranking/']]],
-          ['Coleção', [['Inventário','/inventario/'],['Loja','/loja/'],['Loja de skins','/loja/?aba=skins'],['Personalização','/loja/?aba=personalizacao']]],
+          ['Coleção', [['Inventário','/inventario/'],['Loja','/loja/'],['Loja de skins','/loja/?aba=skins'],['Loja geral','/loja/?aba=geral']]],
           ['Comunidade', [['Times','/times/'],['Sobre','/#sobre'],['Nossos projetos','/#projetos']]],
         ].map(([titulo,links])=><nav key={titulo} aria-label={t(titulo)}><h3>{t(titulo)}</h3>{links.map(([texto,href])=><a key={href} href={href}>{t(texto)}</a>)}</nav>)}
       </div>
