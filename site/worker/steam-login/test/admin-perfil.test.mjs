@@ -14,7 +14,7 @@ test('edição administrativa salva XP e insígnias, inclusive evento iniciado, 
  const quando=p.insignias.staff
  assert.equal((await pedir('POST','/admin/perfil',{quem:DONO,corpo:{id,insignias:['staff']}})).status,200)
  p=await lerPerfil(env,id);assert.equal(p.insignias.staff,quando);assert.equal(p.insignias[evento],undefined)
- assert.equal((await pedir('POST','/admin/perfil',{quem:DONO,corpo:{id,insignias:['evento-natal-2027']}})).status,400)
+ assert.equal((await pedir('POST','/admin/perfil',{quem:DONO,corpo:{id,insignias:['evento-dia-das-criancas-2027']}})).status,400)
  assert.equal((await pedir('POST','/admin/perfil',{quem:DONO,corpo:{id,insignias:['top3']}})).status,400)
  assert.equal((await pedir('POST','/admin/perfil',{quem:id,corpo:{id,xp:999}})).status,403)
  }finally{Date.now=original}

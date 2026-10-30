@@ -1,4 +1,4 @@
-import { MISSOES, ANO_EVENTOS, anoBrasilia, progressoMissoes, resumoMissao, insigniaMissao } from './missoes-core.js'
+import { MISSOES, ANO_EVENTOS, periodoDaEdicao, progressoMissoes, resumoMissao, insigniaMissao } from './missoes-core.js'
 import { podeUsarMolduraEvento } from '../../../src/comum/molduras.js'
 import { podeUsarFundoPerfil } from './fundos-perfil.js'
 import { lerPosse, possui } from './loja-oficial.js'
@@ -22,7 +22,9 @@ export function iniciarMissoes(obj) {
 }
 export async function configMissoes(env,agora=Date.now()) {
   const salvo=await lerDoc(env,'missoes-config',{})
-  return {ativa:true,...salvo,eventos:{...calendarioEventosInsignias(ANO_EVENTOS),...salvo.eventos}}
+  // períodos salvos de outra edição (ex.: 2026) não valem mais: fica o calendário da edição atual
+  const salvos=Object.fromEntries(Object.entries(salvo.eventos||{}).filter(([,p])=>Number(p?.ano)===ANO_EVENTOS))
+  return {ativa:true,...salvo,eventos:{...calendarioEventosInsignias(ANO_EVENTOS),...salvos}}
 }
 export async function historicoMissoes(env,id) {
   const r=await fetch(`${enderecoDoSite(env)}/perfil/historico/${id}.json`,{cf:{cacheTtl:60},signal:AbortSignal.timeout(15000)})
@@ -105,7 +107,7 @@ export async function salvarConfigMissoes(env,c) {
   const config={ativa:c.ativa!==false,metaMapas:Math.max(1,Math.min(10000,Math.round(Number(c.metaMapas)||10))),eventos:{},mapas:{}}
   for(const [id,p] of Object.entries(c.eventos||{})) {
     const base=calendarioEventosInsignias(ANO_EVENTOS)[id]
-    if(!MISSOES.some(m=>m.id===id&&m.categoria==='eventos')||!p||Number(p.ano)!==ANO_EVENTOS||!/(Z|[+-]\d{2}:\d{2})$/.test(p.inicio||'')||!/(Z|[+-]\d{2}:\d{2})$/.test(p.fim||'')||!(Date.parse(p.fim)>Date.parse(p.inicio))||anoBrasilia(Date.parse(p.inicio))!==ANO_EVENTOS||(base&&Math.floor(Date.parse(p.fim)/1000)<Math.floor(Date.parse(base.fim)/1000)))throw new ErroPedido('evento')
+    if(!MISSOES.some(m=>m.id===id&&m.categoria==='eventos')||!p||Number(p.ano)!==ANO_EVENTOS||!/(Z|[+-]\d{2}:\d{2})$/.test(p.inicio||'')||!/(Z|[+-]\d{2}:\d{2})$/.test(p.fim||'')||!(Date.parse(p.fim)>Date.parse(p.inicio))||!periodoDaEdicao(Date.parse(p.inicio),Date.parse(p.fim),ANO_EVENTOS)||(base&&Math.floor(Date.parse(p.fim)/1000)<Math.floor(Date.parse(base.fim)/1000)))throw new ErroPedido('evento')
     config.eventos[id]={ano:Number(p.ano),inicio:p.inicio,fim:p.fim}
   }
   for(const [id,p] of Object.entries(c.mapas||{})) {

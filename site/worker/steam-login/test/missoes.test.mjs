@@ -10,35 +10,42 @@ import { lerPerfil } from '../src/perfis.js'
 import { darInsignias } from '../src/perfis.js'
 import { juntar } from '../src/notif-core.js'
 
-test('coleção 2027 não usa Ano Novo e Verão iniciados em 2026 nem antecipa eventos futuros',()=>{
-  const cfg={eventos:calendarioEventosInsignias(2027)},hoje=Date.parse('2027-10-27T12:00:00Z')
+test('edição 2027 começa em 30/10/2026: eventos daqui para frente valem e nada é antecipado',()=>{
+  const cfg={eventos:calendarioEventosInsignias(2027)},hoje=Date.parse('2026-10-31T12:00:00Z')
+  // em andamento no início da edição: usam a ocorrência de 2026
+  for(const id of ['halloween','primavera'])assert.equal(cfg.eventos[`evento-${id}`].inicio.slice(0,4),'2026',id)
+  // ainda vão acontecer em 2026: também de 2026
+  for(const id of ['dia-dos-mortos','diwali','consciencia-negra','black-friday','natal','verao','ano-novo'])assert.equal(cfg.eventos[`evento-${id}`].inicio.slice(0,4),'2026',id)
+  // já tinham passado em 2026: são os de 2027
+  for(const id of ['carnaval','pascoa','holi','festa-junina','oktoberfest','dia-das-criancas'])assert.equal(cfg.eventos[`evento-${id}`].inicio.slice(0,4),'2027',id)
   const lista=progressoMissoes([],cfg,hoje).lista
+  assert.equal(lista.find(m=>m.id==='evento-halloween-2027').eventoAtivo,true)
+  assert.equal(lista.find(m=>m.id==='evento-natal-2027').estadoEvento,'aguardando')
   for(const id of ['ano-novo','verao','natal','halloween','black-friday','primavera'])assert.equal(lista.find(m=>m.id===`evento-${id}-2027`).concluida,false,id)
-  for(const id of ['ano-novo','verao'])assert.equal(anoBrasilia(Date.parse(cfg.eventos[`evento-${id}`].inicio)),2027)
-  const legado={eventos:{...cfg.eventos,'evento-ano-novo':{ano:2027,inicio:'2026-12-27T03:00:00Z',fim:'2027-01-07T03:00:00Z'}}}
-  assert.equal(progressoMissoes([],legado,hoje).lista.find(m=>m.id==='evento-ano-novo-2027').concluida,false)
-  const natalAntecipado={eventos:{...cfg.eventos,'evento-natal':{ano:2027,inicio:'2027-01-01T03:00:00Z',fim:'2027-01-02T03:00:00Z'}}}
+  // período que terminou antes do início da edição não vale (fica pendente)
+  const velho={eventos:{...cfg.eventos,'evento-ano-novo':{ano:2027,inicio:'2025-12-27T03:00:00Z',fim:'2026-01-07T03:00:00Z'}}}
+  assert.ok(progressoMissoes([],velho,hoje).pendencias.some(p=>p.id==='evento-ano-novo'))
+  const natalAntecipado={eventos:{...cfg.eventos,'evento-natal':{ano:2027,inicio:'2026-11-01T03:00:00Z',fim:'2026-11-02T03:00:00Z'}}}
   assert.equal(progressoMissoes([],natalAntecipado,hoje).lista.find(m=>m.id==='evento-natal-2027').concluida,false)
-  assert.equal(progressoMissoes([],cfg,Date.parse('2028-04-01T12:00:00Z')).lista.find(m=>m.id==='evento-verao-2027').concluida,false)
 })
 
 test('retira concessões antecipadas e avisos; entrega no acesso durante o evento e preserva após encerrar',async()=>{
-  const id='76561198000000429',f=ambiente({'missoes-config':{ativa:true}}),a=f.env.LOJA.instancia(id),hoje=Date.parse('2027-10-27T12:00:00Z')
+  const id='76561198000000429',f=ambiente({'missoes-config':{ativa:true}}),a=f.env.LOJA.instancia(id),hoje=Date.parse('2026-10-31T12:00:00Z')
   const badge='evento-ano-novo-2027',aviso={id:`ins:${badge}`,insignia:badge,titulo:'Antecipada',quando:hoje-1000}
-  await darInsignias(f.env,{[id]:{[badge]:hoje-1000,'missao-headshot':hoje-1000,'evento-outono-2027':hoje-1000}})
+  await darInsignias(f.env,{[id]:{[badge]:hoje-1000,'missao-headshot':hoje-1000,'evento-primavera-2027':hoje-1000}})
   a.sql.exec('INSERT INTO missoes_concessoes (id,quando,perfilado,notificada) VALUES (?,?,1,1)',badge,hoje-1000)
   const antigo={lista:[aviso],vistos:[aviso.id],limpoEm:0};await a.ctx.storage.put('notifs',antigo)
   await sincronizarMissoes(a,id,[],false,hoje)
   let perfil=await lerPerfil(f.env,id)
-  assert.equal(perfil.insignias[badge],undefined);assert.ok(perfil.insignias['missao-headshot']);assert.ok(perfil.insignias['evento-outono-2027'])
+  assert.equal(perfil.insignias[badge],undefined);assert.ok(perfil.insignias['missao-headshot']);assert.ok(perfil.insignias['evento-primavera-2027'])
   assert.equal(a.sql.exec('SELECT id FROM missoes_concessoes WHERE id = ?',badge).toArray().length,0)
   let doc=await a.ctx.storage.get('notifs');assert.ok(!doc.lista.some(n=>n.id===aviso.id))
   assert.ok(!juntar(antigo,doc).lista.some(n=>n.id===aviso.id))
-  const acesso=Date.parse('2027-12-30T12:00:00Z')
+  const acesso=Date.parse('2026-12-30T12:00:00Z')
   await sincronizarMissoes(a,id,[],false,acesso,true)
   perfil=await lerPerfil(f.env,id);assert.equal(perfil.insignias[badge],acesso)
   doc=await a.ctx.storage.get('notifs');assert.equal(doc.lista.filter(n=>n.id===aviso.id).length,1)
-  await sincronizarMissoes(a,id,[],false,Date.parse('2028-01-08T12:00:00Z'))
+  await sincronizarMissoes(a,id,[],false,Date.parse('2027-01-08T12:00:00Z'))
   assert.equal((await lerPerfil(f.env,id)).insignias[badge],acesso)
 })
 
@@ -158,7 +165,7 @@ test('API de missões é da própria conta e só admin pode ajustar regras',asyn
   const p=await f.pedir('GET','/admin/missoes',{quem:DONO});assert.equal(p.status,200);assert.equal(p.dados.catalogo.length,64)
   assert.equal((await f.pedir('POST','/admin/missoes',{quem:DONO,corpo:{eventos:{'evento-natal':{ano:2027,inicio:'2027-01-02',fim:'2027-01-01'}}}})).status,400)
   assert.equal((await f.pedir('POST','/admin/missoes',{quem:DONO,corpo:{metaMapas:7,mapas:{dust2:{mapa:'de_dust2',modo:'5v5',meta:4}}}})).status,200)
-  assert.equal((await f.pedir('POST','/admin/missoes',{quem:DONO,corpo:{eventos:{'evento-ano-novo':{ano:2027,inicio:'2026-12-27T03:00:00Z',fim:'2027-01-07T03:00:00Z'}}}})).status,400)
+  assert.equal((await f.pedir('POST','/admin/missoes',{quem:DONO,corpo:{eventos:{'evento-ano-novo':{ano:2027,inicio:'2025-12-27T03:00:00Z',fim:'2026-01-07T03:00:00Z'}}}})).status,400)
   assert.equal((await f.pedir('POST','/admin/perfil',{quem:DONO,corpo:{id,insignias:['evento-natal-2027']}})).status,400)
 })
 

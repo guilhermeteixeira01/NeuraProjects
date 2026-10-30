@@ -18,7 +18,7 @@ test('todos os eventos, fundos e molduras têm correspondência na edição 2027
  for(const f of FUNDOS_EVENTO)assert.ok(ids.has(f.insignia),f.id)
  assert.equal(cal['evento-holi'].inicio,'2027-03-22T03:00:00.000Z')
  assert.equal(cal['evento-ano-novo-lunar'].inicio,'2027-02-06T03:00:00.000Z')
- assert.equal(cal['evento-diwali'].inicio,'2027-10-29T03:00:00.000Z')
+ assert.equal(cal['evento-diwali'].inicio,'2026-11-08T03:00:00.000Z')
  assert.equal(cal['evento-oktoberfest'].inicio,'2027-09-18T03:00:00.000Z')
  assert.equal(cal['evento-oktoberfest'].fim,'2027-10-04T02:59:59.999Z')
  assert.equal(calendarioEventosInsignias(2028)['evento-holi'],undefined)

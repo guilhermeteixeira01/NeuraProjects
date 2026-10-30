@@ -64,9 +64,26 @@ export function bannerDoEvento(evento) {
   return { evento, grande: `/assets/banners/${nome}.webp`, pequeno: `/assets/banners/${nome}-860.webp` }
 }
 
-// Edições com encerramento explícito, usando as mesmas janelas civis do tema acima.
-// Eventos sem janela configurada aqui precisam ser definidos pelo administrador.
+// Edição de insígnias de evento: começa num dia (INICIO_EDICAO) e vale por 12 meses. Cada evento usa a PRÓXIMA ocorrência a partir
+// do início da edição (a de antes ainda vale se não terminou: ex. Halloween em andamento no dia em que a edição começou).
+// A edição 2027 começou em 30/10/2026: Halloween, Dia dos Mortos, Diwali, Consciência Negra, Black Friday, Natal, Verão e Ano Novo
+// são os de 2026/27; os que já tinham passado em 2026 (Carnaval, Páscoa, Holi...) são os de 2027.
+const INICIO_EDICAO = { 2027: Date.UTC(2026, 9, 30, 3) }
+export const inicioEdicao = (ano) => INICIO_EDICAO[ano] ?? Date.UTC(ano, 0, 1, 3)
 export function calendarioEventosInsignias(ano) {
+  const anterior = INICIO_EDICAO[ano] ? calendarioDoAno(ano - 1) : {}
+  const atual = calendarioDoAno(ano)
+  const cal = {}
+  for (const id of new Set([...Object.keys(anterior), ...Object.keys(atual)])) {
+    const p = anterior[id]
+    const escolhido = p && Date.parse(p.fim) >= inicioEdicao(ano) ? p : atual[id]
+    if (escolhido) cal[id] = { ...escolhido, ano }
+  }
+  return cal
+}
+
+// Janelas civis de um ano (as mesmas do tema acima). Eventos sem janela aqui precisam ser definidos pelo administrador.
+function calendarioDoAno(ano) {
   const calendario = {}, horaBrasilia = 3 * 3600000
   const periodo = (id,inicio,fim) => { calendario[`evento-${id}`]={ano,inicio:new Date(inicio+horaBrasilia).toISOString(),fim:new Date(fim+horaBrasilia-1).toISOString()} }
   periodo('ano-novo',utc(ano,12,27),utc(ano+1,1,7));periodo('natal',utc(ano,12,1),utc(ano,12,27))
