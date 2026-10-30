@@ -5,6 +5,7 @@
 // (React.lazy em PainelAmigos.jsx): o catálogo de skins (nome e imagem dos drops) não pesa nas páginas.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ErroApi, chamarApi, lerApi } from './api.js'
+import { useAvatar } from './avatares.js'
 import { entrar, linkPerfil, loginAtivo, useConta } from './conta.js'
 import { useT } from './i18n.js'
 import IconeUI from './IconeUI.jsx'
@@ -18,6 +19,7 @@ import { horaOuData } from './mensagens.js'
 import './chatGlobal.css'
 
 const COR_RARIDADE = ['#b0c3d9', '#4b69ff', '#8847ff', '#d32ce6', '#eb4b4b', '#e4ae39']
+const DROP_MIN = 4 // raridade mínima dos drops no chat: 4 vermelho (Oculto), 5 amarelo (faca/luva)
 const RELER_MS = 15000 // sem login (sem WebSocket): relê o chat; drops: sempre
 const MAX_ITENS = 120
 const TONS = { aviso: 'Aviso', evento: 'Evento', torneio: 'Torneio', promo: 'Promoção' }
@@ -72,11 +74,12 @@ function useItem() {
 function Autor({ id, nome, avatar, ts, nivelDe, children }) {
   const perfis = usePerfis()
   const nivel = nivelDe(id)
+  const foto = useAvatar(id, avatar) // foto atual da Steam (a da mensagem é a do dia em que foi enviada)
   return (
     <header className="cg-autor">
       <a className="cg-ava" href={linkPerfil(id)} tabIndex={-1} aria-hidden="true">
         <ComMoldura steamId={id} emblema>
-          <img src={avatar || '/assets/logos/logo-np-64.png'} alt="" width="34" height="34" loading="lazy" />
+          <img src={foto || '/assets/logos/logo-np-64.png'} alt="" width="34" height="34" loading="lazy" />
         </ComMoldura>
         {nivel > 0 && <SeloNivel nivel={nivel} tamanho={18} classe="cg-nivel" />}
       </a>
@@ -189,7 +192,7 @@ export default function ChatGlobal() {
     }
   }, [conta?.id])
 
-  // drops das caixas (Raro para cima) entram no meio do chat
+  // drops das caixas entram no meio do chat: só os vermelhos e amarelos (raridade 4 e 5, DROP_MIN)
   useEffect(() => {
     let vivo = true
     const ler = () =>
@@ -197,7 +200,7 @@ export default function ChatGlobal() {
         .then((d) => {
           if (!vivo) return
           const todos = new Map()
-          for (const x of [...(d?.recentes || []), ...(d?.bons || [])]) if (x.r >= 2 && x.quem) todos.set(x.id, x)
+          for (const x of [...(d?.recentes || []), ...(d?.bons || []), ...(d?.top || [])]) if (x.r >= DROP_MIN && x.quem) todos.set(x.id, x)
           setDrops([...todos.values()])
         })
         .catch(() => {})
