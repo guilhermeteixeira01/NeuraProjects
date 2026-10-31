@@ -6,7 +6,7 @@
 //
 // O HTML gerado no deploy sai em português. No navegador: o script do <head> esconde a página se o idioma
 // guardado não for português, o React assume o HTML (em português), troca para o idioma guardado e mostra.
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 export const IDIOMAS = [
   { id: 'pt', nome: 'Português (Brasil)', html: 'pt-BR', local: 'pt-BR' },
@@ -83,7 +83,7 @@ export function useT() {
     window.addEventListener(EVENTO_IDIOMA, ler)
     return () => window.removeEventListener(EVENTO_IDIOMA, ler)
   }, [])
-  const t = (texto, vars) => traduzir(texto, vars, idioma)
+  const t = useCallback((texto, vars) => traduzir(texto, vars, idioma), [idioma])
   t.idioma = idioma
   t.local = IDIOMAS.find((i) => i.id === idioma)?.local || 'pt-BR'
   return t

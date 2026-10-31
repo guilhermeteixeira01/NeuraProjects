@@ -2,13 +2,25 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { ambiente } from './ambiente.mjs'
 import { pedirAoJogador } from '../src/objetos.js'
-import { limparCatalogo } from '../src/loja-oficial.js'
+import { limparCatalogo, lerCatalogo } from '../src/loja-oficial.js'
 import { mudarPerfil, lerPerfil } from '../src/perfis.js'
 
 const A = '76561198000000961', B = '76561198000000962'
 const MOLDURA = 'times/furia', CARD = 'neura/neura-ouro.svg'
 const catalogo = { consumiveis: { boost: 300, freeze: 200 }, itens: [{ tipo: 'moldura', id: MOLDURA, preco: 500 }], kits: [{ id: 'kit-neura', nome: 'Kit Neura', moldura: 'times/navi', card: CARD, fundo: 'nuke', preco: 900 }] }
 const darNp = (env, id, valor) => pedirAoJogador(env, id, { acao: 'creditar', valor })
+
+test('catálogo vê publicação de outro worker mesmo com a leitura anterior em cache', async () => {
+  const { pedir, env } = ambiente()
+  await pedir('POST', '/admin/loja-oficial', { quem: env.DONO, corpo: catalogo })
+  assert.equal((await lerCatalogo(env)).itens[0].preco, 500)
+  // Grava diretamente no objeto compartilhado, sem invalidar a memória deste worker.
+  const dados = env.DADOS.instancia('global')
+  const { itens } = await dados.ler('docs', ['loja-oficial'])
+  const novo = { ...catalogo, itens: [{ tipo: 'moldura', id: MOLDURA, preco: 750 }] }
+  await dados.gravar('docs', [{ id: 'loja-oficial', ver: itens[0][1], dados: JSON.stringify(novo) }])
+  assert.equal((await lerCatalogo(env)).itens[0].preco, 750)
+})
 
 test('publicar catálogo retira enfeites sem compra, inclusive kits, e preserva os comprados', async () => {
   const { pedir, env } = ambiente()

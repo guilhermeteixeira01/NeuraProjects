@@ -8,7 +8,7 @@ import { lerJson } from './dados.js'
 import { localeAtual, useT } from './i18n.js'
 import { mapImage, nomeMapa } from './mapas.js'
 import './painelPartidas.css'
-import { useBonusPartidas } from './bonusPartidas.js'
+import { usePartidasServidor } from './bonusPartidas.js'
 
 const linkPartida = (caminho) => `/partidas/${String(caminho).split('/').map(encodeURIComponent).join('/')}/`
 
@@ -61,7 +61,8 @@ export default function PainelPartidas({ celular = false }) {
   const t = useT()
   const conta = useConta()
   const [aberto, setAberto] = useState(false)
-  const bonus = useBonusPartidas(aberto)
+  const servidor = usePartidasServidor(aberto)
+  const bonus = servidor?.partidas || {}
   usePainelMobile(aberto && celular && !!conta)
   const [lista, setLista] = useState(null)
 
@@ -87,6 +88,9 @@ export default function PainelPartidas({ celular = false }) {
   }, [aberto])
 
   if (!conta) return null
+  const porCaminho = new Map((lista || []).map(p => [p.caminho, p]))
+  for (const p of servidor?.recentes || []) porCaminho.set(p.caminho, { ...porCaminho.get(p.caminho), ...p })
+  const mapas = [...porCaminho.values()].sort((a, b) => String(b.data || '').localeCompare(String(a.data || '')))
   const naTela = (el) => (celular ? createPortal(el, document.body) : el)
   return (
     <>
@@ -107,11 +111,11 @@ export default function PainelPartidas({ celular = false }) {
           </div>
           <div className="pp-corpo">
             {lista === null && <p className="pp-vazio">{t('Carregando…')}</p>}
-            {lista && !lista.length && <p className="pp-vazio">{t('Você ainda não jogou nenhuma partida.')}</p>}
-            {lista && lista.length > 0 && (
+            {lista && !mapas.length && <p className="pp-vazio">{t('Você ainda não jogou nenhuma partida.')}</p>}
+            {mapas.length > 0 && (
               <>
                 <h4 className="pp-grupo">{t('Passado')}</h4>
-                {lista.map((p) => (
+                {mapas.map((p) => (
                   <Cartao key={p.caminho} p={p} bonus={bonus[p.caminho] || 0} />
                 ))}
               </>

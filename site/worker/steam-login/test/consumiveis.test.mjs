@@ -16,6 +16,47 @@ const enviar = (pedir, caminho, p) => pedir('POST', '/servidor/partida', { corpo
 test('início da partida no horário de Brasília', () => {
   assert.equal(inicioDaPartida({ inicio: '2026-10-28 23:32' }), Date.parse('2026-10-29T02:32:00Z'))
   assert.ok(Number.isNaN(inicioDaPartida({})))
+  assert.equal(inicioDaPartida({ inicio: '2026-10-28 23:32:45' }), Date.parse('2026-10-29T02:32:45Z'))
+})
+
+test('mapa é publicado com Boost de 160 para 320 XP e Freeze de vitória zerado', async () => {
+  const { pedir, env } = ambiente()
+  await darItens(env, A, { boost: 1 })
+  await darItens(env, B, { freeze: 1 })
+  await pedirAoJogador(env, A, { acao: 'consumivel-ativar', tipo: 'boost' })
+  await pedirAoJogador(env, B, { acao: 'consumivel-ativar', tipo: 'freeze' })
+  const p = partida(Math.ceil((Date.now() + 60000) / 60000) * 60000)
+  p.jogadores[0].rating = 1.6
+  p.jogadores[1].time = 'A'
+  assert.equal((await enviar(pedir, 'org/md1/dobro', p)).status, 200)
+  const dados = (await pedir('GET', '/partidas/dados?c=org/md1/dobro')).dados
+  assert.equal(dados.xp[A].ganho + dados.efeitos[A].delta, 320)
+  assert.equal(dados.xp[B].ganho + dados.efeitos[B].delta, 0)
+  const efeitos = await pedir('GET', '/partidas/efeitos?c=org/md1/dobro')
+  assert.equal(efeitos.dados[A].delta, 160)
+  const resumo = (await pedir('GET', '/loja/premium-partidas', { quem: A })).dados.recentes[0]
+  assert.equal(resumo.xp, 320)
+  await enviar(pedir, 'org/md1/dobro', p)
+  assert.equal((await lerPerfil(env, A)).xp, 160)
+})
+
+test('reenvio recupera ajuste de XP após falha entre consumo do item e gravação do perfil', async () => {
+  const { pedir, env } = ambiente()
+  await darItens(env, A, { boost: 1 })
+  await pedirAoJogador(env, A, { acao: 'consumivel-ativar', tipo: 'boost' })
+  const p = partida(Math.ceil((Date.now() + 60000) / 60000) * 60000)
+  const dados = env.DADOS.instancia('global')
+  const gravar = dados.gravar.bind(dados)
+  let falhar = true
+  dados.gravar = (colecao, mudancas) => {
+    if (colecao === 'perfis' && falhar) { falhar = false; throw Error('falha simulada no perfil') }
+    return gravar(colecao, mudancas)
+  }
+  assert.equal((await enviar(pedir, 'org/md1/retomar', p)).status, 500)
+  assert.equal((await enviar(pedir, 'org/md1/retomar', p)).status, 200)
+  assert.equal((await lerPerfil(env, A)).xp, xpPorJogador(p).get(A))
+  await enviar(pedir, 'org/md1/retomar', p)
+  assert.equal((await lerPerfil(env, A)).xp, xpPorJogador(p).get(A))
 })
 
 test('ativar exige ter o item, só um por vez, e cancelar devolve', async () => {

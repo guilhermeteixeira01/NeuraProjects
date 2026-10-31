@@ -1,4 +1,5 @@
 import IconeUI from '../../comum/IconeUI.jsx'
+import { lerApi } from '../../comum/api.js'
 import { useEffect, useState, useMemo } from 'react'
 import { pontosDaPartida } from '../../comum/pontos.js'
 import CarregandoPontos, { CarregandoNP } from '../../comum/Carregando.jsx'
@@ -607,6 +608,7 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
           <tbody>
             {doTime.map((e, linha) => {
               const saldo = e.kills - e.mortes
+              const ganhoXp = (d.xp?.[e.steamId]?.ganho || 0) + (d.efeitos?.[e.steamId]?.delta || 0)
               const kd = e.mortes === 0 ? e.kills : e.kills / e.mortes
               const kr = e.kills / Math.max(1, e.rounds > 0 ? e.rounds : totalRounds)
               return (
@@ -629,9 +631,9 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
                       {d.xp[e.steamId] ? (
                         <span className="nv-cel">
                           <SeloNivel nivel={nivelDe(d.xp[e.steamId].total + (Number(perfis[e.steamId]?.xp) || 0), d.xp[e.steamId].mapas).nivel} tamanho={26} />
-                          <b className={d.xp[e.steamId].ganho > 0 ? 'pos' : d.xp[e.steamId].ganho < 0 ? 'neg' : ''}>
-                            {d.xp[e.steamId].ganho !== 0 && <i className="seta-xp" aria-hidden="true">{d.xp[e.steamId].ganho > 0 ? '↑' : '↓'}</i>}
-                            {Math.abs(d.xp[e.steamId].ganho)} XP
+                          <b title={d.efeitos?.[e.steamId]?.tipo === 'boost' ? 'Boost · XP em dobro' : d.efeitos?.[e.steamId]?.tipo === 'freeze' ? 'Freeze · XP protegido' : undefined} className={ganhoXp > 0 ? 'pos' : ganhoXp < 0 ? 'neg' : ''}>
+                            {ganhoXp !== 0 && <i className="seta-xp" aria-hidden="true">{ganhoXp > 0 ? '↑' : '↓'}</i>}
+                            {Math.abs(ganhoXp)} XP
                           </b>
                         </span>
                       ) : (
@@ -813,6 +815,19 @@ export default function Partida({ dados: inicial }) {
   const tr = useT()
   const [d, setD] = useState(inicial ?? null)
   const [erro, setErro] = useState(false)
+  const [efeitos, setEfeitos] = useState(null)
+
+  useEffect(() => {
+    const caminho = inicial?.caminho || decodeURIComponent(location.pathname.replace(/^\/partidas\//, '').replace(/\/$/, ''))
+    if (!caminho) return
+    let vivo = true
+    const carregar = () => lerApi(`/partidas/efeitos?c=${encodeURIComponent(caminho)}`)
+      .then(dados => { if (vivo) setEfeitos(dados) }).catch(() => {})
+    carregar()
+    window.addEventListener('np-partida', carregar)
+    window.addEventListener('focus', carregar)
+    return () => { vivo = false; window.removeEventListener('np-partida', carregar); window.removeEventListener('focus', carregar) }
+  }, [inicial?.caminho])
 
   useEffect(() => {
     if (inicial) return
@@ -824,7 +839,7 @@ export default function Partida({ dados: inicial }) {
   }, [d])
 
   const perfis = usePerfis()
-  const dApelidos = useMemo(() => (d ? { ...d, jogadores: comApelidos(d.jogadores, perfis) } : d), [d, perfis]) // apelido do site no lugar do nome do jogo
+  const dApelidos = useMemo(() => (d ? { ...d, efeitos: efeitos || d.efeitos, jogadores: comApelidos(d.jogadores, perfis) } : d), [d, perfis, efeitos]) // apelido do site no lugar do nome do jogo
   return (
     <Layout pagina="partidas">
       {d ? (

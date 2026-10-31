@@ -30,10 +30,12 @@ export function useRecentes(intervalo = 15000, ativo = true) {
     ler()
     const i = setInterval(ler, intervalo)
     document.addEventListener('visibilitychange', ler)
+    window.addEventListener('np-partida', ler)
     return () => {
       vivo = false
       clearInterval(i)
       document.removeEventListener('visibilitychange', ler)
+      window.removeEventListener('np-partida', ler)
     }
   }, [intervalo, ativo])
   return recentes

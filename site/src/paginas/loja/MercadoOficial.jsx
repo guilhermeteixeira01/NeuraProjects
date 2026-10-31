@@ -62,7 +62,17 @@ export default function MercadoOficial({ saldo }) {
 
   const carregar = useCallback(() => lerOficial().then((d) => (setDados(d), setErro(false)), () => setErro(true)), [])
   useEffect(() => {
-    if (conta) carregar()
+    if (!conta) return
+    carregar()
+    const atualizar = () => { if (!document.hidden) carregar() }
+    window.addEventListener('focus', atualizar)
+    document.addEventListener('visibilitychange', atualizar)
+    window.addEventListener(EVENTO_OFICIAL, atualizar)
+    return () => {
+      window.removeEventListener('focus', atualizar)
+      document.removeEventListener('visibilitychange', atualizar)
+      window.removeEventListener(EVENTO_OFICIAL, atualizar)
+    }
   }, [conta, carregar])
 
   const tem = (tipo, id) => !!dados?.possui?.[tipo]?.includes(id)

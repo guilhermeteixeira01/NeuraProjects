@@ -130,8 +130,8 @@ export async function lerItem(env, colecao, id) {
 }
 
 // Doc (config, bônus, caixas...): o valor salvo ou o padrão
-export async function lerDoc(env, chave, padrao = null) {
-  const guardado = memoria.get(`docs:${chave}`)
+export async function lerDoc(env, chave, padrao = null, { fresco = false } = {}) {
+  const guardado = fresco ? undefined : memoria.get(`docs:${chave}`)
   let dados
   if (guardado && guardado.ate > Date.now()) dados = guardado.dados
   else {

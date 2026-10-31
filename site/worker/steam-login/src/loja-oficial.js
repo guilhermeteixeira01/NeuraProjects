@@ -62,7 +62,8 @@ export function limparCatalogo(c = {}) {
   return { consumiveis, itens, kits }
 }
 
-export const lerCatalogo = async (env) => limparCatalogo((await lerDoc(env, 'loja-oficial')) || {})
+// Publicações precisam aparecer também nos outros workers sem esperar o cache de 30 s.
+export const lerCatalogo = async (env) => limparCatalogo((await lerDoc(env, 'loja-oficial', null, { fresco: true })) || {})
 export const gravarCatalogo = async (env, c) => {
   const catalogo = await mudarDoc(env, 'loja-oficial', () => limparCatalogo(c))
   await retirarEnfeitesSemCompra(env, catalogo)

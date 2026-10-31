@@ -10,6 +10,7 @@ import { mudar } from './dados.js'
 import { ErroConflito, ErroPedido } from './erros.js'
 import { docVazio, juntar } from './notif-core.js'
 import { pedirAoJogador } from './objetos.js'
+import { avisarPerfil } from './amigos.js'
 
 export const TIPOS_CONSUMIVEL = ['boost', 'freeze']
 export const NOME_CONSUMIVEL = { boost: 'Boost', freeze: 'Freeze' }
@@ -71,6 +72,8 @@ export async function ganharConsumivel(obj, tipo, qtd = 1, aviso) {
 // A partida terminou: o item ativado antes do início dela é gasto e devolve quanto XP corrigir no perfil
 export async function aplicarNaPartida(obj, p) {
   const c = await ler(obj)
+  const recibo = await obj.ctx.storage.get(`consumivel-uso:${p.caminho}`)
+  if (recibo) return recibo
   if (c.aplicados.includes(p.caminho)) return { delta: 0 }
   if (!c.ativo || !(c.ativo.desde < p.inicio)) return { delta: 0 }
   const { tipo } = c.ativo
@@ -79,14 +82,21 @@ export async function aplicarNaPartida(obj, p) {
   c.ativo = null
   c.aplicados = [...c.aplicados, p.caminho].slice(-MAX_APLICADOS)
   const titulo = tipo === 'boost' ? (delta > 0 ? `Boost usado: +${delta} XP extra` : 'Boost usado: sem vitória, sem bônus') : xp > 0 ? `Freeze usado: o ganho de ${xp} XP não contou` : xp < 0 ? `Freeze usado: você não perdeu ${-xp} XP` : 'Freeze usado'
-  await gravarComAviso(obj, c, notificacao(`consumivel-uso:${p.caminho}`, titulo, `Partida em ${String(p.mapa || '').replace(/^de_/, '')}.`))
+  const n = notificacao(`consumivel-uso:${p.caminho}`, titulo, `Partida em ${String(p.mapa || '').replace(/^de_/, '')}.`)
+  await obj.ctx.storage.put({
+    consumiveis: c,
+    [`consumivel-uso:${p.caminho}`]: { tipo, delta },
+    notifs: juntar((await obj.ctx.storage.get('notifs')) || docVazio(), { lista: [n], vistos: [n.id], limpoEm: 0 }),
+  })
   return { tipo, delta }
 }
 
 // "2026-10-28 23:32" (horário de Brasília, como o plugin grava) -> ms
 export function inicioDaPartida(partida) {
   const m = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/.exec(String(partida?.inicio || ''))
-  return m ? Date.parse(`${m[1]}T${m[2]}:00-03:00`) : NaN
+  if (!m) return NaN
+  const segundos = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:(\d{2}(?:\.\d+)?)/.exec(String(partida.inicio))?.[1] || '00'
+  return Date.parse(`${m[1]}T${m[2]}:${segundos}-03:00`)
 }
 
 // Mesmo XP do scripts/ranking.mjs (quem jogou, vencedor e MVP da partida)
@@ -104,15 +114,19 @@ export async function aplicarConsumiveisPartida(env, caminho, partida) {
   const inicio = inicioDaPartida(partida)
   if (!Number.isFinite(inicio)) return {}
   const deltas = {}
+  const efeitos = {}
   for (const [id, xp] of xpPorJogador(partida)) {
     const r = await pedirAoJogador(env, id, { acao: 'consumivel-partida', caminho, inicio, xp, mapa: partida.mapa })
+    if (r?.tipo) efeitos[id] = r
     if (r?.delta) deltas[id] = r.delta
   }
   const ids = Object.keys(deltas)
-  if (ids.length)
-    await mudar(env, 'perfis', ids, (perfis) => {
+  if (ids.length) {
+    const { mapa } = await mudar(env, 'perfis', ids, (perfis) => {
       for (const id of ids) {
         const p = { ...perfis[id] }
+        if (p.xpConsumiveis?.[caminho] !== undefined) continue
+        p.xpConsumiveis = { ...p.xpConsumiveis, [caminho]: deltas[id] }
         const xp = (Number(p.xp) || 0) + deltas[id]
         if (xp) p.xp = xp
         else delete p.xp
@@ -120,5 +134,7 @@ export async function aplicarConsumiveisPartida(env, caminho, partida) {
         else delete perfis[id]
       }
     })
-  return deltas
+    for (const id of ids) await avisarPerfil(env, id, mapa[id] || {})
+  }
+  return efeitos
 }

@@ -32,7 +32,12 @@ export default function MercadoOficialAdmin() {
   const [editandoKit, setEditandoKit] = useState(null)
 
   useEffect(() => {
-    chamar('/admin/loja-oficial').then(setCat, () => setEstado({ texto: t('Não deu para ler o catálogo.'), ok: false }))
+    let ativo = true
+    chamar('/admin/loja-oficial').then(
+      (catalogo) => { if (ativo) setCat(catalogo) },
+      () => { if (ativo) setEstado({ texto: t('Não deu para ler o catálogo.'), ok: false }) },
+    )
+    return () => { ativo = false }
   }, [t])
 
   const grade = useMemo(() => {

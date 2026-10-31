@@ -85,6 +85,7 @@ const PUBLICAS = {
   'POST /servidor/partida': (c) => rotaPartidaServidor(c.req, c.env),
   'GET /partidas/recentes': (c) => rotaPartidasPublico(c.url, c.env),
   'GET /partidas/dados': (c) => rotaPartidasPublico(c.url, c.env),
+  'GET /partidas/efeitos': (c) => rotaPartidasPublico(c.url, c.env),
   // plugin do servidor de CS2 (BaseComp): próxima partida pronta, fase dela, elenco e skins de quem está no servidor
   'POST /servidor/proxima': (c) => rotaServidor(c.req, c.env, '/servidor/proxima'),
   'POST /servidor/estado': (c) => rotaServidor(c.req, c.env, '/servidor/estado'),

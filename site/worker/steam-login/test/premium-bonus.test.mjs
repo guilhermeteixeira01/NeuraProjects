@@ -16,6 +16,30 @@ test('cada mapa Premium paga uma vez e gera notificação não lida com valor',a
   assert.equal(n.length,2);assert.ok(n.every(x=>x.lida===false&&x.titulo.includes('+350 NP')&&x.texto.includes('já está no seu saldo')))
 })
 
+test('finalizar mapa entrega Premium e pontos base antes do deploy, sem duplicar após publicação', async () => {
+  const f = ambiente(), agora = Date.now(), caminho = 'org/md1/instantaneo'
+  await mudar(f.env, 'perfis', [A], p => { p[A] = { sub: { inicio: agora - 86400000, expira: agora + 86400000 } } })
+  const d = new Date(agora - 3600000 - 3 * 3600000).toISOString()
+  const inicio = `${d.slice(0, 10)} ${d.slice(11, 16)}`
+  const corpo = { caminho, item: { data: inicio, mapa: 'de_nuke' }, partida: { inicio, mapa: 'de_nuke', placarA: 13, placarB: 7, jogadores: [{ steamId: A, time: 'A', rounds: 20, kills: 10, mortes: 5, rating: 1.6 }] } }
+  const enviar = () => f.pedir('POST', '/servidor/partida', { corpo, cabecalhos: { Authorization: 'Bearer token-servidor' } })
+  assert.equal((await enviar()).status, 200)
+  assert.equal(credito(ator(f)), 350)
+  assert.equal((await f.pedir('GET', '/loja/saldo', { quem: A })).dados.saldo, 450)
+  const recibos = (await f.pedir('GET', '/loja/premium-partidas', { quem: A })).dados
+  assert.equal(recibos.partidas[caminho], 350)
+  assert.equal(recibos.recentes[0].pontos, 100)
+  await enviar()
+  assert.equal((await f.pedir('GET', '/loja/saldo', { quem: A })).dados.saldo, 450)
+  const anterior = globalThis.fetch
+  globalThis.fetch = async (url, ...args) => String(url).includes(`/perfil/historico/${A}.json`)
+    ? Response.json([{ caminho, data: inicio, pontos: 100, xpTotal: 160, mapasAte: 1 }]) : anterior(url, ...args)
+  try {
+    assert.equal((await f.pedir('GET', '/loja/saldo', { quem: A })).dados.saldo, 450)
+    assert.equal(credito(ator(f)), 350)
+  } finally { globalThis.fetch = anterior }
+})
+
 test('painel e estatísticas consultam recibos próprios mesmo após vencer o Premium, sem duplicar crédito',async()=>{
   const f=ambiente(),a=ator(f)
   await a.aplicarPremium(mapas,A)

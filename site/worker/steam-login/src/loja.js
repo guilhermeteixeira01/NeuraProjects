@@ -433,11 +433,32 @@ export class Loja {
   }
 
   // O que o saldo precisa: pontos das partidas (ranking), bônus e Premium já aplicados. Devolve os pontos ganhos
+  async historicoPublicado(id) {
+    let r
+    try { r = await fetch(`${enderecoDoSite(this.env)}/perfil/historico/${id}.json`, { cache: 'no-store', cf: { cacheTtl: 0 } }) }
+    catch (e) { throw new ErroServico('historico', undefined, { indisponivel: true, causa: e }) }
+    if (r.status === 404) return []
+    if (!r.ok) throw new ErroServico('historico', undefined, { indisponivel: true })
+    const historico = await r.json()
+    if (!Array.isArray(historico)) throw new ErroServico('historico', undefined, { indisponivel: true })
+    return historico
+  }
+
   async prepararSaldo(id) {
     const [pontos, bonus, premium] = await Promise.all([pontosGanhos(this.env, id), lerDoc(this.env, 'loja-bonus', []), partidasPremium(this.env, id)])
     await this.aplicarBonus(id, bonus)
     await this.aplicarPremium(premium, id)
-    return pontos + ((await this.ctx.storage.get('afiliado-np')) || 0) + ((await this.ctx.storage.get('diario-np')) || 0)
+    let ganhos = pontos
+    const recentes = (await this.ctx.storage.get('partidasRecentes')) || []
+    if (recentes.length) {
+      // O histórico completo é a referência da mesma publicação, evitando somar um mapa
+      // novamente quando ele passar dos dados ao vivo para o deploy.
+      const historico = await this.historicoPublicado(id)
+      const publicados = new Set(historico.map(m => m.caminho))
+      ganhos = historico.reduce((s, m) => s + (Number(m.pontos) || 0), 0)
+        + recentes.filter(m => !publicados.has(m.caminho)).reduce((s, m) => s + m.pontos, 0)
+    }
+    return ganhos + ((await this.ctx.storage.get('afiliado-np')) || 0) + ((await this.ctx.storage.get('diario-np')) || 0)
   }
 
   async acao(p) {
@@ -446,6 +467,29 @@ export class Loja {
     const pontos = COM_SALDO.has(acao) ? await this.prepararSaldo(id) : 0
     const saldo = () => pontos - this.gastos()
     switch (acao) {
+      case 'partida-finalizar': {
+        const recentes = (await this.ctx.storage.get('partidasRecentes')) || []
+        const atualizadas = [p.resumo, ...recentes.filter(m => m.caminho !== p.resumo.caminho)].slice(0, 60)
+        await this.ctx.storage.put('partidasRecentes', atualizadas)
+        const sub = (await lerItem(this.env, 'perfis', id))?.sub
+        const ts = p.inicio
+        if (sub && Number.isFinite(ts) && ts >= (Number(sub.periodo || sub.inicio) || 0) && ts <= (sub.expira == null ? Infinity : Number(sub.expira)) && ts <= Date.now()) {
+          await this.aplicarPremium([{ k: p.resumo.caminho, ts }], id)
+        }
+        const historico = await this.historicoPublicado(id)
+        const publicada = historico.find(m => m.caminho === p.resumo.caminho)
+        if (publicada) return { ganho: p.resumo.xpBase, total: publicada.xpTotal, mapas: publicada.mapasAte }
+        const ultimo = [...historico].sort((a, b) => String(b.data).localeCompare(String(a.data)))[0]
+        const publicados = new Set(historico.map(m => m.caminho))
+        let total = Number(ultimo?.xpTotal) || 0
+        let mapas = Number(ultimo?.mapasAte) || historico.length
+        for (const m of atualizadas.filter(m => !publicados.has(m.caminho)).sort((a, b) => String(a.data).localeCompare(String(b.data)))) {
+          total = Math.max(0, total + m.xpBase)
+          mapas++
+          if (m.caminho === p.resumo.caminho) break
+        }
+        return { ganho: p.resumo.xpBase, total, mapas }
+      }
       case 'diario':
       case 'diario-pontos':
       case 'diario-caixa':
@@ -507,7 +551,7 @@ export class Loja {
       case 'premium-partidas': {
         try { await this.aplicarPremium(await partidasPremium(this.env, id), id) }
         catch (e) { if (e.codigo !== 'historico') throw e }
-        return { partidas: Object.fromEntries(this.sql.exec('SELECT partida, valor FROM premium_partidas WHERE valor > 0').toArray().map(m => [m.partida, m.valor])) }
+        return { partidas: Object.fromEntries(this.sql.exec('SELECT partida, valor FROM premium_partidas WHERE valor > 0').toArray().map(m => [m.partida, m.valor])), recentes: (await this.ctx.storage.get('partidasRecentes')) || [] }
       }
       case 'estado':
         return this.estado(id, caixas, cfg, pontos)

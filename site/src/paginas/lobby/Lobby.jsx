@@ -371,10 +371,12 @@ function useItensPartida(logado) {
     ler()
     // uma partida terminou (ou chegou item de caixa/resgate): o sino avisa e o lobby confere de novo
     window.addEventListener('np-notificacoes', ler)
+    window.addEventListener('np-partida', ler)
     window.addEventListener('focus', ler)
     return () => {
       vivo = false
       window.removeEventListener('np-notificacoes', ler)
+      window.removeEventListener('np-partida', ler)
       window.removeEventListener('focus', ler)
     }
   }, [logado])
