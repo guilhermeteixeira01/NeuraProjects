@@ -34,7 +34,7 @@ export async function rotaPerfis(env) {
   for (const [id, { time, ...resto }] of Object.entries(perfis)) saida[id] = doTime[id] ? { ...resto, time: doTime[id] } : resto
   for (const [id, nome] of Object.entries(doTime)) saida[id] ??= { time: nome }
   for (const [id, nick] of Object.entries(nicks)) saida[id] = { ...saida[id], nick }
-  return json(saida, 200, { ...publico, 'X-NP-Freeze-Reparo': JSON.stringify({ concluido: freeze.concluido, verificados: freeze.verificados, corrigidos: freeze.corrigidos, xp: freeze.xp, pendentes: freeze.pendentes }) })
+  return json(saida, 200, { ...publico, 'X-NP-Freeze-Reparo': JSON.stringify({ concluido: freeze.concluido, verificados: freeze.verificados, corrigidos: freeze.corrigidos, xp: freeze.xp, pendentes: freeze.pendentes, reconstruidos: freeze.reconstruidos, pendencias: freeze.pendencias }) })
 }
 
 export async function rotaNicks(url, env) {

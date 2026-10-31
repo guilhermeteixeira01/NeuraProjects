@@ -17,7 +17,7 @@ test('legado devolve XP de vitória com Freeze, preserva ajustes e item ativo e 
   await obj.ctx.storage.put({ consumiveis: { boost: 2, freeze: 3, ativo, aplicados: [caminho] },
     notifs: { lista: [{ id: `consumivel-uso:${caminho}`, titulo: 'Freeze usado: o ganho de 160 XP não contou', quando: Date.now(), lida: false }], vistos: [], limpoEm: 0 },
     partidasRecentes: [{ caminho, xp: 0, xpBase: 160, consumivel: 'freeze' }] })
-  assert.deepEqual(await corrigir(env), { corrigidos: 1, xp: 160, pendentes: 0 })
+  assert.deepEqual(await corrigir(env), { corrigidos: 1, xp: 160, pendentes: 0, semRecibo: [], reconstruidos: 0 })
   assert.equal((await lerPerfil(env, A)).xp, 40)
   assert.equal((await lerPerfil(env, A)).tema, 'claro')
   assert.deepEqual((await obj.ctx.storage.get('consumiveis')).ativo, ativo)
@@ -66,4 +66,19 @@ test('falha depois de devolver XP retoma a publicação sem pagar novamente', as
   await corrigir(env)
   assert.equal((await lerPerfil(env, A)).xp, undefined)
   assert.equal((await lerPerfil(env, A)).freezeVitoriasCorrigidas[caminho].xp, 100)
+})
+
+test('Boosts antigos confirmados recuperam recibos sem somar novamente os 285 XP existentes', async () => {
+  const { env } = ambiente(), id = '76561199151150360'
+  const caminhos = ['neura-project/md1/2026-10-30_22-37_de_cache_time_Te1xe1ra-x-time_777', 'neura-project/md1/2026-10-30_23-26_de_dust2_time_Cafefps-x-time_777']
+  await mudar(env, 'perfis', [id], p => { p[id] = { xp: 285 } })
+  await env.LOJA.instancia(id).ctx.storage.put('consumiveis', { aplicados: caminhos })
+  for (let i = 0; i < 2; i++) {
+    const r = await pedirAoJogador(env, id, { acao: 'freeze-reparar-vitorias' })
+    assert.equal(r.reconstruidos, 2)
+    assert.equal(r.pendentes, 0)
+    assert.equal((await lerPerfil(env, id)).xp, 285)
+  }
+  assert.deepEqual((await lerDoc(env, `partida-efeitos:${caminhos[0]}`))[id], { tipo: 'boost', delta: 160 })
+  assert.deepEqual((await lerDoc(env, `partida-efeitos:${caminhos[1]}`))[id], { tipo: 'boost', delta: 125 })
 })

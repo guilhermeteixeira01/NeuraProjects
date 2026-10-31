@@ -7,7 +7,46 @@ import { docVazio } from './notif-core.js'
 
 const CHAVE = 'freeze-vitorias-reparo-v1'
 
+// Confirmados pelo dono em 31/10/2026. Os +285 XP já estavam no perfil:
+// recupera apenas o tipo/recibo, sem conceder XP de novo.
+const BOOST_LEGADO = {
+  '76561199151150360': {
+    'neura-project/md1/2026-10-30_22-37_de_cache_time_Te1xe1ra-x-time_777': 160,
+    'neura-project/md1/2026-10-30_23-26_de_dust2_time_Cafefps-x-time_777': 125,
+  },
+}
+
+async function recuperarBoostConfirmado(obj, id) {
+  const confirmados = Object.entries(BOOST_LEGADO[id] || {})
+  if (!confirmados.length) return 0
+  const c = (await obj.ctx.storage.get('consumiveis')) || {}
+  if (!confirmados.every(([caminho]) => c.aplicados?.includes(caminho))) return 0
+  const { mapa, resultado } = await mudar(obj.env, 'perfis', [id], perfis => {
+    const p = perfis[id]
+    if (!p || Number(p.xp) < confirmados.reduce((s, [, xp]) => s + xp, 0)) return false
+    if (confirmados.some(([caminho, xp]) => p.xpConsumiveis?.[caminho] !== undefined && p.xpConsumiveis[caminho] !== xp)) return false
+    p.xpConsumiveis = { ...p.xpConsumiveis, ...Object.fromEntries(confirmados) }
+    return true
+  })
+  if (!resultado) return 0
+  let recentes = (await obj.ctx.storage.get('partidasRecentes')) || []
+  const historico = confirmados.some(([caminho]) => !recentes.some(m => m.caminho === caminho)) ? await obj.historicoPublicado(id) : []
+  for (const [caminho, delta] of confirmados) {
+    const efeito = { tipo: 'boost', delta }
+    await obj.ctx.storage.put(`consumivel-uso:${caminho}`, efeito)
+    await mudarDoc(obj.env, `partida-efeitos:${caminho}`, e => ({ ...e, [id]: efeito }), {})
+    await mudarDoc(obj.env, `partida-dados:${caminho}`, d => d ? { ...d, efeitos: { ...d.efeitos, [id]: efeito } } : d, null)
+    const resumo = recentes.find(m => m.caminho === caminho) || historico.find(m => m.caminho === caminho)
+    if (resumo) recentes = [{ ...resumo, xpBase: delta, xp: delta * 2, consumivel: 'boost' }, ...recentes.filter(m => m.caminho !== caminho)].slice(0, 60)
+    await obj.ctx.storage.put('partidasRecentes', recentes)
+    await mandarPara(obj.env, [id], { tipo: 'partida', caminho })
+  }
+  await avisarPerfil(obj.env, id, mapa[id])
+  return confirmados.length
+}
+
 export async function repararFreezeDoJogador(obj, id) {
+  const reconstruidos = await recuperarBoostConfirmado(obj, id)
   const recibos = await obj.ctx.storage.list({ prefix: 'consumivel-uso:' })
   const consumiveis = (await obj.ctx.storage.get('consumiveis')) || {}
   const notifs = (await obj.ctx.storage.get('notifs')) || docVazio()
@@ -64,23 +103,25 @@ export async function repararFreezeDoJogador(obj, id) {
     await mandarPara(obj.env, [id], { tipo: 'partida', caminho })
   }
   const semRecibo = (consumiveis.aplicados || []).filter(c => !recibos.has(`consumivel-uso:${c}`) && !diario[c] && !notifs.lista.some(n => n.id === `consumivel-uso:${c}`))
-  return { corrigidos: Object.keys(diario).length, xp: total, pendentes: semRecibo.length }
+  return { corrigidos: Object.keys(diario).length, xp: total, pendentes: semRecibo.length, semRecibo, reconstruidos }
 }
 
 // Usa o mesmo ponto de manutenção das outras migrações de perfil; lote pequeno
 // para caber no orçamento de subrequests. O cron e novas leituras retomam o lote.
 export async function corrigirFreezeVitorias(env) {
   const estado = (await lerDoc(env, CHAVE, {}, { fresco: true })) || {}
-  if (estado.concluido) return estado
+  if (estado.concluido && (estado.auditado || !estado.pendentes) && estado.legadoConfirmado) return estado
   const [usuarios, perfis] = await Promise.all([lerColecao(env, 'usuarios'), lerColecao(env, 'perfis')])
   const ids = [...new Set([...Object.keys(usuarios), ...Object.keys(perfis)])].filter(id => /^\d{17}$/.test(id))
-  const lote = ids.filter(id => !estado.jogadores?.[id]).slice(0, 4)
+  const lote = ids.filter(id => !estado.jogadores?.[id] || (estado.jogadores[id].pendentes && !estado.jogadores[id].semRecibo) || (BOOST_LEGADO[id] && !estado.jogadores[id]?.reconstruidos)).slice(0, 4)
   const resultados = {}
   for (const id of lote) resultados[id] = await pedirAoJogador(env, id, { acao: 'freeze-reparar-vitorias' })
   return mudarDoc(env, CHAVE, atual => {
     const jogadores = { ...atual.jogadores, ...resultados }
     const resumos = Object.values(jogadores)
-    return { jogadores, concluido: ids.every(id => jogadores[id]), verificados: resumos.length,
+    return { jogadores, concluido: ids.every(id => jogadores[id]), auditado: ids.every(id => jogadores[id] && (!jogadores[id].pendentes || jogadores[id].semRecibo)), verificados: resumos.length,
+      legadoConfirmado: ids.every(id => !BOOST_LEGADO[id] || jogadores[id]?.reconstruidos), reconstruidos: resumos.reduce((s, r) => s + (r.reconstruidos || 0), 0),
+      pendencias: Object.entries(jogadores).flatMap(([id, r]) => (r.semRecibo || []).map(caminho => ({ id, caminho }))),
       corrigidos: resumos.reduce((s, r) => s + r.corrigidos, 0), xp: resumos.reduce((s, r) => s + r.xp, 0), pendentes: resumos.reduce((s, r) => s + r.pendentes, 0) }
   }, {})
 }
