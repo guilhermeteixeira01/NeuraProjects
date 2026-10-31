@@ -9,6 +9,7 @@ import { localeAtual, useT } from './i18n.js'
 import { mapImage, nomeMapa } from './mapas.js'
 import './painelPartidas.css'
 import { usePartidasServidor } from './bonusPartidas.js'
+import StatusConsumivel from './StatusConsumivel.jsx'
 
 const linkPartida = (caminho) => `/partidas/${String(caminho).split('/').map(encodeURIComponent).join('/')}/`
 
@@ -41,6 +42,7 @@ function Cartao({ p, bonus = 0 }) {
         {nomeMapa(mapa)} • 5v5
       </span>
       {bonus > 0 && <span className="pp-bonus">{p.pontos} NP + <b>{bonus} NP Premium</b></span>}
+      <StatusConsumivel tipo={p.consumivel} base={p.xpBase} delta={(Number(p.xp) || 0) - (Number(p.xpBase) || 0)} />
       <span className="pp-placar">
         <span className="pp-resultado">
         <i className="pp-selo" title={p.venceu ? t('Vitória') : t('Derrota')}>

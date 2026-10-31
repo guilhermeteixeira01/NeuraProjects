@@ -3718,6 +3718,9 @@ html[data-desempenho] .pm-niveis figure img, html[data-desempenho] .pm-destaque 
 .cnp { display: grid; place-items: center; min-height: 46vh; width: 100%; }
 .cnp-tela { position: fixed; inset: 0; z-index: 9000; min-height: 0; background: rgb(8 10 15 / .72); backdrop-filter: blur(3px); animation: cnp-entra .25s ease both; }
 .cnp-pq { min-height: 110px; }
+.partida-consumivel { display: inline-flex; align-items: center; gap: 4px; width: fit-content; padding: 3px 6px; border: 1px solid currentColor; border-radius: 4px; font: 600 10px/1.3 var(--font-body); white-space: nowrap; }
+.partida-consumivel-boost { color: #d89b24; background: rgb(216 155 36 / .08); }
+.partida-consumivel-freeze { color: #359ccf; background: rgb(53 156 207 / .08); }
 /* O rodapé só entra quando o carregamento principal termina. Listas pequenas não escondem a página. */
 .np-conteudo:has(.cnp:not(.cnp-pq)) > .np-rodape,
 body:has(> .cnp-nav) .np-rodape { display: none; }

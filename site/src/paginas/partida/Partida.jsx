@@ -1,4 +1,5 @@
 import IconeUI from '../../comum/IconeUI.jsx'
+import StatusConsumivel from '../../comum/StatusConsumivel.jsx'
 import { lerApi } from '../../comum/api.js'
 import { useEffect, useState, useMemo } from 'react'
 import { pontosDaPartida } from '../../comum/pontos.js'
@@ -631,10 +632,13 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
                       {d.xp[e.steamId] ? (
                         <span className="nv-cel">
                           <SeloNivel nivel={nivelDe(d.xp[e.steamId].total + (Number(perfis[e.steamId]?.xp) || 0), d.xp[e.steamId].mapas).nivel} tamanho={26} />
-                          <b title={d.efeitos?.[e.steamId]?.tipo === 'boost' ? 'Boost · XP em dobro' : d.efeitos?.[e.steamId]?.tipo === 'freeze' ? 'Freeze · XP protegido' : undefined} className={ganhoXp > 0 ? 'pos' : ganhoXp < 0 ? 'neg' : ''}>
+                          <span className="nv-xp-status">
+                          <b className={ganhoXp > 0 ? 'pos' : ganhoXp < 0 ? 'neg' : ''}>
                             {ganhoXp !== 0 && <i className="seta-xp" aria-hidden="true">{ganhoXp > 0 ? '↑' : '↓'}</i>}
                             {Math.abs(ganhoXp)} XP
                           </b>
+                          <StatusConsumivel tipo={d.efeitos?.[e.steamId]?.tipo} base={d.xp[e.steamId].ganho} delta={d.efeitos?.[e.steamId]?.delta} compacto />
+                          </span>
                         </span>
                       ) : (
                         '—'
