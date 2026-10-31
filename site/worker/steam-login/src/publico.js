@@ -9,6 +9,7 @@
  *   GET /usuarios/buscar?q=    (login) -> até 8 jogadores pelo nome (para adicionar amigo)
  */
 import { chamarContas } from './contas.js'
+import { corrigirFreezeVitorias } from './freeze-reparo.js'
 import { corrigirEventosAntecipados } from './missoes.js'
 import { lerDoc, gravarDoc } from './dados.js'
 import { ErroPedido, ErroServico } from './erros.js'
@@ -26,13 +27,14 @@ const idsDaUrl = (url, max) => [...new Set(String(url.searchParams.get('ids') ||
 
 // O time de cada jogador é o time em que ele está (o campo "time" escolhido à mão deixou de valer); o apelido vem das contas
 export async function rotaPerfis(env) {
+  const freeze = await corrigirFreezeVitorias(env)
   await corrigirEventosAntecipados(env)
   const [perfis, doTime, nicks] = await Promise.all([lerPerfis(env), timeDosJogadores(env), chamarContas(env, { acao: 'todos-nicks' })])
   const saida = {}
   for (const [id, { time, ...resto }] of Object.entries(perfis)) saida[id] = doTime[id] ? { ...resto, time: doTime[id] } : resto
   for (const [id, nome] of Object.entries(doTime)) saida[id] ??= { time: nome }
   for (const [id, nick] of Object.entries(nicks)) saida[id] = { ...saida[id], nick }
-  return json(saida, 200, publico)
+  return json(saida, 200, { ...publico, 'X-NP-Freeze-Reparo': JSON.stringify({ concluido: freeze.concluido, verificados: freeze.verificados, corrigidos: freeze.corrigidos, xp: freeze.xp, pendentes: freeze.pendentes }) })
 }
 
 export async function rotaNicks(url, env) {

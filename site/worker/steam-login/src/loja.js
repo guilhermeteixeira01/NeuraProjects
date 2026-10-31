@@ -1,4 +1,5 @@
 import { iniciarMissoes, sincronizarMissoes } from './missoes.js'
+import { repararFreezeDoJogador } from './freeze-reparo.js'
 import { exigirSenha } from './contas.js'
 /*
  * Loja: o jogador gasta Neura Pontos (NP) para comprar e abrir caixas de skins.
@@ -467,6 +468,8 @@ export class Loja {
     const pontos = COM_SALDO.has(acao) ? await this.prepararSaldo(id) : 0
     const saldo = () => pontos - this.gastos()
     switch (acao) {
+      case 'freeze-reparar-vitorias':
+        return repararFreezeDoJogador(this, id)
       case 'partida-finalizar': {
         const recentes = (await this.ctx.storage.get('partidasRecentes')) || []
         const atualizadas = [p.resumo, ...recentes.filter(m => m.caminho !== p.resumo.caminho)].slice(0, 60)
