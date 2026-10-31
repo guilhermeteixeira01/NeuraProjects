@@ -3718,6 +3718,9 @@ html[data-desempenho] .pm-niveis figure img, html[data-desempenho] .pm-destaque 
 .cnp { display: grid; place-items: center; min-height: 46vh; width: 100%; }
 .cnp-tela { position: fixed; inset: 0; z-index: 9000; min-height: 0; background: rgb(8 10 15 / .72); backdrop-filter: blur(3px); animation: cnp-entra .25s ease both; }
 .cnp-pq { min-height: 110px; }
+/* O rodapé só entra quando o carregamento principal termina. Listas pequenas não escondem a página. */
+.np-conteudo:has(.cnp:not(.cnp-pq)) > .np-rodape,
+body:has(> .cnp-nav) .np-rodape { display: none; }
 .cnp-anel { position: relative; width: 132px; height: 132px; display: grid; place-items: center; animation: cnp-gira 7s linear infinite; }
 .cnp-anel i { position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: #3b9bff; box-shadow: 0 0 10px #3b9bff;
   transform: rotate(calc(var(--i) * 30deg)) translateY(-58px); animation: cnp-pulsa 1.2s ease-in-out infinite; animation-delay: calc(var(--i) * -0.1s); }
