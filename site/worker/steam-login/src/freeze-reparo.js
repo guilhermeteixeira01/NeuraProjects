@@ -29,16 +29,13 @@ async function recuperarBoostConfirmado(obj, id) {
     return true
   })
   if (!resultado) return 0
-  let recentes = (await obj.ctx.storage.get('partidasRecentes')) || []
-  const historico = confirmados.some(([caminho]) => !recentes.some(m => m.caminho === caminho)) ? await obj.historicoPublicado(id) : []
   for (const [caminho, delta] of confirmados) {
     const efeito = { tipo: 'boost', delta }
     await obj.ctx.storage.put(`consumivel-uso:${caminho}`, efeito)
     await mudarDoc(obj.env, `partida-efeitos:${caminho}`, e => ({ ...e, [id]: efeito }), {})
     await mudarDoc(obj.env, `partida-dados:${caminho}`, d => d ? { ...d, efeitos: { ...d.efeitos, [id]: efeito } } : d, null)
-    const resumo = recentes.find(m => m.caminho === caminho) || historico.find(m => m.caminho === caminho)
-    if (resumo) recentes = [{ ...resumo, xpBase: delta, xp: delta * 2, consumivel: 'boost' }, ...recentes.filter(m => m.caminho !== caminho)].slice(0, 60)
-    await obj.ctx.storage.put('partidasRecentes', recentes)
+    const recentes = (await obj.ctx.storage.get('partidasRecentes')) || []
+    await obj.ctx.storage.put('partidasRecentes', recentes.map(m => m.caminho === caminho ? { ...m, xpBase: delta, xp: delta * 2, consumivel: 'boost' } : m))
     await mandarPara(obj.env, [id], { tipo: 'partida', caminho })
   }
   await avisarPerfil(obj.env, id, mapa[id])
