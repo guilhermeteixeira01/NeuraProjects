@@ -56,7 +56,7 @@ export async function filtrarConquistasPublicas(resposta,req,env) {
  if(quem&&Object.values(mapa).some(p=>p.conquistas==='amigos')){const r=await rotaAmigos(new Request('https://interno/amigos'),env,quem,{});amigos=(await r.json()).amigos?.map(a=>a.id)||[]}
  const perfis=await resposta.json()
  for(const [id,p] of Object.entries(perfis)){const regra=mapa[id]?.conquistas||'todos';if(id!==quem?.id&&regra!=='todos'&&!(regra==='amigos'&&amigos.includes(id)))delete p.insignias}
- return json(perfis,200,{'Access-Control-Allow-Origin':'*','Cache-Control':'private, no-store','Vary':'Authorization, Origin'})
+ return json(perfis,200,{'Access-Control-Allow-Origin':'*','Cache-Control':'private, no-store','Vary':'Authorization, Origin',...(resposta.headers.has('X-NP-Freeze-Reparo')?{'X-NP-Freeze-Reparo':resposta.headers.get('X-NP-Freeze-Reparo')}:{})})
 }
 export async function rotaPerfilPublico(req,env,quem,cors,url) {
  const id=url.searchParams.get('id')||quem.id
