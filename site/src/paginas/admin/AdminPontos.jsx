@@ -243,7 +243,7 @@ function ItensPartidaAdmin({ id }) {
   }
   return (
     <div className="caixa adm-pt adm-itens-partida">
-      <p className="adm-dar-dica">{t('Itens de partida do lobby. Boost: vitória na próxima partida vale XP em dobro. Freeze: a próxima partida não ganha nem perde XP.')}</p>
+      <p className="adm-dar-dica">{t('Itens de partida do lobby. Boost: vitória na próxima partida vale XP em dobro. Freeze: protege o XP na derrota e mantém o ganho na vitória.')}</p>
       <div className="adm-pt-linha">
         <input type="number" min="1" max="99" value={qtd} onChange={(e) => setQtd(e.target.value)} aria-label={t('Quantidade')} />
       </div>

@@ -19,7 +19,7 @@ test('início da partida no horário de Brasília', () => {
   assert.equal(inicioDaPartida({ inicio: '2026-10-28 23:32:45' }), Date.parse('2026-10-29T02:32:45Z'))
 })
 
-test('mapa é publicado com Boost de 160 para 320 XP e Freeze de vitória zerado', async () => {
+test('mapa é publicado com Boost de 160 para 320 XP e Freeze mantendo o XP da vitória', async () => {
   const { pedir, env } = ambiente()
   await darItens(env, A, { boost: 1 })
   await darItens(env, B, { freeze: 1 })
@@ -31,7 +31,10 @@ test('mapa é publicado com Boost de 160 para 320 XP e Freeze de vitória zerado
   assert.equal((await enviar(pedir, 'org/md1/dobro', p)).status, 200)
   const dados = (await pedir('GET', '/partidas/dados?c=org/md1/dobro')).dados
   assert.equal(dados.xp[A].ganho + dados.efeitos[A].delta, 320)
-  assert.equal(dados.xp[B].ganho + dados.efeitos[B].delta, 0)
+  assert.equal(dados.xp[B].ganho + dados.efeitos[B].delta, dados.xp[B].ganho)
+  assert.equal(dados.efeitos[B].delta, 0)
+  assert.ok(dados.xp[B].ganho > 0)
+  assert.equal((await lerPerfil(env, B))?.xp, undefined)
   const efeitos = await pedir('GET', '/partidas/efeitos?c=org/md1/dobro')
   assert.equal(efeitos.dados[A].delta, 160)
   const resumo = (await pedir('GET', '/loja/premium-partidas', { quem: A })).dados.recentes[0]

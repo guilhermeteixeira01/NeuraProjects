@@ -1,10 +1,10 @@
-// Itens de partida do lobby: Boost (vitória na próxima partida vale XP em dobro) e Freeze (a próxima partida não ganha nem perde XP).
+// Itens de partida do lobby: Boost (vitória na próxima partida vale XP em dobro) e Freeze (protege o XP na derrota).
 // Ficam no objeto do jogador (Loja), chave "consumiveis": { boost, freeze, ativo: { tipo, desde } | null, aplicados: [caminho] }.
 // Ativar gasta 1 na hora; cancelar antes da partida devolve. Compra no mercado oficial (src/loja-oficial.js) e resgate diário; não saem em caixa.
 //
 // Efeito: quando o plugin manda a partida (POST /servidor/partida), quem tinha um item ativado ANTES do início dela recebe o efeito
 // no ajuste de XP do perfil (perfil.xp, o mesmo do admin, somado ao XP das partidas no site e no worker). O ranking.json continua
-// sendo só das partidas: Boost soma o ganho de novo; Freeze desfaz o ganho ou a perda. Ativar no meio de uma partida vale só para a próxima.
+// sendo só das partidas: Boost soma o ganho de novo; Freeze desfaz somente a perda. Ativar no meio de uma partida vale só para a próxima.
 import { xpDaPartida } from '../../../src/comum/niveis.js'
 import { mudar } from './dados.js'
 import { ErroConflito, ErroPedido } from './erros.js'
@@ -65,7 +65,7 @@ export async function consumiveisDoJogador(obj, acao, p) {
 export async function ganharConsumivel(obj, tipo, qtd = 1, aviso) {
   const c = await ler(obj)
   c[tipoOk(tipo)] = Math.min(MAX_POR_TIPO, c[tipo] + qtd)
-  await gravarComAviso(obj, c, aviso && notificacao(`consumivel:${tipo}:${Date.now()}`, aviso, tipo === 'boost' ? 'Ative no lobby antes da partida: se vencer, o XP ganho vale em dobro.' : 'Ative no lobby antes da partida: ela não ganha nem perde XP.'))
+  await gravarComAviso(obj, c, aviso && notificacao(`consumivel:${tipo}:${Date.now()}`, aviso, tipo === 'boost' ? 'Ative no lobby antes da partida: se vencer, o XP ganho vale em dobro.' : 'Ative no lobby antes da partida: se perder, você não perde XP. Na vitória, ganha XP normalmente.'))
   return publico(c)
 }
 
@@ -78,10 +78,10 @@ export async function aplicarNaPartida(obj, p) {
   if (!c.ativo || !(c.ativo.desde < p.inicio)) return { delta: 0 }
   const { tipo } = c.ativo
   const xp = Math.round(Number(p.xp) || 0)
-  const delta = tipo === 'boost' ? Math.max(0, xp) : -xp
+  const delta = tipo === 'boost' ? Math.max(0, xp) : Math.max(0, -xp)
   c.ativo = null
   c.aplicados = [...c.aplicados, p.caminho].slice(-MAX_APLICADOS)
-  const titulo = tipo === 'boost' ? (delta > 0 ? `Boost usado: +${delta} XP extra` : 'Boost usado: sem vitória, sem bônus') : xp > 0 ? `Freeze usado: o ganho de ${xp} XP não contou` : xp < 0 ? `Freeze usado: você não perdeu ${-xp} XP` : 'Freeze usado'
+  const titulo = tipo === 'boost' ? (delta > 0 ? `Boost usado: +${delta} XP extra` : 'Boost usado: sem vitória, sem bônus') : xp > 0 ? `Freeze usado: vitória, +${xp} XP mantidos` : xp < 0 ? `Freeze usado: você não perdeu ${-xp} XP` : 'Freeze usado: sem perda de XP'
   const n = notificacao(`consumivel-uso:${p.caminho}`, titulo, `Partida em ${String(p.mapa || '').replace(/^de_/, '')}.`)
   await obj.ctx.storage.put({
     consumiveis: c,

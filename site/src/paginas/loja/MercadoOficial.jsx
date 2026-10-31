@@ -24,7 +24,7 @@ const SECOES = [
 ]
 const CONSUMIVEIS = {
   boost: { nome: 'Boost', icone: 'boost', texto: 'Ative no lobby antes da partida: se vencer, o XP ganho vale em dobro.' },
-  freeze: { nome: 'Freeze', icone: 'escudo', texto: 'Ative no lobby antes da partida: ela não ganha nem perde XP.' },
+  freeze: { nome: 'Freeze', icone: 'escudo', texto: 'Ative no lobby antes da partida: se perder, você não perde XP. Na vitória, ganha XP normalmente.' },
 }
 const ERROS = {
   saldo: 'Você não tem Neura Pontos suficientes.',
