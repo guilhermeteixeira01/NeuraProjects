@@ -715,11 +715,9 @@ function useCelular() {
   return cel
 }
 
-function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEquipar, aoDesequipar, aoDetalhes, aoEditar, mapa }) {
+function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEquipar, aoDesequipar, aoDetalhes, aoEditar }) {
   const t = useT()
   const fechar = useRef(null)
-  const m3d = useMapas3d(mapa)
-  const [sem3d, setSem3d] = useState(false)
   useEffect(() => {
     if (!celular || !aberto) return
     fechar.current?.focus()
@@ -766,9 +764,7 @@ function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEqui
         <small>{temFloat ? t(nomeDoDesgaste(f)) : guardado ? `${d.tipoNome}${alvo.n > 1 ? ` · ×${alvo.n}` : ''}` : ''}</small>
       </header>
       <div className="inv-painel-arte" style={{ '--inv-painel-fundo': `url("${FUNDOS.inventario.src}")` }}>
-        {c4 && m3d && idNo3d(item, m3d) !== undefined && !sem3d ? (
-          <div className="inv-painel-3d"><Visualizador3D item={item} m={m3d} aoMudar={() => {}} aoFalhar={() => setSem3d(true)} altura={230} /></div>
-        ) : d.img ? <img src={d.img} alt="" decoding="async" /> : <span className="inv-sem-img" aria-hidden="true" />}
+        {d.img ? <img src={d.img} alt="" decoding="async" /> : <span className="inv-sem-img" aria-hidden="true" />}
         {item.st ? <span className="inv-st">StatTrak™</span> : null}
       </div>
       {temFloat && (
@@ -937,7 +933,7 @@ function Conteudo() {
   }, [temCaixa])
   const adesivos = useCatalogo('adesivos', precisaAdesivos)
   const chaveiros = useCatalogo('chaveiros', precisaAdesivos)
-  const mapa3d = useCatalogo('mapa3d', janela?.tipo === 'editar' || janela?.tipo === 'inspecionar' || janela?.tipo === 'confirmar' || selChave === 'i:c4')
+  const mapa3d = useCatalogo('mapa3d', janela?.tipo === 'editar' || janela?.tipo === 'inspecionar' || janela?.tipo === 'confirmar')
 
   useEffect(() => {
     if (!conta?.id) return
@@ -1488,7 +1484,6 @@ function Conteudo() {
       </div>
       </div>
       {!celular && <PainelItem
-        mapa={mapa3d.dados}
         alvo={alvo}
         idx={idx}
         equip={inv.equip}

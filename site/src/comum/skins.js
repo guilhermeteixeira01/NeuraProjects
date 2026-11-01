@@ -89,6 +89,8 @@ export const LADOS_TIME = [
 export const ID_C4 = 'c4'
 export const DEF_C4 = 49
 export const ehC4 = (item) => item?.t === 'arma' && item.d === DEF_C4
+// imagem oficial da Steam da C4 padrão (mesma origem das outras armas)
+const IMG_C4 = 'i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJKz2lu_XuWbwcuyMESA4Fdl-4nnpU7iQA3-kKnjqWwLvfOoavw8IvTCV2bEle1w6Lk-TSq2k0x25jiBzN_9dXqVaQ91W5AkW6dU5WnQha4l'
 const ARMA_C4 = { d: DEF_C4, n: 'C4 Explosive', e: 'tr', s: [] }
 export function indicar(catalogoArmas, agentes) {
   const armas = new Map((catalogoArmas || []).map((a) => [a.d, a]))
@@ -103,7 +105,7 @@ export function descrever(item, idx) {
     const a = idx.porAgente.get(item.d)
     return { titulo: 'Agente', subtitulo: a?.n || `#${item.d}`, img: a ? urlImg(a.i, 360) : '', cor: a?.c || '', times: a ? [a.t === 'ct' ? 'ct' : 'tr'] : ['ct', 'tr'] }
   }
-  if (ehC4(item)) return { titulo: ARMA_C4.n, subtitulo: 'Padrão', img: '/assets/armas/c4.svg', cor: '', skin: null, times: ['tr'] }
+  if (ehC4(item)) return { titulo: ARMA_C4.n, subtitulo: 'Padrão', img: urlImgArma(IMG_C4, 512), cor: '', skin: null, times: ['tr'] }
   const arma = idx.armas.get(item.d)
   const skin = arma?.s.find((s) => s[0] === item.p)
   return {
