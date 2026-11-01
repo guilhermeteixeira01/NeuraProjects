@@ -235,7 +235,7 @@ export default function PainelNotificacoes({ celular = false }) {
                     {lista.map((n) => {
                       const Corpo = n.link ? 'a' : 'div'
                       return (
-                        <li key={n.id} className={`am-linha nt-item${COR_RARIDADE[n.raridade] ? ' nt-raridade' : ''}`} style={COR_RARIDADE[n.raridade] ? { '--cor': COR_RARIDADE[n.raridade] } : undefined}>
+                        <li key={n.id} className={`am-linha nt-item${n.cor || COR_RARIDADE[n.raridade] ? ' nt-raridade' : ''}`} style={n.cor || COR_RARIDADE[n.raridade] ? { '--cor': n.cor || COR_RARIDADE[n.raridade] } : undefined}>
                           <Corpo className="nt-corpo" {...(n.link ? { href: n.link } : {})}>
                             <Emblema n={n} cargos={cargos} />
                             <span className="nt-txt">

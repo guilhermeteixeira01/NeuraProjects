@@ -102,7 +102,7 @@ export default function AvisoSkin() {
     for (const p of pendentes) {
       const x = descreverAviso(p)
       if (!x) continue
-      registrarNotificacao(conta.id, { id: `skin:${p.id}`, imagem: x.caixa ? x.img : x.img ? x.img.replace(/\/\d+fx\d+f$/, '/128fx96f') : '', titulo: x.embalagem ? `Você recebeu: ${x.titulo} (${x.subtitulo})` : `Você recebeu a skin ${x.titulo}${x.subtitulo ? ` | ${x.subtitulo}` : ''}`, texto: 'Já está no seu inventário.', link: '/inventario/' })
+      registrarNotificacao(conta.id, { id: `skin:${p.id}`, imagem: x.caixa ? x.img : x.img ? x.img.replace(/\/\d+fx\d+f$/, '/128fx96f') : '', titulo: x.embalagem ? `Você recebeu: ${x.titulo} (${x.subtitulo})` : `Você recebeu a skin ${x.titulo}${x.subtitulo ? ` | ${x.subtitulo}` : ''}`, texto: 'Já está no seu inventário.', link: '/inventario/', cor: x.cor || undefined })
     }
   }, [pendentes, idx, conta?.id, adesivosCat.dados, chaveirosCat.dados, emblemasCat.dados, trilhasCat.dados, grafitesCat.dados, caixasLoja]) // eslint-disable-line react-hooks/exhaustive-deps
 

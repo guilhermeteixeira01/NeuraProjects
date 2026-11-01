@@ -25,6 +25,7 @@ export function limparDoc(d) {
         ...(n.cargo ? { cargo: String(n.cargo).slice(0, 80) } : {}),
         ...(Number.isFinite(Number(n.nivel)) && n.nivel !== null && n.nivel !== undefined ? { nivel: Number(n.nivel) } : {}),
         ...(Number.isInteger(n.raridade) && n.raridade >= 0 && n.raridade <= 5 ? { raridade: n.raridade } : {}), // item (skin): cor da raridade no cartão
+        ...(typeof n.cor === 'string' && /^#[0-9a-f]{6}$/i.test(n.cor) ? { cor: n.cor.toLowerCase() } : {}), // a mesma cor, direto em #rrggbb (itens que não têm número de raridade)
 
         quando: Number(n.quando) || 0,
         lida: !!n.lida,
