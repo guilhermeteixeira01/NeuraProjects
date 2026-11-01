@@ -144,7 +144,7 @@ export default defineConfig(({ mode, command }) => {
   return {
   plugins: [react(), demo ? dadosDeDemo(aqui) : dadosNoDev(), imagensDaPasta('virtual:selos-equipe', 'selos-equipe'), imagensDaPasta('virtual:cards-perfil', 'cards', { recursivo: true, ignorar: ['mini', 'med', 'parado'], animadas: true }), imagensDaPasta('virtual:cards-mini', 'cards/mini', { recursivo: true }), imagensDaPasta('virtual:cards-med', 'cards/med', { recursivo: true })],
   // O servidor de desenvolvimento não vigia as pastas de build: rodar `npm run build` com ele aberto derrubava o Vite (EBUSY no Windows)
-    server: { watch: { ignored: ['**/dist/**', '**/dist-ssr/**', '**/dist-final/**', '**/.wrangler/**'] } },
+    server: { proxy: { '/__preview-perfis-reais': { target: 'https://neura-steam-login.steam-login.workers.dev', changeOrigin: true, rewrite: () => '/perfis' } }, watch: { ignored: ['**/dist/**', '**/dist-ssr/**', '**/dist-final/**', '**/.wrangler/**'] } },
   build: {
     // Arquivos do React em /static/ (a pasta /assets/ é das imagens e dos dados do site)
     assetsDir: 'static',

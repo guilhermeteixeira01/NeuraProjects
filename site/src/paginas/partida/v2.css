@@ -91,7 +91,7 @@ html:not(#v2) .pt-v2 .resultado-tabela .player .av{width:27px!important;height:2
 html:not(#v2) .pt-v2 .resultado-tabela tr{height:34px!important}
 .resultado-time .bn-logo{position:relative;display:inline-grid;place-items:center;overflow:hidden}.resultado-time .bn-img{position:absolute;inset:0;width:100%;height:100%}
 /* Fotos dos donos e detalhamento dos ganhos. */
-.resultado-round-time .bn-logo,.resultado-emblema .bn-logo{position:relative;display:grid;place-items:center;width:30px;height:30px;overflow:hidden;border-radius:5px;background:#0a2032;flex:none}
+.resultado-round-time .bn-logo,.resultado-emblema .bn-logo{position:relative;display:grid;place-items:center;width:30px;height:30px;overflow:hidden;border-radius:0;background:transparent;flex:none}
 .resultado-round-time .bn-img,.resultado-emblema .bn-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .resultado-round-time .bn-ini,.resultado-emblema .bn-ini{font-size:12px;color:#bad9f6}
 .resultado-time .bn-logo{border-radius:6px}.resultado-time .bn-img{object-fit:cover}
@@ -166,7 +166,7 @@ html body #root .resultado-pagina .resultado-avatar-miolo>img,html body #root .r
 html body #root .resultado-pagina .bn-logo{overflow:visible;border-radius:4px;aspect-ratio:1}
 html body #root .resultado-pagina .bn-logo>.resultado-avatar{width:100%!important;height:100%!important}
 html body #root .resultado-pagina .bn-logo>.bn-ini{border-radius:4px!important;aspect-ratio:1}
-html body #root .resultado-pagina .resultado-tabela .player>.resultado-avatar{width:64px!important;height:64px!important}
+html body #root .resultado-pagina .resultado-tabela .player>.resultado-avatar{width:44px!important;height:44px!important}
 html body #root .resultado-pagina .resultado-tabela-completa .player>.resultado-avatar{overflow:visible;max-width:none}
 .resultado-card-usuario{position:relative;isolation:isolate;width:100%;max-width:282px;aspect-ratio:282/395;margin:0 auto;box-sizing:border-box;border:1px solid #28516c;border-radius:9px;background:#091b2b center/cover no-repeat;color:#f3f7ff;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:42px 22px 26px;gap:14px}
 .resultado-card-usuario.com-card{border-color:#6d8ba6;outline:1px solid #ffffff15;outline-offset:-1px}
@@ -184,7 +184,7 @@ html body #root .resultado-pagina .resultado-avatar-miolo>.moldura-box.moldura-a
 
 /* Reserva espaço para o contorno completo sem comprimir a foto nas estatísticas. */
 html body #root .resultado-pagina .resultado-tabela tbody tr { height: 68px!important; }
-html body #root .resultado-pagina .resultado-tabela tbody td { height: 68px!important; padding-top: 10px!important; padding-bottom: 10px!important; }
+html body #root .resultado-pagina .resultado-tabela tbody td { height: 68px!important; padding-top: 8px!important; padding-bottom: 8px!important; }
 html body #root .resultado-pagina .resultado-tabela .player { gap: 14px; min-height: 48px; }
 html body #root .resultado-pagina .resultado-tabela .player .resultado-avatar span { max-width: none; overflow: visible; }
 
@@ -192,8 +192,11 @@ html body #root .resultado-pagina .resultado-tabela .player .resultado-avatar sp
 html body #root .resultado-pagina .resultado-avatar-miolo { left:50%; top:50%; width:66.6667%; height:66.6667%; transform:translate(-50%,-50%); }
 html body #root .resultado-pagina .resultado-recordes .resultado-avatar { width:48px!important; height:48px!important; }
 html body #root .resultado-pagina .resultado-tabela tbody tr,
-html body #root .resultado-pagina .resultado-tabela tbody td { height:84px!important; }
-html body #root .resultado-pagina .resultado-tabela .player { min-height:64px; }
+html body #root .resultado-pagina .resultado-tabela tbody td { height:60px!important; }
+html body #root .resultado-pagina .resultado-tabela .player { min-height:44px; }
 
 html body #root .resultado-pagina .resultado-avatar-miolo { display:grid; place-items:center; line-height:0; }
 html body #root .resultado-pagina .resultado-avatar-miolo > :is(.moldura-box,.emblema-box) { display:block; position:relative; vertical-align:top; }
+
+/* Cabeçalhos de times mostram apenas a foto e a moldura escolhida. */
+html body #root .resultado-pagina :is(.resultado-round-time,.resultado-emblema) .bn-logo { background:transparent; border:0; outline:0; box-shadow:none; border-radius:0; }

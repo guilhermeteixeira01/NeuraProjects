@@ -20,7 +20,11 @@ export async function montar(Pagina) {
       await ativarDemo()
     } else {
       const { ativarPreviewLocal } = await import('./previewLocal.js')
-      ativarPreviewLocal()
+      const [perfisReais, rankingReal] = await Promise.all([
+        fetch('/__preview-perfis-reais').then(r => r.ok ? r.json() : {}).catch(() => ({})),
+        fetch('/ranking/ranking.json').then(r => r.ok ? r.json() : {}).catch(() => ({})),
+      ])
+      ativarPreviewLocal({ perfisReais, rankingReal })
     }
   }
   const raiz = document.getElementById('root')

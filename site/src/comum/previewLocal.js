@@ -18,7 +18,7 @@ export function ativarPreviewLocal(opcoes = {}) {
   const id = (() => { try { return localStorage.getItem('np-preview-id') || '' } catch { return '' } })() || opcoes.id || '76561198000000011'
   const nome = opcoes.nome || 'Jogador de teste'
   const avatar = opcoes.avatar || '/assets/logos/logo-np-64.png'
-  const CHAVE_ESTADO = opcoes.chaveEstado || 'np-preview-dados-v2'
+  const CHAVE_ESTADO = opcoes.chaveEstado || 'np-preview-dados-v3-molduras'
   // Conquistas de demonstração: existem somente no navegador da prévia local.
   const exemplos = [
     ...INSIGNIAS.filter(i => i.categoria === 'combate').slice(0, 4),
@@ -27,9 +27,15 @@ export function ativarPreviewLocal(opcoes = {}) {
     ...INSIGNIAS.filter(i => i.loja).slice(0, 2),
     ...INSIGNIAS.filter(i => i.id === 'top3'),
   ]
-  const perfisDemo = { [id]: { nick: nome, insignias: Object.fromEntries(exemplos.map(i => [i.id, Date.parse('2026-10-26T12:00:00-03:00')])), vistos: { ins: exemplos.map(i => i.id), nivel: 100 } } }
+  const perfisDemo = { ...opcoes.perfisReais, [id]: { nick: nome, insignias: Object.fromEntries(exemplos.map(i => [i.id, Date.parse('2026-10-26T12:00:00-03:00')])), vistos: { ins: exemplos.map(i => i.id), nivel: 100 } } }
   const caixas = catalogo.map(c => ({ ...c, chances: chancesDaCaixa(c, CONFIG_PADRAO) }))
   const pessoas = [{id,nome,avatar,st:'online',dono:true,cargo:'membro'}, {id:'76561198000000012',nome:'Luna · teste',avatar,st:'online',cargo:'membro'}, {id:'76561198000000013',nome:'Rafa · teste',avatar,st:'ausente',cargo:'membro'}, {id:'76561198000000014',nome:'Nico · teste',avatar,st:'jogando',cargo:'membro'}]
+  const comMoldura = (opcoes.rankingReal?.jogadores || []).filter(j => opcoes.perfisReais?.[j.steamId]?.moldura)
+  for (let i = 1; i < pessoas.length; i++) {
+    const real = comMoldura[i - 1]
+    if (real) pessoas[i] = { ...pessoas[i], id: real.steamId, nome: real.nome, avatar: real.avatar }
+    else perfisDemo[pessoas[i].id] = { moldura: ['times/furia', 'times/navi', 'times/vitality'][i - 1] }
+  }
   const novoId = () => 'demo'+Math.random().toString(36).slice(2,10)
   const itens = Object.fromEntries(caixas[0].itens.slice(0,12).map((it,i)=>['demoitem'+i,{t:it.t||'arma',d:it.d,p:it.p,f:.08+i*.012,s:i*23,st:0,a:[null,null,null,null,null],k:null}]))
   caixas[0].facas.slice(0,2).forEach((it,i)=>{itens['demoraro'+i]={t:it.t||'faca',d:it.d,p:it.p,f:.04,s:100,st:0,a:[null,null,null,null,null]}})
@@ -199,7 +205,7 @@ export function ativarPreviewLocal(opcoes = {}) {
     if(rota==='/notificacoes')return Response.json({doc:estado.notificacoes})
     if(rota==='/lobby')return Response.json({...respostas['/lobby'],membros:pessoas.slice(0,3),publico:true})
     if(rota==='/admin/dados')return Response.json({...respostas['/admin/dados'],usuarios:Object.fromEntries(pessoas.map(p=>[p.id,p]))})
-    if(rota==='/loja/drops'){const d={id:'demoDrop',ts:Date.now()-60000,r:4,v:14500,t:'arma',d:7,p:282,quem:pessoas[1].id,nome:pessoas[1].nome,avatar,caixa:caixas[0].slug};return Response.json({agora:Date.now(),recentes:[d],bons:[d],top:[d]})}
+    if(rota==='/loja/drops'){const d={id:'demoDrop',ts:Date.now()-60000,r:4,v:14500,t:'arma',d:7,p:282,quem:pessoas[1].id,nome:pessoas[1].nome,avatar:pessoas[1].avatar,caixa:caixas[0].slug};return Response.json({agora:Date.now(),recentes:[d],bons:[d],top:[d]})}
     if(rota==='/skins')return Response.json(estado.inv)
     if(rota==='/skins/inventario')return Response.json({...estado.inv,valores:Object.fromEntries(Object.keys(estado.inv.itens).map(k=>[k,150])),simulacao:true})
     if(rota==='/loja/saldo')return Response.json({saldo:estado.saldo})
