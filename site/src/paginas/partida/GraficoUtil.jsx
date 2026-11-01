@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { ComMoldura } from '../../comum/Moldura.jsx'
+import FotoJogador from './FotoJogador.jsx'
 import { linkPerfil } from '../../comum/conta.js'
 import { useT } from '../../comum/i18n.js'
-import { useAvatar } from '../../comum/avatares.js'
 
 // Detalhe do uso de utilitários: por time, total + barra de proporção por tipo + barras empilhadas por jogador.
 // Cores no estilo do CS (smoke azul-acinzentada, flash amarela, HE vermelha, molotov laranja, decoy verde),
@@ -35,16 +34,6 @@ function escala(maximo) {
   return { topo, linhas }
 }
 
-function Avatar({ e }) {
-  const src = useAvatar(e.steamId, e.avatar)
-  const [erro, setErro] = useState('')
-  const ini = (String(e.nome || '?').match(/[\p{L}\p{N}]/gu) || []).slice(0, 2).join('').toUpperCase() || '?'
-  return src && erro !== src ? (
-    <img className="gu-av" src={src} alt="" loading="lazy" onError={() => setErro(src)} />
-  ) : (
-    <span className="gu-av gu-av-fb">{ini}</span>
-  )
-}
 
 function CardTime({ nome, t, jogadores, modo, mvp }) {
   const tr = useT()
@@ -132,9 +121,7 @@ function CardTime({ nome, t, jogadores, modo, mvp }) {
         {porJogador.map(({ e, v }) => (
           <a key={e.steamId} className="gu-nome" href={linkPerfil(e.steamId)} title={tr('Perfil de {nome}', { nome: e.nome })}>
             <span className="gu-num">{soma(v)}</span>
-            <ComMoldura steamId={e.steamId} emblema>
-              <Avatar e={e} />
-            </ComMoldura>
+            <FotoJogador e={e} tamanho={48} />
             <span className={`gu-nick${e === mvp ? ` t-${t}` : ''}`}>{e.nome}</span>
           </a>
         ))}

@@ -148,7 +148,7 @@ html:not(#v2) .pt-v2 .resultado-tabela-completa td.col-rt{background-color:#020b
 .resultado-mvp-rating{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:24px}.resultado-mvp-rating .rt-destaque{width:66px}.resultado-mvp-rating .rt-box{font-size:22px;padding:7px}.resultado-mvp-rating>small{width:100%;font-size:10px;color:#9fb5cc;text-transform:uppercase}
 .resultado-mvp-estatisticas{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:18px 0 0}.resultado-mvp-estatisticas>div{display:flex;flex-direction:column-reverse;gap:3px}.resultado-mvp-estatisticas dd{margin:0;font-size:22px;font-weight:750;color:#eff7ff}.resultado-mvp-estatisticas dt{font-size:12px;color:#a9c2d8}
 .resultado-recordes-completos{gap:10px;margin-top:24px}.resultado-recordes-completos>a{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:8px;padding:10px 8px}
-.resultado-recorde-avatar{width:34px;height:34px;object-fit:cover;border-radius:4px}.resultado-recordes-completos .moldura-box{width:36px!important;height:36px!important}.resultado-recordes-completos b.resultado-recorde-nome{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0}.resultado-recordes-completos>a>div:last-child{text-align:right}.resultado-recordes-completos>a>div:last-child b{font-size:19px}.resultado-recordes-completos>a>div:last-child span{font-size:10px}
+.resultado-recorde-avatar{width:34px;height:34px;object-fit:cover;border-radius:4px}.resultado-recordes-completos b.resultado-recorde-nome{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0}.resultado-recordes-completos>a>div:last-child{text-align:right}.resultado-recordes-completos>a>div:last-child b{font-size:19px}.resultado-recordes-completos>a>div:last-child span{font-size:10px}
 @media(min-width:1001px) and (max-width:1350px){.resultado-recordes-completos{grid-template-columns:1fr}}
 /* As duas equipes compartilham a mesma superfície, no resumo e nos utilitários. */
 html:not(#v2) #root .pt-v2-tabelas .team-card .tabela thead th{background-color:#051421;color:#a8bfd4}
@@ -166,7 +166,7 @@ html body #root .resultado-pagina .resultado-avatar-miolo>img,html body #root .r
 html body #root .resultado-pagina .bn-logo{overflow:visible;border-radius:4px;aspect-ratio:1}
 html body #root .resultado-pagina .bn-logo>.resultado-avatar{width:100%!important;height:100%!important}
 html body #root .resultado-pagina .bn-logo>.bn-ini{border-radius:4px!important;aspect-ratio:1}
-html body #root .resultado-pagina .resultado-tabela .player>.resultado-avatar{width:48px!important;height:48px!important}
+html body #root .resultado-pagina .resultado-tabela .player>.resultado-avatar{width:64px!important;height:64px!important}
 html body #root .resultado-pagina .resultado-tabela-completa .player>.resultado-avatar{overflow:visible;max-width:none}
 .resultado-card-usuario{position:relative;isolation:isolate;width:100%;max-width:282px;aspect-ratio:282/395;margin:0 auto;box-sizing:border-box;border:1px solid #28516c;border-radius:9px;background:#091b2b center/cover no-repeat;color:#f3f7ff;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:42px 22px 26px;gap:14px}
 .resultado-card-usuario.com-card{border-color:#6d8ba6;outline:1px solid #ffffff15;outline-offset:-1px}
@@ -176,7 +176,7 @@ html body #root .resultado-pagina .resultado-tabela-completa .player>.resultado-
 .resultado-card-perfil>b{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px;font-size:23px;line-height:1.15;overflow-wrap:anywhere;max-width:100%;text-shadow:0 2px 8px #000}
 .resultado-card-perfil>span{font-size:13px;color:#d3e6f6}.resultado-card-perfil>small{font-size:11px;color:#b9cddd;overflow-wrap:anywhere}
 .resultado-card-cargos{justify-content:center;gap:5px;max-width:100%;flex-wrap:wrap}
-.resultado-recordes-completos>a{grid-template-columns:36px minmax(0,1fr) auto}
+.resultado-recordes-completos>a{grid-template-columns:48px minmax(0,1fr) auto}
 @media(max-width:650px){.resultado-card-usuario{max-width:282px}}
 html body #root .resultado-pagina .resultado-avatar-imagem.av-fb{display:grid;place-items:center;background:#102b41;color:#cae7ff;font-size:12px;font-weight:700}
 html body #root .resultado-pagina .resultado-avatar-miolo>.moldura-box.moldura-ajustada{height:auto!important;aspect-ratio:var(--moldura-proporcao)}
@@ -187,3 +187,13 @@ html body #root .resultado-pagina .resultado-tabela tbody tr { height: 68px!impo
 html body #root .resultado-pagina .resultado-tabela tbody td { height: 68px!important; padding-top: 10px!important; padding-bottom: 10px!important; }
 html body #root .resultado-pagina .resultado-tabela .player { gap: 14px; min-height: 48px; }
 html body #root .resultado-pagina .resultado-tabela .player .resultado-avatar span { max-width: none; overflow: visible; }
+
+/* A foto tem a mesma largura com ou sem moldura; contorno e selo não a encolhem. */
+html body #root .resultado-pagina .resultado-avatar-miolo { left:50%; top:50%; width:66.6667%; height:66.6667%; transform:translate(-50%,-50%); }
+html body #root .resultado-pagina .resultado-recordes .resultado-avatar { width:48px!important; height:48px!important; }
+html body #root .resultado-pagina .resultado-tabela tbody tr,
+html body #root .resultado-pagina .resultado-tabela tbody td { height:84px!important; }
+html body #root .resultado-pagina .resultado-tabela .player { min-height:64px; }
+
+html body #root .resultado-pagina .resultado-avatar-miolo { display:grid; place-items:center; line-height:0; }
+html body #root .resultado-pagina .resultado-avatar-miolo > :is(.moldura-box,.emblema-box) { display:block; position:relative; vertical-align:top; }

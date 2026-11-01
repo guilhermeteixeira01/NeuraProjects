@@ -3,7 +3,7 @@ import { ladoDoRound, trocaDeLado } from './rounds.js'
 import IconeUI from '../../comum/IconeUI.jsx'
 import StatusConsumivel from '../../comum/StatusConsumivel.jsx'
 import { lerApi } from '../../comum/api.js'
-import { useEffect, useState, useMemo, useLayoutEffect, useRef } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { pontosDaPartida } from '../../comum/pontos.js'
 import CarregandoPontos, { CarregandoNP } from '../../comum/Carregando.jsx'
 import Layout from '../../comum/Layout.jsx'
@@ -15,7 +15,7 @@ import { linkPerfil, useConta } from '../../comum/conta.js'
 import { usePartidasServidor } from '../../comum/bonusPartidas.js'
 import { fundoMapa, getMap, mapIcon, nomeMapa } from '../../comum/mapas.js'
 import { fundoDoResultado } from '../../comum/assetsV2.js'
-import { ComMoldura, comApelidos, usePerfis, useCardDe, CargosDe, IconeEquipe } from '../../comum/Moldura.jsx'
+import { comApelidos, usePerfis, useCardDe, CargosDe, IconeEquipe } from '../../comum/Moldura.jsx'
 import { fundoCard } from '../../comum/cardsPerfil.js'
 import { desempenhoAtivo } from '../../comum/desempenho.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
@@ -24,7 +24,7 @@ import { dataNoIdioma, useT } from '../../comum/i18n.js'
 import { fimDaSerie } from '../../comum/series.js'
 import { ContagemRemocao, useRelogio } from '../../comum/ContagemSerie.jsx'
 import { juntarPartidas, useRecentes } from '../../comum/partidasRecentes.js'
-import { useAvatar } from '../../comum/avatares.js'
+import FotoJogador from './FotoJogador.jsx'
 
 // Página de estatísticas de um mapa jogado no servidor.
 // Os dados vêm do partida.json que o plugin BaseComp manda para o GitHub (formato em `partida.json`, versão 1).
@@ -70,45 +70,6 @@ const maior = (lista, valor) => lista.reduce((m, e) => (valor(e) > valor(m) ? e 
 const dataBr = (d, idioma) => {
   const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}:\d{2})/.exec(d || '')
   return m ? `${dataNoIdioma(m[1], m[2], m[3], idioma)} ${m[4]}` : String(d || '')
-}
-
-// Foto da Steam ou as iniciais
-function Avatar({ e, classe }) {
-  const src = useAvatar(e?.steamId, e?.avatar) // foto atual da Steam (a do partida.json é a do dia do jogo)
-  const [erro, setErro] = useState('')
-  return urlOk(src) && erro !== src ? (
-    <img className={classe} src={src} alt="" loading="lazy" onError={() => setErro(src)} />
-  ) : (
-    <span className={`${classe} av-fb`}>{iniciais(e?.nome)}</span>
-  )
-}
-
-// A área é sempre quadrada; o contorno e o emblema continuam sendo os escolhidos no perfil.
-function FotoJogador({ e, tamanho = 32 }) {
-  const ref = useRef(null)
-  const perfil = usePerfis()[e?.steamId]
-  useLayoutEffect(() => {
-    const area = ref.current
-    const miolo = area?.querySelector('.resultado-avatar-miolo')
-    if (!area || !miolo) return
-    const ajustar = () => {
-      miolo.style.transform = 'none'
-      const origem = miolo.getBoundingClientRect()
-      const partes = [miolo, ...miolo.querySelectorAll('.moldura, .emblema-sub')].map(el => el.getBoundingClientRect()).filter(r => r.width && r.height)
-      if (!partes.length) return
-      const esquerda = Math.min(...partes.map(r => r.left)), topo = Math.min(...partes.map(r => r.top))
-      const largura = Math.max(...partes.map(r => r.right)) - esquerda, altura = Math.max(...partes.map(r => r.bottom)) - topo
-      const escala = Math.min(1, area.clientWidth / largura, area.clientHeight / altura)
-      const x = (area.clientWidth - largura * escala) / 2 - (esquerda - origem.left) * escala
-      const y = (area.clientHeight - altura * escala) / 2 - (topo - origem.top) * escala
-      miolo.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + escala + ')'
-    }
-    ajustar()
-    const obs = new ResizeObserver(ajustar)
-    for (const el of [area, miolo, ...miolo.querySelectorAll('.moldura, .emblema-sub')]) obs.observe(el)
-    return () => obs.disconnect()
-  }, [e?.steamId, perfil?.moldura, perfil?.sub, tamanho])
-  return <span ref={ref} className="resultado-avatar" style={{ width: tamanho, height: tamanho }}><span className="resultado-avatar-miolo"><ComMoldura steamId={e?.steamId} emblema><Avatar e={e} classe="resultado-avatar-imagem"/></ComMoldura></span></span>
 }
 
 function CardJogadorMvp({ jogador, time }) {

@@ -116,3 +116,6 @@ html:not(#v2) #root .lj-pagina .lj-caixa-arte{max-width:300px;justify-self:cente
 
 /* Personagem livre nas laterais do banner, com corte só na base. */
 @media(max-width:760px){html:not(#v2) #root main.lj-pagina{overflow-x:clip;overflow-y:visible}html:not(#v2) #root .lj-pagina .lj-hero{overflow:visible}html:not(#v2) #root .lj-pagina .lj-hero-camada{overflow:visible;clip-path:inset(-100vh -100vw 0 -100vw)}}
+
+/* A medida da faixa em Drops.jsx inclui toda a área entre as barras laterais. */
+html:not(#v2) #root .lj-drops { max-width:none; border-radius:0; flex-shrink:0; }
