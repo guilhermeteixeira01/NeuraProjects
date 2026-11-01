@@ -157,7 +157,8 @@ export function ativarPreviewLocal(opcoes = {}) {
         else{const msg={id:novoId(),de:id,texto:corpo.texto,ts:Date.now()};estado.mensagens.push(msg);guardar();return Response.json({msg})}
         guardar();return Response.json({ok:true})
       }
-      if(rota==='/equipes/chat'){const msg={id:novoId(),de:id,nome,texto:corpo.texto,ts:Date.now()};estado.chat.push(msg);guardar();return Response.json({msg})}
+      if(rota==='/equipes/chat'||rota==='/equipes/chat-enviar'){const msg={id:novoId(),de:id,nome,texto:corpo.texto,ts:Date.now()};estado.chat.push(msg);guardar();return Response.json({msg})}
+      if(rota==='/equipes/chat-apagar'){estado.chat=estado.chat.filter(m=>m.id!==corpo.id);guardar();return Response.json({ok:true})}
       if(rota==='/skins'){estado.inv=corpo;guardar();return Response.json(estado.inv)}
       if(rota==='/skins/excluir'){delete estado.inv.itens[corpo.id];guardar();return Response.json(estado.inv)}
       if(rota==='/loja/abrir'){

@@ -218,6 +218,7 @@ function ChatDoTime({ time, eu, pode }) {
   const [msgs, setMsgs] = useState([])
   const [texto, setTexto] = useState('')
   const [erro, setErro] = useState('')
+  const [enviando, setEnviando] = useState(false)
   const lista = useRef(null)
   const colado = useRef(true)
 
@@ -257,7 +258,8 @@ function ChatDoTime({ time, eu, pode }) {
   const enviar = async (e) => {
     e.preventDefault()
     const limpo = texto.trim()
-    if (!limpo) return
+    if (!limpo || enviando) return
+    setEnviando(true)
     setTexto('')
     setErro('')
     colado.current = true
@@ -267,6 +269,8 @@ function ChatDoTime({ time, eu, pode }) {
     } catch (x) {
       setTexto(limpo)
       setErro(textoErro(x))
+    } finally {
+      setEnviando(false)
     }
   }
   return (
@@ -294,7 +298,7 @@ function ChatDoTime({ time, eu, pode }) {
                   )}
                   <time dateTime={new Date(m.ts).toISOString()}>{new Date(m.ts).toLocaleString([], { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</time>
                   {pode('moderar') && (
-                    <button type="button" className="eq-apagar-msg" title={t('Apagar mensagem')} onClick={() => acaoEquipe('chat-apagar', { id: m.id }).catch(() => {})}>
+                    <button type="button" className="eq-apagar-msg" title={t('Apagar mensagem')} onClick={() => acaoEquipe('chat-apagar', { id: m.id }).then(() => setMsgs(l => l.filter(x => x.id !== m.id))).catch(x => setErro(textoErro(x)))}>
                       ×
                     </button>
                   )}
@@ -307,8 +311,8 @@ function ChatDoTime({ time, eu, pode }) {
       </ul>
       <form onSubmit={enviar}>
         <input value={texto} maxLength={240} onChange={(e) => setTexto(e.target.value)} placeholder={t('Mensagem para o time…')} aria-label={t('Mensagem')} />
-        <button type="submit" className="eq-btn eq-btn-p" disabled={!texto.trim()}>
-          {t('Enviar')}
+        <button type="submit" className="eq-btn eq-btn-p" disabled={enviando || !texto.trim()}>
+          {enviando ? t('Enviando…') : t('Enviar')}
         </button>
       </form>
       {erro && <p className="eq-erro">{t(erro)}</p>}
@@ -687,7 +691,6 @@ function ComTime({ dados, recarregar, eu }) {
     () => [
       ['geral', 'Visão geral'],
       ['membros', 'Membros'],
-      ['chat', 'Chat'],
       ...(pode('convidar') || pode('dono') ? [['convidar', 'Convidar']] : []),
       ...(pode('dono') ? [['cargos', 'Cargos']] : []),
       ...(pode('editar') ? [['config', 'Configurações']] : []),
@@ -761,7 +764,7 @@ function ComTime({ dados, recarregar, eu }) {
       <section className="eq-painel">
         {aAba === 'geral' && <VisaoGeral time={time} eu={eu} pode={pode} fazer={fazer} ocupado={ocupado} aoGerenciar={() => setAba('membros')} />}
         {aAba === 'membros' && <Membros time={time} eu={eu} pode={pode} fazer={fazer} ocupado={ocupado} />}
-        {aAba === 'chat' && <ChatDoTime key={time.id} time={time} eu={eu} pode={pode} />}
+
         {aAba === 'convidar' && <Convidar time={time} fazer={fazer} ocupado={ocupado} />}
         {aAba === 'cargos' && <Cargos time={time} fazer={fazer} ocupado={ocupado} />}
         {aAba === 'config' && <Config key={time.id} time={time} fazer={fazer} ocupado={ocupado} aoApagar={apagar} />}
@@ -819,7 +822,7 @@ function Conteudo() {
 export default function Equipes() {
   return (
     <Layout pagina="equipes">
-      <main className="eq-pagina">
+      <main className="eq-pagina" style={fundoCss('diretorioTimes')}>
         <div className="wrap eq-wrap">
           <Conteudo />
         </div>

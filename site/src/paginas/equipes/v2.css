@@ -80,3 +80,26 @@ html:not(#v2) .eq-abas button.is-ativo:not(#_) { background: transparent; }
   .eq-v2-contadores { grid-template-columns: 1fr; gap: 10px; }
   .eq-v2-linha { grid-template-columns: 30px minmax(0, 1fr) auto; }
 }
+
+/* Chat contido no painel, com campo de envio sempre acessível. */
+html:not(#v2) #root .eq-v2-chat{overflow:hidden;min-width:0}
+html:not(#v2) #root .eq-v2-chat .eq-chat{display:flex;flex-direction:column;height:420px;min-height:0;max-height:none;padding:12px;gap:10px;box-sizing:border-box}
+html:not(#v2) #root .eq-v2-chat .eq-chat-lista{flex:1;min-height:0;height:auto;overflow-y:auto;margin:0;min-width:0}
+html:not(#v2) #root .eq-v2-chat :is(.eq-chat-topo,form,.eq-erro){flex:none;margin:0}
+html:not(#v2) #root .eq-v2-chat form{position:relative;display:flex;width:100%;gap:8px}
+html:not(#v2) #root .eq-v2-chat form input{min-width:0;flex:1;width:0}
+html:not(#v2) #root .eq-v2-chat .eq-chat-lista li > div > span{flex-wrap:wrap}
+html:not(#v2) #root main.eq-pagina{position:relative;isolation:isolate;background-color:#010b16}
+html:not(#v2) #root main.eq-pagina::before{content:"";position:absolute;z-index:-1;inset:0 0 auto;height:clamp(500px,45vw,720px);pointer-events:none;background:linear-gradient(90deg,rgba(1,11,22,.9),rgba(1,11,22,.35) 55%,rgba(1,11,22,.15)),var(--np-fundo) center top / cover no-repeat;mask-image:linear-gradient(#000 0%,#000 35%,transparent 100%);-webkit-mask-image:linear-gradient(#000 0%,#000 35%,transparent 100%)}
+@media(max-width:760px){html:not(#v2) #root .eq-v2-chat .eq-chat{height:380px}}
+
+/* Reserva a faixa de ações para os botões, sem personagens atrás. */
+@media(min-width:761px){html:not(#v2) #root .eq-capa-camada{right:280px}html:not(#v2) #root .eq-capa-camada img{right:0;max-width:100%;object-position:right bottom}}
+@media(max-width:760px){html:not(#v2) #root .eq-capa-camada{display:none}}
+
+/* O cenário externo é independente da arte usada dentro do card. */
+html:not(#v2) #root .eq-capa-v2::before,html:not(#v2) #root .eq-capa-v2::after{content:none}
+
+/* Respiro entre os painéis do time e o rodapé. */
+html:not(#v2) #root main.eq-pagina{padding-bottom:64px}
+@media(max-width:760px){html:not(#v2) #root main.eq-pagina{padding-bottom:40px}}
