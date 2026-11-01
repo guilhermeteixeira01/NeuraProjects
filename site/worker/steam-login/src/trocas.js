@@ -16,7 +16,7 @@ import { avisarTroca } from './amigos.js'
 import { exigirSenha } from './contas.js'
 import { ErroConflito, ErroNaoEncontrado, ErroPedido, ErroPermissao } from './erros.js'
 import { lerCorpo, reenviar } from './http.js'
-import { Fila, objetoGlobal, responder } from './objetos.js'
+import { Fila, objetoGlobal, pedirAoJogador, responder } from './objetos.js'
 import { registrar } from './registro.js'
 import { limparSkins, lerSkins, mudarSkins, novoIdItem, tirarItem } from './skins.js'
 import { lerUsuarios } from './usuarios.js'
@@ -120,7 +120,7 @@ export class Trocas {
     try {
       await this.aplicar(t)
     } catch (e) {
-      if (e instanceof ErroConflito) {
+      if (e instanceof ErroConflito && !t.npItensAplicados) {
         this.encerrar(t.id, 'falhou', e.codigo)
         await avisarTroca(this.env, t.de)
       }
@@ -157,7 +157,9 @@ export class Trocas {
     const dar = ids(p.dar)
     const pedir = ids(p.pedir)
     if (dar.length > MAX_ITENS || pedir.length > MAX_ITENS) throw new ErroPedido('muitos-itens')
-    if (!dar.length && !pedir.length) throw new ErroPedido('vazia')
+    const darNP = p.darNP ?? 0, pedirNP = p.pedirNP ?? 0
+    if (![darNP, pedirNP].every(v => Number.isSafeInteger(v) && v >= 0)) throw new ErroPedido('np-invalido')
+    if (!dar.length && !pedir.length && !darNP && !pedirNP) throw new ErroPedido('vazia')
     const minhasPendentes = this.sql.exec("SELECT dados FROM trocas WHERE de = ? AND estado = 'pendente'", quem).toArray()
     if (minhasPendentes.length >= MAX_PENDENTES) throw new ErroConflito('muitas-pendentes')
 
@@ -182,6 +184,7 @@ export class Trocas {
       deAvatar: String(usuarios[quem]?.avatar || ''),
       paraNome: String(usuarios[para]?.nome || ''),
       paraAvatar: String(usuarios[para]?.avatar || ''),
+      darNP, pedirNP,
       dar: montar(dar, invMeu, meusReservados),
       pedir: montar(pedir, invDele, deleReservados),
       msg: String(p.msg || '').replace(/[\u0000-\u001f<>]/g, '').slice(0, 200),
@@ -196,6 +199,34 @@ export class Trocas {
 
   // Aplica nos dois inventários; se o segundo falhar, desfaz o primeiro e lança o motivo (ErroConflito) do ponto de vista de quem aceitou
   async aplicar(t) {
+    const debitados = []
+    const mover = (jogador, valor, fase) => pedirAoJogador(this.env, jogador, { acao: 'troca-np', chave: t.id + ':' + fase, valor })
+    if (t.npEstornar) {
+      for (const [jogador, valor] of t.npEstornar) await mover(jogador, valor, 'estorno')
+      this.encerrar(t.id, 'falhou', 'saldo')
+      throw new ErroConflito('encerrada')
+    }
+    if (!t.npItensAplicados) try {
+      for (const [jogador, valor] of [[t.de, t.darNP || 0], [t.para, t.pedirNP || 0]]) {
+        if (!valor) continue
+        await mover(jogador, -valor, 'debito')
+        debitados.push([jogador, valor])
+      }
+      await this.aplicarItens(t)
+      t.npItensAplicados = true
+      this.inserir(t)
+    } catch (e) {
+      t.npEstornar = debitados
+      this.inserir(t)
+      for (const [jogador, valor] of debitados) await mover(jogador, valor, 'estorno')
+      this.encerrar(t.id, 'falhou', e.codigo || 'falhou')
+      throw e
+    }
+    if (t.darNP) await mover(t.para, t.darNP, 'credito')
+    if (t.pedirNP) await mover(t.de, t.pedirNP, 'credito')
+  }
+
+  async aplicarItens(t) {
     let novosDoPrimeiro
     try {
       novosDoPrimeiro = await mexerNoInventario(this.env, t.de, t.dar, t.pedir) // quem propôs: perde "dar" e recebe "pedir"

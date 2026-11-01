@@ -525,10 +525,6 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
     <>
       <div className="pf-resumo-chips">
         <div className="pf-info pf-resumo-chip">
-          <span className="pf-info-rot">{t('TIME')}</span>
-          <span className="pf-info-val">{timeEscolhido ? <TimeEscolhido steamId={j.steamId} classe="pf-time" /> : <span className="pf-time"><span>{exemploPerfil ? "Neura Academy" : t('Sem time')}</span></span>}</span>
-        </div>
-        <div className="pf-info pf-resumo-chip">
           <span className="pf-info-rot">PREMIER</span>
           <span className="pf-info-val">
             <Premier key={premier || 0} j={{ ...j, premier }} />

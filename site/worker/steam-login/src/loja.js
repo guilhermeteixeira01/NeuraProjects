@@ -237,7 +237,7 @@ async function partidasPremium(env, id) {
 }
 
 // Ações que mexem no saldo ou mostram o saldo: antes delas entram os bônus para todos e o bônus Premium de partida
-const COM_SALDO = new Set(['saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir', 'vender', 'mercado-comprar', 'dep-creditar', 'cobrar', 'oficial-ler', 'oficial-comprar', 'oficial-dar'])
+const COM_SALDO = new Set(['troca-np', 'saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir', 'vender', 'mercado-comprar', 'dep-creditar', 'cobrar', 'oficial-ler', 'oficial-comprar', 'oficial-dar'])
 const COM_CAIXAS = new Set(['estado', 'comprar', 'abrir', 'diario', 'diario-pontos', 'diario-caixa'])
 const novaNotif = (id, titulo, texto, link, extra = {}) => ({ id, titulo, texto, link, quando: Date.now(), lida: false, ...extra })
 
@@ -564,6 +564,21 @@ export class Loja {
         return this.abrir(id, caixas, cfg, saldo, p)
       case 'historico':
         return { aberturas: this.sql.exec('SELECT ts, caixa, t, d, p, r, f FROM aberturas ORDER BY id DESC LIMIT 100').toArray() }
+      case 'troca-np': {
+        if (!Number.isSafeInteger(p.valor) || !Number.isSafeInteger(saldo() + p.valor)) throw new ErroPedido('np-invalido')
+        this.sql.exec('CREATE TABLE IF NOT EXISTS trocas_np (chave TEXT PRIMARY KEY, valor INTEGER NOT NULL)')
+        this.ctx.storage.transactionSync(() => {
+          const anterior = this.sql.exec('SELECT valor FROM trocas_np WHERE chave = ?', p.chave).toArray()[0]
+          if (anterior) {
+            if (anterior.valor !== p.valor) throw new ErroConflito('np-invalido')
+            return
+          }
+          if (p.valor < 0 && saldo() < -p.valor) throw new ErroConflito('saldo')
+          this.movimentar(Date.now(), -p.valor, 'Troca ' + p.chave)
+          this.sql.exec('INSERT INTO trocas_np (chave, valor) VALUES (?, ?)', p.chave, p.valor)
+        })
+        return { saldo: saldo() }
+      }
       case 'creditar': { // valor > 0 dá NP, valor < 0 tira
         const v = Math.round(num(p.valor, -1e7, 1e7, 0))
         this.ctx.storage.transactionSync(() => this.movimentar(Date.now(), -v, p.motivo || 'ajuste do dono'))

@@ -25,11 +25,11 @@ const referenciaItem = (item, valor, cat) => {
   return null
 }
 
-function ResumoTroca({ dou, recebo, cat }) {
+function ResumoTroca({ dou, recebo, cat, douNP = 0, receboNP = 0 }) {
   const t = useT()
   const resumo = calcularResumoTroca(
-    dou.map(i => referenciaItem(i.item, i.valor, cat)),
-    recebo.map(i => referenciaItem(i.item, i.valor, cat)),
+    [douNP, ...dou.map(i => referenciaItem(i.item, i.valor, cat))],
+    [receboNP, ...recebo.map(i => referenciaItem(i.item, i.valor, cat))],
   )
   const valor = v => v === null ? t('Sem cotação completa') : `${numeroNP(v)} NP`
   const diferenca = resumo.diferenca
@@ -41,20 +41,22 @@ function ResumoTroca({ dou, recebo, cat }) {
         <div><dt>{t('Você recebe')} · {recebo.length} {t('item(ns)')}</dt><dd>{valor(resumo.recebido)}</dd></div>
       </dl>
       <p className="tr-resumo-diferenca">
-        {!dou.length && !recebo.length ? t('Selecione os itens para comparar os valores.')
+        {!dou.length && !recebo.length && !douNP && !receboNP ? t('Selecione os itens para comparar os valores.')
           : diferenca === null ? t('Não é possível calcular a diferença sem o valor de todos os itens.')
-          : diferenca > 0 ? t('Você ganha {n} NP em valor de itens.', { n: numeroNP(diferenca) })
-          : diferenca < 0 ? t('Você perde {n} NP em valor de itens.', { n: numeroNP(-diferenca) })
+          : diferenca > 0 ? t('Você ganha {n} NP em valor total.', { n: numeroNP(diferenca) })
+          : diferenca < 0 ? t('Você perde {n} NP em valor total.', { n: numeroNP(-diferenca) })
           : t('Troca equilibrada: diferença de 0 NP.')}
       </p>
-      <small>{t('Valores de referência dos itens. Esta troca não movimenta seu saldo de NP.')}</small>
+      <small>{t('Valores de referência dos itens somados aos NP da proposta. Os pontos são transferidos ao aceitar.')}</small>
     </section>
   )
 }
 
 const MENSAGENS = {
   jogador: 'Jogador não encontrado (ele precisa já ter entrado no site).',
-  vazia: 'Escolha pelo menos um item.',
+  vazia: 'Escolha pelo menos um item ou adicione NP.',
+  saldo: 'Um dos jogadores não tem saldo de NP suficiente.',
+  'np-invalido': 'Informe uma quantidade inteira e válida de NP.',
   'muitos-itens': 'No máximo 20 itens de cada lado.',
   'muitas-pendentes': 'Você já tem propostas demais esperando resposta.',
   'item-invalido': 'Algum item não pode ser trocado.',
@@ -192,6 +194,9 @@ export function JanelaTroca({ para, aoFechar, aoEnviada }) {
   const [filtro, setFiltro] = useState('tudo')
   const [dar, setDar] = useState([])
   const [pedir, setPedir] = useState([])
+  const [darNP, setDarNP] = useState('')
+  const [pedirNP, setPedirNP] = useState('')
+  const npValido = [darNP, pedirNP].every(v => Number.isSafeInteger(Number(v || 0)) && Number(v || 0) >= 0)
   const [msg, setMsg] = useState('')
   const [erro, setErro] = useState('')
   const [enviando, setEnviando] = useState(false)
@@ -244,7 +249,7 @@ export function JanelaTroca({ para, aoFechar, aoEnviada }) {
     setEnviando(true)
     setErro('')
     try {
-      const r = await comSenha(t('Para propor a troca, digite a sua senha de segurança.'), (senha) => chamarApi('/trocas', { para: para.id, dar, pedir, msg, senha }))
+      const r = await comSenha(t('Para propor a troca, digite a sua senha de segurança.'), (senha) => chamarApi('/trocas', { para: para.id, dar, pedir, darNP: Number(darNP || 0), pedirNP: Number(pedirNP || 0), msg, senha }))
       if (r.cancelado) return
       aoEnviada?.()
       aoFechar()
@@ -321,20 +326,22 @@ export function JanelaTroca({ para, aoFechar, aoEnviada }) {
           <section className="tr-dir">
             <h3>{t('Seus itens')}</h3>
             <small>{t('Estes são os itens que você perderá na troca.')}</small>
+            <label className="tr-np">{t('Você oferece NP')}<input type="number" min="0" step="1" inputMode="numeric" value={darNP} onChange={e => setDarNP(e.target.value)} placeholder="0" /></label>
             {slots(dar, meu, (id) => setDar(dar.filter((x) => x !== id)))}
             <p className="tr-estado">{dar.length || pedir.length ? t('Você oferece {a} e pede {b}.', { a: dar.length, b: pedir.length }) : t('Esperando que você ofereça um ou mais itens.')}</p>
             <h3>
               {t('Itens de')} {para.nome}
             </h3>
             <small>{t('Estes são os itens que você receberá na troca.')}</small>
+            <label className="tr-np">{t('Você pede NP')}<input type="number" min="0" step="1" inputMode="numeric" value={pedirNP} onChange={e => setPedirNP(e.target.value)} placeholder="0" /></label>
             {slots(pedir, dele, (id) => setPedir(pedir.filter((x) => x !== id)))}
-            <ResumoTroca dou={oferecidos} recebo={pedidos} cat={cat} />
+            <ResumoTroca dou={oferecidos} recebo={pedidos} cat={cat} douNP={Number(darNP || 0)} receboNP={Number(pedirNP || 0)} />
             <label className="tr-msg">
               {t('Inclua uma mensagem com a sua proposta:')}
               <textarea value={msg} maxLength={200} onChange={(e) => setMsg(e.target.value)} rows={2} />
             </label>
             {erro && <p className="tr-erro">{t(textoErro({ message: erro }))}</p>}
-            <button type="button" className="tr-realizar" disabled={enviando || (!dar.length && !pedir.length)} onClick={() => (dar.length && !pedir.length ? setPresente(true) : enviar())}>
+            <button type="button" className="tr-realizar" disabled={enviando || !npValido || (!dar.length && !pedir.length && !Number(darNP) && !Number(pedirNP))} onClick={() => ((dar.length || Number(darNP)) && !pedir.length && !Number(pedirNP) ? setPresente(true) : enviar())}>
               {enviando ? t('Enviando…') : t('Realizar proposta')}
             </button>
             <small>{t('{nome} receberá uma notificação desta proposta e tem 7 dias para responder.', { nome: para.nome })}</small>
@@ -346,10 +353,10 @@ export function JanelaTroca({ para, aoFechar, aoEnviada }) {
           <div className="tr-presente" role="alertdialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
             <h3>{t('Dar de presente?')}</h3>
             <p>
-              {t('Você escolheu {n} item(ns) para dar, mas não pediu nada de {nome}. Se ele(a) aceitar, você perde os itens e não recebe nada em troca.', { n: dar.length, nome: para.nome })}
+              {t('Você escolheu {n} item(ns) para dar, mas não pediu nada de {nome}. Se ele(a) aceitar, você entrega os itens e os NP indicados abaixo e não recebe nada em troca.', { n: dar.length, nome: para.nome })}
             </p>
             <p>{t('Quer mesmo dar de presente? Para trocar, volte e escolha o que você quer receber em "Inventário dele(a)".')}</p>
-            <ResumoTroca dou={oferecidos} recebo={pedidos} cat={cat} />
+            <ResumoTroca dou={oferecidos} recebo={pedidos} cat={cat} douNP={Number(darNP || 0)} receboNP={Number(pedirNP || 0)} />
             <div className="tr-presente-botoes">
               <button type="button" className="inv-btn" onClick={() => setPresente(false)}>
                 {t('Voltar e escolher')}
@@ -456,7 +463,8 @@ function CartaoProposta({ p, eu, cat, aoMudar }) {
           <div className="tr-prop-itens">{recebo.length ? recebo.map((i) => <ItemTroca key={i.id} item={i.item} id={i.id} cat={cat} pequeno />) : <small>{t('Nada')}</small>}</div>
         </div>
       </div>
-      <ResumoTroca dou={dou} recebo={recebo} cat={cat} />
+      <p className="tr-np-valores">{t('Você entrega')}: {numeroNP((euPropus ? p.darNP : p.pedirNP) || 0)} NP · {t('Você recebe')}: {numeroNP((euPropus ? p.pedirNP : p.darNP) || 0)} NP</p>
+      <ResumoTroca dou={dou} recebo={recebo} cat={cat} douNP={(euPropus ? p.darNP : p.pedirNP) || 0} receboNP={(euPropus ? p.pedirNP : p.darNP) || 0} />
       {erro && <p className="tr-erro">{t(textoErro({ message: erro }))}</p>}
       {p.estado === 'pendente' && (
         <footer>

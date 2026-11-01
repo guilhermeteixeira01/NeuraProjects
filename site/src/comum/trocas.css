@@ -192,3 +192,7 @@ button.tr-item:hover { background: rgb(255 255 255 / .06); }
   .tri-nome b { font-size: 11.5px; }
   .tri-nome small, .tri-nome em { font-size: 10.5px; }
 }
+
+.tr-np { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0; color: #b9cddd; }
+.tr-np input { width: 160px; min-width: 0; padding: 10px; background: #061421; color: #fff; border: 1px solid #294055; border-radius: 6px; }
+.tr-np-valores { color: #ffd45a; overflow-wrap: anywhere; }

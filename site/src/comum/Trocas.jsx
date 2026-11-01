@@ -73,7 +73,7 @@ export function AvisoTroca() {
       registrarNotificacao(conta.id, {
         id: `troca:${p.id}`,
         titulo: `${p.deNome || 'Alguém'} quer trocar com você`,
-        texto: `${p.dar.length} item(ns) dele(a) por ${p.pedir.length} seu(s)`,
+        texto: `${p.dar.length} item(ns) + ${(p.darNP || 0).toLocaleString('pt-BR')} NP dele(a) por ${p.pedir.length} item(ns) + ${(p.pedirNP || 0).toLocaleString('pt-BR')} NP seu(s)`,
         imagem: p.deAvatar || '',
         link: '/inventario/?trocas=1',
       })
