@@ -715,9 +715,13 @@ function useCelular() {
   return cel
 }
 
-function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEquipar, aoDesequipar, aoDetalhes, aoEditar }) {
+function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEquipar, aoDesequipar, aoDetalhes, aoEditar, mapa }) {
   const t = useT()
   const fechar = useRef(null)
+  const m3d = useMapas3d(mapa)
+  const [sem3d, setSem3d] = useState(false)
+  const idSel = alvo?.item?.__id
+  useEffect(() => setSem3d(false), [idSel])
   useEffect(() => {
     if (!celular || !aberto) return
     fechar.current?.focus()
@@ -745,6 +749,7 @@ function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEqui
   const times = (!guardado && d.times) || []
   const equipados = times.filter((l) => equip?.[l]?.[chave] === item.__id)
   const c4 = !guardado && ehC4(item)
+  const tem3d = !guardado && !!m3d && !sem3d && ['arma', 'faca', 'luva'].includes(item.t) && idNo3d(item, m3d) !== undefined
   const equipavel = !guardado && !c4 && ['arma', 'faca', 'luva'].includes(item.t) && times.length > 0
   const todos = equipavel && equipados.length === times.length
   const raridade = nomeRaridade(item, d.cor, t.idioma)
@@ -764,7 +769,10 @@ function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEqui
         <small>{temFloat ? t(nomeDoDesgaste(f)) : guardado ? `${d.tipoNome}${alvo.n > 1 ? ` · ×${alvo.n}` : ''}` : ''}</small>
       </header>
       <div className="inv-painel-arte" style={{ '--inv-painel-fundo': `url("${FUNDOS.inventario.src}")` }}>
-        {d.img ? <img src={d.img} alt="" decoding="async" /> : <span className="inv-sem-img" aria-hidden="true" />}
+        {tem3d ? (
+          // arma inspecionada em 3D (gira com o mouse), com adesivos e chaveiro; sobre o fundo do painel. Sem o 3D, a imagem da Steam.
+          <div className="inv-painel-3d"><Visualizador3D key={`${item.__id}:${JSON.stringify([item.a, item.k])}`} item={item} m={m3d} aoMudar={() => {}} aoFalhar={() => setSem3d(true)} altura="100%" /></div>
+        ) : d.img ? <img src={d.img} alt="" decoding="async" /> : <span className="inv-sem-img" aria-hidden="true" />}
         {item.st ? <span className="inv-st">StatTrak™</span> : null}
       </div>
       {temFloat && (
@@ -933,7 +941,7 @@ function Conteudo() {
   }, [temCaixa])
   const adesivos = useCatalogo('adesivos', precisaAdesivos)
   const chaveiros = useCatalogo('chaveiros', precisaAdesivos)
-  const mapa3d = useCatalogo('mapa3d', janela?.tipo === 'editar' || janela?.tipo === 'inspecionar' || janela?.tipo === 'confirmar')
+  const mapa3d = useCatalogo('mapa3d', janela?.tipo === 'editar' || janela?.tipo === 'inspecionar' || janela?.tipo === 'confirmar' || !celular)
 
   useEffect(() => {
     if (!conta?.id) return
@@ -1340,20 +1348,6 @@ function Conteudo() {
       </li>
     )
   }
-  // C4: cartão pequeno, separado das armas (como adesivos e amuletos); só abre o painel/menu de edição
-  const cartaoC4 = () => {
-    const it = { ...inv.itens[ID_C4], __id: ID_C4 }
-    const d = descrever(it, idx)
-    const ativo = selChaveAtual === `i:${ID_C4}`
-    return (
-      <li key="c4" className="inv-cartao-li">
-        <button type="button" className={`inv-cartao inv-cartao-guardado${ativo ? ' inv-cartao-ativo' : ''}`} onClick={(e) => selecionar(`i:${ID_C4}`, e.currentTarget)} onContextMenu={(e) => { e.preventDefault(); setMenu({ x: e.clientX, y: e.clientY, id: ID_C4 }) }}>
-          <span className="inv-cartao-arte"><span className="inv-arma-box"><Imagem src={d.img} classe="inv-arma-img" /></span><span className="inv-st">TR</span></span>
-          <span className="inv-cartao-nome"><b>{d.titulo}</b><small>{t('Sempre equipada')}</small></span>
-        </button>
-      </li>
-    )
-  }
   const guardadoDoMenu = menuGuardado ? guardados.find((g) => g.tipo === menuGuardado.tipo && g.def === menuGuardado.def) : null
   return (
     <ComTopo total={total}>
@@ -1470,7 +1464,7 @@ function Conteudo() {
           ))}
         </ul>
         </section>}
-        {mostrarC4 && <section aria-label="C4"><h3>C4</h3><ul className="inv-itens">{cartaoC4()}</ul></section>}
+        {mostrarC4 && <section aria-label="C4"><h3>C4</h3><ul className="inv-itens"><Cartao key="c4" item={{ ...inv.itens[ID_C4], __id: ID_C4 }} idx={idx} adesivos={adesivosPorId} chaveiros={chaveirosPorId} equip={inv.equip} aoAbrirMenu={abrirMenu} aoSelecionar={(e) => celular ? abrirMenu(e, { ...inv.itens[ID_C4], __id: ID_C4 }) : selecionar(`i:${ID_C4}`, e.currentTarget)} ativo={selChaveAtual === `i:${ID_C4}`} /></ul></section>}
         {[[ 'adesivo', 'Adesivos' ], [ 'chaveiro', 'Amuletos' ], [ 'caixa', 'Caixas' ]].map(([tipo, nome]) => {
           const grupo = guardados.filter(g => g.tipo === tipo)
           return grupo.length > 0 && <section key={tipo} aria-label={t(nome)}>
@@ -1484,6 +1478,7 @@ function Conteudo() {
       </div>
       </div>
       {!celular && <PainelItem
+        mapa={mapa3d.dados}
         alvo={alvo}
         idx={idx}
         equip={inv.equip}

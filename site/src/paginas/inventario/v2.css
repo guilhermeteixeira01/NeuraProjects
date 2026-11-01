@@ -322,3 +322,7 @@ html:not(#v2) #root .inv-pagina .inv-painel-compacto .inv-painel-cab {
   justify-items: center; text-align: center;
 }
 html:not(#v2) #root .inv-pagina .inv-painel-compacto .inv-rar-selo { justify-self: center; }
+
+/* 3D da arma inspecionada: ocupa toda a área da arte e deixa o fundo do painel aparecer */
+.inv-painel-3d { position: absolute; inset: 0; display: block; }
+.inv-painel-3d iframe, .inv-painel-3d > div { width: 100%; height: 100%; border: 0; background: transparent; }
