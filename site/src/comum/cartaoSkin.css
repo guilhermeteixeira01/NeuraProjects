@@ -56,3 +56,14 @@
 .inv-gema-i.inv-gema-2 { color: #8f7bff; }
 .inv-gema-i.inv-gema-3 { color: #7fa4c8; filter: none; }
 .inv-gema-i.inv-gema-4 { color: #8a96a6; filter: none; }
+
+/* Equipamento CT/TR junto ao selo de raridade. */
+#root .inv-cartao .inv-item-identificadores{display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:6px;max-width:100%}
+#root .inv-cartao .inv-item-identificadores .inv-marcas{position:static;display:inline-flex;align-items:center;gap:3px;flex:none}
+#root .inv-cartao .inv-item-identificadores .inv-rar-selo{margin:0}
+#root .inv-cartao .inv-item-identificadores .inv-marca{width:10px;height:10px;border-width:2px}
+
+#root .inv-cartao .inv-cartao-nome .inv-enfeites{position:static;display:flex;align-items:center;gap:5px;width:100%;min-width:0;min-height:20px;margin:0 0 3px;padding:0;background:none}
+#root .inv-cartao .inv-enfeites-fileira{display:flex;align-items:center;gap:2px;min-width:0;max-width:100%}
+#root .inv-cartao .inv-enfeites img{position:static;inset:auto;width:18px;height:18px;max-width:18px;object-fit:contain;transform:none;flex:0 1 18px;min-width:0;filter:drop-shadow(0 1px 2px #0006)}
+#root .inv-cartao .inv-enfeite-chaveiro{border-right:1px solid #294055;padding-right:3px;box-sizing:content-box}

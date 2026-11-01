@@ -1,3 +1,4 @@
+import './cartaoSkin.css'
 import IconeUI from './IconeUI.jsx'
 // Cartão de um item do inventário de skins (o mesmo do /inventario/ e da aba Skins do painel admin): arma sobre fundo transparente com a barra
 // da raridade, bolinhas dos times em que está equipada, StatTrak, chaveiro e adesivos no canto de baixo, nome, skin e desgaste.
@@ -95,6 +96,12 @@ export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
         <span className="inv-arma-box">
           <Imagem src={d.img} classe="inv-arma-img" />
         </span>
+
+
+        {item.st ? <span className="inv-st">StatTrak™</span> : null}
+        {selecionado !== undefined && <i className={`inv-check${selecionado ? ' on' : ''}`} aria-hidden="true" />}
+      </span>
+      <span className="inv-cartao-nome">
         {item.t === 'arma' && (item.k?.i > 0 || item.a?.some(Boolean)) && (
           <span className="inv-enfeites">
             {item.k?.i > 0 && <Imagem src={urlImg(chaveiros?.get(item.k.i)?.[2], 64)} classe="inv-enfeite-chaveiro" />}
@@ -103,16 +110,11 @@ export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
             </span>
           </span>
         )}
-        <span className="inv-marcas">
+        <span className="inv-item-identificadores"><SeloRaridade item={item} cor={d.cor} />        <span className="inv-marcas">
           {lados.map(([l]) => (
             <Marca key={l} lado={l} />
           ))}
-        </span>
-        {item.st ? <span className="inv-st">StatTrak™</span> : null}
-        {selecionado !== undefined && <i className={`inv-check${selecionado ? ' on' : ''}`} aria-hidden="true" />}
-      </span>
-      <span className="inv-cartao-nome">
-        <SeloRaridade item={item} cor={d.cor} />
+        </span></span>
         <b>
           <GemaNome item={item} />
           {item.n ? `${d.titulo} «${item.n}»` : d.titulo}

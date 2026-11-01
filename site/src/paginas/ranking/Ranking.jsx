@@ -92,9 +92,12 @@ function Forma({ j }) {
 function PersonagemPodio({ arte }) {
   const video = useRef(null)
   const [erro, setErro] = useState(false)
+  const [reproduzindo, setReproduzindo] = useState(false)
   useEffect(() => {
     const el = video.current
     if (!el) return
+    el.muted = true
+    el.defaultMuted = true
     const movimento = window.matchMedia('(prefers-reduced-motion: reduce)')
     let visivel = true
     const atualizar = () => {
@@ -117,7 +120,10 @@ function PersonagemPodio({ arte }) {
       el.pause()
     }
   }, [erro, arte.video])
-  return erro ? <img src={arte.src} width={arte.w} height={arte.h} alt="" /> : <video ref={video} src={arte.video} muted loop playsInline preload="auto" onError={() => setErro(true)} />
+  return <>
+    {(!reproduzindo || erro) && <img src={arte.src} width={arte.w} height={arte.h} alt="" />}
+    {!erro && <video ref={video} src={arte.video} poster={arte.src} autoPlay muted loop playsInline preload="auto" style={{ opacity: reproduzindo ? 1 : 0 }} onPlaying={() => setReproduzindo(true)} onError={() => setErro(true)} />}
+  </>
 }
 
 function Podio({ j, pos, m, eu }) {
