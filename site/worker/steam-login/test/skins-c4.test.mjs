@@ -55,3 +55,18 @@ test('emblema, trilha e grafite: o dono dá, o jogador equipa um de cada e o plu
   assert.equal(plugin.perfil.grafite.p, 3)
   assert.equal(plugin.perfil.trilha.d, 6)
 })
+
+test('o plugin recebe premium: true só com assinatura ativa', async () => {
+  const f = ambiente()
+  const { mudar } = await import('../src/dados.js')
+  const ATIVO = '76561198000000744', VENCIDO = '76561198000000745', SEM = '76561198000000746'
+  const agora = Date.now()
+  await mudar(f.env, 'perfis', [ATIVO, VENCIDO], (p) => {
+    p[ATIVO] = { sub: { inicio: agora - 86400000, expira: agora + 86400000 } }
+    p[VENCIDO] = { sub: { inicio: agora - 3 * 86400000, expira: agora - 86400000 } }
+  })
+  const r = (await f.pedir('POST', '/servidor/skins', { corpo: { ids: [ATIVO, VENCIDO, SEM] }, cabecalhos: { Authorization: 'Bearer token-servidor' } })).dados
+  assert.equal(r[ATIVO].premium, true)
+  assert.ok(!r[VENCIDO] || r[VENCIDO].premium === false)
+  assert.ok(!r[SEM] || r[SEM].premium === false)
+})

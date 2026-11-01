@@ -28,6 +28,7 @@ import { objetoGlobal, pedir } from './objetos.js'
  *   Inventário no formato antigo (v1: armas/facas/luvas/agentes soltos) é convertido ao ler.
  */
 import { lerDoc } from './dados.js'
+import { lerPerfil, subAtiva } from './perfis.js'
 import { ErroConflito, ErroNaoEncontrado, ErroPedido, ErroServico } from './erros.js'
 import { exigirBearer, json, lerCorpo } from './http.js'
 import { lerJsonKv } from './kv.js'
@@ -424,7 +425,9 @@ export async function rotaServidorSkins(req, env) {
     lista.map(async (id) => {
       const inv = await lerSkins(env, id)
       const r = inv && resolverEquipado(inv)
-      if (r) resposta[id] = r
+      // premium = assinatura ativa (o plugin coloca quem é premium no grupo #np/subscriber do servidor, se não tiver cargo maior)
+      const premium = subAtiva((await lerPerfil(env, id))?.sub)
+      if (r || premium) resposta[id] = { ...(r || {}), premium }
     }),
   )
   return json(resposta)
