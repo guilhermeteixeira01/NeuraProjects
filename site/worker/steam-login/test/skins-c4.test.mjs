@@ -70,3 +70,16 @@ test('o plugin recebe premium: true só com assinatura ativa', async () => {
   assert.ok(!r[VENCIDO] || r[VENCIDO].premium === false)
   assert.ok(!r[SEM] || r[SEM].premium === false)
 })
+
+test('o plugin recebe o cargo do site: dono, admin e premium', async () => {
+  const f = ambiente()
+  const { mudar } = await import('../src/dados.js')
+  const { DONO } = await import('./ambiente.mjs')
+  const ADM = '76561198000000747', PREM = '76561198000000748'
+  await mudar(f.env, 'docs', ['config'], (d) => { d.config = { ...(d.config || {}), admins: [ADM] } })
+  await mudar(f.env, 'perfis', [PREM], (p) => { p[PREM] = { sub: { inicio: Date.now() - 86400000, expira: Date.now() + 86400000 } } })
+  const r = (await f.pedir('POST', '/servidor/skins', { corpo: { ids: [DONO, ADM, PREM] }, cabecalhos: { Authorization: 'Bearer token-servidor' } })).dados
+  assert.equal(r[DONO].cargo, 'dono')
+  assert.equal(r[ADM].cargo, 'admin')
+  assert.equal(r[PREM].cargo, 'premium')
+})

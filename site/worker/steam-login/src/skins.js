@@ -28,7 +28,7 @@ import { objetoGlobal, pedir } from './objetos.js'
  *   Inventário no formato antigo (v1: armas/facas/luvas/agentes soltos) é convertido ao ler.
  */
 import { lerDoc } from './dados.js'
-import { lerPerfil, subAtiva } from './perfis.js'
+import { lerConfig, lerPerfil, subAtiva } from './perfis.js'
 import { ErroConflito, ErroNaoEncontrado, ErroPedido, ErroServico } from './erros.js'
 import { exigirBearer, json, lerCorpo } from './http.js'
 import { lerJsonKv } from './kv.js'
@@ -421,13 +421,16 @@ export async function rotaServidorSkins(req, env) {
   const { ids } = await lerCorpo(req)
   const lista = [...new Set((Array.isArray(ids) ? ids : []).map(String).filter((i) => ID_STEAM.test(i)))].slice(0, 40)
   const resposta = {}
+  const config = await lerConfig(env)
   await Promise.all(
     lista.map(async (id) => {
       const inv = await lerSkins(env, id)
       const r = inv && resolverEquipado(inv)
-      // premium = assinatura ativa (o plugin coloca quem é premium no grupo #np/subscriber do servidor, se não tiver cargo maior)
+      // cargo no servidor (o plugin põe o jogador no grupo certo, se ele não tiver um cargo maior):
+      //   dono -> "dono" (#np/dev) · admin do site -> "admin" (#np/staff) · assinatura ativa -> "premium" (#np/subscriber)
       const premium = subAtiva((await lerPerfil(env, id))?.sub)
-      if (r || premium) resposta[id] = { ...(r || {}), premium }
+      const cargo = id === env.DONO ? 'dono' : (config.admins || []).includes(id) ? 'admin' : premium ? 'premium' : null
+      if (r || cargo) resposta[id] = { ...(r || {}), premium, cargo }
     }),
   )
   return json(resposta)
