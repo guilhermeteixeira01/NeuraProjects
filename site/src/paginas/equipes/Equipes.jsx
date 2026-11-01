@@ -11,6 +11,7 @@ import { useAvatar } from '../../comum/avatares.js'
 import { definirMudoEquipe, definirVendoChatEquipe, useAvisoEquipe } from '../../comum/avisoEquipe.js'
 import { useT } from '../../comum/i18n.js'
 import { PERMISSOES, acaoEquipe, lerChatDoTime, lerEquipes, lerMeuTime, reduzirImagem, textoErro, urlImagemEquipe } from '../../comum/equipes.js'
+import { PERSONAGENS, fundoCss } from '../../comum/assetsV2.js' // capa do time: cenário e agentes em camadas
 
 const iniciais = (n) => (n || '?').replace(/[^\p{L}\p{N}\s]/gu, '').split(/\s+/).filter(Boolean).slice(0, 2).map((x) => x[0]).join('').toUpperCase() || '?'
 
@@ -575,6 +576,93 @@ function Config({ time, fazer, ocupado, aoApagar }) {
 }
 
 // ── quem tem time ──
+// Visão geral (referência): contadores compactos; membros à esquerda; seu cargo e o chat do time à direita; convites pendentes embaixo.
+// Tudo com os dados reais do time. Não há "status online" no serviço do time, então a tabela não mostra essa coluna.
+function VisaoGeral({ time, eu, pode, fazer, ocupado, aoGerenciar }) {
+  const t = useT()
+  const cargoDe = (m) => (m.dono ? { nome: t('Dono'), cor: '#f5c518' } : time.cargos.find((c) => c.id === m.cargo) || { nome: t('Membro'), cor: '#9aa0a8' })
+  const meuCargo = pode('dono')
+    ? t('Dono do time: você pode tudo.')
+    : time.minhas.length
+      ? `${t('Você pode')}: ${time.minhas.map((p) => t(PERMISSOES.find((x) => x[0] === p)?.[1] || p)).join(', ')}.`
+      : t('Membro: sem permissões especiais.')
+  const convites = time.convitesEnviados || []
+  return (
+    <div className="eq-v2-geral">
+      <div className="eq-v2-contadores">
+        <div className="eq-v2-contador">
+          <IconeUI tipo="grupo" tamanho={36} />
+          <div><b className="v2-num">{time.membros.length}</b><small>{t('membros')}</small></div>
+        </div>
+        <div className="eq-v2-contador">
+          <IconeUI tipo="escudo" tamanho={36} />
+          <div><b className="v2-num">{time.cargos.length}</b><small>{t('cargos')}</small></div>
+        </div>
+        <div className="eq-v2-contador">
+          <IconeUI tipo="calendario" tamanho={36} />
+          <div><small>{t('Criado em')}</small><b className="v2-num">{new Date(time.criada).toLocaleDateString(t.local, { day: 'numeric', month: 'short', year: 'numeric' })}</b></div>
+        </div>
+      </div>
+
+      <section className="v2-painel eq-v2-membros" aria-label={t('Membros do time')}>
+        <header className="v2-painel-cab">
+          <h2><IconeUI tipo="grupo" tamanho={22} />{t('Membros do time')} <small>({time.membros.length})</small></h2>
+          {(pode('dono') || pode('expulsar')) && <button type="button" className="v2-btn v2-btn-secundario eq-v2-gerenciar" onClick={aoGerenciar}><IconeUI tipo="configuracoes" tamanho={16} />{t('Gerenciar membros')}</button>}
+        </header>
+        <div className="eq-v2-tabela">
+          <div className="eq-v2-linha eq-v2-cab"><span>#</span><span>{t('Jogador')}</span><span>{t('Cargo')}</span></div>
+          {time.membros.map((m, i) => {
+            const c = cargoDe(m)
+            return (
+              <div className="eq-v2-linha" key={m.id}>
+                <span className="v2-num">{i + 1}</span>
+                <a className="eq-v2-jogador" href={linkPerfil(m.id)}>
+                  <Foto id={m.id} nome={m.nome} avatar={m.avatar} tamanho={40} />
+                  <b>{m.nome || m.id}</b>
+                  {m.dono && <IconeUI tipo="coroa" tamanho={16} className="eq-v2-coroa" />}
+                  {m.id === eu && <span className="v2-voce">{t('Você')}</span>}
+                </a>
+                <span className="eq-cargo" style={{ '--cor': c.cor }}>{c.nome}</span>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
+      <div className="eq-v2-direita">
+        <section className="v2-painel eq-v2-cargo">
+          <header className="v2-painel-cab"><h2><IconeUI tipo="perfil" tamanho={22} />{t('Seu cargo')}</h2></header>
+          <div className="eq-v2-cargo-corpo">
+            <IconeUI tipo={pode('dono') ? 'coroa' : 'escudo'} tamanho={44} className="eq-v2-cargo-icone" />
+            <p>{meuCargo}</p>
+          </div>
+        </section>
+        <section className="v2-painel eq-v2-chat" aria-label={t('Chat do time')}>
+          <header className="v2-painel-cab"><h2><IconeUI tipo="mensagem" tamanho={22} />{t('Chat do time')}</h2></header>
+          <ChatDoTime key={time.id} time={time} eu={eu} pode={pode} />
+        </section>
+      </div>
+
+      <section className="v2-painel eq-v2-convites" aria-label={t('Convites')}>
+        <header className="v2-painel-cab"><h2><IconeUI tipo="email" tamanho={22} />{t('Convites')} <small>({convites.length})</small></h2></header>
+        {convites.length ? (
+          <ul className="eq-v2-convites-lista">
+            {convites.map((c) => (
+              <li key={c.id}>
+                <Foto id={c.id} nome={c.nome} avatar={c.avatar} tamanho={36} />
+                <span>{c.nome || c.id}</span>
+                {(pode('convidar') || pode('dono')) && <button type="button" className="eq-btn" disabled={ocupado} onClick={() => fazer('convite-cancelar', { alvo: c.id })}>{t('Cancelar')}</button>}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="v2-vazio"><IconeUI tipo="email" tamanho={30} /><b>{t('Nenhum convite pendente')}</b><span>{t('Quando houver convites, eles aparecerão aqui.')}</span></div>
+        )}
+      </section>
+    </div>
+  )
+}
+
 function ComTime({ dados, recarregar, eu }) {
   const t = useT()
   const time = dados.time
@@ -616,23 +704,50 @@ function ComTime({ dados, recarregar, eu }) {
 
   return (
     <>
-      <header className="eq-cabeca">
-        <Escudo equipe={time} tamanho={88} />
-        <div className="eq-cabeca-txt">
-          <h1 className="nome-proprio">
-            {time.nome} {time.tag && <em>[{time.tag}]</em>}
-          </h1>
-          <p>
-            <span className={`eq-etiqueta ${time.publico ? 'pub' : 'priv'}`}>{time.publico ? t('Público') : t('Privado')}</span> · {t('{n} membro(s)', { n: time.membros.length })} · {t('dono')}: <b>{dono?.nome || time.donoNome}</b>
-          </p>
-          {time.descricao && <p className="eq-desc">{time.descricao}</p>}
+      {/* Capa: cenário recortado (bg-time-v2), agentes (team-squad-v2) por cima, saindo pela borda, e o conteúdo à frente */}
+      <div className="eq-capa-v2">
+        <div className="eq-capa-titulo">
+          <h1>{t('Seu time')}</h1>
+          <p>{t('Gerencie seu time, jogadores, convites e muito mais.')}</p>
         </div>
-        {!pode('dono') && (
-          <button type="button" className="eq-btn eq-btn-perigo" onClick={sair} disabled={ocupado}>
-            {t('Sair do time')}
-          </button>
-        )}
-      </header>
+        <div className="eq-capa-cartao" style={fundoCss('time')}>
+          <div className="eq-capa-cenario" aria-hidden="true" />
+          <div className="eq-capa-camada" aria-hidden="true">
+            <img src={PERSONAGENS.equipe.src} width={PERSONAGENS.equipe.w} height={PERSONAGENS.equipe.h} alt="" decoding="async" draggable="false" />
+          </div>
+          <header className="eq-cabeca">
+            <Escudo equipe={time} tamanho={96} />
+            <div className="eq-cabeca-txt">
+              <h2 className="nome-proprio">
+                {time.nome} {time.tag && <em>[{time.tag}]</em>}
+              </h2>
+              <p>
+                <span className={`eq-etiqueta ${time.publico ? 'pub' : 'priv'}`}>{time.publico ? t('Público') : t('Privado')}</span> · {t('{n} membro(s)', { n: time.membros.length })} · {t('dono')}: <b>{dono?.nome || time.donoNome}</b>
+              </p>
+              {time.descricao && <p className="eq-desc">{time.descricao}</p>}
+            </div>
+            <div className="eq-cabeca-acoes">
+              {(pode('convidar') || pode('dono')) && (
+                <button type="button" className="v2-btn v2-btn-primario" onClick={() => setAba('convidar')}>
+                  <IconeUI tipo="maisAdicionar" tamanho={18} />
+                  {t('Convidar membro')}
+                </button>
+              )}
+              {pode('editar') && (
+                <button type="button" className="v2-btn v2-btn-secundario" onClick={() => setAba('config')}>
+                  <IconeUI tipo="configuracoes" tamanho={18} />
+                  {t('Configurações')}
+                </button>
+              )}
+              {!pode('dono') && (
+                <button type="button" className="eq-btn eq-btn-perigo" onClick={sair} disabled={ocupado}>
+                  {t('Sair do time')}
+                </button>
+              )}
+            </div>
+          </header>
+        </div>
+      </div>
 
       <nav className="eq-abas" role="tablist">
         {abas.map(([id, nome]) => (
@@ -644,28 +759,7 @@ function ComTime({ dados, recarregar, eu }) {
       {erro && <p className="eq-erro" role="alert">{t(erro)}</p>}
 
       <section className="eq-painel">
-        {aAba === 'geral' && (
-          <div className="eq-geral">
-            <div className="eq-stat">
-              <b>{time.membros.length}</b>
-              <small>{t('membros')}</small>
-            </div>
-            <div className="eq-stat">
-              <b>{time.cargos.length}</b>
-              <small>{t('cargos')}</small>
-            </div>
-            <div className="eq-stat">
-              <b>{new Date(time.criada).toLocaleDateString()}</b>
-              <small>{t('criado em')}</small>
-            </div>
-            <div className="eq-lado">
-              <h3>{t('Seu cargo')}</h3>
-              <p>
-                {pode('dono') ? t('Dono do time: você pode tudo.') : time.minhas.length ? `${t('Você pode')}: ${time.minhas.map((p) => t(PERMISSOES.find((x) => x[0] === p)?.[1] || p)).join(', ')}.` : t('Membro: sem permissões especiais.')}
-              </p>
-            </div>
-          </div>
-        )}
+        {aAba === 'geral' && <VisaoGeral time={time} eu={eu} pode={pode} fazer={fazer} ocupado={ocupado} aoGerenciar={() => setAba('membros')} />}
         {aAba === 'membros' && <Membros time={time} eu={eu} pode={pode} fazer={fazer} ocupado={ocupado} />}
         {aAba === 'chat' && <ChatDoTime key={time.id} time={time} eu={eu} pode={pode} />}
         {aAba === 'convidar' && <Convidar time={time} fazer={fazer} ocupado={ocupado} />}

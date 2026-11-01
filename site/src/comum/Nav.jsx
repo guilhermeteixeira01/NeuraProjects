@@ -10,6 +10,7 @@ import Configuracoes, { BotaoSom } from './Configuracoes.jsx'
 import { useT } from './i18n.js'
 
 // Aba do painel de administrador (só aparece para admin; o worker confere de novo em toda ação)
+const ITEM_TIMES_REGISTRADOS = { id: 'times', rotulo: 'Times registrados', href: '/times/', icone: 'trofeu' }
 const ITEM_ADMIN = { id: 'admin', rotulo: 'Admin', href: '/admin/', icone: 'escudo' }
 import { ComMoldura } from './Moldura.jsx'
 import { useSeguranca } from './seguranca.js'
@@ -20,6 +21,8 @@ import PainelPartidas from './PainelPartidas.jsx'
 import { iniciarAvisoEquipe, useAvisoEquipe } from './avisoEquipe.js'
 import { useAmigos } from './amigos.js'
 import ResumoMenuConta from './ResumoMenuConta.jsx'
+import { useNivelDe } from './Nivel.jsx'
+import { corNivel } from './niveis.js'
 
 const Deposito = lazy(() => import("../paginas/loja/Deposito.jsx")) // só baixa quando alguém clica em "Seja Premium"
 const TrocarNick = lazy(() => import('./BoasVindas.jsx').then(m => ({ default: m.TrocarNick })))
@@ -43,6 +46,30 @@ function LinkMenu({ item, atual }) {
       {item.selo && <span className="nx-selo">{item.selo}</span>}
       {item.id === 'equipes' && pendente && <span className="nx-alerta" role="status" aria-label={t('Mensagem nova no chat do time')}>!</span>}
     </a>
+  )
+}
+
+// Nível Neura de quem está logado, embaixo do nome na barra de cima (XP do ranking.json + ajuste do perfil).
+// O ranking é lido uma vez por página; sem partidas aparece "Sem classificação".
+let rankingDaConta = null
+function NivelDaConta({ id }) {
+  const t = useT()
+  const [j, setJ] = useState(null)
+  useEffect(() => {
+    let vivo = true
+    rankingDaConta ??= fetch('/ranking/ranking.json').then((r) => (r.ok ? r.json() : null)).catch(() => null)
+    rankingDaConta.then((d) => vivo && setJ(d?.jogadores?.find((x) => x.steamId === id) || null))
+    return () => {
+      vivo = false
+    }
+  }, [id])
+  const nivel = useNivelDe({ ...j, steamId: id })
+  const progresso = nivel.classificado ? nivel.progresso : (nivel.partidas || 0) / Math.max(1, (nivel.partidas || 0) + (nivel.faltamPartidas || 0))
+  return (
+    <span className="nx-conta-nivel" aria-hidden="true" style={{ '--cor-nivel-conta': nivel.classificado ? corNivel(nivel.nivel) : '#5b616d' }}>
+      <i style={{ '--p': `${Math.round(Math.max(0, Math.min(1, progresso)) * 100)}%` }} />
+      {nivel.classificado ? t('Nível {n}', { n: nivel.nivel >= 11 ? 'Elite' : nivel.nivel }) : t('Sem classificação')}
+    </span>
   )
 }
 
@@ -78,9 +105,8 @@ function Conta() {
   if (!loginAtivo()) return null
   if (!conta)
     return (
-      <button type="button" className="nx-btn nx-steam" onClick={entrar}>
+      <button type="button" className="nx-btn nx-steam" aria-label={t('Entrar com Steam')} title={t('Entrar com Steam')} onClick={entrar}>
         <IconeSteam />
-        <span className="nx-dica">{t('Entrar')}</span>
       </button>
     )
 
@@ -89,6 +115,7 @@ function Conta() {
   return (
     <div className="nx-conta" ref={caixa}>
       <button type="button" className="nx-conta-btn" aria-label={t('Minha conta')} aria-haspopup="dialog" aria-expanded={aberto} onClick={() => setAberto((a) => !a)}>
+        <span className="nx-conta-avatar">
         <ComMoldura steamId={conta.id} emblema>
           {avatar && erroAvatar !== avatar ? (
             <img src={avatar} alt="" width="28" height="28" onError={() => setErroAvatar(avatar)} />
@@ -96,7 +123,10 @@ function Conta() {
             <span className="nx-conta-ini">{nome.slice(0, 2).toUpperCase()}</span>
           )}
         </ComMoldura>
+        </span>
         <span className="nx-conta-nome nx-dica">{nome}</span>
+        <NivelDaConta id={conta.id} />
+        <IconeUI tipo="baixo" tamanho={18} className="nx-conta-seta" />
       </button>
       {aberto && naTela(
         <div ref={painel} className={`nx-conta-menu nc-card${celular ? ' nx-painel-mobile' : ''}`} role="dialog" aria-modal={celular || undefined} aria-label={t('Minha conta')}>
@@ -124,9 +154,51 @@ const SEM_LOGIN = ['inicio', 'lobby', 'ranking', 'inventario', 'loja'] // o ▶ 
 
 // Páginas fora do MENU: só para o título da barra de cima no celular
 const OUTRAS = {
-  perfil: { rotulo: 'Perfil', icone: 'perfil' },
-  times: { rotulo: 'Times', icone: 'mapa' },
+  perfil: { rotulo: 'Perfil', icone: 'perfil', trilha: 'Perfil do jogador' },
+  times: { rotulo: 'Times', icone: 'mapa', trilha: 'Times registrados' },
   naoencontrada: { rotulo: 'Página não encontrada', icone: 'casa' },
+}
+
+// Menu da esquerda recolhido (só os ícones) ou aberto (ícone + nome): escolha guardada no navegador. Sem escolha, só o
+// Lobby começa recolhido (a tela dele precisa da largura toda para os 5 jogadores e os controles da partida).
+const CHAVE_RECOLHIDO = 'np_menu_recolhido'
+function lerRecolhido(pagina) {
+  try {
+    const v = localStorage.getItem(CHAVE_RECOLHIDO)
+    if (v === '1' || v === '0') return v === '1'
+  } catch {
+    // sem armazenamento: usa o padrão
+  }
+  // Lobby e telas de 1025 a 1279 px (onde o menu aberto roubaria espaço demais do conteúdo) começam recolhidos
+  return pagina === 'lobby' || window.innerWidth < 1280
+}
+
+// Caminho da página atual na barra de cima (Início › Ranking). `trilha` vem da página quando ela tem um nível a mais
+// (ex.: a partida: Partidas › Cache).
+function Trilha({ pagina, atual, trilha }) {
+  const t = useT()
+  const passos = trilha || (pagina === 'inicio' ? [] : [{ rotulo: atual.trilha || atual.rotulo }])
+  return (
+    <nav className="np-trilha" aria-label={t('Você está em')}>
+      <ol>
+        <li>
+          <a href="/" {...(passos.length ? {} : { 'aria-current': 'page' })}>
+            <IconeUI tipo="casa" tamanho={17} />
+            <span>{t('Início')}</span>
+          </a>
+        </li>
+        {passos.map((p, i) => {
+          const ultimo = i === passos.length - 1
+          return (
+            <li key={i}>
+              <IconeUI tipo="direita" tamanho={14} className="np-trilha-sep" />
+              {p.href && !ultimo ? <a href={p.href}>{t(p.rotulo)}</a> : <span {...(ultimo ? { 'aria-current': 'page' } : {})}>{t(p.rotulo)}</span>}
+            </li>
+          )
+        })}
+      </ol>
+    </nav>
+  )
 }
 
 // Celular: "Mais" da barra de baixo abre este painel com o resto (Inventário, Admin, Comunidade)
@@ -243,50 +315,46 @@ function BarraRolagem() {
 }
 
 // Menu de todas as páginas.
-// Computador (> 1024px): barra fina na lateral esquerda, só com ícones (o nome aparece ao passar o mouse: .nx-dica).
-// Celular e tablet: barra de cima com o nome da página atual, ⚙ e a conta, e barra de abas fixa embaixo
+// Computador (> 1024px): barra na lateral esquerda com ícone + nome (recolhível até só os ícones; o nome aparece ao
+// passar o mouse: .nx-dica) e barra de cima com o caminho da página, os painéis (partidas, notificações, amigos), som,
+// ⚙ e a conta. Celular e tablet: barra de cima com o nome da página atual, ⚙ e a conta, e barra de abas fixa embaixo
 // (páginas, Perfil e "Mais" com o resto).
-export default function Nav({ pagina }) {
+export default function Nav({ pagina, trilha }) {
   const t = useT()
   const [rolou, setRolou] = useState(false)
   const [mais, setMais] = useState(false)
   const [busca, setBusca] = useState('')
   const [menuAberto, setMenuAberto] = useState(false)
+  // Antes de montar no navegador vale o padrão da página (o HTML gerado no deploy é igual para todo mundo)
+  const [recolhido, setRecolhido] = useState(pagina === 'lobby')
+  useEffect(() => setRecolhido(lerRecolhido(pagina)), [pagina])
+  const alternarRecolhido = () => {
+    const novo = !recolhido
+    setRecolhido(novo)
+    try { localStorage.setItem(CHAVE_RECOLHIDO, novo ? '1' : '0') } catch { /* vale só nesta página */ }
+  }
   const campoBusca = useRef(null)
+  const caixaBusca = useRef(null)
   const botaoBusca = useRef(null)
   useEffect(() => {
     if (menuAberto) campoBusca.current?.focus()
   }, [menuAberto])
+  const abrirBusca = (e) => {
+    botaoBusca.current = e.currentTarget
+    setMenuAberto(true)
+  }
   const recolherMenu = () => {
     setMenuAberto(false)
     setBusca('')
     requestAnimationFrame(() => botaoBusca.current?.focus())
   }
-  const fecharMais = useCallback(() => setMais(false), [])
   useEffect(() => {
-    let destino = null
-    let timer = 0
-    const raiz = document.documentElement
-    const limpar = () => { clearTimeout(timer); destino = null; raiz.classList.remove('nx-fechando') }
-    const navegar = (e) => {
-      if (e.defaultPrevented || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return
-      if (!matchMedia('(min-width: 1025px)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return
-      if (!document.querySelector('.nx-nav.nx-aberta')) return
-      const a = e.target.closest?.('a[href]')
-      if (!a || a.target || a.hasAttribute('download')) return
-      const url = new URL(a.href, location.href)
-      if (url.origin !== location.origin || url.pathname === '/') return
-      if (url.pathname === location.pathname && url.search === location.search) return
-      e.preventDefault()
-      if (destino) return
-      destino = url.href
-      raiz.classList.add('nx-fechando')
-      timer = setTimeout(() => location.assign(destino), 240)
-    }
-    document.addEventListener('click', navegar)
-    window.addEventListener('pageshow', limpar)
-    return () => { document.removeEventListener('click', navegar); window.removeEventListener('pageshow', limpar); limpar() }
-  }, [])
+    if (!menuAberto) return
+    const fora = e => { if (!caixaBusca.current?.contains(e.target)) recolherMenu() }
+    document.addEventListener('pointerdown', fora)
+    return () => document.removeEventListener('pointerdown', fora)
+  }, [menuAberto])
+  const fecharMais = useCallback(() => setMais(false), [])
 
   // Rolou a página: o menu fica com o vidro mais forte e a linha luminosa
   useEffect(() => {
@@ -296,9 +364,6 @@ export default function Nav({ pagina }) {
     return () => window.removeEventListener('scroll', ver)
   }, [])
 
-  // Só a página inicial mostra a barra da esquerda aberta (ícone + nome). Ao clicar em outra página ela encolhe até os ícones com
-  // animação (classe nx-fechando, regras em estetica.css) e só depois a página nova abre, já com a barra do tamanho final.
-
   const conta = useConta()
   useEffect(() => iniciarAvisoEquipe(), [])
   const { pendente: avisoTime } = useAvisoEquipe()
@@ -306,10 +371,12 @@ export default function Nav({ pagina }) {
   // Sem login, o menu mostra só Início e Ranking (as outras páginas continuam abrindo pelo link; só não aparecem no menu).
   // Site sem login configurado: mostra tudo.
   const verPick = useAcessoPick()
-  const menu = (conta || !loginAtivo() ? MENU : MENU.filter((m) => SEM_LOGIN.includes(m.id))).filter((m) => m.id !== 'pick' || verPick)
+  const menuBase = (conta || !loginAtivo() ? MENU : MENU.filter((m) => SEM_LOGIN.includes(m.id))).filter((m) => m.id !== 'pick' || verPick)
+  const menu = menuBase.flatMap(m => m.id === 'equipes' ? [m, ITEM_TIMES_REGISTRADOS] : [m])
+  if (!menuBase.some(m => m.id === 'equipes')) menu.push(ITEM_TIMES_REGISTRADOS)
   // Páginas do site de um lado; Admin (só para admin) separado delas
   const termo = busca.trim().toLocaleLowerCase()
-  const paginas = menu.filter((m) => !termo || t(m.rotulo).toLocaleLowerCase().includes(termo)).map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
+  const paginas = menu.map((m) => <LinkMenu key={m.id} item={m} atual={pagina} />)
   const linkAdmin = admin && <LinkMenu item={ITEM_ADMIN} atual={pagina} />
 
   // Barra de baixo (celular): páginas do site; as de fora (Inventário) vão para o "Mais"
@@ -326,31 +393,24 @@ export default function Nav({ pagina }) {
   const IconePerfil = ICONES_MENU.perfil
   const IconeMais = ICONES_MENU.mais
   const maisAtivo = pagina === 'admin' || noMais.some((m) => m.id === pagina)
+  const aberta = !recolhido
 
   return (
     <>
-      <header data-site-nav="" className={`nx-nav${pagina === 'inicio' || menuAberto ? ' nx-aberta' : ''}${rolou ? ' is-scrolled' : ''}`}>
+      <header data-site-nav="" className={`nx-nav${aberta ? ' nx-aberta' : ''}${rolou ? ' is-scrolled' : ''}`}>
         <div className="nx-nav-inner">
           <a className="nx-brand" href="/" aria-label="Neura Project">
-            <img src="/assets/logos/logo-np-64.png" alt="" width="30" height="30" />
+            <img src="/assets/logos/android-chrome-192x192.png" alt="" width="64" height="64" />
             <span>
               NEURA <span className="nx-outline">PROJECT</span>
               <span className="nx-sub">COUNTER-STRIKE 2</span>
             </span>
           </a>
+          {/* Pesquisa no menu: aberta pela 🔍 da barra de cima (ou desta barra, recolhida) */}
           <div className="np-sidebar-reduzida">
-            <button ref={botaoBusca} type="button" aria-label={t('Pesquisar no menu')} aria-expanded={menuAberto} aria-controls="np-menu-principal" onClick={() => setMenuAberto(true)}>
+            <button type="button" aria-label={t('Pesquisar no menu')} aria-expanded={menuAberto} aria-controls="np-busca-resultados" onClick={abrirBusca}>
               <IconeUI tipo="busca" tamanho={18}/>
             </button>
-            <a href="/lobby/" aria-label="Counter-Strike 2" title="Counter-Strike 2"><img src="/assets/logo%20cs2.webp" alt="" width="24" height="24" /></a>
-          </div>
-          <div className="np-sidebar-inicio">
-            {pagina !== 'inicio' && <button className="np-menu-recolher" type="button" onClick={recolherMenu} aria-expanded={menuAberto} aria-controls="np-menu-principal">{t('Fechar')}</button>}
-            <label className="np-pesquisa">
-              <IconeUI tipo="busca" tamanho={18}/>
-              <input ref={campoBusca} type="search" value={busca} onChange={(e) => setBusca(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape' && pagina !== 'inicio') recolherMenu() }} placeholder={t('Pesquisar')} aria-label={t('Pesquisar no menu')} aria-controls="np-menu-principal" />
-            </label>
-            <a className="np-jogo" href="/lobby/" aria-label="Counter-Strike 2" title="Counter-Strike 2"><img src="/assets/logo%20cs2.webp" alt="" width="24" height="24" /><span>CS2</span></a>
           </div>
           {/* Celular: no lugar da marca, o ícone e o nome da página atual */}
           <a className="nx-titulo" href="/" aria-label="Neura Project">
@@ -359,7 +419,6 @@ export default function Nav({ pagina }) {
           </a>
           <nav className="nx-links" id="np-menu-principal" aria-label={t('Menu principal')}>
             {paginas}
-            {termo && paginas.length === 0 && <p className="np-sem-resultados">{t('Nenhum resultado')}</p>}
             {linkAdmin && (
               <>
                 <span className="nx-links-sep" aria-hidden="true" />
@@ -368,8 +427,20 @@ export default function Nav({ pagina }) {
             )}
           </nav>
           <div className="np-sidebar-fim">
-            <a href="/times/">{t('Times')}</a>
-            {CONFIG.comunidade && <a href={CONFIG.comunidade} target="_blank" rel="noopener"><IconeDiscord tamanho={18} />{t('Comunidade')}</a>}
+            <span className="np-sidebar-titulo" aria-hidden="true">{t('Comunidade')}</span>
+            {CONFIG.comunidade && (
+              <a href={CONFIG.comunidade} target="_blank" rel="noopener" title={t('Comunidade na {nome}', { nome: CONFIG.comunidadeNome })}>
+                <IconeDiscord tamanho={19} />
+                <span className="nx-dica">{t('Comunidade')}</span>
+              </a>
+            )}
+          </div>
+          {/* Controle de largura da navegação; som e configurações ficam na barra superior. */}
+          <div className="np-sidebar-rodape">
+
+            <button type="button" className="np-menu-alternar" onClick={alternarRecolhido} aria-expanded={!recolhido} aria-controls="np-menu-principal" aria-label={recolhido ? t('Expandir menu') : t('Recolher menu')} title={recolhido ? t('Expandir menu') : t('Recolher menu')}>
+              <IconeUI tipo={recolhido ? 'expandir' : 'recolher'} tamanho={20} />
+            </button>
           </div>
           <div className="nx-acoes">
             {CONFIG.comunidade && (
@@ -390,15 +461,29 @@ export default function Nav({ pagina }) {
 
       <BarraRolagem />
 
-      {/* Computador (estilo FACEIT): barra fina à direita com a conta, ⚙ e Comunidade */}
+      {/* Computador: barra de cima com o caminho da página, a pesquisa do menu, os painéis, som, ⚙ e a conta
+          (a conta vem primeiro no HTML e vai para a ponta direita pelo CSS) */}
       <aside className="nx-direita" aria-label={t('Conta e configurações')}>
-        <Conta />
+        <Trilha pagina={pagina} atual={atual} trilha={trilha} />
+        <div className="np-topo-pesquisa" ref={caixaBusca}>
+          <button type="button" className="nx-btn nx-btn-ghost np-topo-busca" aria-label={t('Pesquisar no menu')} aria-expanded={menuAberto} aria-controls="np-busca-resultados" onClick={menuAberto ? recolherMenu : abrirBusca}>
+            <IconeUI tipo="busca" tamanho={19} />
+          </button>
+          {menuAberto && <div className="np-busca-painel" role="dialog" aria-label={t('Pesquisar no menu')} onKeyDown={e => { if (e.key === 'Escape') recolherMenu() }}>
+            <header><b>{t('Pesquisar')}</b><button type="button" onClick={recolherMenu} aria-label={t('Fechar pesquisa')}><IconeUI tipo="fechar" tamanho={18}/></button></header>
+            <label className="np-busca-campo"><IconeUI tipo="busca" tamanho={18}/><input ref={campoBusca} type="search" value={busca} onChange={e => setBusca(e.target.value)} placeholder={t('Pesquisar páginas')} aria-label={t('Pesquisar páginas')} aria-controls="np-busca-resultados"/></label>
+            <nav id="np-busca-resultados" aria-label={t('Resultados da pesquisa')}>
+              {menu.filter(m => !termo || t(m.rotulo).toLocaleLowerCase().includes(termo)).map(m => <a key={m.id} href={m.href}>{t(m.rotulo)}<IconeUI tipo="direita" tamanho={16}/></a>)}
+              {menu.every(m => termo && !t(m.rotulo).toLocaleLowerCase().includes(termo)) && <p role="status">{t('Nenhum resultado')}</p>}
+            </nav>
+          </div>}
+        </div>
+        <BotaoSom />
+        <Configuracoes />        <Conta />
         <PainelPartidas />
         <span className="nx-direita-sep" aria-hidden="true" />
         <PainelNotificacoes />
         <PainelAmigos />
-        <BotaoSom />
-        <Configuracoes />
         {CONFIG.comunidade && (
           <a className="nx-btn nx-btn-ghost nx-comunidade" href={CONFIG.comunidade} target="_blank" rel="noopener" aria-label={t('Comunidade na {nome}', { nome: CONFIG.comunidadeNome })}>
             <IconeDiscord />
@@ -420,9 +505,8 @@ export default function Nav({ pagina }) {
         })}
         {botaoEntrar && (
             // logado: o perfil abre pelo cartão da conta (barra de cima); a barra de baixo só tem o botão de entrar
-            <button type="button" className="nx-aba" onClick={entrar}>
-              <i><IconePerfil /></i>
-              <span>{t('Entrar')}</span>
+            <button type="button" className="nx-aba nx-steam" aria-label={t('Entrar com Steam')} onClick={entrar}>
+              <i><IconeSteam /></i>
             </button>
           )}
         <button type="button" className={`nx-aba nx-baixo-mais${mais || maisAtivo ? ' is-active' : ''}`} aria-expanded={mais} aria-haspopup="menu" onClick={() => setMais((m) => !m)}>

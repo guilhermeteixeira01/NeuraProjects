@@ -80,3 +80,7 @@ html.inv-travado body { position: fixed; inset: 0; width: 100%; }
 .inv-insp-vistas button { padding: 6px 16px; border: 0; border-radius: 999px; background: none; color: var(--dim, #9aa0a8); font: 700 12px var(--font-body, inherit); letter-spacing: .06em; cursor: pointer; }
 .inv-insp-vistas button.is-ativo { background: var(--accent, #f5c542); color: #1a1208; }
 .inv-insp-dica { display: block; margin-top: 6px; text-align: center; color: var(--dim, #9aa0a8); font-size: 12px; }
+
+/* O iframe usa fundo transparente; a cena Ancient fica atrás do modelo. */
+.inv-3d { background: linear-gradient(#07111c44, #07111c66), url('/neurapick/maps/ancient.jpg') center / cover no-repeat; }
+.inv-3d iframe { background: transparent; color-scheme: normal; }

@@ -134,6 +134,7 @@ export function limparSkins(entrada) {
       // adesivo/chaveiro guardado no inventário: só vale para colar numa arma (e some quando é colado)
       saida.itens[id] = { t: it.t, d, p: 0 }
     } else continue
+    if (it.cadeado === true) saida.itens[id].cadeado = true
     saida.criado[id] = inteiro(e.criado?.[id], 0, 9007199254740991)
   }
 

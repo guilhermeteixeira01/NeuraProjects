@@ -1,0 +1,310 @@
+/* Lobby no visual v2 (referência: design/reference/Crowned Leader in the Mirage Lobby-2.png). Vem depois de neura-v2.css.
+   Prioridade no computador: os 5 jogadores e o painel da partida (tipo, mapas, JOGAR, Boost/Freeze) cabem juntos na
+   tela. A altura dos personagens e do palco acompanha a altura da janela (vh), sem encolher a página inteira. */
+
+html:not(#v2) .lb-wrap { max-width: 1440px; padding-top: 16px; }
+html:not(#v2) .lb-fila { margin-bottom: 10px; }
+html:not(#v2) .lb-fila > span { color: var(--v2-ouro); font: 700 13px var(--font-body); }
+
+/* topo compacto: nível + sua temporada numa faixa */
+html:not(#v2) .lb-topo { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; padding: 0; margin: 0 0 4px; border: 0; }
+html:not(#v2) .lb-nivel { min-height: 0; padding: 14px 20px; gap: 18px; border: 1px solid var(--v2-borda); border-radius: var(--v2-raio); background: rgb(3 14 26 / .88); }
+html:not(#v2) .lb-nivel-gema { width: 72px; height: 72px; flex: none; }
+html:not(#v2) .lb-nivel-gema > * { width: 72px !important; height: 72px !important; }
+html:not(#v2) .lb-nivel-info h1 { font: 800 26px/1.1 var(--font-display); letter-spacing: -.01em; margin: 4px 0 8px; }
+html:not(#v2) .lb-nivel .lb-segmentos i.cheio { background: var(--v2-ouro); }
+html:not(#v2) .lb-temporada { min-height: 0; height: 100%; border: 1px solid var(--v2-borda); border-radius: var(--v2-raio); background-color: rgb(3 14 26 / .88); }
+html:not(#v2) .lb-temporada b { font: 750 17px var(--font-display); }
+html:not(#v2) .lb-temporada em { color: var(--v2-texto); font-style: normal; font-weight: 800; }
+
+/* nome do grupo e ferramentas */
+html:not(#v2) .lb-nome-linha { margin-block: 14px 0; position: relative; z-index: 3; }
+html:not(#v2) .lb-nome-grupo b { font: 800 26px var(--font-display); letter-spacing: -.01em; color: var(--v2-texto); text-shadow: 0 2px 12px rgb(0 0 0 / .7); }
+html:not(#v2) .lb-chip-claro { background: var(--v2-primaria-suave); color: var(--v2-ciano); border: 1px solid rgb(52 120 246 / .4); }
+html:not(#v2) .lb-ferramentas :is(.lb-btn, .lb-convidar, button, label) { border-radius: var(--v2-raio-p); }
+html:not(#v2) .lb-ferramentas :is(.lb-btn, .lb-convidar) { min-height: 42px; border: 1px solid var(--v2-borda-forte); background: rgb(1 7 15 / .7); color: var(--v2-texto); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+html:not(#v2) .lb-ferramentas :is(.lb-btn, .lb-convidar):hover:not(:disabled) { border-color: var(--v2-primaria); }
+
+/* palco: altura pela janela; personagens com os pés e a cabeça inteiros (contain + ancorados embaixo) */
+@media (min-width: 1025px) {
+  /* --lb-ar: espaço da arte acima do card; o personagem mede esse espaço + o card (+ um pouco por cima do nome do grupo),
+     então a cabeça nunca sobe até o card de nível, em qualquer altura de janela */
+  html:not(#v2) .lb-pagina { --lb-ar: clamp(120px, calc(100vh - 690px), 250px); --lb-card: clamp(196px, calc(100vh - 640px), 270px); }
+  html:not(#v2) .lb-palco { margin-top: 0; padding-top: 0; }
+  html:not(#v2) .lb-cena-slot { padding-top: var(--lb-ar); }
+  html:not(#v2) .lb-personagem { height: calc(var(--lb-ar) + var(--lb-card) + 92px); bottom: -64px; }
+  html:not(#v2) .lb-cena-centro .lb-personagem { height: calc(var(--lb-ar) + var(--lb-card) + 100px); }
+  html:not(#v2) .lb-lugar { height: var(--lb-card); }
+  html:not(#v2) .lb-topo { position: relative; z-index: 4; }
+}
+
+/* cards dos jogadores */
+html:not(#v2) .lb-lugar { border-radius: var(--v2-raio); }
+html:not(#v2) .lb-lugar:not(.com-card) { background: rgb(3 14 26 / .82); border: 1px solid var(--v2-borda-forte); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+html:not(#v2) .lb-lugar.lb-vazio { border: 1px dashed var(--v2-borda-forte); background: rgb(1 7 15 / .55); }
+html:not(#v2) .lb-lugar.lb-vazio:hover { border-color: var(--v2-primaria); background: rgb(52 120 246 / .1); }
+html:not(#v2) .lb-cena-centro .lb-lugar { border-color: var(--v2-primaria); box-shadow: 0 0 0 1px rgb(52 120 246 / .35), 0 18px 40px -18px rgb(52 120 246 / .8); }
+
+/* painel da partida: logo abaixo do palco, colado nos jogadores */
+html:not(#v2) .lb-painel { position: relative; z-index: 3; border: 1px solid var(--v2-borda-forte); border-radius: var(--v2-raio); background: rgb(3 14 26 / .96); box-shadow: var(--v2-sombra); }
+html:not(#v2) .lb-painel .lb-abas-painel { background: transparent; border-bottom: 1px solid var(--v2-borda); }
+html:not(#v2) .lb-painel .lb-abas-painel button.ativa { color: var(--v2-ouro); }
+html:not(#v2) .lb-painel .lb-abas-painel button.ativa::after { display: block; background: var(--v2-primaria); }
+html:not(#v2) .lb-painel .lb-modo { border-radius: var(--v2-raio); border-color: var(--v2-borda-forte); background: var(--v2-sup-2); }
+html:not(#v2) .lb-painel .lb-modo.sel { border-color: var(--v2-primaria); background: linear-gradient(180deg, rgb(52 120 246 / .16), rgb(52 120 246 / .04)); }
+html:not(#v2) .lb-painel .lb-modo-premium { border-color: rgb(233 185 76 / .45); background: linear-gradient(180deg, rgb(233 185 76 / .12), rgb(233 185 76 / .02)); }
+html:not(#v2) .lb-painel .lb-modo-premium.sel { border-color: var(--v2-ouro); }
+html:not(#v2) .lb-buscar { border-radius: var(--v2-raio-p); letter-spacing: .3em; }
+html:not(#v2) .lb-buscar.pronto { background: linear-gradient(180deg, #2d79fd, #106afc); color: #fff; box-shadow: 0 12px 30px -14px rgb(52 120 246 / .95); }
+html:not(#v2) .lb-buscar:disabled { background: var(--v2-sup-3); color: var(--v2-texto-2); }
+html:not(#v2) .lb-painel .lb-regioes li.ativa { border-color: var(--v2-primaria); }
+
+/* celular/tablet: cards compactos em grade, sem a arte gigante empurrando os controles */
+@media (max-width: 1024px) {
+  html:not(#v2) .lb-topo { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  html:not(#v2) .lb-nome-grupo b { font-size: 21px; }
+}
+
+/* ── palco com o cenário do pacote (bg-lobby-v2): ponto focal embaixo, onde ficam os pés dos personagens ── */
+.lb-palco-cenario:not(#_)::before { background: linear-gradient(180deg, #06090f66, #06090f22), var(--np-fundo, url('/assets/Lobby/web/cenario.webp')) center bottom / cover no-repeat; }
+
+/* ══════════════ Ajuste pela referência (02-lobby.png, 1513×1039) ══════════════
+   Cartões menores com avatar de 54 px (antes 96 px) e nome/nível/líder numa pilha curta; os personagens aparecem inteiros,
+   com os pés atrás da fileira de cartões. */
+@media (min-width: 1025px) {
+  html:not(#v2) .lb-pagina { --lb-card: clamp(118px, calc(100vh - 760px), 172px); }
+  html:not(#v2) .lb-cena-slot { width: clamp(138px, 10.6vw, 168px); }
+  html:not(#v2) .lb-cena-centro { width: clamp(150px, 11.4vw, 182px); }
+  html:not(#v2) .lb-lugar:not(.lb-vazio) { padding: 10px 8px; gap: 5px; }
+  html:not(#v2) .lb-lugar .lb-av { width: 54px; height: 54px; }
+  html:not(#v2) .lb-lugar .lb-av img { width: 54px; height: 54px; object-fit: cover; }
+  html:not(#v2) .lb-lugar .lb-nome { font-size: 14px; }
+  html:not(#v2) .lb-lugar .lb-pilula { height: 24px; padding-inline: 8px; font-size: 11.5px; max-width: 100%; }
+  html:not(#v2) .lb-lugar .lb-pilula :is(.selo-nivel, svg) { width: 18px; height: 18px; }
+}
+
+/* ── faixa de controles numa barra só: abas + conteúdo à esquerda; Boost · JOGAR · Freeze à direita ── */
+@media (min-width: 1100px) {
+  html:not(#v2) .lb-painel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 40%); grid-template-rows: auto 1fr; align-items: stretch; column-gap: 0; padding: 0; }
+  html:not(#v2) .lb-painel .lb-abas-painel { grid-column: 1; grid-row: 1; padding: 0 20px; }
+  html:not(#v2) .lb-painel .lb-painel-corpo { grid-column: 1; grid-row: 2; padding: 14px 20px 16px; min-width: 0; }
+  html:not(#v2) .lb-painel .lb-buscar-faixa { grid-column: 2; grid-row: 1 / span 2; display: flex; flex-direction: column; justify-content: center; align-items: stretch; padding: 14px 20px; border-left: 1px solid var(--v2-borda); border-bottom: 0; }
+  html:not(#v2) .lb-painel .lb-acao { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+  html:not(#v2) .lb-painel .lb-buscar { min-height: 56px; letter-spacing: .22em; }
+  html:not(#v2) .lb-painel .lb-modos { gap: 12px; }
+  html:not(#v2) .lb-painel .lb-modo { padding: 10px 14px; }
+}
+
+/* tipo de partida em tiles curtos: título e subtítulo; as regras de cada modo viram um popover ao passar o mouse ou focar */
+@media (min-width: 1100px) {
+  html:not(#v2) .lb-painel .lb-modos { display: flex; flex-wrap: nowrap; gap: 12px; }
+  html:not(#v2) .lb-painel .lb-modo { position: relative; flex: 0 0 auto; width: auto; min-width: 150px; padding: 10px 18px; }
+  html:not(#v2) .lb-painel .lb-modo-cab { margin: 0; padding: 0; border: 0; }
+  html:not(#v2) .lb-painel .lb-modo-itens {
+    position: absolute; z-index: 20; left: 0; bottom: calc(100% + 10px); display: none; grid-template-columns: 1fr 1fr; gap: 8px; width: min(440px, 80vw); padding: 12px;
+    border: 1px solid var(--v2-borda-forte); border-radius: var(--v2-raio); background: var(--v2-sup-1); box-shadow: var(--v2-sombra);
+  }
+  html:not(#v2) .lb-painel .lb-modo:is(:hover, :focus-within) .lb-modo-itens { display: grid; }
+  html:not(#v2) .lb-painel .lb-painel-corpo { padding-block: 12px; }
+}
+
+/* alturas mínimas antigas do painel (380 px) e das abas (90 px) não valem mais na barra horizontal */
+@media (min-width: 1100px) {
+  html:not(#v2) .lb-painel:not(#_) { min-height: 0; }
+  html:not(#v2) .lb-painel .lb-abas-painel:not(#_) { min-height: 0; height: 52px; }
+  html:not(#v2) .lb-painel .lb-painel-corpo:not(#_) { min-height: 0; align-items: center; }
+}
+@media (min-width: 1100px) {
+  html:not(#v2) .lb-conteudo > .lb-painel:not(#_) { height: auto; min-height: 0; max-height: none; flex: 0 0 auto; grid-template-columns: minmax(0, 1fr) minmax(300px, 40%); grid-template-rows: 52px auto; }
+  html:not(#v2) .lb-painel .lb-buscar-faixa:not(#_) { grid-area: 1 / 2 / span 2 / 2; justify-self: stretch; max-width: none; width: auto; }
+  html:not(#v2) .lb-painel .lb-abas-painel:not(#_) { grid-area: 1 / 1; }
+  html:not(#v2) .lb-painel .lb-painel-corpo:not(#_) { grid-area: 2 / 1; height: auto; overflow: visible; }
+}
+
+/* o cenário (bg-lobby-v2) preenche a tela atrás do palco E da faixa de controles, ancorado embaixo (onde ficam os pés) */
+@media (min-width: 1025px) {
+  html:not(#v2) .lb-pagina:not(#_) {
+    min-height: calc(100dvh - var(--v2-topo));
+    background: linear-gradient(180deg, rgb(1 7 15 / .55) 0, rgb(1 7 15 / .15) 38%, rgb(1 7 15 / .35) 100%), var(--np-fundo, none) center bottom / cover no-repeat, var(--v2-fundo);
+  }
+  .lb-palco-cenario:not(#_)::before { background: none; }
+}
+@media (max-width: 1024px) {
+  html:not(#v2) .lb-pagina:not(#_) { background: linear-gradient(180deg, rgb(1 7 15 / .6), rgb(1 7 15 / .4)), var(--np-fundo, none) 60% bottom / cover no-repeat, var(--v2-fundo); }
+}
+/* Faixa de partida: tipo | mapas | servidor | jogar | consumíveis. */
+html:not(#v2) #root .lb-conteudo > .lb-painel { display: block; height: auto; min-height: 0; max-height: none; flex: none; padding: 10px 12px; border-radius: 10px; border: 1px solid #274052; }
+.lb-controles { display: grid; grid-template-columns: 180px 210px 100px minmax(180px, 1fr) 184px; align-items: stretch; gap: 12px; }
+.lb-controles > :not(:last-child) { border-right: 1px solid rgb(103 136 172 / .14); padding-right: 12px; }
+.lb-controles h3 { margin: 0 0 8px; color: #c5d1df; font: 700 10px/1.2 var(--font-body); text-transform: uppercase; letter-spacing: .06em; }
+.lb-controles h3 button { padding: 0; color: inherit; background: none; border: 0; text-transform: inherit; font: inherit; cursor: pointer; }
+.lb-controles h3 span { color: #82b8df; }
+.lb-controles .lb-controle-info { color: #7892a9; }
+.lb-controle-modos { display: flex; gap: 8px; }
+.lb-controle-modos > button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 54px; padding: 8px; border: 1px solid #2a4053; border-radius: 7px; color: #dae1ea; background: #0a1520; cursor: pointer; }
+.lb-controle-modos > button.sel { border-color: #efc128; box-shadow: 0 0 12px rgb(239 193 40 / .15); background: linear-gradient(140deg, #3a2e12, #101820); }
+.lb-controle-modos svg { color: #f3c34b; flex: none; }
+.lb-controle-modos span { display: grid; gap: 3px; text-align: left; }
+.lb-controle-modos b { font-size: 12px; }
+.lb-controle-modos small { font-size: 10px; }
+.lb-controle-miniaturas { display: flex; gap: 7px; }
+.lb-controle-miniaturas > button { min-width: 0; flex: 1; border: 0; padding: 0; background: none; color: #c7d1df; cursor: pointer; }
+.lb-controle-miniaturas button > span { display: block; position: relative; height: 42px; border-radius: 5px; overflow: hidden; }
+.lb-controle-miniaturas img { width: 100%; height: 100%; object-fit: cover; }
+.lb-controle-miniaturas i { position: absolute; top: 3px; right: 3px; display: grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; background: #f3c34b; color: #192029; font: 800 10px sans-serif; }
+.lb-controle-miniaturas small { display: block; margin-top: 4px; font-size: 9px; }
+.lb-controle-servidor > button { display: flex; gap: 7px; align-items: center; padding: 8px 0; border: 0; background: none; color: #d7e0eb; cursor: pointer; }
+.lb-controle-servidor > button > span:first-child { font-size: 23px; }
+.lb-controle-servidor > button > span:last-child { display: grid; gap: 4px; text-align: left; }
+.lb-controle-servidor b { font-size: 12px; }
+.lb-controle-servidor small { font-size: 10px; color: #93b2c7; }
+.lb-controle-jogar { display: grid; align-content: center; gap: 8px; text-align: center; }
+html:not(#v2) #root .lb-controle-jogar .lb-buscar { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; width: 100%; margin: 0; letter-spacing: .03em; font: 800 16px var(--font-display); border: 1px solid #5c7a9e; border-radius: 7px; }
+.lb-controle-jogar > small { font-size: 11px; color: #a1b5cd; }
+.lb-controle-itens { display: flex; gap: 8px; align-items: stretch; }
+.lb-item-compacto { flex: 1; position: relative; display: grid; gap: 4px; padding: 6px; border: 1px solid #294055; border-radius: 7px; background: #07131f; color: var(--item); text-align: center; }
+.lb-item-compacto header { display: flex; gap: 4px; align-items: center; justify-content: center; }
+.lb-item-compacto header svg { flex: none; width: 22px; height: 22px; padding: 3px; border: 1px solid currentColor; border-radius: 50%; }
+.lb-item-compacto header b { font-size: 9px; }
+.lb-item-compacto header span { font-size: 10px; color: #8aa1b8; }
+.lb-item-compacto strong { font: 750 24px/1 var(--font-display); }
+.lb-item-compacto > div { display: flex; justify-content: center; gap: 6px; }
+.lb-item-compacto button { width: 29px; height: 24px; padding: 0; border: 1px solid #283849; border-radius: 4px; background: #172331; color: #e1e9f2; font-size: 19px; cursor: pointer; }
+.lb-item-compacto button:disabled { opacity: .35; cursor: not-allowed; }
+.lb-item-compacto.is-ativo { border-color: var(--item); }
+.lb-item-compacto > small { font-size: 9px; }
+html:not(#v2) #root .lb-painel .lb-painel-corpo { display: block; height: auto; min-height: 0; padding: 18px 4px 4px; overflow: visible; }
+/* Cards: proporção integral da arte e área exclusiva para avatar/moldura. */
+html:not(#v2) #root .lb-pagina { --lb-card: clamp(210px, 19vw, 266px); --lb-ar: clamp(100px, calc(100dvh - 650px), 230px); }
+html:not(#v2) #root .lb-cena-slot, html:not(#v2) #root .lb-cena-centro { width: clamp(150px, 12vw, 190px); }
+html:not(#v2) #root .lb-lugar.lb-pessoa { width: 100%; height: auto; min-height: 0; aspect-ratio: 282 / 395; padding: 12px 8px; gap: 8px; justify-content: center; background-size: contain; background-position: center; background-repeat: no-repeat; }
+html:not(#v2) #root .lb-pessoa .lb-av { display: grid; place-items: center; flex: none; width: 100%; height: 112px; aspect-ratio: auto; margin: 0; container-type: normal; }
+html:not(#v2) #root .lb-pessoa .lb-av > :is(.moldura-box, .emblema-box) { width: 44px; height: 44px; margin: 0 !important; }
+html:not(#v2) #root .lb-pessoa .lb-av > :is(img, .lb-ini) { width: 52px; height: 52px; }
+html:not(#v2) #root .lb-pessoa .lb-av :is(.moldura-box, .emblema-box) > :is(img, .lb-ini) { width: 100%; height: 100%; object-fit: cover; }
+html:not(#v2) #root .lb-pessoa .lb-nome { position: relative; margin: 0; min-height: 20px; flex: none; z-index: 3; }
+html:not(#v2) #root .lb-pessoa .lb-bolinha { display: none; }
+html:not(#v2) #root .lb-pessoa > .lb-coroa { top: 8px; left: 50%; width: 20px; height: 20px; }
+@media (max-width: 1250px) { .lb-controles { grid-template-columns: 170px 180px 88px minmax(150px, 1fr) 172px; gap: 8px; } .lb-controles > :not(:last-child) { padding-right: 8px; } }
+@media (max-width: 1100px) { .lb-controles { grid-template-columns: 1fr 1fr 1fr; } .lb-controle-jogar { grid-column: 1 / 3; } .lb-controle-itens { grid-column: 3; } }
+@media (max-width: 600px) { .lb-controles { grid-template-columns: 1fr 1fr; } .lb-controle-servidor { grid-column: 1 / -1; } .lb-controle-jogar { grid-column: 1 / -1; } .lb-controle-itens { grid-column: 1 / -1; } .lb-controles > :not(:last-child) { border-right: 0; } }
+html:not(#v2) #root .lb-pessoa .lb-avatar-miolo { position: absolute; left: 0; top: 0; display: grid; place-items: center; width: 44px; height: 44px; transform-origin: 0 0; }
+html:not(#v2) #root .lb-pessoa .lb-avatar-miolo > :is(.moldura-box, .emblema-box) { width: 44px; height: 44px; margin: 0 !important; }
+html:not(#v2) #root .lb-pessoa .lb-avatar-miolo img, html:not(#v2) #root .lb-pessoa .lb-avatar-miolo .lb-ini { width: 100%; height: 100%; }
+html:not(#v2) #root .lb-controle-jogar .lb-buscar { flex-direction: row; }
+@media (min-width: 1025px) {
+ html:not(#v2) #root .lb-topo { height: 90px; }
+ html:not(#v2) #root .lb-nivel { height: 90px; padding: 10px 16px; gap: 14px; }
+ html:not(#v2) #root .lb-nivel-gema, html:not(#v2) #root .lb-nivel-gema > * { width: 60px !important; height: 60px !important; }
+ html:not(#v2) #root .lb-nivel-info h1 { font-size: 22px; margin: 0 0 8px; }
+ html:not(#v2) #root .lb-nivel-info > .lb-chip { display: none; }
+ html:not(#v2) #root .lb-temporada { height: 90px; padding-block: 12px; }
+ html:not(#v2) #root .lb-nome-linha { margin-top: 12px; }
+ html:not(#v2) #root .lb-nome-grupo b { font-size: 21px; }
+}
+@media (min-width: 1025px) {
+ html:not(#v2) #root .lb-temporada { padding: 0; }
+ html:not(#v2) #root .lb-temporada-txt { padding: 12px 16px; gap: 5px; max-width: 90%; }
+ html:not(#v2) #root .lb-temporada-txt b { font-size: 15px; }
+ html:not(#v2) #root .lb-temporada-txt small { font-size: 10px; line-height: 1.35; }
+ html:not(#v2) #root .lb-personagem { height: calc(var(--lb-ar) + var(--lb-card) + 40px); }
+ html:not(#v2) #root .lb-cena-centro .lb-personagem { height: calc(var(--lb-ar) + var(--lb-card) + 48px); }
+}
+.lb-controle-servidor .lb-bandeira { width: 26px; height: 18px; flex: none; border-radius: 2px; }
+@media (min-width: 1025px) {
+ html:not(#v2) #root .lb-cena-slot { height: calc(var(--lb-ar) + clamp(150px, 12vw, 190px) * 395 / 282); align-items: end; }
+ html:not(#v2) #root .lb-lugar.lb-vazio { height: auto; min-height: 0; aspect-ratio: 282 / 395; width: 100%; padding: 12px 8px; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+ html:not(#v2) #root .lb-vazio .lb-mais { font-size: 25px; line-height: 1; }
+ .lb-vazio-legenda { font-size: 11px; color: #c8d2df; }
+}
+/* Barra compacta centralizada; o botão Jogar não absorve a largura da página. */
+html:not(#v2) #root .lb-conteudo > .lb-painel { width: min(100% - 32px, 1050px); align-self: center; margin-inline: auto; padding: 9px 12px; }
+.lb-controles { grid-template-columns: 180px 210px 100px minmax(190px, 1fr) 184px; gap: 10px; }
+.lb-controle-modos > button { position: relative; isolation: isolate; overflow: hidden; }
+.lb-controle-modos > button:has(.lb-coroa), .lb-controle-modos > button:nth-child(2) { border-color: rgb(233 185 76 / .4); background: linear-gradient(135deg, #211d16, #0b1520); }
+.lb-controle-modos > button:nth-child(2)::after { content: ''; position: absolute; inset: -50% auto -50% -70%; width: 35%; pointer-events: none; background: linear-gradient(90deg, transparent, rgb(255 222 137 / .24), transparent); transform: skewX(-20deg); animation: lb-md3-reflexo 5s ease-in-out infinite; }
+@keyframes lb-md3-reflexo { 0%, 60% { left: -70%; } 90%, 100% { left: 140%; } }
+.lb-controle-servidor.estado-online b, .lb-controle-servidor.estado-online small { color: #29d89c; }
+.lb-controle-servidor.estado-offline b, .lb-controle-servidor.estado-offline small { color: #ef6675; }
+html body .lb-controle-fundo { position: fixed; inset: 0; z-index: 900; display: grid; place-items: center; padding: 24px; background: rgb(0 6 14 / .65); backdrop-filter: blur(9px) !important; -webkit-backdrop-filter: blur(9px) !important; }
+.lb-controle-janela { width: min(840px, 100%); max-height: calc(100dvh - 48px); overflow: auto; padding: 22px; border: 1px solid #29465e; border-radius: 14px; background: #071421; color: #edf4fc; box-shadow: 0 24px 80px rgb(0 0 0 / .5); }
+.lb-controle-janela > header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+.lb-controle-janela h2 { margin: 0; font: 750 22px var(--font-display); }
+.lb-controle-janela > header button { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 6px; background: #112739; color: #d8e9fa; cursor: pointer; }
+.lb-controle-janela .lb-painel-corpo { padding: 0; min-height: 0; height: auto; overflow: visible; }
+.lb-controle-janela .lb-pool-mapas { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+/* Identidade maior sem alterar o envelope reservado para a moldura. */
+html:not(#v2) #root .lb-pessoa .lb-avatar-miolo, html:not(#v2) #root .lb-pessoa .lb-avatar-miolo > :is(.moldura-box, .emblema-box) { width: 60px; height: 60px; }
+html:not(#v2) #root .lb-pessoa .lb-nome { font-size: 17px; }
+@media (max-width: 1250px) { .lb-controles { grid-template-columns: 170px 180px 88px minmax(150px, 1fr) 172px; gap: 8px; } }
+@media (max-width: 1100px) { .lb-controles { grid-template-columns: 1fr 1fr 1fr; } }
+@media (max-width: 600px) { .lb-controles { grid-template-columns: 1fr 1fr; } .lb-controle-janela .lb-pool-mapas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .lb-controle-modos > button:nth-child(2)::after { animation: none; display: none; } }
+.lb-controle-modos > button.is-travado { opacity: 1; cursor: not-allowed; color: #98a2b1; border-color: #35404e; background: linear-gradient(135deg, #1a1f27, #101821); box-shadow: none; }
+.lb-controle-modos > button.is-travado svg { color: #98a2b1; }
+.lb-controle-modos > button.is-travado::after { background: linear-gradient(90deg, transparent, rgb(195 207 224 / .2), transparent); }
+.lb-comparacao-modos { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.lb-comparacao-modos article { padding: 20px; border: 1px solid #2b4155; border-radius: 10px; background: #0b1b2b; }
+.lb-comparacao-modos article.premium { border-color: rgb(233 185 76 / .4); }
+.lb-comparacao-modos article > header { display: flex; align-items: center; gap: 12px; color: #efc354; }
+.lb-comparacao-modos h3 { margin: 0; font: 750 20px var(--font-display); color: #f1f5fa; }
+.lb-comparacao-modos header p { margin: 5px 0 0; font-size: 13px; color: #a7bbcc; }
+.lb-comparacao-modos ul { display: grid; gap: 14px; padding: 0; margin: 24px 0 0; list-style: none; }
+.lb-comparacao-modos li { display: flex; align-items: start; gap: 9px; font-size: 14px; color: #d4dfeb; }
+.lb-comparacao-modos li svg { flex: none; color: #5eb4ea; }
+.lb-comparacao-bloqueio { display: flex; align-items: center; gap: 8px; margin: 22px 0 0; padding-top: 16px; border-top: 1px solid #304051; color: #98a8ba; font-size: 12px; }
+@media (max-width: 600px) { .lb-comparacao-modos { grid-template-columns: 1fr; } }
+.lb-controle-modos > button.sel { border-color: #348cff; background: linear-gradient(135deg, #112f51, #0a192b); box-shadow: 0 0 0 1px rgb(52 140 255 / .2), 0 0 14px rgb(52 140 255 / .15); }
+.lb-controle-miniaturas { position: relative; }
+.lb-pool-resumo-cadeado { position: absolute; inset: 0 0 14px; z-index: 2; display: grid; place-items: center; pointer-events: none; color: #b4c0cf; }
+.lb-pool-resumo-cadeado svg { box-sizing: content-box; padding: 6px; border: 1px solid #526174; border-radius: 50%; background: rgb(8 16 27 / .9); }
+.lb-controle-mapas.is-travado .lb-controle-miniaturas > button { cursor: not-allowed; }
+.lb-controle-mapas.is-travado .lb-controle-miniaturas img { filter: grayscale(1) brightness(.48); }
+.lb-controle-mapas.is-travado .lb-controle-miniaturas small { color: #778392; }
+.lb-controle-mapas.is-travado h3, .lb-controle-mapas.is-travado h3 span { color: #929eae; }
+/* Nível ancorado à base do card, com gema e contraste na cor do jogador. */
+html:not(#v2) #root .lb-lugar.lb-pessoa { justify-content: flex-start; padding-bottom: 10px; }
+html:not(#v2) #root .lb-pessoa > .lb-pilula { margin-top: auto; min-height: 36px; height: auto; padding: 5px 12px 5px 8px; gap: 8px; font: 750 14px/1.15 var(--font-body); color: #f1f6fc; border: 1px solid color-mix(in srgb, var(--lb-cor-nivel) 65%, transparent); border-radius: 7px; background: linear-gradient(135deg, color-mix(in srgb, var(--lb-cor-nivel) 20%, #06101b), #06101b); box-shadow: 0 4px 16px color-mix(in srgb, var(--lb-cor-nivel) 15%, transparent); white-space: normal; }
+html:not(#v2) #root .lb-pessoa > .lb-pilula .selo-nivel { width: 26px !important; height: 26px !important; flex: none; }
+html:not(#v2) #root .lb-pessoa > .lb-pilula .selo-nivel svg { width: 100%; height: 100%; }
+html:not(#v2) #root .lb-pessoa > .lb-pilula-espera { font-size: 12px; }
+/* Pick & Ban: identidade do líder no cabeçalho e nível individual nos cards. */
+.lb-sala { --sala-card-altura: clamp(140px, calc((100dvh - 296px) / 3), 230px); }
+.sala-equipe > header, .sala-equipe.na-vez > header { box-sizing: border-box; height: 72px; min-height: 72px; display: grid; grid-template-columns: 24px minmax(0, 1fr) 40px; align-items: center; gap: 8px; padding: 12px 0; background: none; border: 0; border-radius: 0; box-shadow: none; }
+.sala-equipe > header .sala-nome { font-size: clamp(13px, 1.2vw, 18px); }
+.sala-turno-espaco { display: grid; place-items: center; width: 24px; height: 28px; }
+.sala-turno-seta { width: 24px; height: 28px; color: var(--accent); animation: sala-turno-pisca 1s ease-in-out infinite; }
+.sala-cards > .sala-jog.lider { overflow: visible; }
+.sala-jog > .sala-lider-seta { position: absolute; z-index: 3; top: calc(50% - 12px); left: -34px; width: 24px; height: 24px; transform: rotate(-90deg); pointer-events: none; }
+.sala-B .sala-jog > .sala-lider-seta { left: auto; right: -34px; transform: rotate(90deg); }
+@keyframes sala-turno-pisca { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .sala-turno-seta { animation: none; } }
+.sala-time-avatar { display: block; width: 40px; height: 40px; flex: none; }
+.sala-time-avatar img, .sala-time-avatar .lb-ini { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; font-size: 15px; }
+.sala-time-identidade { display: grid; gap: 5px; min-width: 0; flex: 1; }
+.sala-time-identidade .sala-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Formação espelhada: líder na posição central interna, demais nas extremidades. */
+.sala-cards > .sala-jog:nth-child(2) { grid-area: 1 / 1; }
+.sala-cards > .sala-jog:nth-child(3) { grid-area: 1 / 2; }
+.sala-cards > .sala-jog:nth-child(4) { grid-area: 3 / 1; }
+.sala-cards > .sala-jog:nth-child(5) { grid-area: 3 / 2; }
+.sala-cards > .sala-jog.lider { grid-area: 2 / 2; }
+.sala-B .sala-cards > .sala-jog.lider { grid-area: 2 / 1; }
+.sala-cards > .sala-jog:last-child:nth-child(odd) { grid-column: 2; grid-row: 3; width: 100%; justify-self: stretch; }
+.sala-A > header { grid-template-columns: 24px minmax(0, max-content) 40px; justify-content: end; }
+.sala-A.na-vez > header { grid-template-columns: 24px minmax(0, max-content) 40px; }
+.sala-A > header .sala-time-identidade { justify-self: end; text-align: right; max-width: 100%; }
+.sala-B > header { grid-template-columns: 40px minmax(0, max-content) 24px; justify-content: start; }
+.sala-B > header .sala-time-avatar { grid-column: 1; grid-row: 1; }
+.sala-B > header .sala-time-identidade { grid-column: 2; grid-row: 1; justify-self: start; text-align: left; max-width: 100%; }
+.sala-B > header .sala-turno-espaco { grid-column: 3; grid-row: 1; }
+.sala-B.na-vez > header { grid-template-columns: 40px minmax(0, max-content) 24px; }
+.sala-jog-nivel { display: flex; align-items: center; justify-content: center; gap: 7px; max-width: 100%; min-height: 36px; margin-top: auto; padding: 5px 8px; border: 1px solid color-mix(in srgb, var(--lb-cor-nivel) 65%, transparent); border-radius: 7px; background: linear-gradient(135deg, color-mix(in srgb, var(--lb-cor-nivel) 20%, #06101b), #06101b); box-shadow: 0 4px 16px color-mix(in srgb, var(--lb-cor-nivel) 15%, transparent); color: #f1f6fc; font: 750 12px/1.15 var(--font-body); text-align: center; }
+.sala-jog-nivel .selo-nivel { width: 26px !important; height: 26px !important; flex: none; }
+html:not(#v2) #root .sala-jog { box-sizing: border-box; min-width: 0; aspect-ratio: auto; height: var(--sala-card-altura); min-height: 0; justify-content: flex-start; gap: 5px; padding: 22px 6px 8px; background-size: 100% 100%; background-repeat: no-repeat; }
+.sala-jog-nivel { box-sizing: border-box; white-space: normal; overflow-wrap: anywhere; }
+html:not(#v2) #root .sala-jog .sala-av { width: 100%; height: calc(var(--sala-card-altura) - 108px); aspect-ratio: auto; display: grid; place-items: center; flex: none; }
+html:not(#v2) #root .sala-av > :is(.moldura-box, .emblema-box) { width: clamp(28px, calc((var(--sala-card-altura) - 108px) * .60), 52px); height: clamp(28px, calc((var(--sala-card-altura) - 108px) * .60), 52px); margin: 0 !important; }
+html:not(#v2) #root .sala-av > :is(img, .lb-ini) { width: clamp(36px, calc(var(--sala-card-altura) - 116px), 60px); height: clamp(36px, calc(var(--sala-card-altura) - 116px), 60px); }
+html:not(#v2) #root .sala-av :is(.moldura-box, .emblema-box) > :is(img, .lb-ini) { width: 100%; height: 100%; }
+html:not(#v2) #root .sala-jog-nome { min-height: 20px; margin: 0; flex: none; }

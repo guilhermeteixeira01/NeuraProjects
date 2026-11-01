@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { fundoCss } from '../../comum/assetsV2.js'
 import Layout from '../../comum/Layout.jsx'
 import { carregarTimes } from '../../comum/times.js'
 import { Contador } from '../../comum/efeitos.jsx'
@@ -110,7 +111,7 @@ export default function Times() {
 
   return (
     <Layout pagina="times">
-      <main className="times-page tm">
+      <main className="times-page tm" style={fundoCss('diretorioTimes')}>
         <section className="tm-hero">
           <div className="tm-hero-txt">
             <span className="tm-chip fx-entra" style={{ '--e': 0 }}>

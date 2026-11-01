@@ -9,3 +9,6 @@ site/dist-final/
 # Estudos locais de design e capturas de revisão
 .taste-skill/
 .codex-remote-attachments/
+
+# Dados temporários do modo demo (npm run dev:demo)
+site/.demo-dados/

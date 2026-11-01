@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:local": "vite --mode teste",
+    "dev:demo": "vite --mode demo --open /",
     "worker:local": "cd worker/steam-login && npx wrangler dev --port 8787",
     "teste:local": "node worker/steam-login/dev/dev.mjs",
     "build": "vite build && vite build --ssr src/ssr.jsx --outDir dist-ssr",

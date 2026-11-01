@@ -1,0 +1,284 @@
+/* Ranking no visual v2 (referência: design/reference/03-ranking.png, 1586×992).
+   "#root .ranking-page.v2-rk" ganha de transparente.css (que usa "#root .ranking-page").
+   Fundo: bg-ranking-v2 (Mirage à noite) só na região do título e do pódio, apagando para a cor-base antes da tabela. */
+
+/* ── fundo da região do topo ── */
+#root .ranking-page.v2-rk { position: relative; isolation: isolate; background: var(--v2-fundo); }
+#root .ranking-page.v2-rk::before {
+  content: ''; position: absolute; z-index: -1; inset: 0 0 auto 0; height: 700px; pointer-events: none;
+  background: var(--np-fundo, none) center right / cover no-repeat, var(--v2-fundo);
+  -webkit-mask-image: linear-gradient(180deg, #000 0, #000 52%, transparent 100%); mask-image: linear-gradient(180deg, #000 0, #000 52%, transparent 100%);
+}
+#root .ranking-page.v2-rk::after {
+  content: ''; position: absolute; z-index: -1; inset: 0 0 auto 0; height: 700px; pointer-events: none;
+  background: linear-gradient(90deg, rgb(1 7 15 / .82) 0%, rgb(1 7 15 / .35) 38%, rgb(1 7 15 / .1) 70%, rgb(1 7 15 / .3) 100%), linear-gradient(180deg, rgb(1 7 15 / .25) 0, transparent 45%, var(--v2-fundo) 100%);
+}
+#root .ranking-page.v2-rk :is(.hero, .secao, .ranking-arena) { background: transparent; }
+/* a arena antiga (palco de carnaval em tela cheia) vira só o espaço do pódio */
+#root .ranking-page.v2-rk .ranking-arena { width: auto; min-height: 0; margin: 0; padding: 0; overflow: visible; }
+#root .ranking-page.v2-rk .ranking-arena::before, #root .ranking-page.v2-rk .ranking-arena::after { display: none; }
+#root .ranking-page.v2-rk .wrap { max-width: none; padding-inline: 40px 28px; }
+
+/* ── topo ── */
+.v2-rk-topo { padding: 22px 0 0; }
+.v2-rk-cab { display: grid; gap: 14px; }
+.v2-rk-cab .v2-titulo h1 { font: 800 44px/1.05 var(--font-display); letter-spacing: -.02em; }
+.v2-rk-cab .v2-titulo p { margin-top: 4px; font-size: 16px; color: #d3dbe6; max-width: 70ch; }
+.v2-rk-atualizado { display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border: 1px solid var(--v2-borda-forte); border-radius: 999px; background: rgb(1 7 15 / .6); color: var(--v2-texto-2); font-size: 13px; }
+.v2-rk-atualizado .ponto { width: 8px; height: 8px; border-radius: 50%; background: var(--v2-sucesso); box-shadow: 0 0 0 4px rgb(41 216 156 / .16); }
+.v2-rk-resumo { display: flex; flex-wrap: wrap; gap: 14px; margin: 0; }
+.v2-rk-resumo div { display: grid; grid-template-columns: auto auto; grid-template-rows: auto auto; column-gap: 12px; align-items: center; min-width: 0; padding: 12px 22px 12px 16px; border: 1px solid rgb(37 68 98 / .95); border-radius: 8px; background: rgb(3 14 26 / .82); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.v2-rk-resumo svg { grid-row: span 2; width: 32px; height: 32px; color: #3d8bff; }
+.v2-rk-resumo dt { order: 2; color: #c9d3e1; font-size: 13px; }
+.v2-rk-resumo dd { order: 1; margin: 0; font: 800 22px/1.1 var(--font-display); color: var(--v2-texto); }
+#root .ranking-page.v2-rk .v2-rk-corpo { padding-top: 0; }
+
+/* ── pódio: prata (esq.), ouro (meio, mais alto) e bronze (dir.) ──
+   Medidas da referência: cartões de 452/436/414 px de largura; prata e bronze com 277 px de altura (185 de cenário + 92 da faixa),
+   ouro com 316 (224 + 92) e o chapéu ~72 px acima da borda. */
+#root .ranking-page.v2-rk .podio {
+  display: grid; grid-template-columns: minmax(0, 452fr) minmax(0, 436fr) minmax(0, 414fr); gap: 16px; align-items: end;
+  max-width: none; margin: 0 0 18px; padding-top: 180px;
+}
+.v2-pod {
+  --h-cen: clamp(132px, 11.66vw, 200px); /* altura do cenário (acima da faixa) */
+  --pj-w: 78%; --pj-x: 52%; --pj-t: -4%; --pj-bg: 50%; /* personagem: largura, centro horizontal, topo (em % do card) */
+  position: relative; isolation: isolate; overflow: visible; display: grid; grid-template-rows: var(--h-cen) auto; min-width: 0; border-radius: 10px;
+}
+/* 1. cenário: só o fundo, com o recorte e a borda arredondados */
+.v2-pod-cenario { position: absolute; inset: 0; z-index: 0; overflow: hidden; border: 1px solid rgb(37 68 98 / .95); border-radius: 10px; background: #030e1a; }
+.v2-pod-cenario::before { content: ''; position: absolute; inset: 0; background: var(--np-fundo, none) var(--pj-bg) 40% / 230% auto no-repeat; }
+.v2-pod-cenario::after { content: ''; position: absolute; inset: 0; background: radial-gradient(70% 90% at 50% 38%, rgb(52 120 246 / .22), transparent 70%), linear-gradient(180deg, rgb(1 7 15 / .25), rgb(1 7 15 / .7)); }
+/* 2. personagem: irmão do cenário, por cima dele. A camada tem o tamanho do card e só recorta embaixo (o PNG vem cortado reto na
+   cintura); em cima o clip é negativo, então cabeça, chapéu e troféu passam da borda. Nunca captura clique. */
+.v2-pod-camada { position: absolute; inset: 0; z-index: 1; pointer-events: none; clip-path: inset(-70% -14% 0 -14%); }
+.v2-pod-camada img { position: absolute; left: var(--pj-x); top: var(--pj-t); width: var(--pj-w); height: auto; max-width: none; transform: translateX(-50%); object-fit: contain; object-position: top center; filter: drop-shadow(0 14px 18px rgb(0 0 0 / .6)); user-select: none; }
+.v2-pod-camada video { position: absolute; left: 50%; bottom: 0; width: 116%; height: calc(100% + 90px); max-width: none; transform: translateX(-50%); object-fit: contain; object-position: center bottom; filter: drop-shadow(0 16px 16px rgb(0 0 0 / .65)); }
+.v2-pod.p1 .v2-pod-camada video { height: calc(100% + 110px); }
+.v2-pod-pos { position: absolute; z-index: 3; top: 12px; left: 14px; display: grid; place-items: center; width: 50px; height: 50px; border-radius: 50%; font: 850 24px/1 var(--font-display); color: var(--cor-louro); background: radial-gradient(circle, rgb(1 7 15 / .85) 55%, transparent 56%), conic-gradient(from 200deg, transparent 0 8%, var(--cor-louro) 8% 42%, transparent 42% 58%, var(--cor-louro) 58% 92%, transparent 92%); box-shadow: 0 6px 18px rgb(0 0 0 / .5); text-shadow: 0 2px 10px rgb(0 0 0 / .6); }
+.v2-louro-ouro { --cor-louro: var(--v2-ouro); }
+.v2-louro-prata { --cor-louro: var(--v2-prata); }
+.v2-louro-bronze { --cor-louro: var(--v2-bronze); }
+.v2-pod-espaco { grid-row: 1; }
+/* 3. faixa de informações: à frente da parte de baixo do personagem */
+.v2-pod-info { position: relative; z-index: 2; grid-row: 2; isolation: isolate; display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 16px; min-height: 92px; padding: 14px 18px; border: 1px solid rgb(37 68 98 / .95); border-top-color: rgb(37 68 98 / .6); border-radius: 0 0 10px 10px; background: linear-gradient(180deg, rgb(3 14 26 / .94), rgb(10 17 30 / .98)); }
+.v2-pod.com-card .v2-pod-info::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: linear-gradient(90deg, rgb(3 14 26 / .92), rgb(3 14 26 / .7)), var(--card-fundo) center / cover no-repeat; }
+.v2-pod-av { display: block; width: 64px; height: 64px; flex: none; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 2px var(--v2-borda-forte); }
+.v2-pod-av :is(img, span) { display: grid; place-items: center; width: 100%; height: 100%; object-fit: cover; background: var(--v2-sup-3); font-weight: 800; }
+.v2-pod-quem { display: grid; justify-items: start; gap: 6px; min-width: 0; }
+.v2-pod-nome { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--v2-texto); font: 750 19px var(--font-display); text-decoration: none; }
+.v2-pod-nome:hover { color: var(--v2-ciano); }
+.v2-pod-time { max-width: 100%; font-size: 12px; color: var(--v2-texto-2); }
+.v2-pod-valor { display: grid; justify-items: end; gap: 2px; }
+.v2-pod-valor small { color: #c9d3e1; font-size: 13px; }
+.v2-pod-valor b { font: 800 26px/1.05 var(--font-display); color: var(--v2-texto); }
+.v2-pod-medalha { flex: none; filter: drop-shadow(0 4px 10px rgb(0 0 0 / .5)); }
+.v2-pod-medalha-ouro { color: var(--v2-ouro); }
+.v2-pod-medalha-prata { color: var(--v2-prata); }
+.v2-pod-medalha-bronze { color: var(--v2-bronze); }
+.v2-pod.eu .v2-pod-cenario { box-shadow: 0 0 0 2px var(--v2-primaria); }
+
+/* personagens: um por um (a silhueta de cada PNG ocupa uma área diferente; valores medidos contra a referência) */
+.v2-pod.p1 { --h-cen: calc(clamp(132px, 11.66vw, 200px) * 1.21); --pj-w: 82%; --pj-x: 55%; --pj-t: -24%; --pj-bg: 52%; }
+.v2-pod.p1 .v2-pod-cenario { border-color: rgb(233 185 76 / .7); box-shadow: 0 0 0 1px rgb(233 185 76 / .18), 0 24px 60px -24px rgb(233 185 76 / .45); }
+.v2-pod.p1 .v2-pod-info { border-color: rgb(233 185 76 / .55); border-top-color: rgb(233 185 76 / .25); }
+.v2-pod.p1 .v2-pod-av { width: 70px; height: 70px; box-shadow: 0 0 0 2px var(--v2-ouro); }
+.v2-pod.p1 .v2-pod-nome { font-size: 23px; }
+.v2-pod.p1 .v2-pod-valor b { font-size: 32px; }
+.v2-pod.p2 { --pj-w: 76%; --pj-x: 52%; --pj-t: -4%; --pj-bg: 12%; }
+.v2-pod.p3 { --pj-w: 80%; --pj-x: 54%; --pj-t: -5%; --pj-bg: 92%; }
+.v2-pod.esq-pod { min-height: 280px; background: linear-gradient(100deg, var(--v2-sup-2) 30%, var(--v2-sup-3) 50%, var(--v2-sup-2) 70%) 0 0 / 300% 100%; animation: v2-brilho 1.4s linear infinite; }
+.v2-pod.esq-pod.p1 { min-height: 330px; }
+@keyframes v2-brilho { to { background-position: -150% 0; } }
+
+/* ── abas das métricas ── */
+#root .ranking-page.v2-rk .barra-topo { margin: 0 0 14px; border: 0; padding: 0; background: transparent; }
+#root .ranking-page.v2-rk .metricas { display: flex; flex-wrap: wrap; gap: 10px; padding: 0; border: 0; background: transparent; box-shadow: none; }
+#root .ranking-page.v2-rk .metricas button { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-width: 146px; height: 46px; min-height: 46px; padding: 0 22px; border: 1px solid rgb(37 68 98 / .95); border-radius: 6px; background: rgb(3 14 26 / .9); color: #e6ebf3; font: 600 14px var(--font-body); letter-spacing: 0; box-shadow: none; }
+#root .ranking-page.v2-rk .metricas button svg { color: #e6ebf3; }
+#root .ranking-page.v2-rk .metricas button:hover { border-color: var(--v2-primaria); }
+#root .ranking-page.v2-rk .metricas button.active { background: linear-gradient(180deg, #2d79fd, #106afc); border-color: #5b9bff; color: #fff; box-shadow: 0 10px 24px -14px rgb(52 120 246 / .9); }
+#root .ranking-page.v2-rk .metricas button.active svg { color: #fff; }
+#root .ranking-page.v2-rk .nota { color: var(--v2-texto-2); font: 500 12.5px var(--font-body); letter-spacing: .02em; }
+
+/* ── tabela ── */
+#root .ranking-page.v2-rk :is(.tabela-card, .ranking-self) { border: 1px solid rgb(37 68 98 / .95); border-radius: 10px; background: #030e1a; overflow: hidden; width: auto; margin-left: 0; padding-inline: 0; }
+#root .ranking-page.v2-rk .ranking-list-heading { display: none; }
+#root .ranking-page.v2-rk .tabela-card .linha,
+#root .ranking-page.v2-rk .tabela-card .linha.linha-pod { display: grid; grid-template-columns: 64px minmax(0, 2.6fr) minmax(90px, .9fr) 70px 70px 80px 70px 60px 150px; align-items: center; gap: 22px; min-height: 76px; padding: 12px 24px; border-color: var(--v2-borda); }
+#root .ranking-page.v2-rk .linha.cab { min-height: 50px; background: transparent; border-bottom: 1px solid var(--v2-borda); }
+#root .ranking-page.v2-rk .linha.cab span { font: 500 13.5px var(--font-body); letter-spacing: 0; color: #c9d3e1; text-transform: none; }
+#root .ranking-page.v2-rk .linha.cab .sel { display: inline-flex; align-items: center; gap: 6px; color: #3d8bff; }
+#root .ranking-page.v2-rk .linha:not(.cab) { min-height: 76px; border-top: 1px solid var(--v2-borda); background: transparent; }
+#root .ranking-page.v2-rk .linha:not(.cab):hover { background: rgb(52 120 246 / .06); }
+#root .ranking-page.v2-rk .linha.eu { margin: 2px 0; border: 1px solid #ffd45a; border-radius: 8px; background: rgb(245 197 66 / .06); box-shadow: inset 0 0 0 1px rgb(255 212 90 / .35), inset 0 0 22px rgb(245 197 66 / .12), 0 0 18px rgb(255 200 61 / .5); }
+#root .ranking-page.v2-rk .barra-val .trilho { display: none; }
+#root .ranking-page.v2-rk .barra-val b { font: 750 19px var(--font-display); color: #3d8bff; }
+#root .ranking-page.v2-rk .num-c { font: 500 14.5px var(--font-body); font-variant-numeric: tabular-nums; color: #e6ebf3; text-align: center; }
+#root .ranking-page.v2-rk .pos-n { display: grid; place-items: center; min-height: 0; height: auto; margin: 0; font: 600 16px var(--font-body); color: #e6ebf3; }
+#root .ranking-page.v2-rk .jog { gap: 22px; padding-inline: 8px; }
+#root .ranking-page.v2-rk .jog-av { position: relative; display: grid; place-items: center; flex: 0 0 60px; width: 60px; min-height: 60px; overflow: visible; }
+.jog-nome { display: inline-flex; align-items: center; gap: 5px; min-width: 0; max-width: 100%; }
+.jog-nome > .icone-equipe { flex: none; }
+#root .ranking-page.v2-rk .jog .av { width: 42px; height: 42px; }
+#root .ranking-page.v2-rk .jog-txt { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: flex-start; gap: 12px; min-width: 0; }
+#root .ranking-page.v2-rk .jog-l1 { display: inline-flex; align-items: center; justify-content: flex-start; gap: 8px; min-width: 0; }
+#root .ranking-page.v2-rk .jog-l1 a { font: 700 15.5px var(--font-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--v2-texto); }
+#root .ranking-page.v2-rk .jog-l1 a:hover { color: var(--v2-ciano); }
+#root .ranking-page.v2-rk .jog-l2 { display: inline-flex; align-items: center; gap: 6px; margin: 0; }
+#root .ranking-page.v2-rk .jog-l2 .linha-time { display: none; }
+.v2-voce { padding: 3px 10px; border-radius: 5px; background: rgb(52 120 246 / .22); color: #6aa7ff; font: 600 12.5px var(--font-body); }
+.v2-louro-mini { display: grid; place-items: center; width: 34px; height: 34px; margin: 0 auto; border-radius: 50%; font: 800 16px/1 var(--font-display); color: var(--cor-louro); background: radial-gradient(circle, #030e1a 55%, transparent 56%), conic-gradient(from 200deg, transparent 0 8%, var(--cor-louro) 8% 42%, transparent 42% 58%, var(--cor-louro) 58% 92%, transparent 92%); }
+#root .ranking-page.v2-rk .forma { display: inline-flex; gap: 6px; }
+#root .ranking-page.v2-rk .forma a { display: grid; place-items: center; width: 22px; height: 22px; border: 0; border-radius: 4px; color: #fff; font: 700 11.5px var(--font-body); text-decoration: none; }
+#root .ranking-page.v2-rk .forma a.v { background: #1fae55; }
+#root .ranking-page.v2-rk .forma a.d { background: #e0454f; }
+#root .ranking-page.v2-rk .rk-som { right: 20px; border: 1px solid var(--v2-borda-forte); background: rgb(3 14 26 / .92); }
+
+/* ── telas menores ── */
+@media (max-width: 1280px) {
+  #root .ranking-page.v2-rk .metricas button { min-width: 0; padding: 0 14px; }
+  #root .ranking-page.v2-rk .tabela-card .linha, #root .ranking-page.v2-rk .tabela-card .linha.linha-pod { grid-template-columns: 50px minmax(0, 2.2fr) minmax(80px, .9fr) 60px 56px 64px 56px 52px 130px; gap: 10px; }
+  .v2-pod-info { gap: 12px; padding: 12px 14px; }
+  .v2-pod-nome { font-size: 17px; }
+}
+/* tablet e celular: um cartão por linha, o personagem mantém a proporção; o ouro vai primeiro */
+@media (max-width: 900px) {
+  #root .ranking-page.v2-rk .wrap { padding-inline: 16px; }
+  #root .ranking-page.v2-rk .podio { grid-template-columns: minmax(0, 560px); justify-content: center; gap: 130px; padding-top: 140px; }
+  .v2-pod { --h-cen: clamp(150px, 38vw, 210px); }
+  .v2-pod.p1 { --h-cen: clamp(180px, 46vw, 250px); order: 1; }
+  .v2-pod.p2 { order: 2; }
+  .v2-pod.p3 { order: 3; }
+}
+/* celular: a tabela inteira continua lá; jogador fixo à esquerda e o resto das colunas rola de lado, só dentro dela */
+@media (max-width: 720px) {
+  #root .ranking-page.v2-rk .tabela-card { overflow-x: auto; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
+  #root .ranking-page.v2-rk .tabela-card .linha,
+  #root .ranking-page.v2-rk .tabela-card .linha.linha-pod { grid-template-columns: 36px 170px 96px 60px 56px 56px 56px 52px 120px; gap: 10px; width: max-content; min-width: 100%; min-height: 0; padding: 10px 12px; }
+  #root .ranking-page.v2-rk .tabela-card .linha :is(.c-rt, .c-kd, .c-adr, .c-kast, .c-hs, .c-forma) { display: block; }
+  #root .ranking-page.v2-rk .tabela-card .linha.cab { display: grid; }
+  #root .ranking-page.v2-rk .tabela-card .linha > .jog { position: sticky; left: 0; z-index: 1; background: var(--v2-sup-1); box-shadow: 8px 0 12px -10px rgb(0 0 0 / .8); }
+  #root .ranking-page.v2-rk .tabela-card .linha.eu > .jog { background: #142445; }
+  #root .ranking-page.v2-rk .ranking-self .linha { grid-template-columns: 36px minmax(0, 1fr) auto; }
+  #root .ranking-page.v2-rk .metricas { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+  #root .ranking-page.v2-rk .metricas button { flex: none; }
+  .v2-rk-resumo div { min-width: 0; flex: 1; padding: 10px 12px; }
+  .v2-rk-resumo dd { font-size: 18px; }
+  .v2-rk-cab .v2-titulo h1 { font-size: 32px; }
+  .v2-pod-info { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .v2-pod-medalha { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .v2-pod.esq-pod { animation: none; } }
+
+/* ajuste fino pela comparação com a referência: ordem prata-ouro-bronze e escala (a silhueta ocupa quase a largura do card) */
+@media (min-width: 901px) {
+  .v2-pod.p2 { order: 1; }
+  .v2-pod.p1 { order: 2; }
+  .v2-pod.p3 { order: 3; }
+}
+.v2-pod.p1 { --pj-w: 100%; --pj-x: 53%; --pj-t: -23%; }
+.v2-pod.p2 { --pj-w: 100%; --pj-x: 50%; --pj-t: -9%; }
+.v2-pod.p3 { --pj-w: 98%; --pj-x: 52%; --pj-t: -9%; }
+
+/* o pódio sobe até a altura dos contadores (o lado direito do cabeçalho é vazio, e o chapéu do ouro entra nele) */
+@media (min-width: 1100px) {
+  #root .ranking-page.v2-rk .ranking-arena { position: relative; z-index: 2; margin-top: calc(-1 * clamp(70px, 9vw, 142px)); pointer-events: none; }
+  #root .ranking-page.v2-rk .ranking-arena .v2-pod-info a, #root .ranking-page.v2-rk .ranking-arena .v2-pod-info { pointer-events: auto; }
+}
+
+/* ══════════════ Ajuste pela referência em tamanho real (03-ranking.png) ══════════════
+   Medidas lidas na imagem (1586×992): cartões 452/436/414 de largura e 278/316/278 de altura, faixa de informações de 92 px; a silhueta de
+   cada personagem ocupa ~83% (prata), ~98% (ouro) e ~101% (bronze) da largura do cartão; o chapéu do ouro passa ~72 px da borda. */
+.v2-pod.p1 { --pj-w: 98%; --pj-x: 50%; --pj-t: -24%; }
+.v2-pod.p2 { --pj-w: 83%; --pj-x: 47.5%; --pj-t: -4%; }
+.v2-pod.p3 { --pj-w: 101%; --pj-x: 52%; --pj-t: -8%; }
+.v2-pod-camada img { filter: drop-shadow(0 10px 16px rgb(0 0 0 / .55)); }
+
+/* ramos do top 3 (arquivos do pacote): no canto do cartão, acima do cenário e do personagem */
+.v2-pod-ramo { position: absolute; z-index: 3; top: 10px; left: 12px; width: 64px; height: 64px; object-fit: contain; pointer-events: none; filter: drop-shadow(0 4px 8px rgb(0 0 0 / .55)); }
+.v2-ramo-mini { display: block; width: 36px; height: 36px; margin: 0 auto; object-fit: contain; filter: drop-shadow(0 2px 4px rgb(0 0 0 / .5)); }
+
+/* cada cenário tem o seu tom, como na referência: prata azul frio, ouro azul com brilho dourado, bronze com luz laranja */
+.v2-pod.p2 .v2-pod-cenario::after { background: radial-gradient(70% 95% at 38% 35%, rgb(70 120 210 / .3), transparent 70%), linear-gradient(180deg, rgb(1 7 15 / .12), rgb(1 7 15 / .55)); }
+.v2-pod.p1 .v2-pod-cenario::after { background: radial-gradient(55% 85% at 72% 35%, rgb(233 185 76 / .3), transparent 70%), radial-gradient(60% 90% at 25% 40%, rgb(16 106 252 / .28), transparent 70%), linear-gradient(180deg, rgb(1 7 15 / .1), rgb(1 7 15 / .5)); }
+.v2-pod.p3 .v2-pod-cenario::after { background: radial-gradient(60% 90% at 78% 38%, rgb(255 140 50 / .34), transparent 70%), linear-gradient(180deg, rgb(1 7 15 / .12), rgb(1 7 15 / .55)); }
+.v2-pod.p3 .v2-pod-cenario { border-color: rgb(205 130 70 / .65); }
+.v2-pod.p2 .v2-pod-cenario { border-color: rgb(150 175 215 / .5); }
+.v2-pod.p3 .v2-pod-info { border-color: rgb(205 130 70 / .45); border-top-color: rgb(205 130 70 / .2); }
+.v2-pod.p2 .v2-pod-info { border-color: rgb(150 175 215 / .35); border-top-color: rgb(150 175 215 / .15); }
+.v2-pod-info { background: #030e1a; }
+.v2-pod-av { box-shadow: 0 0 0 2px #fff; }
+.v2-pod.p1 .v2-pod-av { box-shadow: 0 0 0 2px var(--v2-ouro); }
+.v2-pod.p3 .v2-pod-av { box-shadow: 0 0 0 2px #d0894f; }
+.v2-pod-medalha-prata { color: #aab6c8; }
+.v2-pod-medalha-bronze { color: #d0894f; }
+
+/* cabeçalho: título à esquerda; busca e "atualizado" à direita (como a barra do topo da referência) */
+.v2-rk-cab .v2-titulo { align-items: flex-start; }
+.v2-rk-ferramentas { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+.v2-rk-busca { display: flex; align-items: center; gap: 12px; width: min(100%, 268px); height: 46px; padding: 0 16px; border: 1px solid var(--v2-borda-forte); border-radius: 7px; background: rgb(3 14 26 / .88); color: #c9d3e1; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.v2-rk-busca input { flex: 1; min-width: 0; height: 100%; border: 0; background: transparent; color: #f4f7fc; font: 400 14.5px var(--font-body); }
+.v2-rk-busca input::placeholder { color: #8ea0b8; }
+.v2-rk-busca:focus-within { border-color: var(--v2-primaria); }
+.v2-rk-busca input:focus-visible { outline: 0; }
+.v2-rk-sem-busca { margin: 0; padding: 24px 18px; color: #a8b5c7; text-align: center; }
+
+/* tabela: última coluna ⋮ (abre o perfil) */
+#root .ranking-page.v2-rk .tabela-card .linha,
+#root .ranking-page.v2-rk .tabela-card .linha.linha-pod { grid-template-columns: 64px minmax(0, 2.6fr) minmax(90px, .9fr) 70px 70px 80px 70px 60px 150px 40px; }
+.v2-linha-mais { display: grid; place-items: center; width: 36px; height: 36px; margin-inline: auto; border-radius: 6px; color: #c9d3e1; text-decoration: none; }
+a.v2-linha-mais:hover { background: var(--v2-sup-3); color: #fff; }
+@media (max-width: 1280px) {
+  #root .ranking-page.v2-rk .tabela-card .linha, #root .ranking-page.v2-rk .tabela-card .linha.linha-pod { grid-template-columns: 50px minmax(0, 2.2fr) minmax(80px, .9fr) 60px 56px 64px 56px 52px 130px 36px; }
+}
+@media (max-width: 720px) {
+  #root .ranking-page.v2-rk .tabela-card .linha, #root .ranking-page.v2-rk .tabela-card .linha.linha-pod { grid-template-columns: 36px 170px 96px 60px 56px 56px 56px 52px 120px 40px; }
+}
+@media (max-width: 900px) { .v2-rk-ferramentas { justify-content: flex-start; } .v2-rk-busca { width: 100%; } }
+
+/* cores da referência: página #01070F, painéis #030E1A, tabela #061320, botão ativo #106AFC */
+#root .ranking-page.v2-rk :is(.tabela-card, .ranking-self) { background: #061320; }
+#root .ranking-page.v2-rk .linha.cab { background: #030f1d; }
+#root .ranking-page.v2-rk .metricas button { background: #030e1a; }
+
+/* linhas do top 3 com a mesma altura das outras (a regra antiga do troféu fazia 108 px e esticava a coluna do número) */
+#root .ranking-page.v2-rk .tabela-card .linha.linha-pod { min-height: 76px; padding-block: 12px; }
+#root .ranking-page.v2-rk .linha.linha-pod .pos-n.com-trofeu,
+#root .ranking-page.v2-rk .tabela-card .pos-n { display: grid; place-items: center; align-self: center; height: auto; min-height: 0; margin: 0; padding: 0; }
+.v2-rk-nota { margin: 12px 4px 0; color: #8ea0b8; font: 400 12.5px var(--font-body); letter-spacing: 0; text-transform: none; }
+/* Mantém espaço para a moldura e os dados; telas menores rolam a tabela. */
+#root .ranking-page.v2-rk .tabela-card { overflow-x: auto; }
+#root .ranking-page.v2-rk .tabela-card .linha,
+#root .ranking-page.v2-rk .tabela-card .linha.linha-pod { min-width: 1440px; grid-template-columns: 64px minmax(380px, 2.6fr) minmax(90px, .9fr) 70px 70px 80px 70px 60px 150px 40px; }
+#root .ranking-page.v2-rk .jog-txt { flex-wrap: wrap; row-gap: 6px; }
+/* a regra antiga ".pos-n.com-trofeu img" (46×54) ganhava do tamanho do ramo: aqui o ramo mede 38 px e não estica a linha */
+#root .ranking-page.v2-rk .pos-n .v2-ramo-mini { width: 38px; height: 38px; }
+#root .ranking-page.v2-rk .linha .pos-n.com-trofeu .v2-ramo-mini, #root .ranking-page.v2-rk .linha.p1 .pos-n.com-trofeu .v2-ramo-mini, #root .ranking-page.v2-rk .linha.p2 .pos-n.com-trofeu .v2-ramo-mini, #root .ranking-page.v2-rk .linha.p3 .pos-n.com-trofeu .v2-ramo-mini { filter: drop-shadow(0 2px 4px rgb(0 0 0 / .5)); opacity: 1; }
+
+/* No celular só aparecem a posição, identidade e a métrica selecionada. */
+@media (max-width: 720px) {
+  #root .ranking-page.v2-rk .tabela-card .linha,
+  #root .ranking-page.v2-rk .tabela-card .linha.linha-pod {
+    box-sizing: border-box; grid-template-columns: 32px minmax(0, 1fr) 64px;
+    gap: 10px; width: 100%; min-width: 0; min-height: 92px; padding: 10px 8px;
+  }
+  #root .ranking-page.v2-rk .tabela-card .linha > :is(.c-rt, .c-kd, .c-adr, .c-kast, .c-hs, .c-forma, .v2-linha-mais) { display: none; }
+  #root .ranking-page.v2-rk .tabela-card .linha.cab { min-height: 44px; padding-block: 8px; }
+  #root .ranking-page.v2-rk .tabela-card .linha > .jog { position: static; gap: 10px; padding: 4px 0; background: none !important; box-shadow: none; }
+  #root .ranking-page.v2-rk .jog-av { flex-basis: 48px; width: 48px; min-height: 56px; }
+  #root .ranking-page.v2-rk .jog .av { width: 36px; height: 36px; }
+  #root .ranking-page.v2-rk .jog-txt { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 5px; background: none; }
+  #root .ranking-page.v2-rk .jog-l1, #root .ranking-page.v2-rk .jog-l2 { display: contents; }
+  #root .ranking-page.v2-rk .jog-nome { flex: 0 0 100%; }
+  #root .ranking-page.v2-rk .jog-l1 a { flex: 0 1 auto; font-size: 13px; }
+  #root .ranking-page.v2-rk .jog-l2 > :is(.premier, .linha-time) { display: none; }
+  #root .ranking-page.v2-rk .jog-txt .selo-nivel { width: 18px !important; height: 18px !important; }
+  #root .ranking-page.v2-rk .jog-txt .cargos { max-width: 100%; }
+  #root .ranking-page.v2-rk .tabela-card .barra-val { justify-content: flex-end; }
+  #root .ranking-page.v2-rk .linha.cab span { font-size: 11px; }
+  #root .ranking-page.v2-rk .barra-val b { font-size: 17px; min-width: 0; }
+  #root .ranking-page.v2-rk .num-c { font-size: 12px; }
+  #root .ranking-page.v2-rk .pos-n .v2-ramo-mini { width: 28px; height: 28px; }
+  #root .ranking-page.v2-rk .v2-voce { padding: 2px 5px; font-size: 10px; }
+}

@@ -1,4 +1,5 @@
 import AdminMissoes from './AdminMissoes.jsx'
+import { fundoCss } from '../../comum/assetsV2.js'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Layout from '../../comum/Layout.jsx'
@@ -1816,7 +1817,7 @@ function Ha({ desde }) {
 function Aviso({ titulo, texto, children }) {
   const tr = useT()
   return (
-    <section className="hero adm-hero">
+    <section className="hero adm-hero v2-hero-fundo" style={fundoCss('admin')}>
       <FundoHero quantidade={8} />
       <div className="wrap">
         <span className="kicker">{tr('ADMINISTRAÇÃO')}</span>
@@ -1915,7 +1916,7 @@ export default function Admin() {
     const abaAtual = ABAS.some(([id]) => id === aba) ? aba : ABAS[0]?.[0]
     conteudo = (
       <>
-        <section className="hero adm-hero">
+        <section className="hero adm-hero v2-hero-fundo" style={fundoCss('admin')}>
           <FundoHero quantidade={8} />
           <div className="wrap">
             <span className="kicker">{tr('ADMINISTRAÇÃO')}</span>

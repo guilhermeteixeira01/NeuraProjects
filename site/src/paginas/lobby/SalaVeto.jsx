@@ -3,6 +3,8 @@ import { useAmigos } from '../../comum/amigos.js'
 import { linkPerfil } from '../../comum/conta.js'
 import { ComMoldura, IconeEquipe, apelidoDe, useCardDe, usePerfis } from '../../comum/Moldura.jsx'
 import { urlCard } from '../../comum/cardsPerfil.js'
+import { SeloNivel, useNivelDe } from '../../comum/Nivel.jsx'
+import { corNivel } from '../../comum/niveis.js'
 import { useAvatar } from '../../comum/avatares.js'
 import { acaoLobby, msAte, useRelogio } from '../../comum/lobby.js'
 import { getMap, mapImage } from '../../comum/mapas.js'
@@ -61,13 +63,15 @@ function Foto({ p }) {
 }
 
 // Um jogador do time: card do perfil como fundo, foto com moldura e nome
-function Jogador({ pessoa: bruta, lider }) {
+function Jogador({ pessoa: bruta, lider, ranking, naVez }) {
   const t = useT()
   const perfis = usePerfis()
   const pessoa = { ...bruta, nome: apelidoDe(perfis, bruta.id, bruta.nome) } // apelido do site
   const card = useCardDe(pessoa.id)
+  const nivel = useNivelDe({ ...ranking.find(j => String(j.steamId) === String(pessoa.id)), steamId: pessoa.id })
   return (
-    <div className={`sala-jog${lider ? ' lider' : ''}${card ? ' com-card' : ''}`} style={card ? { '--card-fundo': `url("${urlCard(card)}")` } : undefined}>
+    <div className={`sala-jog${lider ? ' lider' : ''}${card ? ' com-card' : ''}`} style={{ '--lb-cor-nivel': nivel.classificado ? corNivel(nivel.nivel) : '#8292a7', ...(card ? { '--card-fundo': `url("${urlCard(card)}")` } : {}) }}>
+      {lider && naVez && <svg className="sala-lider-seta sala-turno-seta" viewBox="0 0 24 24" role="img" aria-label={t('NA VEZ')}><path d="M12 3v17m-7-7 7 7 7-7" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>}
       {lider && <small className="sala-jog-lider">{t('Líder')}</small>}
       <a className="sala-av" href={linkPerfil(pessoa.id)} title={pessoa.nome || pessoa.id}>
         <ComMoldura steamId={pessoa.id} emblema>
@@ -78,24 +82,31 @@ function Jogador({ pessoa: bruta, lider }) {
         <span>{pessoa.nome || pessoa.id}</span>
         <IconeEquipe steamId={pessoa.id} />
       </b>
+      <span className="sala-jog-nivel">
+        <SeloNivel nivel={nivel.nivel} tamanho={26} />
+        {nivel.classificado ? t('Nível {n}', { n: nivel.nivel >= 11 ? 'Elite' : nivel.nivel }) : t('Sem classificação')}
+      </span>
     </div>
   )
 }
 
-function Equipe({ lado, time, nome, naVez }) {
+function Equipe({ lado, time, nome, naVez, ranking }) {
   const t = useT()
+  const dono = time.membros.find(m => m.id === time.lider) || time.membros[0]
   // líder primeiro
   const membros = [...time.membros].sort((a, b) => (b.id === time.lider) - (a.id === time.lider))
   return (
     <aside className={`sala-equipe sala-${lado}${naVez ? ' na-vez' : ''}`} aria-label={nome}>
       <header>
-        <span className="sala-rotulo">{t('TIME {t}', { t: lado })}</span>
-        <b className="sala-nome">{nome}</b>
-        {naVez && <span className="sala-vez">{t('NA VEZ')}</span>}
+        <span className="sala-turno-espaco" aria-hidden="true" />
+        <div className="sala-time-identidade">
+          <b className="sala-nome">{nome}</b>
+        </div>
+        {dono && <a className="sala-time-avatar" href={linkPerfil(dono.id)} title={dono.nome}><Foto p={dono} /></a>}
       </header>
       <div className="sala-cards">
         {membros.map((m) => (
-          <Jogador key={m.id} pessoa={m} lider={m.id === time.lider} />
+          <Jogador key={m.id} pessoa={m} lider={m.id === time.lider} ranking={ranking} naVez={naVez} />
         ))}
       </div>
     </aside>
@@ -251,7 +262,7 @@ function Conectar({ servidor, fechaEm, desvio, aoChamarSubstituto }) {
   )
 }
 
-export default function SalaVeto({ dados }) {
+export default function SalaVeto({ dados, ranking = [] }) {
   const t = useT()
   const { partida, eu } = dados
   const { fase, times, pool, historico } = partida
@@ -270,7 +281,7 @@ export default function SalaVeto({ dados }) {
     window.addEventListener('np-chat', ouvir)
     return () => window.removeEventListener('np-chat', ouvir)
   }, [partida.id, eu])
-  useRelogio(fase === 'veto')
+  useRelogio(fase === 'veto' && !partida.apenasVisual)
 
   const passos = buildSteps(partida.formato, partida.primeiro)
   const passo = passos[historico.length]
@@ -281,7 +292,7 @@ export default function SalaVeto({ dados }) {
   const lider = (tm) => times[tm].membros.find((m) => m.id === times[tm].lider)
   const minhaVez = !pronto && times[passo.team].lider === eu
   const formato = FORMATS[partida.formato]?.label || partida.formato
-  const segundos = Math.ceil(msAte(partida.prazo, partida.desvio) / 1000)
+  const segundos = partida.apenasVisual ? 60 : Math.ceil(msAte(partida.prazo, partida.desvio) / 1000)
 
   // Som a cada ação nova (a de quem jogou e a automática); no fim toca o "concluído"
   const antes = useRef(historico.length)
@@ -326,7 +337,7 @@ export default function SalaVeto({ dados }) {
       </div>
 
       <div className="sala-grade">
-        <Equipe lado="A" time={times.A} nome={nome('A')} naVez={!pronto && passo.team === 'A'} />
+        <Equipe ranking={ranking} lado="A" time={times.A} nome={nome('A')} naVez={!pronto && passo.team === 'A'} />
 
         <div className="sala-meio">
           <div className="sala-painel-abas" role="tablist">
@@ -374,7 +385,7 @@ export default function SalaVeto({ dados }) {
                   </li>
                 ))}
               </ul>
-              <Conectar servidor={partida.servidor} fechaEm={partida.prazo} desvio={partida.desvio} aoChamarSubstituto={() => setChamando(true)} />
+              {partida.apenasVisual ? <p className="sala-vez-msg" role="status">Prévia visual concluída. Nenhuma partida será iniciada.</p> : <Conectar servidor={partida.servidor} fechaEm={partida.prazo} desvio={partida.desvio} aoChamarSubstituto={() => setChamando(true)} />}
               {aviso && (
                 <p className="lb-erro" role="alert">
                   {t(aviso)}
@@ -480,7 +491,7 @@ export default function SalaVeto({ dados }) {
           </div>
         </div>
 
-        <Equipe lado="B" time={times.B} nome={nome('B')} naVez={!pronto && passo.team === 'B'} />
+        <Equipe ranking={ranking} lado="B" time={times.B} nome={nome('B')} naVez={!pronto && passo.team === 'B'} />
       </div>
 
       {chamando && <ChamarSubstituto vagas={partida.servidor?.vagas || []} ocupado={ocupado} aoFechar={() => setChamando(false)} aoChamar={(id) => agir('substituir', undefined, id)} />}

@@ -139,8 +139,6 @@ export default function Configuracoes() {
             </div>
           </div>
 
-          <ContaSeguranca />
-
           <label className="nx-config-switch">
             <input type="checkbox" checked={desempenho} onChange={(e) => escolherDesempenho(e.target.checked)} />
             <span className="nx-config-chave" aria-hidden="true" />

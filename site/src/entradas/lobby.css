@@ -15,3 +15,7 @@
 /* Itens de partida (Boost/Freeze) ao lado do JOGAR e o visual do painel: por último, ganha dos anteriores */
 @import '../paginas/lobby/acao.css';
 @import '../comum/acabamento.css';
+
+/* Neura Project v2: por último, ganha de tudo acima */
+@import '../comum/neura-v2.css';
+@import '../paginas/lobby/v2.css';

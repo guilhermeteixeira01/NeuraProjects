@@ -1,0 +1,454 @@
+/* Início no visual v2. Medidas tiradas da referência (design/reference/01-inicio.png, 1586×992):
+   topo de ~410 px com o texto à esquerda, a dupla no meio e "Sua temporada" à direita; faixa do login diário de largura total;
+   embaixo, últimas partidas (lista) e o card da comunidade lado a lado. Vem depois de comum/neura-v2.css. */
+
+/* ── topo ── */
+.v2-hero-inicio {
+  display: grid; grid-template-columns: minmax(0, 1fr) 406px; align-items: center; gap: 24px;
+  min-height: 411px; padding: 30px 28px 26px var(--v2-gutter); border-bottom: 0;
+}
+.v2-hero-inicio .v2-cena-fundo { object-position: 62% 38%; }
+.v2-hero-inicio::after {
+  background:
+    linear-gradient(90deg, rgb(1 7 15 / .9) 0%, rgb(1 7 15 / .6) 30%, rgb(1 7 15 / .05) 55%, rgb(1 7 15 / .15) 75%, rgb(1 7 15 / .55) 100%),
+    linear-gradient(0deg, rgb(1 7 15 / .75) 0%, transparent 22%);
+}
+.v2-hero-dupla { position: absolute; z-index: -1; bottom: 0; left: 41%; transform: none; width: auto; height: 100%; max-height: none; object-fit: contain; object-position: bottom center; pointer-events: none; filter: drop-shadow(0 24px 40px rgb(0 0 0 / .55)); }
+.v2-hero-texto { position: relative; max-width: 520px; }
+.v2-hero-ola { margin: 0; font: 800 42px/1.12 var(--font-display); letter-spacing: -.015em; color: #f4f7fc; overflow-wrap: anywhere; }
+.v2-hero-ola b { color: #3d8bff; font-weight: 800; background: linear-gradient(180deg, #5aa2ff, #2f7bf5); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.v2-hero-sub { margin: 4px 0 0; color: #c9d3e1; font-size: 19px; }
+.v2-hero-kicker { margin: 30px 0 12px; color: #6aa7ff; font: 700 12.5px var(--font-body); letter-spacing: .42em; }
+.v2-hero-inicio h1 { margin: 0; font: 800 46px/1.06 var(--font-display); letter-spacing: -.02em; color: #f4f7fc; }
+.v2-hero-inicio h1 em { color: #3478f6; background: linear-gradient(180deg, #4f97ff, #2a6fef); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.v2-hero-lead { margin: 14px 0 0; max-width: 400px; color: #c9d3e1; font-size: 15px; line-height: 1.45; }
+.v2-hero-acoes { gap: 18px; margin-top: 28px; }
+.v2-hero-acoes .v2-btn { min-width: 0; height: 52px; padding: 0 28px; border-radius: 7px; font: 650 15px var(--font-body); }
+.v2-hero-acoes .v2-btn-primario { min-width: 224px; border: 1px solid #5b9bff; box-shadow: 0 0 0 1px rgb(52 120 246 / .25), 0 14px 30px -12px rgb(52 120 246 / .9); }
+.v2-hero-acoes .v2-btn-secundario { min-width: 183px; border: 1px solid rgb(205 220 245 / .7); background: rgb(1 7 15 / .35); }
+
+/* ── Sua temporada ── */
+.v2-temporada { align-self: center; border: 1px solid rgb(37 68 98 / .95); border-radius: 10px; background: rgb(10 17 30 / .9); box-shadow: 0 20px 50px -20px rgb(0 0 0 / .8); }
+.v2-temporada .v2-painel-cab { padding: 16px 16px 14px 20px; }
+.v2-temporada .v2-painel-cab h2 { font: 700 17px var(--font-display); }
+.v2-temporada-chip { padding: 6px 13px; border: 1px solid rgb(37 68 98 / .95); border-radius: 6px; color: #c9d3e1; font-size: 12.5px; }
+.v2-temporada-grade { grid-template-columns: 150px minmax(0, 1fr); gap: 18px; padding: 18px 20px 14px; }
+.v2-temporada-pos { min-height: 130px; border-radius: 0; background: none; box-shadow: none; position: relative; }
+/* louro dourado em volta do número (CSS: dois arcos) */
+.v2-temporada-pos::before { content: ''; position: absolute; left: 50%; top: 4px; width: 104px; height: 96px; transform: translateX(-50%); border-radius: 50%; border: 5px dotted rgb(233 185 76 / .9); border-top-color: transparent; filter: drop-shadow(0 0 6px rgb(233 185 76 / .35)); }
+.v2-temporada-pos b { position: relative; margin-top: 18px; font: 850 40px/1 var(--font-display); color: #f2c55c; }
+.v2-temporada-pos span { margin-top: 22px; max-width: none; color: #e6ebf3; font-size: 15px; }
+.v2-temporada-numeros { gap: 0 18px; }
+.v2-temporada-numeros .v2-temporada-rating { padding-bottom: 14px; margin-bottom: 14px; }
+.v2-temporada-numeros dt { color: #c9d3e1; font-size: 14px; }
+.v2-temporada-numeros dd { font: 750 24px/1.15 var(--font-display); margin-top: 6px; }
+.v2-temporada-rating dd { font-size: 30px; }
+.v2-temporada-numeros div:nth-child(3) { padding-left: 18px; border-left: 1px solid var(--v2-borda); }
+.v2-temporada-mapa { margin: 0 16px 16px; grid-template-columns: 136px minmax(0, 1fr) auto; border-color: transparent; border-top: 1px solid var(--v2-borda); border-radius: 0; padding: 14px 0 0; background: none; }
+.v2-temporada-mapa img { width: 136px; height: 76px; }
+
+/* ── seções abaixo do topo ── */
+.np-inicio .np-central { padding: 0 28px 8px var(--v2-gutter); margin: 0; max-width: none; }
+.np-inicio .np-banner { margin: 18px 28px 0 var(--v2-gutter); width: auto; border-radius: 10px; border: 1px solid var(--v2-borda); }
+.np-inicio .np-banner::after { display: none; }
+
+/* faixa do login diário */
+.pd-faixa { position: relative; display: grid; grid-template-columns: 220px minmax(0, 1fr) 368px; align-items: center; gap: 14px; min-height: 131px; padding: 16px 16px 16px 22px; border: 1px solid rgb(37 68 98 / .95); border-radius: 10px; background: linear-gradient(180deg, #06121f, #030e1a); }
+.pd-faixa-titulo { display: flex; align-items: flex-start; gap: 16px; align-self: start; padding-top: 8px; }
+.pd-faixa-icone { color: #3d8bff; }
+.pd-faixa-icone svg { width: 26px; height: 26px; }
+.pd-faixa h2 { margin: 0 0 8px; font: 700 18px var(--font-display); color: #f4f7fc; text-transform: none; letter-spacing: 0; }
+.pd-faixa-titulo p { margin: 0; color: #c9d3e1; font-size: 13.5px; line-height: 1.45; max-width: 16ch; }
+.pd-dias { display: grid; grid-template-columns: repeat(7, minmax(0, 88px)); gap: 11px; margin: 0; padding: 0; list-style: none; }
+.pd-dias li { position: relative; display: grid; justify-items: center; align-content: space-between; height: 100px; padding: 10px 4px 9px; border: 1px solid rgb(132 164 214 / .18); border-radius: 7px; background: #030e1a; text-align: center; }
+.pd-dias small { color: #e6ebf3; font-size: 12.5px; }
+.pd-dia-icone { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; color: #c9d3e1; }
+.pd-dia-icone svg { width: 22px; height: 22px; }
+.pd-dias li.feito .pd-dia-icone { background: #29d89c; color: #062016; }
+.pd-dias li.feito .pd-dia-icone svg { width: 17px; height: 17px; stroke-width: 3; }
+.pd-dias b { color: #e6ebf3; font: 600 12.5px var(--font-body); }
+.pd-dias li.feito b { color: #f2c55c; }
+.pd-dias li.atual { border: 2px solid #3d8bff; background: linear-gradient(180deg, #13284d, #0f1f3c); box-shadow: 0 0 18px -4px rgb(52 120 246 / .7); }
+.pd-dias li.atual.feito .pd-dia-icone { background: #3478f6; color: #fff; }
+.pd-dias li.atual b { color: #f2c55c; }
+.pd-dias .pd-item { position: absolute; top: 4px; right: 5px; font: 700 10px var(--font-body); font-style: normal; color: #6bd4ff; }
+.pd-hoje { position: relative; isolation: isolate; overflow: hidden; display: grid; grid-template-columns: 52px minmax(0, 1fr); align-items: center; gap: 14px; height: 100px; padding: 0 16px; border: 1px solid rgb(37 68 98 / .95); border-radius: 8px; background: linear-gradient(90deg, #06121f 40%, #13284a); }
+.pd-hoje-arte { position: absolute; z-index: -1; right: -8px; top: 50%; width: 140px; height: 140px; transform: translateY(-50%); object-fit: contain; opacity: .75; -webkit-mask-image: linear-gradient(90deg, transparent, #000 45%); mask-image: linear-gradient(90deg, transparent, #000 45%); }
+.pd-hoje-icone { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; border: 2px solid #3d8bff; color: #3d8bff; }
+.pd-hoje.feito .pd-hoje-icone { border-color: #29d89c; color: #29d89c; }
+.pd-hoje-icone svg { width: 24px; height: 24px; }
+.pd-hoje-txt { display: grid; gap: 4px; min-width: 0; }
+.pd-hoje-txt > b { color: #f4f7fc; font: 700 15px var(--font-display); }
+.pd-hoje.feito .pd-hoje-txt > b { color: #29d89c; }
+.pd-hoje-txt > small { color: #c9d3e1; font-size: 12.5px; line-height: 1.35; }
+.pd-hoje-botoes { display: flex; gap: 6px; margin-top: 2px; }
+.pd-btn { min-height: 28px; padding: 0 10px; border: 1px solid rgb(132 164 214 / .35); border-radius: 6px; background: rgb(1 7 15 / .6); color: #e6ebf3; font: 600 12px var(--font-body); cursor: pointer; }
+.pd-btn-p { border-color: #3478f6; background: #3478f6; color: #fff; }
+.pd-btn:disabled { opacity: .5; cursor: not-allowed; }
+.pd-hoje-relogio { color: #8f9db2; font-size: 11px; }
+.pd-faixa :is(.pd-erro, .pd-aviso) { grid-column: 1 / -1; margin: 0; font-size: 13px; }
+.pd-faixa .pd-erro { color: var(--v2-erro); }
+.pd-faixa .pd-aviso { color: var(--v2-sucesso); }
+
+/* últimas partidas + comunidade */
+.v2-central-baixo { grid-template-columns: minmax(0, 692fr) minmax(0, 633fr); gap: 18px; margin-top: 18px; }
+html:not(#v2) .np-inicio :is(.np-painel-partidas, .np-destaques-painel) { border: 1px solid rgb(37 68 98 / .95); border-radius: 10px; background: linear-gradient(180deg, #06121f, #030e1a); box-shadow: none; }
+html:not(#v2) .np-inicio .np-bloco-cab { padding: 18px 20px 16px; border-bottom: 1px solid var(--v2-borda); }
+html:not(#v2) .np-inicio .np-bloco-cab h2 { gap: 14px; font: 700 18px var(--font-display); }
+html:not(#v2) .np-inicio .np-bloco-cab h2 svg { color: #3d8bff; }
+html:not(#v2) .np-inicio .np-bloco-cab > a { display: inline-flex; align-items: center; gap: 6px; color: #3d8bff; font: 500 13px var(--font-body); }
+.np-inicio .np-recentes { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 12px 14px 16px 22px; }
+.np-partida-linha { display: grid; grid-template-columns: 134px minmax(0, 1fr) 132px 74px 82px 20px; align-items: center; gap: 18px; min-height: 74px; padding: 0 14px 0 0; border: 1px solid rgb(37 68 98 / .6); border-radius: 7px; background: #111b2b; color: #f4f7fc; text-decoration: none; overflow: hidden; }
+.np-partida-linha:hover { border-color: #3478f6; background: #13213a; }
+.np-partida-thumb { align-self: stretch; overflow: hidden; border-radius: 6px 0 0 6px; background: #172338; }
+.np-partida-thumb img { width: 134px; height: 100%; min-height: 72px; object-fit: cover; display: block; }
+.np-partida-mapa-nome { display: grid; gap: 6px; min-width: 0; }
+.np-partida-mapa-nome b { font: 700 16px var(--font-display); }
+.np-partida-mapa-nome small { color: #c9d3e1; font-size: 13.5px; }
+.np-partida-placar2 { display: grid; justify-items: center; gap: 6px; }
+.np-partida-placar2 strong { font: 800 23px/1 var(--font-display); color: #f4f7fc; }
+.np-partida-placar2 strong .venceu { color: #29d89c; }
+.np-partida-placar2 .v2-selo { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px 12px; border-radius: 5px; border: 0; background: rgb(41 216 156 / .16); font: 600 12.5px var(--font-body); }
+.np-partida-num { display: grid; justify-items: center; gap: 4px; }
+.np-partida-num b { font: 700 15.5px var(--font-display); }
+.np-partida-num small { color: #a8b5c7; font-size: 11.5px; white-space: nowrap; }
+.np-partida-quando { color: #c9d3e1; font-size: 12.5px; line-height: 1.6; text-align: center; }
+.np-partida-seta { color: #c9d3e1; }
+
+/* comunidade: título grande à esquerda, mestre de cerimônias à direita, pontos do carrossel embaixo */
+html:not(#v2) .np-inicio .np-destaques-painel.v2-dest { position: relative; isolation: isolate; overflow: hidden; display: flex; flex-direction: column; min-height: 338px; }
+.v2-dest::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(90deg, #030e1a 0%, rgb(12 21 36 / .92) 34%, rgb(12 21 36 / .1) 62%, transparent); }
+.v2-dest .v2-destaques-arte { position: absolute; z-index: -2; right: -2%; bottom: 0; width: 64%; height: 112%; object-fit: contain; object-position: bottom right; pointer-events: none; }
+.v2-dest::before { content: ''; position: absolute; inset: 0; z-index: -3; background: radial-gradient(60% 80% at 80% 40%, #1b2f63, #030e1a 70%); }
+.v2-dest .np-bloco-cab { border-bottom: 0 !important; background: transparent; }
+.v2-dest-corpo { display: grid; align-content: center; justify-items: start; gap: 12px; flex: 1; padding: 0 22px; max-width: 320px; }
+.v2-dest-titulo { margin: 0; font: 850 38px/1.02 var(--font-display); letter-spacing: -.02em; color: #f4f7fc; overflow-wrap: anywhere; }
+.v2-dest-titulo em { font-style: normal; color: #3d8bff; }
+.v2-dest-corpo p { margin: 0; color: #e6ebf3; font-size: 14px; line-height: 1.45; }
+.v2-dest-rotulo { color: #6aa7ff; font: 700 11px var(--font-body); letter-spacing: .14em; text-transform: uppercase; }
+.v2-dest-num { color: #f2c55c; }
+.v2-dest .v2-btn-ouro { height: 44px; min-height: 44px; padding: 0 18px; margin-top: 6px; border-radius: 6px; font: 650 13.5px var(--font-body); }
+.v2-dest-pontos { display: flex; gap: 6px; padding: 14px 22px 18px; }
+.v2-dest-pontos button { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%; background: rgb(255 255 255 / .3); cursor: pointer; }
+.v2-dest-pontos button[aria-pressed='true'] { background: #3d8bff; }
+.v2-dest-pontos button::after { content: ''; position: absolute; inset: -12px; }
+.v2-dest-pontos button { position: relative; }
+
+/* caixas em destaque: largura total, depois do painel */
+html:not(#v2) .np-inicio .np-central > .np-caixas, html:not(#v2) .np-inicio .np-central > section:last-child:not(.v2-central-baixo) { margin-top: 18px; border: 1px solid rgb(37 68 98 / .95); border-radius: 10px; background: linear-gradient(180deg, #06121f, #030e1a); }
+
+/* seções antigas mais abaixo (projetos, sobre) */
+html:not(#v2) .np-inicio :is(.projeto, .projeto.grande) { border: 1px solid var(--v2-borda); border-radius: var(--v2-raio); background: var(--v2-sup-2); }
+html:not(#v2) .np-inicio .projeto:hover { border-color: var(--v2-primaria); }
+.np-inicio .projeto-link { color: var(--v2-primaria); }
+
+/* ── telas menores ── */
+@media (max-width: 1400px) {
+  .pd-faixa { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .pd-faixa-titulo { grid-column: 1; }
+  .pd-hoje { grid-column: 2; }
+  .pd-dias { grid-column: 1 / -1; grid-row: 2; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+}
+@media (max-width: 1280px) {
+  .v2-hero-inicio { grid-template-columns: minmax(0, 1fr) 360px; }
+  .v2-hero-dupla { left: auto; right: 330px; opacity: .6; }
+  .np-partida-linha { grid-template-columns: 110px minmax(0, 1fr) 120px 70px 20px; }
+  .np-partida-quando { display: none; }
+}
+@media (max-width: 1100px) {
+  .v2-central-baixo { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 900px) {
+  .v2-hero-inicio { grid-template-columns: minmax(0, 1fr); padding-right: var(--v2-gutter); }
+  .v2-hero-dupla { right: -60px; height: 78%; opacity: .3; }
+}
+@media (max-width: 760px) {
+  .np-inicio .np-central { padding: 0 16px 8px; }
+  .np-inicio .np-banner { margin: 16px 16px 0; }
+  .pd-faixa { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+  .pd-hoje { grid-column: 1; }
+  .pd-dias { grid-row: auto; gap: 6px; }
+  .pd-dias li { height: 84px; padding: 8px 2px; }
+  .pd-dias small, .pd-dias b { font-size: 10.5px; }
+  .np-partida-linha { grid-template-columns: 84px minmax(0, 1fr) auto 18px; gap: 10px; }
+  .np-partida-num { display: none; }
+  .np-partida-thumb img { width: 84px; }
+  .np-partida-placar2 strong { font-size: 19px; }
+  .np-partida-placar2 .v2-selo { max-width: 90px; }
+  .v2-dest-titulo { font-size: 30px; }
+}
+@media (max-width: 560px) {
+  .v2-hero-inicio { padding: 22px 16px; gap: 20px; min-height: 0; }
+  .v2-hero-ola { font-size: 30px; }
+  .v2-hero-inicio h1 { font-size: 36px; }
+  .v2-hero-kicker { margin-top: 20px; letter-spacing: .26em; }
+  .v2-hero-acoes { flex-direction: column; }
+  .v2-hero-acoes .v2-btn { width: 100%; min-width: 0; }
+  .v2-hero-dupla { display: none; }
+  .v2-temporada-grade { grid-template-columns: 110px minmax(0, 1fr); padding: 16px; gap: 12px; }
+  .v2-temporada-pos::before { width: 90px; height: 84px; }
+  .v2-temporada-pos b { font-size: 30px; }
+  .v2-temporada-mapa { grid-template-columns: 96px minmax(0, 1fr) auto; }
+  .v2-temporada-mapa img { width: 96px; height: 54px; }
+  .v2-dest .v2-destaques-arte { opacity: .35; width: 90%; }
+}
+
+/* regras base (grade, alinhamentos) que a referência pede */
+.v2-hero-kicker { text-transform: uppercase; }
+.v2-hero-inicio h1 em { font-style: normal; }
+.v2-temporada-grade { display: grid; align-items: center; }
+.v2-temporada-pos { display: grid; justify-items: center; align-content: center; text-align: center; }
+.v2-temporada-pos::before { content: none; }
+.v2-louro { position: absolute; left: 50%; top: 0; width: 112px; height: 112px; transform: translateX(-50%); color: #e9b94c; filter: drop-shadow(0 0 8px rgb(233 185 76 / .4)); }
+.v2-temporada-pos b { margin-top: 0; height: 104px; display: grid; place-items: center; position: relative; }
+.v2-temporada-pos span { margin-top: 10px; }
+.v2-temporada-numeros { display: grid; grid-template-columns: 1fr 1fr; margin: 0; }
+.v2-temporada-numeros .v2-temporada-rating { grid-column: 1 / -1; border-bottom: 1px solid var(--v2-borda); }
+.v2-temporada-mapa { display: grid; align-items: center; color: #f4f7fc; text-decoration: none; }
+.v2-temporada-mapa > span { display: grid; gap: 6px; min-width: 0; }
+.v2-temporada-mapa small { color: #c9d3e1; font-size: 13px; }
+.v2-temporada-mapa b { font-size: 15px; }
+.v2-central-baixo { display: grid; }
+html:not(#v2) .np-inicio .np-bloco-cab h2:not(#_) { font: 700 18px var(--font-display); letter-spacing: -.005em; text-transform: none; }
+html:not(#v2) .np-inicio .np-bloco-cab > a:not(#_) { letter-spacing: 0; text-transform: none; }
+.v2-temporada-grade { grid-template-columns: 128px minmax(0, 1fr); gap: 16px; }
+.v2-temporada-numeros dt { white-space: nowrap; }
+.v2-temporada-mapa b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v2-hero-inicio { min-height: 0; padding-top: 26px; padding-bottom: 22px; }
+.v2-hero-acoes { display: flex; flex-wrap: wrap; }
+.v2-temporada-mapa { gap: 16px; }
+html:not(#v2) .np-inicio .np-bloco-cab h2 { display: flex; align-items: center; }
+
+/* ── pacote de artes (home-duo-v2 + bg-inicio-v2) ──
+   Cenário e personagem são camadas separadas: o fundo preenche o topo (foco à direita, onde fica a arquitetura); a dupla (PNG
+   transparente, cortada reto embaixo) ocupa a altura toda do topo, entre o texto e o painel da temporada, sem recorte. */
+.v2-hero-inicio .v2-cena-fundo { object-position: center right; }
+.v2-hero-dupla { left: 33%; right: auto; height: 100%; width: auto; max-width: none; opacity: 1; }
+/* nome longo: a saudação fica numa linha só (reticências), então o topo não cresce nem empurra os outros blocos */
+.v2-hero-ola { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: clamp(30px, 2.65vw, 42px); }
+@media (max-width: 1280px) { .v2-hero-dupla { left: auto; right: 330px; opacity: .7; } }
+@media (max-width: 900px) { .v2-hero-dupla { right: -40px; height: 80%; opacity: .35; } }
+@media (max-width: 560px) { .v2-hero-dupla { display: none; } }
+/* destaque da comunidade: o campeão dourado (podium-gold-popout-v2) à direita do card */
+.v2-dest .v2-destaques-arte { right: -3%; bottom: -4%; width: auto; height: 112%; max-width: 68%; object-fit: contain; object-position: bottom right; }
+
+/* ══════════════ Correção pela referência (01-inicio.png, 1586×992), medidas lidas na imagem ══════════════
+   Sidebar 178 · topbar 54 · conteúdo de x=216 a 1558 · hero de y=54 a 465 · login diário 131 de altura (y 467–598) · espaço de 17 ·
+   painéis de y=615 a 952 (692 + 634 de largura, 16 de vão). A dupla ocupa x≈775–1210 com a coroa em y≈100. Nada de scale() na
+   página: tudo é medida real dos componentes, com limites de largura nas telas grandes. */
+
+@media (min-width: 1281px) {
+  /* hero: 411 px de altura (54 → 465), com o cenário contínuo (sem emenda) */
+  .v2-hero-inicio { height: 411px; min-height: 0; padding-top: 30px; padding-bottom: 0; align-items: start; }
+  .v2-hero-inicio .v2-temporada { margin-top: 6px; }
+  .v2-hero-acoes { margin-top: 14px; }
+  .v2-hero-lead { max-width: 352px; }
+  .np-inicio .np-central { padding-top: 2px; }
+  .v2-central-baixo { margin-top: 17px; }
+  /* painéis de baixo iguais e do tamanho do alvo */
+  .v2-central-baixo > section { min-height: 337px; }
+}
+/* cenário: bg-inicio-v2 mais claro, com a arquitetura à direita e o escuro à esquerda numa transição só (gradiente progressivo) */
+.v2-hero-inicio .v2-cena-fundo { object-fit: cover; object-position: 50% 40%; filter: brightness(1.45) saturate(1.15) contrast(1.04); }
+.v2-hero-inicio::after {
+  background:
+    linear-gradient(90deg, rgb(1 7 15 / .94) 0%, rgb(1 7 15 / .8) 18%, rgb(1 7 15 / .42) 36%, rgb(1 7 15 / .08) 52%, transparent 66%, rgb(1 7 15 / .28) 100%),
+    linear-gradient(0deg, rgb(1 7 15 / .5) 0%, transparent 14%);
+}
+/* dupla (home-duo-v2): camada própria, acima do véu; largura = 31% do hero (436 px na referência), ancorada embaixo, sem esticar */
+.v2-hero-dupla { z-index: 0; left: 42.4%; right: auto; bottom: 0; width: 31%; max-width: 560px; height: auto; max-height: none; transform: none; opacity: 1; object-fit: contain; object-position: bottom center; filter: drop-shadow(0 18px 30px rgb(0 0 0 / .55)); }
+@media (min-width: 1281px) and (max-width: 1480px) { .v2-hero-dupla { left: 41%; width: 33%; } }
+
+/* ── comunidade: wrapper sem recorte > cenário de circo (bg-loja-v2) > campeão (podium-gold) > texto por cima ── */
+html:not(#v2) .np-inicio .np-destaques-painel.v2-dest { position: relative; isolation: isolate; overflow: visible; border: 0; background: none; box-shadow: none; display: flex; flex-direction: column; min-height: 337px; }
+.v2-dest::before, .v2-dest::after { content: none; display: none; }
+.v2-dest-cenario { position: absolute; inset: 0; z-index: 0; overflow: hidden; border: 1px solid rgb(37 68 98 / .95); border-radius: 10px; background: #030e1a; }
+.v2-dest-cenario::before { content: ''; position: absolute; inset: 0; background: var(--np-fundo, none) 40% 30% / cover no-repeat; filter: brightness(1.7) saturate(1.25) contrast(1.05); }
+.v2-dest-cenario::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgb(1 7 15 / .92) 0%, rgb(1 7 15 / .7) 30%, rgb(1 7 15 / .12) 58%, transparent 80%), radial-gradient(40% 70% at 76% 42%, rgb(16 106 252 / .3), transparent 70%); }
+/* campeão: 404 px de largura na referência (63,7% do painel); o chapéu fica logo abaixo da borda de cima e o troféu inteiro dentro da direita */
+.v2-dest-camada { position: absolute; inset: 0; z-index: 1; pointer-events: none; clip-path: inset(-14% -2% 0 -2%); }
+.v2-dest-camada img { position: absolute; left: 35.5%; top: 1%; width: 64%; height: auto; max-width: none; filter: drop-shadow(0 14px 22px rgb(0 0 0 / .6)); user-select: none; }
+.v2-dest > :is(.np-bloco-cab, .v2-dest-corpo, .v2-dest-pontos) { position: relative; z-index: 2; }
+html:not(#v2) .np-inicio .v2-dest .np-bloco-cab { border-bottom: 0; padding: 18px 20px 0; }
+.v2-dest-corpo { padding: 0 24px; max-width: 340px; }
+.v2-dest-titulo { font-size: 40px; line-height: 1.02; }
+.v2-dest-pontos { padding: 14px 24px 18px; }
+
+/* ── últimas partidas: miniaturas compactas e linhas na altura do alvo (76 px, vão de 8) ── */
+.np-inicio .np-recentes { gap: 8px; padding: 12px 14px 14px 22px; }
+.np-partida-linha { min-height: 76px; background: #06121f; border-color: rgb(37 68 98 / .6); }
+.np-partida-thumb { border-radius: 6px; margin: 0; }
+.np-partida-thumb img { width: 134px; }
+
+/* ── login diário: colunas proporcionais (descrição | 7 dias | confirmação), sem espaçadores soltos ── */
+@media (min-width: 1401px) {
+  .pd-faixa { grid-template-columns: minmax(190px, 0.62fr) minmax(0, 2.08fr) minmax(300px, 1.12fr); gap: 16px; }
+  .pd-dias { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 11px; }
+}
+.pd-dias li { height: 100px; }
+
+/* ── ajustes finos (2ª comparação) ── */
+.v2-hero-lead { max-width: none; white-space: nowrap; }
+@media (max-width: 1280px) { .v2-hero-lead { white-space: normal; max-width: 52ch; } }
+@media (min-width: 1281px) { .v2-hero-inicio .v2-temporada { align-self: start; margin-top: 0; } }
+.pd-faixa-titulo p { max-width: 21ch; }
+.pd-faixa { min-height: 131px; }
+html:not(#v2) .np-inicio .np-bloco-cab { padding: 14px 20px 12px; }
+html:not(#v2) .np-inicio .v2-dest .np-bloco-cab { padding: 16px 20px 0; }
+.v2-hero-dupla { left: 40.6%; }
+@media (min-width: 1281px) and (max-width: 1480px) { .v2-hero-dupla { left: 39.5%; } }
+/* miniaturas dos mapas: as fotos de origem vêm lavadas; um pouco de saturação devolve a cor da referência */
+.np-partida-thumb img, .v2-temporada-mapa img { filter: saturate(1.35) contrast(1.06) brightness(.96); }
+@media (min-width: 1281px) { .v2-hero-inicio .v2-temporada { margin-top: 6px; } }
+/* telas de 1281 a 1480 px: o painel da temporada ocupa mais do hero, então a dupla encolhe e recua para não encostar nele */
+@media (min-width: 1281px) and (max-width: 1480px) { .v2-hero-inicio { grid-template-columns: minmax(0, 1fr) 380px; } .v2-hero-dupla { left: 36%; width: 27%; } }
+
+/* Composição da referência: medidas locais, preservando o menu recolhível. */
+html:has(.np-inicio) { --sidebar-width: 178px; --topbar-height: 54px; }
+.np-inicio .v2-hero-inicio { position: relative; width: 100%; height: 411px; min-height: 411px; margin: 0; padding: 30px 28px 26px 42px; border: 0; border-radius: 0; grid-template-columns: minmax(0, 1fr) 406px; align-items: start; overflow: hidden; }
+.np-inicio .v2-hero-texto { position: relative; z-index: 2; max-width: 550px; }
+.np-inicio .v2-hero-ola { font-size: 42px; line-height: 1.12; }
+.np-inicio .v2-hero-kicker { margin: 32px 0 10px; }
+.np-inicio .v2-hero-inicio h1 { font-size: 44px; line-height: 1.08; }
+.np-inicio .v2-hero-lead { white-space: normal; max-width: 440px; margin-top: 14px; }
+.np-inicio .v2-hero-acoes { margin-top: 18px; gap: 18px; }
+.np-inicio .v2-hero-dupla { position: absolute; z-index: 1; left: auto; right: 350px; bottom: 0; top: auto; width: 440px; height: auto; max-width: none; max-height: 390px; margin: 0; object-fit: contain; object-position: bottom; opacity: 1; }
+.np-inicio .v2-hero-inicio .v2-cena-fundo { object-position: center 60%; filter: brightness(1.5) saturate(1.12); }
+.np-inicio .v2-hero-inicio::after { background: linear-gradient(90deg, rgb(1 7 15 / .65), rgb(1 7 15 / .35) 26%, transparent 52%), linear-gradient(0deg, #01070f, transparent 16%); }
+.np-inicio .v2-temporada { position: relative; z-index: 3; width: 100%; margin-top: 5px; align-self: start; background: rgb(3 14 26 / .96); backdrop-filter: none; }
+.np-inicio .np-central { margin: 0; padding: 0 28px 8px 38px; }
+.np-inicio .pd-faixa { min-height: 133px; padding: 16px; grid-template-columns: 218px minmax(0, 1fr) 370px; gap: 16px; }
+.np-inicio .pd-dias { grid-column: auto; grid-row: auto; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
+.np-inicio .pd-dias li { height: 100px; }
+.np-inicio .pd-hoje { grid-column: auto; height: 100px; padding: 0 106px 0 18px; grid-template-columns: 44px minmax(0, 1fr); gap: 16px; }
+.np-inicio .pd-hoje-arte { width: 112px; height: 112px; right: 0; opacity: 1; mask-image: linear-gradient(90deg, transparent, #000 25%); }
+.np-inicio .pd-hoje-txt > b { white-space: nowrap; font-size: 15px; }
+.np-inicio .pd-hoje-txt > small { font-size: 12px; }
+.np-inicio .pd-hoje-relogio { display: none; }
+.np-inicio .pd-hoje-botoes { margin-top: 1px; }
+.np-inicio .pd-btn { min-height: 24px; padding-inline: 7px; font-size: 11px; }
+.np-inicio .v2-central-baixo { grid-template-columns: minmax(0, 692fr) minmax(0, 634fr); gap: 16px; margin-top: 17px; align-items: stretch; }
+.np-inicio .v2-central-baixo > section { min-height: 337px; }
+.np-inicio .np-recentes { padding: 12px 14px 20px 22px; gap: 8px; }
+.np-inicio .np-partida-linha { min-height: 76px; grid-template-columns: 134px minmax(100px, 1fr) 112px 70px 66px 14px; gap: 14px; padding-right: 12px; }
+.np-inicio .np-partida-thumb img { width: 100%; min-height: 74px; }
+.np-inicio .v2-dest-cenario img { object-position: center; }
+.np-inicio .v2-dest-camada img { left: 36%; top: 1%; width: 64%; max-width: none; }
+.np-inicio .v2-dest-corpo { padding: 0 24px; max-width: 325px; }
+.np-inicio .v2-dest-titulo { font-size: 40px; }
+.np-inicio .v2-dest-corpo p { max-width: 26ch; }
+.np-inicio .v2-dest-pontos { margin-top: auto; }
+@media (min-width: 1025px) {
+ html:has(.np-inicio):not(#v2) .nx-nav .nx-nav-inner { padding: 26px 8px 16px 0; }
+ html:has(.np-inicio):not(#v2) .nx-nav.nx-aberta .nx-brand { margin: 0 0 34px 8px; gap: 5px; }
+ html:has(.np-inicio):not(#v2) .nx-nav.nx-aberta .nx-brand > span { font-size: 22px; }
+ html:has(.np-inicio):not(#v2) .nx-nav.nx-aberta .nx-links .nx-link { margin-left: 10px; width: calc(100% - 10px); padding: 0 14px; gap: 16px; border-radius: 6px; font-size: 14px; min-height: 50px; height: 50px; }
+ html:has(.np-inicio):not(#v2) .nx-nav .nx-links { gap: 6px; }
+ html:has(.np-inicio):not(#v2) .nx-nav .np-sidebar-fim { margin: 24px 16px 0 24px; padding-top: 24px; }
+ html:has(.np-inicio):not(#v2) .nx-nav.nx-aberta .np-sidebar-fim a { font-size: 13px; gap: 14px; min-height: 50px; }
+ html:has(.np-inicio):not(#v2) .nx-nav .np-sidebar-rodape { padding-left: 16px; }
+ html:has(.np-inicio):not(#v2) .nx-direita { gap: 12px; }
+ html:has(.np-inicio):not(#v2) .nx-direita .nx-conta-btn { height: 48px; }
+ html:has(.np-inicio):not(#v2) .nx-direita :is(.nx-btn, .nx-config-btn) { width: 44px; height: 44px; background: transparent; border-color: transparent; box-shadow: none; }
+}
+@media (min-width: 1025px) and (max-width: 1450px) {
+ .np-inicio .v2-hero-inicio { grid-template-columns: minmax(0, 1fr) 340px; padding-left: 30px; }
+ .np-inicio .v2-hero-dupla { right: 300px; width: 360px; }
+ .np-inicio .v2-hero-ola { font-size: 34px; }
+ .np-inicio .v2-hero-inicio h1 { font-size: 38px; }
+ .np-inicio .v2-hero-texto { max-width: 440px; }
+ .np-inicio .v2-hero-acoes { gap: 10px; }
+ .np-inicio .v2-hero-acoes .v2-btn { min-width: 0; padding-inline: 20px; }
+ .np-inicio .pd-faixa { grid-template-columns: 170px minmax(0, 1fr) 280px; gap: 12px; }
+ .np-inicio .pd-faixa-titulo { gap: 10px; }
+ .np-inicio .pd-dias { gap: 6px; }
+ .np-inicio .pd-hoje { padding-right: 62px; gap: 10px; padding-left: 10px; }
+ .np-inicio .pd-hoje-arte { right: -32px; opacity: .55; }
+ .np-inicio .np-partida-linha { grid-template-columns: 100px minmax(80px, 1fr) 90px 56px 12px; gap: 10px; }
+ .np-inicio .np-partida-quando { display: none; }
+ .np-inicio .v2-dest-titulo { font-size: 34px; }
+}
+@media (max-width: 1024px) {
+ .np-inicio .v2-hero-inicio { height: auto; min-height: 0; grid-template-columns: minmax(0, 1fr); padding: 28px 24px 24px; gap: 28px; }
+ .np-inicio .v2-hero-texto { max-width: 100%; }
+ .np-inicio .v2-hero-ola { font-size: 34px; }
+ .np-inicio .v2-hero-dupla { top: 90px; bottom: auto; right: -35px; width: 300px; max-height: 290px; opacity: .3; }
+ .np-inicio .v2-temporada { margin-top: 0; }
+ .np-inicio .np-central { padding: 0 24px 8px; }
+ .np-inicio .pd-faixa { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+ .np-inicio .pd-dias { grid-column: 1 / -1; grid-row: 2; }
+ .np-inicio .pd-hoje { padding-right: 75px; gap: 10px; }
+ .np-inicio .v2-central-baixo { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+ .np-inicio .v2-hero-inicio { padding: 24px 16px; gap: 24px; }
+ .np-inicio .v2-hero-ola { font-size: 27px; }
+ .np-inicio .v2-hero-inicio h1 { font-size: 34px; }
+ .np-inicio .v2-hero-kicker { margin-top: 24px; }
+ .np-inicio .v2-hero-lead { font-size: 14px; }
+ .np-inicio .v2-hero-lead br { display: none; }
+ .np-inicio .v2-hero-dupla { display: none; }
+ .np-inicio .v2-hero-acoes { flex-direction: row; gap: 10px; }
+ .np-inicio .v2-hero-acoes .v2-btn { width: auto; flex: 1; min-width: 0; padding-inline: 10px; font-size: 13px; }
+ .np-inicio .np-central { padding: 0 16px 8px; }
+ .np-inicio .pd-faixa { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+ .np-inicio .pd-dias { grid-column: 1; grid-row: 2; gap: 4px; }
+ .np-inicio .pd-dias li { height: 84px; }
+ .np-inicio .pd-hoje { grid-column: 1; height: 100px; padding-right: 100px; }
+ .np-inicio .pd-dias small, .np-inicio .pd-dias b { font-size: 10px; }
+ .np-inicio .np-recentes { padding: 12px; }
+ .np-inicio .np-partida-linha { grid-template-columns: 68px minmax(0, 1fr) 76px 12px; gap: 8px; padding-right: 8px; }
+ .np-inicio .np-partida-num, .np-inicio .np-partida-quando { display: none; }
+ .np-inicio .np-partida-mapa-nome b { font-size: 14px; }
+ .np-inicio .np-partida-mapa-nome small { font-size: 11px; }
+ .np-inicio .np-partida-placar2 strong { font-size: 19px; }
+ .np-inicio .v2-dest-titulo { font-size: 34px; }
+ .np-inicio .v2-dest-camada img { left: 34%; top: auto; bottom: 0; width: 74%; opacity: .65; }
+}
+.np-inicio .v2-dest-corpo { padding-top: 34px; align-content: start; gap: 12px; }
+.np-inicio .v2-dest-corpo .v2-btn-ouro { margin-top: 8px; }
+.np-inicio .v2-dest-titulo em { white-space: nowrap; }
+@media (max-width: 560px) { .np-inicio .v2-dest-corpo { padding-top: 28px; } }
+@media (min-width: 1025px) and (max-width: 1450px) { .np-inicio .pd-hoje-txt > b { font-size: 13px; white-space: normal; } }
+@media (max-width: 560px) {
+ html:not(#v2) .np-inicio .np-destaques-painel.v2-dest { overflow: hidden; }
+ .np-inicio .v2-temporada-grade { grid-template-columns: 96px minmax(0, 1fr); gap: 10px; padding: 16px 12px; }
+ .np-inicio .v2-temporada-numeros { column-gap: 8px; }
+ .np-inicio .v2-temporada-numeros dt { font-size: 11px; }
+ .np-inicio .v2-temporada-numeros div:nth-child(3) { padding-left: 8px; }
+ .np-inicio .v2-temporada-mapa { gap: 10px; grid-template-columns: 80px minmax(0, 1fr) 16px; }
+ .np-inicio .v2-temporada-mapa img { width: 80px; }
+}
+/* A imagem mantém o recorte do hero. A cor final do degradê é a mesma da página. */
+.np-inicio { background: #01070f; }
+.np-inicio .v2-hero-inicio { isolation: isolate; background: #01070f; }
+.np-inicio .v2-hero-inicio::after { content: ''; background: linear-gradient(90deg, rgb(1 7 15 / .65), rgb(1 7 15 / .35) 26%, transparent 52%), linear-gradient(180deg, transparent 72%, rgb(1 7 15 / .5) 88%, #01070f 100%); }
+/* Linhas pessoais: separadores, estatística K/D e resultado do jogador. */
+.np-inicio .np-partida-linha { --np-resultado: #29d89c; background: linear-gradient(110deg, rgb(17 31 46 / .9), rgb(9 22 35 / .9)); }
+.np-inicio .np-resultado-derrota { --np-resultado: #ef6675; }
+.np-inicio .np-resultado-empate { --np-resultado: #a8b5c7; }
+.np-inicio .np-partida-placar2 strong { display: flex; justify-content: center; gap: 7px; }
+.np-inicio .np-placar-pessoal { color: var(--np-resultado); }
+.np-inicio .np-placar-separador { color: #a8b5c7; }
+.np-inicio .np-partida-placar2 .v2-selo { color: var(--np-resultado); border: 1px solid color-mix(in srgb, var(--np-resultado) 22%, transparent); background: color-mix(in srgb, var(--np-resultado) 14%, transparent); font-style: normal; padding: 2px 10px; }
+.np-inicio .np-partida-linha > :is(.np-partida-placar2, .np-partida-num, .np-partida-quando) { border-left: 1px solid rgb(67 105 143 / .13); }
+.np-inicio .np-partida-num, .np-inicio .np-partida-quando { height: 48px; align-content: center; }
+.np-inicio .np-partida-thumb img { filter: saturate(1.1) contrast(1.03); }
+.np-inicio .np-partida-seta { justify-self: center; display: flex; color: #a8b5c7; }
+@media (min-width: 1451px) { .np-inicio .np-partida-linha { grid-template-columns: 134px minmax(100px, 1fr) 112px 74px 76px 14px; gap: 12px; } }
+/* Início: uma única cor termina a imagem e preenche a página (vence a camada superfícies). */
+html:has(.np-inicio) { --np-inicio-base: #010b16; }
+html:has(.np-inicio) body { background: var(--np-inicio-base) !important; }
+#root .np-conteudo > main.np-inicio { background: var(--np-inicio-base); }
+.np-inicio .v2-hero-inicio { background: var(--np-inicio-base); }
+.np-inicio .v2-hero-inicio::after { background: linear-gradient(90deg, rgb(1 11 22 / .65), rgb(1 11 22 / .3) 26%, transparent 52%), linear-gradient(180deg, transparent 52%, rgb(1 11 22 / .12) 64%, rgb(1 11 22 / .45) 78%, rgb(1 11 22 / .85) 92%, var(--np-inicio-base) 100%); }
+/* Borda acima das camadas decorativas; personagem contido pelo mesmo recorte. */
+html:not(#v2) .np-inicio .np-destaques-painel.v2-dest { overflow: hidden; border: 1px solid rgb(37 68 98 / .95); border-radius: 10px; background: #030e1a; }
+.np-inicio .v2-dest .v2-dest-cenario { border: 0; border-radius: inherit; }
+.np-inicio .v2-dest .v2-dest-camada { inset: 0; clip-path: none; overflow: hidden; border-radius: inherit; }
+.np-inicio .v2-dest::after { content: ''; display: block; position: absolute; inset: 0; z-index: 4; border-radius: inherit; box-shadow: inset 0 0 0 1px rgb(37 68 98 / .6); background: none; pointer-events: none; }
+/* Louros vetoriais: folhas lanceoladas, simetria e ouro sem halo difuso. */
+.np-inicio .v2-louro { width: 120px; height: 120px; top: -4px; filter: none; }
+.np-inicio .v2-temporada-pos b { font-size: 35px; text-shadow: 0 2px 12px rgb(233 185 76 / .16); }
+@media (max-width: 560px) { .np-inicio .v2-louro { width: 108px; height: 108px; top: 0; } }
+@media (min-width: 1025px) { html:has(.np-inicio) { --sidebar-width: 224px; } }

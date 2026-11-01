@@ -1,4 +1,6 @@
 import IconeUI from '../../comum/IconeUI.jsx'
+import { createPortal } from 'react-dom'
+import { fundoCss } from '../../comum/assetsV2.js'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import Layout from '../../comum/Layout.jsx'
 import { CarregandoNP } from '../../comum/Carregando.jsx'
@@ -8,15 +10,16 @@ import { IconeSteam } from '../../comum/Icones.jsx'
 import { ComMoldura, IconeEquipe, apelidoDe, useCardDe, useNivelSub, usePerfis } from '../../comum/Moldura.jsx'
 import { urlCard } from '../../comum/cardsPerfil.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
-import { ALL_MAPS, idMapa, mapImage, nomeMapa } from '../../comum/mapas.js'
-import { nivelDe } from '../../comum/niveis.js'
+import { ALL_MAPS, mapImage, nomeMapa } from '../../comum/mapas.js'
+import { corNivel, nivelDe } from '../../comum/niveis.js'
 import { ordenarRanking } from '../../comum/ranking.js'
+import { useMapaMaisJogado } from '../../comum/temporada.js'
 import { useAmigos } from '../../comum/amigos.js'
 import { useAvatar } from '../../comum/avatares.js'
 import { acaoLobby, useLobby, useRelogio } from '../../comum/lobby.js'
 import { ativarConsumivel, cancelarConsumivel, lerConsumiveis } from '../../comum/loja.js'
 import SalaVeto from './SalaVeto.jsx'
-import { AvisosCs2, PainelServidor, useStatusCs2 } from './StatusCs2.jsx'
+import { AvisosCs2, Bandeira, PainelServidor, useStatusCs2 } from './StatusCs2.jsx'
 import { playSound } from '../neurapick/data/sounds.js'
 import { useT } from '../../comum/i18n.js'
 import ParticulasPremium from '../../comum/ParticulasPremium.jsx'
@@ -69,26 +72,6 @@ function useInfoNivel() {
     const j = ranking?.jogadores?.find((x) => x.steamId === id)
     return { j, info: nivelDe((Number(j?.xp) || 0) + (Number(perfis[id]?.xp) || 0), Number(j?.mapas) || 0) }
   }
-}
-
-// Mapa que a pessoa mais jogou (empate: o jogado por último), lido do histórico do perfil; null enquanto não chega
-function useMapaMaisJogado(id) {
-  const [mapa, setMapa] = useState(null)
-  useEffect(() => {
-    if (!id) return
-    let vivo = true
-    lerJson(`/perfil/historico/${id}.json`).then((h) => {
-      if (!vivo || !Array.isArray(h) || !h.length) return
-      const n = {}
-      for (const m of h) n[idMapa(m.mapa)] = (n[idMapa(m.mapa)] || 0) + 1 // histórico: mais recente primeiro
-      const [id1, vezes] = Object.entries(n).sort((a, b) => b[1] - a[1])[0]
-      setMapa({ id: id1, vezes })
-    })
-    return () => {
-      vivo = false
-    }
-  }, [id])
-  return mapa
 }
 
 function Foto({ p }) {
@@ -152,13 +135,35 @@ function Pessoa({ pessoa: bruta, lider, pendente, centro, souLider, eu, aoRemove
   const pessoa = { ...bruta, nome: apelidoDe(perfis, bruta.id, bruta.nome) } // apelido do site
   const card = useCardDe(pessoa.id)
   const { info } = nivelDoJogador(pessoa.id)
+  const avatarRef = useRef(null)
+  useLayoutEffect(() => {
+    const area = avatarRef.current, miolo = area?.querySelector('.lb-avatar-miolo')
+    if (!area || !miolo) return
+    const ajustar = () => {
+      miolo.style.transform = 'none'
+      const origem = miolo.getBoundingClientRect()
+      const partes = [miolo, ...miolo.querySelectorAll('.moldura, .emblema-sub')].map(e => e.getBoundingClientRect()).filter(r => r.width && r.height)
+      const esquerda = Math.min(...partes.map(r => r.left)), topo = Math.min(...partes.map(r => r.top))
+      const largura = Math.max(...partes.map(r => r.right)) - esquerda, altura = Math.max(...partes.map(r => r.bottom)) - topo
+      const escala = Math.min(1, (area.clientWidth - 20) / largura, (area.clientHeight - 16) / altura)
+      const x = (area.clientWidth - largura * escala) / 2 - (esquerda - origem.left) * escala
+      const y = (area.clientHeight - altura * escala) / 2 - (topo - origem.top) * escala
+      miolo.style.transform = `translate(${x}px, ${y}px) scale(${escala})`
+    }
+    ajustar()
+    const obs = new ResizeObserver(ajustar)
+    obs.observe(area)
+    const moldura = miolo.querySelector('.moldura')
+    if (moldura) obs.observe(moldura)
+    return () => obs.disconnect()
+  }, [pessoa.id, perfis[pessoa.id]?.moldura])
   return (
-    <div className={`lb-lugar lb-pessoa${centro ? ' lb-centro' : ''}${pendente ? ' lb-pendente' : ''}${pessoa.id === eu ? ' lb-eu' : ''}${card ? ' com-card' : ''}`} style={card ? { '--card-fundo': `url("${urlCard(card)}")` } : undefined}>
+    <div className={`lb-lugar lb-pessoa${centro ? ' lb-centro' : ''}${pendente ? ' lb-pendente' : ''}${pessoa.id === eu ? ' lb-eu' : ''}${card ? ' com-card' : ''}`} style={{ '--lb-cor-nivel': info.classificado ? corNivel(info.nivel) : '#8292a7', ...(card ? { '--card-fundo': `url("${urlCard(card)}")` } : {}) }}>
       {lider && <Coroa />}
-      <a className="lb-av" href={linkPerfil(pessoa.id)} title={pessoa.nome || pessoa.id}>
-        <ComMoldura steamId={pessoa.id} emblema>
+      <a ref={avatarRef} className="lb-av" href={linkPerfil(pessoa.id)} title={pessoa.nome || pessoa.id}>
+        <span className="lb-avatar-miolo"><ComMoldura steamId={pessoa.id} emblema>
           <Foto p={pessoa} />
-        </ComMoldura>
+        </ComMoldura></span>
         {!pendente && <i className={`lb-bolinha st-${pessoa.st || 'offline'}`} aria-hidden="true" />}
       </a>
       <b className="lb-nome">
@@ -187,11 +192,11 @@ function Vazio({ podeConvidar, aoConvidar }) {
   const t = useT()
   return podeConvidar ? (
     <button type="button" className="lb-lugar lb-vazio" onClick={aoConvidar} aria-label={t('Convidar amigo')}>
-      <span className="lb-mais">+</span>
+      <span className="lb-mais">+</span><span className="lb-vazio-legenda">{t('Convidar amigo')}</span>
     </button>
   ) : (
     <div className="lb-lugar lb-vazio lb-inerte" aria-hidden="true">
-      <span className="lb-mais">+</span>
+      <span className="lb-mais">+</span><span className="lb-vazio-legenda">{t('Convidar amigo')}</span>
     </div>
   )
 }
@@ -399,41 +404,36 @@ function useItensPartida(logado) {
 
 function ItemPartida({ item, qtd, ativo, outro, desativado, aoClicar }) {
   const t = useT()
-  const vazio = !qtd && !ativo
-  const status = ativo
-    ? t('Ativado para a próxima partida · clique para cancelar')
-    : outro
-      ? t('{nome} já está ativado · cancele antes de trocar', { nome: outro })
-      : vazio
-        ? t('Você não tem · sai em caixas e presentes')
-        : t('Você tem {n} · clique para ativar', { n: qtd })
-  return (
-    <span className={`lb-item lb-item-${item.tipo}${ativo ? ' is-ativo' : ''}${vazio ? ' is-vazio' : ''}`} style={{ '--item': item.cor }}>
-      <button type="button" className="lb-item-botao" onClick={aoClicar} disabled={desativado} aria-pressed={ativo} aria-label={`${item.nome}: ${status}`} aria-keyshortcuts={item.tecla}>
-        <i className="lb-item-tecla" aria-hidden="true">{item.tecla}</i>
-        <svg width="26" height="26" viewBox="0 0 24 24" fill={item.tipo === 'boost' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={item.tipo === 'boost' ? 0 : 1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d={item.d} />
-        </svg>
-        <i className="lb-item-qtd" aria-hidden="true">×{qtd}</i>
-      </button>
-      <small className="lb-item-nome">{item.nome}</small>
-      <span className="lb-item-dica" role="tooltip">
-        <b>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill={item.tipo === 'boost' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={item.tipo === 'boost' ? 0 : 2} strokeLinecap="round" aria-hidden="true">
-            <path d={item.d} />
-          </svg>
-          {item.nome}
-        </b>
-        <span>{t(item.dica)}</span>
-        <em>{status}</em>
-      </span>
-    </span>
-  )
+  return <div className={`lb-item-compacto${ativo ? ' is-ativo' : ''}`} style={{ '--item': item.cor }}>
+    <header><svg width="24" height="24" viewBox="0 0 24 24" fill={item.tipo === 'boost' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={item.tipo === 'boost' ? 0 : 1.5} aria-hidden="true"><path d={item.d}/></svg><b>{item.nome}</b><span title={t(item.dica)}>ⓘ</span></header>
+    <strong>×{qtd}</strong>
+    <div><button type="button" disabled={desativado || !ativo} onClick={aoClicar} aria-label={t('Cancelar {nome}', { nome: item.nome })}>−</button><button type="button" disabled={desativado || ativo || !!outro || !qtd} onClick={aoClicar} aria-label={t('Ativar {nome}', { nome: item.nome })} aria-pressed={ativo}>+</button></div>
+    {ativo && <small>{t('Ativado')}</small>}
+  </div>
 }
-
+function JanelaControles({ titulo, fechar, children }) {
+  const painel = useRef(null)
+  const t = useT()
+  useEffect(() => {
+    const anterior = document.activeElement, overflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    painel.current?.querySelector('button')?.focus()
+    const tecla = e => {
+      if (e.key === 'Escape') fechar()
+      if (e.key !== 'Tab') return
+      const alvos = [...painel.current.querySelectorAll('button:not(:disabled), input:not(:disabled), a[href], [tabindex="0"]')].filter(el => el.getClientRects().length)
+      const primeiro = alvos[0], ultimo = alvos[alvos.length - 1]
+      if (e.shiftKey && document.activeElement === primeiro) { e.preventDefault(); ultimo?.focus() }
+      else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primeiro?.focus() }
+    }
+    document.addEventListener('keydown', tecla)
+    return () => { document.body.style.overflow = overflow; document.removeEventListener('keydown', tecla); anterior?.focus() }
+  }, [])
+  return createPortal(<div className="lb-controle-fundo" onClick={fechar}><section className="lb-controle-janela" ref={painel} role="dialog" aria-modal="true" aria-labelledby="lb-controle-titulo" onClick={e => e.stopPropagation()}><header><h2 id="lb-controle-titulo">{titulo}</h2><button type="button" onClick={fechar} aria-label={t('Fechar')}><IconeUI tipo="fechar" tamanho={22}/></button></header>{children}</section></div>, document.body)
+}
 function Painel({ dados, fazer, ocupado, status }) {
   const t = useT()
-  const [aba, setAba] = useState('tipo')
+  const [aba, setAba] = useState('')
   const nivelSub = useNivelSub(dados.eu) // a assinatura é do líder, que é quem busca
   const [escolhido, setEscolhido] = useState('bo1') // o MD1 vem sempre marcado, mesmo para quem tem Premium
   const [dica, setDica] = useState('')
@@ -508,89 +508,25 @@ function Painel({ dados, fazer, ocupado, status }) {
   )
   return (
     <section className="lb-painel" aria-label={t('Partida')}>
-      <div className="lb-buscar-faixa">
-        {(dados.busca || completo) && (
-          <p className="lb-aviso">
-            <Marca d={<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />} tamanho={18} />
-            <span>
-              {dados.busca
-                ? t('Procurando outro time que também esteja buscando partida…')
-                : dados.souLider
-                  ? t('Grupo completo: é só buscar partida')
-                  : t('Grupo completo: o líder busca a partida')}
-            </span>
-          </p>
-        )}
-        <div className="lb-acao">
-        {slot(ITENS_PARTIDA[0])}
-        {dados.busca ? (
-          <button type="button" className="lb-buscar buscando" disabled={!dados.souLider || ocupado} onClick={cancelar} title={dados.souLider ? t('Cancelar busca') : undefined}>
-            <TempoBusca desde={dados.busca} />
-            <small>{MODOS.find((m) => m.id === modo)?.rotulo} · {dados.souLider ? t('clique para cancelar') : t('Buscando partida')}</small>
-          </button>
-        ) : (
-          <button type="button" className={`lb-buscar${completo && dados.souLider ? ' pronto' : ''}`} disabled={!completo || !dados.souLider || ocupado} onClick={buscar}>
-            {t('JOGAR')}
-            <small>{!completo ? `${dados.membros.length}/${dados.max}` : dados.souLider ? MODOS.find((m) => m.id === modo).rotulo : t('Só o líder busca')}</small>
-          </button>
-        )}
-        {slot(ITENS_PARTIDA[1])}
+      <div className="lb-controles">
+        <section className="lb-controle-tipo">
+          <h3>{t('Tipo de partida')} <button type="button" className="lb-controle-info" aria-label={t('Comparar tipos de partida')} aria-expanded={aba === 'tipo'} onClick={() => setAba('tipo')}>ⓘ</button></h3>
+          <div className="lb-controle-modos">{MODOS.map(m => <button key={m.id} type="button" className={[modo === m.id ? 'sel' : '', m.premium && !nivelSub ? 'is-travado' : ''].filter(Boolean).join(' ')} title={m.premium && !nivelSub ? t('Exclusivo para assinantes Premium') : undefined} aria-pressed={modo === m.id} disabled={(m.premium && !nivelSub) || (!trocavel && modo !== m.id)} onClick={() => { if (!trocavel) return; if (travado(m)) return setDica(t('A busca de MD3 é só para o líder com assinatura Premium.')); setDica(''); setEscolhido(m.id) }}>{m.premium && <ParticulasPremium quantidade={12} cor={!nivelSub ? '160,171,188' : undefined}/>}<IconeUI tipo={m.premium && !nivelSub ? 'cadeado' : m.premium ? 'jester' : 'raio'} tamanho={24}/><span><b>{m.rotulo}</b><small>{t(m.premium ? 'Premium' : 'Padrão')}</small></span></button>)}</div>
+        </section>
+        <section className={`lb-controle-mapas${premium ? '' : ' is-travado'}`}>
+          <h3><button type="button" aria-expanded={aba === 'mapas'} onClick={() => setAba(aba === 'mapas' ? '' : 'mapas')}>{t('Mapas')} <span>{meuPool.length ? `${meuPool.length}/${poolMax}` : t('Pick & Ban')}</span> ⓘ</button></h3>
+          <div className="lb-controle-miniaturas">{!premium && <span className="lb-pool-resumo-cadeado" aria-hidden="true"><IconeUI tipo="cadeado" tamanho={20}/></span>}{(meuPool.length ? meuPool : ['mirage', 'inferno', 'nuke']).slice(0, 3).map(id => <button key={id} type="button" disabled={!premium} onClick={() => setAba(aba === 'mapas' ? '' : 'mapas')} title={!premium ? t('Pool exclusivo para assinantes Premium') : nomeMapa(id)}><span><img src={mapImage(id)} alt="" width="72" height="42"/>{meuPool.includes(id) && <i aria-hidden="true">✓</i>}</span><small>{nomeMapa(id)}</small></button>)}</div>
+        </section>
+        <section className={`lb-controle-servidor ${status?.servidor?.consultaFalhou ? 'estado-incerto' : status?.servidor?.online === true ? 'estado-online' : status?.servidor?.online === false ? 'estado-offline' : 'estado-incerto'}`}><h3><button type="button" aria-expanded={aba === 'servidor'} onClick={() => setAba(aba === 'servidor' ? '' : 'servidor')}>{t('Servidor')} ⓘ</button></h3><button type="button" onClick={() => setAba(aba === 'servidor' ? '' : 'servidor')}><Bandeira pais="br"/><span><b>{t('Brasil')}</b><small>{t(status?.servidor?.consultaFalhou ? 'Ver status' : status?.servidor?.online === true ? 'Online' : status?.servidor?.online === false ? 'Offline' : 'Verificando…')}</small></span></button></section>
+        <div className="lb-controle-jogar">
+          {dados.busca ? <button type="button" className="lb-buscar buscando" disabled={!dados.souLider || ocupado} onClick={cancelar}><TempoBusca desde={dados.busca}/><small>{t('Cancelar busca')}</small></button> : <button type="button" className={`lb-buscar${completo && dados.souLider ? ' pronto' : ''}`} disabled={!completo || !dados.souLider || ocupado} onClick={buscar}><IconeUI tipo="play" tamanho={18}/>{t('JOGAR')} · {dados.membros.length}/{dados.max}</button>}
+          <small>{dados.busca ? t('Procurando adversários…') : completo ? t('Seu grupo está pronto') : t('Convide mais {n} jogadores', { n: dados.max - dados.membros.length })}</small>
         </div>
-        {itens.erro && <p className="lb-item-erro" role="status">{t(itens.erro)}</p>}
+        <div className="lb-controle-itens">{slot(ITENS_PARTIDA[0])}{slot(ITENS_PARTIDA[1])}</div>
       </div>
-
-      <div className="lb-abas-painel" role="tablist">
-        {[
-          ['tipo', t('TIPO DE PARTIDA'), null],
-          ['mapas', t('MAPAS'), premium ? `${meuPool.length}/${poolMax}` : <Marca d={IC_CADEADO} tamanho={13} />],
-          ['servidor', t('SERVIDOR'), '1/1'],
-        ].map(([id, rotulo, n]) => (
-          <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'ativa' : ''} onClick={() => setAba(id)}>
-            {rotulo} {n && <small>{n}</small>}
-          </button>
-        ))}
-      </div>
-
-      <div className="lb-painel-corpo">
-        {aba === 'tipo' && (
-          <div className="lb-modos-caixa">
-          <div className="lb-modos">
-            {MODOS.map((m) => (
-              <button key={m.id} type="button" className={`lb-modo${m.premium ? ' lb-modo-premium' : ''}${modo === m.id ? ' sel' : ''}`} disabled={!trocavel && modo !== m.id} onClick={() => {
-                  if (!trocavel) return
-                  if (travado(m)) return setDica(t('A busca de MD3 é só para o líder com assinatura Premium.'))
-                  setDica('')
-                  setEscolhido(m.id)
-                }}
-                aria-pressed={modo === m.id}
-              >
-                {m.premium && <ParticulasPremium quantidade={22} />}
-                <span className="lb-modo-cab">
-                  {m.premium && (
-                    <IconeUI tipo="jester" tamanho={22} className="lb-coroa"/>
-                  )}
-                  <b>{t(m.nome)}</b> <small>· 5v5</small>
-                  {m.premium && <em className={`lb-premium${travado(m) ? '' : ' livre'}`}>PREMIUM</em>}
-                </span>
-                <span className="lb-modo-itens">
-                  {m.itens.map(([texto, icone]) => (
-                    <span key={texto}>
-                      <Marca d={icone} tamanho={16} />
-                      {t(texto)}
-                    </span>
-                  ))}
-                </span>
-              </button>
-            ))}
-          </div>
-          {dica && (
-            <p className="lb-dica-premium" role="status">
-              {dica}
-            </p>
-          )}
-          </div>
-        )}
-        {aba === 'mapas' && (
+      {dica && <p className="lb-dica-premium" role="status">{dica}</p>}
+      {itens.erro && <p className="lb-item-erro" role="status">{t(itens.erro)}</p>}      {['tipo', 'mapas', 'servidor'].includes(aba) && <JanelaControles titulo={t(aba === 'tipo' ? 'Tipos de partida' : aba === 'mapas' ? 'Mapas do pool' : 'Servidor')} fechar={() => setAba('')}><div className="lb-painel-corpo">
+        {aba === 'tipo' && <div className="lb-comparacao-modos">{MODOS.map(m => <article key={m.id} className={m.premium ? 'premium' : ''}><header><IconeUI tipo={m.premium ? 'jester' : 'raio'} tamanho={28}/><div><h3>{m.rotulo} · {t(m.premium ? 'Premium' : 'Padrão')}</h3><p>{t(m.nome)}</p></div></header><ul>{m.itens.map(([texto]) => <li key={texto}><IconeUI tipo="check" tamanho={16}/>{t(texto)}</li>)}</ul>{m.premium && !nivelSub && <p className="lb-comparacao-bloqueio"><IconeUI tipo="cadeado" tamanho={16}/>{t('Exclusivo para assinantes Premium')}</p>}</article>)}</div>}        {aba === 'mapas' && (
           // como na FACEIT: a pool de mapas numa fileira de cartões pequenos; Premium marca os garantidos, sem assinatura fica o cadeado azul
           <div className={`lb-pool${premium ? '' : ' lb-pool-travado'}`}>
             <small className="lb-pool-titulo">
@@ -636,7 +572,7 @@ function Painel({ dados, fazer, ocupado, status }) {
           </div>
         )}
         {aba === 'servidor' && <PainelServidor status={status} />}
-      </div>
+      </div></JanelaControles>}
     </section>
   )
 }
@@ -672,15 +608,15 @@ function Conteudo({ status }) {
         <h2>{t('Entre para usar o lobby')}</h2>
         <p>{t('Monte um grupo com seus amigos, convide quem quiser e deixe o lobby aberto para eles entrarem.')}</p>
         {loginAtivo() && (
-          <button type="button" className="lb-btn lb-btn-p" onClick={entrar}>
-            <IconeSteam /> {t('Entrar com Steam')}
+          <button type="button" className="lb-btn lb-btn-p" aria-label={t('Entrar com Steam')} title={t('Entrar com Steam')} onClick={entrar}>
+            <IconeSteam />
           </button>
         )}
       </div>
     )
   if (!dados) return erro ? <p className="lb-carregando">{t(ERROS[erro] || 'Não deu para carregar o lobby.')}</p> : <CarregandoNP />
   // Os 10 aceitaram: a sala de Pick & Ban toma o lugar do lobby (o aceite em si é o botão no centro da tela, em AceitarPartida.jsx)
-  if (dados.partida && dados.partida.fase !== 'aceitar') return <SalaVeto dados={dados} />
+  if (dados.partida && dados.partida.fase !== 'aceitar') return <SalaVeto dados={dados} ranking={ranking?.jogadores || []} />
 
   // Líder no meio, os outros ao redor: posições 1, 3, 0, 4; convites pendentes depois dos membros
   const eu = dados.eu
@@ -880,7 +816,7 @@ export default function Lobby() {
   usePreencheTela(conteudo, !pequena)
   return (
     <Layout pagina="lobby">
-      <main className="lb-pagina">
+      <main className="lb-pagina" style={fundoCss('lobby')}>
         {!pequena && <AvisosCs2 status={status} />}
         <div className="wrap lb-wrap">
           <div className="lb-bloqueio" role="status">

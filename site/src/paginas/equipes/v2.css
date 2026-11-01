@@ -1,0 +1,82 @@
+/* Times no visual v2 (referência: design/reference/08-times.png, 1586×992). Vem depois de comum/neura-v2.css.
+   Capa: título e subtítulo sobre o cenário (bg-time-v2); o cartão do time tem os agentes (team-squad-v2) saindo pela borda de
+   cima. Visão geral: contadores, membros (esquerda), cargo + chat (direita) e convites embaixo. */
+
+#root .eq-pagina .wrap { max-width: none; padding-inline: 40px 28px; }
+
+/* ── capa ── */
+.eq-capa-v2 { position: relative; isolation: isolate; margin: 0 0 18px; padding-top: 6px; }
+.eq-capa-v2::before { content: ''; position: absolute; z-index: -1; left: -40px; right: -28px; top: -22px; height: 210px; background: var(--np-fundo, none) center right / cover no-repeat, #030e1a; -webkit-mask-image: linear-gradient(180deg, #000 0, #000 60%, transparent 100%); mask-image: linear-gradient(180deg, #000 0, #000 60%, transparent 100%); }
+.eq-capa-v2::after { content: ''; position: absolute; z-index: -1; left: -40px; right: -28px; top: -22px; height: 210px; pointer-events: none; background: linear-gradient(90deg, rgb(1 7 15 / .85) 0%, rgb(1 7 15 / .35) 42%, rgb(1 7 15 / .1) 70%, rgb(1 7 15 / .35) 100%), linear-gradient(180deg, transparent 50%, var(--v2-fundo) 100%); }
+.eq-capa-titulo h1 { margin: 0; font: 800 44px/1.05 var(--font-display); letter-spacing: -.02em; color: #f4f7fc; }
+.eq-capa-titulo p { margin: 6px 0 0; font-size: 17px; color: #d3dbe6; }
+.eq-capa-cartao { position: relative; isolation: isolate; overflow: visible; margin-top: 22px; min-height: 160px; }
+/* 1. cenário do cartão: só o fundo, com o recorte e a borda arredondados */
+.eq-capa-cenario { position: absolute; inset: 0; z-index: 0; overflow: hidden; border: 1px solid rgb(37 68 98 / .95); border-radius: 10px; background: #030e1a; box-shadow: var(--v2-sombra); }
+.eq-capa-cenario::before { content: ''; position: absolute; inset: 0; background: var(--np-fundo, none) 60% 40% / cover no-repeat; }
+.eq-capa-cenario::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgb(1 7 15 / .92) 0%, rgb(1 7 15 / .65) 40%, rgb(1 7 15 / .25) 70%, rgb(1 7 15 / .45) 100%); }
+/* 2. agentes: irmãos do cenário, por cima; saem pela borda de cima (o PNG vem cortado reto embaixo, e o recorte é só embaixo) */
+.eq-capa-camada { position: absolute; inset: 0; z-index: 1; pointer-events: none; clip-path: inset(-90% 0 0 0); }
+.eq-capa-camada img { position: absolute; right: 2%; bottom: 0; width: auto; height: 176%; max-width: 58%; object-fit: contain; object-position: bottom right; filter: drop-shadow(0 14px 22px rgb(0 0 0 / .6)); user-select: none; }
+/* 3. conteúdo à frente */
+.eq-capa-cartao .eq-cabeca { position: relative; z-index: 2; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 24px; margin: 0; padding: 22px 28px; border: 0; background: none; }
+.eq-capa-cartao .eq-cabeca-txt h2 { margin: 0 0 6px; font: 800 38px/1.08 var(--font-display); letter-spacing: -.02em; color: #f4f7fc; }
+.eq-capa-cartao .eq-cabeca-txt h2 em { font-style: normal; font-size: .52em; font-weight: 600; color: #c9d3e1; }
+.eq-capa-cartao .eq-cabeca-txt p { margin: 4px 0 0; color: #d3dbe6; font-size: 14.5px; }
+.eq-cabeca-acoes { display: grid; gap: 12px; min-width: 232px; }
+.eq-cabeca-acoes .v2-btn { height: 46px; min-height: 46px; border-radius: 7px; font: 650 14.5px var(--font-body); }
+.eq-cabeca-acoes .v2-btn-secundario { border-color: #5b9bff; background: rgb(1 7 15 / .5); }
+
+/* ── abas ── */
+html:not(#v2) .eq-abas { display: flex; gap: 6px; margin: 0 0 14px; padding: 0; border: 0; border-bottom: 1px solid rgb(37 68 98 / .6); overflow-x: auto; scrollbar-width: none; }
+html:not(#v2) .eq-abas button { height: 50px; padding: 0 26px; border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: transparent; color: #d3dbe6; font: 500 15px var(--font-body); letter-spacing: 0; white-space: nowrap; }
+html:not(#v2) .eq-abas button.is-ativo { color: #f4f7fc; border-bottom-color: #3d8bff; font-weight: 650; }
+html:not(#v2) .eq-abas button.is-ativo:not(#_) { background: transparent; }
+.eq-painel { padding: 0; border: 0; background: none; }
+
+/* ── visão geral ── */
+.eq-v2-geral { display: grid; grid-template-columns: minmax(0, 1.14fr) minmax(0, 1fr); gap: 16px 18px; align-items: start; }
+.eq-v2-contadores { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.eq-v2-contador { display: flex; align-items: center; gap: 20px; min-height: 72px; padding: 14px 24px; border: 1px solid rgb(37 68 98 / .95); border-radius: 10px; background: linear-gradient(180deg, #06121f, #030e1a); }
+.eq-v2-contador svg { color: #3d8bff; flex: none; }
+.eq-v2-contador div { display: grid; gap: 2px; }
+.eq-v2-contador b { font: 800 24px/1.1 var(--font-display); color: #f4f7fc; }
+.eq-v2-contador small { color: #c9d3e1; font-size: 14px; }
+.eq-v2-membros { grid-column: 1; }
+.eq-v2-direita { grid-column: 2; grid-row: 2 / span 2; display: grid; gap: 16px; min-width: 0; }
+.eq-v2-convites { grid-column: 1; }
+.v2-painel-cab h2 small { margin-left: 6px; color: #c9d3e1; font: 500 16px var(--font-body); }
+.eq-v2-gerenciar { height: 38px; min-height: 38px; padding: 0 14px; font-size: 13px; }
+.eq-v2-tabela { padding: 4px 8px 10px; }
+.eq-v2-linha { display: grid; grid-template-columns: 44px minmax(0, 1fr) 130px; align-items: center; gap: 12px; min-height: 52px; padding: 4px 14px; border-top: 1px solid rgb(132 164 214 / .1); }
+.eq-v2-linha:first-child { border-top: 0; }
+.eq-v2-cab { min-height: 38px; color: #a8b5c7; font-size: 13px; }
+.eq-v2-jogador { display: inline-flex; align-items: center; gap: 12px; min-width: 0; color: #f4f7fc; text-decoration: none; }
+.eq-v2-jogador b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 15px var(--font-body); }
+.eq-v2-jogador:hover b { color: var(--v2-ciano); }
+.eq-v2-coroa { color: var(--v2-ouro); flex: none; }
+.eq-v2-linha .eq-cargo { justify-self: start; min-width: 74px; text-align: center; padding: 4px 14px; border: 1px solid color-mix(in srgb, var(--cor) 70%, transparent); border-radius: 5px; background: color-mix(in srgb, var(--cor) 14%, transparent); color: var(--cor); font: 600 12.5px var(--font-body); }
+.eq-v2-cargo-corpo { display: grid; justify-items: center; gap: 12px; padding: 20px; text-align: center; }
+.eq-v2-cargo-icone { color: var(--v2-ouro); }
+.eq-v2-cargo-corpo p { margin: 0; color: #d3dbe6; font-size: 14px; line-height: 1.45; }
+/* chat real do time dentro do painel */
+.eq-v2-chat { display: flex; flex-direction: column; min-height: 0; }
+.eq-v2-chat .eq-chat { border: 0; border-radius: 0 0 10px 10px; background: transparent; min-height: 280px; max-height: 420px; }
+.eq-v2-convites-lista { display: grid; gap: 8px; margin: 0; padding: 14px 18px 18px; list-style: none; }
+.eq-v2-convites-lista li { display: flex; align-items: center; gap: 12px; }
+.eq-v2-convites-lista li > span { flex: 1; font-weight: 600; }
+
+@media (max-width: 1100px) {
+  .eq-v2-geral { grid-template-columns: minmax(0, 1fr); }
+  .eq-v2-direita, .eq-v2-membros, .eq-v2-convites { grid-column: 1; grid-row: auto; }
+}
+@media (max-width: 760px) {
+  #root .eq-pagina .wrap { padding-inline: 16px; }
+  .eq-capa-titulo h1 { font-size: 32px; }
+  .eq-capa-cartao .eq-cabeca { grid-template-columns: auto minmax(0, 1fr); padding: 18px; gap: 16px; }
+  .eq-cabeca-acoes { grid-column: 1 / -1; min-width: 0; grid-template-columns: 1fr 1fr; }
+  .eq-capa-camada img { height: 130%; max-width: 70%; opacity: .55; }
+  .eq-capa-cartao .eq-cabeca-txt h2 { font-size: 26px; }
+  .eq-v2-contadores { grid-template-columns: 1fr; gap: 10px; }
+  .eq-v2-linha { grid-template-columns: 30px minmax(0, 1fr) auto; }
+}

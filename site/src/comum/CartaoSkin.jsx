@@ -6,7 +6,7 @@ import IconeUI from './IconeUI.jsx'
 import { useEffect, useRef, useState } from 'react'
 import { LADOS_TIME, chaveEquip, corEnfeite, descrever, urlImg } from './skins.js'
 import { useT } from './i18n.js'
-import DicaSkin, { temDica } from './DicaSkin.jsx'
+import DicaSkin, { nomeRaridade, temDica } from './DicaSkin.jsx'
 import { padraoRaro } from '../../worker/steam-login/src/padroes.js'
 
 function Imagem({ src, classe = '' }) {
@@ -44,8 +44,17 @@ export function GemaNome({ item }) {
 
 export const nomeDoDesgaste = (f) => (f < 0.07 ? 'Factory New' : f < 0.15 ? 'Minimal Wear' : f < 0.38 ? 'Field-Tested' : f < 0.45 ? 'Well-Worn' : 'Battle-Scarred')
 
+// Selo da raridade (nome do jogo, na cor dela) em cima do nome do item
+export function SeloRaridade({ item, cor }) {
+  const t = useT()
+  const nome = nomeRaridade(item, cor, t.idioma)
+  return nome ? <span className="inv-rar-selo" style={{ '--cor': cor || '#6b6f76' }}>{nome}</span> : null
+}
+
 // valor: NP do item (aparece embaixo do nome; no mercado, o preço do anúncio)
-export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAbrirMenu, extra, selecionado, valor }) {
+// aoSelecionar: o clique escolhe o item (o painel de inspeção do inventário mostra ele); o botão direito continua abrindo o menu.
+// ativo: é o item que está no painel
+export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAbrirMenu, aoSelecionar, aoCadeado, ativo, extra, selecionado, valor }) {
   const t = useT()
   // adesivo/chaveiro guardado (mercado): nome, imagem e cor vêm do catálogo dele ([id, nome, imagem, cor])
   const enfeite = item.t === 'adesivo' || item.t === 'chaveiro'
@@ -82,6 +91,7 @@ export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
   const corpo = (
     <>
       <span className="inv-cartao-arte">
+        {item.cadeado && !aoCadeado && <span className="inv-item-cadeado" title={t('Skin protegida contra venda')}><IconeUI tipo="cadeado" tamanho={16} /></span>}
         <span className="inv-arma-box">
           <Imagem src={d.img} classe="inv-arma-img" />
         </span>
@@ -102,14 +112,15 @@ export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
         {selecionado !== undefined && <i className={`inv-check${selecionado ? ' on' : ''}`} aria-hidden="true" />}
       </span>
       <span className="inv-cartao-nome">
+        <SeloRaridade item={item} cor={d.cor} />
         <b>
           <GemaNome item={item} />
           {item.n ? `${d.titulo} «${item.n}»` : d.titulo}
         </b>
         <small>{d.subtitulo}</small>
         {d.skin && (
-          <em>
-            {t(nomeDoDesgaste(Number(item.f)))} · {Number(item.f).toFixed(3)}
+          <em title={Number(item.f).toFixed(6)}>
+            {t(nomeDoDesgaste(Number(item.f)))}
           </em>
         )}
         {valor != null && (
@@ -122,19 +133,21 @@ export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
     </>
   )
   return (
-    <li>
-      {aoAbrirMenu ? (
+    <li className="inv-cartao-li">
+      {aoCadeado && <button type="button" className={`inv-cartao-cadeado${item.cadeado ? ' ativo' : ''}`} aria-label={t(item.cadeado ? 'Remover cadeado' : 'Proteger skin')} aria-pressed={!!item.cadeado} onClick={e => { e.stopPropagation(); aoCadeado() }}><IconeUI tipo="cadeado" tamanho={15} /></button>}
+      {aoAbrirMenu || aoSelecionar ? (
         <button
           {...eventosDica}
           type="button"
-          className={`inv-cartao${selecionado ? ' inv-cartao-sel' : ''}`}
+          className={`inv-cartao${enfeite ? ' inv-cartao-guardado' : ''}${selecionado ? ' inv-cartao-sel' : ''}${ativo ? ' inv-cartao-ativo' : ''}`}
           aria-pressed={selecionado === undefined ? undefined : selecionado}
+          {...(ativo ? { 'aria-current': 'true' } : {})}
           style={{ '--cor': d.cor || '#6b6f76' }}
           onContextMenu={(e) => {
             e.preventDefault()
-            aoAbrirMenu(e, item)
+            ;(aoAbrirMenu || aoSelecionar)(e, item)
           }}
-          onClick={(e) => aoAbrirMenu(e, item)}
+          onClick={(e) => (aoSelecionar || aoAbrirMenu)(e, item)}
         >
           {corpo}
         </button>

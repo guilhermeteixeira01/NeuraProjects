@@ -272,7 +272,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
                   ))}
                 </select>
               </div>
-              <div className="inv-rar pf-inv-rar" role="group" aria-label={t('Filtrar por raridade')}>
+              <details className="inv-rar pf-inv-rar pf-inv-filtro"><summary>{t('Raridade')}</summary>
                 <button type="button" className={rar === 'todas' ? 'is-ativo' : ''} onClick={() => setRar('todas')}>
                   {t('Todas')}
                 </button>
@@ -283,7 +283,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
                     </button>
                   ) : null,
                 )}
-              </div>
+              </details>
             {!itens.length ? (
               <p className="pf-inv-vazio">{t('Nada por aqui.')}</p>
             ) : (
@@ -299,7 +299,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
           ) : (
             <>
             {aba !== 'caixas' && contagemEnf.some(Boolean) && (
-              <div className="inv-rar pf-inv-rar" role="group" aria-label={t('Filtrar por raridade')}>
+              <details className="inv-rar pf-inv-rar pf-inv-filtro"><summary>{t('Raridade')}</summary>
                 <button type="button" className={rar === 'todas' ? 'is-ativo' : ''} onClick={() => setRar('todas')}>
                   {t('Todas')}
                 </button>
@@ -310,7 +310,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
                     </button>
                   ) : null,
                 )}
-              </div>
+              </details>
             )}
             <ul className="inv-itens pf-inv-cartoes">
               {[...(aba === 'adesivos' ? listaAdesivos : aba === 'chaveiros' ? listaChaveiros : caixas)]
@@ -326,7 +326,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
                 const cx = caixasLoja.find((c) => c.id === g.d)
                 return (
                   <li key={`caixa${g.d}`}>
-                    <div className="inv-cartao inv-cartao-fixo" style={{ '--cor': cx?.cor || '#6b6f76' }}>
+                    <div className="inv-cartao inv-cartao-fixo inv-cartao-guardado" style={{ '--cor': cx?.cor || '#6b6f76' }}>
                       <span className="inv-cartao-arte">
                         <span className="inv-arma-box">{cx?.img ? <img className="inv-arma-img" src={cx.img} alt="" loading="lazy" draggable="false" /> : <span className="inv-sem-img inv-arma-img" aria-hidden="true" />}</span>
                       </span>

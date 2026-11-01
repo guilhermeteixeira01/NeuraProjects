@@ -1,0 +1,25 @@
+/* Regra compartilhada por todas as páginas e janelas: fotos e iniciais sem
+   moldura usam o mesmo quadrado. O recorte das molduras continua no seu CSS. */
+html body :is(
+  .av, .av-fb, .ini, .ini > span,
+  .adm-av, .adm-ed-img, .eq-foto, .tm-rosto, .tm-rosto > img,
+  .pf-av, .pf-header-avatar, .pf-header-portrait,
+  .v2-pod-av, .v2-pod-av > img,
+  .mvp-av, .mvp-avatar, .mvp-item .av, .gu-av,
+  .lb-ini, .lb-av img, .lb-amigo-av img,
+  .sala-av > img, .sala-time-avatar, .sala-time-avatar > img,
+  .sala-pickador, .sala-pickador > img, .sala-pickador .lb-ini,
+  .chat-msg > img, .chat-ini,
+  .tr-jogadores img, .tr-av,
+  .nx-conta-avatar, .nx-conta-avatar > img, .nx-conta-ini,
+  .nc-topo > img, .nc-topo > .emblema-box > img,
+  .cp-av > img, .cp-ini, .nx-convite-foto, .nx-convite-foto > img,
+  .am-av > img, .am-ini, .np-chat-autor > img,
+  .cg-ava > img, .np-avatar-inicio, .np-avatar-inicio > img,
+  .emblema-box > img, .emblema-box > .lb-ini,
+  a[href*="/perfil/"] img,
+  img[src*="avatars.steamstatic.com/"],
+  img[src*="/steamcommunity/public/images/avatars/"]
+):not(.moldura-box, .moldura-box *, .emblema-sub, .emblema-sub *):not(:has(.moldura-box)) {
+  border-radius: 4px !important;
+}

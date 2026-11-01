@@ -12,3 +12,7 @@
 @import '../comum/sazonal.css';
 @import '../paginas/perfil/cabecalho.css';
 @import '../comum/acabamento.css';
+
+/* Neura Project v2: por último, ganha de tudo acima */
+@import '../comum/neura-v2.css';
+@import '../paginas/perfil/v2.css';

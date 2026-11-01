@@ -12,6 +12,7 @@ import { lerJson, urlOk } from '../../comum/dados.js'
 import { linkPerfil, useConta } from '../../comum/conta.js'
 import { useBonusPartidas } from '../../comum/bonusPartidas.js'
 import { fundoMapa, getMap, mapIcon, nomeMapa } from '../../comum/mapas.js'
+import { fundoDoResultado } from '../../comum/assetsV2.js'
 import { ComMoldura, comApelidos, usePerfis } from '../../comum/Moldura.jsx'
 import { desempenhoAtivo } from '../../comum/desempenho.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
@@ -154,6 +155,12 @@ function NomeTime({ nome, venceu, t }) {
   )
 }
 
+// Fundo do banner: a arte do pacote (resultado do mapa, pelo identificador real) ou, sem ela, a que o mapa já tinha. Nunca outro mapa.
+function arteDoBanner(mapa) {
+  const arte = fundoDoResultado(mapa)
+  return arte ? { ...fundoMapa(mapa), '--bn-arte': 'url("' + arte.src + '")' } : fundoMapa(mapa)
+}
+
 function Banner({ d, nomeTime, vencedor, porRating, comecou }) {
   const tr = useT()
   const serie = d.serie
@@ -172,7 +179,7 @@ function Banner({ d, nomeTime, vencedor, porRating, comecou }) {
     <section className="hero hero-partida">
       <FundoHero quantidade={12} />
       <div className="wrap hero-inner">
-        <div className="banner revelar" style={fundoMapa(d.mapa)}>
+        <div className="banner revelar" style={arteDoBanner(d.mapa)}>
           <div className="bn-topo">
             <div className="bn-trilha">
               <IconeElim />
@@ -780,13 +787,17 @@ function Conteudo({ d }) {
         </div>
       </div>
       <Banner d={d} nomeTime={nomeTime} vencedor={vencedor} porRating={porRating} comecou={comecou} />
-      <main className="wrap partida-conteudo">
-        <PontosPremiumMapa d={d} vencedor={vencedor} />
+      <main className="wrap partida-conteudo pt-v2">
         {d.serie && <Serie serie={d.serie} nomeTime={nomeTime} jogos={jogos} caminhoAtual={d.caminho} anuncio={anuncio} agora={agora} />}
-        {mvp && <Destaques jogadores={jogadores} porRating={porRating} totalRounds={totalRounds} nomeTime={nomeTime} />}
         {d.rounds?.length > 0 && <Rounds d={d} nomeTime={nomeTime} />}
+        {/* Grade do computador (referência): as tabelas ocupam ~2/3 à esquerda; MVP e pontos ficam no terço da direita */}
+        <div className="pt-v2-grade">
+        <div className="pt-v2-lado">
+          {mvp && <Destaques jogadores={jogadores} porRating={porRating} totalRounds={totalRounds} nomeTime={nomeTime} />}
+          <PontosPremiumMapa d={d} vencedor={vencedor} />
+        </div>
         {/* Tabelas: vencedor primeiro */}
-        <section className="section revelar">
+        <section className="section revelar pt-v2-tabelas">
           <div className="section-head">
             <span className="kicker">{tr('PLACAR')}</span>
             <h2>{tr('Estatísticas dos jogadores')}</h2>
@@ -808,6 +819,7 @@ function Conteudo({ d }) {
           ))}
           {aba === 'util' && <GraficoUtil jogadores={jogadores} ordem={vencedor === 'B' ? ['B', 'A'] : ['A', 'B']} nomeTime={nomeTime} mvp={mvp} />}
         </section>
+        </div>
       </main>
       <p className="wrap gerado">{tr('Gerado pelo BaseComp em {data}', { data: dataBr(d.gerado, tr.idioma) })} · Rating HLTV 1.0</p>
     </>
@@ -845,7 +857,7 @@ export default function Partida({ dados: inicial }) {
   const perfis = usePerfis()
   const dApelidos = useMemo(() => (d ? { ...d, efeitos: efeitos || d.efeitos, jogadores: comApelidos(d.jogadores, perfis) } : d), [d, perfis, efeitos]) // apelido do site no lugar do nome do jogo
   return (
-    <Layout pagina="partidas">
+    <Layout pagina="partidas" trilha={[{ rotulo: 'Partidas', href: '/partidas/' }, ...(d ? [{ rotulo: nomeMapa(d.mapa) }] : [])]}>
       {d ? (
         <Conteudo d={dApelidos} />
       ) : (

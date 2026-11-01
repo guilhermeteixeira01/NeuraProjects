@@ -1,0 +1,70 @@
+/* Detalhe da partida no visual v2 (referência: design/reference/07-partida.png, 1586×992). Vem depois de comum/neura-v2.css.
+   Hero largo com a arte do mapa real (bg-resultado-*; só cache, dust2, nuke e mirage têm; os outros mapas mantêm a arte que já tinham),
+   placar no centro, linha do tempo dos rounds; embaixo, tabelas (~2/3) à esquerda e MVP + pontos (~1/3) à direita. */
+
+/* ── hero ── */
+.hero-partida { padding: 0; background: none; border: 0; }
+.hero-partida::after, .hero-partida::before { display: none; }
+.hero-partida .wrap { max-width: none; padding-inline: var(--v2-gutter) 28px; }
+.hero-partida .banner {
+  position: relative; isolation: isolate; overflow: hidden; min-height: 230px; margin-top: 14px; padding: 18px 28px 24px; border: 1px solid rgb(37 68 98 / .95); border-radius: 10px;
+  background: #030e1a; box-shadow: var(--v2-sombra);
+}
+/* arte: do pacote quando existe (--bn-arte); sem ela, a imagem que o mapa já tinha (--img) com o gradiente de reserva */
+.hero-partida .banner::before { content: ''; position: absolute; inset: 0; z-index: -2; background: var(--bn-arte, var(--img, none)) center 40% / cover no-repeat, linear-gradient(160deg, var(--c1, #1b2740), var(--c2, #030e1a)); }
+/* véu: escurece o necessário só onde há texto (esquerda e centro) para o placar ficar legível mesmo nos mapas claros */
+.hero-partida .banner::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(90deg, rgb(1 7 15 / .78) 0%, rgb(1 7 15 / .5) 38%, rgb(1 7 15 / .22) 68%, rgb(1 7 15 / .5) 100%), linear-gradient(180deg, transparent 45%, rgb(1 7 15 / .82) 100%); }
+.hero-partida .bn-topo { position: relative; z-index: 1; }
+.hero-partida .bn-placar { position: relative; z-index: 1; justify-content: center; margin-top: 14px; }
+.hero-partida .bn-nome b { font: 800 32px/1.1 var(--font-display); letter-spacing: -.01em; text-transform: none; }
+.hero-partida .bn-centro { display: inline-flex; align-items: center; gap: 14px; font-variant-numeric: tabular-nums; }
+.hero-partida .bn-centro .win { color: var(--v2-sucesso); }
+.hero-partida .bn-demo { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border: 1px solid #5b9bff; border-radius: 7px; background: rgb(1 7 15 / .55); color: #fff; font: 600 13.5px var(--font-body); text-decoration: none; }
+.hero-partida .bn-demo:hover { background: rgb(52 120 246 / .25); }
+
+/* ── corpo ── */
+.pt-v2 { max-width: none; padding-inline: var(--v2-gutter) 28px; }
+.pt-v2 > .section { padding-block: 14px 0; }
+.pt-v2 .section-head { margin-bottom: 10px; }
+.pt-v2 .section-head h2 { font: 700 19px var(--font-display); letter-spacing: -.005em; text-transform: none; }
+.pt-v2 .section-head .kicker { display: none; }
+.pt-v2-grade { display: grid; grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr); gap: 18px; align-items: start; margin-top: 8px; }
+.pt-v2-tabelas { order: 1; min-width: 0; padding: 0 !important; }
+.pt-v2-lado { order: 2; position: sticky; top: calc(var(--v2-topo) + 14px); display: grid; gap: 18px; min-width: 0; }
+.pt-v2-lado .section { padding: 0; }
+/* MVP: o cartão vira coluna única, e os "melhores em cada coisa" ficam compactos embaixo */
+.pt-v2-lado .mvp-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.pt-v2-lado .mvp-card { padding: 16px; gap: 14px; border: 1px solid rgb(37 68 98 / .95); border-radius: 10px; background: linear-gradient(180deg, #06121f, #030e1a); }
+.pt-v2-lado .mvp-lista { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pt-v2-lado .mvp-lista > * { min-width: 0; }
+/* tabelas: painéis do sistema */
+.pt-v2-tabelas .team-card { border: 1px solid rgb(37 68 98 / .95); border-radius: 10px; background: linear-gradient(180deg, #06121f, #030e1a); box-shadow: none; }
+.pt-v2-tabelas .team-card table { font-variant-numeric: tabular-nums; }
+.pt-v2-tabelas :is(.abas-tabela button) { border-radius: 6px; }
+.pt-v2-tabelas .abas-tabela button.active { background: var(--v2-primaria); border-color: var(--v2-primaria); color: #fff; }
+.mapa-premium-pontos { border: 1px solid rgb(37 68 98 / .95); border-radius: 10px; background: linear-gradient(180deg, #06121f, #030e1a); }
+/* linha do tempo dos rounds: painel largo, ícones por time (azul/laranja) com texto de legenda */
+.pt-v2 .rounds-card { border: 1px solid rgb(37 68 98 / .95); border-radius: 10px; background: linear-gradient(180deg, #06121f, #030e1a); }
+.gerado { color: var(--v2-texto-3); }
+
+@media (max-width: 1100px) {
+  .pt-v2-grade { grid-template-columns: minmax(0, 1fr); }
+  .pt-v2-lado { position: static; order: 0; }
+  .pt-v2-tabelas { order: 1; }
+}
+@media (max-width: 760px) {
+  .pt-v2, .hero-partida .wrap { padding-inline: 16px; }
+  .hero-partida .banner { padding: 14px 14px 20px; }
+  .hero-partida .bn-nome b { font-size: 20px; }
+}
+
+/* MVP na coluna estreita: foto e nome em cima, rating e números embaixo (dois por linha), selo no canto sem cobrir nada */
+.pt-v2-lado .mvp-card { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: stretch; }
+.pt-v2-lado .mvp-perfil { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; justify-items: start; column-gap: 14px; text-align: left; }
+.pt-v2-lado .mvp-perfil .mvp-avatar { grid-row: span 2; }
+.pt-v2-lado .mvp-info { min-width: 0; }
+.pt-v2-lado .mvp-rt { flex-wrap: wrap; gap: 8px; }
+.pt-v2-lado .mvp-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+.pt-v2-lado .mvp-stats > div { min-width: 0; }
+.pt-v2-lado .mvp-stats b { font-size: 20px; white-space: nowrap; }
+.pt-v2-lado .mvp-selo { position: static; justify-self: start; order: -1; }

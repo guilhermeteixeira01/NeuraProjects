@@ -13,3 +13,7 @@
 
 @import '../paginas/ranking/transparente.css';
 @import '../comum/acabamento.css';
+
+/* Neura Project v2: por último, ganha de tudo acima */
+@import '../comum/neura-v2.css';
+@import '../paginas/ranking/v2.css';

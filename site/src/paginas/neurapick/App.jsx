@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { fundoCss } from '../../comum/assetsV2.js'
 import { useAcessoPick } from '../../comum/Moldura.jsx'
 import { useT } from '../../comum/i18n.js'
 import Layout from '../../comum/Layout.jsx'
@@ -19,7 +20,7 @@ export default function App() {
 
   if (!liberado)
     return (
-      <div className="app">
+      <div className="app" style={fundoCss('pickBan')}>
         <Layout pagina="pick">
           <main className="main">{esperou && <p className="pick-bloqueado">{t('Esta página não está disponível.')}</p>}</main>
         </Layout>
@@ -27,7 +28,7 @@ export default function App() {
     )
 
   return (
-    <div className="app">
+    <div className="app" style={fundoCss('pickBan')}>
       <Layout pagina="pick">
         <main className="main">
           {match ? (

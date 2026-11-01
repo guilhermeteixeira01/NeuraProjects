@@ -13,6 +13,8 @@ import { CarregandoNP } from '../../comum/Carregando.jsx'
 import Drops from './Drops.jsx'
 import PaginaCaixa, { useFavoritas } from './PaginaCaixa.jsx'
 import { prepararSons } from './somLoja.js'
+import { PERSONAGENS, fundoCss } from '../../comum/assetsV2.js'
+import IconeUI from '../../comum/IconeUI.jsx'
 import { CATEGORIAS_CAIXA, categoriaDaCaixa } from '../../comum/temasCaixa.js'
 
 // Categorias da loja: por franquia/tema (src/comum/temasCaixa.js)
@@ -187,10 +189,12 @@ function Conteudo() {
   const favoritas = caixas.filter((c) => fav.includes(c.slug))
   return (
     <>
-      <Drops achar={achar} />
       <header className="lj-topo">
-        <div>
-          <h1>{t('Loja')}</h1>
+        <div className="v2-titulo">
+          <div>
+            <h1>{t('Loja Neura')}</h1>
+            <p>{t('Caixas, skins e itens da comunidade, pagos com Neura Pontos.')}</p>
+          </div>
         </div>
         <div className="lj-topo-saldo">
           <Saldo saldo={dados.saldo} />
@@ -208,6 +212,25 @@ function Conteudo() {
           </button>
         ))}
       </nav>
+
+      {/* Hero: três camadas independentes (cenário recortado; arlequim em PNG transparente por cima, saindo pela borda de cima;
+          texto e botão à frente). O personagem não captura clique. */}
+      <section className="lj-hero" style={fundoCss('loja')} aria-label={t('Destaque da loja')}>
+        <div className="lj-hero-cenario" aria-hidden="true" />
+        <div className="lj-hero-camada" aria-hidden="true">
+          <img src={PERSONAGENS.lojaArlequim.src} width={PERSONAGENS.lojaArlequim.w} height={PERSONAGENS.lojaArlequim.h} alt="" decoding="async" draggable="false" />
+        </div>
+        <div className="lj-hero-texto">
+          <h2>{t('Itens que mudam o seu jogo.')}</h2>
+          <p>{t('Abra caixas, compre skins e itens com Neura Pontos.')}</p>
+          <a className="v2-btn v2-btn-primario" href="#lj-catalogo">
+            {t('Explorar')}
+            <IconeUI tipo="seta" tamanho={18} />
+          </a>
+        </div>
+      </section>
+      <Drops achar={achar} />
+      <span id="lj-catalogo" className="lj-ancora" />
       {aviso && (
         <p className="lj-aviso" role="status">
           {aviso} <a href="/inventario/">{t('Ver no inventário')}</a>

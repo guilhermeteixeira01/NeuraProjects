@@ -11,6 +11,7 @@ import { useConta, linkPerfil } from '../../comum/conta.js'
 import LiveTwitch from './LiveTwitch.jsx'
 import TimesCarrossel from './TimesCarrossel.jsx'
 import CentralComunidade from './CentralComunidade.jsx'
+import HeroInicio from './HeroInicio.jsx'
 
 const SETA = (
   <Icone tamanho={14} traco={2.4}>
@@ -118,6 +119,7 @@ export default function Inicio() {
   return (
     <Layout pagina="inicio">
       <main className="inicio np-inicio">
+        <HeroInicio ranking={numeros.ranking} />
         <CentralComunidade partidas={numeros.partidas} ranking={numeros.ranking} />
 
         {/* LETREIRO */}

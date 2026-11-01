@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <defs>
+    <radialGradient id="fade"><stop stop-color="white"/><stop offset=".5" stop-color="white" stop-opacity=".8"/><stop offset="1" stop-color="white" stop-opacity="0"/></radialGradient>
+    <mask id="area"><ellipse cx="200" cy="160" rx="190" ry="125" fill="url(#fade)"/></mask>
+    <filter id="cloud" x="-25%" y="-35%" width="150%" height="170%"><feTurbulence type="fractalNoise" baseFrequency=".018 .028" numOctaves="4" seed="12" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="65" xChannelSelector="R" yChannelSelector="G"/><feGaussianBlur stdDeviation="7"/></filter>
+  </defs>
+  <g mask="url(#area)" fill="white" filter="url(#cloud)"><ellipse cx="105" cy="155" rx="115" ry="48" opacity=".5"/><ellipse cx="275" cy="120" rx="125" ry="46" opacity=".45"/><ellipse cx="220" cy="205" rx="160" ry="38" opacity=".6"/><ellipse cx="55" cy="65" rx="65" ry="28" opacity=".4"/></g>
+</svg>

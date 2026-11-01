@@ -3,6 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { dadosDeDemo } from './demo/plugin.mjs'
 
 const aqui = path.dirname(fileURLToPath(import.meta.url))
 const raiz = path.resolve(aqui, '..') // raiz do repositório (partidas/ e assets/data/ ficam lá)
@@ -135,8 +136,13 @@ function imagensDaPasta(id, subpasta, { recursivo = false, ignorar = [], animada
   }
 }
 
-export default defineConfig({
-  plugins: [react(), dadosNoDev(), imagensDaPasta('virtual:selos-equipe', 'selos-equipe'), imagensDaPasta('virtual:cards-perfil', 'cards', { recursivo: true, ignorar: ['mini', 'med', 'parado'], animadas: true }), imagensDaPasta('virtual:cards-mini', 'cards/mini', { recursivo: true }), imagensDaPasta('virtual:cards-med', 'cards/med', { recursivo: true })],
+// `npm run dev:demo` (--mode demo): só no servidor de desenvolvimento. Troca os dados reais de partidas/ pelas fixtures de demo/ e liga o
+// modo demo no navegador (src/comum/demo). Nunca entra em build.
+export default defineConfig(({ mode, command }) => {
+  const demo = mode === 'demo'
+  if (demo && command !== 'serve') throw new Error('O modo demo existe só no servidor de desenvolvimento local (npm run dev:demo); ele não pode ser usado em build.')
+  return {
+  plugins: [react(), demo ? dadosDeDemo(aqui) : dadosNoDev(), imagensDaPasta('virtual:selos-equipe', 'selos-equipe'), imagensDaPasta('virtual:cards-perfil', 'cards', { recursivo: true, ignorar: ['mini', 'med', 'parado'], animadas: true }), imagensDaPasta('virtual:cards-mini', 'cards/mini', { recursivo: true }), imagensDaPasta('virtual:cards-med', 'cards/med', { recursivo: true })],
   // O servidor de desenvolvimento não vigia as pastas de build: rodar `npm run build` com ele aberto derrubava o Vite (EBUSY no Windows)
     server: { watch: { ignored: ['**/dist/**', '**/dist-ssr/**', '**/dist-final/**', '**/.wrangler/**'] } },
   build: {
@@ -146,4 +152,5 @@ export default defineConfig({
       input: Object.fromEntries(Object.entries(PAGINAS).map(([nome, arq]) => [nome, path.resolve(aqui, arq)])),
     },
   },
+  }
 })

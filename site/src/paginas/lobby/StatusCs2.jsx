@@ -98,7 +98,7 @@ export function AvisosCs2({ status }) {
 const IconeInfo = () => <IconeUI tipo="info" tamanho={18}/>
 
 // Bandeiras desenhadas aqui mesmo (o Windows não mostra bandeiras em emoji)
-function Bandeira({ pais }) {
+export function Bandeira({ pais }) {
   return (
     <svg viewBox="0 0 48 32" width="48" height="32" aria-hidden="true" className="lb-bandeira">
       {pais === 'br' && (

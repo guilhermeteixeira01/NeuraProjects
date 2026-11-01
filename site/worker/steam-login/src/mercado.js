@@ -137,6 +137,7 @@ export class Mercado {
     const inv = await lerSkins(this.env, quem)
     const item = inv?.itens?.[String(p.id)]
     if (!item || !TIPOS_OK.has(item.t)) throw new ErroConflito('item-invalido')
+    if (item.cadeado) throw new ErroConflito('item-trancado')
     try {
       await mexerNoInventario(this.env, quem, [{ id: String(p.id), item }], [])
     } catch (e) {

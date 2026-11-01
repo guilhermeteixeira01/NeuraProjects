@@ -1,4 +1,5 @@
 import IconeUI from '../../comum/IconeUI.jsx'
+import { fundoCss } from '../../comum/assetsV2.js'
 import { useEffect, useState } from 'react'
 import CarregandoPontos from '../../comum/Carregando.jsx'
 import Layout from '../../comum/Layout.jsx'
@@ -298,7 +299,7 @@ export default function Partidas({ dados: inicial }) {
 
   return (
     <Layout pagina="partidas">
-      <section className="hero">
+      <section className="hero v2-hero-fundo" style={fundoCss('partidas')}>
         <FundoHero />
         <div className="wrap hero-inner hero-hist">
           <div className="hist-texto">

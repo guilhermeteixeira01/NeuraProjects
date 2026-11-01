@@ -23,10 +23,12 @@ import { avisarSaldo, lerCaixasPublicas, lerValores, venderItens } from '../../c
 import { EVENTO_MERCADO, anunciarItem, cancelarAnuncio, erroDoMercado, lerMercado } from '../../comum/mercado.js'
 import { RARIDADES_CS, raridadeCsDaCor } from '../../../worker/steam-login/src/loja-core.js'
 import Cartao, { nomeDoDesgaste } from '../../comum/CartaoSkin.jsx'
+import { nomeRaridade } from '../../comum/DicaSkin.jsx'
 import { CarregandoNP } from '../../comum/Carregando.jsx'
 import { confirmar } from '../../comum/Dialogos.jsx'
 import { comSenha } from '../../comum/seguranca.js'
 import { BotaoTrocas } from '../../comum/Trocas.jsx'
+import { FUNDOS, PERSONAGENS } from '../../comum/assetsV2.js'
 import { ArmaComEnfeites, Visualizador3D, idNo3d, useMapas3d, Inspecionar, InspecionarSkin } from '../../comum/InspecionarSkin.jsx'
 
 // Inventário de skins, no estilo do inventário do jogo: o jogador CRIA itens (arma/faca/luva/agente com a skin que quiser), ajusta
@@ -34,14 +36,14 @@ import { ArmaComEnfeites, Visualizador3D, idNo3d, useMapas3d, Inspecionar, Inspe
 // Tudo é salvo sozinho no worker (src/skins.js); o plugin BaseComp aplica o que está equipado quando o jogador entra no servidor.
 
 const ABAS = [
-  ['tudo', 'TUDO'],
-  ['arma', 'ARMAS'],
-  ['faca', 'FACAS'],
-  ['luva', 'LUVAS'],
-  ['adesivo', 'ADESIVOS'],
-  ['chaveiro', 'CHAVEIROS'],
-  ['caixa', 'CAIXAS'],
-  ['avenda', 'À VENDA'],
+  ['tudo', 'Tudo'],
+  ['arma', 'Armas'],
+  ['faca', 'Facas'],
+  ['luva', 'Luvas'],
+  ['adesivo', 'Adesivos'],
+  ['chaveiro', 'Chaveiros'],
+  ['caixa', 'Caixas'],
+  ['avenda', 'À venda'],
 ]
 const EMBALAGEM = (t) => t === 'adesivo' || t === 'chaveiro' // itens guardados que se gastam ao colar numa arma
 const GUARDADO = (t) => EMBALAGEM(t) || t === 'caixa' // + caixas fechadas da loja (o botão Abrir leva para a roleta)
@@ -83,23 +85,26 @@ function Marca({ lado }) {
   return <i className={`inv-marca inv-marca-${lado}`} title={lado === 'ct' ? 'CT' : 'TR'} aria-label={lado === 'ct' ? 'CT' : 'TR'} />
 }
 
-function Janela({ titulo, aoFechar, largura = 'media', classe = '', children, rodape }) {
+let janelasAbertas = 0
+const camadaAtiva = () => Math.max(...Array.from(document.querySelectorAll('[data-inv-camada]'), e => Number(e.dataset.invCamada)))
+function Janela({ titulo, aoFechar, largura = 'media', classe = '', children, rodape, camada = 2600 }) {
   const t = useT()
   useEffect(() => {
     tocar('abrir')
+    janelasAbertas++
     document.documentElement.classList.add('inv-travado')
     return () => {
       tocar('fechar')
-      document.documentElement.classList.remove('inv-travado')
+      if (--janelasAbertas === 0) document.documentElement.classList.remove('inv-travado')
     }
   }, [])
   useEffect(() => {
-    const tecla = (e) => e.key === 'Escape' && aoFechar()
+    const tecla = (e) => e.key === 'Escape' && camadaAtiva() === camada && aoFechar()
     document.addEventListener('keydown', tecla)
     return () => document.removeEventListener('keydown', tecla)
-  }, [aoFechar])
-  return (
-    <div className="inv-fundo" onClick={aoFechar}>
+  }, [aoFechar, camada])
+  return createPortal(
+    <div className="inv-fundo" data-inv-camada={camada} style={{ zIndex: camada }} onClick={aoFechar}>
       <div className={`inv-janela inv-janela-${largura} ${classe}`} role="dialog" aria-modal="true" aria-label={titulo} onClick={(e) => e.stopPropagation()}>
         <div className="inv-janela-cab">
           <h2>{titulo}</h2>
@@ -110,7 +115,7 @@ function Janela({ titulo, aoFechar, largura = 'media', classe = '', children, ro
         <div className="inv-janela-corpo">{children}</div>
         {rodape && <div className="inv-janela-rodape">{rodape}</div>}
       </div>
-    </div>
+    </div>, document.body,
   )
 }
 
@@ -127,7 +132,7 @@ function SeletorAdesivo({ aoEscolher, aoFechar, catalogo = 'adesivos', livres })
     return (q ? meus.filter((s) => s[1].toLowerCase().includes(q)) : meus).slice(0, 90)
   }, [dados, busca, livres])
   return (
-    <Janela titulo={catalogo === 'chaveiros' ? t('Escolher chaveiro') : t('Escolher adesivo')} aoFechar={aoFechar} largura="media">
+    <Janela titulo={catalogo === 'chaveiros' ? t('Escolher chaveiro') : t('Escolher adesivo')} aoFechar={aoFechar} largura="media" camada={2800}>
       <input type="search" className="inv-busca" placeholder={catalogo === 'chaveiros' ? t('Pesquisar chaveiro') : t('Pesquisar adesivo (ex.: Katowice, holo, Navi)')} value={busca} onChange={(e) => setBusca(e.target.value)} autoFocus />
       <ul className="inv-adesivos">
         {lista.map((s) => (
@@ -154,12 +159,12 @@ function TelaInteira({ titulo, subtitulo, aviso, aoFechar, confirmar, rotuloConf
     return () => tocar('fechar')
   }, [])
   useEffect(() => {
-    const tecla = (e) => e.key === 'Escape' && aoFechar()
+    const tecla = (e) => e.key === 'Escape' && camadaAtiva() === 2700 && aoFechar()
     document.addEventListener('keydown', tecla)
     return () => document.removeEventListener('keydown', tecla)
   }, [aoFechar])
   return createPortal(
-    <div className="inv-tela" role="dialog" aria-modal="true" aria-label={titulo}>
+    <div className="inv-tela" data-inv-camada="2700" role="dialog" aria-modal="true" aria-label={titulo}>
       <header className="inv-tela-cab">
         <h2>{titulo}</h2>
         <p>{subtitulo}</p>
@@ -577,7 +582,7 @@ function useMenuFlutuante(x, y, aoFechar) {
 }
 
 // Menu de adesivo/chaveiro guardado (o mesmo visual do menu das armas): vender no mercado e excluir
-function MenuGuardado({ x, y, n, valor, aoInspecionar, aoAnunciar, aoVenderAgora, aoExcluir, aoFechar }) {
+function MenuGuardado({ x, y, n, valor, cadeado, aoCadeado, aoInspecionar, aoAnunciar, aoVenderAgora, aoExcluir, aoFechar }) {
   const t = useT()
   const { ref, pos } = useMenuFlutuante(x, y, aoFechar)
   return (
@@ -591,19 +596,20 @@ function MenuGuardado({ x, y, n, valor, aoInspecionar, aoAnunciar, aoVenderAgora
       )}
       {valor != null && (
         <li>
-          <button type="button" role="menuitem" className="inv-menu-vender" onClick={aoVenderAgora}>
+          <button type="button" role="menuitem" className="inv-menu-vender" disabled={cadeado} onClick={aoVenderAgora}>
             {t('Vender agora')}
             <b> +{valor.toLocaleString('pt-BR')} NP</b>
           </button>
         </li>
       )}
       <li>
-        <button type="button" role="menuitem" className="inv-menu-vender" onClick={aoAnunciar}>
+        <button type="button" role="menuitem" className="inv-menu-vender" disabled={cadeado} onClick={aoAnunciar}>
           {t('Vender no mercado')}
           {valor != null ? <b> ~{valor.toLocaleString('pt-BR')} NP</b> : null}
         </button>
       </li>
       <li className="inv-menu-sep" />
+      <li><button type="button" role="menuitem" onClick={aoCadeado}><IconeUI tipo="cadeado" tamanho={16} />{t(cadeado ? 'Remover cadeado' : 'Proteger com cadeado')}</button></li>
       <li>
         <button type="button" role="menuitem" className="inv-menu-perigo" onClick={aoExcluir}>
           {n > 1 ? t('Excluir 1') : t('Excluir')}
@@ -614,7 +620,7 @@ function MenuGuardado({ x, y, n, valor, aoInspecionar, aoAnunciar, aoVenderAgora
 }
 
 // Só aparece o time em que o item existe no jogo (AK-47 e Glock só no TR; M4 e USP-S só no CT; agente do CT só no CT...)
-function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoDesequipar, aoEditar, aoInspecionar, aoVender, aoVenderAgora, valor, aoFechar }) {
+function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoDesequipar, aoEditar, aoInspecionar, aoVender, aoVenderAgora, aoCadeado, valor, aoFechar }) {
   const t = useT()
   const { ref, pos } = useMenuFlutuante(x, y, aoFechar)
   const chave = chaveEquip(item)
@@ -658,25 +664,193 @@ function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoD
       <li className="inv-menu-sep" />
       {valor > 0 && (
         <li>
-          <button type="button" role="menuitem" className="inv-menu-vender" onClick={aoVenderAgora}>
+          <button type="button" role="menuitem" className="inv-menu-vender" disabled={item.cadeado} onClick={aoVenderAgora}>
             {t('Vender agora')}
             <b> +{valor.toLocaleString('pt-BR')} NP</b>
           </button>
         </li>
       )}
       <li>
-        <button type="button" role="menuitem" className="inv-menu-vender" onClick={aoVender}>
+        <button type="button" role="menuitem" className="inv-menu-vender" disabled={item.cadeado} onClick={aoVender}>
           {t('Vender no mercado')}
           {valor ? <b> ~{valor.toLocaleString('pt-BR')} NP</b> : null}
         </button>
       </li>
+      {aoCadeado && <li><button type="button" role="menuitem" onClick={aoCadeado}><IconeUI tipo="cadeado" tamanho={16} />{t(item.cadeado ? 'Remover cadeado' : 'Proteger com cadeado')}</button></li>}
     </ul>
+  )
+}
+
+// ── Painel de inspeção (coluna da direita no computador; gaveta de baixo no celular) ──
+// Mostra o item escolhido na grade: raridade, nome, imagem grande, float (com a barra do desgaste), padrão e as ações.
+// "Equipar" coloca o item em todos os times em que ele existe; o resto (time a time, editar, vender) fica em "Mais ações",
+// que abre o mesmo menu do botão direito.
+const QUALIDADE_FLOAT = [
+  [0.07, 'Excelente', 'var(--v2-sucesso)'],
+  [0.15, 'Ótima', '#7fdc6a'],
+  [0.38, 'Boa', '#e3c54a'],
+  [0.45, 'Regular', '#f09a45'],
+  [1.01, 'Baixa', 'var(--v2-erro)'],
+]
+
+function useCelular() {
+  const [cel, setCel] = useState(false)
+  useEffect(() => {
+    const q = matchMedia('(max-width: 1024px)')
+    const ver = () => setCel(q.matches)
+    ver()
+    q.addEventListener('change', ver)
+    return () => q.removeEventListener('change', ver)
+  }, [])
+  return cel
+}
+
+function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEquipar, aoDesequipar, aoDetalhes }) {
+  const t = useT()
+  const fechar = useRef(null)
+  useEffect(() => {
+    if (!celular || !aberto) return
+    fechar.current?.focus()
+    const tecla = (e) => e.key === 'Escape' && aoFechar()
+    document.addEventListener('keydown', tecla)
+    return () => document.removeEventListener('keydown', tecla)
+  }, [celular, aberto, aoFechar])
+  const gaveta = celular ? { role: 'dialog', 'aria-modal': aberto ? 'true' : undefined, 'aria-hidden': aberto ? undefined : 'true', inert: aberto ? undefined : true } : {}
+
+  if (!alvo)
+    return (
+      <aside className="inv-painel-v2 inv-painel-vazio" aria-label={t('Detalhes do item')} {...gaveta}>
+        <IconeUI tipo="mochila" tamanho={34} />
+        <b>{t('Selecione um item')}</b>
+        <span>{t('Clique em um item da grade para ver os detalhes aqui.')}</span>
+      </aside>
+    )
+
+  const { item, d, guardado } = alvo
+  const cor = d.cor || '#6b6f76'
+  const temFloat = !guardado && d.skin && item.f != null
+  const f = Number(item.f)
+  const qualidade = temFloat ? QUALIDADE_FLOAT.find(([max]) => f < max) : null
+  const chave = !guardado ? chaveEquip(item) : null
+  const times = (!guardado && d.times) || []
+  const equipados = times.filter((l) => equip?.[l]?.[chave] === item.__id)
+  const equipavel = !guardado && ['arma', 'faca', 'luva'].includes(item.t) && times.length > 0
+  const todos = equipavel && equipados.length === times.length
+  const raridade = nomeRaridade(item, d.cor, t.idioma)
+  return (
+    <aside className={`inv-painel-v2${guardado ? ' inv-painel-compacto' : ''}${aberto ? ' aberto' : ''}`} style={{ '--cor': cor }} aria-label={t('Detalhes do item')} {...gaveta}>
+      {celular && (
+        <button ref={fechar} type="button" className="inv-painel-fechar" onClick={aoFechar} aria-label={t('Fechar')}>
+          <IconeUI tipo="fechar" tamanho={20} />
+        </button>
+      )}
+      <header className="inv-painel-cab">
+        {raridade && <span className="inv-rar-selo" style={{ '--cor': cor }}>{raridade}</span>}
+        <h2>
+          <span>{item.n ? `${d.titulo} «${item.n}»` : d.titulo}</span>
+          {d.subtitulo && <em>{d.subtitulo}</em>}
+        </h2>
+        <small>{temFloat ? t(nomeDoDesgaste(f)) : guardado ? `${d.tipoNome}${alvo.n > 1 ? ` · ×${alvo.n}` : ''}` : ''}</small>
+      </header>
+      <div className="inv-painel-arte" style={{ '--inv-painel-fundo': `url("${FUNDOS.inventario.src}")` }}>
+        {d.img ? <img src={d.img} alt="" decoding="async" /> : <span className="inv-sem-img" aria-hidden="true" />}
+        {item.st ? <span className="inv-st">StatTrak™</span> : null}
+      </div>
+      {temFloat && (
+        <div className="inv-painel-float">
+          <div className="inv-painel-float-cab">
+            <span>Float</span>
+            <b className="v2-num">{f.toFixed(f < 0.01 ? 4 : 3)}</b>
+          </div>
+          <div className="inv-float-barra" role="img" aria-label={t('Float {v}', { v: f.toFixed(4) })}>
+            <i style={{ left: `${Math.min(100, Math.max(0, f * 100))}%` }} />
+          </div>
+        </div>
+      )}
+      <dl className="inv-painel-dados">
+        {qualidade && (
+          <div>
+            <dt>{t('Qualidade do float')}</dt>
+            <dd style={{ color: qualidade[2] }}>{t(qualidade[1])}</dd>
+          </div>
+        )}
+        {temFloat && item.s != null && (
+          <div>
+            <dt>{t('Padrão')}</dt>
+            <dd className="v2-num">{item.s}</dd>
+          </div>
+        )}
+        {raridade && (
+          <div>
+            <dt>{t('Raridade')}</dt>
+            <dd style={{ color: cor }}>{raridade}</dd>
+          </div>
+        )}
+        {equipavel && (
+          <div>
+            <dt>{t('Equipado')}</dt>
+            <dd>{equipados.length ? equipados.map((l) => l.toUpperCase()).join(' · ') : t('Não')}</dd>
+          </div>
+        )}
+        {valor != null && (
+          <div>
+            <dt>{t('Valor')}</dt>
+            <dd className="inv-painel-valor">
+              <img src="/assets/logos/logo-np-64.png" alt="" width="14" height="14" />
+              {Number(valor).toLocaleString('pt-BR')} NP
+            </dd>
+          </div>
+        )}
+      </dl>
+      <div className="inv-painel-acoes">
+        {equipavel && (
+          <button type="button" className="v2-btn v2-btn-primario" onClick={() => (todos ? aoDesequipar(times) : aoEquipar(times))}>
+            <IconeUI tipo="camisa" tamanho={18} />
+            {todos ? t('Desequipar') : t('Equipar')}
+          </button>
+        )}
+        {alvo.caixa ? (
+          <a className="v2-btn v2-btn-primario" href={`/loja/?abrir=${alvo.def}`}>
+            <IconeUI tipo="caixa" tamanho={18} />
+            {t('Abrir caixa')}
+          </a>
+        ) : (
+          <button type="button" className={`v2-btn ${equipavel ? 'v2-btn-secundario' : 'v2-btn-primario'}`} onClick={aoDetalhes}>
+            <IconeUI tipo="detalhes" tamanho={18} />
+            {t('Ver detalhes')}
+          </button>
+        )}
+      </div>
+    </aside>
+  )
+}
+
+// Topo + conteúdo na largura da página (o topo mostra quantos itens o jogador tem)
+function ComTopo({ total, children }) {
+  return (
+    <>
+      <TopoInventario total={total} />
+      <div className="wrap inv-wrap">{children}</div>
+    </>
   )
 }
 
 function Conteudo() {
   const t = useT()
   const conta = useConta()
+  const celular = useCelular()
+  const [selChave, setSelChave] = useState(null) // 'i:<id>' (arma, faca, luva) ou 'g:<tipo>:<def>' (adesivo, chaveiro, caixa)
+  const [gaveta, setGaveta] = useState(false) // celular: painel de detalhes aberto
+  const gatilho = useRef(null) // cartão que abriu a gaveta (o foco volta para ele)
+  const selecionar = (chave, el) => {
+    setSelChave(chave)
+    gatilho.current = el
+    if (matchMedia('(max-width: 1024px)').matches) setGaveta(true)
+  }
+  const fecharGaveta = useCallback(() => {
+    setGaveta(false)
+    requestAnimationFrame(() => gatilho.current?.focus())
+  }, [])
   const [inv, setInv] = useState(null)
   const salvo = useRef('')
   const [aba, setAba] = useState('tudo')
@@ -929,6 +1103,7 @@ function Conteudo() {
   }
   const alternarSel = (e, item) => {
     e.stopPropagation()
+    if (item.cadeado) return
     setSel((s) => {
       const n = new Set(s)
       if (n.has(item.__id)) n.delete(item.__id)
@@ -941,11 +1116,17 @@ function Conteudo() {
     setSel(new Set())
   }
   const valorTotal = (ids) => ids.reduce((a, k) => a + (valores[k]?.v || 0), 0)
+  const alternarCadeado = (id) => {
+    mudar(i => !i.itens[id] ? i : ({ ...i, itens: { ...i.itens, [id]: { ...i.itens[id], cadeado: !i.itens[id].cadeado } } }))
+    setSel(s => { const novo = new Set(s); novo.delete(id); return novo })
+  }
   const pedirVenda = (ids) => {
+    if (ids.some(id => inv.itens[id]?.cadeado)) return
     setErroVenda('')
     setVenda({ ids })
   }
   const confirmarVenda = async () => {
+    if (venda.ids.some(id => inv.itens[id]?.cadeado)) return
     setVendendo(true)
     try {
       const { dados: r, cancelado } = await comSenha(t('Para vender os itens por NP, digite sua senha de segurança.'), senha => venderItens(venda.ids, senha))
@@ -967,10 +1148,12 @@ function Conteudo() {
   }
   // Vender no mercado: o jogador escolhe o preço (começa no valor do item); o item sai do inventário enquanto está anunciado
   const pedirAnuncio = (id) => {
+    if (inv.itens[id]?.cadeado) return
     setErroAnuncio('')
     setAnuncio({ id, preco: String(valores[id]?.v || '') })
   }
   const confirmarAnuncio = async () => {
+    if (inv.itens[anuncio.id]?.cadeado) return
     const preco = Math.round(Number(anuncio.preco))
     if (!(preco >= 1 && preco <= 10_000_000)) return setErroAnuncio(t(erroDoMercado('preco')))
     setAnunciando(true)
@@ -1012,29 +1195,69 @@ function Conteudo() {
 
   if (!loginAtivo() || !conta)
     return (
-      <div className="inv-bloqueio" role="status">
-        <h1>{t('Inventário de skins')}</h1>
-        <p>{t('Entre com a Steam para escolher as skins que vão aparecer para você no servidor.')}</p>
-        {loginAtivo() && (
-          <button type="button" className="inv-btn inv-btn-p" onClick={entrar}>
-            {t('Entrar com a Steam')}
-          </button>
-        )}
-      </div>
+      <ComTopo>
+        <div className="inv-bloqueio v2-painel" role="status">
+          <h2>{t('Inventário de skins')}</h2>
+          <p>{t('Entre com a Steam para escolher as skins que vão aparecer para você no servidor.')}</p>
+          {loginAtivo() && (
+            <button type="button" className="v2-btn v2-btn-primario" onClick={entrar}>
+              {t('Entrar com a Steam')}
+            </button>
+          )}
+        </div>
+      </ComTopo>
     )
-  if (erroCarga) return <p className="inv-dica">{t('Não consegui carregar o seu inventário. Tente de novo mais tarde.')}</p>
-  if (!inv || !catalogo.dados) return catalogo.erro ? <p className="inv-dica">{t('Não consegui carregar o catálogo de skins.')}</p> : <CarregandoNP />
+  if (erroCarga) return <ComTopo><p className="inv-dica v2-painel">{t('Não consegui carregar o seu inventário. Tente de novo mais tarde.')}</p></ComTopo>
+  if (!inv || !catalogo.dados) return <ComTopo>{catalogo.erro ? <p className="inv-dica v2-painel">{t('Não consegui carregar o catálogo de skins.')}</p> : <CarregandoNP />}</ComTopo>
 
   const itemMenu = menu ? { ...inv.itens[menu.id], __id: menu.id } : null
   const itemJanela = janela?.id && inv.itens[janela.id] ? { ...inv.itens[janela.id], __id: janela.id } : null
   const total = Object.values(inv.itens).filter((it) => it.t !== 'agente').length
   const emEmbalagem = GUARDADO(aba)
   const idsGuardados = (tipo, def) => Object.keys(inv.itens).filter((k) => inv.itens[k].t === tipo && inv.itens[k].d === def)
+  const cadeadoGrupo = (tipo, def) => idsGuardados(tipo, def).every(id => inv.itens[id].cadeado)
+  const alternarCadeadoGrupo = (tipo, def) => {
+    const ids = idsGuardados(tipo, def)
+    const proteger = !cadeadoGrupo(tipo, def)
+    mudar(i => ({ ...i, itens: Object.fromEntries(Object.entries(i.itens).map(([id, it]) => [id, ids.includes(id) ? { ...it, cadeado: proteger } : it])) }))
+    setSel(s => new Set([...s].filter(id => !ids.includes(id))))
+  }
   // tudo que dá para selecionar (e vender) no filtro atual: skins/facas/luvas e as unidades de adesivo e chaveiro
   const idsVisiveis = [...itens.map((i) => i.__id), ...guardados.filter((g) => g.tipo !== 'caixa').flatMap((g) => idsGuardados(g.tipo, g.def))]
   // "Selecionar todos" deixa de fora o que está equipado (CT ou TR): ninguém vende a arma que usa sem querer (um por um ainda dá para marcar)
   const equipadoEmAlgum = (it) => inv.equip.ct[chaveEquip(it)] === it.__id || inv.equip.tr[chaveEquip(it)] === it.__id
-  const idsParaTodos = [...itens.filter((i) => !equipadoEmAlgum(i)).map((i) => i.__id), ...guardados.filter((g) => g.tipo !== 'caixa').flatMap((g) => idsGuardados(g.tipo, g.def))]
+  const idsParaTodos = [...itens.filter((i) => !i.cadeado && !equipadoEmAlgum(i)).map((i) => i.__id), ...guardados.filter((g) => g.tipo !== 'caixa').flatMap((g) => idsGuardados(g.tipo, g.def).filter(id => !inv.itens[id]?.cadeado))]
+  // Item no painel: o escolhido, ou o primeiro da lista atual (troca de aba/filtro sem deixar o painel vazio)
+  const chavesVisiveis = aba === 'avenda' ? [] : [...(emEmbalagem ? [] : itens.map((i) => `i:${i.__id}`)), ...guardados.map((g) => `g:${g.tipo}:${g.def}`)]
+  const selChaveAtual = chavesVisiveis.includes(selChave) ? selChave : chavesVisiveis[0] || null
+  const alvo = (() => {
+    if (!selChaveAtual) return null
+    if (selChaveAtual.startsWith('i:')) {
+      const id = selChaveAtual.slice(2)
+      const item = { ...inv.itens[id], __id: id }
+      return { item, d: descrever(item, idx), valor: valores[id]?.v }
+    }
+    const g = guardados.find((x) => `g:${x.tipo}:${x.def}` === selChaveAtual)
+    if (!g) return null
+    const caixa = g.tipo === 'caixa'
+    const ids = caixa ? [] : idsGuardados(g.tipo, g.def)
+    const tipoNome = g.tipo === 'adesivo' ? t('Adesivo') : g.tipo === 'chaveiro' ? t('Chaveiro') : t('Caixa fechada')
+    return {
+      guardado: true,
+      caixa,
+      def: g.def,
+      n: g.n,
+      item: { t: g.tipo, d: g.def, __id: ids[0] },
+      d: { titulo: g.linha?.[1] || `#${g.def}`, subtitulo: '', img: caixa ? g.linha?.[2] : urlImg(g.linha?.[2], 512), cor: caixa ? '' : corEnfeite(g.tipo, g.linha), tipoNome },
+      valor: ids[0] ? valores[ids[0]]?.v : undefined,
+    }
+  })()
+  const maisAcoes = (e) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    if (!alvo) return
+    if (alvo.guardado) setMenuGuardado({ x: r.left, y: r.bottom + 6, tipo: alvo.item.t, def: alvo.def })
+    else setMenu({ x: r.left, y: r.bottom + 6, id: alvo.item.__id })
+  }
   const cartaoGuardado = (g) => {
     const caixa = g.tipo === 'caixa'
     const v = caixa ? undefined : valores[idsGuardados(g.tipo, g.def)[0]]?.v
@@ -1058,12 +1281,22 @@ function Conteudo() {
         </span>
       </>
     )
-    // adesivo/chaveiro: clicar (ou botão direito) abre o menu com Vender e Excluir, igual às armas
-    const idsDoGrupo = caixa ? [] : idsGuardados(g.tipo, g.def)
+    // adesivo/chaveiro/caixa: o clique mostra no painel; o botão direito abre o menu com Vender e Excluir, igual às armas
+    const protegido = cadeadoGrupo(g.tipo, g.def)
+    const idsDoGrupo = caixa ? [] : idsGuardados(g.tipo, g.def).filter(id => !inv.itens[id].cadeado)
     const marcado = modoSel && idsDoGrupo.length > 0 && idsDoGrupo.every((k) => sel.has(k))
+    const chaveG = `g:${g.tipo}:${g.def}`
+    const clicar = (e) => {
+      if (!modoSel || caixa) {
+        if (celular && !caixa) return abrir(e)
+        return selecionar(chaveG, e.currentTarget)
+      }
+      abrir(e)
+    }
     const abrir = (e) => {
       e.preventDefault()
       e.stopPropagation()
+      if (caixa) return selecionar(chaveG, e.currentTarget)
       if (modoSel) {
         // selecionando: o clique marca (ou desmarca) todas as unidades deste adesivo/chaveiro
         setSel((s) => {
@@ -1076,16 +1309,11 @@ function Conteudo() {
       setMenuGuardado({ x: e.clientX, y: e.clientY, tipo: g.tipo, def: g.def })
     }
     return (
-      <li key={g.tipo + g.def}>
-        {caixa ? (
-          <div className="inv-cartao inv-cartao-fixo" style={{ '--cor': g.linha ? corEnfeite(g.tipo, g.linha) : '#6b6f76' }}>
-            {corpo}
-          </div>
-        ) : (
-          <button type="button" className={`inv-cartao inv-cartao-guardado${marcado ? ' inv-cartao-sel' : ''}`} aria-pressed={modoSel ? marcado : undefined} style={{ '--cor': g.linha ? corEnfeite(g.tipo, g.linha) : '#6b6f76' }} onClick={abrir} onContextMenu={abrir}>
-            {corpo}
-          </button>
-        )}
+      <li key={g.tipo + g.def} className="inv-cartao-li">
+        <button type="button" className={`inv-cartao-cadeado${protegido ? ' ativo' : ''}`} aria-label={t(protegido ? 'Remover cadeado' : 'Proteger skin')} aria-pressed={protegido} onClick={e => { e.stopPropagation(); alternarCadeadoGrupo(g.tipo, g.def) }}><IconeUI tipo="cadeado" tamanho={15} /></button>
+        <button type="button" className={`inv-cartao inv-cartao-guardado${marcado ? ' inv-cartao-sel' : ''}${selChaveAtual === chaveG ? ' inv-cartao-ativo' : ''}`} aria-pressed={modoSel && !caixa ? marcado : undefined} {...(selChaveAtual === chaveG ? { 'aria-current': 'true' } : {})} style={{ '--cor': g.linha ? corEnfeite(g.tipo, g.linha) : '#6b6f76' }} onClick={clicar} onContextMenu={abrir}>
+          {corpo}
+        </button>
         {caixa && (
           <a className="inv-btn inv-btn-p inv-abrir-caixa" href={`/loja/?abrir=${g.def}`}>
             {t('Abrir')}
@@ -1096,46 +1324,15 @@ function Conteudo() {
   }
   const guardadoDoMenu = menuGuardado ? guardados.find((g) => g.tipo === menuGuardado.tipo && g.def === menuGuardado.def) : null
   return (
-    <>
-      <div className="inv-topo">
-        <nav className="inv-abas" role="tablist">
-          {ABAS.map(([id, nome]) => (
-            <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'is-ativo' : ''} onClick={() => setAba(id)}>
-              {t(nome)}
-              {id === 'avenda' && anuncios.length > 0 && ` (${anuncios.length})`}
-            </button>
-          ))}
-        </nav>
-      </div>
-
-
+    <ComTopo total={total}>
+      <div className="inv-v2">
+      <div className="inv-v2-lista">
       <div className="inv-barra">
         <label className="inv-pesquisa">
-          <IconeUI tipo="busca" tamanho={18}/>
-          <input type="search" placeholder={t('Pesquisar no inventário')} value={busca} onChange={(e) => setBusca(e.target.value)} />
+          <IconeUI tipo="busca" tamanho={20}/>
+          <input type="search" placeholder={t('Pesquisar no inventário…')} value={busca} onChange={(e) => setBusca(e.target.value)} />
         </label>
-        <span className="inv-estado" aria-live="polite">
-          {estado === 'salvando' && t('Salvando…')}
-          {estado === 'salvo' && <b className="inv-ok">{t('Salvo!')}</b>}
-          {estado === 'erro' && <b className="inv-erro">{t('Não deu para salvar. Tentando de novo ao mudar algo.')}</b>}
-        </span>
-        <BotaoTrocas aoMudouInventario={recarregarInv} />
-        <span className="inv-total">{t('{n} itens', { n: total })}</span>
-        {!['caixa', 'avenda'].includes(aba) && (
-          <button type="button" className={`inv-btn inv-btn-sel${modoSel ? ' is-ativo' : ''}`} onClick={() => (modoSel ? sairDaSelecao() : setModoSel(true))}>
-            {modoSel ? t('Cancelar seleção') : t('Selecionar')}
-          </button>
-        )}
-        <select className="inv-ordem" value={ordem} onChange={(e) => setOrdem(e.target.value)} aria-label={t('Ordenar')}>
-          {ORDENS.map(([id, nome]) => (
-            <option key={id} value={id}>
-              {t(nome)}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {['tudo', 'arma', 'faca', 'luva', 'adesivo', 'chaveiro'].includes(aba) && total > 0 && (
+        <details className="inv-filtro-raridade"><summary><IconeUI tipo="ajustes" tamanho={18} />{t("Raridade")}{rar !== "todas" && <i />}</summary>      {['tudo', 'arma', 'faca', 'luva', 'adesivo', 'chaveiro'].includes(aba) && total > 0 && (
         <div className="inv-rar" role="group" aria-label={t('Filtrar por raridade')}>
           <button type="button" className={rar === 'todas' ? 'is-ativo' : ''} onClick={() => setRar('todas')}>
             {t('Todas')}
@@ -1149,6 +1346,43 @@ function Conteudo() {
           )}
         </div>
       )}
+</details>
+        <BotaoTrocas aoMudouInventario={recarregarInv} />
+        {!['caixa', 'avenda'].includes(aba) && (
+          <button type="button" className={`inv-btn inv-btn-sel${modoSel ? ' is-ativo' : ''}`} onClick={() => (modoSel ? sairDaSelecao() : setModoSel(true))}>
+            <IconeUI tipo="selecionar" tamanho={19} />
+            {modoSel ? t('Cancelar seleção') : t('Selecionar')}
+          </button>
+        )}
+        <label className="inv-ordem-caixa">
+          <IconeUI tipo="ordenar" tamanho={18} />
+          <select className="inv-ordem" value={ordem} onChange={(e) => setOrdem(e.target.value)} aria-label={t('Ordenar')}>
+            {ORDENS.map(([id, nome]) => (
+              <option key={id} value={id}>
+                {t(nome)}
+              </option>
+            ))}
+          </select>
+          <IconeUI tipo="baixo" tamanho={18} className="inv-ordem-seta" />
+        </label>
+      </div>
+
+      <div className="inv-topo">
+        <nav className="inv-abas" role="tablist">
+          {ABAS.map(([id, nome]) => (
+            <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'is-ativo' : ''} onClick={() => setAba(id)}>
+              {t(nome)}
+              {id === 'avenda' && anuncios.length > 0 && ` (${anuncios.length})`}
+            </button>
+          ))}
+        </nav>
+        <span className="inv-estado" aria-live="polite">
+          {estado === 'salvando' && t('Salvando…')}
+          {estado === 'salvo' && <b className="inv-ok">{t('Salvo!')}</b>}
+          {estado === 'erro' && <b className="inv-erro">{t('Não deu para salvar. Tentando de novo ao mudar algo.')}</b>}
+        </span>
+      </div>
+
       {avisoVenda && <p className="inv-aviso-venda" role="status">{avisoVenda}</p>}
       {anuncios.length > 0 && ['tudo', 'arma', 'faca', 'luva', 'adesivo', 'chaveiro'].includes(aba) && (
         <p className="inv-avenda-faixa">
@@ -1159,6 +1393,7 @@ function Conteudo() {
         </p>
       )}
 
+      <div className="inv-lista-rolagem">
       {aba === 'avenda' ? (
         <ul className="inv-itens">
           {anuncios.map((a) => (
@@ -1194,14 +1429,40 @@ function Conteudo() {
           {!guardados.length && <li className="inv-nada">{t(aba === 'adesivo' ? 'Você não tem adesivos. Eles são entregues pelo dono do servidor; use-os ao editar uma arma.' : aba === 'caixa' ? 'Você não tem caixas fechadas. Compre na loja e abra aqui ou na roleta.' : 'Você não tem chaveiros. Eles são entregues pelo dono do servidor; use-os ao editar uma arma.')}</li>}
         </ul>
       ) : (
+        <div className="inv-secoes">
+        {itens.length > 0 && <section aria-label={t('Armas e skins')}>
+        {aba === 'tudo' && <h3>{t('Armas e skins')}</h3>}
         <ul className="inv-itens">
           {itens.map((it) => (
-            <Cartao key={it.__id} item={it} idx={idx} adesivos={adesivosPorId} chaveiros={chaveirosPorId} equip={inv.equip} aoAbrirMenu={modoSel ? alternarSel : abrirMenu} selecionado={modoSel ? sel.has(it.__id) : undefined} valor={valores[it.__id]?.v} />
+            <Cartao key={it.__id} item={it} idx={idx} adesivos={adesivosPorId} chaveiros={chaveirosPorId} equip={inv.equip} aoAbrirMenu={modoSel ? alternarSel : abrirMenu} aoSelecionar={modoSel ? undefined : (e) => celular ? abrirMenu(e, it) : selecionar(`i:${it.__id}`, e.currentTarget)} aoCadeado={() => alternarCadeado(it.__id)} ativo={!modoSel && selChaveAtual === `i:${it.__id}`} selecionado={modoSel ? sel.has(it.__id) : undefined} valor={valores[it.__id]?.v} />
           ))}
-          {guardados.map(cartaoGuardado)}
-          {!itens.length && !guardados.length && <li className="inv-nada">{t('Nenhum item encontrado.')}</li>}
         </ul>
+        </section>}
+        {[[ 'adesivo', 'Adesivos' ], [ 'chaveiro', 'Amuletos' ], [ 'caixa', 'Caixas' ]].map(([tipo, nome]) => {
+          const grupo = guardados.filter(g => g.tipo === tipo)
+          return grupo.length > 0 && <section key={tipo} aria-label={t(nome)}>
+            <h3>{t(nome)}</h3>
+            <ul className="inv-itens">{grupo.map(cartaoGuardado)}</ul>
+          </section>
+        })}
+        {!itens.length && !guardados.length && <p className="inv-nada">{t('Nenhum item encontrado.')}</p>}
+        </div>
       )}
+      </div>
+      </div>
+      {!celular && <PainelItem
+        alvo={alvo}
+        idx={idx}
+        equip={inv.equip}
+        valor={alvo?.valor}
+        celular={celular}
+        aberto={gaveta}
+        aoFechar={fecharGaveta}
+        aoEquipar={(times) => times.forEach((l) => equipar(alvo.item.__id, l))}
+        aoDesequipar={(times) => times.forEach((l) => desequipar(alvo.item.__id, l))}
+        aoDetalhes={() => (alvo.guardado ? setInspEnfeite({ t: alvo.item.t, d: alvo.def, p: 0 }) : setJanela({ tipo: 'inspecionar', id: alvo.item.__id }))}
+      />}
+      </div>
 
       {menu && itemMenu && (
         <MenuContexto
@@ -1219,16 +1480,21 @@ function Conteudo() {
           valor={valores[menu.id]?.v}
           aoVender={() => { pedirAnuncio(menu.id); fecharMenu() }}
           aoVenderAgora={() => { pedirVenda([menu.id]); fecharMenu() }}
+          aoCadeado={() => { alternarCadeado(menu.id); fecharMenu() }}
         />
       )}
       {menuGuardado && guardadoDoMenu && (() => {
-        const ids = idsGuardados(guardadoDoMenu.tipo, guardadoDoMenu.def)
+        const todosIds = idsGuardados(guardadoDoMenu.tipo, guardadoDoMenu.def)
+        const protegido = cadeadoGrupo(guardadoDoMenu.tipo, guardadoDoMenu.def)
+        const ids = todosIds.filter(id => !inv.itens[id].cadeado)
         const fechar = () => setMenuGuardado(null)
         return (
           <MenuGuardado
             x={menuGuardado.x}
             y={menuGuardado.y}
             n={guardadoDoMenu.n}
+            cadeado={protegido}
+            aoCadeado={() => { alternarCadeadoGrupo(guardadoDoMenu.tipo, guardadoDoMenu.def); fechar() }}
             valor={valores[ids[0]]?.v}
             aoFechar={fechar}
             aoInspecionar={() => { setInspEnfeite({ t: menuGuardado.tipo, d: menuGuardado.def, p: 0 }); fechar() }}
@@ -1318,7 +1584,7 @@ function Conteudo() {
           aoConfirmar={(r) => {
             tocar('criado')
             const { __id, ...limpo } = r
-            mudar((i) => ({ ...i, itens: { ...i.itens, [janela.id]: limpo } }))
+            mudar((i) => ({ ...i, itens: { ...i.itens, [janela.id]: { ...limpo, cadeado: !!i.itens[janela.id]?.cadeado } } }))
             setJanela(null)
           }}
           aoFechar={() => setJanela(null)}
@@ -1335,7 +1601,7 @@ function Conteudo() {
               </em>
             )}
           </span>
-          <button type="button" className="inv-btn" onClick={() => setSel(new Set(idsParaTodos))} title={idsParaTodos.length < idsVisiveis.length ? t('Os itens equipados ficam de fora') : undefined}>
+          <button type="button" className="inv-btn" onClick={() => setSel(new Set(idsParaTodos))} title={t('Itens equipados ou com cadeado ficam de fora')}>
             {t('Selecionar todos ({n})', { n: idsParaTodos.length })}
           </button>
           {sel.size > 0 && (
@@ -1406,7 +1672,30 @@ function Conteudo() {
       )}
       {inspEnfeite && <InspecionarSkin item={inspEnfeite} aoFechar={() => setInspEnfeite(null)} />}
       {janela?.tipo === 'inspecionar' && itemJanela && <Inspecionar item={itemJanela} idx={idx} adesivos={adesivos} chaveiros={chaveiros} mapa={mapa3d.dados} aoFechar={() => setJanela(null)} />}
-    </>
+    </ComTopo>
+  )
+}
+
+// Topo da página: título e quantos itens o jogador tem, sobre a Mirage com a dupla de agentes (decorativos)
+function TopoInventario({ total }) {
+  const t = useT()
+  return (
+    <section className="v2-topo-pagina v2-cena inv-v2-topo">
+      <img className="v2-cena-fundo" src={FUNDOS.inventario.src} width={FUNDOS.inventario.w} height={FUNDOS.inventario.h} alt="" decoding="async" fetchPriority="high" />
+      <img className="v2-topo-arte" src={PERSONAGENS.inventarioDupla.src} width={PERSONAGENS.inventarioDupla.w} height={PERSONAGENS.inventarioDupla.h} alt="" decoding="async" />
+      <header className="wrap v2-titulo">
+        <div>
+          <h1>{t('Seu inventário')}</h1>
+          <p>{t('Organize sua coleção e personalize seu jogo.')}</p>
+          {total != null && (
+            <p className="inv-v2-total">
+              <IconeUI tipo="mochila" tamanho={26} />
+              <b className="v2-num">{t('{n} itens', { n: total.toLocaleString('pt-BR') })}</b>
+            </p>
+          )}
+        </div>
+      </header>
+    </section>
   )
 }
 
@@ -1414,9 +1703,7 @@ export default function Inventario() {
   return (
     <Layout pagina="inventario">
       <main className="inv-pagina">
-        <div className="wrap inv-wrap">
-          <Conteudo />
-        </div>
+        <Conteudo />
       </main>
     </Layout>
   )

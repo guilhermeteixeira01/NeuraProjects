@@ -142,7 +142,7 @@ export function Visualizador3D({ item, m, aoMudar, aoEstado, aoFalhar, controle,
   const ref = useRef(null)
   const inicial = useRef(null)
   const [estado, setEstado] = useState('carregando') // 'carregando' | 'ok' | 'falhou'
-  if (!inicial.current) inicial.current = `${ORIGEM_3D}/view?item=${encodeURIComponent(JSON.stringify(itemParaViewer(item, m)))}${CONFIG.chave3d ? `&key=${encodeURIComponent(CONFIG.chave3d)}` : ''}`
+  if (!inicial.current) inicial.current = `${ORIGEM_3D}/view?bg=0&item=${encodeURIComponent(JSON.stringify(itemParaViewer(item, m)))}${CONFIG.chave3d ? `&key=${encodeURIComponent(CONFIG.chave3d)}` : ''}`
   const mudarRef = useRef(aoMudar)
   mudarRef.current = aoMudar
   const estadoRef = useRef(aoEstado)

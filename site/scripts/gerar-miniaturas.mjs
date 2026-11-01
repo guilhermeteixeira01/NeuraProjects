@@ -49,6 +49,35 @@ for (const nome of listar(path.join(insignias, 'web'))) {
   tarefas.push({ origem: path.join(insignias, 'web', nome), destino: path.join(insignias, 'mini', nome.replace(/\.[^.]+$/, '') + '.webp'), largura: 128, qualidade: 0.88 })
 }
 
+// artes do visual novo (public/assets/neura-v2/<original>.png -> neura-v2/web/<pasta>/<nome>.webp): a lista com o papel de
+// cada uma fica em src/comum/assetsV2.js, que é quem o site usa
+const v2 = path.join(assets, 'neura-v2')
+const ARTES_V2 = {
+}
+// pacote de backgrounds e personagens "popout" (neura-v2/backgrounds e neura-v2/characters): derivados em web/v2/
+for (const n of ['inicio', 'lobby', 'ranking', 'inventario', 'loja', 'perfil', 'time', 'partidas', 'admin', 'diretorio-times', 'pick-ban', 'global']) ARTES_V2['v2/bg-' + n] = ['backgrounds/bg-' + n + '-v2.png', 1600]
+for (const n of ['cache', 'dust2', 'nuke', 'mirage']) ARTES_V2['v2/bg-resultado-' + n] = ['backgrounds/bg-resultado-' + n + '-v2.png', 1920]
+Object.assign(ARTES_V2, {
+  'v2/home-duo': ['characters/home-duo-v2.png', 1100],
+  'v2/podium-gold': ['characters/podium-gold-popout-v2.png', 900],
+  'v2/podium-silver': ['characters/podium-silver-popout-v2.png', 900],
+  'v2/podium-bronze': ['characters/podium-bronze-popout-v2.png', 900],
+  'v2/shop-jester': ['characters/shop-jester-popout-v2.png', 900],
+  'v2/team-squad': ['characters/team-squad-v2.png', 1400],
+  'v2/sidebar-agent': ['characters/sidebar-agent-v2.png.png', 480], // o arquivo veio com .png duplicado
+  // ramos do top 3 (com o número dentro): pódio e tabela do ranking
+  'v2/ramo-1': ['ranking/top-1-ramos-ouro.png', 320],
+  'v2/ramo-2': ['ranking/top-2-ramos-prata.png', 320],
+  'v2/ramo-3': ['ranking/top-3-ramos-bronze.png', 320],
+  // home V3: cenário do circo e palhaço sentado (Comunidade) e as caixas azuis do login diário (o arquivo veio como "Pilha de caixas azuis com emblemas-2.png")
+  'v2/community-circus-background-v3': ['backgrounds/community-circus-background-v3.png.png', 1280],
+  'v2/community-champion-seated-v3': ['characters/community-champion-seated-v3.png.png', 760],
+  'v2/daily-case-blue-v3': ['Inicio/Pilha de caixas azuis com emblemas-2.png', 360],
+})
+for (const [destino, [origem, largura]] of Object.entries(ARTES_V2)) {
+  if (fs.existsSync(path.join(v2, origem))) tarefas.push({ origem: path.join(v2, origem), destino: path.join(v2, 'web', destino + '.webp'), largura, qualidade: 0.84 })
+}
+
 const pendentes = tarefas.filter((t) => !fs.existsSync(t.destino) || fs.statSync(t.destino).mtimeMs < fs.statSync(t.origem).mtimeMs)
 if (!pendentes.length) {
   console.log('Nada novo para gerar.')

@@ -1,0 +1,767 @@
+/* ══════════════ Neura Project v2: cores, menu, barra de cima e peças comuns ══════════════
+   Carregado POR ÚLTIMO em todas as páginas (src/entradas/*.css), depois de acabamento.css, então ganha das camadas antigas.
+   Referências: site/design/reference/*.png. Regras de cada página ficam em src/paginas/<página>/v2.css.
+   "html:not(#v2)" sobe a especificidade só onde as camadas antigas usam seletores longos; o resto é seletor simples.
+
+   Cores: azul nos botões e no que está ativo; ouro para conquistas e liderança; verde e vermelho só para resultado
+   (sempre com o texto junto, nunca só a cor). */
+
+/* ── medidas do layout: UMA fonte para menu, barra de cima e conteúdo (nada de 72/178/216/54/60 espalhado nos CSS) ──
+   Menu aberto 248 px (entre 240 e 264), recolhido 76; barra de cima 76 (entre 72 e 80); conteúdo limitado e centralizado. */
+:root {
+  --sidebar-width: 248px;
+  --sidebar-collapsed-width: 76px;
+  --topbar-height: 76px;
+  --content-gutter: 28px;
+  --content-max-width: 1480px;
+
+  /* paleta azul-preta da proposta (design/reference/01-inicio.png) */
+  --np-background: #050a11;
+  --np-sidebar: #06101a;
+  --np-topbar: #07111c;
+  --np-surface: #081421;
+  --np-surface-raised: #0c1929;
+  --np-primary: #3478f6;
+  --np-primary-hover: #2365e8;
+  --np-cyan: #6bd4ff;
+  --np-text: #f4f7fc;
+  --np-text-muted: #a8b5c7;
+  --np-border: rgba(83, 136, 180, 0.28);
+  --np-success: #29d89c;
+  --np-gold: #e9b94c;
+  --np-transicao: 180ms ease;
+}
+
+/* ── tokens (temas escuros: padrão e escuro otimizado) ── */
+html:not([data-tema='claro'], [data-tema='branco']) {
+  --v2-fundo: #01070f;
+  --v2-sup-1: #030e1a;
+  --v2-sup-2: #061320;
+  --v2-sup-3: #0b1c30;
+  --v2-borda: rgb(37 68 98 / .6);
+  --v2-borda-forte: rgb(37 68 98 / .95);
+  --v2-primaria: #106afc;
+  --v2-primaria-hover: #0b57d8;
+  --v2-primaria-suave: rgb(16 106 252 / .18);
+  --v2-ciano: #6bd4ff;
+  --v2-texto: #f4f7fc;
+  --v2-texto-2: #a8b5c7;
+  --v2-texto-3: #7d8aa0;
+  --v2-sucesso: #29d89c;
+  --v2-erro: #ef6675;
+  --v2-ouro: #e9b94c;
+  --v2-prata: #c9d3e1;
+  --v2-bronze: #d0894f;
+  --v2-sombra: 0 18px 48px -18px rgb(0 0 0 / .7);
+
+  /* as camadas antigas usam estes nomes: apontam para as cores novas e o site inteiro acompanha */
+  --bg: var(--v2-fundo);
+  --bg-soft: var(--v2-sup-1);
+  --panel: var(--v2-sup-2);
+  --panel-2: var(--v2-sup-3);
+  --border: var(--v2-borda);
+  --border-2: var(--v2-borda-forte);
+  --text: var(--v2-texto);
+  --dim: var(--v2-texto-2);
+  --dim-2: var(--v2-texto-3);
+  --ui-muted: var(--v2-texto-2);
+  --ui-surface: var(--v2-sup-2);
+  --ui-raised: var(--v2-sup-3);
+  --ui-hover: #0e2038;
+  --ui-active: var(--v2-primaria-suave);
+  --ui-accent: var(--v2-primaria);
+  --blue: var(--v2-primaria);
+  --blue-2: #5b9bff;
+  --green: var(--v2-sucesso);
+  --green-2: #1fbf87;
+  --red: var(--v2-erro);
+  --accent: var(--v2-ouro);
+  --accent-2: #d4a032;
+  --yellow: var(--v2-ouro);
+  --cartao-1: var(--v2-sup-2);
+  --cartao-2: var(--v2-sup-1);
+  --brilho-esq: var(--v2-sup-3);
+  --fundo: 1 7 15;
+  --borda-rgb: 132 164 214;
+}
+/* temas claros: mesmas peças, cores claras (o visual escuro é o padrão da marca) */
+html:is([data-tema='claro'], [data-tema='branco']) {
+  --v2-fundo: #eef2f8;
+  --v2-sup-1: #ffffff;
+  --v2-sup-2: #ffffff;
+  --v2-sup-3: #e6ecf5;
+  --v2-borda: rgb(30 50 90 / .12);
+  --v2-borda-forte: rgb(30 50 90 / .22);
+  --v2-primaria: #2365e8;
+  --v2-primaria-hover: #1a55c9;
+  --v2-primaria-suave: rgb(35 101 232 / .1);
+  --v2-ciano: #0b7fb3;
+  --v2-texto: #0d1726;
+  --v2-texto-2: #4a5970;
+  --v2-texto-3: #66748a;
+  --v2-sucesso: #12865f;
+  --v2-erro: #c7374a;
+  --v2-ouro: #a87612;
+  --v2-prata: #6b7687;
+  --v2-bronze: #9a5a24;
+  --v2-sombra: 0 16px 40px -20px rgb(20 40 80 / .35);
+  --ui-accent: var(--v2-primaria);
+}
+:root {
+  --v2-raio: 12px;
+  --v2-raio-p: 8px;
+  --v2-gutter: clamp(16px, 2.2vw, 32px);
+  --v2-topo: var(--topbar-height);
+  --font-display: 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --font-body: 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --font-impact: var(--font-display);
+  --raio: var(--v2-raio-p);
+  --raio-grande: var(--v2-raio);
+  --ui-gap: var(--v2-gutter);
+}
+
+html:not(#v2) body {
+  background:
+    radial-gradient(1200px 600px at 85% -10%, rgb(52 120 246 / .10), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgb(107 212 255 / .05), transparent 60%),
+    var(--v2-fundo);
+  color: var(--v2-texto);
+  font-family: var(--font-body);
+}
+html:not(#v2) .np-fundo-fixo { background: none; }
+.v2-num, :is(td, .num, .mono, .tabular) { font-variant-numeric: tabular-nums; }
+
+/* foco visível igual em tudo */
+html:not(#v2) :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--v2-ciano);
+  outline-offset: 2px;
+}
+
+/* ══════════════ Computador: menu da esquerda + barra de cima ══════════════ */
+@media (min-width: 1025px) {
+  :root { --nx-lateral: var(--sidebar-collapsed-width); --nx-direita: 0px; --escala-site: 1; }
+  html:has(.nx-nav.nx-aberta) { --nx-lateral: var(--sidebar-width); }
+  html:not(#v2) { zoom: 1; }
+  html:not(#v2) body { padding: var(--v2-topo) 0 0 var(--nx-lateral); transition: padding-left .22s ease; }
+  html:not(#v2) body::before, html:not(#v2) body::after { content: none; display: none; }
+  html:not(#v2) .np-acabamento-nav { display: none; }
+  html:not(#v2) .np-conteudo { background: transparent; border-radius: 0; min-height: calc(100dvh - var(--v2-topo)); overflow: clip; }
+
+  /* ── menu da esquerda ── */
+  html:not(#v2) .nx-nav,
+  html:not(#v2) .nx-nav.is-scrolled,
+  html[data-tema]:not(#v2) .nx-nav {
+    position: fixed; inset: 0 auto 0 0; z-index: 310;
+    width: var(--nx-lateral); height: 100dvh; min-height: 0;
+    background: linear-gradient(180deg, var(--v2-sup-1), var(--v2-fundo));
+    border: 0; border-right: 1px solid var(--v2-borda); box-shadow: none;
+    overflow: hidden auto; scrollbar-width: none;
+    transition: width .22s ease;
+  }
+  html:not(#v2) .nx-nav .nx-nav-inner {
+    display: flex; flex-direction: column; align-items: stretch; gap: 0;
+    max-width: none; height: auto; min-height: 100dvh; margin: 0; padding: 18px 12px 12px;
+  }
+  /* marca: logo oficial + Neura Project */
+  html:not(#v2) .nx-nav .nx-brand {
+    display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 4px 8px; margin: 0 0 20px; border: 0;
+  }
+  html:not(#v2) .nx-nav .nx-brand img { width: 36px; height: 36px; flex: none; }
+  html:not(#v2) .nx-nav .nx-brand > span {
+    display: grid; font: 800 15px/1.05 var(--font-display); letter-spacing: .14em; color: var(--v2-texto); white-space: nowrap;
+  }
+  html:not(#v2) .nx-nav .nx-brand .nx-outline { color: var(--v2-texto-2); font-weight: 600; font-size: 10px; letter-spacing: .42em; -webkit-text-stroke: 0; }
+  html:not(#v2) .nx-nav .nx-brand .nx-sub { display: none; }
+  html:not(#v2) .nx-nav:not(.nx-aberta) .nx-brand { justify-content: center; padding: 4px 0; }
+  html:not(#v2) .nx-nav:not(.nx-aberta) .nx-brand > span { display: none; }
+
+  /* busca do menu: aberta pela 🔍 (barra de cima ou ícone da barra recolhida) */
+  html:not(#v2) .nx-nav .np-sidebar-reduzida { display: none; }
+  html:not(#v2) .nx-nav:not(.nx-aberta) .np-sidebar-reduzida { display: grid; justify-items: center; margin: 0 0 12px; }
+  html:not(#v2) .nx-nav .np-sidebar-reduzida button { width: 44px; height: 44px; border-radius: var(--v2-raio-p); background: transparent; color: var(--v2-texto-2); }
+  html:not(#v2) .nx-nav .np-sidebar-reduzida button:hover { background: var(--v2-sup-3); color: var(--v2-texto); }
+  html:not(#v2) .nx-nav .np-sidebar-inicio { display: grid; gap: 8px; margin: 0 0 14px; }
+  html:not(#v2) .nx-nav .np-pesquisa { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border: 1px solid var(--v2-borda); border-radius: var(--v2-raio-p); background: var(--v2-sup-2); color: var(--v2-texto-2); }
+  html:not(#v2) .nx-nav .np-pesquisa input { width: 100%; min-width: 0; border: 0; background: transparent; color: var(--v2-texto); font-size: 14px; padding: 9px 0; }
+  html:not(#v2) .nx-nav .np-pesquisa input:focus-visible { outline: 0; }
+  html:not(#v2) .nx-nav .np-pesquisa:focus-within { border-color: var(--v2-primaria); }
+  html:not(#v2) .nx-nav .np-menu-recolher { justify-self: end; padding: 4px 6px; border: 0; background: none; color: var(--v2-texto-2); font-size: 12px; cursor: pointer; }
+
+  /* páginas */
+  html:not(#v2) .nx-nav .nx-links { display: flex; flex-direction: column; gap: 4px; padding: 0; margin: 0; border: 0; }
+  html:not(#v2) .nx-nav .nx-links .nx-link {
+    position: relative; display: flex; align-items: center; gap: 14px; width: 100%; height: 46px; min-height: 46px; padding: 0 14px;
+    border-radius: var(--v2-raio-p); background: transparent; color: var(--v2-texto-2); font: 500 15px var(--font-body); text-decoration: none;
+    transition: background-color .15s, color .15s;
+  }
+  html:not(#v2) .nx-nav .nx-links .nx-link:hover { background: var(--v2-sup-3); color: var(--v2-texto); }
+  html:not(#v2) .nx-nav .nx-links .nx-link.is-active {
+    background: linear-gradient(90deg, rgb(52 120 246 / .26), rgb(52 120 246 / .08)); color: var(--v2-texto); font-weight: 650;
+  }
+  html:not(#v2) .nx-nav .nx-links .nx-link.is-active::after {
+    content: ''; display: block; position: absolute; left: -12px; top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: var(--v2-primaria);
+  }
+  html:not(#v2) .nx-nav .nx-links .nx-link :is(.nx-icone, svg) { width: 21px; height: 21px; flex: none; color: currentColor; }
+  html:not(#v2) .nx-nav .nx-links .nx-link.is-active :is(.nx-icone, svg) { color: var(--v2-ciano); }
+  html:not(#v2) .nx-nav .nx-links-sep { display: block; height: 1px; margin: 10px 8px; background: var(--v2-borda); }
+  html:not(#v2) .nx-nav .np-sem-resultados { padding: 10px 14px; color: var(--v2-texto-2); font-size: 13px; }
+
+  /* nome da página: na barra aberta, ao lado do ícone; recolhida, numa dica ao passar o mouse/focar */
+  html:not(#v2) .nx-nav.nx-aberta :is(.nx-links, .np-sidebar-fim) .nx-dica {
+    position: static; display: inline; padding: 0; border: 0; background: none; box-shadow: none; opacity: 1; transform: none;
+    color: inherit; font: inherit; white-space: nowrap; pointer-events: auto;
+  }
+  html:not(#v2) .nx-nav:not(.nx-aberta) .nx-links .nx-link,
+  html:not(#v2) .nx-nav:not(.nx-aberta) .np-sidebar-fim a { justify-content: center; padding: 0; }
+  html:not(#v2) .nx-nav:not(.nx-aberta) :is(.nx-links, .np-sidebar-fim) .nx-dica {
+    position: fixed; left: calc(var(--nx-lateral) + 8px); z-index: 400; display: block; padding: 6px 10px; margin-top: -2px;
+    border: 1px solid var(--v2-borda-forte); border-radius: 6px; background: var(--v2-sup-1); color: var(--v2-texto);
+    font: 600 12.5px var(--font-body); white-space: nowrap; pointer-events: none; opacity: 0; transform: translateX(-4px);
+    transition: opacity .12s, transform .12s;
+  }
+  html:not(#v2) .nx-nav:not(.nx-aberta) :is(.nx-link, .np-sidebar-fim a):is(:hover, :focus-visible) .nx-dica { opacity: 1; transform: none; }
+  html:not(#v2) .nx-nav:not(.nx-aberta) .np-sidebar-titulo { display: none; }
+
+  /* área da comunidade */
+  html:not(#v2) .nx-nav .np-sidebar-fim {
+    display: grid; gap: 4px; margin: 18px 0 0; padding: 16px 0 0; border-top: 1px solid var(--v2-borda);
+  }
+  html:not(#v2) .nx-nav .np-sidebar-titulo { padding: 0 14px 6px; color: var(--v2-primaria); font: 700 11px var(--font-body); letter-spacing: .16em; text-transform: uppercase; }
+  html:not(#v2) .nx-nav .np-sidebar-fim a {
+    position: relative; display: flex; align-items: center; gap: 14px; min-height: 44px; padding: 0 14px; border-radius: var(--v2-raio-p);
+    color: var(--v2-texto-2); font: 500 14px var(--font-body); text-decoration: none;
+  }
+  html:not(#v2) .nx-nav .np-sidebar-fim a:hover { background: var(--v2-sup-3); color: var(--v2-texto); }
+  html:not(#v2) .nx-nav .np-sidebar-fim a.is-active { background: var(--v2-primaria-suave); color: var(--v2-texto); }
+  html:not(#v2) .nx-nav .np-sidebar-fim svg { width: 19px; height: 19px; flex: none; }
+  html:not(#v2) .nx-nav .np-menu-alternar {
+    display: grid; place-items: center; align-self: flex-end; width: 40px; height: 40px; margin-top: auto; border: 0; border-radius: var(--v2-raio-p);
+    background: transparent; color: var(--v2-texto-2); cursor: pointer;
+  }
+  html:not(#v2) .nx-nav:not(.nx-aberta) .np-menu-alternar { align-self: center; }
+  html:not(#v2) .nx-nav .np-menu-alternar:hover { background: var(--v2-sup-3); color: var(--v2-texto); }
+  html:not(#v2) .nx-nav .nx-acoes, html:not(#v2) .nx-nav .nx-titulo { display: none; }
+
+  /* ── barra de cima: caminho da página à esquerda; pesquisa, painéis, som, ⚙ e conta à direita ── */
+  html:not(#v2) .nx-direita {
+    position: fixed; inset: 0 0 auto var(--nx-lateral); z-index: 305;
+    display: flex; flex-direction: row; align-items: center; justify-content: flex-end; gap: 4px;
+    width: auto; height: var(--v2-topo); padding: 0 var(--v2-gutter);
+    background: rgb(1 7 15 / .95); border: 0; border-bottom: 1px solid var(--v2-borda);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    transition: left .22s ease;
+  }
+  html:is([data-tema='claro'], [data-tema='branco']):not(#v2) .nx-direita { background: rgb(255 255 255 / .97); }
+  html:not(#v2) .nx-direita::after { display: none; }
+  html:not(#v2) .nx-direita .np-trilha { order: -2; margin-right: auto; min-width: 0; }
+  html:not(#v2) .nx-direita .np-topo-busca { order: -1; }
+  html:not(#v2) .nx-direita > .nx-conta { order: 99; margin-left: 8px; padding-left: 12px; border-left: 1px solid var(--v2-borda); }
+  /* Comunidade (Discord) já está no menu da esquerda */
+  html:not(#v2) .nx-direita > a.nx-comunidade.nx-btn, html:not(#v2) .nx-direita .nx-direita-sep { display: none; }
+  html:not(#v2) .nx-direita :is(.nx-btn, .nx-config-btn, .nx-conta-btn) {
+    position: relative; display: inline-grid; place-items: center; width: 42px; height: 42px; min-width: 42px; min-height: 42px; padding: 0;
+    border: 0; border-radius: var(--v2-raio-p); background: transparent; color: var(--v2-texto-2);
+  }
+  html:not(#v2) .nx-direita :is(.nx-btn, .nx-config-btn):is(:hover, [aria-expanded='true'], .ativo) { background: var(--v2-sup-3); color: var(--v2-texto); }
+  html:not(#v2) .nx-direita :is(.nx-btn, .nx-config-btn) svg { width: 20px; height: 20px; }
+  /* conta: avatar + nome visíveis */
+  html:not(#v2) .nx-direita .nx-conta-btn { display: inline-flex; align-items: center; gap: 10px; width: auto; padding: 0 8px 0 4px; }
+  html:not(#v2) .nx-direita .nx-conta-btn:is(:hover, [aria-expanded='true']) { background: var(--v2-sup-3); }
+  html:not(#v2) .nx-direita .nx-conta-btn :is(img, .nx-conta-ini) { width: 34px; height: 34px; border-radius: 8px; }
+  html:not(#v2) .nx-direita .nx-conta-btn .nx-conta-nome.nx-dica {
+    position: static; display: block; max-width: 150px; overflow: hidden; text-overflow: ellipsis; padding: 0; border: 0; background: none;
+    color: var(--v2-texto); font: 650 14px var(--font-body); opacity: 1; transform: none; pointer-events: none;
+  }
+  html:not(#v2) .nx-direita .nx-steam { width: auto; padding: 0 14px; gap: 8px; background: var(--v2-primaria); color: #fff; }
+  html:not(#v2) .nx-direita .nx-steam:hover { background: var(--v2-primaria-hover); color: #fff; }
+  html:not(#v2) .nx-direita .nx-steam span.nx-dica { position: static; display: inline; padding: 0; border: 0; background: none; opacity: 1; transform: none; color: inherit; font: 650 14px var(--font-body); }
+  /* dicas dos ícones: embaixo do botão */
+  html:not(#v2) .nx-direita :is(.nx-btn, .nx-config-btn) > .nx-dica {
+    position: absolute; top: calc(100% + 8px); left: 50%; right: auto; transform: translate(-50%, -4px); z-index: 400;
+    display: block; padding: 6px 10px; border: 1px solid var(--v2-borda-forte); border-radius: 6px; background: var(--v2-sup-1); color: var(--v2-texto);
+    font: 600 12.5px var(--font-body); white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .12s, transform .12s;
+  }
+  html:not(#v2) .nx-direita :is(.nx-btn, .nx-config-btn):is(:hover, :focus-visible):not([aria-expanded='true']) > .nx-dica { opacity: 1; transform: translate(-50%, 0); }
+  /* painéis que abrem da barra: embaixo dela, encostados na direita */
+  html:not(#v2) .nx-direita :is(.pp-painel, .nt-painel, .am-painel, .nx-config-painel, .nx-conta-menu.cp-card, .nx-conta-menu) {
+    position: fixed; top: calc(var(--v2-topo) + 8px); right: 16px; bottom: auto; left: auto; margin: 0; transform: none;
+    max-height: calc(100dvh - var(--v2-topo) - 24px); animation-name: v2-desce;
+    border: 1px solid var(--v2-borda-forte); border-radius: var(--v2-raio); background: var(--v2-sup-1); box-shadow: var(--v2-sombra);
+  }
+  html:not(#v2) .nx-direita .am-painel:not(.nt-painel):not(.pp-painel) { bottom: 12px; }
+  html:not(#v2) .nx-avisos { right: 16px; top: calc(var(--v2-topo) + 12px); }
+  html:not(#v2) .nx-rolagem:not(.oculta) { top: calc(var(--v2-topo) + 4px); bottom: 4px; right: 2px; }
+  html:not(#v2) .np-evento-ambiente { inset: var(--v2-topo) 0 0 var(--nx-lateral); }
+}
+@keyframes v2-desce { from { opacity: 0; transform: translateY(-6px); } }
+
+/* caminho da página */
+.np-trilha ol { display: flex; align-items: center; gap: 8px; margin: 0; padding: 0; list-style: none; min-width: 0; }
+.np-trilha li { display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--v2-texto-2); font: 500 14px var(--font-body); }
+.np-trilha li:first-child a { gap: 8px; }
+.np-trilha a { display: inline-flex; align-items: center; color: var(--v2-texto-2); text-decoration: none; border-radius: 4px; }
+.np-trilha a:hover { color: var(--v2-texto); }
+.np-trilha [aria-current='page'] { color: var(--v2-texto); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.np-trilha .np-trilha-sep { color: var(--v2-texto-3); flex: none; }
+@media (max-width: 1280px) and (min-width: 1025px) {
+  .np-trilha li:first-child span { display: none; }
+}
+
+/* ══════════════ Celular e tablet: barra de cima + abas embaixo ══════════════ */
+@media (max-width: 1024px) {
+  html:not(#v2) .nx-nav, html:not(#v2) .nx-nav.is-scrolled {
+    background: rgb(3 14 26 / .94); border: 0; border-bottom: 1px solid var(--v2-borda);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  }
+  html:not(#v2) .nx-nav .np-sidebar-fim, html:not(#v2) .nx-nav .np-menu-alternar, html:not(#v2) .nx-nav .np-sidebar-inicio { display: none; }
+  html:not(#v2) .nx-titulo { color: var(--v2-texto); font-weight: 700; }
+  html:not(#v2) .nx-titulo svg { color: var(--v2-ciano); }
+  html:not(#v2) .nx-baixo { background: rgb(3 14 26 / .96); border-top: 1px solid var(--v2-borda); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+  html:not(#v2) .nx-baixo .nx-aba { color: var(--v2-texto-2); min-height: 52px; }
+  html:not(#v2) .nx-baixo .nx-aba.is-active { color: var(--v2-texto); background: transparent; }
+  html:not(#v2) .nx-baixo .nx-aba.is-active i { color: var(--v2-ciano); background: var(--v2-primaria-suave); border-radius: 999px; }
+  html:not(#v2) .nx-mais { border: 1px solid var(--v2-borda-forte); border-radius: var(--v2-raio); background: var(--v2-sup-1); box-shadow: var(--v2-sombra); }
+  html:not(#v2) .nx-mais .nx-link { color: var(--v2-texto-2); }
+  html:not(#v2) .nx-mais .nx-link.is-active { color: var(--v2-texto); background: var(--v2-primaria-suave); }
+  html:is([data-tema='claro'], [data-tema='branco']):not(#v2) :is(.nx-nav, .nx-baixo) { background: rgb(255 255 255 / .94); }
+}
+/* celular estreito: botões da barra de cima menores para o nome da página não sumir */
+@media (max-width: 480px) {
+  html:not(#v2) .nx-nav .nx-acoes { gap: 4px; }
+  html:not(#v2) .nx-nav .nx-acoes :is(.nx-btn, .nx-config-btn, .nx-conta-btn) { width: 36px; height: 36px; min-width: 36px; min-height: 36px; padding: 0; }
+  html:not(#v2) .nx-nav .nx-acoes :is(.nx-btn, .nx-config-btn) svg { width: 18px; height: 18px; }
+  html:not(#v2) .nx-nav .nx-titulo { min-width: 0; flex: 1 1 auto; }
+  html:not(#v2) .nx-nav .nx-titulo span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+/* ══════════════ Peças comuns ══════════════ */
+
+/* título de página: <header class="v2-titulo"> h1 + p (+ ações à direita) */
+.v2-titulo { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; }
+.v2-titulo h1 { margin: 0; font: 800 clamp(30px, 3.4vw, 46px)/1.06 var(--font-display); letter-spacing: -.025em; color: var(--v2-texto); text-transform: none; }
+.v2-titulo h1 em { font-style: normal; color: var(--v2-ciano); }
+.v2-titulo p { margin: 8px 0 0; max-width: 62ch; color: var(--v2-texto-2); font-size: 16px; line-height: 1.5; }
+
+/* painel */
+.v2-painel { background: linear-gradient(180deg, var(--v2-sup-2), var(--v2-sup-1)); border: 1px solid var(--v2-borda); border-radius: var(--v2-raio); }
+.v2-painel-cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--v2-borda); }
+.v2-painel-cab h2 { display: flex; align-items: center; gap: 10px; margin: 0; font: 700 18px var(--font-display); letter-spacing: -.01em; text-transform: none; color: var(--v2-texto); }
+.v2-painel-cab h2 svg { color: var(--v2-primaria); }
+.v2-painel-cab a { display: inline-flex; align-items: center; gap: 6px; color: var(--v2-primaria); font: 600 13px var(--font-body); text-decoration: none; }
+.v2-painel-cab a:hover { color: var(--v2-ciano); }
+
+/* botões */
+.v2-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 24px;
+  border: 1px solid transparent; border-radius: var(--v2-raio-p); font: 650 15px var(--font-body); text-decoration: none; cursor: pointer;
+  transition: background-color .15s, border-color .15s, color .15s, transform .15s;
+}
+.v2-btn-primario { background: linear-gradient(180deg, #2d79fd, #106afc); color: #fff; box-shadow: 0 10px 28px -12px rgb(52 120 246 / .9), inset 0 1px 0 rgb(255 255 255 / .18); }
+.v2-btn-primario:hover { background: var(--v2-primaria-hover); color: #fff; }
+.v2-btn-secundario { background: rgb(1 7 15 / .55); border-color: var(--v2-borda-forte); color: var(--v2-texto); }
+.v2-btn-secundario:hover { border-color: var(--v2-primaria); background: rgb(52 120 246 / .12); color: var(--v2-texto); }
+.v2-btn-ouro { background: linear-gradient(180deg, #f4c95c, var(--v2-ouro)); color: #1a1406; }
+.v2-btn-ouro:hover { background: #f4c95c; color: #1a1406; }
+.v2-btn:disabled, .v2-btn[aria-disabled='true'] { opacity: .55; cursor: not-allowed; box-shadow: none; }
+@media (prefers-reduced-motion: no-preference) { .v2-btn:not(:disabled):hover { transform: translateY(-1px); } }
+
+/* selo de estado: sempre com texto */
+.v2-selo { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 6px; font: 700 12px var(--font-body); border: 1px solid currentColor; }
+.v2-selo-vitoria { color: var(--v2-sucesso); background: rgb(41 216 156 / .1); }
+.v2-selo-derrota { color: var(--v2-erro); background: rgb(239 102 117 / .1); }
+.v2-selo-ouro { color: var(--v2-ouro); background: rgb(233 185 76 / .1); }
+.v2-selo-azul { color: var(--v2-ciano); background: var(--v2-primaria-suave); }
+
+/* estados vazio / carregando / sem permissão */
+.v2-vazio { display: grid; justify-items: center; gap: 8px; padding: 32px 20px; text-align: center; color: var(--v2-texto-2); }
+.v2-vazio b { color: var(--v2-texto); font-size: 15px; }
+.v2-vazio svg { color: var(--v2-texto-3); }
+
+/* fundo de arte (cenário) com véu: o texto fica sempre sobre o véu escuro, nunca direto na imagem */
+.v2-cena { position: relative; isolation: isolate; overflow: hidden; background: radial-gradient(120% 120% at 80% 0%, #13213a, var(--v2-fundo) 70%); }
+.v2-cena-fundo { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; }
+.v2-cena::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(90deg, rgb(1 7 15 / .96) 0%, rgb(1 7 15 / .78) 38%, rgb(1 7 15 / .15) 72%, rgb(1 7 15 / .35) 100%), linear-gradient(0deg, var(--v2-fundo), transparent 38%); }
+
+/* ══════════════ Peças antigas no visual novo (todas as páginas) ══════════════ */
+html:not(#v2) :is(.btn, .lj-btn, .eq-btn, .inv-btn, .lb-btn, .tr-btn, .pf-btn) { border-radius: var(--v2-raio-p); }
+html:not(#v2) :is(.btn-primary, .btn.btn-p, .lj-btn-p, .eq-btn-p, .inv-btn-p, .lb-btn-p, .tr-btn-p) {
+  background: var(--v2-primaria); border-color: var(--v2-primaria); color: #fff;
+}
+html:not(#v2) :is(.btn-primary, .btn.btn-p, .lj-btn-p, .eq-btn-p, .inv-btn-p, .lb-btn-p, .tr-btn-p):hover:not(:disabled) { background: var(--v2-primaria-hover); border-color: var(--v2-primaria-hover); color: #fff; }
+html:not(#v2) :is(.btn-ghost, .eq-btn:not(.eq-btn-p), .inv-btn:not(.inv-btn-p), .lj-btn:not(.lj-btn-p), .lb-btn:not(.lb-btn-p)) { border-color: var(--v2-borda-forte); }
+html:not(#v2) :is(.caixa, .eq-card, .eq-box, .inv-painel, .pf-card, .lb-painel, .fl-painel, .lj-caixa, .ad-resumo, .ad-secao, .np-config, .pf-bloco) {
+  border-radius: var(--v2-raio); border-color: var(--v2-borda);
+}
+/* abas sublinhadas: a ativa em azul */
+html:not(#v2) :is(.lj-abas, .eq-abas, .inv-abas, .ad-abas, .pf-abas, .pt-abas) { border-bottom: 1px solid var(--v2-borda); }
+html:not(#v2) :is(.lj-abas, .eq-abas, .inv-abas, .pf-abas, .pt-abas) :is(button, a) { color: var(--v2-texto-2); }
+html:not(#v2) :is(.lj-abas, .eq-abas, .inv-abas, .pf-abas, .pt-abas) :is(button, a):is(.is-ativo, .ativa, .active, [aria-selected='true']) {
+  color: var(--v2-texto); text-shadow: none; border-bottom-color: var(--v2-primaria);
+}
+/* títulos de seção: barra azul (antes amarela) */
+html:not([data-tema='claro'], [data-tema='branco']) :is(.card-head h2, .pf-card-cab h2, .secao-head h2.com-barra):not(#_)::before { background: var(--v2-primaria); box-shadow: 0 0 12px rgb(52 120 246 / .5); }
+html:not([data-tema='claro'], [data-tema='branco']) :is(.card-head h2, .pf-card-cab h2, .secao-head h2.com-barra):not(#_) { text-transform: none; letter-spacing: -.005em; }
+/* topo antigo das páginas (.hero): título sem caixa alta forçada, com o brilho azul */
+html:not([data-tema='claro'], [data-tema='branco']) .hero:not(#_) {
+  background: radial-gradient(70% 120% at 100% 0%, rgb(52 120 246 / .16), transparent 62%), linear-gradient(160deg, var(--v2-sup-2), var(--v2-fundo));
+}
+html:not([data-tema='claro'], [data-tema='branco']) .hero:not(#_) h1 { text-transform: none; letter-spacing: -.02em; font-weight: 800; }
+html:not([data-tema='claro'], [data-tema='branco']) .hero:not(#_) h1 .fx-gradiente,
+html:not([data-tema='claro'], [data-tema='branco']) .hero:not(#_) h1 .fx-gradiente .fx-palavra { -webkit-text-fill-color: var(--v2-ciano); color: var(--v2-ciano); text-shadow: none; }
+html:not([data-tema='claro'], [data-tema='branco']) :is(.resumo .caixa, .hist-resumo > *, .hero .stat):not(#_) { background: var(--v2-sup-2); box-shadow: inset 0 0 0 1px var(--v2-borda); border-radius: var(--v2-raio); }
+html:not([data-tema='claro'], [data-tema='branco']) :is(.resumo .caixa, .hist-resumo > *, .hero .stat):not(#_)::before { background: linear-gradient(90deg, transparent, var(--v2-primaria), transparent); }
+html:not([data-tema='claro'], [data-tema='branco']) :is(.inv-abas, .lj-abas) :is(button, a).is-ativo:not(#_) { color: var(--v2-texto); text-shadow: none; }
+/* campos */
+html:not(#v2) :is(input[type='search'], input[type='text'], select, textarea):not(.np-pesquisa input) { border-radius: var(--v2-raio-p); }
+/* janelas */
+html:not(#v2) :is(.nx-config-painel, .nx-conta-menu.cp-card, .am-painel, .lb-janela, .sm-janela) { border-color: var(--v2-borda-forte); border-radius: var(--v2-raio); }
+
+@media (prefers-reduced-motion: reduce) {
+  html:not(#v2) body, html:not(#v2) .nx-nav, html:not(#v2) .nx-direita { transition: none; }
+}
+
+/* ══════════════ Topo de página com cenário (inventário, loja, time) ══════════════ */
+.v2-topo-pagina { display: flex; align-items: center; min-height: 210px; padding-block: 32px; border-bottom: 1px solid var(--v2-borda); }
+.v2-topo-pagina .v2-cena-fundo { object-position: 70% 45%; }
+.v2-topo-pagina > .wrap { width: 100%; }
+.v2-topo-arte { position: absolute; z-index: -1; right: 6%; bottom: 0; width: auto; height: 118%; max-width: 46%; object-fit: contain; object-position: bottom right; pointer-events: none; filter: drop-shadow(0 18px 30px rgb(0 0 0 / .6)); }
+@media (max-width: 760px) {
+  .v2-topo-pagina { min-height: 150px; padding-block: 22px; }
+  .v2-topo-arte { opacity: .35; right: -10%; max-width: 70%; }
+}
+
+/* loja: o cabeçalho vira o banner (título à esquerda, arlequim e saldo à direita) */
+html:not(#v2) .lj-topo.v2-cena { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; min-height: 230px; margin: 20px 0 24px; padding: 32px clamp(20px, 3vw, 44px); border: 1px solid var(--v2-borda-forte); border-radius: var(--v2-raio); }
+html:not(#v2) .lj-topo.v2-cena .v2-topo-arte { right: 30%; height: 112%; max-width: 34%; }
+html:not(#v2) .lj-topo.v2-cena .v2-titulo h1 { font-size: clamp(32px, 3.6vw, 52px); }
+html:not(#v2) .lj-topo.v2-cena .lj-topo-saldo { position: relative; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+html:not(#v2) .lj-depositar { min-height: 46px; border-radius: var(--v2-raio-p); background: var(--v2-primaria); color: #fff; font-weight: 700; }
+html:not(#v2) .lj-depositar:hover { background: var(--v2-primaria-hover); }
+html:not(#v2) .lj-abas { justify-content: flex-start; gap: 6px; padding: 4px; margin-bottom: 24px; width: max-content; max-width: 100%; border: 1px solid var(--v2-borda-forte); border-radius: var(--v2-raio); background: var(--v2-sup-1); overflow-x: auto; }
+html:not(#v2) .lj-abas button { min-height: 44px; padding: 0 22px; border: 0; border-radius: var(--v2-raio-p); color: var(--v2-texto-2); font: 600 14px var(--font-body); letter-spacing: 0; text-transform: none; }
+html:not(#v2) .lj-abas button.is-ativo { background: var(--v2-primaria); color: #fff; border: 0; }
+@media (max-width: 760px) {
+  html:not(#v2) .lj-topo.v2-cena { min-height: 0; padding: 22px 18px; }
+  html:not(#v2) .lj-topo.v2-cena .v2-topo-arte { right: -8%; opacity: .3; max-width: 60%; }
+  html:not(#v2) .lj-abas { width: 100%; }
+}
+
+/* inventário: o topo novo já tem o título; a área dos itens começa logo abaixo */
+html:not(#v2) .inv-pagina .inv-wrap { padding-top: 20px; }
+html:not(#v2) .inv-abas { gap: 4px; }
+html:not(#v2) .inv-abas button { font: 600 14px var(--font-body); letter-spacing: 0; text-transform: none; }
+
+/* time: capa da Mirage com o esquadrão atrás do nome (véu à esquerda para o texto) */
+html:not(#v2) .eq-cabeca.v2-cena { min-height: 170px; padding: 28px; border: 1px solid var(--v2-borda-forte); border-radius: var(--v2-raio); background: var(--np-fundo) 70% 40% / cover no-repeat, var(--v2-sup-2); }
+html:not(#v2) .eq-cabeca.v2-cena .eq-cabeca-txt h1 { font: 850 clamp(28px, 3vw, 42px)/1.1 var(--font-display); }
+html:not(#v2) .eq-cabeca.v2-cena > * { position: relative; }
+
+/* rodapé: títulos com a barra azul */
+html:not(#v2) .np-rodape-grade h3 { border-left-color: var(--v2-primaria); }
+
+/* ══════════════ Ilhas escuras ══════════════
+   Blocos sobre arte (cenários, pódio, lobby) são escuros em qualquer tema: nos temas claros eles recebem de volta as
+   cores de texto e superfície do tema escuro, para o texto continuar legível sobre a imagem. */
+html:is([data-tema='claro'], [data-tema='branco']) :is(.v2-cena, .ranking-page.v2-rk, .lb-pagina) {
+  --v2-fundo: #01070f; --v2-sup-1: #0d1522; --v2-sup-2: #111b2b; --v2-sup-3: #172338;
+  --v2-borda: rgb(37 68 98 / .6); --v2-borda-forte: rgb(37 68 98 / .95);
+  --v2-texto: #f4f7fc; --v2-texto-2: #a8b5c7; --v2-texto-3: #7d8aa0; --v2-ciano: #6bd4ff; --v2-ouro: #e9b94c;
+  --text: #f4f7fc; --dim: #a8b5c7; --dim-2: #7d8aa0; --ui-muted: #a8b5c7; --ui-surface: #111b2b; --ui-raised: #172338;
+  --border: rgb(37 68 98 / .6); --border-2: rgb(37 68 98 / .95); --bg: #01070f; --bg-soft: #0d1522;
+  color: var(--v2-texto);
+}
+
+/* ══════════════ Menu e barra de cima: medidas da referência (design/reference, 1586×992) ══════════════
+   Menu 178 px; marca empilhada (logo grande + NEURA / PROJECT); itens de 50 px a cada 56 px; ativo com faixa azul de ponta a
+   ponta e traço na borda; pé com Configurações e o botão de recolher; agente apagado ao fundo. Barra de cima de 54 px; conta com nível. */
+@media (min-width: 1025px) {
+  :root { --v2-topo: var(--topbar-height); }
+  html:not(#v2) .nx-nav, html:not(#v2) .nx-nav.is-scrolled, html[data-tema]:not(#v2) .nx-nav { background: linear-gradient(180deg, #020d18 0%, #010c16 55%, #020d18 100%); }
+  html:is([data-tema='claro'], [data-tema='branco']):not(#v2) .nx-nav { background: var(--v2-sup-1); }
+  /* agente do pacote (sidebar-agent-v2) apagado no pé do menu: decorativo, fixo (não anda com a rolagem da página), atrás dos links, ancorado embaixo
+     com a proporção preservada e um gradiente escuro por cima para manter a leitura. Some com o menu recolhido e no celular. */
+  html:not(#v2) .nx-nav::before {
+    content: ''; position: fixed; left: 0; bottom: 0; width: var(--nx-lateral); height: min(46dvh, 420px); z-index: 0; pointer-events: none;
+    background: url('/assets/neura-v2/web/v2/sidebar-agent.webp') 50% 100% / contain no-repeat; opacity: .38;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 38%, #000 100%); mask-image: linear-gradient(180deg, transparent 0, #000 38%, #000 100%);
+  }
+  html:not(#v2) .nx-nav::after { content: ''; position: fixed; left: 0; bottom: 0; width: var(--nx-lateral); height: min(46dvh, 420px); z-index: 0; pointer-events: none; background: linear-gradient(180deg, #010c16 0%, rgb(2 13 24 / .55) 45%, rgb(2 13 24 / .15) 100%); }
+  html:not(#v2) .nx-nav:not(.nx-aberta)::after { display: none; }
+  html:not(#v2) .nx-nav:not(.nx-aberta)::before { display: none; }
+  html:not(#v2) .nx-nav .nx-nav-inner { position: relative; z-index: 1; padding: 22px 10px 14px 0; }
+  html:not(#v2) .nx-nav:not(.nx-aberta) .nx-nav-inner { padding: 18px 10px 14px; }
+
+  /* marca */
+  html:not(#v2) .nx-nav.nx-aberta .nx-brand { flex-direction: column; justify-content: center; gap: 4px; min-height: 0; margin: 0 0 32px 10px; padding: 0; }
+  html:not(#v2) .nx-nav.nx-aberta .nx-brand img { width: 64px; height: 50px; object-fit: contain; filter: drop-shadow(0 0 14px rgb(52 120 246 / .45)); }
+  html:not(#v2) .nx-nav.nx-aberta .nx-brand > span { justify-items: center; gap: 4px; font: 800 21px/1 var(--font-display); letter-spacing: .14em; color: #f4f7fc; }
+  html:not(#v2) .nx-nav.nx-aberta .nx-brand .nx-outline { font: 600 9.5px/1 var(--font-body); letter-spacing: .62em; margin-left: .62em; color: #c9d3e1; }
+  html:not(#v2) .nx-nav:not(.nx-aberta) .nx-brand img { width: 40px; height: 40px; }
+
+  /* itens */
+  html:not(#v2) .nx-nav .nx-links { gap: 6px; }
+  html:not(#v2) .nx-nav.nx-aberta .nx-links .nx-link { height: 50px; min-height: 50px; padding: 0 12px 0 24px; gap: 17px; border-radius: 0 6px 6px 0; color: #d3dbe6; font: 500 15px var(--font-body); }
+  html:not(#v2) .nx-nav.nx-aberta .nx-links .nx-link :is(.nx-icone, svg) { width: 24px; height: 24px; color: #c3cddb; }
+  html:not(#v2) .nx-nav .nx-links .nx-link.is-active { background: linear-gradient(90deg, rgb(52 120 246 / .28), rgb(52 120 246 / .14)); color: #fff; font-weight: 650; }
+  html:not(#v2) .nx-nav .nx-links .nx-link.is-active::after { left: 0; top: 0; bottom: 0; width: 4px; border-radius: 0 2px 2px 0; background: var(--v2-primaria); box-shadow: 0 0 12px rgb(52 120 246 / .8); }
+  html:not(#v2) .nx-nav .nx-links .nx-link.is-active :is(.nx-icone, svg) { color: #6aa7ff; }
+  html:not(#v2) .nx-nav:not(.nx-aberta) .nx-links .nx-link { width: 52px; height: 48px; border-radius: 8px; }
+  html:not(#v2) .nx-nav:not(.nx-aberta) .nx-links .nx-link.is-active::after { left: -10px; }
+  html:not(#v2) .nx-nav .nx-links-sep { margin: 12px 14px 12px 24px; }
+
+  /* comunidade */
+  html:not(#v2) .nx-nav .np-sidebar-fim { margin: 22px 14px 0 24px; padding-top: 22px; gap: 4px; }
+  html:not(#v2) .nx-nav .np-sidebar-titulo { padding: 0 0 12px; color: #3d8bff; font: 700 11px var(--font-body); letter-spacing: .12em; }
+  html:not(#v2) .nx-nav.nx-aberta .np-sidebar-fim a { min-height: 46px; padding: 0; gap: 17px; color: #d3dbe6; font: 500 14.5px var(--font-body); }
+  html:not(#v2) .nx-nav.nx-aberta .np-sidebar-fim a:hover { background: transparent; color: #fff; }
+  html:not(#v2) .nx-nav .np-sidebar-fim svg { width: 22px; height: 22px; }
+
+  /* pé: Configurações, som e recolher */
+  html:not(#v2) .nx-nav .np-sidebar-rodape { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 4px; margin-top: auto; padding: 18px 0 0 18px; border-top: 1px solid var(--v2-borda); }
+  html:not(#v2) .nx-nav:not(.nx-aberta) .np-sidebar-rodape { flex-direction: column; padding: 14px 0 0; }
+  html:not(#v2) .nx-nav .np-sidebar-rodape .nx-config-btn { display: inline-flex; align-items: center; gap: 12px; width: auto; height: 40px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; color: #d3dbe6; font: 500 13px var(--font-body); }
+  html:not(#v2) .nx-nav .np-sidebar-rodape .nx-config-btn:hover { background: var(--v2-sup-3); color: #fff; }
+  html:not(#v2) .nx-nav .np-sidebar-rodape .nx-config-btn svg { width: 21px; height: 21px; }
+  html:not(#v2) .nx-nav .np-sidebar-rodape .nx-dica { display: none; }
+  html:not(#v2) .nx-nav.nx-aberta .np-sidebar-rodape .nx-config:not(.nx-som) .nx-config-btn .nx-dica { position: static; display: inline; padding: 0; border: 0; background: none; opacity: 1; transform: none; color: inherit; font: inherit; white-space: nowrap; }
+  html:not(#v2) .nx-nav .np-sidebar-rodape .np-menu-alternar { width: 36px; height: 36px; margin: 0 0 0 auto; color: #c3cddb; }
+  html:not(#v2) .nx-nav:not(.nx-aberta) .np-sidebar-rodape .np-menu-alternar { margin: 0; }
+  /* painel de Configurações: ao lado do menu, encostado embaixo */
+  html:not(#v2) .nx-nav .np-sidebar-rodape .nx-config-painel { position: fixed; left: calc(var(--nx-lateral) + 10px); right: auto; top: auto; bottom: 14px; max-height: calc(100dvh - 28px); overflow: auto; border: 1px solid var(--v2-borda-forte); border-radius: var(--v2-raio); background: var(--v2-sup-1); box-shadow: var(--v2-sombra); animation: none; }
+
+  /* barra de cima */
+  html:not(#v2) .nx-direita { gap: 10px; padding: 0 26px 0 30px; background: rgb(6 19 34 / .97); }
+  html:not(#v2) .nx-direita :is(.nx-btn, .nx-config-btn) { width: 46px; height: 46px; color: #c9d3e1; }
+  html:not(#v2) .nx-direita :is(.nx-btn, .nx-config-btn) svg { width: 23px; height: 23px; }
+  html:not(#v2) .nx-direita > .nx-conta { margin-left: 14px; padding-left: 20px; }
+  html:not(#v2) .nx-direita .nx-conta-btn { display: grid; grid-template-columns: 38px auto auto; grid-template-rows: auto auto; column-gap: 10px; row-gap: 3px; align-items: center; height: 46px; padding: 0 4px; }
+  html:not(#v2) .nx-direita .nx-conta-btn > :first-child { grid-row: 1 / 3; }
+  html:not(#v2) .nx-direita .nx-conta-btn :is(img, .nx-conta-ini) { width: 38px; height: 38px; border-radius: 7px; }
+  html:not(#v2) .nx-direita .nx-conta-btn .nx-conta-nome.nx-dica { grid-column: 2; align-self: end; font: 700 14px/1.1 var(--font-body); }
+  .nx-conta-nivel { grid-column: 2; align-self: start; display: inline-flex; align-items: center; gap: 6px; color: #a8b5c7; font: 500 10.5px/1 var(--font-body); white-space: nowrap; }
+  .nx-conta-nivel i { position: relative; width: 40px; height: 5px; border-radius: 3px; background: rgb(255 255 255 / .12); overflow: hidden; }
+  .nx-conta-nivel i::after { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--p); background: linear-gradient(90deg, #7b4dff, #3478f6); border-radius: inherit; }
+  .nx-conta-seta { grid-column: 3; grid-row: 1 / 3; margin-left: 10px; color: #c9d3e1; }
+  /* conteúdo: respiro lateral da referência */
+  html:not(#v2) { --v2-gutter: var(--content-gutter); }
+}
+/* celular: Configurações e som continuam na barra de cima; o pé do menu e o nível da conta não aparecem */
+@media (max-width: 1024px) {
+  html:not(#v2) .nx-nav .np-sidebar-rodape, .nx-conta-nivel, .nx-conta-seta { display: none; }
+}
+
+/* texto só para leitor de tela */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+@media (min-width: 1025px) {
+  html:not(#v2) .nx-nav.nx-aberta .np-sidebar-fim a { gap: 13px; font-size: 13.5px; white-space: nowrap; }
+  html:not(#v2) .nx-nav.nx-aberta .np-sidebar-fim a .nx-dica { overflow: hidden; text-overflow: ellipsis; }
+}
+
+/* O tema "transparente" antigo põe #root .nx-nav/.nx-direita sem fundo (a página inteira tinha um fundo fixo). Aqui o menu e a barra
+   de cima têm fundo próprio, senão o conteúdo aparece por baixo ao rolar. ":not(#_)" sobe a especificidade acima daquela regra. */
+@media (min-width: 1025px) {
+  #root .nx-nav:not(#_) { background: linear-gradient(180deg, #020d18 0%, #010c16 55%, #020d18 100%); }
+  #root .nx-direita:not(#_) { background: rgb(6 19 34 / .97); }
+  html:is([data-tema='claro'], [data-tema='branco']) #root .nx-nav:not(#_) { background: var(--v2-sup-1); }
+  html:is([data-tema='claro'], [data-tema='branco']) #root .nx-direita:not(#_) { background: rgb(255 255 255 / .97); }
+}
+@media (max-width: 1024px) {
+  #root .nx-nav:not(#_) { background: rgb(3 14 26 / .96); }
+  #root .nx-baixo:not(#_) { background: rgb(3 14 26 / .97); }
+}
+
+/* ══════════════ Fundos do pacote por área (bg-*-v2) ══════════════
+   Cada rota define só o seu --np-fundo (src/comum/assetsV2.js), então o navegador baixa só a arte da página atual.
+   Sempre: no-repeat, cover (nunca 100% 100%), ponto focal à direita nos cabeçalhos, base #080C14 e um véu gradual só onde há texto. */
+.v2-hero-fundo:not(#_) {
+  position: relative; isolation: isolate; overflow: hidden;
+  background: linear-gradient(90deg, rgb(1 7 15 / .82) 0%, rgb(1 7 15 / .45) 42%, rgb(1 7 15 / .12) 75%), linear-gradient(180deg, transparent 55%, var(--v2-fundo) 100%), var(--np-fundo, none) center right / cover no-repeat, var(--v2-fundo);
+}
+.v2-hero-fundo:not(#_)::before, .v2-hero-fundo:not(#_)::after { display: none; }
+@media (max-width: 760px) { .v2-hero-fundo:not(#_) { background-position: 0 0, 0 0, 70% center, 0 0; } }
+
+/* diretório público de times: a arte atrás do topo, apagando para o fundo */
+.times-page.tm { position: relative; isolation: isolate; }
+.times-page.tm::before { content: ''; position: absolute; z-index: -1; inset: 0 0 auto 0; height: 420px; pointer-events: none; background: var(--np-fundo, none) center right / cover no-repeat; -webkit-mask-image: linear-gradient(180deg, #000 0, #000 45%, transparent 100%); mask-image: linear-gradient(180deg, #000 0, #000 45%, transparent 100%); opacity: .9; }
+
+/* Pick & Ban: a arte na área do veto */
+.app:has(> .np-conteudo), .app { position: relative; }
+.main:has(.veto), .app .main { position: relative; isolation: isolate; }
+.app .main::before { content: ''; position: absolute; z-index: -1; inset: 0 0 auto 0; height: min(100%, 720px); pointer-events: none; background: linear-gradient(180deg, rgb(1 7 15 / .4), rgb(1 7 15 / .85)), var(--np-fundo, none) center bottom / cover no-repeat; opacity: .9; }
+
+/* ══════════════ Sidebar: acabamento da referência (01-inicio.png) ══════════════
+   Logo grande com "NEURA PROJECT" em tracking largo; itens de 50 px a cada 56; ativo como pílula azul arredondada (sem barra lateral);
+   o agente do rodapé vira só um detalhe atmosférico (opacidade baixa, sem contorno, fade escuro). */
+@media (min-width: 1025px) {
+  html:not(#v2) .nx-nav.nx-aberta .nx-brand { margin: 0 0 34px 10px; gap: 6px; }
+  html:not(#v2) .nx-nav.nx-aberta .nx-brand img { width: 70px; height: 56px; }
+  html:not(#v2) .nx-nav.nx-aberta .nx-brand > span { font: 800 26px/1 var(--font-display); letter-spacing: .2em; margin-right: -.2em; }
+  html:not(#v2) .nx-nav.nx-aberta .nx-brand .nx-outline { font: 600 10px/1 var(--font-body); letter-spacing: .7em; margin-left: .7em; color: #c9d3e1; }
+  html:not(#v2) .nx-nav.nx-aberta .nx-links .nx-link { margin-left: 10px; width: calc(100% - 10px); padding: 0 12px 0 16px; border: 1px solid transparent; border-radius: 8px; font: 500 16px var(--font-body); }
+  html:not(#v2) .nx-nav.nx-aberta .nx-links .nx-link :is(.nx-icone, svg) { width: 26px; height: 26px; }
+  html:not(#v2) .nx-nav .nx-links .nx-link.is-active { background: linear-gradient(180deg, rgb(16 106 252 / .24), rgb(16 106 252 / .14)); border-color: rgb(70 130 230 / .5); font-weight: 600; }
+  html:not(#v2) .nx-nav .nx-links .nx-link.is-active::after { display: none; }
+  html:not(#v2) .nx-nav .nx-links .nx-link.is-active :is(.nx-icone, svg) { color: #3d8bff; }
+  /* agente: detalhe atmosférico */
+  html:not(#v2) .nx-nav::before { opacity: .22; filter: brightness(.7) contrast(.8) saturate(.6); background-position: 100% 100%; -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 45%, #000 85%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 45%, #000 85%, transparent 100%); }
+  html:not(#v2) .nx-nav::after { background: linear-gradient(180deg, #020d18 0%, rgb(2 13 24 / .6) 50%, rgb(2 13 24 / .35) 100%); }
+}
+
+/* ══════════════ Revisão V3: menu 248 · barra de cima 76 · escurecimento ══════════════
+   Tudo parte dos tokens do topo do arquivo (--sidebar-width, --topbar-height, --content-*). O corpo da página, a barra fixa, os painéis
+   que abrem dela e o "ambiente" sazonal já leem --nx-lateral e --v2-topo, que agora vêm desses tokens. */
+@media (max-width: 1024px) { :root { --v2-topo: 60px; } }
+@media (min-width: 1025px) and (max-width: 1279px) { :root { --sidebar-width: 224px; --content-gutter: 24px; } }
+@media (min-width: 1025px) {
+  html:not(#v2) body { background-color: var(--np-background); }
+  html:not(#v2) .nx-nav, html:not(#v2) .nx-nav.is-scrolled, html[data-tema]:not(#v2) .nx-nav { background: linear-gradient(180deg, var(--np-sidebar) 0%, #040c14 60%, var(--np-sidebar) 100%); }
+  #root .nx-nav:not(#_) { background: linear-gradient(180deg, var(--np-sidebar) 0%, #040c14 60%, var(--np-sidebar) 100%); }
+  html:not(#v2) .nx-direita, #root .nx-direita:not(#_) { background: rgb(7 17 28 / .96); border-bottom-color: var(--np-border); }
+  html:not(#v2) .nx-nav { border-right-color: var(--np-border); }
+
+  /* marca: área maior */
+  html:not(#v2) .nx-nav .nx-nav-inner { padding: 26px 14px 16px 0; }
+  html:not(#v2) .nx-nav.nx-aberta .nx-brand { margin: 0 0 36px 14px; gap: 8px; }
+  html:not(#v2) .nx-nav.nx-aberta .nx-brand img { width: 84px; height: 66px; }
+  html:not(#v2) .nx-nav.nx-aberta .nx-brand > span { font-size: 28px; }
+  /* links: 52 px de altura, ícone 24, texto 16, vão de 6 */
+  html:not(#v2) .nx-nav .nx-links { gap: 6px; }
+  html:not(#v2) .nx-nav.nx-aberta .nx-links .nx-link { height: 52px; min-height: 52px; margin-left: 14px; width: calc(100% - 14px); padding: 0 14px 0 18px; gap: 16px; border-radius: 10px; font-size: 16px; transition: background-color var(--np-transicao), color var(--np-transicao), border-color var(--np-transicao); }
+  html:not(#v2) .nx-nav.nx-aberta .nx-links .nx-link :is(.nx-icone, svg) { width: 24px; height: 24px; }
+  html:not(#v2) .nx-nav .nx-links .nx-link.is-active { background: linear-gradient(180deg, rgb(52 120 246 / .26), rgb(52 120 246 / .12)); border-color: rgb(83 136 220 / .5); box-shadow: 0 0 18px -6px rgb(52 120 246 / .55), inset 0 1px 0 rgb(255 255 255 / .05); }
+  html:not(#v2) .nx-nav:not(.nx-aberta) .nx-links .nx-link { width: 54px; height: 52px; }
+  html:not(#v2) .nx-nav .nx-links-sep { margin: 14px 14px 14px 28px; }
+  html:not(#v2) .nx-nav .np-sidebar-fim { margin: 22px 14px 0 28px; }
+  html:not(#v2) .nx-nav.nx-aberta .np-sidebar-fim a { min-height: 48px; gap: 16px; font-size: 15px; }
+  html:not(#v2) .nx-nav .np-sidebar-fim svg { width: 24px; height: 24px; }
+  html:not(#v2) .nx-nav .np-sidebar-rodape { padding: 18px 0 0 26px; }
+  html:not(#v2) .nx-nav .np-sidebar-rodape .nx-config-btn { height: 44px; font-size: 14px; }
+
+  /* agente da decoração: escurecido por camada própria (opacidade + máscara + véu), atrás dos links, sem filter no menu inteiro */
+  html:not(#v2) .nx-nav::before { opacity: .2; filter: brightness(.65) saturate(.5); }
+  html:not(#v2) .nx-nav::after { background: linear-gradient(180deg, var(--np-sidebar) 0%, rgb(6 16 26 / .62) 50%, rgb(6 16 26 / .38) 100%); }
+
+  /* barra de cima: 76 px, tudo centralizado na vertical, botões ≥ 44, vão de 18 */
+  html:not(#v2) .nx-direita { gap: 18px; padding: 0 var(--content-gutter) 0 calc(var(--content-gutter) + 4px); align-items: center; }
+  html:not(#v2) .nx-direita :is(.nx-btn, .nx-config-btn) { width: 46px; height: 46px; border-radius: 10px; transition: background-color var(--np-transicao), color var(--np-transicao); }
+  html:not(#v2) .nx-direita > .nx-conta { margin-left: 8px; padding-left: 22px; display: flex; align-items: center; }
+  html:not(#v2) .nx-direita .nx-conta-btn { height: 54px; padding: 0 10px 0 6px; column-gap: 12px; border-radius: 10px; }
+  html:not(#v2) .nx-direita .nx-conta-btn :is(img, .nx-conta-ini) { width: 42px; height: 42px; }
+  html:not(#v2) .nx-direita .nx-conta-btn .nx-conta-nome.nx-dica { font-size: 15px; max-width: 170px; }
+  .nx-conta-nivel { font-size: 11.5px; }
+  .nx-conta-nivel i { width: 54px; height: 6px; }
+  html:not(#v2) .nx-direita .np-trilha li { font-size: 15px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:not(#v2) .nx-nav *, html:not(#v2) .nx-direita *, .v2-hero-inicio *, .pd-faixa *, .v2-dest * { transition: none !important; animation: none !important; }
+}
+/* menu: cabe em 992 px de altura (logo, vãos e pé mais enxutos) */
+@media (min-width: 1025px) {
+  html:not(#v2) .nx-nav .nx-nav-inner { padding-top: 20px; }
+  html:not(#v2) .nx-nav.nx-aberta .nx-brand { margin-bottom: 24px; gap: 6px; }
+  html:not(#v2) .nx-nav.nx-aberta .nx-brand img { width: 74px; height: 58px; }
+  html:not(#v2) .nx-nav.nx-aberta .nx-brand > span { font-size: 26px; }
+  html:not(#v2) .nx-nav.nx-aberta .nx-links .nx-link { height: 50px; min-height: 50px; }
+  html:not(#v2) .nx-nav .nx-links { gap: 4px; }
+  html:not(#v2) .nx-nav .nx-links-sep { margin-block: 10px; }
+  html:not(#v2) .nx-nav .np-sidebar-fim { margin-top: 14px; padding-top: 14px; }
+  html:not(#v2) .nx-nav.nx-aberta .np-sidebar-fim a { min-height: 44px; }
+  html:not(#v2) .nx-nav .np-sidebar-rodape { padding-top: 12px; }
+}
+/* Conta no topo: espaço para a arte da moldura, sem recorte nem indicador online. */
+html:not(#v2) .nx-conta-btn::after { content: none; display: none; }
+.nx-conta-btn .nx-conta-avatar { position: relative; display: inline-flex; justify-content: center; align-items: center; width: 48px; height: 48px; overflow: visible; flex: none; }
+html:not(#v2) .nx-conta-btn .nx-conta-avatar > :is(.moldura-box, .emblema-box) { width: 30px; height: 30px; margin: 0 !important; }
+html:not(#v2) .nx-conta-btn .nx-conta-avatar > :is(img, .nx-conta-ini) { width: 34px; height: 34px; object-fit: cover; }
+html:not(#v2) .nx-conta-btn .nx-conta-avatar :is(.moldura-box, .emblema-box) > :is(img, .nx-conta-ini) { width: 100%; height: 100%; object-fit: cover; }
+.nx-conta-nivel i::after { background: var(--cor-nivel-conta, #5b616d); }
+@media (min-width: 1025px) { html:not(#v2) .nx-direita .nx-conta-btn { grid-template-columns: 48px auto auto; column-gap: 10px; padding-left: 0; } }
+@media (max-width: 1024px) {
+ .nx-conta-btn .nx-conta-avatar { width: 34px; height: 34px; }
+ html:not(#v2) .nx-conta-btn .nx-conta-avatar > :is(.moldura-box, .emblema-box) { width: 23px; height: 23px; }
+ html:not(#v2) .nx-conta-btn .nx-conta-avatar > :is(img, .nx-conta-ini) { width: 28px; height: 28px; }
+}
+/* Navegação lateral: proporções da referência, agente legível no rodapé e foco sem contorno permanente. */
+@media (min-width: 1025px) {
+ html:not(#v2) .nx-nav.nx-aberta { --sidebar-width: 178px; }
+ html:not(#v2) .nx-nav .nx-nav-inner { padding: 26px 8px 16px 0; }
+ html:not(#v2) .nx-nav.nx-aberta .nx-brand { gap: 5px; margin: 0 0 34px 8px; }
+ html:not(#v2) .nx-nav.nx-aberta .nx-brand img { width: 64px; height: 50px; filter: none; }
+ html:not(#v2) .nx-nav.nx-aberta .nx-brand > span { font-size: 21px; }
+ html:not(#v2) .nx-nav.nx-aberta .nx-links .nx-link { margin-left: 10px; width: calc(100% - 10px); padding: 0 14px; height: 50px; min-height: 50px; gap: 16px; font-size: 14px; border: 0; border-radius: 5px; box-shadow: none; }
+ html:not(#v2) .nx-nav .nx-links .nx-link.is-active { border: 0; background: linear-gradient(90deg, #082c57, #06182e); box-shadow: none; }
+ html:not(#v2) .nx-nav .nx-links .nx-link.is-active::after { left: -10px; width: 3px; box-shadow: none; }
+ html:not(#v2) .nx-nav.nx-aberta::before { height: 36dvh; max-height: 360px; bottom: 56px; background-size: auto 100%; background-position: center bottom; opacity: .55; filter: none; mask-image: linear-gradient(180deg, transparent 0%, #000 35%, #000 85%, transparent 100%); }
+ html:not(#v2) .nx-nav.nx-aberta::after { height: 36dvh; bottom: 56px; background: linear-gradient(180deg, #06101a, rgb(6 16 26 / .1) 45%, rgb(6 16 26 / .25)); }
+ html:not(#v2) .nx-nav .np-sidebar-fim { margin: 24px 16px 0 24px; padding-top: 24px; }
+ html:not(#v2) .nx-nav.nx-aberta .np-sidebar-fim a { min-height: 48px; gap: 14px; font-size: 13px; }
+ html:not(#v2) .nx-nav .np-sidebar-rodape { margin-top: auto; padding: 12px 0 0 16px; }
+ html:not(#v2) .nx-nav .np-sidebar-rodape .np-menu-alternar { flex-basis: 100%; justify-content: end; padding-right: 10px; height: 30px; }
+ html:not(#v2) .nx-nav:not(.nx-aberta) .np-sidebar-rodape .np-menu-alternar { flex-basis: auto; padding: 0; justify-content: center; }
+}
+@media (min-width: 1025px) {
+ html:not(#v2) .nx-nav.nx-aberta::before { opacity: .38; }
+ html:not(#v2) .nx-nav.nx-aberta .np-sidebar-rodape { padding-right: 4px; gap: 4px; }
+ html:not(#v2) .nx-nav.nx-aberta .np-sidebar-rodape .nx-config:not(.nx-som) { flex: 1; min-width: 0; }
+ html:not(#v2) .nx-nav.nx-aberta .np-sidebar-rodape .nx-config-btn { gap: 8px; padding-inline: 0; font-size: 12px; }
+ html:not(#v2) .nx-nav.nx-aberta .np-sidebar-rodape .nx-som .nx-config-btn { width: 28px; min-width: 28px; }
+}
+@media (min-width: 1025px) {
+ html:not(#v2) .nx-nav .nx-links { gap: 4px; }
+ html:not(#v2) .nx-nav .np-sidebar-fim { margin-top: 18px; padding-top: 18px; }
+}
+/* Navegação ampliada, sem rolagem; utilidades e pesquisa na barra superior. */
+@media (min-width: 1025px) {
+ :root, html:has(.np-inicio) { --sidebar-width: 224px; }
+ html:not(#v2) #root .nx-nav.nx-aberta { --sidebar-width: 224px; }
+ html:not(#v2) #root .nx-nav { overflow: hidden; }
+ html:not(#v2) #root .nx-nav .nx-nav-inner { height: 100dvh; min-height: 0; box-sizing: border-box; padding: 22px 10px 12px 0; }
+ html:not(#v2) #root .nx-nav.nx-aberta .nx-brand { flex: none; margin-bottom: 24px; }
+ html:not(#v2) #root .nx-nav .nx-links { flex: 0 1 auto; gap: clamp(2px, .4dvh, 4px); }
+ html:not(#v2) #root .nx-nav.nx-aberta .nx-links .nx-link { min-height: clamp(28px, 5dvh, 48px); height: clamp(28px, 5dvh, 48px); flex-shrink: 0; font-size: 14px; }
+ html:not(#v2) #root .nx-nav .nx-links-sep { margin-block: 6px; flex: none; }
+ html:not(#v2) #root .nx-nav .np-sidebar-fim { flex: none; margin-top: 14px; padding-top: 14px; }
+ html:not(#v2) #root .nx-nav.nx-aberta .np-sidebar-fim a { min-height: clamp(28px, 4.4dvh, 44px); }
+ html:not(#v2) #root .nx-nav .np-sidebar-rodape { flex: none; margin-top: auto; padding: 6px 0 0 16px; }
+ html:not(#v2) #root .nx-nav .np-sidebar-rodape .np-menu-alternar { height: 30px; min-height: 30px; }
+ .np-topo-pesquisa { position: relative; order: -1; flex: none; }
+ .np-busca-painel { position: absolute; top: calc(100% + 8px); right: 0; width: 340px; max-width: calc(100vw - var(--nx-lateral) - 32px); padding: 16px; border: 1px solid var(--v2-borda-forte); border-radius: 10px; background: #061320; box-shadow: 0 18px 48px rgb(0 0 0 / .45); color: var(--v2-texto); }
+ .np-busca-painel header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+ .np-busca-painel header button { display: grid; place-items: center; width: 32px; height: 32px; background: transparent; border: 0; color: var(--v2-texto-2); cursor: pointer; }
+ .np-busca-campo { display: flex; gap: 10px; align-items: center; padding: 10px; border: 1px solid var(--v2-borda-forte); border-radius: 6px; }
+ .np-busca-campo input { width: 100%; min-width: 0; border: 0; background: transparent; color: inherit; font: inherit; outline-offset: 4px; }
+ .np-busca-painel nav { display: grid; gap: 4px; margin-top: 12px; }
+ .np-busca-painel nav a { display: flex; align-items: center; justify-content: space-between; min-height: 38px; padding: 8px; border-radius: 5px; color: inherit; text-decoration: none; }
+ .np-busca-painel nav a:hover { background: var(--v2-primaria-suave); }
+}
+@media (min-width: 1025px) and (max-height: 720px) {
+ html:not(#v2) #root .nx-nav .nx-nav-inner { padding-top: 12px; }
+ html:not(#v2) #root .nx-nav.nx-aberta .nx-brand { margin-bottom: 14px; gap: 2px; }
+ html:not(#v2) #root .nx-nav.nx-aberta .nx-brand img { height: 40px; }
+ html:not(#v2) #root .nx-nav.nx-aberta .nx-brand > span { font-size: 18px; }
+ html:not(#v2) #root .nx-nav .np-sidebar-titulo { padding-bottom: 6px; }
+ html:not(#v2) #root .nx-nav .np-sidebar-fim { margin-top: 8px; padding-top: 8px; }
+}
+/* Menu recolhido: todos os alvos compartilham a mesma coluna central. */
+@media (min-width: 1025px) {
+ html:not(#v2) #root .nx-nav:not(.nx-aberta) .nx-nav-inner { padding: 18px 0 12px; align-items: center; }
+ html:not(#v2) #root .nx-nav:not(.nx-aberta) .nx-brand { width: 44px; margin: 0 auto 18px; padding: 0; justify-content: center; }
+ html:not(#v2) #root .nx-nav:not(.nx-aberta) .nx-brand img { width: 36px; height: 36px; }
+ html:not(#v2) #root .nx-nav:not(.nx-aberta) .np-sidebar-reduzida { width: 44px; margin: 0 auto 12px; }
+ html:not(#v2) #root .nx-nav:not(.nx-aberta) .nx-links { width: 100%; align-items: center; }
+ html:not(#v2) #root .nx-nav:not(.nx-aberta) .nx-links .nx-link { display: flex; justify-content: center; align-items: center; width: 44px; height: clamp(28px, 4.8dvh, 44px); min-height: clamp(28px, 4.8dvh, 44px); margin: 0 auto; padding: 0; gap: 0; }
+ html:not(#v2) #root .nx-nav:not(.nx-aberta) .nx-links .nx-links-sep { width: 28px; margin: 6px auto; }
+ html:not(#v2) #root .nx-nav:not(.nx-aberta) .np-sidebar-fim { width: 44px; margin: 10px auto 0; padding: 10px 0 0; }
+ html:not(#v2) #root .nx-nav:not(.nx-aberta) .np-sidebar-fim a { width: 44px; height: 44px; padding: 0; margin: 0; justify-content: center; }
+ html:not(#v2) #root .nx-nav:not(.nx-aberta) .np-sidebar-rodape { width: 44px; padding: 6px 0 0; margin: auto auto 0; align-items: center; }
+ html:not(#v2) #root .nx-nav:not(.nx-aberta) .np-menu-alternar { width: 44px; padding: 0; margin: 0; display: grid; place-items: center; }
+ /* Seleção de rota e foco de teclado são estados separados. */
+ html:not(#v2) #root .nx-nav .nx-link { position: relative; border-radius: 6px; }
+ html:not(#v2) #root .nx-nav .nx-link:is(:hover, :focus-visible) { background: #0a2136; }
+ html:not(#v2) #root .nx-nav .nx-link.is-active { background: #082744; color: #58a6ff; border: 0; box-shadow: none; }
+ html:not(#v2) #root .nx-nav .nx-link::before, html:not(#v2) #root .nx-nav .nx-link::after { content: none; }
+ html:not(#v2) #root .nx-nav .nx-link:focus:not(:focus-visible) { outline: none; }
+}
+html:not(#v2) .np-busca-campo:focus-within { border-color: #58a6ff; box-shadow: 0 0 0 2px rgb(88 166 255 / .16); }
+html:not(#v2) .np-busca-campo input:is(:focus, :focus-visible) { outline: none; box-shadow: none; border: 0; border-radius: 0; }
+html:not(#v2) .nx-btn:focus:not(:focus-visible), html:not(#v2) .nx-config-btn:focus:not(:focus-visible) { outline: none; }

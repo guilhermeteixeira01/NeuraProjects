@@ -1,4 +1,5 @@
 import './superficies.css'
+import './avatares.css'
 import { Suspense, lazy, useEffect, useRef } from 'react'
 import { useFundoMobile } from './fundoMobile.js'
 import Avisos from './Avisos.jsx'
@@ -11,7 +12,6 @@ import { AvisoTroca } from './Trocas.jsx'
 import AvisoPontos from './AvisoPontos.jsx'
 import { useLuzCursor } from './efeitos.jsx'
 import Nav from './Nav.jsx'
-import BannerEvento from './BannerEvento.jsx'
 import RodapeComunidade from '../paginas/inicio/RodapeComunidade.jsx'
 import { useSeguranca } from './seguranca.js'
 import { SincronizarPreferencias } from './preferencias.js'
@@ -77,7 +77,7 @@ export function useRevelar(seletor = '.reveal', classe = 'is-visible', opcoes = 
 }
 
 // Estrutura de toda página: menu, conteúdo e avisos de novidade (o site não tem mais rodapé)
-export default function Layout({ pagina, children }) {
+export default function Layout({ pagina, trilha, children }) {
   const conteudo = useRef(null)
   useFundoMobile(conteudo)
   useRevelar()
@@ -127,12 +127,11 @@ export default function Layout({ pagina, children }) {
         <defs><mask id="np-moldura-nav-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%"><rect width="100%" height="100%" fill="white"/><rect className="np-moldura-recorte" rx="16" fill="black"/></mask></defs>
         <foreignObject width="100%" height="100%" mask="url(#np-moldura-nav-mask)"><div className="np-moldura-fundo"/></foreignObject>
       </svg>
-      <Nav pagina={pagina} />
+      <Nav pagina={pagina} trilha={trilha} />
       <div className="np-conteudo" ref={conteudo}>
-        {pagina === 'inicio' && <BannerEvento />}
         <PortaoBoasVindas />
         {children}
-        <RodapeComunidade />
+        {pagina !== 'lobby' && <RodapeComunidade />}
       </div>
       <Avisos />
       <AvisoConvite />

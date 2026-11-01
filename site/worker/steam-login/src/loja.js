@@ -748,6 +748,7 @@ export class Loja {
     const ids = [...new Set(Array.isArray(p.ids) ? p.ids.map(String) : [])].slice(0, 100)
     if (!ids.length) throw new ErroPedido('item')
     const inv = await this.invOuVazio(id)
+    if (ids.some(k => inv.itens[k]?.cadeado)) throw new ErroConflito('item-trancado')
     let total = 0
     for (const k of ids) {
       const x = inv.itens[k] && valorDe(inv.itens[k])

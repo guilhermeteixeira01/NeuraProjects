@@ -1,0 +1,324 @@
+/* Inventário no visual v2. Medidas da referência (design/reference/Neura Project CS2 Inventory Showcase-4.png, 1586×992):
+   topo de ~174 px com título, subtítulo e contagem; embaixo, à esquerda a barra (busca, Trocas, Selecionar, ordem), as abas e a
+   grade de cards (6 por linha, ~160×256); à direita o painel de inspeção (~332 px). Vem depois de comum/neura-v2.css. */
+
+/* ── topo ── */
+#root .inv-pagina .inv-v2-topo { min-height: 174px; padding: 26px 0 22px; border-bottom: 0; }
+#root .inv-pagina .inv-v2-topo .v2-cena-fundo { object-position: 60% 42%; }
+#root .inv-pagina .inv-v2-topo::after { background: linear-gradient(90deg, rgb(1 7 15 / .92) 0%, rgb(1 7 15 / .62) 34%, rgb(1 7 15 / .1) 60%, rgb(1 7 15 / .3) 100%), linear-gradient(0deg, var(--v2-fundo) 0%, transparent 35%); }
+#root .inv-pagina .inv-v2-topo .v2-topo-arte { right: 30%; height: 128%; max-width: 40%; bottom: -14%; }
+#root .inv-pagina .inv-v2-topo > .wrap { max-width: none; padding-inline: 40px 28px; }
+#root .inv-pagina .inv-v2-topo h1 { font: 800 46px/1.05 var(--font-display); letter-spacing: -.02em; }
+#root .inv-pagina .inv-v2-topo .v2-titulo p { margin-top: 6px; font-size: 18px; color: #d3dbe6; }
+.inv-v2-total { display: flex; align-items: center; gap: 14px; margin: 18px 0 0 !important; color: #f4f7fc !important; }
+.inv-v2-total svg { color: #3d8bff; width: 30px; height: 30px; }
+.inv-v2-total b { font: 750 21px var(--font-display); }
+
+/* ── grade principal: lista + painel ── */
+#root .inv-pagina .inv-wrap { max-width: none; padding: 16px 22px 28px 24px; }
+.inv-v2 { display: grid; grid-template-columns: minmax(0, 1fr) 332px; gap: 22px; align-items: start; }
+.inv-v2-lista { min-width: 0; }
+
+/* barra: busca larga + botões soltos */
+#root .inv-pagina .inv-barra { display: flex; align-items: center; gap: 18px; padding: 0; margin: 0 0 18px; border: 0; background: transparent; box-shadow: none; }
+#root .inv-pagina .inv-pesquisa { flex: 0 1 470px; display: flex; align-items: center; gap: 14px; height: 46px; padding: 0 16px; border: 1px solid rgb(37 68 98 / .95); border-radius: 7px; background: #030e1a; color: #c9d3e1; }
+#root .inv-pagina .inv-pesquisa input { flex: 1; min-width: 0; height: 100%; border: 0; background: transparent; color: #f4f7fc; font: 400 15px var(--font-body); }
+#root .inv-pagina .inv-pesquisa input::placeholder { color: #a8b5c7; }
+#root .inv-pagina .inv-pesquisa:focus-within { border-color: #3d8bff; }
+#root .inv-pagina .inv-pesquisa input:focus-visible { outline: 0; }
+#root .inv-pagina .inv-barra :is(.inv-btn, .tr-btn, button) { display: inline-flex; align-items: center; justify-content: center; gap: 12px; height: 46px; min-height: 46px; padding: 0 24px; border: 1px solid rgb(37 68 98 / .95); border-radius: 7px; background: #030e1a; color: #f4f7fc; font: 600 14.5px var(--font-body); }
+#root .inv-pagina .inv-barra :is(.inv-btn, .tr-btn, button):hover { border-color: #3d8bff; }
+#root .inv-pagina .inv-barra .inv-btn-sel.is-ativo { border-color: #3d8bff; background: rgb(52 120 246 / .16); }
+.inv-ordem-caixa { position: relative; display: inline-flex; align-items: center; gap: 12px; height: 46px; min-width: 205px; padding: 0 44px 0 16px; border: 1px solid rgb(37 68 98 / .95); border-radius: 7px; background: #030e1a; color: #f4f7fc; }
+.inv-ordem-caixa:focus-within { border-color: #3d8bff; }
+#root .inv-pagina .inv-ordem-caixa .inv-ordem { position: absolute; inset: 0; width: 100%; padding: 0 44px 0 46px; border: 0; background: transparent; color: #f4f7fc; font: 600 14.5px var(--font-body); appearance: none; -webkit-appearance: none; cursor: pointer; }
+.inv-ordem-caixa .inv-ordem option { background: #030e1a; color: #f4f7fc; }
+.inv-ordem-seta { position: absolute; right: 16px; pointer-events: none; }
+
+/* abas */
+#root .inv-pagina .inv-topo { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 0 18px; padding: 0; border: 0; border-bottom: 1px solid rgb(37 68 98 / .6); background: transparent; }
+#root .inv-pagina .inv-abas { display: flex; gap: 6px; border: 0; overflow-x: auto; scrollbar-width: none; }
+#root .inv-pagina .inv-abas button { height: 46px; padding: 0 22px; border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: transparent; color: #d3dbe6; font: 500 15px var(--font-body); letter-spacing: 0; text-transform: none; text-shadow: none; white-space: nowrap; }
+#root .inv-pagina .inv-abas button:hover { color: #fff; }
+#root .inv-pagina .inv-abas button.is-ativo:not(#_) { color: #3d8bff; border-bottom-color: #3d8bff; font-weight: 700; text-shadow: none; }
+#root .inv-pagina .inv-estado { font-size: 12.5px; color: #a8b5c7; white-space: nowrap; }
+
+/* filtro de raridade: discreto, embaixo das abas */
+#root .inv-pagina .inv-rar { gap: 8px; margin: 0 0 16px; }
+#root .inv-pagina .inv-rar button { min-height: 30px; padding: 0 12px; border-radius: 999px; border-color: rgb(37 68 98 / .95); background: #030e1a; font-size: 12.5px; }
+#root .inv-pagina .inv-rar button.is-ativo { border-color: #3d8bff; background: rgb(52 120 246 / .16); }
+
+/* ── cards ── */
+#root .inv-pagina .inv-itens { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 0; padding: 0; }
+#root .inv-pagina .inv-itens > li { min-width: 0; }
+#root .inv-pagina .inv-cartao:not(#_) {
+  position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; min-height: 256px; padding: 0; overflow: hidden; text-align: left;
+  border: 1px solid color-mix(in srgb, var(--cor) 62%, transparent); border-radius: 7px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--cor) 9%, #06121f) 0%, #030e1a 62%); box-shadow: none; transform: none;
+}
+#root .inv-pagina .inv-cartao:not(#_):hover { border-color: color-mix(in srgb, var(--cor) 90%, #fff 10%); }
+#root .inv-pagina .inv-cartao.inv-cartao-ativo:not(#_) { border: 2px solid #3d8bff; box-shadow: 0 0 0 1px rgb(52 120 246 / .35), 0 0 22px -4px rgb(52 120 246 / .8); background: linear-gradient(180deg, #13284a 0%, #0f1d36 70%); }
+#root .inv-pagina .inv-cartao.inv-cartao-sel:not(#_) { border: 2px solid #29d89c; }
+#root .inv-pagina .inv-cartao:not(#_) .inv-cartao-arte { position: relative; height: 128px; flex: none; padding: 10px 10px 0; background: none; box-shadow: none; border: 0; }
+#root .inv-pagina .inv-cartao:not(#_) .inv-cartao-arte::before { content: none; }
+#root .inv-pagina .inv-cartao:not(#_) .inv-cartao-arte::after { display: none; }
+#root .inv-pagina .inv-cartao .inv-arma-box { display: grid; place-items: center; width: 100%; height: 100%; }
+#root .inv-pagina .inv-cartao .inv-arma-img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 12px rgb(0 0 0 / .55)); }
+#root .inv-pagina .inv-cartao:not(#_) .inv-cartao-nome { display: grid; align-content: start; gap: 2px; flex: 1; padding: 10px 12px 12px; border: 0; background: none; }
+#root .inv-pagina .inv-cartao .inv-cartao-nome b { color: #f4f7fc; font: 700 13.5px/1.25 var(--font-body); white-space: normal; }
+#root .inv-pagina .inv-cartao .inv-cartao-nome small { color: #f4f7fc; font: 700 13.5px/1.25 var(--font-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#root .inv-pagina .inv-cartao .inv-cartao-nome em { margin-top: 4px; color: #a8b5c7; font: 400 12.5px var(--font-body); font-style: normal; }
+#root .inv-pagina .inv-cartao .inv-cartao-valor { display: inline-flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 8px; color: #3d8bff; font: 750 15.5px var(--font-display); }
+#root .inv-pagina .inv-cartao .inv-cartao-valor img { width: 20px; height: 20px; }
+#root .inv-pagina .inv-cartao .inv-st { top: 8px; left: 8px; }
+/* selo da raridade (cartões e painel) */
+.inv-rar-selo { justify-self: start; display: inline-block; margin-bottom: 6px; padding: 2px 7px; border: 1px solid color-mix(in srgb, var(--cor) 80%, transparent); border-radius: 4px; background: color-mix(in srgb, var(--cor) 22%, transparent); color: color-mix(in srgb, var(--cor) 55%, #fff); font: 600 10.5px/1.3 var(--font-body); white-space: nowrap; }
+#root .inv-pagina .inv-abrir-caixa { margin-top: 6px; width: 100%; }
+
+/* ── painel de inspeção ── */
+.inv-painel-v2 { position: sticky; top: calc(var(--v2-topo) + 14px); display: flex; flex-direction: column; gap: 0; max-height: calc(100dvh - var(--v2-topo) - 28px); overflow: auto; padding: 18px 20px 20px; border: 1px solid rgb(37 68 98 / .95); border-radius: 10px; background: linear-gradient(180deg, #06121f, #030e1a); scrollbar-width: thin; }
+.inv-painel-cab { display: grid; justify-items: start; gap: 4px; }
+.inv-painel-cab h2 { display: grid; margin: 6px 0 0; color: #f4f7fc; font: 750 20px/1.25 var(--font-display); letter-spacing: -.005em; text-transform: none; }
+.inv-painel-cab h2 em { font-style: normal; font-size: 25px; color: #3d8bff; }
+.inv-painel-cab small { color: #c9d3e1; font-size: 13.5px; }
+.inv-painel-arte { position: relative; display: grid; place-items: center; height: 250px; margin: 10px -20px 6px; background: radial-gradient(60% 60% at 50% 55%, color-mix(in srgb, var(--cor) 22%, transparent), transparent 72%), var(--inv-painel-fundo) 70% 40% / cover no-repeat; isolation: isolate; }
+.inv-painel-arte::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, #06121f 0%, rgb(14 23 39 / .55) 30%, rgb(11 19 32 / .7) 70%, #030e1a 100%); }
+.inv-painel-arte::after { content: ''; position: absolute; inset: 0; width: 100%; height: 100%; transform: none; z-index: -1; background: url('/assets/logos/android-chrome-192x192.png') center / 52% auto no-repeat; opacity: .12; pointer-events: none; }
+.inv-painel-arte img { width: 92%; height: 92%; object-fit: contain; filter: drop-shadow(0 16px 22px rgb(0 0 0 / .65)); }
+.inv-painel-float { display: grid; gap: 10px; padding: 12px 0 4px; }
+.inv-painel-float-cab { display: flex; justify-content: space-between; color: #f4f7fc; font-size: 14.5px; }
+.inv-painel-float-cab b { font: 700 16px var(--font-display); }
+.inv-float-barra { position: relative; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #29d89c 0%, #9be15d 25%, #f2c55c 50%, #f08a3c 72%, #ef4b5d 100%); }
+.inv-float-barra i { position: absolute; top: 50%; width: 16px; height: 16px; transform: translate(-50%, -50%); border-radius: 50%; background: #fff; box-shadow: 0 0 0 3px rgb(11 19 32 / .9); }
+.inv-painel-dados { display: grid; gap: 0; margin: 10px 0 18px; }
+.inv-painel-dados > div { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid rgb(37 68 98 / .6); }
+.inv-painel-dados dt { color: #c9d3e1; font-size: 14px; }
+.inv-painel-dados dd { margin: 0; color: #f4f7fc; font: 600 14px var(--font-body); text-align: right; }
+.inv-painel-valor { display: inline-flex; align-items: center; gap: 6px; color: #3d8bff !important; }
+.inv-painel-acoes { display: grid; gap: 12px; margin-top: auto; }
+.inv-painel-acoes .v2-btn { width: 100%; height: 48px; min-height: 48px; border-radius: 7px; font: 650 15px var(--font-body); }
+.inv-painel-acoes .v2-btn-secundario { border: 1px solid #5b9bff; background: transparent; }
+.inv-painel-mais { display: flex; justify-content: center; gap: 8px; }
+.inv-painel-mais button { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #a8b5c7; font: 500 13px var(--font-body); cursor: pointer; }
+.inv-painel-mais button:hover { background: var(--v2-sup-3); color: #fff; }
+.inv-painel-vazio { align-items: center; justify-content: center; gap: 10px; min-height: 420px; color: #a8b5c7; text-align: center; }
+.inv-painel-vazio b { color: #f4f7fc; }
+.inv-painel-fechar { position: absolute; top: 12px; right: 12px; display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid var(--v2-borda-forte); border-radius: 8px; background: #030e1a; color: #f4f7fc; cursor: pointer; }
+/* o menu "Mais ações" e as janelas ficam por cima do painel/gaveta */
+#root .inv-pagina ~ * .inv-menu, .inv-menu { z-index: 520; }
+
+/* ── telas menores ── */
+@media (max-width: 1280px) {
+  .inv-v2 { grid-template-columns: minmax(0, 1fr) 300px; }
+  #root .inv-pagina .inv-barra { flex-wrap: wrap; }
+  #root .inv-pagina .inv-pesquisa { flex: 1 1 100%; }
+}
+/* celular e tablet: o painel vira gaveta de baixo (abre ao tocar num item) */
+@media (max-width: 1024px) {
+  .inv-v2 { grid-template-columns: minmax(0, 1fr); }
+  .inv-painel-v2 { position: fixed; inset: auto 0 0 0; z-index: 510; max-height: 86dvh; border-radius: 16px 16px 0 0; transform: translateY(105%); visibility: hidden; transition: transform .25s ease, visibility .25s; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
+  .inv-painel-v2.aberto { transform: none; visibility: visible; }
+  .inv-painel-vazio { display: none; }
+  .inv-gaveta-fundo { position: fixed; inset: 0; z-index: 505; background: rgb(0 0 0 / .55); }
+  #root .inv-pagina .inv-v2-topo > .wrap { padding-inline: 16px; }
+  #root .inv-pagina .inv-wrap { padding: 14px 16px 90px; }
+  #root .inv-pagina .inv-barra { gap: 10px; }
+  #root .inv-pagina .inv-barra :is(.inv-btn, .tr-btn, button) { padding: 0 14px; }
+  .inv-ordem-caixa { min-width: 0; flex: 1; }
+}
+@media (max-width: 560px) {
+  #root .inv-pagina .inv-itens { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #root .inv-pagina .inv-v2-topo h1 { font-size: 34px; }
+  #root .inv-pagina .inv-v2-topo .v2-topo-arte { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .inv-painel-v2 { transition: none; } }
+
+/* ajuste fino após comparar com a referência */
+#root .inv-pagina .inv-v2-topo { min-height: 160px; padding: 14px 0 18px; }
+#root .inv-pagina .inv-v2-topo .v2-topo-arte { right: 25%; bottom: -30%; height: 165%; max-width: 46%; }
+.inv-painel-arte { height: 205px; margin: 8px -20px 2px; }
+.inv-painel-dados { margin: 6px 0 14px; }
+.inv-painel-dados > div { padding: 7px 0; }
+.inv-painel-cab h2 { font-size: 19px; }
+.inv-painel-cab h2 em { font-size: 23px; }
+.inv-painel-acoes { gap: 10px; }
+.inv-painel-acoes .v2-btn { height: 46px; min-height: 46px; }
+#root .inv-pagina { padding-top: 0; margin-top: 0; }
+#root .inv-pagina .inv-v2-topo .v2-topo-arte { bottom: -18%; height: 140%; }
+@media (max-width: 1024px) { .inv-painel-v2.aberto { transition: transform .25s ease, visibility 0s; } }
+
+/* Cards: a raridade ilumina o topo e se dissolve na borda azul da base. */
+html body:has(.inv-pagina) { background: #010b16 !important; }
+#root .np-conteudo > main.inv-pagina { --v2-fundo: #010b16; background-color: #010b16; }
+#root .inv-pagina .inv-v2-topo { background: #010b16; }
+#root .inv-pagina .inv-v2-topo::after { background: linear-gradient(90deg, rgb(1 11 22 / .85), rgb(1 11 22 / .28) 40%, transparent 65%), linear-gradient(0deg, #010b16 0%, rgb(1 11 22 / .84) 7%, transparent 38%); }
+#root .inv-pagina .inv-cartao:not(#_) {
+  box-sizing: border-box; height: 256px; min-height: 256px; gap: 0; border: 1px solid transparent;
+  background: linear-gradient(180deg, #09121e, #030e1a) padding-box,
+    linear-gradient(180deg, var(--cor) 0%, color-mix(in srgb, var(--cor) 60%, #254462) 34%, #254462 87%) border-box;
+}
+#root .inv-pagina .inv-cartao:not(#_):hover { border-color: transparent; box-shadow: 0 0 14px color-mix(in srgb, var(--cor) 24%, transparent); }
+#root .inv-pagina .inv-cartao:not(#_) .inv-cartao-arte { isolation: isolate; transform: none; overflow: hidden; }
+#root .inv-pagina .inv-cartao:not(#_) .inv-cartao-arte::before {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  width: 100%; height: 100%; aspect-ratio: auto; transform: none; filter: none;
+  background: var(--cor); opacity: .5;
+  mask: url('/assets/neura-v2/inventory-smoke.svg') center / 150% 140% no-repeat;
+  -webkit-mask: url('/assets/neura-v2/inventory-smoke.svg') center / 150% 140% no-repeat;
+}
+#root .inv-pagina .inv-cartao:not(#_)::before { content: none; }
+#root .inv-pagina .inv-cartao:not(#_) .inv-cartao-arte::after {
+  content: ''; display: block; position: absolute; inset: 0; width: 100%; height: 100%;
+  aspect-ratio: auto; transform: none; filter: none; z-index: 0; pointer-events: none;
+  background: url('/assets/logos/android-chrome-192x192.png') center / 52% auto no-repeat; opacity: .12;
+}
+#root .inv-pagina .inv-cartao:not(#_) .inv-cartao-nome { position: relative; z-index: 1; }
+#root .inv-pagina .inv-cartao .inv-arma-box { z-index: 1; inset: 8px; width: auto; height: auto; }
+#root .inv-pagina .inv-cartao:not(#_) .inv-cartao-nome { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-height: 0; padding: 8px 10px 10px; }
+#root .inv-pagina .inv-cartao .inv-cartao-nome > * { flex-shrink: 0; max-width: 100%; }
+#root .inv-pagina .inv-cartao .inv-cartao-nome .inv-rar-selo { margin-bottom: 0; }
+#root .inv-pagina .inv-cartao .inv-cartao-nome :is(b, small) { min-height: 17px; }
+html:not(#v2) #root .inv-pagina .inv-itens { grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); }
+.inv-item-cadeado { position: absolute; top: 8px; right: 8px; z-index: 4; display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid #e2b34e; border-radius: 5px; background: #07111ce8; color: #ffd45a; }
+.inv-cartao-li { position: relative; }
+.inv-cartao-cadeado { position: absolute; top: 7px; right: 7px; z-index: 5; display: grid; place-items: center; width: 27px; height: 27px; border: 1px solid #35516c; border-radius: 5px; background: #07111cde; color: #8ea0b8; cursor: pointer; }
+.inv-cartao-cadeado:hover, .inv-cartao-cadeado.ativo { border-color: #d2ac51; color: #ffd45a; }
+.inv-cadeado-toggle { display: inline-flex; align-items: center; gap: 6px; align-self: start; margin-bottom: 8px; padding: 6px 8px; border: 1px solid #35516c; border-radius: 5px; color: #bbc9db; background: #091624; font-size: 12px; cursor: pointer; }
+.inv-cadeado-toggle.ativo { color: #ffd45a; border-color: #bc923d; }
+.inv-menu button:disabled { opacity: .4; cursor: not-allowed; }
+#root .inv-pagina .inv-barra { position: relative; }
+.inv-filtro-raridade { flex: none; }
+.inv-filtro-raridade summary { display: flex; align-items: center; justify-content: center; gap: 8px; height: 46px; padding: 0 12px; border: 1px solid #254462; border-radius: 7px; color: #d3dbe6; background: #030e1a; font-size: 13px; cursor: pointer; list-style: none; }
+.inv-filtro-raridade summary::-webkit-details-marker { display: none; }
+.inv-filtro-raridade[open] summary { border-color: #3d8bff; }
+.inv-filtro-raridade summary > i { width: 6px; height: 6px; border-radius: 50%; background: #3d8bff; }
+#root .inv-pagina .inv-filtro-raridade .inv-rar { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 45; display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 14px; border: 1px solid #35516c; border-radius: 8px; background: #061320; box-shadow: 0 14px 30px #0009; overflow: visible; }
+#root .inv-pagina .inv-cartao .inv-cartao-nome b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#root .inv-pagina .inv-cartao.inv-cartao-ativo:not(#_) { border: 1px solid #32bcff; box-shadow: inset 0 0 16px rgb(50 188 255 / .12), 0 0 12px rgb(50 188 255 / .3); }
+.inv-lista-rolagem { min-width: 0; }
+
+@media (min-width: 1025px) {
+  #root .inv-pagina { --inv-hero: 174px; --inv-area: calc(100dvh - var(--v2-topo) - var(--inv-hero) - 32px); }
+  #root .inv-pagina .inv-v2-topo { box-sizing: border-box; height: calc(var(--inv-hero) + var(--v2-topo)); min-height: 0; margin-top: calc(-1 * var(--v2-topo)); padding: calc(var(--v2-topo) + 18px) 0 18px; }
+  #root .inv-pagina .inv-v2-topo .v2-topo-arte { right: 14%; bottom: 0; height: 100%; width: 52%; max-width: 52%; object-fit: contain; object-position: center bottom; filter: brightness(1.12) drop-shadow(0 10px 18px rgb(0 0 0 / .45)); }
+  #root .inv-pagina .inv-v2-topo .v2-cena-fundo { object-position: center; }
+  #root .inv-pagina .inv-wrap { padding-top: 16px; padding-bottom: 16px; }
+  .inv-v2 { height: max(300px, var(--inv-area)); min-width: 0; align-items: stretch; }
+  .inv-v2-lista { display: flex; flex-direction: column; min-height: 0; }
+  .inv-lista-rolagem { flex: 1; min-height: 0; max-height: 522px; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: thin; padding-right: 5px; container-type: size; }
+  html:not(#v2) #root .inv-pagina .inv-cartao:not(#_) { height: min(256px, calc((100cqh - 10px) / 2)); min-height: 0; }
+  html:not(#v2) #root .inv-pagina .inv-cartao:not(#_) .inv-cartao-arte { height: 48%; min-height: 0; aspect-ratio: auto; }
+  html:not(#v2) #root .inv-pagina .inv-cartao:not(#_) .inv-cartao-nome { padding: 5px 8px 7px; gap: 1px; }
+  html:not(#v2) #root .inv-pagina .inv-cartao .inv-cartao-nome :is(b, small) { font-size: 13px; line-height: 1.2; min-height: 0; }
+  html:not(#v2) #root .inv-pagina .inv-cartao .inv-cartao-nome em { margin-top: 2px; font-size: 11px; }
+  html:not(#v2) #root .inv-pagina .inv-cartao .inv-cartao-nome .inv-rar-selo { padding: 1px 5px; font-size: 9px; margin: 0 0 2px; }
+  html:not(#v2) #root .inv-pagina .inv-cartao .inv-cartao-valor { padding-top: 3px; gap: 5px; font-size: 14px; }
+  html:not(#v2) #root .inv-pagina .inv-cartao .inv-cartao-valor img { width: 15px; height: 15px; }
+  .inv-painel-v2 { box-sizing: border-box; position: relative; top: auto; height: 100%; max-height: 100%; min-height: 0; min-width: 0; overflow-x: hidden; }
+  .inv-painel-arte { flex: 0 0 clamp(130px, 23vh, 205px); height: auto; }
+  #root .inv-pagina .inv-barra { display: grid; grid-template-columns: minmax(100px, 1fr) auto auto auto minmax(140px, 180px); gap: 10px; margin-bottom: 12px; }
+  #root .inv-pagina .inv-pesquisa { min-width: 0; padding-inline: 12px; }
+  #root .inv-pagina .inv-pesquisa input { max-width: none; font-size: 13px; }
+  #root .inv-pagina .inv-barra :is(.inv-btn, .tr-btn, button) { padding-inline: 12px; font-size: 13px; gap: 8px; }
+  .inv-ordem-caixa { min-width: 0; width: 100%; box-sizing: border-box; }
+  #root .inv-pagina .inv-topo { min-width: 0; margin-bottom: 10px; }
+  #root .inv-pagina .inv-abas { min-width: 0; flex-wrap: nowrap; }
+  #root .inv-pagina .inv-abas button { padding-inline: 14px; font-size: 13px; flex: none; }
+  #root .inv-pagina .inv-rar { flex-wrap: nowrap; overflow-x: auto; flex: none; padding-bottom: 4px; margin-bottom: 10px; }
+  #root .inv-pagina .inv-rar button { flex: none; }
+  html body:has(.inv-pagina) #root .nx-direita:not(#_) { background: linear-gradient(90deg, #07111c 0%, rgb(7 17 28 / .9) 16%, transparent 36%, transparent 66%, rgb(7 17 28 / .9) 88%, #07111c 100%); border-bottom: 0; box-shadow: none; }
+}
+@container (max-height: 390px) {
+  html:not(#v2) #root .inv-pagina .inv-cartao:not(#_) .inv-cartao-arte { height: 40%; }
+  html:not(#v2) #root .inv-pagina .inv-cartao .inv-cartao-nome :is(b, small) { font-size: 11px; }
+  html:not(#v2) #root .inv-pagina .inv-cartao .inv-cartao-nome em { font-size: 10px; }
+  html:not(#v2) #root .inv-pagina .inv-cartao .inv-cartao-valor { font-size: 12px; }
+}
+/* Rolagem discreta e consistente nas listas e na inspeção. */
+html:has(.inv-pagina), #root .inv-pagina :is(.inv-lista-rolagem, .inv-painel-v2, .inv-abas, .inv-rar) { color-scheme: dark; scrollbar-width: thin; scrollbar-color: #365570 #061320; }
+#root .inv-pagina :is(.inv-lista-rolagem, .inv-painel-v2, .inv-abas, .inv-rar)::-webkit-scrollbar { width: 7px; height: 5px; }
+#root .inv-pagina :is(.inv-lista-rolagem, .inv-painel-v2, .inv-abas, .inv-rar)::-webkit-scrollbar-track { background: #061320; border-radius: 8px; }
+#root .inv-pagina :is(.inv-lista-rolagem, .inv-painel-v2, .inv-abas, .inv-rar)::-webkit-scrollbar-thumb { background: #365570; border: 2px solid #061320; border-radius: 8px; }
+#root .inv-pagina :is(.inv-lista-rolagem, .inv-painel-v2, .inv-abas, .inv-rar)::-webkit-scrollbar-thumb:hover { background: #5685b1; }
+#root .inv-pagina .inv-filtro-raridade .inv-rar button { height: 32px; min-height: 32px; padding: 0 10px; font-size: 12px; }
+
+/* Inspeção sem rolagem: só a imagem cede espaço quando a tela é mais baixa. */
+html:not(#v2) #root .inv-pagina .inv-painel-v2 { overflow: hidden; padding: 14px; }
+html:not(#v2) #root .inv-pagina .inv-painel-cab { flex: none; gap: 3px; }
+html:not(#v2) #root .inv-pagina .inv-painel-cab h2 { margin-top: 3px; font-size: 18px; line-height: 1.2; }
+html:not(#v2) #root .inv-pagina .inv-painel-cab h2 em { font-size: 22px; }
+html:not(#v2) #root .inv-pagina .inv-painel-cab small { font-size: 12px; }
+html:not(#v2) #root .inv-pagina .inv-painel-arte { flex: 1 1 180px; min-height: 30px; max-height: 250px; height: auto; margin: 5px -14px 0; }
+html:not(#v2) #root .inv-pagina .inv-painel-arte > img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; padding: 6px 12px; box-sizing: border-box; }
+html:not(#v2) #root .inv-pagina .inv-painel-float { flex: none; gap: 6px; padding: 8px 0 4px; }
+html:not(#v2) #root .inv-pagina .inv-painel-dados { flex: none; margin: 5px 0 10px; }
+html:not(#v2) #root .inv-pagina .inv-painel-dados > div { padding: 5px 0; }
+html:not(#v2) #root .inv-pagina .inv-painel-dados :is(dt, dd) { font-size: 12px; line-height: 1.3; }
+html:not(#v2) #root .inv-pagina .inv-painel-acoes { flex: none; gap: 8px; margin-top: 0; }
+html:not(#v2) #root .inv-pagina .inv-painel-acoes .v2-btn { height: 42px; min-height: 42px; font-size: 13px; }
+@media (max-width: 1024px) {
+  html:not(#v2) #root .inv-pagina .inv-painel-v2 { height: min(680px, calc(100dvh - 80px)); max-height: calc(100dvh - 80px); }
+}
+@media (max-height: 760px) {
+  html:not(#v2) #root .inv-pagina .inv-painel-v2 { padding: 10px; }
+  html:not(#v2) #root .inv-pagina .inv-painel-cab h2 { font-size: 15px; }
+  html:not(#v2) #root .inv-pagina .inv-painel-cab h2 em { font-size: 18px; }
+  html:not(#v2) #root .inv-pagina .inv-painel-cab small { font-size: 11px; }
+  html:not(#v2) #root .inv-pagina .inv-painel-arte { margin-inline: -10px; }
+  html:not(#v2) #root .inv-pagina .inv-painel-float { padding: 5px 0; }
+  html:not(#v2) #root .inv-pagina .inv-painel-float-cab, html:not(#v2) #root .inv-pagina .inv-painel-float-cab b { font-size: 12px; }
+  html:not(#v2) #root .inv-pagina .inv-painel-dados { margin: 4px 0 7px; }
+  html:not(#v2) #root .inv-pagina .inv-painel-dados > div { padding: 4px 0; }
+  html:not(#v2) #root .inv-pagina .inv-painel-dados :is(dt, dd) { font-size: 11px; }
+  html:not(#v2) #root .inv-pagina .inv-painel-acoes { gap: 6px; }
+  html:not(#v2) #root .inv-pagina .inv-painel-acoes .v2-btn { height: 34px; min-height: 34px; font-size: 12px; }
+}
+@media (min-width: 1025px) and (max-height: 760px) {
+  #root .inv-pagina { --inv-hero: 144px; }
+  #root .inv-pagina .inv-v2-topo h1 { font-size: 38px; }
+  #root .inv-pagina .inv-v2-topo .v2-titulo p { font-size: 15px; }
+  #root .inv-pagina .inv-v2-total { margin-top: 12px !important; }
+}
+@media (max-width: 1024px) {
+  html:not(#v2) #root .inv-pagina .inv-itens { grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); }
+  .inv-v2, .inv-v2-lista, .inv-lista-rolagem { min-width: 0; max-width: 100%; }
+  .inv-painel-v2 { box-sizing: border-box; width: 100%; max-width: 100vw; }
+  #root .inv-pagina .inv-topo { min-width: 0; }
+  #root .inv-pagina .inv-abas { flex-wrap: nowrap; min-width: 0; }
+}
+@media (max-width: 560px) { html:not(#v2) #root .inv-pagina .inv-itens { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Consumíveis não precisam da altura reservada aos dados de uma skin. */
+html:not(#v2) #root .inv-pagina .inv-cartao.inv-cartao-guardado:not(#_) {
+  height: 176px; min-height: 0; align-self: start;
+}
+html:not(#v2) #root .inv-pagina .inv-cartao.inv-cartao-guardado:not(#_) .inv-cartao-arte {
+  height: 100px; min-height: 0; padding: 0; aspect-ratio: auto;
+}
+html:not(#v2) #root .inv-pagina .inv-cartao.inv-cartao-guardado:not(#_) .inv-cartao-nome {
+  flex: 1; padding: 5px 8px 8px; gap: 2px;
+}
+html:not(#v2) #root .inv-pagina .inv-painel-v2.inv-painel-compacto {
+  height: auto; align-self: start;
+}
+html:not(#v2) #root .inv-pagina .inv-painel-compacto .inv-painel-arte {
+  flex: none; height: clamp(140px, 20dvh, 190px); min-height: 0;
+}
+html:not(#v2) #root .inv-pagina .inv-painel-compacto .inv-painel-cab h2 { font-size: 16px; }
+.inv-secoes { display: grid; gap: 24px; min-width: 0; }
+.inv-secoes > section { min-width: 0; }
+.inv-secoes h3 { margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid #254462; color: #c9d3e1; font: 650 14px var(--font-body); }
+
+html:not(#v2) #root .inv-pagina .inv-cartao.inv-cartao-guardado:not(#_) .inv-cartao-nome {
+  align-items: center; text-align: center;
+}
+html:not(#v2) #root .inv-pagina .inv-cartao.inv-cartao-guardado .inv-arma-box {
+  inset: 8px; display: grid; place-items: center;
+}
+html:not(#v2) #root .inv-pagina .inv-cartao.inv-cartao-guardado .inv-arma-img {
+  object-fit: contain; object-position: center;
+}
+html:not(#v2) #root .inv-pagina .inv-painel-compacto .inv-painel-cab {
+  justify-items: center; text-align: center;
+}
+html:not(#v2) #root .inv-pagina .inv-painel-compacto .inv-rar-selo { justify-self: center; }

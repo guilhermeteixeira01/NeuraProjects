@@ -14,8 +14,14 @@ export async function montar(Pagina) {
   capturarIndicacao()
   ligarSonsDoSite()
   if (import.meta.env.DEV && ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) {
-    const { ativarPreviewLocal } = await import('./previewLocal.js')
-    ativarPreviewLocal()
+    if (import.meta.env.MODE === 'demo') {
+      // npm run dev:demo: prévia completa com dados de exemplo (src/comum/demo); em qualquer build esta ramificação não existe
+      const { ativarDemo } = await import('./demo/index.js')
+      await ativarDemo()
+    } else {
+      const { ativarPreviewLocal } = await import('./previewLocal.js')
+      ativarPreviewLocal()
+    }
   }
   const raiz = document.getElementById('root')
   const el = document.getElementById('dados-pagina')

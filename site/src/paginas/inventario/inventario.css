@@ -295,3 +295,23 @@ html.inv-travado body { position: fixed; inset: 0; width: 100%; }
 
 /* adesivos, chaveiros e caixas: arte um pouco mais para cima */
 .inv-cartao-guardado .inv-arma-img, .inv-cartao-fixo .inv-arma-img { inset: -7% 6% 7% 6%; width: 88%; height: 100%; }
+
+/* Editor acima da janela de origem; seletor de enfeites usa a próxima camada. */
+.inv-tela { z-index: 2700; grid-template-rows: auto minmax(0, 1fr) auto; }
+.inv-janela { min-width: 0; box-sizing: border-box; }
+.inv-janela-corpo { min-height: 0; overscroll-behavior: contain; }
+@media (max-width: 900px) {
+  .inv-fundo { padding: 8px; box-sizing: border-box; }
+  .inv-dialogo { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .inv-dialogo-previa .inv-3d { height: min(180px, 25dvh) !important; }
+  .inv-dialogo-previa .inv-previa-img { height: min(180px, 25dvh); }
+  .inv-dialogo .inv-slots-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .inv-dialogo .inv-slot { min-width: 0; width: 100%; overflow: hidden; }
+  .inv-dialogo .inv-slot-chaveiro { width: 56px; }
+  .inv-dialogo-rodape { position: sticky; bottom: -16px; padding: 12px 0; background: #16181d; }
+  .inv-tela-corpo { grid-template-rows: minmax(160px, 28dvh) auto; }
+  .inv-tela-centro { min-height: 160px; }
+  .inv-tela-rodape button { flex: 1; }
+  .inv-adesivos { grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); }
+}
+.inv-tela-centro .inv-3d, .inv-dialogo-previa .inv-3d, .inv-previa-img { background: linear-gradient(#07111c44, #07111c66), url('/neurapick/maps/ancient.jpg') center / cover no-repeat; }

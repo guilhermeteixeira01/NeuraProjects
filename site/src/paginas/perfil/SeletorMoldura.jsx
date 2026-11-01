@@ -497,7 +497,7 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
                   <h4 className="sm-grupo-cab">{titulo}<small>{ids.length}</small></h4>
                   <div className="sm-grade-fundos">{ids.map(id => {
                     const evento = eventoDoFundo(id), liberado = comprado('fundo', id) || podeUsarFundoPerfil(id, perfil)
-                    if (naLoja('fundo', id)) return <ItemNaLoja key={id} classe="sm-fundo-mapa" img={imagemFundoPerfil(id)} nome={nomeFundoPerfil(id)} preco={oficial.preco('fundo', id)} tr={tr} />
+                    if (naLoja('fundo', id)) return <ItemNaLoja key={id} classe="sm-fundo-loja" img={imagemFundoPerfil(id)} nome={nomeFundoPerfil(id)} preco={oficial.preco('fundo', id)} tr={tr} />
                     return <button key={id} type="button" className={`sm-fundo-mapa${(escolha.fundoPerfil || 'mirage') === id ? ' sel' : ''}${liberado ? '' : ' bloqueado'}`} aria-pressed={(escolha.fundoPerfil || 'mirage') === id} disabled={!liberado} title={liberado ? nomeFundoPerfil(id) : `Requer a insígnia ${evento.evento} 2027`} onClick={() => escolher('fundoPerfil', id)}>
                       <img src={imagemFundoPerfil(id)} alt="" loading="lazy" />
                       <span>{nomeFundoPerfil(id)}{!liberado && <small><CadeadoMini />{tr('Requer insígnia')} · {evento.evento} 2027</small>}</span>

@@ -11,11 +11,14 @@ import catalogo from '../../worker/steam-login/src/caixas-iniciais.json'
 import { CONFIG_PADRAO as CONFIG_BASE, chancesDaCaixa, aplicarModo, faixasDeDesgaste, sortearAbertura, gerarFaixa, gerarFaixaFacas, valorDoItem, progressoInsignias } from '../../worker/steam-login/src/loja-core.js'
 const CONFIG_PADRAO = { ...CONFIG_BASE, porCaixa: true }
 
-export function ativarPreviewLocal() {
+// opcoes (só o modo demo, src/comum/demo, passa algo aqui): { id, nome, avatar, chaveEstado, semLogin, estender(ctx), interceptar(rota, metodo, corpo, url, ctx) }
+export function ativarPreviewLocal(opcoes = {}) {
   if (window.__npPreviewAtivo) return
-  const id = '76561198000000011'
-  const nome = 'Jogador de teste'
-  const avatar = '/assets/logos/logo-np-64.png'
+  // np-preview-id (localStorage): ver a prévia como outro jogador do ranking, para conferir telas com dados reais
+  const id = (() => { try { return localStorage.getItem('np-preview-id') || '' } catch { return '' } })() || opcoes.id || '76561198000000011'
+  const nome = opcoes.nome || 'Jogador de teste'
+  const avatar = opcoes.avatar || '/assets/logos/logo-np-64.png'
+  const CHAVE_ESTADO = opcoes.chaveEstado || 'np-preview-dados-v2'
   // Conquistas de demonstração: existem somente no navegador da prévia local.
   const exemplos = [
     ...INSIGNIAS.filter(i => i.categoria === 'combate').slice(0, 4),
@@ -32,14 +35,14 @@ export function ativarPreviewLocal() {
   caixas[0].facas.slice(0,2).forEach((it,i)=>{itens['demoraro'+i]={t:it.t||'faca',d:it.d,p:it.p,f:.04,s:100,st:0,a:[null,null,null,null,null]}})
   itens.democaixa={t:'caixa',d:caixas[0].id,p:0}
   let estado={saldo:250000,abertas:36,inv:{v:2,itens,equip:{ct:{},tr:{}},criado:Object.fromEntries(Object.keys(itens).map(k=>[k,Date.now()]))},mensagens:[{id:'demomsg1',de:pessoas[1].id,texto:'Bora jogar com o pessoal hoje?',ts:Date.now()-180000},{id:'demomsg2',de:id,texto:'Bora! Vou montar o grupo.',ts:Date.now()-120000},{id:'demomsg3',de:pessoas[1].id,texto:'Esse é o chat de demonstração.',ts:Date.now()-60000}],chat:[{id:'demochat',de:pessoas[1].id,nome:pessoas[1].nome,texto:'Bem-vindos ao time de teste!',ts:Date.now()-60000}]}
-  try { estado=JSON.parse(sessionStorage.getItem('np-preview-dados-v2')||'null')||estado } catch { /* estado inicial */ }
+  try { estado=JSON.parse(sessionStorage.getItem(CHAVE_ESTADO)||'null')||estado } catch { /* estado inicial */ }
   estado.notificacoes ??= {lista:[{id:'demo-boas-vindas',titulo:'Bem-vindo à prévia local',texto:'Amigos, time, inventário e saldo são dados de demonstração.',link:'/lobby/',imagem:avatar,quando:Date.now()-60000,lida:false},{id:'demo-caixas',titulo:'Caixas prontas para testar',texto:'Abra caixas e veja o resultado no inventário de teste.',link:'/loja/',quando:Date.now()-120000,lida:false}],vistos:[],limpoEm:0}
   if (!estado.notificacoes.lista.some((n) => n.id === 'demo-mercado')) estado.notificacoes.lista.unshift({id:'demo-mercado',titulo:'Sua skin foi vendida no mercado!',texto:'Luna · teste comprou AK-47 | Redline por 450 NP. Os pontos já estão na sua conta.',link:'/loja/?aba=skins',imagem:avatar,raridade:4,quando:Date.now()-30000,lida:false})
   estado.conta ??= {nome:'',sobrenome:'',cpf:'',nascimento:'',discord:'',descricao:'Jogador da comunidade Neura.',faceit:'',privacidade:Object.fromEntries(['perfil','inventario','amigos','conquistas','convites'].map(k=>[k,'todos']))}
   Object.assign(perfisDemo[id], estado.personalizacao || {})
   estado.hall ??= {estado:'sem-foto',camisa:'escura'}
   estado.amigos ??= pessoas.slice(1).map(p => p.id)
-  const guardar=()=>{try{sessionStorage.setItem('np-preview-dados-v2',JSON.stringify(estado))}catch{/* sem armazenamento */}}
+  const guardar=()=>{try{sessionStorage.setItem(CHAVE_ESTADO,JSON.stringify(estado))}catch{/* sem armazenamento */}}
   const hallDaPrevia=()=>{
     const h=estado.hall
     if(['fila','gerando'].includes(h.estado)){
@@ -54,7 +57,7 @@ export function ativarPreviewLocal() {
   const base = `${location.origin}/__preview-local`
   CONFIG.loginSteam = base
   window.__npPreviewAtivo = true
-  window.__npPreviewToken = sessionStorage.getItem('np-preview-saiu') ? null : btoa(JSON.stringify({ id, nome, avatar, exp: Date.now() / 1000 + 86400 })) + '.demonstracao-local'
+  window.__npPreviewToken = opcoes.semLogin || sessionStorage.getItem('np-preview-saiu') ? null : btoa(JSON.stringify({ id, nome, avatar, exp: Date.now() / 1000 + 86400 })) + '.demonstracao-local'
   const config = { cargos: [], equipe: { dono: id, admins: [] }, selos: { dono: { pick: true, mostrar: false }, admin: { pick: true, mostrar: false } } }
   const respostas = {
     '/config': config,
@@ -73,6 +76,9 @@ export function ativarPreviewLocal() {
     '/admin/dados': { usuarios: { [id]: { nome, avatar } }, perfis: {}, config, dono: id },
     '/admin/logs': { logs: [], total: 0 }, '/admin/servidor/status': { estado: 'rodando', total: 0, logs: [] },
   }
+  // Modo demo: ajusta perfis, configuração, respostas e estado antes de a prévia começar a responder
+  const ctx = { id, nome, avatar, pessoas, perfisDemo, config, respostas, estado: () => estado, caixas, catalogo, time, itens, guardar, novoId }
+  opcoes.estender?.(ctx)
   const original = window.fetch.bind(window)
   window.fetch = async (input, init) => {
     const url = new URL(input instanceof Request ? input.url : String(input), location.href)
@@ -82,6 +88,7 @@ export function ativarPreviewLocal() {
     const metodo = init?.method || (input instanceof Request ? input.method : 'GET')
     let corpo={}
     try{corpo=JSON.parse(init?.body||(input instanceof Request?await input.clone().text():'{}'))}catch{/* leitura */}
+    if (opcoes.interceptar) { const r = await opcoes.interceptar(rota, metodo, corpo, url, ctx); if (r) return r }
     if (rota === '/perfil' && metodo === 'POST') {
       if (corpo.moldura && !podeUsarMolduraEvento(corpo.moldura,perfisDemo[id])) return Response.json({erro:'molduraInsignia'},{status:403})
       if ('fundoPerfil' in corpo && !podeUsarFundoPerfil(corpo.fundoPerfil,perfisDemo[id])) return Response.json({erro:'fundoInsignia'},{status:403})
@@ -172,7 +179,7 @@ export function ativarPreviewLocal() {
         const cx=caixas.find(c=>c.id===Number(corpo.caixa)||c.slug===corpo.caixa)||caixas[0],ids=[]
         for(let i=0;i<Math.min(5,Number(corpo.qtd)||1);i++){const k=novoId();estado.inv.itens[k]={t:'caixa',d:cx.id,p:0};estado.inv.criado[k]=Date.now();estado.saldo-=cx.preco;ids.push(k)}guardar();return Response.json({saldo:estado.saldo,ids,insignias:[]})
       }
-      if(rota==='/loja/vender'){let total=0;for(const k of corpo.ids||[])if(estado.inv.itens[k]){delete estado.inv.itens[k];total+=100}estado.saldo+=total;guardar();return Response.json({saldo:estado.saldo,total,inv:estado.inv})}
+      if(rota==='/loja/vender'){if((corpo.ids||[]).some(k=>estado.inv.itens[k]?.cadeado))return Response.json({erro:'item-trancado'},{status:409});let total=0;for(const k of corpo.ids||[])if(estado.inv.itens[k]){delete estado.inv.itens[k];total+=100}estado.saldo+=total;guardar();return Response.json({saldo:estado.saldo,total,inv:estado.inv})}
       if(rota==='/notificacoes'){estado.notificacoes=corpo.doc||corpo;guardar();return Response.json({doc:estado.notificacoes})}
       return Response.json({ok:true,saldo:estado.saldo,inv:estado.inv})
     }

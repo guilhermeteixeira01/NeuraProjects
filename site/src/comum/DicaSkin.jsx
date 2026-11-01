@@ -20,6 +20,8 @@ const RARIDADES = {
   '#e4ae39': { pt: 'Contrabando', en: 'Contraband', es: 'Contrabando' },
   luva: { pt: 'Extraordinário', en: 'Extraordinary', es: 'Extraordinario' },
 }
+// Nome da raridade no idioma do site ('' quando a cor não é de raridade do jogo: caixa, adesivo de cor própria...)
+export const nomeRaridade = (item, cor, idioma = 'pt') => RARIDADES[item.t === 'luva' ? 'luva' : String(cor || '').toLowerCase()]?.[idioma] || ''
 const PRECISAO = new Set(['weapon_awp', 'weapon_ssg08', 'weapon_scar20', 'weapon_g3sg1'])
 const METRALHADORAS = new Set(['weapon_m249', 'weapon_negev'])
 function tipoDaArma(item, arma) {

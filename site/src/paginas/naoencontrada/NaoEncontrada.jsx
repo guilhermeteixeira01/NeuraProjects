@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { fundoCss } from '../../comum/assetsV2.js'
 import { SincronizarPreferencias } from '../../comum/preferencias.js'
 import { MostrarAposIdioma, useT } from '../../comum/i18n.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
@@ -27,7 +28,7 @@ export default function NaoEncontrada() {
   return (
     <>
       <main className="nf-tela">
-        <section className="hero nf-hero">
+        <section className="hero nf-hero v2-hero-fundo" style={fundoCss('global')}>
           <FundoHero quantidade={14} />
           <div className="wrap nf-wrap">
             <div className="nf-codigo" aria-hidden="true">

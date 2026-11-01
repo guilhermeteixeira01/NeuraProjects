@@ -1,0 +1,75 @@
+/* Loja no visual v2 (referência: design/reference/05-loja.png, 1586×992). Vem depois de comum/neura-v2.css.
+   Topo: título à esquerda e saldo/depósito à direita; abas em pílulas; hero com o arlequim (shop-jester-popout-v2) saindo pela borda
+   de cima; depois a faixa de drops e o catálogo. Cenário: bg-loja-v2. */
+
+#root .lj-pagina .lj-wrap { max-width: none; padding: 22px 28px 40px 40px; }
+.lj-ancora { display: block; height: 0; scroll-margin-top: calc(var(--v2-topo) + 16px); }
+
+/* título e saldo */
+html:not(#v2) .lj-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin: 0 0 16px; padding: 0; border: 0; background: none; }
+html:not(#v2) .lj-topo .v2-titulo h1 { font: 800 44px/1.05 var(--font-display); letter-spacing: -.02em; }
+html:not(#v2) .lj-topo .v2-titulo p { margin-top: 4px; font-size: 17px; color: #d3dbe6; }
+html:not(#v2) .lj-topo-saldo { position: relative; z-index: 4; }
+html:not(#v2) .lj-depositar { min-height: 46px; padding: 0 20px; border: 0; border-radius: 7px; background: var(--v2-primaria); color: #fff; font: 650 14px var(--font-body); letter-spacing: 0; }
+html:not(#v2) .lj-depositar:hover { background: var(--v2-primaria-hover); }
+
+/* abas em pílulas (Caixas | Loja de skins | Loja geral): o texto do código é maiúsculo, aqui só a primeira letra */
+html:not(#v2) .lj-abas { display: flex; gap: 0; width: max-content; max-width: 100%; margin: 0 0 18px; padding: 0; overflow: hidden; border: 1px solid rgb(37 68 98 / .95); border-radius: 7px; background: rgb(3 14 26 / .9); }
+html:not(#v2) .lj-abas button { min-height: 50px; padding: 0 30px; border: 0; border-right: 1px solid rgb(37 68 98 / .95); border-radius: 0; background: transparent; color: #e6ebf3; font: 600 15px var(--font-body); letter-spacing: 0; text-transform: lowercase; }
+html:not(#v2) .lj-abas button::first-letter { text-transform: uppercase; }
+html:not(#v2) .lj-abas button:last-child { border-right: 0; }
+html:not(#v2) .lj-abas button:hover { background: rgb(52 120 246 / .12); }
+html:not(#v2) .lj-abas button.is-ativo { background: linear-gradient(180deg, #2d79fd, #106afc); color: #fff; }
+
+/* ── hero em camadas ── */
+.lj-hero { position: relative; isolation: isolate; overflow: visible; display: flex; align-items: center; min-height: clamp(180px, 13.2vw, 222px); margin: clamp(56px, 7vw, 112px) 0 22px; }
+/* 1. cenário: só o fundo, com o recorte e a borda arredondados */
+.lj-hero-cenario { position: absolute; inset: 0; z-index: 0; overflow: hidden; border: 1px solid rgb(61 139 255 / .55); border-radius: 10px; background: #030e1a; box-shadow: 0 0 0 1px rgb(52 120 246 / .15), 0 24px 60px -28px rgb(52 120 246 / .5); }
+.lj-hero-cenario::before { content: ''; position: absolute; inset: 0; background: var(--np-fundo, none) 70% 30% / cover no-repeat; }
+.lj-hero-cenario::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgb(1 7 15 / .85) 0%, rgb(1 7 15 / .45) 40%, transparent 70%), radial-gradient(60% 100% at 78% 40%, rgb(52 120 246 / .28), transparent 70%); }
+/* 2. personagem: irmão do cenário, por cima; o recorte é só embaixo (o PNG vem cortado reto na cintura), em cima passa da borda */
+.lj-hero-camada { position: absolute; inset: 0; z-index: 1; pointer-events: none; clip-path: inset(-140% -4% 0 -4%); }
+.lj-hero-camada img { position: absolute; right: 4%; top: -88%; width: clamp(300px, 42%, 590px); height: auto; max-width: none; object-fit: contain; filter: drop-shadow(0 18px 24px rgb(0 0 0 / .65)); user-select: none; }
+/* 3. texto e botão à frente */
+.lj-hero-texto { position: relative; z-index: 2; display: grid; gap: 10px; justify-items: start; max-width: min(46%, 520px); padding: 24px 28px; }
+.lj-hero-texto h2 { margin: 0; font: 850 clamp(32px, 3.4vw, 54px)/1.03 var(--font-display); letter-spacing: -.025em; color: #f4f7fc; text-transform: none; }
+.lj-hero-texto p { margin: 0; color: #d3dbe6; font-size: 17px; line-height: 1.4; }
+.lj-hero-texto .v2-btn { height: 48px; min-height: 48px; margin-top: 8px; padding: 0 28px; border-radius: 7px; }
+
+@media (max-width: 900px) {
+  #root .lj-pagina .lj-wrap { padding: 18px 16px 90px; }
+  html:not(#v2) .lj-topo .v2-titulo h1 { font-size: 34px; }
+  html:not(#v2) .lj-abas { width: 100%; }
+  html:not(#v2) .lj-abas button { flex: 1; padding: 0 10px; font-size: 14px; }
+  .lj-hero { min-height: 170px; margin-top: 78px; }
+  .lj-hero-texto { max-width: 62%; padding: 18px; }
+  .lj-hero-camada img { width: clamp(180px, 52%, 300px); top: -62%; right: -2%; }
+  .lj-hero-texto p { font-size: 15px; }
+}
+@media (max-width: 560px) {
+  .lj-hero { margin-top: 64px; }
+  .lj-hero-texto { max-width: 66%; }
+  .lj-hero-texto h2 { font-size: 26px; }
+  .lj-hero-texto p { display: none; }
+}
+
+/* ajuste pela comparação: hero logo abaixo das abas; o arlequim passa só ~80% da altura do hero acima da borda */
+.lj-hero { margin-top: 20px; }
+.lj-hero-camada img { top: -80%; }
+html:not(#v2) .lj-abas { margin-bottom: 0; }
+.lj-hero { margin-top: 28px; }
+/* faixa de drops: painel do tamanho do conteúdo (com poucos drops não sobra um vazio enorme) */
+html:not(#v2) .lj-drops { width: fit-content; min-width: min(100%, 560px); max-width: 100%; margin-inline: 0; border: 1px solid rgb(37 68 98 / .95); border-radius: 10px; overflow: hidden; background: #030e1a; }
+#root .lj-pagina .lj-abas:not(#_) { margin-inline: 0; justify-content: flex-start; }
+html:not(#v2) .lj-drops { margin-left: 0; width: 100%; max-width: 100%; }
+
+/* controles sempre acima do personagem (que nunca captura clique) e espaço real para o capuz no celular */
+html:not(#v2) .lj-abas { position: relative; z-index: 4; }
+@media (max-width: 900px) {
+  .lj-hero { margin-top: 118px; }
+  .lj-hero-camada img { top: -92%; width: clamp(170px, 46%, 260px); right: 2%; }
+}
+@media (max-width: 560px) {
+  .lj-hero { margin-top: 112px; }
+  .lj-hero-camada img { top: -84%; width: 48%; }
+}
