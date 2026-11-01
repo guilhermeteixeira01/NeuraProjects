@@ -15,7 +15,7 @@ import { localeAtual, useT } from '../../comum/i18n.js'
 import { ICONES_CARGO, IconeCargo } from '../../comum/cargos.jsx'
 import { NIVEIS_SUB, SUB_MESES_PADRAO, maisUmMes, nivelDaSub, tituloNivel, urlEmblema } from '../../comum/assinatura.js'
 import { INSIGNIAS, imagemInsignia, insigniaPorId } from '../../comum/insignias.js'
-import { CATEGORIAS, indicar, urlImg, urlImgArma, useCatalogo } from '../../comum/skins.js'
+import { CATEGORIAS, ehPerfil, indicar, urlImg, urlImgArma, urlPerfil, useCatalogo } from '../../comum/skins.js'
 import CartaoSkin from '../../comum/CartaoSkin.jsx'
 import { confirmar } from '../../comum/Dialogos.jsx'
 import AdminCaixas from './AdminCaixas.jsx'
@@ -1423,17 +1423,22 @@ function DarSkin({ usuarios, fixo = null }) {
   useEffect(() => {
     lerCaixasPublicas().then(setCaixasLoja)
   }, [])
-  const emb = tipo === 'adesivo' || tipo === 'chaveiro' || tipo === 'caixa' // abas de adesivos e chaveiros (itens que o jogador guarda e cola nas armas)
+  const perfil = ehPerfil({ t: tipo }) // emblema, trilha sonora e grafite: itens de perfil, um de cada fica equipado
+  const emb = tipo === 'adesivo' || tipo === 'chaveiro' || tipo === 'caixa' || perfil // abas de adesivos e chaveiros (itens que o jogador guarda e cola nas armas)
   const temEnfeite = !!itens && Object.values(itens).some((it) => it.a?.some(Boolean) || it.k?.i || it.t === 'adesivo' || it.t === 'chaveiro')
   const guardado = (t) => t === 'adesivo' || t === 'chaveiro' || t === 'caixa' // fora dos cartões de skin
   const adesivosCat = useCatalogo('adesivos', temEnfeite || tipo === 'adesivo')
   const chaveirosCat = useCatalogo('chaveiros', temEnfeite || tipo === 'chaveiro')
-  const idxCartao = useMemo(() => indicar(armas, []), [armas])
+  const temTipo = (t) => tipo === t || (!!itens && Object.values(itens).some((it) => it.t === t))
+  const emblemasCat = useCatalogo('emblemas', temTipo('emblema'))
+  const trilhasCat = useCatalogo('trilhas', temTipo('trilha'))
+  const grafitesCat = useCatalogo('grafites', temTipo('grafite'))
+  const idxCartao = useMemo(() => indicar(armas, [], { emblema: emblemasCat.dados, trilha: trilhasCat.dados, grafite: grafitesCat.dados }), [armas, emblemasCat.dados, trilhasCat.dados, grafitesCat.dados])
   const adesivosMap = useMemo(() => new Map((adesivosCat.dados || []).map((s) => [s[0], s])), [adesivosCat.dados])
   const chaveirosMap = useMemo(() => new Map((chaveirosCat.dados || []).map((s) => [s[0], s])), [chaveirosCat.dados])
   const caixasCat = useMemo(() => ({ dados: caixasLoja.map((c) => [c.id, c.nome, c.img, c.cor]), erro: false }), [caixasLoja]) // caixas da loja: mesmo formato das linhas de adesivo/chaveiro
-  const catEmb = tipo === 'adesivo' ? adesivosCat : tipo === 'chaveiro' ? chaveirosCat : caixasCat
-  const srcEmb = (t, img, tam) => (t === 'caixa' ? img : urlImg(img, tam)) // a imagem da caixa é do próprio site, as outras são da Steam
+  const catEmb = tipo === 'adesivo' ? adesivosCat : tipo === 'chaveiro' ? chaveirosCat : tipo === 'emblema' ? emblemasCat : tipo === 'trilha' ? trilhasCat : tipo === 'grafite' ? grafitesCat : caixasCat
+  const srcEmb = (t, img, tam) => (t === 'caixa' ? img : ehPerfil({ t }) ? urlPerfil(img, tam) : urlImg(img, tam)) // a imagem da caixa é do próprio site, as outras são da Steam
   const grupo = emb ? [] : tipo === 'arma' ? armas.filter((a) => CATEGORIAS.some(([c]) => c === a.c)) : armas.filter((a) => a.c === (tipo === 'faca' ? 'facas' : 'luvas'))
   const lista = tipo === 'arma' ? grupo.filter((a) => a.c === categoria) : grupo
   const peca = lista.find((a) => a.d === def) || lista[0]
@@ -1456,10 +1461,11 @@ function DarSkin({ usuarios, fixo = null }) {
   const chaveDe = (t, d, p) => `${t}:${d}:${p}`
   const marcada = (p) => sel.some((x) => x.chave === chaveDe(tipo, peca?.d, p))
   // adesivo/chaveiro: marca com quantidade (cada unidade vira um item no inventário dele)
-  const marcadaEmb = (def) => sel.find((x) => x.chave === chaveDe(tipo, def, 0))
+  const pDaLinha = (linha) => (tipo === 'grafite' ? linha[4] : 0) // grafite: cada cor é um item (p = a tinta)
+  const marcadaEmb = (linha) => sel.find((x) => x.chave === chaveDe(tipo, linha[0], pDaLinha(linha)))
   const alternarEmb = (linha) => {
-    const chave = chaveDe(tipo, linha[0], 0)
-    setSel((l) => (l.some((x) => x.chave === chave) ? l.filter((x) => x.chave !== chave) : [...l, { chave, t: tipo, d: linha[0], nome: linha[1], img: linha[2], q: 1 }]))
+    const chave = chaveDe(tipo, linha[0], pDaLinha(linha))
+    setSel((l) => (l.some((x) => x.chave === chave) ? l.filter((x) => x.chave !== chave) : [...l, { chave, t: tipo, d: linha[0], p: pDaLinha(linha), nome: linha[1], img: linha[2], q: 1 }]))
   }
   const mudarQtd = (chave, q) => setSel((l) => l.map((x) => (x.chave === chave ? { ...x, q: Math.max(1, Math.min(50, Math.round(Number(q)) || 1)) } : x)))
   const filtroEmb = filtro.trim().toLowerCase()
@@ -1481,8 +1487,9 @@ function DarSkin({ usuarios, fixo = null }) {
     setOcupado(true)
     setEstado('')
     try {
-      const itensDar = sel.map(({ t, d, q, skin: s, f, seed }) => {
+      const itensDar = sel.map(({ t, d, p, q, skin: s, f, seed }) => {
         if (t === 'adesivo' || t === 'chaveiro' || t === 'caixa') return { t, d, q }
+        if (ehPerfil({ t })) return { t, d, p: p || 0 }
         const [min, max] = limitesFloat(s)
         const fl = Math.min(max, Math.max(min, Number(f) || min, 0.0001))
         const sd = Math.min(1000, Math.max(0, Math.round(Number(seed)) || 0))
@@ -1536,6 +1543,9 @@ function DarSkin({ usuarios, fixo = null }) {
           ['luva', 'Luvas'],
           ['adesivo', 'Adesivos'],
           ['chaveiro', 'Chaveiros'],
+          ['emblema', 'Emblemas'],
+          ['trilha', 'Trilhas sonoras'],
+          ['grafite', 'Grafites'],
           ['caixa', 'Caixas'],
         ].map(([id, nome]) => (
           <button key={id} type="button" role="tab" aria-selected={tipo === id} className={tipo === id ? 'active' : ''} onClick={() => { setTipo(id); setDef(null); setFiltro('') }}>
@@ -1551,15 +1561,15 @@ function DarSkin({ usuarios, fixo = null }) {
           <p>{tr('Carregando…')}</p>
         ) : (
           <section className="adm-dar-emb">
-            <input type="search" className="adm-dar-busca" placeholder={tr(tipo === 'adesivo' ? 'Pesquisar adesivo' : tipo === 'caixa' ? 'Pesquisar caixa' : 'Pesquisar chaveiro')} value={filtro} onChange={(e) => setFiltro(e.target.value)} />
+            <input type="search" className="adm-dar-busca" placeholder={tr(tipo === 'adesivo' ? 'Pesquisar adesivo' : tipo === 'caixa' ? 'Pesquisar caixa' : tipo === 'emblema' ? 'Pesquisar emblema' : tipo === 'trilha' ? 'Pesquisar trilha sonora' : tipo === 'grafite' ? 'Pesquisar grafite' : 'Pesquisar chaveiro')} value={filtro} onChange={(e) => setFiltro(e.target.value)} />
             <GradeLenta key={tipo + filtroEmb} total={listaEmb.length}>
               {(n, fimLi) => (
                 <ul className="adm-dar-grade adm-dar-grade-emb">
                   {listaEmb.slice(0, n).map((s) => (
-                    <li key={s[0]}>
-                      <button type="button" className={marcadaEmb(s[0]) ? 'active' : ''} aria-pressed={!!marcadaEmb(s[0])} style={{ '--cor': s[3] || 'var(--border-2)' }} onClick={() => alternarEmb(s)} title={s[1]}>
+                    <li key={`${s[0]}:${s[4] ?? ''}`}>
+                      <button type="button" className={marcadaEmb(s) ? 'active' : ''} aria-pressed={!!marcadaEmb(s)} style={{ '--cor': s[3] || 'var(--border-2)' }} onClick={() => alternarEmb(s)} title={tipo === 'grafite' && s[5] ? `${s[1]} · ${s[5]}` : s[1]}>
                         <img src={srcEmb(tipo, s[2], 128)} alt="" loading="lazy" />
-                        <b>{s[1]}</b>
+                        <b>{tipo === 'grafite' && s[5] ? `${s[1]} · ${s[5]}` : s[1]}</b>
                       </button>
                     </li>
                   ))}
@@ -1624,7 +1634,7 @@ function DarSkin({ usuarios, fixo = null }) {
               <li key={x.chave} style={{ '--cor': x.skin?.[2] || 'var(--border-2)' }}>
                 {x.skin ? <img src={urlImgArma(x.skin[6], 128)} alt="" /> : <img src={srcEmb(x.t, x.img, 64)} alt="" />}
                 <span>{x.skin ? `${x.arma} | ${x.skin[1]}` : x.nome}</span>
-                {!x.skin && <input type="number" min="1" max="50" className="adm-dar-qtd" value={x.q} aria-label={tr('Quantidade')} onChange={(e) => mudarQtd(x.chave, e.target.value)} />}
+                {!x.skin && !ehPerfil(x) && <input type="number" min="1" max="50" className="adm-dar-qtd" value={x.q} aria-label={tr('Quantidade')} onChange={(e) => mudarQtd(x.chave, e.target.value)} />}
                 {x.skin && x.t !== 'agente' && (
                   <span className="adm-dar-fs">
                     <label title={tr('Float (desgaste) da skin: entre {min} e {max}', { min: limitesFloat(x.skin)[0], max: limitesFloat(x.skin)[1] })}>

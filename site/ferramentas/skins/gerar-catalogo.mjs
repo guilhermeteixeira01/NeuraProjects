@@ -7,6 +7,9 @@
 //   agentes.json  agentes de CT e TR:           [{ d, n, t, m, c, i }]
 //   adesivos.json adesivos:                     [[defIndex, nome, imagem]]
 //   chaveiros.json chaveiros (charms):          [[defIndex, nome, imagem, cor]]
+//   emblemas.json  pins e moedas/medalhas:      [[defIndex, nome, imagem, cor, tipo]]
+//   trilhas.json   trilhas sonoras (music kits): [[defIndex, nome, imagem, cor]]
+//   grafites.json  grafites (uma linha por cor): [[defIndex, nome, imagem, cor, tinta, nomeDaTinta]]
 // "imagem" é o final do endereço da Steam: o site junta com IMG_BASE (ver src/comum/skins.js).
 import fs from 'node:fs'
 import path from 'node:path'
@@ -24,14 +27,14 @@ const baixar = async (nome) => {
   return r.json()
 }
 const img = (u) => (typeof u === 'string' && u.startsWith(PREFIXO_IMG) ? u.slice(PREFIXO_IMG.length) : '')
-const CATEGORIAS = { Rifles: 'rifles', SMGs: 'smgs', Pistols: 'pistols', Heavy: 'heavy', Knives: 'facas', Gloves: 'luvas' }
+const CATEGORIAS = { Rifles: 'rifles', SMGs: 'smgs', Pistols: 'pistols', Heavy: 'heavy', Equipment: 'equip', Knives: 'facas', Gloves: 'luvas' }
 
 console.log('Baixando skins...')
 const skins = await baixar('skins_not_grouped')
 const porArma = new Map()
 for (const x of skins) {
   const c = CATEGORIAS[x.category?.name]
-  if (!c || !x.weapon?.weapon_id || x.paint_index == null || x.souvenir) continue
+  if (!c || !x.weapon?.weapon_id || x.paint_index == null) continue // inclui Souvenir: pinturas que só existem como souvenir (ex.: MP5-SD Lab Rats) e o Zeus
   let arma = porArma.get(x.weapon.weapon_id)
   if (!arma) porArma.set(x.weapon.weapon_id, (arma = { d: x.weapon.weapon_id, k: x.weapon.id, n: x.weapon.name, c, times: new Set(), s: new Map() }))
   arma.times.add(x.team?.id === 'terrorists' ? 'tr' : x.team?.id === 'counter-terrorists' ? 'ct' : 'both')
@@ -90,6 +93,28 @@ const chaveiros = (await baixar('keychains'))
   .map((k) => [Number(k.def_index), String(k.name).replace(/^.*Charm \| /, ''), img(k.image), k.rarity?.color || ''])
   .sort((a, b) => a[1].localeCompare(b[1]))
 
+// ── Emblemas, trilhas sonoras e grafites (itens de perfil: um de cada fica equipado) ──
+// "imagem": endereço completo quando não é da Steam (as trilhas vêm de cdn.steamstatic.com); o site usa como está
+const imagemCompleta = (u) => (typeof u === 'string' && u ? (u.startsWith(PREFIXO_IMG) ? u.slice(PREFIXO_IMG.length) : u) : '')
+// emblemas: distintivos (pins) e moedas/medalhas de serviço; [[defIndex, nome, imagem, cor, tipo]]
+const emblemas = (await baixar('collectibles'))
+  .filter((c) => c.def_index && imagemCompleta(c.image) && ['Pin', 'Service Medal', 'Operation Coin', 'Map Contributor Coin', 'Premier Season Coin', "Pick'Em Coin"].includes(c.type))
+  .map((c) => [Number(c.def_index), String(c.name), imagemCompleta(c.image), c.rarity?.color || '', c.type])
+  .sort((a, b) => a[4].localeCompare(b[4]) || a[1].localeCompare(b[1]))
+// trilhas sonoras (sem as versões StatTrak, que são o mesmo kit com contador): [[defIndex, nome, imagem, cor]]
+const trilhas = (await baixar('music_kits'))
+  .filter((k) => k.def_index && imagemCompleta(k.image) && !/StatTrak/i.test(k.name))
+  .map((k) => [Number(k.def_index), String(k.name).replace(/^Music Kit \| /, ''), imagemCompleta(k.image), k.rarity?.color || ''])
+  .sort((a, b) => a[1].localeCompare(b[1]))
+// grafites: cada cor (tinta) é um item; [[defIndex, nome, imagem, cor, tinta (0 = sem), nomeDaTinta]]
+const grafites = (await baixar('graffiti'))
+  .filter((g) => g.def_index && imagemCompleta(g.image))
+  .map((g) => {
+    const tinta = /_(\d+)$/.exec(g.id)?.[1]
+    return [Number(g.def_index), String(g.name).replace(/^Sealed Graffiti \| /, '').replace(/ \([^)]*\)$/, ''), imagemCompleta(g.image), g.rarity?.color || '', Number(tinta || 0), g.tint?.name || '']
+  })
+  .sort((a, b) => a[1].localeCompare(b[1]) || a[4] - b[4])
+
 fs.mkdirSync(saida, { recursive: true })
 const gravar = (nome, v) => {
   fs.writeFileSync(path.join(saida, nome), JSON.stringify(v))
@@ -100,6 +125,9 @@ gravar('armas.json', { gerado: new Date().toISOString().slice(0, 10), armas })
 gravar('agentes.json', agentes)
 gravar('adesivos.json', adesivos)
 gravar('chaveiros.json', chaveiros)
+gravar('emblemas.json', emblemas)
+gravar('trilhas.json', trilhas)
+gravar('grafites.json', grafites)
 console.log(`${armas.length} armas/facas/luvas, ${armas.reduce((n, a) => n + a.s.length, 0)} skins, ${agentes.length} agentes, ${adesivos.length} adesivos`)
 
 // ── Mapa para o visualizador 3D (3d.cstrike.app) ──

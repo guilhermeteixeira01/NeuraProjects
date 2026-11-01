@@ -10,7 +10,10 @@ import {
   corEnfeite,
   descrever,
   ehC4,
+  ehPerfil,
   ID_C4,
+  NOME_PERFIL,
+  PERFIL_TIPOS,
   indicar,
   excluirItem,
   inventarioNovo,
@@ -44,6 +47,9 @@ const ABAS = [
   ['luva', 'Luvas'],
   ['adesivo', 'Adesivos'],
   ['chaveiro', 'Chaveiros'],
+  ['emblema', 'Emblemas'],
+  ['trilha', 'Trilhas'],
+  ['grafite', 'Grafites'],
   ['caixa', 'Caixas'],
   ['avenda', 'À venda'],
 ]
@@ -666,12 +672,13 @@ function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoD
           </button>
         </li>
       )}
-      <li>
+      {!ehPerfil(item) && <li>
         <button type="button" role="menuitem" onClick={aoInspecionar}>
           {t('Inspecionar')}
         </button>
-      </li>
+      </li>}
       <li className="inv-menu-sep" />
+      {ehPerfil(item) ? null : <>
       {valor > 0 && (
         <li>
           <button type="button" role="menuitem" className="inv-menu-vender" disabled={item.cadeado} onClick={aoVenderAgora}>
@@ -686,6 +693,7 @@ function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoD
           {valor ? <b> ~{valor.toLocaleString('pt-BR')} NP</b> : null}
         </button>
       </li>
+      </>}
       {aoCadeado && <li><button type="button" role="menuitem" onClick={aoCadeado}><IconeUI tipo="cadeado" tamanho={16} />{t(item.cadeado ? 'Remover cadeado' : 'Proteger com cadeado')}</button></li>}
     </ul>
   )
@@ -750,7 +758,7 @@ function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEqui
   const equipados = times.filter((l) => equip?.[l]?.[chave] === item.__id)
   const c4 = !guardado && ehC4(item)
   const tem3d = !guardado && !!m3d && !sem3d && ['arma', 'faca', 'luva'].includes(item.t) && idNo3d(item, m3d) !== undefined
-  const equipavel = !guardado && !c4 && ['arma', 'faca', 'luva'].includes(item.t) && times.length > 0
+  const equipavel = !guardado && !c4 && ['arma', 'faca', 'luva', ...PERFIL_TIPOS].includes(item.t) && times.length > 0
   const todos = equipavel && equipados.length === times.length
   const raridade = nomeRaridade(item, d.cor, t.idioma)
   return (
@@ -839,7 +847,7 @@ function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEqui
             <IconeUI tipo="caixa" tamanho={18} />
             {t('Abrir caixa')}
           </a>
-        ) : (
+        ) : ehPerfil(item) ? null : (
           <button type="button" className={`v2-btn ${equipavel || c4 ? 'v2-btn-secundario' : 'v2-btn-primario'}`} onClick={aoDetalhes}>
             <IconeUI tipo="detalhes" tamanho={18} />
             {t('Ver detalhes')}
@@ -941,6 +949,11 @@ function Conteudo() {
   }, [temCaixa])
   const adesivos = useCatalogo('adesivos', precisaAdesivos)
   const chaveiros = useCatalogo('chaveiros', precisaAdesivos)
+  // emblemas, trilhas e grafites: o catálogo só baixa quando o jogador tem um item do tipo (ou abre a aba)
+  const temPerfil = (tipo) => aba === tipo || (!!inv && Object.values(inv.itens).some((it) => it.t === tipo))
+  const catEmblemas = useCatalogo('emblemas', temPerfil('emblema'))
+  const catTrilhas = useCatalogo('trilhas', temPerfil('trilha'))
+  const catGrafites = useCatalogo('grafites', temPerfil('grafite'))
   const mapa3d = useCatalogo('mapa3d', janela?.tipo === 'editar' || janela?.tipo === 'inspecionar' || janela?.tipo === 'confirmar' || !celular)
 
   useEffect(() => {
@@ -1013,7 +1026,10 @@ function Conteudo() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conjunto])
-  const idx = useMemo(() => indicar(catalogo.dados?.armas, agentes.dados), [catalogo.dados, agentes.dados])
+  const idx = useMemo(
+    () => indicar(catalogo.dados?.armas, agentes.dados, { emblema: catEmblemas.dados, trilha: catTrilhas.dados, grafite: catGrafites.dados }),
+    [catalogo.dados, agentes.dados, catEmblemas.dados, catTrilhas.dados, catGrafites.dados],
+  )
   // raridade de um item como no jogo (facas e luvas são sempre Extraordinary)
   const rarDe = (it) => (it.t === 'faca' || it.t === 'luva' ? 6 : raridadeCsDaCor(descrever(it, idx).cor))
   const adesivosPorId = useMemo(() => new Map((adesivos.dados || []).map((s) => [s[0], s])), [adesivos.dados])
@@ -1456,15 +1472,24 @@ function Conteudo() {
         </ul>
       ) : (
         <div className="inv-secoes">
-        {itens.length > 0 && <section aria-label={t('Armas e skins')}>
+        {itens.some((it) => !ehPerfil(it)) && <section aria-label={t('Armas e skins')}>
         {aba === 'tudo' && <h3>{t('Armas e skins')}</h3>}
         <ul className="inv-itens">
-          {itens.map((it) => (
+          {itens.filter((it) => !ehPerfil(it)).map((it) => (
             <Cartao key={it.__id} item={it} idx={idx} adesivos={adesivosPorId} chaveiros={chaveirosPorId} equip={inv.equip} aoAbrirMenu={modoSel ? alternarSel : abrirMenu} aoSelecionar={modoSel ? undefined : (e) => celular ? abrirMenu(e, it) : selecionar(`i:${it.__id}`, e.currentTarget)} aoCadeado={() => alternarCadeado(it.__id)} ativo={!modoSel && selChaveAtual === `i:${it.__id}`} selecionado={modoSel ? sel.has(it.__id) : undefined} valor={valores[it.__id]?.v} />
           ))}
         </ul>
         </section>}
         {mostrarC4 && <section aria-label="C4"><h3>C4</h3><ul className="inv-itens"><Cartao key="c4" item={{ ...inv.itens[ID_C4], __id: ID_C4 }} idx={idx} adesivos={adesivosPorId} chaveiros={chaveirosPorId} equip={inv.equip} aoAbrirMenu={abrirMenu} aoSelecionar={(e) => celular ? abrirMenu(e, { ...inv.itens[ID_C4], __id: ID_C4 }) : selecionar(`i:${ID_C4}`, e.currentTarget)} ativo={selChaveAtual === `i:${ID_C4}`} /></ul></section>}
+        {PERFIL_TIPOS.map((tipo) => {
+          const grupo = itens.filter((it) => it.t === tipo)
+          return grupo.length > 0 && <section key={tipo} aria-label={t(NOME_PERFIL[tipo])}>
+            {aba === 'tudo' && <h3>{t(tipo === 'emblema' ? 'Emblemas' : tipo === 'trilha' ? 'Trilhas sonoras' : 'Grafites')}</h3>}
+            <ul className="inv-itens">{grupo.map((it) => (
+              <Cartao key={it.__id} item={it} idx={idx} adesivos={adesivosPorId} chaveiros={chaveirosPorId} equip={inv.equip} aoAbrirMenu={abrirMenu} aoSelecionar={(e) => celular ? abrirMenu(e, it) : selecionar(`i:${it.__id}`, e.currentTarget)} ativo={selChaveAtual === `i:${it.__id}`} />
+            ))}</ul>
+          </section>
+        })}
         {[[ 'adesivo', 'Adesivos' ], [ 'chaveiro', 'Amuletos' ], [ 'caixa', 'Caixas' ]].map(([tipo, nome]) => {
           const grupo = guardados.filter(g => g.tipo === tipo)
           return grupo.length > 0 && <section key={tipo} aria-label={t(nome)}>

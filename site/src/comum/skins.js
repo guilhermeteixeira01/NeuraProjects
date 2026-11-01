@@ -33,6 +33,7 @@ export const CATEGORIAS = [
   ['smgs', 'SMGs'],
   ['pistols', 'Pistolas'],
   ['heavy', 'Pesadas'],
+  ['equip', 'Equipamento'],
 ]
 
 export const inventarioVazio = () => ({ armas: {}, facas: {}, luvas: {}, agentes: {} })
@@ -92,11 +93,19 @@ export const ehC4 = (item) => item?.t === 'arma' && item.d === DEF_C4
 // imagem oficial da Steam da C4 padrão (mesma origem das outras armas)
 const IMG_C4 = 'i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJKz2lu_XuWbwcuyMESA4Fdl-4nnpU7iQA3-kKnjqWwLvfOoavw8IvTCV2bEle1w6Lk-TSq2k0x25jiBzN_9dXqVaQ91W5AkW6dU5WnQha4l'
 const ARMA_C4 = { d: DEF_C4, n: 'C4 Explosive', e: 'tr', s: [] }
-export function indicar(catalogoArmas, agentes) {
+// Itens de perfil (um de cada tipo fica equipado): emblema (pin/moeda), trilha (trilha sonora) e grafite (cada cor é um item: p = a tinta)
+export const PERFIL_TIPOS = ['emblema', 'trilha', 'grafite']
+export const ehPerfil = (item) => PERFIL_TIPOS.includes(item?.t)
+export const NOME_PERFIL = { emblema: 'Emblema', trilha: 'Trilha sonora', grafite: 'Grafite' }
+// catálogos de perfil: a imagem vem como final de endereço da Steam ou como endereço completo (as trilhas)
+export const urlPerfil = (sufixo, tamanho = 256) => (/^https?:/.test(sufixo || '') ? sufixo : urlImg(sufixo, tamanho))
+export const chavePerfil = (t, d, p = 0) => (t === 'grafite' ? `${d}:${p || 0}` : d)
+export function indicar(catalogoArmas, agentes, perfil = {}) {
   const armas = new Map((catalogoArmas || []).map((a) => [a.d, a]))
+  const porPerfil = Object.fromEntries(PERFIL_TIPOS.map((t) => [t, new Map((perfil[t] || []).map((l) => [t === 'grafite' ? `${l[0]}:${l[4]}` : l[0], l]))]))
   armas.set(DEF_C4, ARMA_C4)
   const porAgente = new Map((agentes || []).map((a) => [a.d, a]))
-  return { armas, porAgente }
+  return { armas, porAgente, porPerfil }
 }
 
 // Como o item aparece num cartão: { titulo, subtitulo, img, cor }
@@ -104,6 +113,11 @@ export function descrever(item, idx) {
   if (item.t === 'agente') {
     const a = idx.porAgente.get(item.d)
     return { titulo: 'Agente', subtitulo: a?.n || `#${item.d}`, img: a ? urlImg(a.i, 360) : '', cor: a?.c || '', times: a ? [a.t === 'ct' ? 'ct' : 'tr'] : ['ct', 'tr'] }
+  }
+  if (ehPerfil(item)) {
+    const l = idx.porPerfil?.[item.t]?.get(chavePerfil(item.t, item.d, item.p))
+    const sub = item.t === 'grafite' && l?.[5] ? `${NOME_PERFIL.grafite} · ${l[5]}` : item.t === 'emblema' && l?.[4] ? l[4] : NOME_PERFIL[item.t]
+    return { titulo: l?.[1] || `#${item.d}`, subtitulo: sub, img: urlPerfil(l?.[2], 512), cor: l?.[3] || '', skin: null, times: ['ct', 'tr'] }
   }
   if (ehC4(item)) return { titulo: ARMA_C4.n, subtitulo: 'Padrão', img: urlImgArma(IMG_C4, 512), cor: '', skin: null, times: ['tr'] }
   const arma = idx.armas.get(item.d)

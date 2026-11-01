@@ -38,6 +38,8 @@ const ID_STEAM = /^\d{17}$/
 const FACAS = new Set([500, 503, 505, 506, 507, 508, 509, 512, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 525, 526]) // defIndex das facas do jogo
 const LUVAS = new Set([4725, 5027, 5030, 5031, 5032, 5033, 5034, 5035])
 const ITENS_MAX = 2000 // inclui os adesivos e chaveiros guardados (cada um é um item)
+// Itens de perfil: um de cada tipo fica equipado (o mesmo nos dois times). trilha = music kit, emblema = pin/moeda, grafite = spray (p = a cor)
+export const PERFIL = new Set(['emblema', 'trilha', 'grafite'])
 const CONSUMIVEIS = new Set(['adesivo', 'chaveiro', 'caixa']) // guardados no inventário; caixa fechada vira skin ao abrir (loja.js)
 const ID_MAX = 100000 // paint kit / adesivo / agente: limite folgado só para barrar lixo
 const ID_ITEM = /^[a-z0-9]{2,16}$/
@@ -141,6 +143,8 @@ export function limparSkins(entrada) {
     } else if (it.t === 'agente') {
       if (!MODELO_AGENTE.test(String(it.m))) continue
       saida.itens[id] = { t: 'agente', d, p: 0, m: String(it.m) }
+    } else if (PERFIL.has(it.t)) {
+      saida.itens[id] = { t: it.t, d, p: inteiro(it.p, 0, 99) }
     } else if (CONSUMIVEIS.has(it.t)) {
       // adesivo/chaveiro guardado no inventário: só vale para colar numa arma (e some quando é colado)
       saida.itens[id] = { t: it.t, d, p: 0 }
@@ -172,7 +176,7 @@ export function limparSkins(entrada) {
 
 // O que o plugin precisa: só o que está equipado, por time
 export function resolverEquipado(inv) {
-  const r = { armas: { ct: {}, tr: {} }, facas: {}, luvas: {}, agentes: {} }
+  const r = { armas: { ct: {}, tr: {} }, facas: {}, luvas: {}, agentes: {}, perfil: {} }
   let algo = false
   for (const lado of LADOS) {
     for (const [chave, id] of Object.entries(inv.equip?.[lado] || {})) {
@@ -181,6 +185,7 @@ export function resolverEquipado(inv) {
       algo = true
       if (it.t === 'arma') r.armas[lado][chave] = { p: it.p, f: it.f, s: it.s, st: it.st, n: it.n || '', l: it.l, a: it.a || [], k: it.k || null }
       else if (it.t === 'faca') r.facas[lado] = { d: it.d, p: it.p, f: it.f, s: it.s, st: it.st, n: it.n || '', l: it.l }
+      else if (PERFIL.has(it.t)) r.perfil[it.t] = { d: it.d, p: it.p || 0 } // o mesmo nos dois times
       else if (it.t === 'luva') r.luvas[lado] = { d: it.d, p: it.p, f: it.f, s: it.s, l: it.l }
       // agentes não são aplicados no servidor (bloqueado): o item pode existir no inventário, mas não vai para o plugin
     }
@@ -358,7 +363,7 @@ export async function rotaSkinsExcluir(req, env, quem, cors) {
   return json(inv, 200, cors)
 }
 
-const TIPOS_DO_DONO = ['arma', 'faca', 'luva', 'adesivo', 'chaveiro', 'caixa'] // agente não: bloqueado no servidor
+const TIPOS_DO_DONO = ['arma', 'faca', 'luva', 'adesivo', 'chaveiro', 'caixa', 'emblema', 'trilha', 'grafite'] // agente não: bloqueado no servidor
 
 // POST /admin/skin (só o dono): { id, item } ou { id, itens: [..] } dá skins ao jogador (até 60, cada uma com q = quantidade se for
 // adesivo/chaveiro); { id, remover: "<id do item>" } tira uma. O jogador recebe um aviso por tipo de item, com "×n".
