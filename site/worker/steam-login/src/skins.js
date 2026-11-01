@@ -332,6 +332,11 @@ export async function rotaSkinsPublico(url, env, cors) {
   return json(r, 200, { ...cors, 'Cache-Control': 'public, max-age=30' })
 }
 
+export function itemDisponivelParaTroca(inv, id) {
+  const item = inv?.itens?.[id]
+  return !!item && id !== ID_C4 && !(item.t === 'arma' && item.d === DEF_C4) && !Object.values(inv.equip || {}).some(lado => Object.values(lado || {}).includes(id))
+}
+
 // GET /skins/inventario?id= (sem login): o inventário de um jogador para o perfil dele ("Ver inventário"), com o valor em NP de cada item
 export async function rotaSkinsInventarioPublico(url, env, cors) {
   const dono = idDaUrl(url)
@@ -339,7 +344,7 @@ export async function rotaSkinsInventarioPublico(url, env, cors) {
   if (url.searchParams.get('troca') === '1') {
     const { ids } = await pedir(objetoGlobal(env.TROCAS), { acao: 'reservados', quem: dono })
     const reservados = new Set(ids)
-    inv.itens = Object.fromEntries(Object.entries(inv.itens || {}).filter(([id]) => !reservados.has(id)))
+    inv.itens = Object.fromEntries(Object.entries(inv.itens || {}).filter(([id]) => !reservados.has(id) && itemDisponivelParaTroca(inv, id)))
   }
   const valores = Object.fromEntries(Object.entries(valoresDe(inv?.itens)).map(([k, x]) => [k, x.v]))
   return json({ itens: inv?.itens || {}, equip: inv?.equip || { ct: {}, tr: {} }, criado: inv?.criado || {}, valores }, 200, { ...cors, 'Cache-Control': 'public, max-age=20' })

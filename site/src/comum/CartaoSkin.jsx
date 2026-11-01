@@ -5,7 +5,7 @@ import IconeUI from './IconeUI.jsx'
 // item: { t, d, p, f, st, n, a, k, __id }   equip: { ct: {chave: id}, tr: {...} }   adesivos/chaveiros: Map(id do jogo -> linha do catálogo)
 // aoAbrirMenu: o que fazer ao clicar (menu do botão direito no inventário); sem ele o cartão é só para olhar. extra: algo embaixo (ex.: botão "Tirar").
 import { useEffect, useRef, useState } from 'react'
-import { LADOS_TIME, chaveEquip, corEnfeite, descrever, ehC4, urlImg } from './skins.js'
+import { LADOS_TIME, chaveEquip, corEnfeite, descrever, ehC4, ehPerfil, urlImg } from './skins.js'
 import { useT } from './i18n.js'
 import DicaSkin, { nomeRaridade, temDica } from './DicaSkin.jsx'
 import { padraoRaro } from '../../worker/steam-login/src/padroes.js'
@@ -142,7 +142,7 @@ export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
         <button
           {...eventosDica}
           type="button"
-          className={`inv-cartao${enfeite ? ' inv-cartao-guardado' : ''}${selecionado ? ' inv-cartao-sel' : ''}${ativo ? ' inv-cartao-ativo' : ''}`}
+          className={`inv-cartao${enfeite || ehPerfil(item) ? ' inv-cartao-guardado' : ''}${item.t === 'grafite' ? ' inv-cartao-grafite' : ''}${selecionado ? ' inv-cartao-sel' : ''}${ativo ? ' inv-cartao-ativo' : ''}`}
           aria-pressed={selecionado === undefined ? undefined : selecionado}
           {...(ativo ? { 'aria-current': 'true' } : {})}
           style={{ '--cor': d.cor || '#6b6f76' }}
@@ -155,7 +155,7 @@ export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
           {corpo}
         </button>
       ) : (
-        <div {...eventosDica} className="inv-cartao inv-cartao-fixo" style={{ '--cor': d.cor || '#6b6f76' }}>
+        <div {...eventosDica} className={`inv-cartao inv-cartao-fixo${ehPerfil(item) ? ' inv-cartao-guardado' : ''}${item.t === 'grafite' ? ' inv-cartao-grafite' : ''}`} style={{ '--cor': d.cor || '#6b6f76' }}>
           {corpo}
         </div>
       )}

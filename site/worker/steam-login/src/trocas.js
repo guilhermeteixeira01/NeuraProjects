@@ -18,7 +18,7 @@ import { ErroConflito, ErroNaoEncontrado, ErroPedido, ErroPermissao } from './er
 import { lerCorpo, reenviar } from './http.js'
 import { Fila, objetoGlobal, pedirAoJogador, responder } from './objetos.js'
 import { registrar } from './registro.js'
-import { limparSkins, lerSkins, mudarSkins, novoIdItem, tirarItem } from './skins.js'
+import { itemDisponivelParaTroca, limparSkins, lerSkins, mudarSkins, novoIdItem, tirarItem } from './skins.js'
 import { lerUsuarios } from './usuarios.js'
 import { valorDe } from './valor.js'
 
@@ -27,16 +27,17 @@ const MAX_ITENS = 20 // por lado
 const MAX_PENDENTES = 20 // por quem envia
 const VALIDADE_MS = 7 * 24 * 3600 * 1000
 const GUARDAR = 400 // propostas encerradas guardadas (as pendentes ficam sempre)
-const TIPOS_OK = new Set(['arma', 'faca', 'luva', 'adesivo', 'chaveiro', 'caixa'])
+const TIPOS_OK = new Set(['arma', 'faca', 'luva', 'adesivo', 'chaveiro', 'caixa', 'grafite', 'emblema', 'trilha'])
 const ITENS_MAX = 2000
 
 const mesmo = (a, b) => a && b && a.t === b.t && a.d === b.d && a.p === b.p
 
 // Troca os itens de um jogador: tira "sai" (ids com o item esperado) e põe "entra" (itens novos, com id novo). Devolve os ids novos.
 // Item que já não está lá (ou mudou): ErroConflito 'item-mudou'; sem espaço: ErroConflito 'cheio'.
-export async function mexerNoInventario(env, jogador, sai, entra) {
+export async function mexerNoInventario(env, jogador, sai, entra, desfazer = false) {
   const { novosIds } = await mudarSkins(env, jogador, (inv) => {
     for (const { id, item } of sai) if (!mesmo(inv.itens[id], item)) throw new ErroConflito('item-mudou')
+    for (const { id } of sai) if (!desfazer && !itemDisponivelParaTroca(inv, id)) throw new ErroConflito('item-equipado')
     if (Object.keys(inv.itens).length - sai.length + entra.length > ITENS_MAX) throw new ErroConflito('cheio')
     for (const { id } of sai) tirarItem(inv, id)
     const agora = Date.now()
@@ -171,6 +172,7 @@ export class Trocas {
       lista.map((id) => {
         const item = inv?.itens?.[id]
         if (!item || id === 'c4' || !TIPOS_OK.has(item.t)) throw new ErroConflito('item-invalido')
+        if (!itemDisponivelParaTroca(inv, id)) throw new ErroConflito('item-equipado')
         if (reservados.has(id)) throw new ErroConflito('item-em-outra-proposta')
         return { id, item }
       })
@@ -242,6 +244,7 @@ export class Trocas {
         t.de,
         novosDoPrimeiro.map((id, i) => ({ id, item: t.pedir[i].item })),
         t.dar,
+        true,
       )
       throw e instanceof ErroConflito && e.codigo === 'item-mudou' ? new ErroConflito('seu-item-mudou') : e
     }

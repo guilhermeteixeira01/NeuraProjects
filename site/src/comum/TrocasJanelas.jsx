@@ -11,7 +11,7 @@ import { useConta } from './conta.js'
 import { useT } from './i18n.js'
 import { lerCaixasPublicas } from './loja.js'
 import { comSenha } from './seguranca.js'
-import { descrever, indicar, urlImg, useCatalogo, corEnfeite } from './skins.js'
+import { descrever, ehC4, indicar, urlImg, useCatalogo, corEnfeite } from './skins.js'
 import { lerTrocas } from './Trocas.jsx'
 import { calcularResumoTroca } from './resumoTroca.js'
 
@@ -59,6 +59,7 @@ const MENSAGENS = {
   'np-invalido': 'Informe uma quantidade inteira e válida de NP.',
   'muitos-itens': 'No máximo 20 itens de cada lado.',
   'muitas-pendentes': 'Você já tem propostas demais esperando resposta.',
+  'item-equipado': 'Desequipe o item antes de incluí-lo em uma troca.',
   'item-invalido': 'Algum item não pode ser trocado.',
   'item-em-outra-proposta': 'Um dos itens já está reservado em outra proposta pendente.',
   encerrada: 'Essa proposta já foi respondida.',
@@ -78,6 +79,9 @@ function useCatalogosDeItens() {
   const armas = useCatalogo('armas')
   const adesivos = useCatalogo('adesivos')
   const chaveiros = useCatalogo('chaveiros')
+  const emblemas = useCatalogo('emblemas')
+  const trilhas = useCatalogo('trilhas')
+  const grafites = useCatalogo('grafites')
   const [caixas, setCaixas] = useState([])
   useEffect(() => {
     lerCaixasPublicas().then(setCaixas)
@@ -85,12 +89,12 @@ function useCatalogosDeItens() {
   return useMemo(
     () => ({
       pronto: !!armas.dados,
-      idx: indicar(armas.dados?.armas, []),
+      idx: indicar(armas.dados?.armas, [], { emblema: emblemas.dados, trilha: trilhas.dados, grafite: grafites.dados }),
       adesivos: new Map((adesivos.dados || []).map((s) => [s[0], s])),
       chaveiros: new Map((chaveiros.dados || []).map((s) => [s[0], s])),
       caixas,
     }),
-    [armas.dados, adesivos.dados, chaveiros.dados, caixas],
+    [armas.dados, adesivos.dados, chaveiros.dados, emblemas.dados, trilhas.dados, grafites.dados, caixas],
   )
 }
 
@@ -180,6 +184,9 @@ const FILTROS = [
   ['luva', 'Luvas'],
   ['adesivo', 'Adesivos'],
   ['chaveiro', 'Chaveiros'],
+  ['grafite', 'Grafites'],
+  ['emblema', 'Pins'],
+  ['trilha', 'Trilhas sonoras'],
   ['caixa', 'Caixas'],
 ]
 
@@ -234,7 +241,7 @@ export function JanelaTroca({ para, aoFechar, aoEnviada }) {
   const lista = useMemo(
     () =>
       Object.entries(inv?.itens || {})
-        .filter(([id, it]) => it.t !== 'agente' && !escolhidos.includes(id) && (filtro === 'tudo' || it.t === filtro))
+        .filter(([id, it]) => it.t !== 'agente' && id !== 'c4' && !ehC4(it) && !Object.values(inv?.equip || {}).some(lado => Object.values(lado || {}).includes(id)) && !escolhidos.includes(id) && (filtro === 'tudo' || it.t === filtro))
         .sort((a, b) => (inv?.criado?.[b[0]] || 0) - (inv?.criado?.[a[0]] || 0)),
     [inv, escolhidos, filtro],
   )
