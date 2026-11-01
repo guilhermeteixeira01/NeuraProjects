@@ -10,6 +10,7 @@ import {
   corEnfeite,
   descrever,
   ehC4,
+  ID_C4,
   indicar,
   excluirItem,
   inventarioNovo,
@@ -714,9 +715,11 @@ function useCelular() {
   return cel
 }
 
-function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEquipar, aoDesequipar, aoDetalhes, aoEditar }) {
+function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEquipar, aoDesequipar, aoDetalhes, aoEditar, mapa }) {
   const t = useT()
   const fechar = useRef(null)
+  const m3d = useMapas3d(mapa)
+  const [sem3d, setSem3d] = useState(false)
   useEffect(() => {
     if (!celular || !aberto) return
     fechar.current?.focus()
@@ -763,7 +766,9 @@ function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEqui
         <small>{temFloat ? t(nomeDoDesgaste(f)) : guardado ? `${d.tipoNome}${alvo.n > 1 ? ` · ×${alvo.n}` : ''}` : ''}</small>
       </header>
       <div className="inv-painel-arte" style={{ '--inv-painel-fundo': `url("${FUNDOS.inventario.src}")` }}>
-        {d.img ? <img src={d.img} alt="" decoding="async" /> : <span className="inv-sem-img" aria-hidden="true" />}
+        {c4 && m3d && idNo3d(item, m3d) !== undefined && !sem3d ? (
+          <div className="inv-painel-3d"><Visualizador3D item={item} m={m3d} aoMudar={() => {}} aoFalhar={() => setSem3d(true)} altura={230} /></div>
+        ) : d.img ? <img src={d.img} alt="" decoding="async" /> : <span className="inv-sem-img" aria-hidden="true" />}
         {item.st ? <span className="inv-st">StatTrak™</span> : null}
       </div>
       {temFloat && (
@@ -932,7 +937,7 @@ function Conteudo() {
   }, [temCaixa])
   const adesivos = useCatalogo('adesivos', precisaAdesivos)
   const chaveiros = useCatalogo('chaveiros', precisaAdesivos)
-  const mapa3d = useCatalogo('mapa3d', janela?.tipo === 'editar' || janela?.tipo === 'inspecionar' || janela?.tipo === 'confirmar')
+  const mapa3d = useCatalogo('mapa3d', janela?.tipo === 'editar' || janela?.tipo === 'inspecionar' || janela?.tipo === 'confirmar' || selChave === 'i:c4')
 
   useEffect(() => {
     if (!conta?.id) return
@@ -1037,7 +1042,7 @@ function Conteudo() {
     const q = busca.trim().toLowerCase()
     const lista = Object.entries(inv.itens)
       .map(([id, it]) => ({ ...it, __id: id }))
-      .filter((it) => it.t !== 'agente' && !GUARDADO(it.t)) // agentes: bloqueados no servidor; adesivos, chaveiros e caixas têm abas próprias
+      .filter((it) => it.__id !== ID_C4 && it.t !== 'agente' && !GUARDADO(it.t)) // agentes: bloqueados no servidor; adesivos, chaveiros e caixas têm abas próprias
       .filter((it) => aba === 'tudo' || it.t === aba)
       .filter((it) => rar === 'todas' || rarDe(it) === rar)
       .filter((it) => {
@@ -1244,7 +1249,8 @@ function Conteudo() {
   const equipadoEmAlgum = (it) => inv.equip.ct[chaveEquip(it)] === it.__id || inv.equip.tr[chaveEquip(it)] === it.__id
   const idsParaTodos = [...itens.filter((i) => !i.cadeado && !equipadoEmAlgum(i)).map((i) => i.__id), ...guardados.filter((g) => g.tipo !== 'caixa').flatMap((g) => idsGuardados(g.tipo, g.def).filter(id => !inv.itens[id]?.cadeado))]
   // Item no painel: o escolhido, ou o primeiro da lista atual (troca de aba/filtro sem deixar o painel vazio)
-  const chavesVisiveis = aba === 'avenda' ? [] : [...(emEmbalagem ? [] : itens.map((i) => `i:${i.__id}`)), ...guardados.map((g) => `g:${g.tipo}:${g.def}`)]
+  const mostrarC4 = !emEmbalagem && aba !== 'avenda' && (aba === 'tudo' || aba === 'arma') && !!inv?.itens?.[ID_C4] && rar === 'todas' && (!busca.trim() || /c4|bomba|explosiv/i.test(busca))
+  const chavesVisiveis = aba === 'avenda' ? [] : [...(emEmbalagem ? [] : itens.map((i) => `i:${i.__id}`)), ...(mostrarC4 ? [`i:${ID_C4}`] : []), ...guardados.map((g) => `g:${g.tipo}:${g.def}`)]
   const selChaveAtual = chavesVisiveis.includes(selChave) ? selChave : chavesVisiveis[0] || null
   const alvo = (() => {
     if (!selChaveAtual) return null
@@ -1335,6 +1341,20 @@ function Conteudo() {
             {t('Abrir')}
           </a>
         )}
+      </li>
+    )
+  }
+  // C4: cartão pequeno, separado das armas (como adesivos e amuletos); só abre o painel/menu de edição
+  const cartaoC4 = () => {
+    const it = { ...inv.itens[ID_C4], __id: ID_C4 }
+    const d = descrever(it, idx)
+    const ativo = selChaveAtual === `i:${ID_C4}`
+    return (
+      <li key="c4" className="inv-cartao-li">
+        <button type="button" className={`inv-cartao inv-cartao-guardado${ativo ? ' inv-cartao-ativo' : ''}`} onClick={(e) => selecionar(`i:${ID_C4}`, e.currentTarget)} onContextMenu={(e) => { e.preventDefault(); setMenu({ x: e.clientX, y: e.clientY, id: ID_C4 }) }}>
+          <span className="inv-cartao-arte"><span className="inv-arma-box"><Imagem src={d.img} classe="inv-arma-img" /></span><span className="inv-st">TR</span></span>
+          <span className="inv-cartao-nome"><b>{d.titulo}</b><small>{t('Sempre equipada')}</small></span>
+        </button>
       </li>
     )
   }
@@ -1454,6 +1474,7 @@ function Conteudo() {
           ))}
         </ul>
         </section>}
+        {mostrarC4 && <section aria-label="C4"><h3>C4</h3><ul className="inv-itens">{cartaoC4()}</ul></section>}
         {[[ 'adesivo', 'Adesivos' ], [ 'chaveiro', 'Amuletos' ], [ 'caixa', 'Caixas' ]].map(([tipo, nome]) => {
           const grupo = guardados.filter(g => g.tipo === tipo)
           return grupo.length > 0 && <section key={tipo} aria-label={t(nome)}>
@@ -1461,12 +1482,13 @@ function Conteudo() {
             <ul className="inv-itens">{grupo.map(cartaoGuardado)}</ul>
           </section>
         })}
-        {!itens.length && !guardados.length && <p className="inv-nada">{t('Nenhum item encontrado.')}</p>}
+        {!itens.length && !guardados.length && !mostrarC4 && <p className="inv-nada">{t('Nenhum item encontrado.')}</p>}
         </div>
       )}
       </div>
       </div>
       {!celular && <PainelItem
+        mapa={mapa3d.dados}
         alvo={alvo}
         idx={idx}
         equip={inv.equip}

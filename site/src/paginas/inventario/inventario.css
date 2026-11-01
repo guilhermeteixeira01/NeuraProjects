@@ -315,3 +315,7 @@ html.inv-travado body { position: fixed; inset: 0; width: 100%; }
   .inv-adesivos { grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); }
 }
 .inv-tela-centro .inv-3d, .inv-dialogo-previa .inv-3d, .inv-previa-img { background: linear-gradient(#07111c44, #07111c66), url('/neurapick/maps/ancient.jpg') center / cover no-repeat; }
+
+/* painel de detalhes: o 3D da C4 ocupa a área da arte */
+.inv-painel-3d { position: absolute; inset: 0; display: grid; }
+.inv-painel-3d iframe { width: 100%; height: 100%; border: 0; }
