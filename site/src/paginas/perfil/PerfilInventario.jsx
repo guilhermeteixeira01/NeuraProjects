@@ -18,7 +18,7 @@ import { padraoRaro } from '../../../worker/steam-login/src/padroes.js'
 
 const GUARDADOS = new Set(['adesivo', 'chaveiro', 'caixa'])
 // Abas de itens (as mesmas do inventário do jogador) e ordenação
-const ABAS_ITENS = ['tudo', 'arma', 'faca', 'luva']
+const ABAS_ITENS = ['tudo', 'arma', 'faca', 'luva', 'emblema', 'trilha', 'grafite']
 const ORDENS = [
   ['valor', 'Mais caro'],
   ['raridade', 'Raridade'],
@@ -76,7 +76,10 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
     return () => window.removeEventListener('np-perfil-aba', ouvir)
   }, [])
 
-  const idx = useMemo(() => indicar(armas.dados?.armas, []), [armas.dados])
+  const emblemas = useCatalogo('emblemas', true)
+  const trilhas = useCatalogo('trilhas', true)
+  const grafites = useCatalogo('grafites', true)
+  const idx = useMemo(() => indicar(armas.dados?.armas, [], { emblema: emblemas.dados, trilha: trilhas.dados, grafite: grafites.dados }), [armas.dados, emblemas.dados, trilhas.dados, grafites.dados])
   const mapaAd = useMemo(() => new Map((adesivos.dados || []).map((s) => [s[0], s])), [adesivos.dados])
   const mapaCh = useMemo(() => new Map((chaveiros.dados || []).map((s) => [s[0], s])), [chaveiros.dados])
 
@@ -127,10 +130,19 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
     ['arma', 'ARMAS', contaTipo('arma')],
     ['faca', 'FACAS', contaTipo('faca')],
     ['luva', 'LUVAS', contaTipo('luva')],
+    ['emblema', 'PINS', contaTipo('emblema')],
+    ['trilha', 'TRILHAS', contaTipo('trilha')],
+    ['grafite', 'GRAFITES', contaTipo('grafite')],
     ['adesivos', 'ADESIVOS', listaAdesivos.reduce((a, g) => a + g.n, 0)],
     ['chaveiros', 'CHAVEIROS', listaChaveiros.reduce((a, g) => a + g.n, 0)],
     ['caixas', 'CAIXAS', caixas.reduce((a, g) => a + g.n, 0)],
   ]
+
+  const nomeGuardado = (g) => aba === 'caixas' ? caixasLoja.find((c) => c.id === g.d)?.nome || '#' + g.d : (aba === 'adesivos' ? mapaAd : mapaCh).get(g.d)?.[1] || '#' + g.d
+  const valorGuardado = (g) => aba === 'caixas' ? caixasLoja.find((c) => c.id === g.d)?.preco || 0 : inv?.valores?.[g.id] || 0
+  const gruposVisiveis = (aba === 'adesivos' ? listaAdesivos : aba === 'chaveiros' ? listaChaveiros : caixas)
+    .filter((g) => (aba === 'caixas' || rar === 'todas' || rarEnf(g.d) === rar) && (!q || nomeGuardado(g).toLowerCase().includes(q)))
+    .sort((a, b) => ordem === 'nome' ? nomeGuardado(a).localeCompare(nomeGuardado(b)) : ordem === 'recente' ? (inv?.criado?.[b.id] || 0) - (inv?.criado?.[a.id] || 0) : ordem === 'raridade' && aba !== 'caixas' ? rarEnf(b.d) - rarEnf(a.d) : valorGuardado(b) - valorGuardado(a))
 
   const exemplo = import.meta.env.DEV && new URLSearchParams(location.search).get("exemploPerfil") === "1"
   const caixaExemplo = caixasLoja[0]
@@ -260,18 +272,12 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
             ))}
           </nav>
 
-          {erro ? (
-            <p className="pf-inv-vazio">{t('Não consegui carregar o inventário agora.')}</p>
-          ) : !inv || !armas.dados ? (
-            <CarregandoNP pequeno />
-          ) : ABAS_ITENS.includes(aba) ? (
-            <>
               <div className="pf-inv-barra">
                 <label className="pf-inv-busca">
                   <IconeUI tipo="busca" tamanho={16} />
                   <input type="search" placeholder={t('Pesquisar no inventário')} value={busca} onChange={(e) => setBusca(e.target.value)} />
                 </label>
-                <span className="pf-inv-total">{t('{n} itens', { n: numero(itens.length) })}</span>
+                <span className="pf-inv-total">{t('{n} itens', { n: numero(ABAS_ITENS.includes(aba) ? itens.length : gruposVisiveis.length) })}</span>
                 <select className="pf-inv-ordem" value={ordem} onChange={(e) => setOrdem(e.target.value)} aria-label={t('Ordenar')}>
                   {ORDENS.map(([id, nome]) => (
                     <option key={id} value={id}>
@@ -280,6 +286,12 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
                   ))}
                 </select>
               </div>
+          {erro ? (
+            <p className="pf-inv-vazio">{t('Não consegui carregar o inventário agora.')}</p>
+          ) : !inv || !armas.dados ? (
+            <CarregandoNP pequeno />
+          ) : ABAS_ITENS.includes(aba) ? (
+            <>
               <details className="inv-rar pf-inv-rar pf-inv-filtro"><summary>{t('Raridade')}</summary>
                 <div className="pf-rar-opcoes">
                 <button type="button" className={rar === 'todas' ? 'is-ativo' : ''} onClick={() => setRar('todas')}>
@@ -300,7 +312,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
               <>
                 <ul className="inv-itens pf-inv-cartoes">
                   {itens.map((it) => (
-                    <CartaoSkin key={it.__id} item={it} idx={idx} adesivos={mapaAd} chaveiros={mapaCh} valor={valorDe(it)} aoAbrirMenu={() => podeInspecionar(it) && setInspecionando(it)} />
+                    <CartaoSkin key={it.__id} item={it} idx={idx} equip={inv?.equip} adesivos={mapaAd} chaveiros={mapaCh} valor={valorDe(it)} aoAbrirMenu={() => podeInspecionar(it) && setInspecionando(it)} />
                   ))}
                 </ul>
               </>
@@ -325,15 +337,13 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
               </details>
             )}
             <ul className="inv-itens pf-inv-cartoes">
-              {[...(aba === 'adesivos' ? listaAdesivos : aba === 'chaveiros' ? listaChaveiros : caixas)]
-                .filter((g) => aba === 'caixas' || rar === 'todas' || rarEnf(g.d) === rar)
-                .sort((a, b) => aba === 'caixas' ? 0 : rarEnf(b.d) - rarEnf(a.d))
+              {gruposVisiveis
                 .map((g) => {
                 // valor de uma unidade: a caixa vale o preço dela na loja; adesivo/chaveiro, o valor de mercado que o worker manda
                 const qtd = g.n > 1 && <span className="pf-inv-qtd">×{g.n}</span>
                 if (aba !== 'caixas') {
                   const item = { t: aba === 'adesivos' ? 'adesivo' : 'chaveiro', d: g.d, p: 0, __id: g.id }
-                  return <CartaoSkin key={`${aba}${g.d}`} item={item} idx={idx} adesivos={mapaAd} chaveiros={mapaCh} valor={inv?.valores?.[g.id]} aoAbrirMenu={() => setInspecionando(item)} extra={qtd} />
+                  return <CartaoSkin key={`${aba}${g.d}`} item={item} idx={idx} equip={inv?.equip} adesivos={mapaAd} chaveiros={mapaCh} valor={inv?.valores?.[g.id]} aoAbrirMenu={() => setInspecionando(item)} extra={qtd} />
                 }
                 const cx = caixasLoja.find((c) => c.id === g.d)
                 return (
@@ -357,7 +367,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
                   </li>
                 )
               })}
-              {!(aba === 'adesivos' ? listaAdesivos : aba === 'chaveiros' ? listaChaveiros : caixas).length && <li className="pf-inv-vazio">{t('Nada por aqui.')}</li>}
+              {!gruposVisiveis.length && <li className="pf-inv-vazio">{t('Nada por aqui.')}</li>}
             </ul>
             </>
           )}
