@@ -326,3 +326,9 @@ html:not(#v2) #root .inv-pagina .inv-painel-compacto .inv-rar-selo { justify-sel
 /* 3D da arma inspecionada: ocupa toda a área da arte e deixa o fundo do painel aparecer */
 .inv-painel-3d { position: absolute; inset: 0; display: block; }
 .inv-painel-3d iframe, .inv-painel-3d > div { width: 100%; height: 100%; border: 0; background: transparent; }
+
+/* barra de busca/filtros: quebra em linhas quando falta largura e a caixa de ordenar não encolhe (o texto saía da borda) */
+#root .inv-pagina .inv-barra { flex-wrap: wrap; }
+#root .inv-pagina .inv-barra :is(.inv-pesquisa) { flex: 1 1 280px; min-width: 240px; }
+#root .inv-pagina .inv-barra :is(.inv-filtro-raridade, .inv-btn, .tr-btn) { flex: none; }
+#root .inv-pagina .inv-ordem-caixa { flex: none; min-width: 205px; }

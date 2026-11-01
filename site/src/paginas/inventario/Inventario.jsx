@@ -1102,6 +1102,7 @@ function Conteudo() {
     const c = Array(7).fill(0)
     for (const it of Object.values(inv?.itens || {})) {
       if ((it.t === 'arma' || it.t === 'faca' || it.t === 'luva') && (aba === 'tudo' || it.t === aba)) c[rarDe(it)]++
+      else if (ehPerfil(it) && (aba === 'tudo' || it.t === aba)) c[rarDe(it)]++
       else if ((it.t === 'adesivo' || it.t === 'chaveiro') && (aba === 'tudo' || it.t === aba)) {
         const linha = (it.t === 'adesivo' ? adesivosPorId : chaveirosPorId).get(it.d)
         if (linha) c[raridadeCsDaCor(corEnfeite(it.t, linha))]++
@@ -1388,7 +1389,7 @@ function Conteudo() {
           <IconeUI tipo="busca" tamanho={20}/>
           <input type="search" placeholder={t('Pesquisar no inventário…')} value={busca} onChange={(e) => setBusca(e.target.value)} />
         </label>
-        <details className="inv-filtro-raridade"><summary><IconeUI tipo="ajustes" tamanho={18} />{t("Raridade")}{rar !== "todas" && <i />}</summary>      {['tudo', 'arma', 'faca', 'luva', 'adesivo', 'chaveiro'].includes(aba) && total > 0 && (
+        {!['caixa', 'avenda'].includes(aba) && <details className="inv-filtro-raridade"><summary><IconeUI tipo="ajustes" tamanho={18} />{t("Raridade")}{rar !== "todas" && <i />}</summary>      {['tudo', 'arma', 'faca', 'luva', 'adesivo', 'chaveiro', 'emblema', 'trilha', 'grafite'].includes(aba) && total > 0 && (
         <div className="inv-rar" role="group" aria-label={t('Filtrar por raridade')}>
           <button type="button" className={rar === 'todas' ? 'is-ativo' : ''} onClick={() => setRar('todas')}>
             {t('Todas')}
@@ -1402,7 +1403,7 @@ function Conteudo() {
           )}
         </div>
       )}
-</details>
+</details>}
         <BotaoTrocas aoMudouInventario={recarregarInv} />
         {!['caixa', 'avenda'].includes(aba) && (
           <button type="button" className={`inv-btn inv-btn-sel${modoSel ? ' is-ativo' : ''}`} onClick={() => (modoSel ? sairDaSelecao() : setModoSel(true))}>
@@ -1410,7 +1411,7 @@ function Conteudo() {
             {modoSel ? t('Cancelar seleção') : t('Selecionar')}
           </button>
         )}
-        <label className="inv-ordem-caixa">
+        {!['caixa', 'avenda'].includes(aba) && <label className="inv-ordem-caixa">
           <IconeUI tipo="ordenar" tamanho={18} />
           <select className="inv-ordem" value={ordem} onChange={(e) => setOrdem(e.target.value)} aria-label={t('Ordenar')}>
             {ORDENS.map(([id, nome]) => (
@@ -1420,7 +1421,7 @@ function Conteudo() {
             ))}
           </select>
           <IconeUI tipo="baixo" tamanho={18} className="inv-ordem-seta" />
-        </label>
+        </label>}
       </div>
 
       <div className="inv-topo">
