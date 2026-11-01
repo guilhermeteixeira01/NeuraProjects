@@ -46,7 +46,7 @@ const NOME_ITEM = /[\u0000-\u001f<>]/g
 const LADOS = ['ct', 'tr']
 // Armas que só existem em um time no jogo (defIndex): o resto vale para os dois. Igual ao que o jogo vende/permite no CT e no TR.
 const SO_CT = new Set([3, 8, 10, 16, 27, 32, 34, 38, 60, 61]) // Five-SeveN, AUG, FAMAS, M4A4, MAG-7, P2000, MP9, SCAR-20, M4A1-S, USP-S
-const SO_TR = new Set([4, 7, 11, 13, 17, 29, 30, 39]) // Glock-18, AK-47, G3SG1, Galil AR, MAC-10, Sawed-Off, Tec-9, SG 553
+const SO_TR = new Set([4, 7, 11, 13, 17, 29, 30, 39, 49]) // C4, Glock-18, AK-47, G3SG1, Galil AR, MAC-10, Sawed-Off, Tec-9, SG 553
 const timesDoItem = (it) => {
   if (it.t === 'arma') return SO_CT.has(it.d) ? ['ct'] : SO_TR.has(it.d) ? ['tr'] : LADOS
   if (it.t === 'agente') return /\/ctm_/.test(it.m) ? ['ct'] : /\/tm_/.test(it.m) ? ['tr'] : LADOS // agents/models/ctm_... = CT, tm_... = TR
