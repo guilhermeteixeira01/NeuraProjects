@@ -27,6 +27,9 @@ const baixar = async (nome) => {
   return r.json()
 }
 const img = (u) => (typeof u === 'string' && u.startsWith(PREFIXO_IMG) ? u.slice(PREFIXO_IMG.length) : '')
+// final do endereço da Steam; imagens de outro servidor (adesivos antigos e trilhas vêm de cdn.steamstatic.com) ficam com o endereço completo,
+// e o site usa como está (src/comum/skins.js: urlImg)
+const imagemCompleta = (u) => (typeof u === 'string' && u ? (u.startsWith(PREFIXO_IMG) ? u.slice(PREFIXO_IMG.length) : u) : '')
 const CATEGORIAS = { Rifles: 'rifles', SMGs: 'smgs', Pistols: 'pistols', Heavy: 'heavy', Equipment: 'equip', Knives: 'facas', Gloves: 'luvas' }
 
 console.log('Baixando skins...')
@@ -83,8 +86,8 @@ const agentes = (await baixar('agents'))
 
 console.log('Baixando adesivos...')
 const adesivos = (await baixar('stickers'))
-  .filter((s) => s.def_index && img(s.image))
-  .map((s) => [Number(s.def_index), String(s.name).replace(/^Sticker \| /, ''), img(s.image)])
+  .filter((s) => s.def_index && imagemCompleta(s.image))
+  .map((s) => [Number(s.def_index), String(s.name).replace(/^Sticker \| /, ''), imagemCompleta(s.image)])
   .sort((a, b) => a[1].localeCompare(b[1]))
 
 console.log('Baixando chaveiros...')
@@ -94,8 +97,6 @@ const chaveiros = (await baixar('keychains'))
   .sort((a, b) => a[1].localeCompare(b[1]))
 
 // ── Emblemas, trilhas sonoras e grafites (itens de perfil: um de cada fica equipado) ──
-// "imagem": endereço completo quando não é da Steam (as trilhas vêm de cdn.steamstatic.com); o site usa como está
-const imagemCompleta = (u) => (typeof u === 'string' && u ? (u.startsWith(PREFIXO_IMG) ? u.slice(PREFIXO_IMG.length) : u) : '')
 // emblemas: distintivos (pins) e moedas/medalhas de serviço; [[defIndex, nome, imagem, cor, tipo]]
 const emblemas = (await baixar('collectibles'))
   .filter((c) => c.def_index && imagemCompleta(c.image) && ['Pin', 'Service Medal', 'Operation Coin', 'Map Contributor Coin', 'Premier Season Coin', "Pick'Em Coin"].includes(c.type))

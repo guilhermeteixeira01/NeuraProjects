@@ -24,9 +24,10 @@ export const corEnfeite = (tipo, linha) => {
 }
 
 export const IMG_BASE = 'https://community.akamai.steamstatic.com/economy/image/'
-export const urlImg = (sufixo, tamanho = 256) => (sufixo ? `${IMG_BASE}${sufixo}/${tamanho}fx${tamanho}f` : '')
+const completa = (s) => /^https?:/.test(s) // alguns itens (adesivos antigos, trilhas) têm o endereço completo no catálogo
+export const urlImg = (sufixo, tamanho = 256) => (sufixo ? (completa(sufixo) ? sufixo : `${IMG_BASE}${sufixo}/${tamanho}fx${tamanho}f`) : '')
 // Arma/faca/luva: imagem 4:3 (a quadrada da Steam corta a ponta da arma)
-export const urlImgArma = (sufixo, largura = 384) => (sufixo ? `${IMG_BASE}${sufixo}/${largura}fx${Math.round(largura * 0.75)}f` : '')
+export const urlImgArma = (sufixo, largura = 384) => (sufixo ? completa(sufixo) ? sufixo : `${IMG_BASE}${sufixo}/${largura}fx${Math.round(largura * 0.75)}f` : '')
 
 export const CATEGORIAS = [
   ['rifles', 'Rifles'],
