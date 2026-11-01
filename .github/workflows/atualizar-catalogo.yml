@@ -1,0 +1,52 @@
+# Mantém o catálogo de itens do site em dia (skins, adesivos, chaveiros, emblemas, trilhas sonoras, grafites e o mapa do visualizador 3D).
+# Toda segunda-feira (e quando você quiser, pelo botão "Run workflow") baixa as fontes, regenera site/public/assets/skins/*.json e,
+# se algo mudou, grava na main e dispara o deploy. Mesma coisa no computador:
+#   cd site && node ferramentas/skins/gerar-catalogo.mjs && node ferramentas/skins/gerar-detalhes.mjs
+name: Atualizar catálogo de itens
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: atualizar-catalogo
+  cancel-in-progress: false
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Gerar catálogo e detalhes
+        working-directory: site
+        run: |
+          node ferramentas/skins/gerar-catalogo.mjs
+          node ferramentas/skins/gerar-detalhes.mjs
+
+      - name: Gravar na main e publicar, se mudou
+        run: |
+          # só a data "gerado" mudando não conta como novidade
+          if git diff --quiet --ignore-matching-lines='"gerado"' -- site/public/assets/skins && [ -z "$(git ls-files --others --exclude-standard site/public/assets/skins)" ]; then
+            echo "Catálogo já está em dia."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/public/assets/skins
+          git commit -m "Atualiza o catálogo de itens"
+          git pull --rebase origin main
+          git push origin HEAD:main
+          # push feito pelo próprio workflow não dispara o deploy sozinho: chama na mão
+          gh workflow run deploy.yml --ref main
+        env:
+          GH_TOKEN: ${{ github.token }}
