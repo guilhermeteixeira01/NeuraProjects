@@ -5,7 +5,7 @@ import IconeUI from './IconeUI.jsx'
 // item: { t, d, p, f, st, n, a, k, __id }   equip: { ct: {chave: id}, tr: {...} }   adesivos/chaveiros: Map(id do jogo -> linha do catálogo)
 // aoAbrirMenu: o que fazer ao clicar (menu do botão direito no inventário); sem ele o cartão é só para olhar. extra: algo embaixo (ex.: botão "Tirar").
 import { useEffect, useRef, useState } from 'react'
-import { LADOS_TIME, chaveEquip, corEnfeite, descrever, urlImg } from './skins.js'
+import { LADOS_TIME, chaveEquip, corEnfeite, descrever, ehC4, urlImg } from './skins.js'
 import { useT } from './i18n.js'
 import DicaSkin, { nomeRaridade, temDica } from './DicaSkin.jsx'
 import { padraoRaro } from '../../worker/steam-login/src/padroes.js'
@@ -56,6 +56,7 @@ export function SeloRaridade({ item, cor }) {
 // aoSelecionar: o clique escolhe o item (o painel de inspeção do inventário mostra ele); o botão direito continua abrindo o menu.
 // ativo: é o item que está no painel
 export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAbrirMenu, aoSelecionar, aoCadeado, ativo, extra, selecionado, valor }) {
+  const c4 = ehC4(item) // C4 fixa: sem valor e sem cadeado para mexer
   const t = useT()
   // adesivo/chaveiro guardado (mercado): nome, imagem e cor vêm do catálogo dele ([id, nome, imagem, cor])
   const enfeite = item.t === 'adesivo' || item.t === 'chaveiro'
@@ -125,7 +126,7 @@ export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
             {t(nomeDoDesgaste(Number(item.f)))}
           </em>
         )}
-        {valor != null && (
+        {valor != null && !c4 && (
           <span className="inv-cartao-valor">
             <img src="/assets/logos/logo-np-64.png" alt="" width="14" height="14" />
             {Number(valor).toLocaleString('pt-BR')} NP
@@ -136,7 +137,7 @@ export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
   )
   return (
     <li className="inv-cartao-li">
-      {aoCadeado && <button type="button" className={`inv-cartao-cadeado${item.cadeado ? ' ativo' : ''}`} aria-label={t(item.cadeado ? 'Remover cadeado' : 'Proteger skin')} aria-pressed={!!item.cadeado} onClick={e => { e.stopPropagation(); aoCadeado() }}><IconeUI tipo="cadeado" tamanho={15} /></button>}
+      {aoCadeado && !c4 && <button type="button" className={`inv-cartao-cadeado${item.cadeado ? ' ativo' : ''}`} aria-label={t(item.cadeado ? 'Remover cadeado' : 'Proteger skin')} aria-pressed={!!item.cadeado} onClick={e => { e.stopPropagation(); aoCadeado() }}><IconeUI tipo="cadeado" tamanho={15} /></button>}
       {aoAbrirMenu || aoSelecionar ? (
         <button
           {...eventosDica}

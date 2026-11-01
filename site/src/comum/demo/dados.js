@@ -59,8 +59,11 @@ function montarInventario(caixas, agora) {
     itens[k] = { t: 'caixa', d: c.id, p: 0 }
     criado[k] = agora - n * HORA
   }
-  const arma = Object.keys(itens).filter((k) => itens[k].t !== 'caixa' && itens[k].t !== 'faca' && itens[k].t !== 'luva')
-  const equip = { ct: Object.fromEntries(arma.slice(0, 2).map((k, i) => [String(i), k])), tr: Object.fromEntries(arma.slice(2, 4).map((k, i) => [String(i), k])) }
+  // C4: item fixo, sempre equipada no TR (igual ao worker: id 'c4', defIndex 49)
+  itens.c4 = { t: 'arma', d: 49, p: 0, f: 0.0001, s: 0, st: 0, a: [null, null, null, null, null], k: null, cadeado: true }
+  criado.c4 = 1
+  const arma = Object.keys(itens).filter((k) => k !== 'c4' && itens[k].t === 'arma')
+  const equip = { ct: Object.fromEntries(arma.slice(0, 2).map((k) => [String(itens[k].d), k])), tr: { ...Object.fromEntries(arma.slice(2, 4).map((k) => [String(itens[k].d), k])), 49: 'c4' } }
   return { v: 2, itens, equip, criado }
 }
 

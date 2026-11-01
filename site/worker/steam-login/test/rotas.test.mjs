@@ -120,7 +120,7 @@ test('trocas: senha exigida, proposta, aceite e os itens mudam de dono', async (
 
 test('mercado: anunciar (com senha), comprar e o vendedor recebe', async () => {
   const inv = await pedir('GET', '/skins', { quem: BIA })
-  const [id] = Object.keys(inv.dados.itens).filter((k) => inv.dados.itens[k].t === 'arma')
+  const [id] = Object.keys(inv.dados.itens).filter((k) => k !== 'c4' && inv.dados.itens[k].t === 'arma')
   const anuncio = await pedir('POST', '/mercado/anunciar', { quem: BIA, corpo: { id, preco: 1234, nome: 'AK', senha: 'senha-da-bia' } })
   assert.equal(anuncio.status, 200)
   assert.ok(anuncio.dados.anuncio.ref > 1234) // blue gem tier 1: o valor de referência leva o multiplicador

@@ -85,8 +85,14 @@ export const LADOS_TIME = [
 ]
 
 // Índices do catálogo: defIndex -> arma, e agente -> dados
+// C4: item fixo de todo jogador (sempre equipada no TR, sem pintura): o catálogo de skins não tem ela, então entra aqui
+export const ID_C4 = 'c4'
+export const DEF_C4 = 49
+export const ehC4 = (item) => item?.t === 'arma' && item.d === DEF_C4
+const ARMA_C4 = { d: DEF_C4, n: 'C4 Explosive', e: 'tr', s: [] }
 export function indicar(catalogoArmas, agentes) {
   const armas = new Map((catalogoArmas || []).map((a) => [a.d, a]))
+  armas.set(DEF_C4, ARMA_C4)
   const porAgente = new Map((agentes || []).map((a) => [a.d, a]))
   return { armas, porAgente }
 }
@@ -97,6 +103,7 @@ export function descrever(item, idx) {
     const a = idx.porAgente.get(item.d)
     return { titulo: 'Agente', subtitulo: a?.n || `#${item.d}`, img: a ? urlImg(a.i, 360) : '', cor: a?.c || '', times: a ? [a.t === 'ct' ? 'ct' : 'tr'] : ['ct', 'tr'] }
   }
+  if (ehC4(item)) return { titulo: ARMA_C4.n, subtitulo: 'Padrão', img: '/assets/armas/c4.svg', cor: '', skin: null, times: ['tr'] }
   const arma = idx.armas.get(item.d)
   const skin = arma?.s.find((s) => s[0] === item.p)
   return {

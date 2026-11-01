@@ -40,7 +40,11 @@ const LUVAS = new Set([4725, 5027, 5030, 5031, 5032, 5033, 5034, 5035])
 const ITENS_MAX = 2000 // inclui os adesivos e chaveiros guardados (cada um é um item)
 const CONSUMIVEIS = new Set(['adesivo', 'chaveiro', 'caixa']) // guardados no inventário; caixa fechada vira skin ao abrir (loja.js)
 const ID_MAX = 100000 // paint kit / adesivo / agente: limite folgado só para barrar lixo
-const ID_ITEM = /^[a-z0-9]{4,16}$/
+const ID_ITEM = /^[a-z0-9]{2,16}$/
+// C4: todo jogador tem a sua, fixa no inventário e sempre equipada no TR. Não tem pintura: só se editam os adesivos e 1 chaveiro.
+// Não sai do inventário (não vende, não troca, não exclui, não desequipa) e a limparSkins sempre devolve ela no lugar.
+export const ID_C4 = 'c4'
+export const DEF_C4 = 49
 const MODELO_AGENTE = /^agents\/models\/[a-z0-9_/]{1,120}\.vmdl$/
 const NOME_ITEM = /[\u0000-\u001f<>]/g
 const LADOS = ['ct', 'tr']
@@ -63,7 +67,8 @@ const real = (v, min, max, padrao = 0) => {
 }
 const desgaste = (v) => real(v, 0, 1, 0.0001)
 
-const vazio = () => ({ v: 2, itens: {}, equip: { ct: {}, tr: {} }, criado: {}, presentes: [] })
+const c4Padrao = () => ({ t: 'arma', d: DEF_C4, p: 0, f: 0.0001, s: 0, st: 0, l: 0, n: '', a: [null, null, null, null, null], k: null, cadeado: true })
+const vazio = () => ({ v: 2, itens: { [ID_C4]: c4Padrao() }, equip: { ct: {}, tr: { [String(DEF_C4)]: ID_C4 } }, criado: { [ID_C4]: 1 }, presentes: [] })
 
 // Formato antigo (um item por arma, igual nos dois times) -> inventário novo
 function converterV1(e) {
@@ -119,6 +124,12 @@ export function limparSkins(entrada) {
     const base = { t: it.t, d, p: inteiro(it.p, 0, ID_MAX), f: desgaste(it.f), s: inteiro(it.s, 0, 1000), st: it.st ? 1 : 0, l: it.l ? 1 : 0 }
     const nome = typeof it.n === 'string' ? it.n.replace(NOME_ITEM, '').trim().slice(0, 20) : ''
     if (it.t === 'arma') {
+      if ((d === DEF_C4) !== (id === ID_C4)) continue // a C4 só existe com o id fixo (e esse id só vale para ela)
+      if (id === ID_C4) {
+        saida.itens[id] = { t: 'arma', d: DEF_C4, p: 0, f: 0.0001, s: 0, st: 0, l: 0, n: '', a: limparAdesivos(it.a), k: limparChaveiro(it.k), cadeado: true }
+        saida.criado[id] = 1
+        continue
+      }
       if (!base.p) continue // arma sem skin não precisa existir
       saida.itens[id] = { ...base, n: nome, a: limparAdesivos(it.a), k: limparChaveiro(it.k) }
     } else if (it.t === 'faca') {
@@ -147,6 +158,11 @@ export function limparSkins(entrada) {
       if (chave === certa) saida.equip[lado][chave] = id
     }
   }
+  // a C4 nunca falta e fica equipada no TR (mesmo que o inventário venha vazio ou sem ela)
+  saida.itens[ID_C4] ??= c4Padrao()
+  saida.criado[ID_C4] ??= 1
+  delete saida.equip.ct[String(DEF_C4)]
+  saida.equip.tr[String(DEF_C4)] = ID_C4
   saida.presentes = (Array.isArray(e.presentes) ? e.presentes : [])
     .filter((p) => p && ID_ITEM.test(String(p.i)) && saida.itens[p.i])
     .map((p) => ({ i: String(p.i), q: inteiro(p.q, 0, 9007199254740991), v: p.v ? 1 : 0, n: inteiro(p.n, 1, 99, 1) }))
@@ -212,6 +228,7 @@ export async function mudarSkins(env, id, fn) {
 
 // Tira o item do inventário, do que está equipado e dos avisos de presente
 export function tirarItem(inv, id) {
+  if (id === ID_C4) return // a C4 não sai
   delete inv.itens[id]
   delete inv.criado[id]
   for (const lado of LADOS) inv.equip[lado] = Object.fromEntries(Object.entries(inv.equip[lado] || {}).filter(([, v]) => v !== id))

@@ -9,6 +9,7 @@ import {
   chaveEquip,
   corEnfeite,
   descrever,
+  ehC4,
   indicar,
   excluirItem,
   inventarioNovo,
@@ -624,6 +625,14 @@ function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoD
   const t = useT()
   const { ref, pos } = useMenuFlutuante(x, y, aoFechar)
   const chave = chaveEquip(item)
+  // C4: fixa e sempre equipada no TR; só dá para editar (adesivos e 1 chaveiro) e inspecionar
+  if (ehC4(item))
+    return (
+      <ul className="inv-menu" ref={ref} style={{ left: pos.x, top: pos.y }} role="menu">
+        <li><button type="button" role="menuitem" onClick={aoEditar}>{t('Editar (adesivos e chaveiro)')}</button></li>
+        <li><button type="button" role="menuitem" onClick={aoInspecionar}>{t('Inspecionar')}</button></li>
+      </ul>
+    )
   return (
     <ul className="inv-menu" ref={ref} style={{ left: pos.x, top: pos.y }} role="menu">
       {times.length === 2 && !(equip.ct?.[chave] === item.__id && equip.tr?.[chave] === item.__id) && (
@@ -705,7 +714,7 @@ function useCelular() {
   return cel
 }
 
-function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEquipar, aoDesequipar, aoDetalhes }) {
+function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEquipar, aoDesequipar, aoDetalhes, aoEditar }) {
   const t = useT()
   const fechar = useRef(null)
   useEffect(() => {
@@ -734,7 +743,8 @@ function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEqui
   const chave = !guardado ? chaveEquip(item) : null
   const times = (!guardado && d.times) || []
   const equipados = times.filter((l) => equip?.[l]?.[chave] === item.__id)
-  const equipavel = !guardado && ['arma', 'faca', 'luva'].includes(item.t) && times.length > 0
+  const c4 = !guardado && ehC4(item)
+  const equipavel = !guardado && !c4 && ['arma', 'faca', 'luva'].includes(item.t) && times.length > 0
   const todos = equipavel && equipados.length === times.length
   const raridade = nomeRaridade(item, d.cor, t.idioma)
   return (
@@ -786,13 +796,13 @@ function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEqui
             <dd style={{ color: cor }}>{raridade}</dd>
           </div>
         )}
-        {equipavel && (
+        {(equipavel || c4) && (
           <div>
             <dt>{t('Equipado')}</dt>
             <dd>{equipados.length ? equipados.map((l) => l.toUpperCase()).join(' · ') : t('Não')}</dd>
           </div>
         )}
-        {valor != null && (
+        {valor != null && !c4 && (
           <div>
             <dt>{t('Valor')}</dt>
             <dd className="inv-painel-valor">
@@ -809,13 +819,19 @@ function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEqui
             {todos ? t('Desequipar') : t('Equipar')}
           </button>
         )}
+        {c4 && (
+          <button type="button" className="v2-btn v2-btn-primario" onClick={aoEditar}>
+            <IconeUI tipo="detalhes" tamanho={18} />
+            {t('Editar adesivos e chaveiro')}
+          </button>
+        )}
         {alvo.caixa ? (
           <a className="v2-btn v2-btn-primario" href={`/loja/?abrir=${alvo.def}`}>
             <IconeUI tipo="caixa" tamanho={18} />
             {t('Abrir caixa')}
           </a>
         ) : (
-          <button type="button" className={`v2-btn ${equipavel ? 'v2-btn-secundario' : 'v2-btn-primario'}`} onClick={aoDetalhes}>
+          <button type="button" className={`v2-btn ${equipavel || c4 ? 'v2-btn-secundario' : 'v2-btn-primario'}`} onClick={aoDetalhes}>
             <IconeUI tipo="detalhes" tamanho={18} />
             {t('Ver detalhes')}
           </button>
@@ -1460,6 +1476,7 @@ function Conteudo() {
         aoFechar={fecharGaveta}
         aoEquipar={(times) => times.forEach((l) => equipar(alvo.item.__id, l))}
         aoDesequipar={(times) => times.forEach((l) => desequipar(alvo.item.__id, l))}
+        aoEditar={() => setJanela({ tipo: 'editar', id: alvo.item.__id })}
         aoDetalhes={() => (alvo.guardado ? setInspEnfeite({ t: alvo.item.t, d: alvo.def, p: 0 }) : setJanela({ tipo: 'inspecionar', id: alvo.item.__id }))}
       />}
       </div>

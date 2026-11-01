@@ -168,7 +168,7 @@ export class Trocas {
     const montar = (lista, inv, reservados) =>
       lista.map((id) => {
         const item = inv?.itens?.[id]
-        if (!item || !TIPOS_OK.has(item.t)) throw new ErroConflito('item-invalido')
+        if (!item || id === 'c4' || !TIPOS_OK.has(item.t)) throw new ErroConflito('item-invalido')
         if (reservados.has(id)) throw new ErroConflito('item-em-outra-proposta')
         return { id, item }
       })
