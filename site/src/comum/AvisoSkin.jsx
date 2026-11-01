@@ -6,7 +6,7 @@ import { chamarApi, seForErroApi, enderecoApi } from './api.js'
 import { tokenConta, useConta } from './conta.js'
 import { registrarNotificacao } from './notificacoes.js'
 import { lerCaixasPublicas } from './loja.js'
-import { descrever, indicar, lerInventario, urlImg, urlImgArma, useCatalogo, corEnfeite } from './skins.js'
+import { descrever, ehPerfil, indicar, lerInventario, urlImg, urlImgArma, useCatalogo, corEnfeite } from './skins.js'
 import { prepararSom, tocarConquista } from './Insignias.jsx'
 import { desempenhoAtivo } from './desempenho.js'
 import { useT } from './i18n.js'
@@ -34,6 +34,10 @@ export default function AvisoSkin() {
   }, [temCaixa])
   const adesivosCat = useCatalogo('adesivos', temAdesivo)
   const chaveirosCat = useCatalogo('chaveiros', temChaveiro)
+  // emblema, trilha sonora e grafite: o catálogo de cada um só baixa se o item novo for dele
+  const emblemasCat = useCatalogo('emblemas', pendentes.some((p) => p.item.t === 'emblema'))
+  const trilhasCat = useCatalogo('trilhas', pendentes.some((p) => p.item.t === 'trilha'))
+  const grafitesCat = useCatalogo('grafites', pendentes.some((p) => p.item.t === 'grafite'))
 
   const conferir = useCallback(async () => {
     if (!ativo) return
@@ -70,13 +74,18 @@ export default function AvisoSkin() {
     return () => clearInterval(i)
   }, [pendentes.length])
 
-  const idx = catalogo.dados ? indicar(catalogo.dados.armas, []) : null
+  const idx = catalogo.dados ? indicar(catalogo.dados.armas, [], { emblema: emblemasCat.dados, trilha: trilhasCat.dados, grafite: grafitesCat.dados }) : null
   // adesivo/chaveiro: nome e imagem vêm dos catálogos deles; skin: do catálogo de armas
   const descreverAviso = (p) => {
     if (p.item.t === 'caixa') {
       const c = caixasLoja.find((x) => x.id === p.item.d)
       if (!c) return null // espera o nome da caixa carregar (sem inventar "skin #31")
       return { titulo: c.nome, subtitulo: `Caixa fechada${p.n > 1 ? ` ×${p.n}` : ''}`, img: c.img, cor: c.cor || '', embalagem: true, caixa: true }
+    }
+    if (ehPerfil(p.item)) {
+      if (!idx.porPerfil[p.item.t].size) return null // espera o catálogo do tipo carregar (sem inventar "#874")
+      const x = descrever(p.item, idx)
+      return { ...x, subtitulo: x.subtitulo, embalagem: true, perfil: true }
     }
     if (p.item.t !== 'adesivo' && p.item.t !== 'chaveiro') return descrever(p.item, idx)
     const cat = p.item.t === 'adesivo' ? adesivosCat.dados : chaveirosCat.dados
@@ -95,7 +104,7 @@ export default function AvisoSkin() {
       if (!x) continue
       registrarNotificacao(conta.id, { id: `skin:${p.id}`, imagem: x.caixa ? x.img : x.img ? x.img.replace(/\/\d+fx\d+f$/, '/128fx96f') : '', titulo: x.embalagem ? `Você recebeu: ${x.titulo} (${x.subtitulo})` : `Você recebeu a skin ${x.titulo}${x.subtitulo ? ` | ${x.subtitulo}` : ''}`, texto: 'Já está no seu inventário.', link: '/inventario/' })
     }
-  }, [pendentes, idx, conta?.id, adesivosCat.dados, chaveirosCat.dados, caixasLoja]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pendentes, idx, conta?.id, adesivosCat.dados, chaveirosCat.dados, emblemasCat.dados, trilhasCat.dados, grafitesCat.dados, caixasLoja]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!atual || tocou.current === atual.id) return
@@ -136,7 +145,7 @@ export default function AvisoSkin() {
         <h2 id="skin-aviso-titulo">{d.embalagem ? t('Você recebeu um novo item!') : t('Você recebeu uma nova skin!')}</h2>
         <b className="skin-nome">{d.titulo}</b>
         {d.subtitulo && <span className="skin-sub">{d.subtitulo}</span>}
-        <p>{d.caixa ? t('Ela já está no seu inventário: abra na loja ou pelo botão Abrir.') : d.embalagem ? t('Ele já está no seu inventário: cole numa arma ao editá-la (cada um colado é gasto).') : t('Ela já está no seu inventário: dá para ajustar o desgaste, colocar adesivos e equipar no CT ou no TR.')}</p>
+        <p>{d.caixa ? t('Ela já está no seu inventário: abra na loja ou pelo botão Abrir.') : d.perfil ? t('Ele já está no seu inventário: abra a aba do tipo e equipe (vale nos dois times).') : d.embalagem ? t('Ele já está no seu inventário: cole numa arma ao editá-la (cada um colado é gasto).') : t('Ela já está no seu inventário: dá para ajustar o desgaste, colocar adesivos e equipar no CT ou no TR.')}</p>
         <div className="skin-botoes">
           <button type="button" className="skin-ok" onClick={() => fechar(true)} autoFocus>
             {t('Ver no inventário')}
