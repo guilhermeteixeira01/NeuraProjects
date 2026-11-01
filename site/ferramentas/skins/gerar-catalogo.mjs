@@ -7,7 +7,7 @@
 //   agentes.json  agentes de CT e TR:           [{ d, n, t, m, c, i }]
 //   adesivos.json adesivos:                     [[defIndex, nome, imagem]]
 //   chaveiros.json chaveiros (charms):          [[defIndex, nome, imagem, cor]]
-//   emblemas.json  pins e moedas/medalhas:      [[defIndex, nome, imagem, cor, tipo]]
+//   emblemas.json  pins:                        [[defIndex, nome, imagem, cor, tipo]]
 //   trilhas.json   trilhas sonoras (music kits): [[defIndex, nome, imagem, cor]]
 //   grafites.json  grafites (uma linha por cor): [[defIndex, nome, imagem, cor, tinta, nomeDaTinta]]
 // "imagem" é o final do endereço da Steam: o site junta com IMG_BASE (ver src/comum/skins.js).
@@ -97,9 +97,9 @@ const chaveiros = (await baixar('keychains'))
   .sort((a, b) => a[1].localeCompare(b[1]))
 
 // ── Emblemas, trilhas sonoras e grafites (itens de perfil: um de cada fica equipado) ──
-// emblemas: distintivos (pins) e moedas/medalhas de serviço; [[defIndex, nome, imagem, cor, tipo]]
+// emblemas = os pins (o que aparece antes do nome no placar); [[defIndex, nome, imagem, cor, tipo]]
 const emblemas = (await baixar('collectibles'))
-  .filter((c) => c.def_index && imagemCompleta(c.image) && ['Pin', 'Service Medal', 'Operation Coin', 'Map Contributor Coin', 'Premier Season Coin', "Pick'Em Coin"].includes(c.type))
+  .filter((c) => c.def_index && imagemCompleta(c.image) && c.type === 'Pin')
   .map((c) => [Number(c.def_index), String(c.name), imagemCompleta(c.image), c.rarity?.color || '', c.type])
   .sort((a, b) => a[4].localeCompare(b[4]) || a[1].localeCompare(b[1]))
 // trilhas sonoras (sem as versões StatTrak, que são o mesmo kit com contador): [[defIndex, nome, imagem, cor]]

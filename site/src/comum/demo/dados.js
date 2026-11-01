@@ -61,7 +61,7 @@ function montarInventario(caixas, agora) {
   }
   // C4: item fixo, sempre equipada no TR (igual ao worker: id 'c4', defIndex 49)
   // itens de perfil (um de cada tipo equipado nos dois times)
-  for (const [k, t, d, p] of [['pin1', 'emblema', 1056, 0], ['pin2', 'emblema', 874, 0], ['kit1', 'trilha', 62, 0], ['kit2', 'trilha', 5, 0], ['spr1', 'grafite', 1653, 0]]) {
+  for (const [k, t, d, p] of [['pin1', 'emblema', 6130, 0], ['pin2', 'emblema', 6134, 0], ['kit1', 'trilha', 62, 0], ['kit2', 'trilha', 5, 0], ['spr1', 'grafite', 1653, 0]]) {
     itens[k] = { t, d, p }
     criado[k] = agora - 3 * HORA
   }

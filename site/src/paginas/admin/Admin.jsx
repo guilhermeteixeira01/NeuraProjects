@@ -1543,7 +1543,7 @@ function DarSkin({ usuarios, fixo = null }) {
           ['luva', 'Luvas'],
           ['adesivo', 'Adesivos'],
           ['chaveiro', 'Chaveiros'],
-          ['emblema', 'Emblemas'],
+          ['emblema', 'Pins'],
           ['trilha', 'Trilhas sonoras'],
           ['grafite', 'Grafites'],
           ['caixa', 'Caixas'],
@@ -1561,7 +1561,7 @@ function DarSkin({ usuarios, fixo = null }) {
           <p>{tr('Carregando…')}</p>
         ) : (
           <section className="adm-dar-emb">
-            <input type="search" className="adm-dar-busca" placeholder={tr(tipo === 'adesivo' ? 'Pesquisar adesivo' : tipo === 'caixa' ? 'Pesquisar caixa' : tipo === 'emblema' ? 'Pesquisar emblema' : tipo === 'trilha' ? 'Pesquisar trilha sonora' : tipo === 'grafite' ? 'Pesquisar grafite' : 'Pesquisar chaveiro')} value={filtro} onChange={(e) => setFiltro(e.target.value)} />
+            <input type="search" className="adm-dar-busca" placeholder={tr(tipo === 'adesivo' ? 'Pesquisar adesivo' : tipo === 'caixa' ? 'Pesquisar caixa' : tipo === 'emblema' ? 'Pesquisar pin' : tipo === 'trilha' ? 'Pesquisar trilha sonora' : tipo === 'grafite' ? 'Pesquisar grafite' : 'Pesquisar chaveiro')} value={filtro} onChange={(e) => setFiltro(e.target.value)} />
             <GradeLenta key={tipo + filtroEmb} total={listaEmb.length}>
               {(n, fimLi) => (
                 <ul className="adm-dar-grade adm-dar-grade-emb">

@@ -162,6 +162,11 @@ export function limparSkins(entrada) {
       if (chave === certa) saida.equip[lado][chave] = id
     }
   }
+  // pin, grafite e trilha valem para os dois times de uma vez: equipado em um lado vale nos dois (o do CT manda se os lados divergirem)
+  for (const tipo of PERFIL) {
+    const id = saida.equip.ct[tipo] ?? saida.equip.tr[tipo]
+    if (id) saida.equip.ct[tipo] = saida.equip.tr[tipo] = id
+  }
   // a C4 nunca falta e fica equipada no TR (mesmo que o inventário venha vazio ou sem ela)
   saida.itens[ID_C4] ??= c4Padrao()
   saida.criado[ID_C4] ??= 1

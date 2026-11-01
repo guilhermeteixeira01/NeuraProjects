@@ -41,16 +41,17 @@ test('emblema, trilha e grafite: o dono dá, o jogador equipa um de cada e o plu
   const quem = '76561198000000743'
   await f.pedir('GET', '/eu', { quem })
   const dar = async (item) => (await f.pedir('POST', '/admin/skin', { quem: (await import('./ambiente.mjs')).DONO, corpo: { id: quem, item } })).dados.id
-  const [pin, kit, kit2, spray] = [await dar({ t: 'emblema', d: 874 }), await dar({ t: 'trilha', d: 5 }), await dar({ t: 'trilha', d: 6 }), await dar({ t: 'grafite', d: 1653, p: 3 })]
+  const [pin, kit, kit2, spray] = [await dar({ t: 'emblema', d: 6130 }), await dar({ t: 'trilha', d: 5 }), await dar({ t: 'trilha', d: 6 }), await dar({ t: 'grafite', d: 1653, p: 3 })]
   const inv = (await f.pedir('GET', '/skins', { quem })).dados
   assert.equal(inv.itens[spray].p, 3)
   for (const lado of ['ct', 'tr']) Object.assign(inv.equip[lado], { emblema: pin, trilha: kit, grafite: spray })
-  inv.equip.ct.trilha = kit2 // trocar de trilha troca só a chave 'trilha' (um por tipo)
+  inv.equip.ct.trilha = kit2 // um por tipo, e vale nos dois times (o do CT manda)
   const r = (await f.pedir('POST', '/skins', { quem, corpo: inv })).dados
   assert.equal(r.equip.tr.emblema, pin)
   assert.equal(r.equip.ct.trilha, kit2)
+  assert.equal(r.equip.tr.trilha, kit2) // valeu para os dois times
   const plugin = (await f.pedir('POST', '/servidor/skins', { corpo: { ids: [quem] }, cabecalhos: { Authorization: 'Bearer token-servidor' } })).dados[quem]
-  assert.deepEqual(plugin.perfil.emblema, { d: 874, p: 0 })
+  assert.deepEqual(plugin.perfil.emblema, { d: 6130, p: 0 })
   assert.equal(plugin.perfil.grafite.p, 3)
-  assert.ok(plugin.perfil.trilha.d === 5 || plugin.perfil.trilha.d === 6)
+  assert.equal(plugin.perfil.trilha.d, 6)
 })

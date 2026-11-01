@@ -47,7 +47,7 @@ const ABAS = [
   ['luva', 'Luvas'],
   ['adesivo', 'Adesivos'],
   ['chaveiro', 'Chaveiros'],
-  ['emblema', 'Emblemas'],
+  ['emblema', 'Pins'],
   ['trilha', 'Trilhas'],
   ['grafite', 'Grafites'],
   ['caixa', 'Caixas'],
@@ -632,6 +632,20 @@ function MenuContexto({ x, y, item, times, equip, aoEquipar, aoEquiparAmbos, aoD
   const t = useT()
   const { ref, pos } = useMenuFlutuante(x, y, aoFechar)
   const chave = chaveEquip(item)
+  // Pin, grafite e trilha sonora valem para os dois times de uma vez: só "equipar" e "tirar", sem escolher CT ou TR
+  if (ehPerfil(item)) {
+    const ambos = equip.ct?.[chave] === item.__id && equip.tr?.[chave] === item.__id
+    return (
+      <ul className="inv-menu" ref={ref} style={{ left: pos.x, top: pos.y }} role="menu">
+        <li>
+          <button type="button" role="menuitem" onClick={ambos ? () => { aoDesequipar('ct'); aoDesequipar('tr') } : aoEquiparAmbos}>
+            <span className="inv-marcas-duas"><Marca lado="ct" /><Marca lado="tr" /></span>
+            {ambos ? t('Tirar dos dois times') : t('Equipar nos dois times')}
+          </button>
+        </li>
+      </ul>
+    )
+  }
   // C4: fixa e sempre equipada no TR; só dá para editar (adesivos e 1 chaveiro) e inspecionar
   if (ehC4(item))
     return (
@@ -1484,7 +1498,7 @@ function Conteudo() {
         {PERFIL_TIPOS.map((tipo) => {
           const grupo = itens.filter((it) => it.t === tipo)
           return grupo.length > 0 && <section key={tipo} aria-label={t(NOME_PERFIL[tipo])}>
-            {aba === 'tudo' && <h3>{t(tipo === 'emblema' ? 'Emblemas' : tipo === 'trilha' ? 'Trilhas sonoras' : 'Grafites')}</h3>}
+            {aba === 'tudo' && <h3>{t(tipo === 'emblema' ? 'Pins' : tipo === 'trilha' ? 'Trilhas sonoras' : 'Grafites')}</h3>}
             <ul className="inv-itens">{grupo.map((it) => (
               <Cartao key={it.__id} item={it} idx={idx} adesivos={adesivosPorId} chaveiros={chaveirosPorId} equip={inv.equip} aoAbrirMenu={abrirMenu} aoSelecionar={(e) => celular ? abrirMenu(e, it) : selecionar(`i:${it.__id}`, e.currentTarget)} ativo={selChaveAtual === `i:${it.__id}`} />
             ))}</ul>
