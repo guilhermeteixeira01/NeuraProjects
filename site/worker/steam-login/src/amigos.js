@@ -57,6 +57,10 @@ const VETO_SEG = 30
 //   serie     tempo máximo de uma série em andamento (se o plugin sumir sem avisar, a sala fecha depois disso)
 //   encerrada a série acabou (ou deu erro): a sala mostra o resultado por esse tempo e fecha sozinha
 const T = { fila: 10 * 60 * 1000, entrega: 90 * 1000, serie: 6 * 60 * 60 * 1000, encerrada: 20 * 1000 }
+// Mais de um servidor de CS2 com o mesmo plugin: cada um se identifica (FilaSite.ServidorId) em /servidor/*. Sem identificação (plugin antigo) é o "principal".
+const SERVIDOR_VISTO_MS = 45 * 1000 // servidor que não aparece há mais que isso conta como fora do ar
+const idDoServidor = (b) => String(b?.servidor?.id || 'principal').replace(/[^a-z0-9_-]/gi, '').slice(0, 24) || 'principal'
+const enderecoDoServidor = (b) => String(b?.servidor?.conectar || '').replace(/[^0-9a-z.:_-]/gi, '').slice(0, 64)
 const ORDEM_SERVIDOR = { fila: 0, entregue: 1, carregada: 2, jogando: 3, encerrada: 4, erro: 4 } // o plugin só avança (aviso atrasado não volta a sala)
 const ESTADOS_SERVIDOR = ['carregada', 'jogando', 'encerrada', 'erro']
 const FORMATOS_FILA = ['bo1', 'bo3'] // formatos que o líder pode buscar; só lobbies do mesmo formato se enfrentam
@@ -114,11 +118,13 @@ function cancelarPartida(todos, partidas, p) {
 }
 
 // Junta os lobbies que estão buscando, dois a dois (o mais antigo primeiro)
-function procurar(todos, partidas) {
+// vagas = quantas partidas ainda cabem nos servidores livres (Infinity = sem limite). Sem servidor livre, os lobbies continuam buscando e o pick & ban só
+// abre quando um servidor ficar livre.
+function procurar(todos, partidas, vagas = Infinity) {
   const novas = []
   for (const formato of FORMATOS_FILA) {
     const fila = Object.keys(todos).filter((l) => todos[l].busca && todos[l].formato === formato).sort((x, y) => todos[x].busca - todos[y].busca)
-    for (let i = 0; i + 1 < fila.length; i += 2) novas.push(criarPartida(todos, partidas, fila[i], fila[i + 1]))
+    for (let i = 0; i + 1 < fila.length && novas.length < vagas; i += 2) novas.push(criarPartida(todos, partidas, fila[i], fila[i + 1]))
   }
   return novas
 }
@@ -752,7 +758,7 @@ export class Presenca {
         if (erro) throw new ErroConflito(erro)
         avisar(idsDe(minha))
       }
-      for (const p of procurar(todos, partidas)) avisar(idsDe(p))
+      for (const p of procurar(todos, partidas, await this.vagasDeServidor(partidas))) avisar(idsDe(p))
     }
     await limpar()
 
@@ -787,6 +793,7 @@ export class Presenca {
       max: LOBBY_MAX,
       busca: lb.busca || null,
       formato: lb.formato || null,
+      servidores: await this.resumoServidores(partidas), // { livres, total }: o site mostra "aguardando servidor livre" enquanto livres = 0
       pool: pools[lider] || [], // pool garantido do líder (Premium)
       poolMax: POOL_GARANTIDO_MAX,
       partida: minhaPartida && {
@@ -797,7 +804,7 @@ export class Presenca {
           estado: minhaPartida.servidor.estado,
           detalhe: minhaPartida.servidor.detalhe || '',
           placar: minhaPartida.servidor.placar || '',
-          conectar: this.env.SERVIDOR_CONECTAR || '',
+          conectar: minhaPartida.servidor.conectar || this.env.SERVIDOR_CONECTAR || '',
           senha: ['carregada', 'jogando'].includes(minhaPartida.servidor.estado) ? this.env.SERVIDOR_SENHA || '' : '',
           vagas: vagasDe(minhaPartida, minhaPartida.times.A.membros.includes(eu) ? minhaPartida.times.A : minhaPartida.times.B).map(pessoa),
         },
@@ -844,7 +851,7 @@ export class Presenca {
         }
       }
     }
-    for (const p of procurar(todos, partidas)) idsDe(p).forEach((i) => avisados.add(i))
+    for (const p of procurar(todos, partidas, await this.vagasDeServidor(partidas))) idsDe(p).forEach((i) => avisados.add(i))
     await this.state.storage.put('lobbies', todos)
     await this.gravarPartidas(partidas)
     await this.agendar(partidas)
@@ -853,15 +860,58 @@ export class Presenca {
 
   // ── Servidor de CS2 (o plugin BaseComp conversa com estas duas rotas; index.js confere o token) ──
   // POST /servidor/proxima: o plugin está livre e pede a próxima partida; devolve a série pronta ({ nenhuma: true } se não tem).
-  async registrarSinalServidor() {
-    const agora = Date.now()
-    if (agora - (this.ultimoSinalServidor || 0) < 10000) return
-    this.ultimoSinalServidor = agora
-    await this.state.storage.put('servidorVisto', agora)
+  async carregarServidores() {
+    this.servidores ??= (await this.state.storage.get('servidores')) || {}
+    return this.servidores
   }
 
-  async servidorProxima() {
-    await this.registrarSinalServidor()
+  // Cada pedido do plugin (/proxima, /estado, /elenco) renova o "visto" do servidor dele e guarda o endereço que ele manda
+  async registrarSinalServidor(corpo) {
+    const agora = Date.now()
+    const id = idDoServidor(corpo)
+    const lista = await this.carregarServidores()
+    const antes = lista[id]
+    const conectar = enderecoDoServidor(corpo) || antes?.conectar || ''
+    lista[id] = { visto: agora, conectar }
+    if (!antes || antes.conectar !== conectar || agora - (this.ultimoSinalServidor || 0) >= 10000) {
+      this.ultimoSinalServidor = agora
+      await this.state.storage.put('servidorVisto', agora) // o status público do lobby ("servidor no ar") continua lendo este
+      await this.state.storage.put('servidores', lista)
+    }
+    return id
+  }
+
+  // Servidores no ar (visto há pouco) e sem partida entregue/carregada/jogando
+  async servidoresLivres(partidas) {
+    const lista = await this.carregarServidores()
+    const agora = Date.now()
+    const ocupados = new Set(
+      Object.values(partidas)
+        .filter((x) => ['entregue', 'carregada', 'jogando'].includes(x.servidor?.estado))
+        .map((x) => x.servidor.servidorId || 'principal'),
+    )
+    return Object.entries(lista).filter(([id, s]) => agora - s.visto < SERVIDOR_VISTO_MS && !ocupados.has(id)).map(([id]) => id)
+  }
+
+  // Quantas partidas novas podem abrir agora: servidores livres menos as partidas que ainda não têm servidor (aceite, veto ou esperando na fila).
+  // EXIGIR_SERVIDOR_LIVRE=0 desliga a regra (testes e quem ainda não atualizou o plugin).
+  async vagasDeServidor(partidas) {
+    if (this.env.EXIGIR_SERVIDOR_LIVRE === '0') return Infinity
+    const semServidor = Object.values(partidas).filter((x) => x.fase === 'aceitar' || x.fase === 'veto' || (x.fase === 'pronto' && x.servidor?.estado === 'fila')).length
+    return Math.max(0, (await this.servidoresLivres(partidas)).length - semServidor)
+  }
+
+  async resumoServidores(partidas) {
+    const lista = await this.carregarServidores()
+    const agora = Date.now()
+    const noAr = Object.values(lista).filter((s) => agora - s.visto < SERVIDOR_VISTO_MS).length
+    const livres = await this.vagasDeServidor(partidas)
+    return { total: noAr, livres: Number.isFinite(livres) ? livres : noAr }
+  }
+
+  async servidorProxima(req) {
+    const corpo = await lerCorpo(req).catch(() => ({}))
+    const servidorId = await this.registrarSinalServidor(corpo)
     const partidas = (await this.state.storage.get('partidas')) || {}
     const agora = Date.now()
     const avisados = new Set()
@@ -871,8 +921,10 @@ export class Presenca {
         idsDe(p).forEach((i) => avisados.add(i))
       }
     }
-    // O plugin só pergunta quando está sem série. Partida que ainda consta carregada/jogando é série que acabou sem avisar (cancelada, plugin recarregado)
+    // O plugin só pergunta quando está sem série. Partida DESTE servidor que ainda consta carregada/jogando é série que acabou sem avisar (cancelada,
+    // plugin recarregado). As partidas dos outros servidores não são tocadas: eles podem estar jogando normalmente.
     for (const x of Object.values(partidas)) {
+      if ((x.servidor?.servidorId || 'principal') !== servidorId) continue
       if ((x.servidor?.estado === 'carregada' || x.servidor?.estado === 'jogando') && agora - (x.servidor.entregueEm || 0) > 30000) {
         x.servidor = { ...x.servidor, estado: 'encerrada', detalhe: x.servidor.detalhe || 'cancelada' }
         prazoServidor(x, agora)
@@ -886,9 +938,16 @@ export class Presenca {
     if (p) {
       const info = await nomesDe(this.env, idsDe(p))
       resposta = montarSerie(p, (id) => info[id]?.nome || id)
-      p.servidor = { ...p.servidor, estado: 'entregue', entregueEm: agora }
+      p.servidor = { ...p.servidor, estado: 'entregue', entregueEm: agora, servidorId, conectar: (await this.carregarServidores())[servidorId]?.conectar || '' }
       prazoServidor(p, agora)
       idsDe(p).forEach((i) => avisados.add(i))
+    }
+    // Este servidor (ou outro) ficou livre: lobbies que esperavam servidor livre já podem formar a partida (e abrir o pick & ban)
+    const todos = (await this.state.storage.get('lobbies')) || {}
+    const novas = procurar(todos, partidas, await this.vagasDeServidor(partidas))
+    if (novas.length) {
+      await this.state.storage.put('lobbies', todos)
+      for (const n of novas) idsDe(n).forEach((i) => avisados.add(i))
     }
     if (avisados.size) {
       await this.gravarPartidas(partidas)
@@ -900,8 +959,8 @@ export class Presenca {
 
   // POST /servidor/estado { partidaId, estado, detalhe?, placar? }: o plugin conta em que fase a série está
   async servidorEstado(req) {
-    await this.registrarSinalServidor()
-    const { partidaId, estado, detalhe, placar } = await lerCorpo(req)
+    const { partidaId, estado, detalhe, placar, ...resto } = await lerCorpo(req)
+    await this.registrarSinalServidor(resto)
     if (!ESTADOS_SERVIDOR.includes(estado)) throw new ErroPedido('estado')
     const partidas = (await this.state.storage.get('partidas')) || {}
     const p = partidas[String(partidaId)]
@@ -919,8 +978,8 @@ export class Presenca {
   // POST /servidor/elenco { partidaId, presentes }: o plugin diz quem do elenco está no servidor e recebe o elenco atual
   // (muda quando um membro chama um substituto). Sem partida (já fechada): { erro }.
   async servidorElenco(req) {
-    await this.registrarSinalServidor()
-    const { partidaId, presentes } = await lerCorpo(req)
+    const { partidaId, presentes, ...resto } = await lerCorpo(req)
+    await this.registrarSinalServidor(resto)
     const partidas = (await this.state.storage.get('partidas')) || {}
     const p = partidas[String(partidaId)]
     if (!p?.servidor) throw new ErroNaoEncontrado('sem-partida')
@@ -1027,7 +1086,7 @@ export class Presenca {
       '/dm': () => this.dm(req),
       '/lobby': () => this.lobby(req),
       '/servidor/elenco': () => this.servidorElenco(req),
-      '/servidor/proxima': () => this.servidorProxima(),
+      '/servidor/proxima': () => this.servidorProxima(req),
       '/servidor/estado': () => this.servidorEstado(req),
       // só o ambiente de teste local liga isto (index.js exige MODO_TESTE): apaga as partidas (e os lobbies, sem { apenasPartidas: true })
       '/teste/limpar': () => this.limparTeste(req),
