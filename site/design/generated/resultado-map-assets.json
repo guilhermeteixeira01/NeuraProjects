@@ -1,0 +1,46 @@
+{
+  "generator": "Built-in image_gen",
+  "dimensions": {
+    "width": 2048,
+    "height": 768
+  },
+  "artDirection": "Cenários noturnos panorâmicos com luz azul e luminárias âmbar, sem interface. O degradê é aplicado pelo CSS da página.",
+  "assets": [
+    {
+      "map": "overpass",
+      "original": "/assets/neura-v2/backgrounds/bg-resultado-overpass-v2.png",
+      "web": "/assets/neura-v2/web/v2/bg-resultado-overpass.webp",
+      "prompt": "Use case: stylized-concept. Asset type: panoramic background art for NEURA PROJECT Counter-Strike match result website. Generate ONE standalone 1920x720 horizontal image for OVERPASS only. Scene: Counter-Strike Overpass B bombsite under a massive concrete highway overpass in Berlin: cylindrical bridge columns, concrete drainage canal, construction plywood, metal barrels, graffiti wall and orange construction barriers, tall highway deck receding above, recognizably Overpass. No temple, no desert. Style: realistic high-detail AAA game environment render, cinematic dark navy blue night, overcast moonlit sky, warm amber practical lamps, realistic weathered materials, subtle damp pavement reflections, crisp architecture, same coherent visual collection as a dark industrial Cache match-results background. Composition: ultrawide landscape approximately 8:3, eye-level wide lens, environment only, broad readable dark lower foreground, main map landmarks center-right, upper left relatively quiet for HTML title overlay. Preserve the distinctive map identity. No people, characters, weapons, HUD, scores, typography, text overlays, logos, watermarks, frames, panels, collage or contact sheet. Do not bake a fade into the picture; the webpage will apply the gradient. Render a full-bleed continuous scene."
+    },
+    {
+      "map": "vertigo",
+      "original": "/assets/neura-v2/backgrounds/bg-resultado-vertigo-v2.png",
+      "web": "/assets/neura-v2/web/v2/bg-resultado-vertigo.webp",
+      "prompt": "Use case: stylized-concept. Asset type: panoramic background art for NEURA PROJECT Counter-Strike match result website. Generate ONE standalone 1920x720 horizontal image for VERTIGO only. Scene: Counter-Strike Vertigo A bombsite on the upper floor of an unfinished modern skyscraper: exposed concrete slab, steel girders, stacked construction materials, orange safety mesh, yellow construction crane overhead, open edge with distant city skyline and other skyscrapers below, recognizably Vertigo. No ground-level street. Style: realistic high-detail AAA game environment render, cinematic dark navy blue night, overcast moonlit sky, warm amber practical lamps, realistic weathered materials, subtle damp pavement reflections, crisp architecture, same coherent visual collection as a dark industrial Cache match-results background. Composition: ultrawide landscape approximately 8:3, eye-level wide lens, environment only, broad readable dark lower foreground, main map landmarks center-right, upper left relatively quiet for HTML title overlay. Preserve the distinctive map identity. No people, characters, weapons, HUD, scores, typography, text overlays, logos, watermarks, frames, panels, collage or contact sheet. Do not bake a fade into the picture; the webpage will apply the gradient. Render a full-bleed continuous scene."
+    },
+    {
+      "map": "ancient",
+      "original": "/assets/neura-v2/backgrounds/bg-resultado-ancient-v2.png",
+      "web": "/assets/neura-v2/web/v2/bg-resultado-ancient.webp",
+      "prompt": "Use case: stylized-concept. Asset type: panoramic background art for NEURA PROJECT Counter-Strike match result website. Generate ONE standalone 1920x720 horizontal image for ANCIENT only. Scene: Counter-Strike Ancient bombsite in a humid Mesoamerican jungle archaeological site: stepped Mayan stone temple walls, moss covered carved blocks, open stone courtyard, dense tropical vegetation, small stone passages, recognizably Ancient. No Egyptian architecture. Style: realistic high-detail AAA game environment render, cinematic dark navy blue night, overcast moonlit sky, warm amber practical lamps, realistic weathered materials, subtle damp pavement reflections, crisp architecture, same coherent visual collection as a dark industrial Cache match-results background. Composition: ultrawide landscape approximately 8:3, eye-level wide lens, environment only, broad readable dark lower foreground, main map landmarks center-right, upper left relatively quiet for HTML title overlay. Preserve the distinctive map identity. No people, characters, weapons, HUD, scores, typography, text overlays, logos, watermarks, frames, panels, collage or contact sheet. Do not bake a fade into the picture; the webpage will apply the gradient. Render a full-bleed continuous scene."
+    },
+    {
+      "map": "anubis",
+      "original": "/assets/neura-v2/backgrounds/bg-resultado-anubis-v2.png",
+      "web": "/assets/neura-v2/web/v2/bg-resultado-anubis.webp",
+      "prompt": "Use case: stylized-concept. Asset type: panoramic background art for NEURA PROJECT Counter-Strike match result website. Generate ONE standalone 1920x720 horizontal image for ANUBIS only. Scene: Counter-Strike Anubis Egyptian archaeological canal courtyard: massive sandstone temple gateways, ancient carved Egyptian pillars, narrow turquoise canal with stone bridge, palm silhouettes, sandy stone paving, recognizably Anubis. No Mesoamerican architecture. Style: realistic high-detail AAA game environment render, cinematic dark navy blue night, overcast moonlit sky, warm amber practical lamps, realistic weathered materials, subtle damp pavement reflections, crisp architecture, same coherent visual collection as a dark industrial Cache match-results background. Composition: ultrawide landscape approximately 8:3, eye-level wide lens, environment only, broad readable dark lower foreground, main map landmarks center-right, upper left relatively quiet for HTML title overlay. Preserve the distinctive map identity. No people, characters, weapons, HUD, scores, typography, text overlays, logos, watermarks, frames, panels, collage or contact sheet. Do not bake a fade into the picture; the webpage will apply the gradient. Render a full-bleed continuous scene."
+    },
+    {
+      "map": "inferno",
+      "original": "/assets/neura-v2/backgrounds/bg-resultado-inferno-v2.png",
+      "web": "/assets/neura-v2/web/v2/bg-resultado-inferno.webp",
+      "prompt": "Use case: stylized-concept. Asset type: panoramic background art for NEURA PROJECT Counter-Strike match result website. Generate ONE standalone 1920x720 horizontal image for INFERNO only. Scene: Counter-Strike Inferno B bombsite in a southern European village: central stone fountain, blue construction barrels and stacked crates, warm plaster walls with climbing vines, church bell tower, terracotta roof tiles, cobblestone paving, recognizably Inferno. No desert. Style: realistic high-detail AAA game environment render, cinematic dark navy blue night, overcast moonlit sky, warm amber practical lamps, realistic weathered materials, subtle damp pavement reflections, crisp architecture, same coherent visual collection as a dark industrial Cache match-results background. Composition: ultrawide landscape approximately 8:3, eye-level wide lens, environment only, broad readable dark lower foreground, main map landmarks center-right, upper left relatively quiet for HTML title overlay. Preserve the distinctive map identity. No people, characters, weapons, HUD, scores, typography, text overlays, logos, watermarks, frames, panels, collage or contact sheet. Do not bake a fade into the picture; the webpage will apply the gradient. Render a full-bleed continuous scene."
+    },
+    {
+      "map": "train",
+      "original": "/assets/neura-v2/backgrounds/bg-resultado-train-v2.png",
+      "web": "/assets/neura-v2/web/v2/bg-resultado-train.webp",
+      "prompt": "Use case: stylized-concept. Asset type: panoramic background art for NEURA PROJECT Counter-Strike match result website. Generate ONE standalone 1920x720 horizontal image for TRAIN only. Scene: Counter-Strike Train bombsite in an Eastern European railway freight yard: parallel tracks, long freight railcars and a red-brown locomotive, overhead electric gantries, massive industrial brick train shed, rusted metal structures, recognizably Train. No modern high rise. Style: realistic high-detail AAA game environment render, cinematic dark navy blue night, overcast moonlit sky, warm amber practical lamps, realistic weathered materials, subtle damp pavement reflections, crisp architecture, same coherent visual collection as a dark industrial Cache match-results background. Composition: ultrawide landscape approximately 8:3, eye-level wide lens, environment only, broad readable dark lower foreground, main map landmarks center-right, upper left relatively quiet for HTML title overlay. Preserve the distinctive map identity. No people, characters, weapons, HUD, scores, typography, text overlays, logos, watermarks, frames, panels, collage or contact sheet. Do not bake a fade into the picture; the webpage will apply the gradient. Render a full-bleed continuous scene."
+    }
+  ]
+}

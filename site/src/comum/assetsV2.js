@@ -34,7 +34,13 @@ export const RESULTADOS = {
   de_cache: bg('resultado-cache', 1920, 720),
   de_dust2: bg('resultado-dust2', 1920, 720),
   de_nuke: bg('resultado-nuke', 1920, 720),
-  de_mirage: bg('resultado-mirage', 1920, 720),
+  de_mirage: bg('resultado-mirage', 1774, 887),
+  de_overpass: bg('resultado-overpass', 2048, 768),
+  de_vertigo: bg('resultado-vertigo', 2048, 768),
+  de_ancient: bg('resultado-ancient', 2048, 768),
+  de_anubis: bg('resultado-anubis', 2048, 768),
+  de_inferno: bg('resultado-inferno', 2048, 768),
+  de_train: bg('resultado-train', 2048, 768),
 }
 export const fundoDoResultado = (mapa) => RESULTADOS[String(mapa || '').toLowerCase().replace(/^(?!de_)/, 'de_')] || null
 

@@ -4,7 +4,7 @@ import { fundoCard } from '../../comum/cardsPerfil.js'
 import { useT } from '../../comum/i18n.js'
 import './hall.css'
 
-export default function HallDaFama({ j, pos, total, nivel, avatar }) {
+export default function HallDaFama({ j, pos, total, nivel, avatar, acaoRanking }) {
   const t = useT()
   const card = useCardDe(j.steamId)
   const podio = pos >= 1 && pos <= 3
@@ -26,7 +26,7 @@ export default function HallDaFama({ j, pos, total, nivel, avatar }) {
       <CargosDe steamId={j.steamId} max={3} classe="hf-jogador-cargos" />
       <p>{pos > 0 ? `${pos}º ${t('de')} ${total} ${t('jogadores')}` : t('Seu próximo capítulo começa aqui')}</p>
       <dl>{dados.map(([rotulo, valor]) => <div key={rotulo}><dt>{rotulo}</dt><dd>{valor}</dd></div>)}</dl>
-      <a href="/ranking/">{t('Ver ranking')} →</a>
+      <div className="hf-jogador-acoes"><a href="/ranking/">{t('Ver ranking')} →</a>{acaoRanking}</div>
     </article>
   </div>
 }

@@ -286,7 +286,7 @@ function Armas({ mapas, steamId }) {
 }
 
 // "Ocultar do ranking" (só dono e admins, no próprio perfil): ligado, a pessoa some do ranking e o próximo sobe
-function OcultarRanking({ steamId }) {
+function OcultarRanking({ steamId, compacto = false }) {
   const t = useT()
   const oculto = !!usePerfis()[steamId]?.ocultoRanking
   const [salvando, setSalvando] = useState(false)
@@ -304,7 +304,7 @@ function OcultarRanking({ steamId }) {
   }
   return (
     // Compacto, na linha dos botões: a explicação fica na dica (title) e só aparece escrita quando ligado ou com erro
-    <label className={`pf-ocultar${oculto ? ' ligado' : ''}`} title={t('Só o dono e os admins têm esta opção.')}>
+    <label className={`pf-ocultar${oculto ? ' ligado' : ''}${compacto ? ' pf-ocultar-compacto' : ''}`} title={t('Só o dono e os admins têm esta opção.')}>
       <input type="checkbox" checked={oculto} disabled={salvando} onChange={trocar} />
       <span className="pf-ocultar-chave" aria-hidden="true" />
       <span>
@@ -312,20 +312,6 @@ function OcultarRanking({ steamId }) {
         {(erro || oculto) && <small>{erro ? t('Não deu para salvar. Tente de novo.') : t('Você não aparece no ranking e o próximo sobe de posição.')}</small>}
       </span>
     </label>
-  )
-}
-
-// Número grande do topo do perfil (referência): ícone, rótulo, valor e a linha de apoio com dados reais
-function MetricaPerfil({ icone, rotulo, valor, sub }) {
-  return (
-    <div className="pf-v2-metrica">
-      <span className="pf-v2-metrica-icone" aria-hidden="true"><IconeUI tipo={icone} tamanho={30} /></span>
-      <div>
-        <small>{rotulo}</small>
-        <b className="v2-num">{valor}</b>
-        <span>{sub}</span>
-      </div>
-    </div>
   )
 }
 
@@ -534,12 +520,13 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   const premier = j.premier > 0 ? j.premier : premierLeetify
   const derrotas = j.mapas - j.vitorias
   // resumo que aparece no cartão de cima do perfil quando a aba STATUS está aberta (time, Premier, ranking, nível, tempo de servidor e insígnias)
+  const exemploPerfil = import.meta.env.DEV && new URLSearchParams(location.search).get("exemploPerfil") === "1"
   const resumoStatus = (
     <>
       <div className="pf-resumo-chips">
         <div className="pf-info pf-resumo-chip">
           <span className="pf-info-rot">{t('TIME')}</span>
-          <span className="pf-info-val">{timeEscolhido ? <TimeEscolhido steamId={j.steamId} classe="pf-time" /> : <span className="pf-time"><span>{t('Sem time')}</span></span>}</span>
+          <span className="pf-info-val">{timeEscolhido ? <TimeEscolhido steamId={j.steamId} classe="pf-time" /> : <span className="pf-time"><span>{exemploPerfil ? "Neura Academy" : t('Sem time')}</span></span>}</span>
         </div>
         <div className="pf-info pf-resumo-chip">
           <span className="pf-info-rot">PREMIER</span>
@@ -607,30 +594,10 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
         </div>
         <FundoHero quantidade={10} rastros={false} />
         {/* Estilo FACEIT: cartão do jogador na esquerda (a capa pode virar personalizável no futuro) e as informações no meio */}
-        {abaPerfil === 'inventario' ? <div className="wrap pf-inventario-pagina"><PerfilInventario key={j.steamId} steamId={j.steamId} nome={j.nome} abaPerfil="inventario" aoTrocarAba={trocarAbaPerfil} somenteInventario /></div> : abaPerfil === 'insignias' ? <div className="wrap"><GaleriaInsignias steamId={j.steamId} /></div> : abaPerfil === 'missoes' && eu ? <div className="wrap"><PainelMissoes /></div> : abaPerfil === 'amigos' ? <div className="wrap"><AmigosDoPerfil key={j.steamId} id={j.steamId} eu={eu} /></div> : abaPerfil === 'afiliado' && eu ? <div className="wrap"><AfiliadoDoPerfil id={j.steamId} /></div> : <div className="wrap pf-layout pf-v2">
-          {/* Como na referência: quatro números grandes; à esquerda o gráfico e as partidas; à direita progressão, insígnias e
-              time, seguidos do cartão do jogador e das outras informações (nada saiu da página) */}
-          <div className="pf-v2-metricas">
-            <MetricaPerfil icone="caveira" rotulo="Rating" valor={v(fmt(j.rating, 2))} sub={sem ? t('sem partidas') : t('melhor {v}', { v: fmt(j.melhorRating, 2) })} />
-            <MetricaPerfil icone="partidas" rotulo="K/D" valor={v(fmt(j.kd, 2))} sub={t('{k} kills · {d} mortes', { k: j.kills, d: j.mortes })} />
-            <MetricaPerfil icone="estatisticas" rotulo="ADR" valor={v(fmt(j.adr, 1))} sub={t('dano por round')} />
-            <MetricaPerfil icone="trofeu" rotulo={t('Vitórias')} valor={v(`${fmt(j.winRate, 0)}%`)} sub={t('{v}V · {d}D em {n} mapas', { v: j.vitorias, d: derrotas, n: j.mapas })} />
-          </div>
-
+        {abaPerfil === 'inventario' ? <div className="wrap pf-inventario-pagina"><PerfilInventario key={j.steamId} steamId={j.steamId} nome={j.nome} abaPerfil="inventario" aoTrocarAba={trocarAbaPerfil} somenteInventario /></div> : abaPerfil === 'insignias' ? <div className="wrap"><GaleriaInsignias steamId={j.steamId} /></div> : abaPerfil === 'missoes' && eu ? <div className="wrap"><PainelMissoes /></div> : abaPerfil === 'amigos' ? <div className="wrap pf-aba-conteudo"><AmigosDoPerfil key={j.steamId} id={j.steamId} eu={eu} /></div> : abaPerfil === 'afiliado' && eu ? <div className="wrap pf-aba-conteudo"><AfiliadoDoPerfil id={j.steamId} /></div> : <div className="wrap pf-layout pf-v2">
           <div className="pf-centro">
-            {sem && (
-              <div className="pf-sem spot">
-                <b>{eu ? t('Você ainda não tem partidas no servidor') : t('Ainda sem partidas no servidor')}</b>
-                <span>{eu ? t('Assim que você jogar um mapa, as estatísticas, o gráfico de rating e o histórico aparecem aqui — e cada partida dá XP para subir de nível.') : t('Assim que o jogador jogar um mapa, as estatísticas, o gráfico de rating e o histórico aparecem aqui — e cada partida dá XP para subir de nível.')}</span>
-              </div>
-            )}
             {mapas?.length > 0 && <GraficoRating mapas={mapas} />}
-            {mapas?.length > 0 && <Historico mapas={mapas} />}
-            <details className="pf-ref-mais"><summary>{t('Mais estatísticas e informações')}</summary>
-            <PerfilInventario steamId={j.steamId} nome={j.nome} resumoStatus={resumoStatus} abaPerfil={abaPerfil} aoTrocarAba={trocarAbaPerfil}>
-            <ApresentacaoPerfil />
             <DesempenhoRecente mapas={mapas || []} nivel={nivel} eu={eu} />
-
             <div className={`pf-estats${sem ? ' vazio' : ''}`}>
               <Estat rotulo="RATING" valor={v(fmt(j.rating, 2))} sub={sem ? t('sem partidas') : t('melhor {v}', { v: fmt(j.melhorRating, 2) })} classe={sem ? 'destaque' : `destaque rt-txt-${classeRating(j.rating)}`} />
               <Estat rotulo="K/D" valor={v(fmt(j.kd, 2))} sub={t('{k} kills · {d} mortes', { k: j.kills, d: j.mortes })} />
@@ -643,34 +610,22 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
               <Estat rotulo={t('MVP DA PARTIDA')} valor={v(j.mvpPartida)} sub={t('{n} MVPs de round', { n: j.mvps })} />
             </div>
 
+
+
+            {mapas?.length > 0 && <Historico mapas={mapas} />}
             {mapas?.length > 0 && <Armas mapas={mapas} steamId={j.steamId} />}
-            </PerfilInventario>
-            </details>
+
           </div>
 
           <aside className="pf-lado">
-            <section className="v2-painel pf-v2-bloco pf-v2-progresso">
-              <header className="v2-painel-cab"><h2><IconeUI tipo="estatisticas" tamanho={22} />{t('Progressão')}</h2></header>
-              <div className="pf-v2-progresso-corpo">
-                <SeloNivel nivel={nivel.nivel} tamanho={88} />
-                <div>
-                  <b>{nivel.classificado ? t('Nível {n}', { n: textoNivel(nivel.nivel) }) : t('Sem classificação')}</b>
-                  <small>{nivel.classificado ? (nivel.proximo === null ? t('Nível máximo') : t('{falta} XP para o próximo nível', { falta: Number(nivel.falta || 0).toLocaleString('pt-BR') })) : nivel.faltamPartidas === 1 ? t('Falta 1 partida para obter seu nível.') : t('Faltam {n} partidas para obter seu nível.', { n: nivel.faltamPartidas })}</small>
-                  <span className="pf-v2-barra"><i style={{ width: `${Math.round(Math.max(0, Math.min(1, nivel.classificado ? nivel.progresso : nivel.partidas / Math.max(1, nivel.partidas + nivel.faltamPartidas))) * 100)}%` }} /></span>
-                  {!nivel.classificado && <em className="v2-num">{nivel.partidas} / {nivel.partidas + nivel.faltamPartidas}</em>}
-                </div>
+            <div className="pf-jogador-destaque">
+            <div className="pf-card-e-status">
+              <div className="pf-identidade-coluna">
+            <HallDaFama j={j} pos={pos} total={total} nivel={nivel} eu={eu} acaoRanking={eu && admin ? <OcultarRanking steamId={j.steamId} compacto /> : null} avatar={<Avatar id={j.steamId} src={j.avatar} nome={j.nome} classe="hf-avatar-imagem" />}/>
               </div>
-            </section>
-            <section className="v2-painel pf-v2-bloco">
-              <header className="v2-painel-cab"><h2><IconeUI tipo="estrela" tamanho={22} />{t('Insígnias')}</h2><a href="#insignias" onClick={(e) => { e.preventDefault(); trocarAbaPerfil('insignias') }}>{t('Ver todas')} <IconeUI tipo="direita" tamanho={15} /></a></header>
-              <div className="pf-v2-insignias"><InsigniasDe steamId={j.steamId} classe="pf-insignias" /></div>
-            </section>
-            <section className="v2-painel pf-v2-bloco">
-              <header className="v2-painel-cab"><h2><IconeUI tipo="grupo" tamanho={22} />{t('Time')}</h2><a href="/times/">{t('Ver times')} <IconeUI tipo="direita" tamanho={15} /></a></header>
-              <div className="pf-v2-time">{timeEscolhido ? <TimeEscolhido steamId={j.steamId} classe="pf-v2-time-nome" /> : <span className="v2-vazio">{t('Sem time')}</span>}</div>
-            </section>
-            <details className="pf-ref-mais"><summary>{t('Mais sobre o jogador')}</summary>
-            <HallDaFama j={j} pos={pos} total={total} nivel={nivel} eu={eu} avatar={<Avatar id={j.steamId} src={j.avatar} nome={j.nome} classe="hf-avatar-imagem" />}/>
+              <div className="pf-status-card">{exemploPerfil && <small className="pf-exemplo-aviso">EXEMPLO VISUAL</small>}{resumoStatus}<PerfilInventario steamId={j.steamId} nome={j.nome} somenteResumo /></div>
+            </div>
+            <ApresentacaoPerfil />
             <div className={`pf-cartao fx-entra${card ? ' com-card' : ''}`} style={{ '--e': 1, ...(card ? { backgroundImage: fundoCard(card) } : {}) }}>
               <ComMoldura steamId={j.steamId} emblema>
                 <Avatar id={j.steamId} src={j.avatar} nome={j.nome} classe="pf-av" />
@@ -692,10 +647,27 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
                   {t('Ver inventário')}
                 </button>
               )}
-              {eu && admin && <OcultarRanking steamId={j.steamId} />}
+
             </div>
             <InfosLado j={j} mapas={mapas} />
-            </details>
+            </div>
+
+
+            <section className="v2-painel pf-v2-bloco">
+              <header className="v2-painel-cab"><h2><IconeUI tipo="estrela" tamanho={22} />{t('Insígnias')}</h2><a href="#insignias" onClick={(e) => { e.preventDefault(); trocarAbaPerfil('insignias') }}>{t('Ver todas')} <IconeUI tipo="direita" tamanho={15} /></a></header>
+              <div className="pf-v2-insignias"><InsigniasDe steamId={j.steamId} classe="pf-insignias" /></div>
+            </section>
+            <section className="v2-painel pf-v2-bloco">
+              <header className="v2-painel-cab"><h2><IconeUI tipo="grupo" tamanho={22} />{t('Time')}</h2><a href="/times/">{t('Ver times')} <IconeUI tipo="direita" tamanho={15} /></a></header>
+              <div className="pf-v2-time">{timeEscolhido ? <TimeEscolhido steamId={j.steamId} classe="pf-v2-time-nome" /> : <span className="v2-vazio">{t('Sem time')}</span>}</div>
+            </section>
+            {sem && (
+              <div className="pf-sem spot">
+                <b>{eu ? t('Você ainda não tem partidas no servidor') : t('Ainda sem partidas no servidor')}</b>
+                <span>{eu ? t('Assim que você jogar um mapa, as estatísticas, o gráfico de rating e o histórico aparecem aqui — e cada partida dá XP para subir de nível.') : t('Assim que o jogador jogar um mapa, as estatísticas, o gráfico de rating e o histórico aparecem aqui — e cada partida dá XP para subir de nível.')}</span>
+              </div>
+            )}
+
             {verInventario && <InventarioDoJogador steamId={j.steamId} nome={j.nome} aoFechar={() => setVerInventario(false)} />}
           </aside>
         </div>}

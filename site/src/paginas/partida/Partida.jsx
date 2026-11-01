@@ -1,7 +1,9 @@
+import { createPortal } from 'react-dom'
+import { ladoDoRound, trocaDeLado } from './rounds.js'
 import IconeUI from '../../comum/IconeUI.jsx'
 import StatusConsumivel from '../../comum/StatusConsumivel.jsx'
 import { lerApi } from '../../comum/api.js'
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useLayoutEffect, useRef } from 'react'
 import { pontosDaPartida } from '../../comum/pontos.js'
 import CarregandoPontos, { CarregandoNP } from '../../comum/Carregando.jsx'
 import Layout from '../../comum/Layout.jsx'
@@ -10,13 +12,14 @@ import { FundoHero } from '../../comum/HeroFundo.jsx'
 import GraficoUtil from './GraficoUtil.jsx'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { linkPerfil, useConta } from '../../comum/conta.js'
-import { useBonusPartidas } from '../../comum/bonusPartidas.js'
+import { usePartidasServidor } from '../../comum/bonusPartidas.js'
 import { fundoMapa, getMap, mapIcon, nomeMapa } from '../../comum/mapas.js'
 import { fundoDoResultado } from '../../comum/assetsV2.js'
-import { ComMoldura, comApelidos, usePerfis } from '../../comum/Moldura.jsx'
+import { ComMoldura, comApelidos, usePerfis, useCardDe, CargosDe, IconeEquipe } from '../../comum/Moldura.jsx'
+import { fundoCard } from '../../comum/cardsPerfil.js'
 import { desempenhoAtivo } from '../../comum/desempenho.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
-import { nivelDe } from '../../comum/niveis.js'
+import { nivelDe, XP, xpDaPartida } from '../../comum/niveis.js'
 import { dataNoIdioma, useT } from '../../comum/i18n.js'
 import { fimDaSerie } from '../../comum/series.js'
 import { ContagemRemocao, useRelogio } from '../../comum/ContagemSerie.jsx'
@@ -34,9 +37,15 @@ function Svg({ children }) {
     </svg>
   )
 }
-const IconeElim = () => <IconeUI tipo="partidas" tamanho={18}/>
-const IconeBomba = () => <IconeUI tipo="bomba" tamanho={18}/>
-const IconeDesarme = () => <IconeUI tipo="desarme" tamanho={18}/>
+// Silhuetas próprias: caveira, C4 com teclado e alicate do kit de desarme.
+function IconeRound({ tipo }) {
+  return <svg width="20" height="22" viewBox="0 0 32 36" fill="none" aria-hidden="true" focusable="false">
+    {tipo === 'bomba' ? <><path d="M10 9V5c0-4 13-4 13 1v4M24 9V5" stroke="currentColor" strokeWidth="2"/><rect x="6" y="9" width="21" height="25" rx="3" fill="currentColor"/><rect x="9" y="12" width="15" height="6" rx="1" fill="#03121e"/><path d="M11 22h2m4 0h2m4 0h1M11 26h2m4 0h2m4 0h1M11 30h2m4 0h2m4 0h1" stroke="#03121e" strokeWidth="2"/></> : tipo === 'desarme' ? <><path d="m14 16-6 16m11-16 6 16M13 17 8 9l2-6 6 9 6-9 2 6-5 8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/><circle cx="16" cy="17" r="3" fill="currentColor"/></> : <><path d="M16 2C8 2 3 8 4 17c0 4 2 6 5 8v7h14v-7c3-2 5-4 5-8C29 8 24 2 16 2Z" fill="currentColor"/><path d="m8 14 6 2-1 5-5-2Zm16 0-6 2 1 5 5-2ZM16 21l-3 5h6Z" fill="#03121e"/><path d="M12 29v5m4-5v5m4-5v5" stroke="#03121e" strokeWidth="1.6"/></>}
+  </svg>
+}
+const IconeElim = () => <IconeRound tipo="eliminacao"/>
+const IconeBomba = () => <IconeRound tipo="bomba"/>
+const IconeDesarme = () => <IconeRound tipo="desarme"/>
 const IconeTempo = () => <IconeUI tipo="relogio" tamanho={18}/>
 const IconeData = () => <IconeUI tipo="calendario" tamanho={18}/>
 const IconeDownload = () => <IconeUI tipo="download" tamanho={18}/>
@@ -72,6 +81,48 @@ function Avatar({ e, classe }) {
   ) : (
     <span className={`${classe} av-fb`}>{iniciais(e?.nome)}</span>
   )
+}
+
+// A área é sempre quadrada; o contorno e o emblema continuam sendo os escolhidos no perfil.
+function FotoJogador({ e, tamanho = 32 }) {
+  const ref = useRef(null)
+  const perfil = usePerfis()[e?.steamId]
+  useLayoutEffect(() => {
+    const area = ref.current
+    const miolo = area?.querySelector('.resultado-avatar-miolo')
+    if (!area || !miolo) return
+    const ajustar = () => {
+      miolo.style.transform = 'none'
+      const origem = miolo.getBoundingClientRect()
+      const partes = [miolo, ...miolo.querySelectorAll('.moldura, .emblema-sub')].map(el => el.getBoundingClientRect()).filter(r => r.width && r.height)
+      if (!partes.length) return
+      const esquerda = Math.min(...partes.map(r => r.left)), topo = Math.min(...partes.map(r => r.top))
+      const largura = Math.max(...partes.map(r => r.right)) - esquerda, altura = Math.max(...partes.map(r => r.bottom)) - topo
+      const escala = Math.min(1, area.clientWidth / largura, area.clientHeight / altura)
+      const x = (area.clientWidth - largura * escala) / 2 - (esquerda - origem.left) * escala
+      const y = (area.clientHeight - altura * escala) / 2 - (topo - origem.top) * escala
+      miolo.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + escala + ')'
+    }
+    ajustar()
+    const obs = new ResizeObserver(ajustar)
+    for (const el of [area, miolo, ...miolo.querySelectorAll('.moldura, .emblema-sub')]) obs.observe(el)
+    return () => obs.disconnect()
+  }, [e?.steamId, perfil?.moldura, perfil?.sub, tamanho])
+  return <span ref={ref} className="resultado-avatar" style={{ width: tamanho, height: tamanho }}><span className="resultado-avatar-miolo"><ComMoldura steamId={e?.steamId} emblema><Avatar e={e} classe="resultado-avatar-imagem"/></ComMoldura></span></span>
+}
+
+function CardJogadorMvp({ jogador, time }) {
+  const tr = useT()
+  const card = useCardDe(jogador.steamId)
+  return <article className={'resultado-card-usuario' + (card ? ' com-card' : '')} style={card ? { backgroundImage: fundoCard(card) } : undefined} aria-label={tr('Card do jogador')}>
+    <span className="resultado-card-mvp"><IconeUI tipo="coroa" tamanho={16}/> MVP</span>
+    <a className="resultado-card-perfil" href={linkPerfil(jogador.steamId)}>
+      <FotoJogador e={jogador} tamanho={120}/>
+      <b>{jogador.nome}<IconeEquipe steamId={jogador.steamId}/></b>
+      <span>{tr('Melhor da partida')}</span><small>{time}</small>
+    </a>
+    <CargosDe steamId={jogador.steamId} max={3} classe="resultado-card-cargos"/>
+  </article>
 }
 
 // Badge da FACEIT: número numa caixinha colorida com a barrinha de progresso embaixo
@@ -133,6 +184,16 @@ function useRevelarSecoes(ativo) {
   }, [ativo])
 }
 
+function donoDoTime(d, t) {
+  const id = d['dono' + t] || d['capitao' + t] || d.serie?.['capitao' + t]
+  const nome = String(t === 'A' ? d.timeA : d.timeB).replace(/^time_/i, '').replace(/\s*\(\d+\)$/, '').trim().toLocaleLowerCase()
+  return (d.jogadores || []).find(e => e.time === t && (String(e.steamId) === String(id) || [e.nomeOriginal, e.nome].some(n => String(n || '').trim().toLocaleLowerCase() === nome)))
+}
+function FotoDonoTime({ d, t }) {
+  const dono = donoDoTime(d, t)
+  return <span className={'bn-logo bn-logo-' + t} title={dono?.nome || (t === 'A' ? d.timeA : d.timeB)}>{dono ? <FotoJogador e={dono}/> : <span className="bn-ini">{iniciais(t === 'A' ? d.timeA : d.timeB)}</span>}</span>
+}
+
 // Logo do time: o da série (NeuraPick) ou, sem logo, a foto do líder do time (o nome do time da fila do site é time_<líder>); sem achar o líder, a do melhor jogador.
 // Sem emblema de assinatura: é só a foto de perfil.
 function LogoTime({ url, nome, capitao, t }) {
@@ -165,62 +226,9 @@ function Banner({ d, nomeTime, vencedor, porRating, comecou }) {
   const tr = useT()
   const serie = d.serie
   const trilhaFim = serie ? tr('Mapa {n} de {total}', { n: serie.atual + 1, total: serie.mapas.length }) : tr('Partida encerrada')
-  const liderDe = (t) => {
-    const doTime = porRating.filter((e) => e.time === t)
-    const nomeLider = String(nomeTime(t) || '').replace(/^time_/i, '').replace(/\s*\(\d+\)$/, '').trim().toLowerCase()
-    return doTime.find((e) => String(e.nome || '').trim().toLowerCase() === nomeLider) || doTime[0]
-  }
-  const logo = (t) => (
-    <LogoTime t={t} url={t === 'A' ? d.logoA : d.logoB} nome={nomeTime(t)} capitao={liderDe(t)} />
-  )
-  const nome = (t) => <NomeTime t={t} nome={nomeTime(t)} venceu={vencedor === t} />
+  const logo = (t) => <FotoDonoTime d={d} t={t}/>
 
-  return (
-    <section className="hero hero-partida">
-      <FundoHero quantidade={12} />
-      <div className="wrap hero-inner">
-        <div className="banner revelar" style={arteDoBanner(d.mapa)}>
-          <div className="bn-topo">
-            <div className="bn-trilha">
-              <IconeElim />
-              <b>{String(d.organizacao || '').toUpperCase()}</b>
-              <i>/</i>
-              <span>{d.categoria === 'normal' ? tr('Partida') : String(d.categoria).toUpperCase()}</span>
-              <i>/</i>
-              <span className="bn-tag">{trilhaFim}</span>
-            </div>
-            <div className="bn-info">
-              {getMap(d.mapa) && <img className="bn-mapa" src={mapIcon(d.mapa)} alt="" />}
-              <b>{nomeMapa(d.mapa)}</b>
-              <span>
-                <IconeData /> {dataBr(d.inicio, tr.idioma)}
-              </span>
-              <span>
-                <IconeTempo /> {d.duracaoMin} min
-              </span>
-              <span>{tr('{n} rounds', { n: d.placarA + d.placarB })}</span>
-              {urlOk(d.demo) && (
-                <a className="bn-demo" href={d.demo}>
-                  <IconeDownload /> {tr('Baixar demo')}
-                </a>
-              )}
-            </div>
-          </div>
-          <div className="bn-placar">
-            {nome('A')}
-            {logo('A')}
-            <div className="bn-centro">
-              <Contador alvo={d.placarA} ativo={comecou} className={vencedor === 'A' ? 'win' : ''} />
-              <span>VS</span>
-              <Contador alvo={d.placarB} ativo={comecou} className={vencedor === 'B' ? 'win' : ''} />
-            </div>
-            {logo('B')}
-            {nome('B')}
-          </div>
-        </div>
-      </div>
-    </section>
-  )
+  return (<section className="resultado-hero"><a className="resultado-voltar" href="/partidas/">← {tr('Voltar ao histórico')}</a><div className="resultado-titulo"><div><h1>{tr('Resultado da partida')}</h1><p>{tr('Partida competitiva da comunidade NEURA PROJECT.')}</p></div>{urlOk(d.demo)&&<a className="resultado-demo" href={d.demo}><IconeDownload/>{tr('Baixar demo')}</a>}</div><div className="resultado-placar"><div className="resultado-time">{logo('A')}<b>{nomeTime('A')}</b>{vencedor==='A'&&<span className="resultado-vitoria">{tr('VITÓRIA')}</span>}</div><div className="resultado-numeros"><Contador alvo={d.placarA} ativo={comecou} className={vencedor==='A'?'win':''}/><span>:</span><Contador alvo={d.placarB} ativo={comecou} className={vencedor==='B'?'win':''}/></div><div className="resultado-time">{logo('B')}<b>{nomeTime('B')}</b>{vencedor==='B'&&<span className="resultado-vitoria">{tr('VITÓRIA')}</span>}</div></div><div className="resultado-meta">{nomeMapa(d.mapa)} · {d.serie?.formato||'MD1'} · {dataBr(d.inicio,tr.idioma).split(' ')[0]} · {d.duracaoMin} min</div></section>)
 }
 
 // Mapas da série que já foram jogados (do histórico partidas.json): índice do mapa -> resumo da partida
@@ -327,9 +335,7 @@ function ItemDestaque({ e, valor, rotulo, ehMvp }) {
   const tr = useT()
   return (
     <a className={`mvp-item spot mvp-${e.time}`} href={linkPerfil(e.steamId)} title={tr('Perfil de {nome}', { nome: e.nome })}>
-      <ComMoldura steamId={e.steamId} emblema>
-        <Avatar e={e} classe="av" />
-      </ComMoldura>
+      <FotoJogador e={e} tamanho={32}/>
       <b className={ehMvp ? `t-${e.time}` : ''}>{e.nome}</b>
       <span className="mvp-val">
         <b>{valor}</b>
@@ -342,73 +348,32 @@ function ItemDestaque({ e, valor, rotulo, ehMvp }) {
 function Destaques({ jogadores, porRating, totalRounds, nomeTime }) {
   const tr = useT()
   const mvp = porRating[0]
-  const maisKills = maior(jogadores, (e) => e.kills)
-  const maisDano = maior(jogadores, (e) => e.dano)
-  const comRounds = jogadores.filter((e) => e.rounds > 0)
+  const maisKills = maior(jogadores, e => e.kills)
+  const maisDano = maior(jogadores, e => e.dano)
+  const comRounds = jogadores.filter(e => e.rounds > 0)
   const melhorKast = comRounds.length ? maior(comRounds, kastPct) : mvp
-  const entry = maior(jogadores, (e) => e.primeirasKills)
-  const hsMvp = mvp.kills === 0 ? 0 : (100 * mvp.headshots) / mvp.kills
+  const entry = maior(jogadores, e => e.primeirasKills)
+  const hs = mvp.kills ? 100 * mvp.headshots / mvp.kills : 0
   const classe = classeRating(mvp.rating)
-
-  const item = (e, valor, rotulo) => <ItemDestaque e={e} valor={valor} rotulo={rotulo} ehMvp={e === mvp} />
-
+  const recordes = [
+    [maisKills, maisKills.kills, 'Mais kills'],
+    [maisDano, maisDano.dano, 'Maior dano'],
+    [melhorKast, f(kastPct(melhorKast), 1) + '%', 'KAST'],
+    [entry, entry.primeirasKills, 'First kills'],
+  ]
   return (
-    <section className="section revelar">
-      <div className="section-head">
-        <span className="kicker">{tr('DESTAQUES')}</span>
-        <h2>{tr('Melhores da partida')}</h2>
-      </div>
-      <div className="mvp-grid">
-        {/* Card grande do MVP (igual ao da sala da FACEIT) */}
-        <div className={`mvp-card spot mvp-${mvp.time}`}>
-          <a className="mvp-perfil" href={linkPerfil(mvp.steamId)} title={tr('Perfil de {nome}', { nome: mvp.nome })}>
-            <span className="mvp-avatar">
-            <ComMoldura steamId={mvp.steamId} emblema>
-              <Avatar e={mvp} classe="mvp-av" />
-            </ComMoldura>
-            </span>
-            <b>{mvp.nome}</b>
-            <span className={`mono-label t-${mvp.time}`}>{nomeTime(mvp.time)}</span>
-          </a>
-          <div className="mvp-info">
-            <div className="mvp-rt">
-              <span className={`rt-box rt-g rt-${classe}`}>{f(mvp.rating)}</span>
-              <span className={`rt-txt rt-${classe}`}>{tr(TEXTO_RATING[classe])}</span>
-            </div>
-            <span className="mono-label">RATING HLTV 1.0</span>
-            <div className="mvp-stats">
-              <div>
-                <b>
-                  {mvp.kills}/{mvp.mortes}/{mvp.assistencias}
-                </b>
-                <span>K/D/A</span>
-              </div>
-              <div>
-                <b>{f(mvp.dano / totalRounds, 1)}</b>
-                <span>ADR</span>
-              </div>
-              <div>
-                <b>{f(hsMvp, 1)}%</b>
-                <span>{tr('% de HS')}</span>
-              </div>
-              <div>
-                <b>{f(kastPct(mvp), 1)}%</b>
-                <span>KAST</span>
-              </div>
-            </div>
-          </div>
-          <div className="mvp-selo">
-            <span>★</span>MVP
-          </div>
-        </div>
-
-        {/* Ao lado: quem foi melhor em cada coisa */}
-        <div className="mvp-lista">
-          {item(maisKills, maisKills.kills, 'Mais kills')}
-          {item(maisDano, maisDano.dano, 'Maior dano')}
-          {item(melhorKast, `${f(kastPct(melhorKast), 1)}%`, 'KAST')}
-          {item(entry, entry.primeirasKills, 'First kills')}
-        </div>
+    <section className="resultado-mvp revelar">
+      <h2>{tr('MVP da partida')}</h2>
+      <div className="resultado-mvp-corpo">
+        <CardJogadorMvp jogador={mvp} time={nomeTime(mvp.time)}/>
+        <div className="resultado-mvp-rating"><RatingBadge rating={mvp.rating} extra="rt-destaque"/><span className={'rt-txt rt-' + classe}>{tr(TEXTO_RATING[classe])}</span><small>Rating HLTV 1.0</small></div>
+        <dl className="resultado-mvp-estatisticas">
+          {[[mvp.kills + '/' + mvp.mortes + '/' + mvp.assistencias, 'K/D/A'], [f(mvp.dano / totalRounds, 1), 'ADR'], [f(hs, 1) + '%', '% de HS'], [f(kastPct(mvp), 1) + '%', 'KAST']].map(([valor, rotulo]) => <div key={rotulo}><dt>{tr(rotulo)}</dt><dd>{valor}</dd></div>)}
+        </dl>
+        <div className="resultado-recordes resultado-recordes-completos">{recordes.map(([e, valor, rotulo]) => <a href={linkPerfil(e.steamId)} key={rotulo}>
+          <FotoJogador e={e} tamanho={36}/>
+          <b className="resultado-recorde-nome">{e.nome}</b><div><b>{valor}</b><span>{tr(rotulo)}</span></div>
+        </a>)}</div>
       </div>
     </section>
   )
@@ -416,48 +381,60 @@ function Destaques({ jogadores, porRating, totalRounds, nomeTime }) {
 
 function Rounds({ d, nomeTime }) {
   const tr = useT()
-  const maxRounds = d.maxRounds || 24
-  const meioOt = Math.max(1, Math.floor((d.roundsProrrogacao || 6) / 2))
-  const total = d.rounds.length
+  const [aviso, setAviso] = useState(null)
+  useEffect(() => {
+    const fechar = () => setAviso(null)
+    const teclado = e => { if (e.key === 'Escape') fechar() }
+    window.addEventListener('scroll', fechar, true)
+    window.addEventListener('resize', fechar)
+    window.addEventListener('keydown', teclado)
+    return () => {
+      window.removeEventListener('scroll', fechar, true)
+      window.removeEventListener('resize', fechar)
+      window.removeEventListener('keydown', teclado)
+    }
+  }, [])
+  const mostrar = (evento, round, indice, time) => {
+    const rect = evento.currentTarget.getBoundingClientRect()
+    const largura = Math.min(280, window.innerWidth - 24)
+    setAviso({ round, indice, time, largura,
+      x: Math.max(12, Math.min(rect.left + rect.width / 2 - largura / 2, window.innerWidth - largura - 12)),
+      y: rect.bottom + 10,
+      acima: rect.bottom + 190 > window.innerHeight,
+      topo: rect.top - 10,
+    })
+  }
   return (
-    <section className="section revelar">
-      <div className="section-head">
-        <span className="kicker">{tr('LINHA DO TEMPO')}</span>
-        <h2>Rounds</h2>
-      </div>
-      <div className="rounds-card">
-        <div className="rounds">
-          {d.rounds.map((r, i) => {
-            const n = i + 1
-            const [Icone, texto] = motivo(r.motivo)
-            // Troca de lado: meio do tempo normal e cada metade da prorrogação
-            const fimDoTempo = n === maxRounds / 2 || n === maxRounds || (n > maxRounds && (n - maxRounds) % meioOt === 0)
-            return [
-              <div key={n} className={`r r-${r.time}`} style={{ '--i': i }} title={`Round ${n}: ${nomeTime(r.time)} (${r.lado}) — ${tr(texto)}`}>
-                <Icone />
-                <span>{n}</span>
-              </div>,
-              fimDoTempo && n < total && <div key={`s${n}`} className="r-sep" />,
-            ]
+    <section className="resultado-rounds revelar" aria-label={tr('Rounds')}>
+      <div className="resultado-rounds-grade" style={{ '--rounds': d.rounds.length }}>
+        <span/>{d.rounds.map((r, i) => <span className="resultado-round-num" key={i}>{i + 1}</span>)}
+        {['A', 'B'].map(time => <div className={'resultado-round-linha round-' + time} key={time}>
+          <span className="resultado-round-time"><span className="resultado-mini-logo"><FotoDonoTime d={d} t={time}/></span>{nomeTime(time)}</span>
+          {d.rounds.map((round, i) => {
+            const [Icone, texto] = motivo(round.motivo)
+            const lado = ladoDoRound(round, time)
+            const ganhou = round.time === time
+            const id = 'round-aviso-' + time + '-' + i
+            return <span key={i} tabIndex={0} role="img"
+              className={'resultado-round-cel lado-' + (lado || 'desconhecido') + (trocaDeLado(i, d.maxRounds || 24, d.roundsProrrogacao || 6) ? ' troca-lado' : '')}
+              aria-label={tr('Round') + ' ' + (i + 1) + ' · ' + nomeTime(time) + ' · ' + (lado || tr('Lado não informado')) + ' · ' + tr(ganhou ? 'Vitória' : 'Derrota') + ' · ' + tr(texto)}
+              aria-describedby={aviso?.indice === i && aviso?.time === time ? id : undefined}
+              onMouseEnter={e => mostrar(e, round, i, time)} onMouseLeave={() => setAviso(null)}
+              onFocus={e => mostrar(e, round, i, time)} onBlur={() => setAviso(null)}>
+              {ganhou ? <Icone/> : <i/>}
+            </span>
           })}
-        </div>
-        <div className="legenda">
-          <span className="t-A">■ {nomeTime('A')}</span>
-          <span className="t-B">■ {nomeTime('B')}</span>
-          <span>
-            <IconeElim /> {tr('eliminação')}
-          </span>
-          <span>
-            <IconeBomba /> {tr('bomba explodiu')}
-          </span>
-          <span>
-            <IconeDesarme /> {tr('desarme')}
-          </span>
-          <span>
-            <IconeTempo /> {tr('tempo')}
-          </span>
-        </div>
+        </div>)}
       </div>
+      <div className="resultado-round-legenda"><span className="legenda-ct"><i/> CT</span><span className="legenda-tr"><i/> TR</span><small>{tr('Passe o mouse sobre um round para ver os detalhes.')}</small></div>
+      {aviso && createPortal(<div className={'resultado-round-tooltip lado-' + (ladoDoRound(aviso.round, aviso.time) || 'desconhecido')}
+        id={'round-aviso-' + aviso.time + '-' + aviso.indice} role="tooltip"
+        style={{ left: aviso.x, top: aviso.acima ? aviso.topo : aviso.y, width: aviso.largura, transform: aviso.acima ? 'translateY(-100%)' : undefined }}>
+        <strong>{tr('Round')} {aviso.indice + 1} <span>{tr(aviso.round.time === aviso.time ? 'Vitória' : 'Derrota')}</span></strong>
+        <div><b>{nomeTime(aviso.time)}</b><span>{tr('Lado')}: {ladoDoRound(aviso.round, aviso.time) || tr('Não informado')}</span></div>
+        <p>{tr(motivo(aviso.round.motivo)[1])}</p>
+        <small>{tr('Vencedor')}: {nomeTime(aviso.round.time)} · {ladoDoRound(aviso.round, aviso.round.time) || tr('Lado não informado')}</small>
+      </div>, document.body)}
     </section>
   )
 }
@@ -499,9 +476,7 @@ function TabelaUtil({ doTime, mvp }) {
               <tr key={e.steamId} style={{ '--i': linha }}>
                 <td>
                   <a className="player" href={linkPerfil(e.steamId)}>
-                    <ComMoldura steamId={e.steamId} emblema>
-                      <Avatar e={e} classe="av" />
-                    </ComMoldura>
+                    <FotoJogador e={e} tamanho={32}/>
                     <span>{e.nome}</span>
                     {e === mvp && (
                       <span className="estrela" title={tr('MVP da partida')}>
@@ -560,7 +535,7 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
   return (
     <div className={`team-card spot team-${t}`}>
       <div className="team-head">
-        <span className={`team-score ${classe}`}>{placarTime}</span>
+        <span className={'resultado-emblema emblema-'+t}><FotoDonoTime d={d} t={t}/></span>
         <span className={`team-name t-${t}`}>{nomeTime(t)}</span>
         <span className={`res ${classe}`}>{tr(texto)}</span>
         <div className="team-meta">
@@ -588,98 +563,30 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
       {aba === 'util' ? (
         <TabelaUtil doTime={doTime} mvp={mvp} />
       ) : (
-      <div className="tabela">
+      <div className="tabela resultado-tabela resultado-tabela-completa" role="region" aria-label={tr('Estatísticas') + ' · ' + nomeTime(t)} tabIndex={0}>
         <table>
-          <thead>
-            <tr>
-              <th>{tr('JOGADOR')}</th>
-              {temXp && <th title={tr('Nível depois deste mapa e o XP que o jogador ganhou ou perdeu nele')}>{tr('NÍVEL')}</th>}
-              <th className="col-rt">RATING</th>
-              <th>K</th>
-              <th>D</th>
-              <th>A</th>
-              <th>+/-</th>
-              <th>ADR</th>
-              <th>K/D</th>
-              <th>K/R</th>
-              <th>HS</th>
-              <th>HS%</th>
-              <th>KAST</th>
-              <th title={tr('Primeiras kills - primeiras mortes')}>FK-FD</th>
-              <th>5K</th>
-              <th>4K</th>
-              <th>3K</th>
-              <th>2K</th>
-              <th>MVPS</th>
+          <colgroup><col className="col-jogador"/><col className="col-nivel"/><col className="col-rating"/>{Array.from({length: 16}, (_, i) => <col key={i}/>)}<col className="col-np"/></colgroup>
+          <thead><tr>
+            <th scope="col">{tr('Jogador')}</th><th scope="col">{tr('Nível')}</th><th scope="col" className="col-rt">Rating</th>
+            {['K', 'D', 'A', '+/-', 'ADR', 'K/D', 'K/R', 'HS', 'HS%', 'KAST', 'FK-FD', '5K', '4K', '3K', '2K', 'MVPs'].map(n => <th scope="col" key={n}>{n}</th>)}
+            <th scope="col" title={tr('Pontos base da partida, sem o bônus Premium individual')}>NP</th>
+          </tr></thead>
+          <tbody>{doTime.map(e => {
+            const ganho = ganhoDe(d, e, vencedor, mvp)
+            const registro = d.xp?.[e.steamId]
+            const nivel = registro ? nivelDe(Number(registro.total) + (Number(perfis[e.steamId]?.xp) || 0), registro.mapas).nivel : null
+            const saldo = e.kills - e.mortes
+            const kd = e.mortes ? e.kills / e.mortes : e.kills
+            const kr = e.kills / Math.max(1, e.rounds > 0 ? e.rounds : totalRounds)
+            return <tr key={e.steamId} className={e === mvp ? 'resultado-jogador-mvp' : ''}>
+              <td><a className="player" href={linkPerfil(e.steamId)}><FotoJogador e={e} tamanho={32}/><span>{e.nome}</span>{e === mvp && <IconeUI tipo="estrela" className="resultado-estrela" tamanho={14} title={tr('MVP da partida')}/>}</a></td>
+              <td><div className="resultado-nivel-xp">{nivel !== null ? <SeloNivel nivel={nivel} tamanho={24}/> : <span className="resultado-nivel-pendente" title={tr('Nível deste mapa ainda não registrado')}>—</span>}<div><b className={ganho.xp < 0 ? 'neg' : 'pos'} title={ganho.estimado ? tr('XP calculado; aguardando confirmação do registro.') : tr('XP registrado nesta partida')}>{ganho.xp !== 0 && <span aria-hidden="true">{ganho.xp > 0 ? '↑' : '↓'} </span>}{Math.abs(ganho.xp)} XP{ganho.estimado && ' *'}</b><StatusConsumivel tipo={ganho.efeito?.tipo} base={ganho.base} delta={ganho.efeito?.delta} compacto/></div></div></td>
+              <td className="col-rt"><RatingBadge rating={e.rating}/></td>
+              <td>{e.kills}</td><td>{e.mortes}</td><td>{e.assistencias}</td><td className={saldo >= 0 ? 'pos' : 'neg'}>{comSinal(saldo)}</td>
+              <td>{f(e.dano / totalRounds, 1)}</td><td className={kd >= 1 ? 'pos' : 'neg'}>{f(kd)}</td><td>{f(kr)}</td><td>{e.headshots ?? 0}</td><td>{f(e.kills ? 100 * e.headshots / e.kills : 0, 1)}%</td><td>{f(kastPct(e), 1)}%</td>
+              <td>{e.primeirasKills ?? 0}-{e.primeirasMortes ?? 0}</td><td>{e.k5 ?? 0}</td><td>{e.k4 ?? 0}</td><td>{e.k3 ?? 0}</td><td>{e.k2 ?? 0}</td><td>{e.mvps ?? 0}</td><td className="resultado-np-base">+{ganho.np}</td>
             </tr>
-          </thead>
-          <tbody>
-            {doTime.map((e, linha) => {
-              const saldo = e.kills - e.mortes
-              const ganhoXp = (d.xp?.[e.steamId]?.ganho || 0) + (d.efeitos?.[e.steamId]?.delta || 0)
-              const kd = e.mortes === 0 ? e.kills : e.kills / e.mortes
-              const kr = e.kills / Math.max(1, e.rounds > 0 ? e.rounds : totalRounds)
-              return (
-                <tr key={e.steamId} style={{ '--i': linha }}>
-                  <td>
-                    <a className="player" href={linkPerfil(e.steamId)}>
-                      <ComMoldura steamId={e.steamId} emblema>
-                        <Avatar e={e} classe="av" />
-                      </ComMoldura>
-                      <span>{e.nome}</span>
-                      {e === mvp && (
-                        <span className="estrela" title={tr('MVP da partida')}>
-                          ★
-                        </span>
-                      )}
-                    </a>
-                  </td>
-                  {temXp && (
-                    <td>
-                      {d.xp[e.steamId] ? (
-                        <span className="nv-cel">
-                          <SeloNivel nivel={nivelDe(d.xp[e.steamId].total + (Number(perfis[e.steamId]?.xp) || 0), d.xp[e.steamId].mapas).nivel} tamanho={26} />
-                          <span className="nv-xp-status">
-                          <b className={ganhoXp > 0 ? 'pos' : ganhoXp < 0 ? 'neg' : ''}>
-                            {ganhoXp !== 0 && <i className="seta-xp" aria-hidden="true">{ganhoXp > 0 ? '↑' : '↓'}</i>}
-                            {Math.abs(ganhoXp)} XP
-                          </b>
-                          <StatusConsumivel tipo={d.efeitos?.[e.steamId]?.tipo} base={d.xp[e.steamId].ganho} delta={d.efeitos?.[e.steamId]?.delta} compacto />
-                          </span>
-                        </span>
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                  )}
-                  <td className="col-rt">
-                    <RatingBadge rating={e.rating} />
-                  </td>
-                  <td>{e.kills}</td>
-                  <td>{e.mortes}</td>
-                  <td>{e.assistencias}</td>
-                  <td className={saldo > 0 ? 'pos' : saldo < 0 ? 'neg' : ''}>
-                    {saldo > 0 ? '+' : ''}
-                    {saldo}
-                  </td>
-                  <td>{f(e.dano / totalRounds, 1)}</td>
-                  <td className={kd >= 1 ? 'pos' : 'neg'}>{f(kd)}</td>
-                  <td>{f(kr)}</td>
-                  <td>{e.headshots}</td>
-                  <td>{e.kills === 0 ? '0.0' : f((100 * e.headshots) / e.kills, 1)}%</td>
-                  <td>{f(kastPct(e), 1)}%</td>
-                  <td>
-                    {e.primeirasKills}-{e.primeirasMortes}
-                  </td>
-                  <td>{e.k5}</td>
-                  <td>{e.k4}</td>
-                  <td>{e.k3}</td>
-                  <td>{e.k2}</td>
-                  <td>{e.mvps}</td>
-                </tr>
-              )
-            })}
-          </tbody>
+          })}</tbody>
         </table>
       </div>
       )}
@@ -687,24 +594,45 @@ function TabelaTime({ d, t, jogadores, vencedor, mvp, totalRounds, nomeTime, aba
   )
 }
 
+const comSinal = n => (n > 0 ? '+' : '') + n
+function ganhoDe(d, e, vencedor, mvp) {
+  const empate = !vencedor
+  const venceu = e.time === vencedor
+  const calculado = xpDaPartida({ venceu, empate, rating: e.rating, mvp: e.steamId === mvp?.steamId })
+  const base = Number(d.xp?.[e.steamId]?.ganho ?? calculado)
+  const efeito = d.efeitos?.[e.steamId]
+  return { np: pontosDaPartida(venceu, d.inicio), base, efeito, xp: base + (Number(efeito?.delta) || 0), estimado: d.xp?.[e.steamId]?.ganho == null }
+}
+function GanhoJogador({ d, e, vencedor, mvp }) {
+  const g = ganhoDe(d, e, vencedor, mvp)
+  return <div className="resultado-ganho-jogador"><span>+{g.np} NP <small>base</small></span><b className={g.xp < 0 ? 'neg' : 'pos'} title={g.estimado ? 'XP calculado pelas regras da partida; aguardando registro.' : 'XP registrado nesta partida'}>{comSinal(g.xp)} XP{g.estimado && ' *'}</b><StatusConsumivel tipo={g.efeito?.tipo} base={g.base} delta={g.efeito?.delta} compacto/></div>
+}
 function PontosPremiumMapa({ d, vencedor }) {
   const t = useT()
   const conta = useConta()
   const jogador = d.jogadores?.find(j => j.steamId === conta?.id)
-  const recibos = useBonusPartidas(!!jogador)
-  const bonus = recibos[d.caminho] || 0
-  if (!jogador || !bonus) return null
-  const base = pontosDaPartida(jogador.time === vencedor, d.inicio)
-  return (
-    <section className="mapa-premium-pontos" aria-label={t('Seus pontos neste mapa')}>
-      <div><b>{t('Seus pontos neste mapa')}</b><span>{t('Bônus Premium recebido')}</span></div>
-      <dl>
-        <div><dt>{t('Partida')}</dt><dd>+{base} NP</dd></div>
-        <div><dt>Premium</dt><dd>+{bonus} NP</dd></div>
-        <div><dt>{t('Total')}</dt><dd>+{base + bonus} NP</dd></div>
-      </dl>
-    </section>
-  )
+  const recibos = usePartidasServidor(!!jogador)
+  if (!jogador) return null
+  const mvp = maior(d.jogadores, e => e.rating)
+  const g = ganhoDe(d, jogador, vencedor, mvp)
+  const bonus = Number(recibos?.partidas?.[d.caminho]) || 0
+  const recente = recibos?.recentes?.find(p => p.caminho === d.caminho)
+  const base = Number(recente?.xpBase ?? g.base)
+  const xp = Number(recente?.xp ?? g.xp)
+  const tipo = g.efeito?.tipo || recente?.consumivel
+  const delta = xp - base
+  const desempenho = vencedor ? (XP.rating.find(([min]) => jogador.rating >= min)?.[1] || 0) : 0
+  const resultado = !vencedor ? 0 : jogador.time === vencedor ? XP.vitoria : XP.derrota
+  const bonusMvp = vencedor && jogador.steamId === mvp.steamId ? XP.mvp : 0
+  const ajuste = base - resultado - desempenho - bonusMvp
+  return <section className="resultado-pontos">
+    <h2>{t('Seus pontos')}</h2>
+    <div className="resultado-pontos-grade"><div><img src="/assets/logos/logo-np-64.png" alt=""/><span><b>+{g.np + bonus} NP</b><small>{t('Pontos da partida')}</small></span></div><div><IconeUI tipo="boost" tamanho={36}/><span><b>{comSinal(xp)} XP</b><small>{t('Experiência da partida')}</small></span></div></div>
+    <div className="resultado-calculos"><h3>{t('Cálculo de NP')}</h3><dl><div><dt>{t('Resultado da partida')}</dt><dd>+{g.np} NP</dd></div><div><dt>Premium</dt><dd>{recibos ? '+' + bonus + ' NP' : t('Consultando recibo…')}</dd></div><div className="calculo-total"><dt>{t('Total')}</dt><dd>+{g.np + bonus} NP{!recibos && ' *'}</dd></div></dl>
+    <h3>{t('Cálculo de XP')}</h3><dl><div><dt>{t('Resultado da partida')}</dt><dd>{comSinal(resultado)} XP</dd></div><div><dt>Rating {f(jogador.rating)}</dt><dd>{comSinal(desempenho)} XP</dd></div><div><dt>MVP</dt><dd>{comSinal(bonusMvp)} XP</dd></div>{ajuste !== 0 && <div><dt>{t('Ajuste do XP registrado / limite')}</dt><dd>{comSinal(ajuste)} XP</dd></div>}<div><dt>{t('Subtotal')}</dt><dd>{comSinal(base)} XP</dd></div>{tipo && <div><dt>{tipo === 'boost' ? 'Boost' : 'Freeze'}</dt><dd>{comSinal(delta)} XP</dd></div>}<div className="calculo-total"><dt>{t('Total')}</dt><dd>{comSinal(xp)} XP</dd></div></dl>
+    {tipo && <div className="resultado-efeito"><StatusConsumivel tipo={tipo} base={base} delta={delta}/><small>{tipo === 'boost' ? t('Boost dobra o ganho positivo de XP. Na derrota, não concede bônus.') : t('Freeze protege a perda de XP. Na vitória, mantém o ganho normal.')}</small></div>}
+    <small className="resultado-recibo-nota">{t('Premium acrescenta NP; Boost e Freeze afetam somente XP.')}{g.estimado && !recente && ' ' + t('XP calculado; aguardando confirmação do registro.')}{!recibos && ' ' + t('O total de NP ainda não inclui um possível bônus Premium.')}</small></div>
+  </section>
 }
 
 function Conteudo({ d }) {
@@ -778,7 +706,7 @@ function Conteudo({ d }) {
     )
 
   return (
-    <>
+    <div className="resultado-pagina" style={arteDoBanner(d.mapa)}>
       <div id="carregando" className={comecou ? 'fim' : ''} aria-hidden="true">
         <div className="ld">
           <img src="/assets/logos/logo-np-64.png" alt="" />
@@ -788,7 +716,7 @@ function Conteudo({ d }) {
       </div>
       <Banner d={d} nomeTime={nomeTime} vencedor={vencedor} porRating={porRating} comecou={comecou} />
       <main className="wrap partida-conteudo pt-v2">
-        {d.serie && <Serie serie={d.serie} nomeTime={nomeTime} jogos={jogos} caminhoAtual={d.caminho} anuncio={anuncio} agora={agora} />}
+        {d.serie?.mapas?.length > 1 && <Serie serie={d.serie} nomeTime={nomeTime} jogos={jogos} caminhoAtual={d.caminho} anuncio={anuncio} agora={agora} />}
         {d.rounds?.length > 0 && <Rounds d={d} nomeTime={nomeTime} />}
         {/* Grade do computador (referência): as tabelas ocupam ~2/3 à esquerda; MVP e pontos ficam no terço da direita */}
         <div className="pt-v2-grade">
@@ -817,12 +745,13 @@ function Conteudo({ d }) {
           {(vencedor === 'B' ? ['B', 'A'] : ['A', 'B']).map((t) => (
             <TabelaTime key={t} d={d} t={t} jogadores={jogadores} vencedor={vencedor} mvp={mvp} totalRounds={totalRounds} nomeTime={nomeTime} aba={aba} />
           ))}
+          {aba === 'geral' && <p className="resultado-nota-tabela">{tr('NP base por jogador. O detalhamento Premium aparece nos seus pontos. * XP calculado: aguardando confirmação do registro.')}</p>}
           {aba === 'util' && <GraficoUtil jogadores={jogadores} ordem={vencedor === 'B' ? ['B', 'A'] : ['A', 'B']} nomeTime={nomeTime} mvp={mvp} />}
         </section>
         </div>
       </main>
       <p className="wrap gerado">{tr('Gerado pelo BaseComp em {data}', { data: dataBr(d.gerado, tr.idioma) })} · Rating HLTV 1.0</p>
-    </>
+    </div>
   )
 }
 
@@ -855,7 +784,7 @@ export default function Partida({ dados: inicial }) {
   }, [d])
 
   const perfis = usePerfis()
-  const dApelidos = useMemo(() => (d ? { ...d, efeitos: efeitos || d.efeitos, jogadores: comApelidos(d.jogadores, perfis) } : d), [d, perfis, efeitos]) // apelido do site no lugar do nome do jogo
+  const dApelidos = useMemo(() => (d ? { ...d, efeitos: efeitos || d.efeitos, jogadores: comApelidos(d.jogadores.map(e => ({ ...e, nomeOriginal: e.nome })), perfis) } : d), [d, perfis, efeitos]) // apelido do site no lugar do nome do jogo
   return (
     <Layout pagina="partidas" trilha={[{ rotulo: 'Partidas', href: '/partidas/' }, ...(d ? [{ rotulo: nomeMapa(d.mapa) }] : [])]}>
       {d ? (

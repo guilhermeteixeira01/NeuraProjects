@@ -1,3 +1,4 @@
+import { ITENS_PARTIDA, IconeItemPartida } from '../../comum/itensPartida.jsx'
 // Loja geral (aba LOJA GERAL da loja): o site vende por NP os itens de partida do lobby (Boost/Freeze) e os
 // enfeites do perfil que o admin pôs à venda: molduras, cards, fundos de perfil e kits (card + moldura + fundo juntos).
 // Enfeite comprado fica liberado para sempre no Personalizar do perfil. Worker: src/loja-oficial.js.
@@ -12,16 +13,20 @@ import { nomeCard, urlMiniCard } from '../../comum/cardsPerfil.js'
 import { imagemFundoPerfil, nomeFundoPerfil } from '../../../worker/steam-login/src/fundos-perfil.js'
 import { tocarSom } from '../../comum/som.js'
 import IconeUI from '../../comum/IconeUI.jsx'
+import { LayoutGrid, PanelsTopLeft, ShieldCheck, Image, UserRound, CreditCard, Gift, Zap } from 'lucide-react'
 
 const numero = (n) => Number(n).toLocaleString('pt-BR')
 const SECOES = [
-  ['tudo', 'Tudo'],
-  ['partida', 'Itens de partida'],
-  ['kit', 'Kits'],
-  ['moldura', 'Molduras'],
-  ['card', 'Cards'],
-  ['fundo', 'Fundos de perfil'],
+  ['tudo', 'Todos', LayoutGrid],
+  ['moldura', 'Molduras', PanelsTopLeft],
+  ['insignia', 'Insígnias', ShieldCheck],
+  ['fundo', 'Banners', Image],
+  ['personagem', 'Personagens', UserRound],
+  ['card', 'Cards', CreditCard],
+  ['kit', 'Kits', Gift],
+  ['partida', 'Itens de partida', Zap],
 ]
+
 const CONSUMIVEIS = {
   boost: { nome: 'Boost', icone: 'boost', texto: 'Ative no lobby antes da partida: se vencer, o XP ganho vale em dobro.' },
   freeze: { nome: 'Freeze', icone: 'escudo', texto: 'Ative no lobby antes da partida: se perder, você não perde XP. Na vitória, ganha XP normalmente.' },
@@ -153,9 +158,9 @@ export default function MercadoOficial({ saldo }) {
   return (
     <section className="mo" aria-label={t('Loja geral')}>
       <nav className="mo-secoes" role="tablist" aria-label={t('Seções do mercado oficial')}>
-        {SECOES.map(([id, rotulo]) => (
+        {SECOES.map(([id, rotulo, Icone]) => (
           <button key={id} type="button" role="tab" aria-selected={secao === id} className={secao === id ? 'is-ativo' : ''} onClick={() => setSecao(id)}>
-            {t(rotulo)}
+            <Icone size={20} strokeWidth={1.6} aria-hidden="true" />{t(rotulo)}
           </button>
         ))}
       </nav>
@@ -165,7 +170,8 @@ export default function MercadoOficial({ saldo }) {
           {aviso.texto} {aviso.ok && aviso.link && <a href={aviso.link}>{aviso.link === '/lobby/' ? t('Ir para o lobby') : t('Personalizar perfil')}</a>}
         </p>
       )}
-      {nada && <p className="mo-vazio">{t('Nada à venda no momento. Volte mais tarde!')}</p>}
+      {['insignia', 'personagem'].includes(secao) && <p className="mo-vazio" role="status">{t(secao === 'insignia' ? 'Nenhuma insígnia à venda no momento.' : 'Nenhum personagem à venda no momento.')}</p>}
+      {nada && !['insignia', 'personagem'].includes(secao) && <p className="mo-vazio">{t('Nada à venda no momento. Volte mais tarde!')}</p>}
 
       {ver('partida') && vendendoConsumivel && (
         <div className="mo-bloco">
@@ -180,9 +186,9 @@ export default function MercadoOficial({ saldo }) {
                 const n = qtd[k]
                 const preco = catalogo.consumiveis[k] * n
                 return (
-                  <li key={k} className={`mo-consumivel mo-${k}`}>
+                  <li key={k} className={`mo-consumivel mo-${k}`} style={{ '--tom': ITENS_PARTIDA.find(i => i.tipo === k).cor }}>
                     <span className="mo-consumivel-icone">
-                      <IconeUI tipo={c.icone} tamanho={34} />
+                      <IconeItemPartida tipo={k} tamanho={28} />
                     </span>
                     <span className="mo-consumivel-info">
                       <b>{c.nome}</b>

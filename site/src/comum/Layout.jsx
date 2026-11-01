@@ -1,5 +1,6 @@
 import './superficies.css'
 import './avatares.css'
+import './filtrosMobile.css'
 import { Suspense, lazy, useEffect, useRef } from 'react'
 import { useFundoMobile } from './fundoMobile.js'
 import Avisos from './Avisos.jsx'

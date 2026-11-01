@@ -1,0 +1,21 @@
+.pf-rar-opcoes{display:flex;flex-wrap:wrap;gap:8px}
+.pf-inv-filtro:not([open]) .pf-rar-opcoes{display:none}
+/* Filtros do celular: uma única linha, rolável sem alargar a página. */
+@media (max-width: 760px) {
+  html:not(#v2) #root :is(.pf-profile-nav,.metricas,.fl-lista,.tm-filtros,.lj-filtros,.lj-drops-abas,.inv-abas,.pf-inv-sub,.inv-rar:not(details),.ig-categorias,.ms-abas,.sm-colecoes,.ij-abas,.tr-filtros,.adm-chips,.adm-logs-tipos,.adm-mo-abas,.adm-dar-tipos,.adm-dar-cats,.pf-rar-opcoes) {
+    display:flex!important; flex-direction:row!important; flex-wrap:nowrap!important;
+    align-items:center;justify-content:flex-start!important;gap:8px;
+    min-width:0;max-width:100%;width:100%;box-sizing:border-box;
+    overflow-x:auto!important;overflow-y:hidden;overscroll-behavior-x:contain;
+    scrollbar-width:thin;scrollbar-color:#365570 #061320;
+    scroll-padding-inline:4px;padding-bottom:6px;
+  }
+  html:not(#v2) #root :is(.pf-profile-nav,.metricas,.fl-lista,.tm-filtros,.lj-filtros,.lj-drops-abas,.inv-abas,.pf-inv-sub,.inv-rar:not(details),.ig-categorias,.ms-abas,.sm-colecoes,.ij-abas,.tr-filtros,.adm-chips,.adm-logs-tipos,.adm-mo-abas,.adm-dar-tipos,.adm-dar-cats,.pf-rar-opcoes) > * { flex:0 0 auto!important; width:auto;max-width:none; }
+  html:not(#v2) #root :is(.pf-profile-nav,.metricas,.fl-lista,.tm-filtros,.lj-filtros,.lj-drops-abas,.inv-abas,.pf-inv-sub,.inv-rar:not(details),.ig-categorias,.ms-abas,.sm-colecoes,.ij-abas,.tr-filtros,.adm-chips,.adm-logs-tipos,.adm-mo-abas,.adm-dar-tipos,.adm-dar-cats,.pf-rar-opcoes) > :is(button,a,label,select) { white-space:nowrap; }
+  html:not(#v2) #root :is(.pf-profile-nav,.metricas,.fl-lista,.tm-filtros,.lj-filtros,.lj-drops-abas,.inv-abas,.pf-inv-sub,.inv-rar:not(details),.ig-categorias,.ms-abas,.sm-colecoes,.ij-abas,.tr-filtros,.adm-chips,.adm-logs-tipos,.adm-mo-abas,.adm-dar-tipos,.adm-dar-cats,.pf-rar-opcoes) > input[type="search"] { width:210px;min-width:180px; }
+  html:not(#v2) #root :is(.pf-profile-nav,.metricas,.fl-lista,.tm-filtros,.lj-filtros,.lj-drops-abas,.inv-abas,.pf-inv-sub,.inv-rar:not(details),.ig-categorias,.ms-abas,.sm-colecoes,.ij-abas,.tr-filtros,.adm-chips,.adm-logs-tipos,.adm-mo-abas,.adm-dar-tipos,.adm-dar-cats,.pf-rar-opcoes)::-webkit-scrollbar { height:4px; }
+  html:not(#v2) #root :is(.pf-profile-nav,.metricas,.fl-lista,.tm-filtros,.lj-filtros,.lj-drops-abas,.inv-abas,.pf-inv-sub,.inv-rar:not(details),.ig-categorias,.ms-abas,.sm-colecoes,.ij-abas,.tr-filtros,.adm-chips,.adm-logs-tipos,.adm-mo-abas,.adm-dar-tipos,.adm-dar-cats,.pf-rar-opcoes)::-webkit-scrollbar-thumb { background:#365570;border-radius:4px; }
+  html:not(#v2) #root :is(.pf-profile-nav,.metricas,.fl-lista,.tm-filtros,.lj-filtros,.lj-drops-abas,.inv-abas,.pf-inv-sub,.inv-rar:not(details),.ig-categorias,.ms-abas,.sm-colecoes,.ij-abas,.tr-filtros,.adm-chips,.adm-logs-tipos,.adm-mo-abas,.adm-dar-tipos,.adm-dar-cats,.pf-rar-opcoes)::-webkit-scrollbar-track { background:#061320; }
+  html:not(#v2) #root .pf-inv-filtro .pf-rar-opcoes { margin-top:10px; }
+  html:not(#v2) #root .pf-inv-filtro:not([open]) .pf-rar-opcoes { display:none!important; }
+}

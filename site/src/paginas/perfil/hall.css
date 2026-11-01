@@ -35,8 +35,8 @@
 .hf-jogador-card dl { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:100%;gap:6px;margin:0 0 18px;padding:16px 0;border-block:1px solid #ffffff26;background:#0002; }
 .hf-jogador-card dt { font-size:9px;color:#bec7d1; }
 .hf-jogador-card dd { margin:6px 0 0;font-size:16px;font-weight:800; }
-.hf-jogador-card>a { position:relative;z-index:4;border:1px solid #ffffff26;border-radius:7px;padding:9px 16px;color:#fff;background:#0005;font-size:10px;font-weight:700;text-transform:uppercase;text-decoration:none; }
-.hf-jogador-card>a:hover { border-color:var(--blue-2); }
+.hf-jogador-acoes>a { position:relative;z-index:4;border:1px solid #ffffff26;border-radius:7px;padding:9px 16px;color:#fff;background:#0005;font-size:10px;font-weight:700;text-transform:uppercase;text-decoration:none; }
+.hf-jogador-acoes>a:hover { border-color:var(--blue-2); }
 @media(max-width:760px) { .hf-area { max-width:320px;margin-inline:auto; } }
 @media(prefers-reduced-motion:reduce) { .hf-jogador-card::after { animation:none;display:none; } }
 html[data-desempenho='1'] .hf-jogador-card::after { animation:none;display:none; }
@@ -45,3 +45,11 @@ html[data-desempenho='1'] .hf-jogador-card::after { animation:none;display:none;
 .hf-jogador-trofeu { width:56px;height:56px;aspect-ratio:1;object-fit:contain;object-position:center;flex:none; }
 .hf-jogador-avatar>.moldura-box,.hf-jogador-avatar>.emblema-box { width:106px;height:106px;flex:none; }
 .hf-jogador-avatar>.moldura-box>.hf-avatar-imagem,.hf-jogador-avatar>.emblema-box>.hf-avatar-imagem { width:100%;height:100%; }
+
+.hf-jogador-acoes{position:relative;z-index:4;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:auto}
+html:not(#v2) #root .hf-jogador-acoes .pf-ocultar-compacto{display:flex;align-items:center;gap:5px;padding:7px 6px;min-width:0;min-height:35px;width:auto;background:#0005;border:1px solid #ffffff26;border-radius:7px;margin:0;text-align:left}
+html:not(#v2) #root .hf-jogador-acoes .pf-ocultar-compacto b{font-size:9px;line-height:1.25;display:block;max-width:62px}
+html:not(#v2) #root .hf-jogador-acoes .pf-ocultar-chave{width:26px;height:16px;flex:none}
+html:not(#v2) #root .hf-jogador-acoes .pf-ocultar-chave::after{width:12px;height:12px;top:2px;left:2px}
+html:not(#v2) #root .hf-jogador-acoes .pf-ocultar input:checked + .pf-ocultar-chave::after{transform:translateX(10px)}
+html:not(#v2) #root .hf-jogador-acoes .pf-ocultar small{position:absolute;bottom:calc(100% + 6px);left:0;right:0;padding:8px;background:#061421;border:1px solid #203e58;border-radius:6px;font-size:10px;line-height:1.4}

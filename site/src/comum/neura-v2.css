@@ -765,3 +765,8 @@ html:not(#v2) .nx-conta-btn .nx-conta-avatar :is(.moldura-box, .emblema-box) > :
 html:not(#v2) .np-busca-campo:focus-within { border-color: #58a6ff; box-shadow: 0 0 0 2px rgb(88 166 255 / .16); }
 html:not(#v2) .np-busca-campo input:is(:focus, :focus-visible) { outline: none; box-shadow: none; border: 0; border-radius: 0; }
 html:not(#v2) .nx-btn:focus:not(:focus-visible), html:not(#v2) .nx-config-btn:focus:not(:focus-visible) { outline: none; }
+/* Nome da conta alinhado ao início da coluna, junto ao avatar. */
+@media(min-width:1025px){
+  html:not(#v2) .nx-direita .nx-conta-btn .nx-conta-nome.nx-dica{justify-self:start;text-align:left}
+  html:not(#v2) .nx-direita .nx-conta-btn .nx-conta-nivel{justify-self:start;text-align:left}
+}

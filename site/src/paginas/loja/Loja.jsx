@@ -60,9 +60,9 @@ function CartaoCaixa({ c, tem, aoAbrir }) {
 // Abas da loja: caixas, loja de skins (mercado entre jogadores) e loja geral (mercado oficial).
 // ?aba=mercado (links antigos) abre a loja de skins. As insígnias das caixas ficam na aba Missões do perfil.
 const ABAS = [
-  ['caixas', 'CAIXAS'],
-  ['skins', 'LOJA DE SKINS'],
-  ['geral', 'LOJA GERAL'],
+  ['caixas', 'Caixas', 'caixa'],
+  ['skins', 'Skins', 'espadas'],
+  ['geral', 'Loja geral', 'editar'],
 ]
 function abaDaUrl() {
   if (typeof location === 'undefined') return 'caixas'
@@ -206,9 +206,9 @@ function Conteudo() {
       {depositando && <Deposito aoFechar={() => setDepositando(false)} aoPagar={carregar} />}
 
       <nav className="lj-abas" role="tablist">
-        {ABAS.map(([id, nome]) => (
+        {ABAS.map(([id, nome, icone]) => (
           <button key={id} type="button" role="tab" aria-selected={aba === id} className={aba === id ? 'is-ativo' : ''} onClick={() => setAba(id)}>
-            {t(nome)}
+            <IconeUI tipo={icone} tamanho={23} />{t(nome)}
           </button>
         ))}
       </nav>
@@ -229,7 +229,7 @@ function Conteudo() {
           </a>
         </div>
       </section>
-      <Drops achar={achar} />
+
       <span id="lj-catalogo" className="lj-ancora" />
       {aviso && (
         <p className="lj-aviso" role="status">
@@ -283,7 +283,7 @@ function Conteudo() {
 export default function Loja() {
   return (
     <Layout pagina="loja">
-      <main className="lj-pagina">
+      <main className="lj-pagina" style={fundoCss('loja')}>
         <div className="wrap lj-wrap">
           <Conteudo />
         </div>

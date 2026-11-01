@@ -34,7 +34,7 @@ const abaInicial = () => {
   }
 }
 
-export default function PerfilInventario({ steamId, nome, resumoStatus, children, abaPerfil, aoTrocarAba, somenteInventario = false }) {
+export default function PerfilInventario({ steamId, nome, resumoStatus, children, abaPerfil, aoTrocarAba, somenteInventario = false, somenteResumo = false, ocultarTopo = false }) {
   const conta = useConta()
   const t = useT()
   const [topoLocal, setTopoLocal] = useState(abaInicial)
@@ -132,8 +132,11 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
     ['caixas', 'CAIXAS', caixas.reduce((a, g) => a + g.n, 0)],
   ]
 
-  const fav = resumo?.favorita
-  const melhor = resumo?.melhor
+  const exemplo = import.meta.env.DEV && new URLSearchParams(location.search).get("exemploPerfil") === "1"
+  const caixaExemplo = caixasLoja[0]
+  const itemExemplo = caixaExemplo?.itens?.find((i) => i.t === "arma" || !i.t)
+  const fav = exemplo && caixaExemplo ? { ...caixaExemplo, vezes: 24 } : resumo?.favorita
+  const melhor = exemplo && itemExemplo ? { ...itemExemplo, v: 14500, f: 0.04 } : resumo?.melhor
   const dMelhor = melhor ? descrever({ t: melhor.t, d: melhor.d, p: melhor.p, f: melhor.f }, idx) : null
 
   const trocar = (id) => {
@@ -145,37 +148,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
     }
   }
 
-  return (
-    <div className="pf-topo-perfil">
-      {!somenteInventario && <section className="pf-inv fx-entra" style={{ '--e': 1 }} aria-label={t('Perfil')}>
-        <div className="pf-inv-topo">
-          <div className="pf-inv-quem">
-            {topo === 'status' ? (
-              <>
-                <span className="pf-inv-rot">{t('JOGADOR')}</span>
-                <b>{nome}</b>
-                {resumoStatus}
-              </>
-            ) : (
-              <>
-                <span className="pf-inv-rot">{t('INVENTÁRIO')}</span>
-                <b>{nome}</b>
-                <small>{inv ? t('{n} itens', { n: numero(todos.length) }) : '…'}</small>
-                {inv && (
-                  <div className="pf-resumo-chips">
-                    <div className="pf-resumo-chip">
-                      <span className="pf-info-rot">{t('VALOR TOTAL')}</span>
-                      <span className="pf-info-val pf-inv-valor">{numero(valorTotal)} NP</span>
-                    </div>
-                    <div className="pf-resumo-chip">
-                      <span className="pf-info-rot">{t('PADRÕES RAROS')}</span>
-                      <span className="pf-info-val">{raros}</span>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+  const cardsResumo = <>
           <div className="pf-inv-card pf-inv-fav">
             <div className="pf-inv-card-txt">
               <span className="pf-inv-rot">{t('CAIXA FAVORITA')}</span>
@@ -208,6 +181,41 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
             </div>
             {melhor && dMelhor?.img && <img src={dMelhor.img} alt="" loading="lazy" draggable="false" />}
           </div>
+  </>
+  if (somenteResumo) return <div className="pf-resumo-loja">{cardsResumo}</div>
+
+  return (
+    <div className="pf-topo-perfil">
+      {!somenteInventario && !ocultarTopo && <section className="pf-inv fx-entra" style={{ '--e': 1 }} aria-label={t('Perfil')}>
+        <div className="pf-inv-topo">
+          <div className="pf-inv-quem">
+            {topo === 'status' ? (
+              <>
+                <span className="pf-inv-rot">{t('JOGADOR')}</span>
+                <b>{nome}</b>
+                {resumoStatus}
+              </>
+            ) : (
+              <>
+                <span className="pf-inv-rot">{t('INVENTÁRIO')}</span>
+                <b>{nome}</b>
+                <small>{inv ? t('{n} itens', { n: numero(todos.length) }) : '…'}</small>
+                {inv && (
+                  <div className="pf-resumo-chips">
+                    <div className="pf-resumo-chip">
+                      <span className="pf-info-rot">{t('VALOR TOTAL')}</span>
+                      <span className="pf-info-val pf-inv-valor">{numero(valorTotal)} NP</span>
+                    </div>
+                    <div className="pf-resumo-chip">
+                      <span className="pf-info-rot">{t('PADRÕES RAROS')}</span>
+                      <span className="pf-info-val">{raros}</span>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+          {cardsResumo}
         </div>
 
         {abaPerfil === undefined && <nav className="pf-inv-abas" role="tablist">
@@ -273,6 +281,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
                 </select>
               </div>
               <details className="inv-rar pf-inv-rar pf-inv-filtro"><summary>{t('Raridade')}</summary>
+                <div className="pf-rar-opcoes">
                 <button type="button" className={rar === 'todas' ? 'is-ativo' : ''} onClick={() => setRar('todas')}>
                   {t('Todas')}
                 </button>
@@ -283,6 +292,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
                     </button>
                   ) : null,
                 )}
+                </div>
               </details>
             {!itens.length ? (
               <p className="pf-inv-vazio">{t('Nada por aqui.')}</p>
@@ -300,6 +310,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
             <>
             {aba !== 'caixas' && contagemEnf.some(Boolean) && (
               <details className="inv-rar pf-inv-rar pf-inv-filtro"><summary>{t('Raridade')}</summary>
+                <div className="pf-rar-opcoes">
                 <button type="button" className={rar === 'todas' ? 'is-ativo' : ''} onClick={() => setRar('todas')}>
                   {t('Todas')}
                 </button>
@@ -310,6 +321,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
                     </button>
                   ) : null,
                 )}
+                </div>
               </details>
             )}
             <ul className="inv-itens pf-inv-cartoes">

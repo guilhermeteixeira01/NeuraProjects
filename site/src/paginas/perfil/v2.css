@@ -190,15 +190,15 @@ html:not(#v2) #root .pf-chart-svg { height: 204px; max-height: none; min-height:
 html:not(#v2) #root .pf-chart-svg text { font-size: 12px; }
 html:not(#v2) #root .pf-chart-svg circle { r: 4px; }
 /* Card de jogador na proporção de um card colecionável. */
-html:not(#v2) #root .pf-lado .hf-area { width: min(280px,100%); margin: 12px auto; }
-html:not(#v2) #root .pf-lado .hf-jogador-card { width: 100%; min-height: 392px; padding: 14px; background-size: 100% 100%; }
-html:not(#v2) #root .pf-lado .hf-jogador-topo { min-height: 30px; }
-html:not(#v2) #root .pf-lado .hf-jogador-topo b { font-size: 21px; }
-html:not(#v2) #root .pf-lado .hf-jogador-avatar { min-height: 98px; margin: 12px 0; }
-html:not(#v2) #root .pf-lado .hf-jogador-avatar > :is(.moldura-box,.emblema-box), html:not(#v2) #root .pf-lado .hf-avatar-imagem { width: 80px; height: 80px; }
-html:not(#v2) #root .pf-lado .hf-jogador-card h2 { font-size: 19px; }
-html:not(#v2) #root .pf-lado .hf-jogador-card > p { margin-bottom: 12px; }
-html:not(#v2) #root .pf-lado .hf-jogador-card dl { padding: 12px 0; margin-bottom: 12px; }
+html:not(#v2) #root :is(.pf-lado,.pf-jogador-destaque) .hf-area { width: min(280px,100%); margin: 12px auto; }
+html:not(#v2) #root :is(.pf-lado,.pf-jogador-destaque) .hf-jogador-card { width: 100%; min-height: 392px; padding: 14px; background-size: 100% 100%; }
+html:not(#v2) #root :is(.pf-lado,.pf-jogador-destaque) .hf-jogador-topo { min-height: 30px; }
+html:not(#v2) #root :is(.pf-lado,.pf-jogador-destaque) .hf-jogador-topo b { font-size: 21px; }
+html:not(#v2) #root :is(.pf-lado,.pf-jogador-destaque) .hf-jogador-avatar { min-height: 98px; margin: 12px 0; }
+html:not(#v2) #root :is(.pf-lado,.pf-jogador-destaque) .hf-jogador-avatar > :is(.moldura-box,.emblema-box), html:not(#v2) #root :is(.pf-lado,.pf-jogador-destaque) .hf-avatar-imagem { width: 80px; height: 80px; }
+html:not(#v2) #root :is(.pf-lado,.pf-jogador-destaque) .hf-jogador-card h2 { font-size: 19px; }
+html:not(#v2) #root :is(.pf-lado,.pf-jogador-destaque) .hf-jogador-card > p { margin-bottom: 12px; }
+html:not(#v2) #root :is(.pf-lado,.pf-jogador-destaque) .hf-jogador-card dl { padding: 12px 0; margin-bottom: 12px; }
 /* Todas as abas usam as superfícies azul-marinho do perfil principal. */
 html:not(#v2) #root .pf-pagina { --bg:#010b16; --surface:#061421; --panel:#061421; --border:#203e58; --dim:#a9c2df; --text:#f4f7fc; --accent:#258bff; }
 html:not(#v2) #root .pf-pagina :is(.pf-social-panel,.pf-friend-card,.pf-affiliate-totals>div,.ig-card,.ms-card,.pf-inv,.pf-lado-bloco,.pf-desemp,.pf-estat,.pf-inv-card) { background: linear-gradient(135deg,#061421,#030e19); border: 1px solid #203e58; color:#f4f7fc; border-radius:9px; }
@@ -234,3 +234,136 @@ html:not(#v2) #root .pf-inventario-pagina .pf-inv-filtro { display:block; margin
 .pf-inv-filtro > summary { display:list-item; width:max-content; cursor:pointer; padding:10px 16px; border:1px solid #254462; border-radius:6px; color:#bfd2e8; background:#061421; font-size:13px; }
 .pf-inv-filtro[open] > button { display:inline-flex; margin:10px 5px 0 0; }
 html:not(#v2) #root .pf-inventario-pagina .pf-inv-qtd { position:absolute; top:8px; left:8px; z-index:3; font-size:10px; color:#f5bc55; }
+/* Redução proporcional do avatar e da moldura no cabeçalho do perfil. */
+html:not(#v2) #root .pf-header-portrait{flex-basis:108px;width:108px;height:108px}
+html:not(#v2) #root .pf-header-avatar{width:108px;height:108px}
+@media(max-width:760px){
+  html:not(#v2) #root .pf-header-portrait{flex-basis:72px;width:72px;height:72px}
+  html:not(#v2) #root .pf-header-avatar{width:72px;height:72px}
+}
+
+/* Estatísticas principais à esquerda e aviso junto ao time. */
+html:not(#v2) #root .pf-layout.pf-v2 > .pf-centro{align-content:start}
+html:not(#v2) #root .pf-lado .pf-sem{margin:0;padding:16px;min-width:0}
+html:not(#v2) #root .pf-lado .pf-sem span{max-width:none;font-size:13px;line-height:1.6}
+
+@media(max-width:760px){html:not(#v2) #root .pf-cover-personagem{display:none}}
+
+/* O card mantém a forma vertical e respiro em sua nova posição. */
+html:not(#v2) #root .pf-jogador-destaque{display:grid;justify-items:start;gap:20px;padding:12px 0;margin-bottom:8px;min-width:0}
+html:not(#v2) #root .pf-jogador-destaque .hf-area{width:min(280px,100%);margin:0}
+html:not(#v2) #root .pf-jogador-destaque .hf-jogador-card{aspect-ratio:282 / 395;min-height:0}
+html:not(#v2) #root .pf-jogador-destaque .pf-acoes-lado{margin:0;width:min(460px,100%)}
+
+/* Identidade à esquerda; gráfico, estatísticas e partidas à direita. */
+html:not(#v2) #root .pf-layout.pf-v2{grid-template-columns:minmax(280px,1fr) minmax(0,2.1fr)}
+html:not(#v2) #root .pf-v2 > .pf-centro{grid-column:2;grid-row:1}
+html:not(#v2) #root .pf-v2 > .pf-lado{grid-column:1;grid-row:1}
+@media(max-width:1000px){html:not(#v2) #root .pf-layout.pf-v2{grid-template-columns:minmax(0,1fr)}html:not(#v2) #root .pf-v2 > .pf-centro{grid-column:1;grid-row:2}html:not(#v2) #root .pf-v2 > .pf-lado{grid-column:1;grid-row:1}}
+
+/* Informações complementares acompanham a largura da coluna esquerda. */
+html:not(#v2) #root .pf-informacoes-lado{min-width:0;container-type:inline-size}
+html:not(#v2) #root .pf-informacoes-lado .pf-inv-topo{grid-template-columns:minmax(0,1fr)}
+html:not(#v2) #root .pf-informacoes-lado :is(.pf-inv-quem,.pf-inv-card,.pf-desemp,.pf-class){min-width:0}
+html:not(#v2) #root .pf-informacoes-lado .pf-class-trilha{display:grid;grid-template-columns:repeat(auto-fit,minmax(42px,1fr));gap:14px 6px;overflow:visible}
+html:not(#v2) #root .pf-informacoes-lado .pf-ci{min-width:0;width:auto}
+html:not(#v2) #root .pf-informacoes-lado .pf-ci::after{display:none}
+html:not(#v2) #root .pf-informacoes-lado :is(.pf-desemp-topo,.pf-desemp-resumo){flex-wrap:wrap;gap:10px}
+
+html:not(#v2) #root .pf-informacoes-lado .pf-ci::before{display:none}
+html:not(#v2) #root .pf-informacoes-lado .pf-inv-topo{grid-auto-rows:auto}
+
+/* Time e Premier acompanham o card, sem caixas de fundo. */
+html:not(#v2) #root .pf-jogador-destaque{width:100%;container-type:inline-size}
+html:not(#v2) #root .pf-card-e-status{display:flex;align-items:flex-start;gap:20px;width:100%;min-width:0}
+html:not(#v2) #root .pf-card-e-status .hf-area{flex:0 0 280px}
+html:not(#v2) #root .pf-status-card{flex:1;min-width:0;padding-top:12px}
+html:not(#v2) #root .pf-status-card .pf-resumo-chips{display:flex;flex-direction:column;align-items:flex-start;gap:22px;margin:0}
+html:not(#v2) #root .pf-status-card .pf-resumo-chip{background:none;border:0;box-shadow:none;padding:0;min-width:0;width:100%;gap:8px}
+html:not(#v2) #root .pf-status-card .pf-info-val{min-width:0;max-width:100%;overflow-wrap:anywhere}
+@container(max-width:415px){html:not(#v2) #root .pf-card-e-status{flex-wrap:wrap}html:not(#v2) #root .pf-status-card{flex-basis:100%;padding-top:0}}
+
+html:not(#v2) #root .pf-status-card .pf-resumo-loja{display:grid;gap:22px;margin-top:22px;min-width:0}
+html:not(#v2) #root .pf-status-card .pf-inv-card{display:flex;flex-direction:column;align-items:flex-start;gap:8px;background:none;border:0;box-shadow:none;padding:0;min-height:0;min-width:0;overflow:visible}
+html:not(#v2) #root .pf-status-card .pf-inv-card-txt{padding:0;min-width:0;overflow-wrap:anywhere}
+html:not(#v2) #root .pf-status-card .pf-inv-card img{position:static;width:100%;max-width:110px;height:66px;object-fit:contain;transform:none;opacity:1}
+
+/* Resumo lateral: hierarquia tipográfica e respiro, sem superfícies. */
+html:not(#v2) #root .pf-status-card{text-align:left;padding-top:20px}
+html:not(#v2) #root .pf-status-card :is(.pf-info,.pf-inv-card){text-align:left;align-items:flex-start;justify-content:flex-start;height:auto!important;background:transparent!important;border:0!important;border-radius:0;box-shadow:none!important}
+html:not(#v2) #root .pf-status-card :is(.pf-info-rot,.pf-inv-rot){display:block;color:#7f9bb8;font-size:10px;font-weight:700;letter-spacing:.09em;line-height:1.4}
+html:not(#v2) #root .pf-status-card .pf-info-val{display:block;text-align:left;font-size:14px;font-weight:700;color:#e7f2ff}
+html:not(#v2) #root .pf-status-card :is(.pf-resumo-chips,.pf-resumo-loja){gap:26px}
+html:not(#v2) #root .pf-status-card .pf-inv-card-txt{display:grid;gap:7px;width:100%}
+html:not(#v2) #root .pf-status-card .pf-inv-card-txt :is(b,small){white-space:normal;overflow:visible;text-overflow:clip;line-height:1.5}
+html:not(#v2) #root .pf-status-card .pf-inv-card-txt b{font-size:14px;color:#edf5ff}
+html:not(#v2) #root .pf-status-card .pf-inv-card-txt small{font-size:12px;color:#a9bfd5}
+html:not(#v2) #root .pf-status-card .pf-inv-preco{color:#ffd36a;font-size:14px;font-weight:800}
+html:not(#v2) #root .pf-status-card .pf-inv-abrir{justify-self:start;margin:0;padding:0;background:none;border:0;color:#4ab7ff;font-size:10px;letter-spacing:.05em}
+html:not(#v2) #root .pf-status-card .pf-inv-card img{max-width:112px;max-height:62px;margin:0;object-position:left center}
+html:not(#v2) #root .pf-exemplo-aviso{display:block;color:#4ab7ff;font-size:9px;letter-spacing:.08em;margin-bottom:16px}
+
+html:not(#v2) #root .pf-status-card .pf-inv-preco{background:none;padding:0;border:0;box-shadow:none}
+html:not(#v2) #root .pf-status-card :is(.pf-resumo-chips,.pf-resumo-loja){gap:20px}
+html:not(#v2) #root .pf-status-card .pf-inv-card img{height:48px;max-height:48px}
+
+/* Resumo do jogador em painéis com a mesma superfície das estatísticas. */
+html:not(#v2) #root .pf-status-card :is(.pf-resumo-chip,.pf-inv-card){
+ --resumo-cor:#39baff;box-sizing:border-box;width:100%;padding:14px!important;
+ background:linear-gradient(135deg,#061421,#030e19)!important;
+ border:1px solid #203e58!important;border-radius:9px;
+ box-shadow:inset 3px 0 0 color-mix(in srgb,var(--resumo-cor) 75%,transparent)!important;
+ gap:10px;min-height:82px;
+}
+html:not(#v2) #root .pf-status-card .pf-resumo-chip:nth-child(2){--resumo-cor:#a47aff}
+html:not(#v2) #root .pf-status-card .pf-resumo-pos{--resumo-cor:#ffd36a}
+html:not(#v2) #root .pf-status-card .pf-inv-fav{--resumo-cor:#ff9e53}
+html:not(#v2) #root .pf-status-card .pf-inv-melhor{--resumo-cor:#55e0af}
+html:not(#v2) #root .pf-status-card :is(.pf-info-rot,.pf-inv-rot){color:var(--resumo-cor);font-size:10px;letter-spacing:.07em}
+html:not(#v2) #root .pf-status-card :is(.pf-resumo-chips,.pf-resumo-loja){gap:12px}
+html:not(#v2) #root .pf-status-card .pf-resumo-loja{margin-top:12px}
+html:not(#v2) #root .pf-status-card .pf-inv-card img{height:62px;max-height:62px;max-width:100%;object-position:center}
+html:not(#v2) #root .pf-status-card .pf-inv-preco{color:#55e0af;font-weight:800}
+html:not(#v2) #root .pf-status-card{padding-top:0}
+html:not(#v2) #root .pf-layout.pf-v2{grid-template-columns:minmax(460px,1.15fr) minmax(0,2.1fr)}
+@media(max-width:1100px){html:not(#v2) #root .pf-layout.pf-v2{grid-template-columns:minmax(0,1fr)}}
+@media(min-width:1001px) and (max-width:1100px){html:not(#v2) #root .pf-v2 > .pf-centro{grid-column:1;grid-row:2}html:not(#v2) #root .pf-v2 > .pf-lado{grid-column:1;grid-row:1}}
+
+/* Identidade e biografia juntas; desempenho na coluna de estatísticas. */
+html:not(#v2) #root .pf-identidade-coluna{flex:0 0 280px;display:grid;gap:18px;min-width:0;align-content:start}
+html:not(#v2) #root .pf-identidade-coluna .hf-area{width:100%;margin:0}
+html:not(#v2) #root .pf-identidade-coluna .pf-apresentacao{margin:0;padding:18px;gap:10px}
+html:not(#v2) #root .pf-identidade-coluna .pf-apresentacao h3{margin:0;font-size:15px}
+html:not(#v2) #root .pf-identidade-coluna .pf-apresentacao p{margin:0;font-size:13px;line-height:1.65;overflow-wrap:anywhere}
+html:not(#v2) #root .pf-v2 > .pf-centro{gap:18px}
+html:not(#v2) #root .pf-v2 > .pf-lado{gap:18px}
+@container(max-width:415px){html:not(#v2) #root .pf-identidade-coluna{flex-basis:100%;width:100%}html:not(#v2) #root .pf-identidade-coluna .hf-area{width:min(280px,100%)}}
+
+/* Blocos inferiores ocupam a coluna inteira, com ritmo compacto. */
+html:not(#v2) #root .pf-jogador-destaque{justify-items:stretch;gap:14px;padding:0;margin-bottom:0}
+html:not(#v2) #root .pf-jogador-destaque .pf-profile-about{width:100%;box-sizing:border-box;margin:0;padding:18px 20px;min-width:0}
+html:not(#v2) #root .pf-jogador-destaque .pf-profile-about h2{margin:0 0 10px;font-size:15px}
+html:not(#v2) #root .pf-jogador-destaque .pf-profile-about p{margin:0;font-size:13px;line-height:1.6}
+html:not(#v2) #root .pf-jogador-destaque .pf-acoes-lado{width:100%;max-width:none;margin:0}
+html:not(#v2) #root .pf-jogador-destaque .pf-acoes-lado:empty{display:none}
+html:not(#v2) #root .pf-v2 > .pf-lado{gap:14px}
+html:not(#v2) #root .pf-lado .pf-v2-time{min-height:0;padding-top:12px}
+html:not(#v2) #root .pf-lado .pf-v2-time .v2-vazio{padding:8px 0;margin:0;min-height:0;text-align:left}
+html:not(#v2) #root .pf-lado .pf-v2-bloco{padding:16px}
+html:not(#v2) #root .pf-lado .pf-sem{padding:16px;margin:0}
+
+/* A pilha lateral termina na mesma base do card do jogador. */
+html:not(#v2) #root .pf-card-e-status{align-items:stretch}
+html:not(#v2) #root .pf-status-card{display:flex;flex-direction:column}
+html:not(#v2) #root .pf-status-card .pf-resumo-chips{display:grid;grid-template-columns:minmax(0,1fr);align-items:stretch;flex:1}
+html:not(#v2) #root .pf-status-card .pf-resumo-loja{flex:1}
+html:not(#v2) #root .pf-status-card :is(.pf-resumo-chip,.pf-inv-card){height:100%!important}
+@container(max-width:415px){html:not(#v2) #root .pf-status-card{display:block}html:not(#v2) #root .pf-status-card :is(.pf-resumo-chip,.pf-inv-card){height:auto!important}}
+
+/* Mesmo respiro entre as abas e o conteúdo de amigos/afiliados. */
+html:not(#v2) #root .pf-aba-conteudo{padding-top:18px}
+
+@media(max-width:760px){html:not(#v2) #root .pf-profile-nav{display:flex!important;flex-flow:row nowrap!important;justify-content:flex-start!important;width:100%;max-width:100%;min-width:0;height:auto;overflow-x:auto!important;overflow-y:hidden;scrollbar-width:thin;padding-bottom:4px}html:not(#v2) #root .pf-profile-nav > :is(button,a){flex:0 0 auto!important;width:auto!important;white-space:nowrap;min-height:46px}html:not(#v2) #root .pf-profile-header{min-width:0;max-width:100%}}
+
+/* Card do jogador centralizado nas telas de celular. */
+@media(max-width:760px){html:not(#v2) #root .pf-identidade-coluna{justify-items:center}html:not(#v2) #root .pf-identidade-coluna .hf-area{margin-inline:auto}html:not(#v2) #root .pf-card-e-status{justify-content:center}}

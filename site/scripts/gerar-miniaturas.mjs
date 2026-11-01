@@ -56,7 +56,7 @@ const ARTES_V2 = {
 }
 // pacote de backgrounds e personagens "popout" (neura-v2/backgrounds e neura-v2/characters): derivados em web/v2/
 for (const n of ['inicio', 'lobby', 'ranking', 'inventario', 'loja', 'perfil', 'time', 'partidas', 'admin', 'diretorio-times', 'pick-ban', 'global']) ARTES_V2['v2/bg-' + n] = ['backgrounds/bg-' + n + '-v2.png', 1600]
-for (const n of ['cache', 'dust2', 'nuke', 'mirage']) ARTES_V2['v2/bg-resultado-' + n] = ['backgrounds/bg-resultado-' + n + '-v2.png', 1920]
+for (const n of ['cache', 'dust2', 'nuke', 'mirage', 'overpass', 'vertigo', 'ancient', 'anubis', 'inferno', 'train']) ARTES_V2['v2/bg-resultado-' + n] = ['backgrounds/bg-resultado-' + n + '-v2.png', ['cache', 'dust2', 'nuke', 'mirage'].includes(n) ? 1920 : 2048]
 Object.assign(ARTES_V2, {
   'v2/home-duo': ['characters/home-duo-v2.png', 1100],
   'v2/podium-gold': ['characters/podium-gold-popout-v2.png', 900],

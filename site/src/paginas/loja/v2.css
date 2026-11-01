@@ -73,3 +73,46 @@ html:not(#v2) .lj-abas { position: relative; z-index: 4; }
   .lj-hero { margin-top: 112px; }
   .lj-hero-camada img { top: -84%; width: 48%; }
 }
+
+/* Cenário geral atrás do cabeçalho, separado do cenário do banner. */
+html:not(#v2) #root main.lj-pagina{position:relative;isolation:isolate;background-color:#010b16}
+html:not(#v2) #root main.lj-pagina::before{content:"";position:absolute;z-index:-1;inset:0 0 auto;height:clamp(540px,48vw,780px);pointer-events:none;background:linear-gradient(90deg,rgba(1,11,22,.9),rgba(1,11,22,.35) 55%,rgba(1,11,22,.12)),var(--np-fundo) center top / cover no-repeat;mask-image:linear-gradient(#000 0%,#000 40%,transparent 100%);-webkit-mask-image:linear-gradient(#000 0%,#000 40%,transparent 100%)}
+@media(max-width:760px){html:not(#v2) #root main.lj-pagina::before{height:620px;background-position:center top}}
+
+/* Botões da loja seguindo o acabamento da referência. */
+html:not(#v2) #root .lj-pagina .lj-abas:not(#_){display:flex;width:max-content;max-width:100%;gap:0;border:1px solid #174a70;border-radius:10px;overflow:hidden;background:rgba(2,14,26,.9)}
+html:not(#v2) #root .lj-pagina .lj-abas button{display:flex;align-items:center;justify-content:center;gap:16px;min-width:166px;min-height:50px;padding:0 24px;border:0;border-right:1px solid #174a70;border-radius:0;background:transparent;color:#c7def4;font-size:14px;font-weight:600;text-transform:none}
+html:not(#v2) #root .lj-pagina .lj-abas button:last-child{border-right:0}
+html:not(#v2) #root .lj-pagina .lj-abas button.is-ativo{position:relative;border-radius:9px;background:linear-gradient(135deg,#008cff,#0051ff);color:#fff;box-shadow:inset 0 0 0 1px #34b9ff,0 0 20px #006dff55}
+html:not(#v2) #root .lj-pagina :is(.lj-depositar,.lj-btn-p,.lj-hero-texto .v2-btn-primario){display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:44px;border:1px solid #2bb7ff;border-radius:7px;background:linear-gradient(135deg,#008cff,#0051ff);color:#fff;font-weight:700;text-transform:none;box-shadow:inset 0 1px 0 #ffffff22,0 4px 18px #006dff22}
+html:not(#v2) #root .lj-pagina :is(.lj-depositar,.lj-btn-p,.lj-hero-texto .v2-btn-primario):hover:not(:disabled){background:linear-gradient(135deg,#20a0ff,#0967ff);border-color:#75d6ff}
+html:not(#v2) #root .lj-pagina :is(.mo-secoes,.lj-filtros) button{min-height:44px;border:1px solid #174a70;border-radius:7px;background:#03111f;color:#c7def4;font-weight:600}
+html:not(#v2) #root .lj-pagina :is(.mo-secoes,.lj-filtros) button.is-ativo{background:linear-gradient(135deg,#008cff,#0051ff);border-color:#34b9ff;color:#fff}
+@media(max-width:760px){html:not(#v2) #root .lj-pagina .lj-abas:not(#_){width:100%}html:not(#v2) #root .lj-pagina .lj-abas button{flex:1;min-width:0;padding:0 10px;gap:8px;font-size:13px}}
+
+/* Filtros individuais como na referência, com ícones e seleção azul. */
+html:not(#v2) #root .lj-pagina .mo-secoes{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:0;margin:0 0 14px;border:0;background:none}
+html:not(#v2) #root .lj-pagina .mo-secoes button{display:inline-flex;align-items:center;justify-content:center;gap:14px;min-height:44px;min-width:132px;padding:0 18px;border:1px solid #16405d;border-radius:7px;background:linear-gradient(145deg,#041321,#020d18);color:#c7def4;font:500 12px var(--font-body);text-transform:none;letter-spacing:0;box-shadow:none}
+html:not(#v2) #root .lj-pagina .mo-secoes button.is-ativo{border-color:#26b9ff;background:linear-gradient(135deg,#008bff,#0050ff);color:#fff;box-shadow:0 0 15px #007aff22,inset 0 1px 0 #ffffff22}
+html:not(#v2) #root .lj-pagina .mo-secoes button svg{flex:none}
+@media(max-width:760px){html:not(#v2) #root .lj-pagina .mo-secoes{flex-wrap:nowrap;overflow-x:auto;max-width:100%;padding-bottom:6px}html:not(#v2) #root .lj-pagina .mo-secoes button{flex:none;min-width:126px}}
+
+/* Boost e Freeze compartilham a identidade dos consumíveis do lobby. */
+html:not(#v2) #root .lj-pagina .mo-consumivel{grid-template-columns:44px minmax(0,1fr);gap:12px 16px;padding:18px;border:1px solid #294055;border-radius:7px;background:#07131f;box-shadow:none}
+html:not(#v2) #root .lj-pagina .mo-consumivel-icone{width:42px;height:42px;border:1px solid var(--tom);border-radius:50%;background:none;color:var(--tom);box-shadow:none}
+html:not(#v2) #root .lj-pagina .mo-consumivel-info b{color:var(--tom);font-size:18px;font-weight:750;letter-spacing:.02em}
+html:not(#v2) #root .lj-pagina .mo-consumivel-compra{border-top-color:#294055}
+html:not(#v2) #root .lj-pagina .mo-qtd{display:flex;gap:6px;background:none}
+html:not(#v2) #root .lj-pagina .mo-qtd button{min-height:28px;min-width:34px;border:1px solid #283849;border-radius:4px;background:#172331;color:#e1e9f2}
+html:not(#v2) #root .lj-pagina .mo-qtd button.is-ativo{border-color:var(--tom);background:color-mix(in srgb,var(--tom) 14%,#07131f);color:var(--tom)}
+
+/* Filtros de skins diretamente sobre o fundo da loja. */
+html:not(#v2) #root .lj-pagina .lj-mercado-filtros{background:none;border:0;box-shadow:none;padding:0;border-radius:0}
+
+/* As caixas distribuem as colunas ocupadas por toda a largura. */
+html:not(#v2) #root .lj-pagina .lj-grade-caixas{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));justify-content:center;gap:30px 18px}
+html:not(#v2) #root .lj-pagina .lj-caixa-arte{max-width:300px;justify-self:center}
+@media(max-width:760px){html:not(#v2) #root .lj-pagina .lj-grade-caixas{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 10px}html:not(#v2) #root .lj-pagina .lj-hero{margin-top:66px;min-height:180px}html:not(#v2) #root .lj-pagina .lj-hero-camada{clip-path:inset(-65px 0 0 0)}html:not(#v2) #root .lj-pagina .lj-hero-camada img{top:auto;bottom:0;right:-8%;height:132%;width:auto;max-width:72%;object-fit:contain;object-position:right bottom}html:not(#v2) #root .lj-pagina .lj-hero-texto{max-width:58%;padding:18px 14px}html:not(#v2) #root .lj-pagina .lj-hero-texto h2{font-size:24px}html:not(#v2) #root .lj-pagina .lj-hero-texto .v2-btn{padding:0 18px;min-height:42px;height:42px}}
+
+/* Personagem livre nas laterais do banner, com corte só na base. */
+@media(max-width:760px){html:not(#v2) #root main.lj-pagina{overflow-x:clip;overflow-y:visible}html:not(#v2) #root .lj-pagina .lj-hero{overflow:visible}html:not(#v2) #root .lj-pagina .lj-hero-camada{overflow:visible;clip-path:inset(-100vh -100vw 0 -100vw)}}

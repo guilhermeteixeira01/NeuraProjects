@@ -1,3 +1,4 @@
+import { ITENS_PARTIDA, IconeItemPartida } from '../../comum/itensPartida.jsx'
 import IconeUI from '../../comum/IconeUI.jsx'
 import { createPortal } from 'react-dom'
 import { fundoCss } from '../../comum/assetsV2.js'
@@ -359,10 +360,6 @@ function TempoBusca({ desde }) {
 
 // ── Itens de partida (Boost / Freeze): ao lado do JOGAR. Ativar gasta 1 na hora e vale para a próxima partida que COMEÇAR depois
 // (o worker aplica quando a partida chega do servidor); cancelar antes devolve. Um ativado por vez. Teclas 1 e 2 ativam/cancelam.
-const ITENS_PARTIDA = [
-  { tipo: 'boost', tecla: '1', nome: 'BOOST', cor: '#f5a524', dica: 'Se vencer a próxima partida ranqueada, o XP ganho vale em dobro.', d: 'M13 2 4 14h7l-1 8 9-12h-7l1-8Z' },
-  { tipo: 'freeze', tecla: '2', nome: 'FREEZE', cor: '#4fc3f7', dica: 'Na próxima partida ranqueada, você não perde XP na derrota e ganha XP normalmente na vitória.', d: 'M12 2v20M4.9 6.5l14.2 11M19.1 6.5 4.9 17.5M9 3.5l3 2.5 3-2.5M9 20.5l3-2.5 3 2.5M3.2 9.6l3.7.6-1.3 3.5M20.8 9.6l-3.7.6 1.3 3.5M3.2 14.4l3.7-.6M20.8 14.4l-3.7-.6' },
-]
 const ERROS_ITEM = { 'sem-item': 'Você não tem esse item.', 'ja-ativo': 'Você já tem um item ativado: cancele antes de trocar.' }
 
 function useItensPartida(logado) {
@@ -405,7 +402,7 @@ function useItensPartida(logado) {
 function ItemPartida({ item, qtd, ativo, outro, desativado, aoClicar }) {
   const t = useT()
   return <div className={`lb-item-compacto${ativo ? ' is-ativo' : ''}`} style={{ '--item': item.cor }}>
-    <header><svg width="24" height="24" viewBox="0 0 24 24" fill={item.tipo === 'boost' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={item.tipo === 'boost' ? 0 : 1.5} aria-hidden="true"><path d={item.d}/></svg><b>{item.nome}</b><span title={t(item.dica)}>ⓘ</span></header>
+    <header><IconeItemPartida tipo={item.tipo} /><b>{item.nome}</b><span title={t(item.dica)}>ⓘ</span></header>
     <strong>×{qtd}</strong>
     <div><button type="button" disabled={desativado || !ativo} onClick={aoClicar} aria-label={t('Cancelar {nome}', { nome: item.nome })}>−</button><button type="button" disabled={desativado || ativo || !!outro || !qtd} onClick={aoClicar} aria-label={t('Ativar {nome}', { nome: item.nome })} aria-pressed={ativo}>+</button></div>
     {ativo && <small>{t('Ativado')}</small>}
