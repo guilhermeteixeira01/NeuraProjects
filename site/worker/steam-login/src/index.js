@@ -97,6 +97,11 @@ const PUBLICAS = {
     if (c.env.MODO_TESTE !== '1') throw new ErroNaoEncontrado('rota')
     return rotaServidor(c.req, c.env, '/teste/limpar')
   },
+  // só o ambiente de teste local (MODO_TESTE=1): coloca partidas prontas na fila do servidor, para testar vários servidores sem 10 jogadores
+  'POST /teste/forcar': (c) => {
+    if (c.env.MODO_TESTE !== '1') throw new ErroNaoEncontrado('rota')
+    return rotaServidor(c.req, c.env, '/teste/forcar')
+  },
   'GET /skins/publico': async (c) => { await exigirVisibilidade(c.req,c.env,c.url.searchParams.get('id'),'inventario'); const r=await rotaSkinsPublico(c.url,c.env,qualquerOrigem);r.headers.set('Cache-Control','private, no-store');r.headers.set('Vary','Authorization, Origin');return r },
   'GET /skins/inventario': async (c) => { await exigirVisibilidade(c.req,c.env,c.url.searchParams.get('id'),'inventario'); const r=await rotaSkinsInventarioPublico(c.url,c.env,qualquerOrigem);r.headers.set('Cache-Control','private, no-store');r.headers.set('Vary','Authorization, Origin');return r },
   'GET /equipes/publico': (c) => rotaListaPublicaEquipes(c.url, c.env),

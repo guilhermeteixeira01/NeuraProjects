@@ -7,6 +7,9 @@
 //   buscar2   o Jogador 2 busca partida (assim você testa com uma janela só, como Jogador 1)
 //   veto2      o Jogador 2 joga a vez dele no veto (mapa livre qualquer; lado CT)
 //   servidor [fase]   faz o papel do plugin: sem fase pede a próxima partida pronta; com fase (carregada|jogando|encerrada|erro) avisa o estado
+//   forcar [n]        coloca n partidas prontas (veto jogado, jogadores de mentira) na fila do servidor
+//   multi             teste automático de 2 servidores: força 2 partidas, os dois servidores pegam uma cada, e confere endereços e conflitos
+//                     (servidor também aceita:  servidor [fase] --id s2 --conectar 127.0.0.1:27016)
 //   limpar     apaga os dados locais (lobbies, partidas, amigos)
 // Jogadores: J1 = ...0001 e J2 = ...0002 (navegador); B1..B8 = ...0011 a ...0018 (bots).
 import { createHmac, randomBytes } from 'node:crypto'
@@ -102,10 +105,12 @@ const comandos = {
   //   servidor            pede a próxima partida (/servidor/proxima) e imprime a série
   //   servidor <fase>     avisa a fase da partida pedida por último: carregada | jogando | encerrada | erro
   async servidor() {
+    const bandeira = (nome) => { const i = process.argv.indexOf(nome); return i > 0 ? process.argv[i + 1] : undefined }
+    const identidade = { id: bandeira('--id') || 'principal', conectar: bandeira('--conectar') || '' }
     const chamar = (rota, corpo) =>
-      fetch(`${API}${rota}`, { method: 'POST', headers: { Authorization: `Bearer ${tokenServidor()}`, 'Content-Type': 'application/json' }, body: JSON.stringify(corpo || {}) }).then(async (r) => ({ status: r.status, ...(await r.json().catch(() => ({}))) }))
+      fetch(`${API}${rota}`, { method: 'POST', headers: { Authorization: `Bearer ${tokenServidor()}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ ...(corpo || {}), servidor: identidade }) }).then(async (r) => ({ status: r.status, ...(await r.json().catch(() => ({}))) }))
     const arq = path.join(aqui, '.ultima-partida')
-    const fase = process.argv[3]
+    const fase = process.argv[3]?.startsWith('--') ? undefined : process.argv[3]
     if (!fase) {
       const r = await chamar('/servidor/proxima')
       if (r.nenhuma) return console.log('Nenhuma partida pronta na fila.')
@@ -115,6 +120,39 @@ const comandos = {
     }
     const r = await chamar('/servidor/estado', { partidaId: fs.readFileSync(arq, 'utf8'), estado: fase, placar: fase === 'jogando' ? '1-0' : fase === 'encerrada' ? '2-1' : '', detalhe: fase === 'erro' ? 'mapa não existe no servidor' : '' })
     console.log(r.status, r.ok ? 'ok' : r.erro)
+  },
+
+  async forcar() {
+    const quantas = Number(process.argv[3]) || 1
+    const r = await fetch(`${API}/teste/forcar`, { method: 'POST', headers: { Authorization: `Bearer ${tokenServidor()}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ quantas }) }).then((x) => x.json())
+    console.log(r.partidas ? `Partidas na fila: ${r.partidas.join(', ')}` : `Erro: ${JSON.stringify(r)}`)
+  },
+
+  // Dois servidores de mentira contra o worker local: confere o que o site vê de cada um
+  async multi() {
+    const chamar = (rota, servidor, corpo = {}) =>
+      fetch(`${API}${rota}`, { method: 'POST', headers: { Authorization: `Bearer ${tokenServidor()}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ ...corpo, servidor }) }).then((r) => r.json())
+    const s1 = { id: 's1', conectar: '127.0.0.1:27015' }, s2 = { id: 's2', conectar: '127.0.0.1:27016' }
+    let falhas = 0
+    const confere = (ok, texto) => { console.log(`  ${ok ? 'OK ' : 'FALHOU'}  ${texto}`); if (!ok) falhas++ }
+    await fetch(`${API}/teste/limpar`, { method: 'POST', headers: { Authorization: `Bearer ${tokenServidor()}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ apenasPartidas: true }) })
+    console.log('Forçando 2 partidas na fila...')
+    const f = await fetch(`${API}/teste/forcar`, { method: 'POST', headers: { Authorization: `Bearer ${tokenServidor()}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ quantas: 2 }) }).then((x) => x.json())
+    confere(f.partidas?.length === 2, `2 partidas na fila (${f.partidas})`)
+    const a = await chamar('/servidor/proxima', s1)
+    const b = await chamar('/servidor/proxima', s2)
+    confere(a.partidaId && b.partidaId && a.partidaId !== b.partidaId, `s1 pegou ${a.partidaId} e s2 pegou ${b.partidaId} (partidas diferentes)`)
+    confere((await chamar('/servidor/proxima', s2)).nenhuma === true, 's2 de novo: nenhuma partida (a fila acabou, sem conflito)')
+    await chamar('/servidor/estado', s1, { partidaId: a.partidaId, estado: 'carregada' })
+    await chamar('/servidor/estado', s2, { partidaId: b.partidaId, estado: 'carregada' })
+    await chamar('/servidor/estado', s1, { partidaId: a.partidaId, estado: 'jogando', placar: '3-2' })
+    await new Promise((r) => setTimeout(r, 200))
+    confere((await chamar('/servidor/proxima', s2)).nenhuma === true, 's2 livre perguntando de novo não mexe na partida do s1')
+    const elenco1 = await chamar('/servidor/elenco', s1, { partidaId: a.partidaId, presentes: [] })
+    const elenco2 = await chamar('/servidor/elenco', s2, { partidaId: b.partidaId, presentes: [] })
+    confere(Object.keys(elenco1.elenco || {}).length === 10 && Object.keys(elenco2.elenco || {}).length === 10, 'elenco de cada partida responde para o servidor certo')
+    console.log(falhas ? `\n${falhas} verificação(ões) falharam.` : '\nTudo certo: dois servidores, sem conflito.')
+    console.log('Estado final: s1 jogando', a.partidaId, '| s2 carregada', b.partidaId, '(rode "limpar" ou "servidor encerrada" para terminar)')
   },
 
   async auto() {

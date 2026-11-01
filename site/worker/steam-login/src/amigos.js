@@ -999,6 +999,28 @@ export class Presenca {
 
   ultimoChat = new Map()
 
+  // Só no teste local (index.js exige MODO_TESTE): coloca N partidas já prontas (veto jogado) esperando servidor, com jogadores de mentira
+  async forcarFila(req) {
+    const { quantas = 1 } = await lerCorpo(req)
+    const partidas = (await this.state.storage.get('partidas')) || {}
+    const jogadores = (inicio) => Array.from({ length: 10 }, (_, i) => String(76561198000009000n + BigInt(inicio + i)))
+    const novas = []
+    for (let n = 0; n < Math.min(Number(quantas) || 1, 10); n++) {
+      const ids = jogadores((Object.keys(partidas).length + n) * 10)
+      const p = {
+        id: `forcada-${Date.now().toString(36)}-${n}`, fase: 'veto', prazo: Date.now() + VETO_SEG * 1000,
+        times: { A: { lider: ids[0], membros: ids.slice(0, 5) }, B: { lider: ids[5], membros: ids.slice(5) } },
+        aceitos: [...ids], formato: 'bo1', pool: montarPool([], []), garantidos: { A: [], B: [] }, primeiro: 'A', historico: [],
+      }
+      for (let guarda = 0; p.fase === 'veto' && guarda < 20; guarda++) autoVeto(p)
+      partidas[p.id] = p
+      novas.push(p.id)
+    }
+    await this.gravarPartidas(partidas)
+    await this.agendar(partidas)
+    return { ok: true, partidas: novas }
+  }
+
   async limparTeste(req) {
     const { apenasPartidas } = await lerCorpo(req)
     await this.state.storage.delete(apenasPartidas ? ['partidas'] : ['lobbies', 'partidas'])
@@ -1090,6 +1112,7 @@ export class Presenca {
       '/servidor/estado': () => this.servidorEstado(req),
       // só o ambiente de teste local liga isto (index.js exige MODO_TESTE): apaga as partidas (e os lobbies, sem { apenasPartidas: true })
       '/teste/limpar': () => this.limparTeste(req),
+      '/teste/forcar': () => this.forcarFila(req),
     }
     // Nomes/fotos podem depender da Steam: enriquecer FORA da fila de mutações.
     // Um serviço externo lento não bloqueia convites, aceite, chat ou outros jogadores.
