@@ -393,25 +393,19 @@ function AtividadeRecente({ mapas }) {
 }
 
 // Coluna da esquerda, abaixo dos botões: insígnias, jogando desde, histórico (jogo) e atividade recente
-function InfosLado({ j, mapas }) {
+function InfosLado({ j, mapas, timeEscolhido }) {
   const t = useT()
   const primeira = mapas?.length ? mapas[mapas.length - 1].data : null
   const desde = primeira ? new Date(primeira).toLocaleDateString(t.local, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'America/Sao_Paulo' }) : ''
   return (
     <>
       {desde && <p className="pf-desde">{t('Jogando no servidor desde {data}', { data: desde })}</p>}
+<section className="v2-painel pf-v2-bloco">
+              <header className="v2-painel-cab"><h2><IconeUI tipo="grupo" tamanho={22} />{t('Time')}</h2><a href="/times/">{t('Ver times')} <IconeUI tipo="direita" tamanho={15} /></a></header>
+              <div className="pf-v2-time">{timeEscolhido ? <TimeEscolhido steamId={j.steamId} classe="pf-v2-time-nome" /> : <span className="v2-vazio">{t('Sem time')}</span>}</div>
+            </section>
       {mapas?.length > 0 && (
         <>
-          <div className="pf-lado-bloco">
-            <h3>{t('Histórico de partidas')}</h3>
-            <div className="pf-jogo-cartao">
-              <span className="pf-jogo-logo">CS2</span>
-              <span>
-                <b>CS2</b>
-                <small>{mapas.length === 1 ? t('1 partida') : t('{n} partidas', { n: mapas.length })}</small>
-              </span>
-            </div>
-          </div>
           <AtividadeRecente mapas={mapas} />
         </>
       )}
@@ -592,8 +586,8 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
         {/* Estilo FACEIT: cartão do jogador na esquerda (a capa pode virar personalizável no futuro) e as informações no meio */}
         {abaPerfil === 'inventario' ? <div className="wrap pf-inventario-pagina"><PerfilInventario key={j.steamId} steamId={j.steamId} nome={j.nome} abaPerfil="inventario" aoTrocarAba={trocarAbaPerfil} somenteInventario /></div> : abaPerfil === 'insignias' ? <div className="wrap"><GaleriaInsignias steamId={j.steamId} /></div> : abaPerfil === 'missoes' && eu ? <div className="wrap"><PainelMissoes /></div> : abaPerfil === 'amigos' ? <div className="wrap pf-aba-conteudo"><AmigosDoPerfil key={j.steamId} id={j.steamId} eu={eu} /></div> : abaPerfil === 'afiliado' && eu ? <div className="wrap pf-aba-conteudo"><AfiliadoDoPerfil id={j.steamId} /></div> : <div className="wrap pf-layout pf-v2">
           <div className="pf-centro">
-            {mapas?.length > 0 && <GraficoRating mapas={mapas} />}
             <DesempenhoRecente mapas={mapas || []} nivel={nivel} eu={eu} />
+            {mapas?.length > 0 && <GraficoRating mapas={mapas} />}
             <div className={`pf-estats${sem ? ' vazio' : ''}`}>
               <Estat rotulo="RATING" valor={v(fmt(j.rating, 2))} sub={sem ? t('sem partidas') : t('melhor {v}', { v: fmt(j.melhorRating, 2) })} classe={sem ? 'destaque' : `destaque rt-txt-${classeRating(j.rating)}`} />
               <Estat rotulo="K/D" valor={v(fmt(j.kd, 2))} sub={t('{k} kills · {d} mortes', { k: j.kills, d: j.mortes })} />
@@ -645,7 +639,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
               )}
 
             </div>
-            <InfosLado j={j} mapas={mapas} />
+            <InfosLado j={j} mapas={mapas} timeEscolhido={timeEscolhido} />
             </div>
 
 
@@ -653,10 +647,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
               <header className="v2-painel-cab"><h2><IconeUI tipo="estrela" tamanho={22} />{t('Insígnias')}</h2><a href="#insignias" onClick={(e) => { e.preventDefault(); trocarAbaPerfil('insignias') }}>{t('Ver todas')} <IconeUI tipo="direita" tamanho={15} /></a></header>
               <div className="pf-v2-insignias"><InsigniasDe steamId={j.steamId} classe="pf-insignias" /></div>
             </section>
-            <section className="v2-painel pf-v2-bloco">
-              <header className="v2-painel-cab"><h2><IconeUI tipo="grupo" tamanho={22} />{t('Time')}</h2><a href="/times/">{t('Ver times')} <IconeUI tipo="direita" tamanho={15} /></a></header>
-              <div className="pf-v2-time">{timeEscolhido ? <TimeEscolhido steamId={j.steamId} classe="pf-v2-time-nome" /> : <span className="v2-vazio">{t('Sem time')}</span>}</div>
-            </section>
+
             {sem && (
               <div className="pf-sem spot">
                 <b>{eu ? t('Você ainda não tem partidas no servidor') : t('Ainda sem partidas no servidor')}</b>

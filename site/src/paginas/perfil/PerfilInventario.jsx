@@ -254,30 +254,21 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
       ) : (
         <section className="pf-inv" aria-label={t('Inventário')}>
           {somenteInventario && <header className="pf-inventario-cabecalho"><div><h2>{t('Inventário')}</h2><p>{inv ? t('{n} itens', { n: numero(todos.length) }) : '…'}</p></div>{conta && conta.id !== steamId && <BotaoTrocas para={{ id: steamId, nome }} classe="inv-btn inv-btn-p" />}</header>}
-          <nav className="pf-inv-sub" role="tablist">
-            {subs.map(([id, rotulo, n]) => (
-              <button
-                key={id}
-                type="button"
-                role="tab"
-                aria-selected={aba === id}
-                className={aba === id ? 'is-ativo' : ''}
-                onClick={() => {
-                  setAba(id)
-                  setRar('todas')
-                }}
-              >
-                {t(rotulo)} <small>{n}</small>
-              </button>
-            ))}
-          </nav>
 
-              <div className="pf-inv-barra">
+
+              <div className="pf-inv-barra pf-inv-barra-simples">
+                <select className="pf-inv-categoria" value={aba} aria-label={t('Categoria')} onChange={e => { setAba(e.target.value); setRar('todas') }}>
+                  {subs.map(([id, rotulo, n]) => <option key={id} value={id}>{t(rotulo.charAt(0) + rotulo.slice(1).toLowerCase())} ({n})</option>)}
+                </select>
                 <label className="pf-inv-busca">
                   <IconeUI tipo="busca" tamanho={16} />
                   <input type="search" placeholder={t('Pesquisar no inventário')} value={busca} onChange={(e) => setBusca(e.target.value)} />
                 </label>
                 <span className="pf-inv-total">{t('{n} itens', { n: numero(ABAS_ITENS.includes(aba) ? itens.length : gruposVisiveis.length) })}</span>
+                {aba !== 'caixas' && <select className="pf-inv-raridade-select" aria-label={t('Raridade')} value={rar} onChange={e => setRar(e.target.value === 'todas' ? 'todas' : Number(e.target.value))}>
+                  <option value="todas">{t('Todas as raridades')}</option>
+                  {[...RARIDADES_CS].reverse().filter(r => (ABAS_ITENS.includes(aba) ? contagemRar : contagemEnf)[r.id]).map(r => <option key={r.id} value={r.id}>{r.curto}</option>)}
+                </select>}
                 <select className="pf-inv-ordem" value={ordem} onChange={(e) => setOrdem(e.target.value)} aria-label={t('Ordenar')}>
                   {ORDENS.map(([id, nome]) => (
                     <option key={id} value={id}>
@@ -292,20 +283,6 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
             <CarregandoNP pequeno />
           ) : ABAS_ITENS.includes(aba) ? (
             <>
-              <details className="inv-rar pf-inv-rar pf-inv-filtro"><summary>{t('Raridade')}</summary>
-                <div className="pf-rar-opcoes">
-                <button type="button" className={rar === 'todas' ? 'is-ativo' : ''} onClick={() => setRar('todas')}>
-                  {t('Todas')}
-                </button>
-                {[...RARIDADES_CS].reverse().map((r) =>
-                  contagemRar[r.id] ? (
-                    <button key={r.id} type="button" className={rar === r.id ? 'is-ativo' : ''} style={{ '--cor': r.cor }} onClick={() => setRar(rar === r.id ? 'todas' : r.id)}>
-                      <i /> {r.curto} <em>{contagemRar[r.id]}</em>
-                    </button>
-                  ) : null,
-                )}
-                </div>
-              </details>
             {!itens.length ? (
               <p className="pf-inv-vazio">{t('Nada por aqui.')}</p>
             ) : (
@@ -320,22 +297,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
             </>
           ) : (
             <>
-            {aba !== 'caixas' && contagemEnf.some(Boolean) && (
-              <details className="inv-rar pf-inv-rar pf-inv-filtro"><summary>{t('Raridade')}</summary>
-                <div className="pf-rar-opcoes">
-                <button type="button" className={rar === 'todas' ? 'is-ativo' : ''} onClick={() => setRar('todas')}>
-                  {t('Todas')}
-                </button>
-                {[...RARIDADES_CS].reverse().map((r) =>
-                  contagemEnf[r.id] ? (
-                    <button key={r.id} type="button" className={rar === r.id ? 'is-ativo' : ''} style={{ '--cor': r.cor }} onClick={() => setRar(rar === r.id ? 'todas' : r.id)}>
-                      <i /> {r.curto} <em>{contagemEnf[r.id]}</em>
-                    </button>
-                  ) : null,
-                )}
-                </div>
-              </details>
-            )}
+
             <ul className="inv-itens pf-inv-cartoes">
               {gruposVisiveis
                 .map((g) => {

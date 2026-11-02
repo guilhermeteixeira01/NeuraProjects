@@ -5,7 +5,8 @@
 //  - AvisoInsignia (no Layout, só com login): "Você recebeu uma nova insígnia!" por cima do site, com som, uma vez
 //    para cada insígnia nova. As já avisadas ficam no navegador (localStorage np_insignias_<SteamID>); os perfis são
 //    relidos a cada 30 s e, com o site aberto, o perfil novo chega na hora pela conexão ao vivo (amigos.js).
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { seForErroApi } from './api.js'
 import { useConta } from './conta.js'
 import { salvarPerfil, usePerfis, usePerfisFrescos } from './Moldura.jsx'
@@ -24,31 +25,35 @@ import { somMudo } from './som.js'
 function Item({ i }) {
   const t = useT()
   const ref = useRef(null)
-  const [dx, setDx] = useState(0)
-  // Caixinha centralizada na insígnia, mas sem sair da tela (insígnia encostada na borda, no celular)
-  const ajustar = () => {
-    const el = ref.current
-    const caixa = el?.querySelector('.ins-dica')
-    if (!caixa) return
-    const r = el.getBoundingClientRect()
-    const meio = r.left + r.width / 2
-    const meia = caixa.offsetWidth / 2
-    setDx(Math.round(Math.min(Math.max(meio, meia + 10), innerWidth - meia - 10) - meio))
-  }
+  const dica = useRef(null)
+  const [aberta, setAberta] = useState(false)
+  const [pos, setPos] = useState({ left: 0, top: 0, seta: 0 })
+  useLayoutEffect(() => {
+    if (!aberta) return
+    const ajustar = () => {
+      if (!ref.current || !dica.current) return
+      const r = ref.current.getBoundingClientRect()
+      const d = dica.current.getBoundingClientRect()
+      const meio = r.left + r.width / 2
+      const left = Math.max(10, Math.min(meio - d.width / 2, innerWidth - d.width - 10))
+      const top = r.bottom + 10 + d.height <= innerHeight - 10 ? r.bottom + 10 : Math.max(10, r.top - d.height - 10)
+      setPos({ left, top, seta: Math.max(12, Math.min(d.width - 12, meio - left)) })
+    }
+    ajustar()
+    window.addEventListener('resize', ajustar)
+    window.addEventListener('scroll', ajustar, true)
+    return () => { window.removeEventListener('resize', ajustar); window.removeEventListener('scroll', ajustar, true) }
+  }, [aberta])
   const data = i.desde ? new Date(i.desde).toLocaleDateString(localeAtual()) : null
   return (
-    <li className="ins-item" ref={ref} onMouseEnter={ajustar} onFocus={ajustar} style={{ '--dx': `${dx}px` }}>
-      <button type="button" className="ins-botao" aria-label={t(i.nome)} aria-describedby={`ins-${i.id}`}>
+    <li className="ins-item" ref={ref} onMouseEnter={() => setAberta(true)} onMouseLeave={() => setAberta(false)} onFocus={() => setAberta(true)} onBlur={() => setAberta(false)} onKeyDown={e => e.key === 'Escape' && setAberta(false)}>
+      <button type="button" className="ins-botao" aria-label={t(i.nome)} aria-describedby={aberta ? 'ins-' + i.id : undefined}>
         <img src={miniaturaInsignia(i.id)} alt="" loading="lazy" decoding="async" draggable="false" onError={caiNaGrande(i.id)} />
       </button>
-      <span className="ins-dica" role="tooltip" id={`ins-${i.id}`}>
-        <img src={miniaturaInsignia(i.id)} alt="" aria-hidden="true" loading="lazy" decoding="async" onError={caiNaGrande(i.id)} />
-        <span>
-          <b>{t(i.nome)}</b>
-          <small>{t(i.descricao)}</small>
-          {data && <em>{t('Recebida em {data}', { data })}</em>}
-        </span>
-      </span>
+      {aberta && createPortal(<span ref={dica} className="ins-dica ins-dica-portal" role="tooltip" id={'ins-' + i.id} style={{ left: pos.left, top: pos.top, '--seta': pos.seta + 'px' }}>
+        <img src={miniaturaInsignia(i.id)} alt="" aria-hidden="true" decoding="async" onError={caiNaGrande(i.id)} />
+        <span><b>{t(i.nome)}</b><small>{t(i.descricao)}</small>{data && <em>{t('Recebida em {data}', { data })}</em>}</span>
+      </span>, document.body)}
     </li>
   )
 }

@@ -136,3 +136,13 @@
 .am-social:not(#_) .am-fechar { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border-radius: 50%; }
 .am-social:not(#_) .nt-item.nt-raridade { --barra: var(--cor); --brilho: color-mix(in srgb, var(--cor) 14%, transparent); }
 .am-social:not(#_) .nt-raridade .nt-txt b { color: color-mix(in srgb, var(--cor) 55%, var(--text)); }
+
+/* Área reservada à moldura inteira, sem disputar espaço com nomes e insígnias. */
+.am-social:not(#_) .am-linha { min-height:58px; box-sizing:border-box; padding:5px 10px; }
+.am-social:not(#_) .am-pessoa { gap:10px; }
+.am-social:not(#_) .am-pessoa .am-av { display:grid; place-items:center; width:44px; height:44px; overflow:visible; }
+.am-social:not(#_) .am-pessoa .am-av > :is(.moldura-box,.emblema-box) { position:relative; margin:0!important; }
+.am-social:not(#_) .am-pessoa .am-bolinha { right:5px; bottom:5px; }
+.am-social:not(#_) .am-nome { flex-wrap:wrap; column-gap:6px; row-gap:4px; }
+.am-social:not(#_) .am-txt { gap:2px; }
+.am-social.am-celular:not(#_) .am-linha-leve { min-height:58px; }

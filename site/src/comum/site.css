@@ -3741,3 +3741,7 @@ body:has(> .cnp-nav) .np-rodape { display: none; }
 .am-dm-apagar { align-self: flex-end; margin-left: auto; border: 0; background: transparent; color: var(--dim); padding: 5px; cursor: pointer; font-size: 11px; }
 .am-dm-apagar:hover { color: #ef7979; }
 .am-dm-apagar:disabled { opacity: .5; cursor: wait; }
+
+/* Tooltip fora dos painéis de vidro e acima da navegação fixa. */
+.ins-dica.ins-dica-portal { position:fixed; z-index:2600; opacity:1; visibility:visible; transform:none!important; transition:none; }
+.ins-dica.ins-dica-portal::before { left:var(--seta); }
