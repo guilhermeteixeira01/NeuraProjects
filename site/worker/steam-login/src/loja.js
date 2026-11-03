@@ -41,7 +41,7 @@ import { listarKv } from './kv.js'
 import { ErroConflito, ErroLimite, ErroNaoEncontrado, ErroPedido, ErroServico } from './erros.js'
 import { migrarEsquema } from './esquema.js'
 import { json, lerCorpo } from './http.js'
-import { BONUS_PREMIUM_PARTIDA, CONFIG_PADRAO, MODOS, acumular, aplicarModo, chancesDaCaixa, ehEspecial, faixasDeDesgaste, gerarFaixa, gerarFaixaFacas, insigniasNovas, novoAcumulado, progressoInsignias, rndSeguro, sortearAbertura, sortearEspecial, statsDoAcumulado } from './loja-core.js'
+import { BONUS_PREMIUM_PARTIDA, CONFIG_PADRAO, MODOS, acumular, aplicarModo, chancesDaCaixa, ehEspecial, faixasDeDesgaste, gerarFaixa, gerarFaixaFacas, insigniasNovas, novoAcumulado, progressoInsignias, rndSeguro, sortearAbertura, sortearAberturaInventario, sortearEspecial, statsDoAcumulado } from './loja-core.js'
 import { registrarDrops } from './mercado.js'
 import { docVazio, juntar } from './notif-core.js'
 import { Fila, pedirAoJogador, responder } from './objetos.js'
@@ -122,7 +122,12 @@ export async function lerConfigLoja(env) {
   return {
     porCaixa: true,
     taxas: Array.isArray(c?.taxas) && c.taxas.length === 6 ? c.taxas.map((t) => num(t, 0, 100, 0)) : CONFIG_PADRAO.taxas,
-    desgaste: Array.isArray(c?.desgaste) && c.desgaste.length === 5 ? c.desgaste : CONFIG_PADRAO.desgaste,
+    desgaste: CONFIG_PADRAO.desgaste.map((faixa, i) => {
+      const salvo = c?.desgaste?.length === 5 ? c.desgaste[i]?.chance : undefined
+      const chance = num(salvo, 0, 100, faixa.chance)
+      const chanceMinima = faixa.min >= 0.38 ? 1 : 0
+      return { ...faixa, chance: Math.max(chanceMinima, chance) }
+    }),
     maxQtd: 1,
   }
 }
@@ -844,7 +849,10 @@ export class Loja {
     const jaAbertas = this.abertasParaEspecial()
     for (let k = 0; k < qtd; k++) {
       const especial = !soEnfeites && ehEspecial(jaAbertas + k + 1)
-      const ganhou = especial ? sortearEspecial(caixa, cfg, rndSeguro) : sortearAbertura(caixa, cfg, rndSeguro)
+      let ganhou
+      if (especial) ganhou = sortearEspecial(caixa, cfg, rndSeguro)
+      else if (p.origem === 'inventario' && origem === 'inventario') ganhou = sortearAberturaInventario(caixa, cfg, rndSeguro, valorDe)
+      else ganhou = sortearAbertura(caixa, cfg, rndSeguro)
       const faixa = gerarFaixa(caixa, cfg, ganhou, rndSeguro)
       const item = novoIdItem()
       const { faixa: nomeFaixa, n: nomeItem, i: imgItem, ...base } = ganhou.item

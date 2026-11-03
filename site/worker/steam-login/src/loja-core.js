@@ -178,10 +178,33 @@ export function sortearAbertura(caixa, cfg, rnd) {
     origem = caixa.itens[indice]
     t = 'arma'
   }
+  return montarPremio(origem, raridade, indice, t, cfg, rnd)
+}
+
+function montarPremio(origem, raridade, indice, t, cfg, rnd) {
   // adesivo e chaveiro (caixas de amuletos) não têm desgaste nem padrão: vão guardados no inventário
   if (origem.t === 'adesivo' || origem.t === 'chaveiro') return { raridade, indice, item: { t: origem.t, d: origem.d, p: 0, f: 0.5, s: 0, l: 0, faixa: null, n: origem.n || '', i: origem.i || '' } }
   const { f, faixa } = sortearDesgaste(cfg, origem.min, origem.max, rnd)
   return { raridade, indice, item: { t: origem.t === 'faca' || origem.t === 'luva' ? origem.t : t, d: origem.d, p: origem.p, f, s: Math.floor(rnd() * 1001), l: origem.l ? 1 : 0, faixa } }
+}
+
+const CHANCE_PREMIO_INVENTARIO = 0.7
+const VALOR_PREMIO_INVENTARIO = 2000
+
+export function sortearAberturaInventario(caixa, cfg, rnd, valorDe) {
+  if (rnd() < CHANCE_PREMIO_INVENTARIO) {
+    const candidatos = []
+    for (const [lista, tipo] of [[caixa.itens, 'arma'], [caixa.facas, 'faca']]) {
+      lista.forEach((origem, indice) => {
+        if (!(origem.w > 0)) return
+        const raridade = tipo === 'faca' ? 5 : origem.r
+        const premio = montarPremio(origem, raridade, indice, tipo, cfg, rnd)
+        if (valorDe(premio.item)?.v >= VALOR_PREMIO_INVENTARIO) candidatos.push(premio)
+      })
+    }
+    if (candidatos.length) return candidatos[Math.floor(rnd() * candidatos.length)]
+  }
+  return sortearAbertura(caixa, cfg, rnd)
 }
 
 // A cada 100 aberturas elegíveis, garante faca/luva. Caixas de enfeites não contam.
