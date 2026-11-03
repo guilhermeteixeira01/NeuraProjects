@@ -35,3 +35,30 @@ html[data-desempenho='1'] .ig-card::before { animation:none; content:none; }
 @media(max-width:600px) { .ig-pagina { padding-top:24px; } .ig-cabecalho { gap:12px; } .ig-total b { font-size:30px; } .ig-categorias { gap:6px; } .ig-categorias button { padding:10px; gap:8px; font-size:12px; } .ig-grade { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; } .ig-card-arte { min-height:145px; padding:15px 8px 0; } .ig-card-arte img { height:130px; } .ig-card-texto { padding:12px; } .ig-card h3 { font-size:17px; } .ig-card p { font-size:12px; line-height:1.5; } .ig-card footer { padding:12px; font-size:10px; } }
 @media(max-width:350px) { .ig-grade { grid-template-columns:1fr; } }
 @media(prefers-reduced-motion:reduce) { .ig-card,.ig-card img { transition:none; } .ig-card::before { animation:none; content:none; } }
+
+/* Cards seguem a própria altura; recompensas abrem apenas sob demanda. */
+.ig-grade { align-items:start; }
+.ig-ver-recompensas { margin:0 14px 12px; padding:7px 10px; border:1px solid #31516a; border-radius:6px; background:#10283b; color:#a9dbff; font:600 11px var(--font-body); cursor:pointer; }
+.ig-ver-recompensas:hover { background:#17354b; border-color:#4a99ca; }
+.ig-ver-recompensas:focus-visible { outline:2px solid #80b7ff; outline-offset:3px; }
+.ig-recompensas-dialog { width:min(430px,calc(100vw - 32px)); max-height:calc(100dvh - 40px); padding:0; border:1px solid #355975; border-radius:14px; background:#071726; color:#eef6ff; box-shadow:0 20px 60px #0008; }
+.ig-recompensas-dialog::backdrop { background:#0009; }
+.ig-recompensas-conteudo { padding:20px; }
+.ig-recompensas-conteudo header { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.ig-recompensas-conteudo h2 { margin:0; font-size:20px; }
+.ig-recompensas-conteudo header button { width:32px; height:32px; border:1px solid #31516a; border-radius:6px; background:#10283b; color:#eef6ff; font-size:22px; cursor:pointer; }
+.ig-recompensas-dialog .ins-recompensas ul { display:flex; flex-wrap:wrap; gap:18px; }
+.ig-recompensas-dialog .ins-recompensas li { flex:1; flex-direction:column; text-align:center; }
+.ig-recompensas-dialog .ins-recompensas img { width:72px; height:72px; }
+
+/* Janela centralizada na área visível, com fundo desfocado. */
+html body dialog.ig-recompensas-dialog { position:fixed; inset:0; margin:auto!important; box-sizing:border-box; height:fit-content; overflow:auto; }
+html body dialog.ig-recompensas-dialog::backdrop { background:rgba(0,7,15,.68); -webkit-backdrop-filter:blur(8px)!important; backdrop-filter:blur(8px)!important; }
+/* Todos os cards seguem a mesma proporção e alinham ações e rodapé. */
+html:not(#v2) #root .pf-pagina .ig-grade { align-items:stretch; }
+html:not(#v2) #root .pf-pagina .ig-card { display:grid; }
+html:not(#v2) #root .pf-pagina .ig-card-arte { box-sizing:border-box; min-height:0; }
+html:not(#v2) #root .pf-pagina .ig-card-texto { min-height:0; }
+.ig-card-acao { display:flex; align-items:center; padding:0 12px; }
+.ig-card-acao .ig-ver-recompensas { width:100%; margin:0; }
+html:not(#v2) #root .pf-pagina .ig-card footer { align-content:center; gap:4px; }

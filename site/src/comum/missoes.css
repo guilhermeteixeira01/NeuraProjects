@@ -29,3 +29,40 @@
 @media(max-width:600px){.ms-grade{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ms-card{padding:12px}.ms-arte,.ms-arte img{height:100px;width:100%}.ms-card h3{font-size:14px}.ms-card p{font-size:11px}.ms-config-linha{grid-template-columns:minmax(0,1fr)}.ms-config{padding:14px}}
 
 .ms-card:not(.ms-recebida) .ms-arte img { filter:grayscale(1);opacity:.35; }
+
+.pf-pagina .ms-grade { gap:12px; }
+.pf-pagina .ms-card { padding:12px; gap:6px; }
+.pf-pagina .ms-card h3 { font-size:15px; }
+.pf-pagina .ms-card p { flex:none; font-size:11px; line-height:1.45; }
+.pf-pagina .ms-arte, .pf-pagina .ms-arte img { height:100px; }
+.pf-pagina .ms-card .ig-ver-recompensas { align-self:flex-start; margin:0; }
+
+/* Mesmo tamanho entre os cards de cada categoria do perfil. */
+.pf-pagina :is(.ms-grade, .lj-ins-grade) {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 12px;
+}
+.pf-pagina :is(.ms-card, .lj-ins) {
+  box-sizing: border-box;
+  padding: 12px;
+  gap: 6px;
+}
+.pf-pagina .ms-arte,
+.pf-pagina .ms-arte img,
+.pf-pagina .lj-ins > img {
+  height: 88px;
+}
+.pf-pagina .lj-ins > img { width: min(88px, 100%); }
+.pf-pagina .ms-card progress { margin-top: auto; }
+.pf-pagina .ms-painel .lj-ins small { font-size: 11px; }
+.pf-pagina .ms-painel .lj-ins {
+  border: 1px solid #203e58;
+  background: linear-gradient(135deg, #061421, #030e19);
+}
+.pf-pagina .ms-painel .lj-ins.lj-ganha { border-color: var(--cor, #203e58); }
+@media (max-width: 600px) {
+  .pf-pagina :is(.ms-grade, .lj-ins-grade) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

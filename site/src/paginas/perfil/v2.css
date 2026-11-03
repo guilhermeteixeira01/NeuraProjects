@@ -454,3 +454,48 @@ html:not(#v2) #root .pf-inventario-pagina .pf-inv-barra-simples .pf-inv-total { 
  html:not(#v2) #root .pf-inventario-pagina .pf-inv-barra-simples .pf-inv-busca { grid-column:1 / -1; grid-row:1; }
  html:not(#v2) #root .pf-inventario-pagina .pf-inv-barra-simples select { width:100%; min-width:0; }
 }
+
+/* A barra ocupa a faixa final do banner, com a linha inferior alinhada à base. */
+html:not(#v2) #root .pf-header-wrap { padding-top:26px; }
+html:not(#v2) #root .pf-profile-row { box-sizing:border-box; min-height:149px; padding-bottom:0; }
+@media(max-width:760px) {
+ html:not(#v2) #root .pf-header-wrap { padding-top:22px; }
+ html:not(#v2) #root .pf-profile-row { min-height:153px; }
+}
+/* Coleção de insígnias compacta, com artes menores. */
+html:not(#v2) #root .pf-pagina .ig-grade { grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:14px; }
+html:not(#v2) #root .pf-pagina .ig-card-arte { min-height:132px; padding:14px 16px 4px; }
+html:not(#v2) #root .pf-pagina .ig-card-arte img { height:114px; }
+html:not(#v2) #root .pf-pagina .ig-card-texto { padding:10px 14px 14px; }
+html:not(#v2) #root .pf-pagina .ig-card h3 { font-size:17px; margin:6px 0; }
+html:not(#v2) #root .pf-pagina .ig-card p { font-size:12px; line-height:1.5; }
+html:not(#v2) #root .pf-pagina .ig-card footer { padding:10px 14px; }
+@media(max-width:600px) {
+ html:not(#v2) #root .pf-pagina .ig-grade { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+ html:not(#v2) #root .pf-pagina .ig-card-arte { min-height:112px; padding:10px 8px 0; }
+ html:not(#v2) #root .pf-pagina .ig-card-arte img { height:100px; }
+}
+
+/* Cabeçalho e categorias da coleção em escala compacta. */
+html:not(#v2) #root .pf-pagina .ig-pagina { padding-top:22px; }
+html:not(#v2) #root .pf-pagina .ig-cabecalho { margin-bottom:18px; gap:16px; }
+html:not(#v2) #root .pf-pagina .ig-sobretitulo { font-size:9px; letter-spacing:.12em; }
+html:not(#v2) #root .pf-pagina .ig-cabecalho h2 { font-size:28px; margin:5px 0 6px; }
+html:not(#v2) #root .pf-pagina .ig-cabecalho p { font-size:12px; }
+html:not(#v2) #root .pf-pagina .ig-total { font-size:10px; }
+html:not(#v2) #root .pf-pagina .ig-total b { font-size:27px; }
+html:not(#v2) #root .pf-pagina .ig-categorias { gap:6px; padding-bottom:14px; }
+html:not(#v2) #root .pf-pagina .ig-categorias button { min-height:34px; padding:7px 10px; gap:8px; font-size:11px; }
+html:not(#v2) #root .pf-pagina .ig-categorias button span { font-size:10px; }
+
+/* Altura uniforme compacta; recompensas dividem o rodapé com a conquista. */
+html:not(#v2) #root .pf-pagina .ig-card { grid-template-rows:112px minmax(140px,1fr) 52px; height:304px; min-height:0; aspect-ratio:auto; }
+html:not(#v2) #root .pf-pagina .ig-card-arte { padding:10px 12px 2px; }
+html:not(#v2) #root .pf-pagina .ig-card-arte img { height:100px; }
+html:not(#v2) #root .pf-pagina .ig-card-texto { padding:8px 12px; }
+html:not(#v2) #root .pf-pagina .ig-card h3 { font-size:15px; margin:5px 0; }
+html:not(#v2) #root .pf-pagina .ig-card p { font-size:11px; line-height:1.45; }
+html:not(#v2) #root .pf-pagina .ig-card footer { display:flex; flex-wrap:nowrap; justify-content:space-between; align-items:center; padding:8px 10px; gap:6px; }
+.ig-conquista-info { display:grid; gap:4px; min-width:0; font-size:9px; }
+html:not(#v2) #root .pf-pagina .ig-card footer .ig-ver-recompensas { margin:0; padding:6px; font-size:9px; flex:none; }
+@media(max-width:600px) { html:not(#v2) #root .pf-pagina .ig-card { height:314px; grid-template-rows:112px minmax(150px,1fr) 52px; } }
