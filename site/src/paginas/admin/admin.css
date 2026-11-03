@@ -541,7 +541,7 @@ i.bloq { color: #ff6b6b !important; border-color: rgba(255,107,107,.45) !importa
 @media (max-width: 700px) { .adm-dep-campos { grid-template-columns: 1fr; } }
 
 /* Logs (aba Logs) */
-.adm-logs { display: grid; gap: 12px; }
+.adm-logs { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
 .adm-logs-topo { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .adm-logs-tipos { display: flex; flex-wrap: wrap; gap: 6px; }
 .adm-logs-tipos button { background: rgb(var(--tinta) / .06); border: 1px solid var(--border-2); color: var(--dim); border-radius: 999px; padding: 6px 14px; font: 700 12px var(--font-display); letter-spacing: .05em; cursor: pointer; }
