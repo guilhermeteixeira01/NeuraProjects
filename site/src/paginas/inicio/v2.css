@@ -452,3 +452,55 @@ html:not(#v2) .np-inicio .np-destaques-painel.v2-dest { overflow: hidden; border
 .np-inicio .v2-temporada-pos b { font-size: 35px; text-shadow: 0 2px 12px rgb(233 185 76 / .16); }
 @media (max-width: 560px) { .np-inicio .v2-louro { width: 108px; height: 108px; top: 0; } }
 @media (min-width: 1025px) { html:has(.np-inicio) { --sidebar-width: 224px; } }
+
+/* Início no celular: espaço para os prêmios e leitura sobre a arte. */
+@media (max-width: 560px) {
+  .np-inicio .np-central { padding-inline: 12px; }
+  .np-inicio .pd-faixa { padding: 14px; gap: 12px; }
+  .np-inicio .pd-faixa-titulo p { max-width: none; }
+  .np-inicio .pd-dias { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .np-inicio .pd-dias li { height: 64px; min-width: 0; }
+  .np-inicio .pd-dias li:last-child { grid-column: span 2; }
+  .np-inicio .pd-dias small, .np-inicio .pd-dias b { font-size: 11px; }
+  .np-inicio .pd-hoje { height: auto; min-height: 96px; padding: 10px 66px 10px 10px; grid-template-columns: 32px minmax(0, 1fr); gap: 8px; }
+  .np-inicio .pd-hoje-txt > b { white-space: normal; }
+  .np-inicio .pd-hoje-botoes { display: flex; flex-wrap: wrap; }
+  .np-inicio .pd-hoje-arte { right: -12px; width: 78px; height: 86px; opacity: .65; }
+
+  html:not(#v2) .np-inicio .np-bloco-cab { padding: 12px; gap: 8px; }
+  html:not(#v2) .np-inicio .np-bloco-cab h2:not(#_) { font-size: 16px; }
+  html:not(#v2) .np-inicio .np-bloco-cab > a:not(#_) { font-size: 12px; white-space: nowrap; }
+  .np-inicio .np-recentes { padding: 8px 10px 12px; gap: 6px; }
+  .np-inicio .np-partida-linha { grid-template-columns: 48px minmax(0, 1fr) auto 10px; gap: 8px; padding: 5px 8px 5px 5px; min-height: 58px; }
+  .np-inicio .np-partida-thumb { height: 46px; overflow: hidden; border-radius: 5px; }
+  .np-inicio .np-partida-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .np-inicio .np-partida-placar2 strong { font-size: 16px; gap: 4px; }
+  .np-inicio .np-partida-placar2 .v2-selo { padding-inline: 5px; }
+
+  html:not(#v2) .np-inicio .np-destaques-painel.v2-dest { min-height: 278px; }
+  html:not(#v2) .np-inicio .v2-dest .np-bloco-cab { padding: 14px 14px 0; }
+  .np-inicio .v2-dest-corpo { padding: 22px 14px 12px; gap: 8px; }
+  .np-inicio .v2-dest-titulo { font-size: clamp(24px, 7vw, 32px); overflow-wrap: anywhere; }
+  .np-inicio .v2-dest-titulo em { white-space: normal; }
+  .np-inicio .v2-dest-corpo > p { max-width: 22ch; }
+  .np-inicio .v2-dest .v2-dest-camada img { left: auto; right: -8%; bottom: 0; width: 64%; opacity: .72; }
+  .np-inicio .v2-dest .v2-dest-camada::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #030e1a 4%, #030e1ae8 34%, #030e1a25 76%); }
+}
+
+@media (max-width: 560px) {
+  .np-inicio .pd-dias { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .np-inicio .pd-dias li { grid-column: span 2; box-sizing: border-box; height: auto; min-height: 66px; padding: 5px 2px; align-content: center; row-gap: 3px; }
+  .np-inicio .pd-dias li:nth-child(5) { grid-column: 2 / span 2; }
+  .np-inicio .pd-dia-icone { width: 20px; height: 20px; }
+  .np-inicio .pd-dia-icone svg { width: 16px; height: 16px; }
+  .np-inicio .pd-hoje { grid-template-columns: 34px minmax(0, 1fr); padding-right: 52px; gap: 10px; }
+  .np-inicio .pd-hoje-icone { box-sizing: border-box; width: 34px; height: 34px; }
+  .np-inicio .pd-hoje-icone svg { width: 18px; height: 18px; }
+  .np-inicio .pd-hoje-arte { right: 0; width: 56px; height: 68px; }
+  .np-inicio .pd-hoje-botoes { gap: 5px; }
+
+  .np-inicio .v2-dest .v2-dest-cenario { opacity: .28; }
+  .np-inicio .v2-dest .v2-dest-camada img { right: -4%; width: 50%; opacity: .86; }
+  .np-inicio .v2-dest .v2-dest-camada::after { background: linear-gradient(90deg, #030e1a 22%, #030e1af5 39%, #030e1a22 68%, transparent); }
+  .np-inicio .v2-dest-corpo { max-width: 67%; }
+}
