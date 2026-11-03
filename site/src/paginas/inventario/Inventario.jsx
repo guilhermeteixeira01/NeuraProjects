@@ -27,7 +27,12 @@ import { tocar } from '../../comum/somInventario.js'
 import { avisarSaldo, lerCaixasPublicas, lerValores, venderItens } from '../../comum/loja.js'
 import { EVENTO_MERCADO, anunciarItem, cancelarAnuncio, erroDoMercado, lerMercado } from '../../comum/mercado.js'
 import { RARIDADES_CS, raridadeCsDaCor } from '../../../worker/steam-login/src/loja-core.js'
-import Cartao, { nomeDoDesgaste } from '../../comum/CartaoSkin.jsx'
+import { ConteudoCartaoSkin, nomeDoDesgaste } from '../../comum/CartaoSkin.jsx'
+import LinhaVisivel from './LinhaVisivel.jsx'
+
+function Cartao(props) {
+  return <LinhaVisivel compacto={ehPerfil(props.item)}><ConteudoCartaoSkin {...props} /></LinhaVisivel>
+}
 import { nomeRaridade } from '../../comum/DicaSkin.jsx'
 import { CarregandoNP } from '../../comum/Carregando.jsx'
 import { confirmar } from '../../comum/Dialogos.jsx'
@@ -1366,7 +1371,7 @@ function Conteudo() {
       setMenuGuardado({ x: e.clientX, y: e.clientY, tipo: g.tipo, def: g.def })
     }
     return (
-      <li key={g.tipo + g.def} className="inv-cartao-li">
+      <LinhaVisivel key={g.tipo + g.def} compacto caixa={caixa}>
         <button type="button" className={`inv-cartao-cadeado${protegido ? ' ativo' : ''}`} aria-label={t(protegido ? 'Remover cadeado' : 'Proteger skin')} aria-pressed={protegido} onClick={e => { e.stopPropagation(); alternarCadeadoGrupo(g.tipo, g.def) }}><IconeUI tipo="cadeado" tamanho={15} /></button>
         <button type="button" className={`inv-cartao inv-cartao-guardado${marcado ? ' inv-cartao-sel' : ''}${selChaveAtual === chaveG ? ' inv-cartao-ativo' : ''}`} aria-pressed={modoSel && !caixa ? marcado : undefined} {...(selChaveAtual === chaveG ? { 'aria-current': 'true' } : {})} style={{ '--cor': g.linha ? corEnfeite(g.tipo, g.linha) : '#6b6f76' }} onClick={clicar} onContextMenu={abrir}>
           {corpo}
@@ -1376,7 +1381,7 @@ function Conteudo() {
             {t('Abrir')}
           </a>
         )}
-      </li>
+      </LinhaVisivel>
     )
   }
   const guardadoDoMenu = menuGuardado ? guardados.find((g) => g.tipo === menuGuardado.tipo && g.def === menuGuardado.def) : null

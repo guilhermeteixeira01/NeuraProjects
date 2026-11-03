@@ -332,3 +332,11 @@ html:not(#v2) #root .inv-pagina .inv-painel-compacto .inv-rar-selo { justify-sel
 #root .inv-pagina .inv-barra :is(.inv-pesquisa) { flex: 1 1 280px; min-width: 240px; }
 #root .inv-pagina .inv-barra :is(.inv-filtro-raridade, .inv-btn, .tr-btn) { flex: none; }
 #root .inv-pagina .inv-ordem-caixa { flex: none; min-width: 205px; }
+
+/* Mantém a altura das linhas enquanto seus cards estão desmontados. */
+#root .inv-pagina .inv-card-janela { height: 256px; }
+@media (min-width: 1025px) {
+  html:not(#v2) #root .inv-pagina .inv-card-janela { height: min(256px, calc((100cqh - 10px) / 2)); }
+}
+html:not(#v2) #root .inv-pagina .inv-card-janela-compacto { height: 176px; }
+html:not(#v2) #root .inv-pagina .inv-card-janela-caixa { height: 218px; }

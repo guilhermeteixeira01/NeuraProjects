@@ -55,7 +55,11 @@ export function SeloRaridade({ item, cor }) {
 // valor: NP do item (aparece embaixo do nome; no mercado, o preço do anúncio)
 // aoSelecionar: o clique escolhe o item (o painel de inspeção do inventário mostra ele); o botão direito continua abrindo o menu.
 // ativo: é o item que está no painel
-export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAbrirMenu, aoSelecionar, aoCadeado, ativo, extra, selecionado, valor }) {
+export default function CartaoSkin(props) {
+  return <li className="inv-cartao-li"><ConteudoCartaoSkin {...props} /></li>
+}
+
+export function ConteudoCartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAbrirMenu, aoSelecionar, aoCadeado, ativo, extra, selecionado, valor }) {
   const c4 = ehC4(item) // C4 fixa: sem valor e sem cadeado para mexer
   const t = useT()
   // adesivo/chaveiro guardado (mercado): nome, imagem e cor vêm do catálogo dele ([id, nome, imagem, cor])
@@ -136,7 +140,7 @@ export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
     </>
   )
   return (
-    <li className="inv-cartao-li">
+    <>
       {aoCadeado && !c4 && <button type="button" className={`inv-cartao-cadeado${item.cadeado ? ' ativo' : ''}`} aria-label={t(item.cadeado ? 'Remover cadeado' : 'Proteger skin')} aria-pressed={!!item.cadeado} onClick={e => { e.stopPropagation(); aoCadeado() }}><IconeUI tipo="cadeado" tamanho={15} /></button>}
       {aoAbrirMenu || aoSelecionar ? (
         <button
@@ -161,6 +165,6 @@ export default function CartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
       )}
       {dica && <DicaSkin item={item} idx={idx} alvo={dica} />}
       {extra}
-    </li>
+    </>
   )
 }
