@@ -20,7 +20,7 @@ async function premio(env,id=A) {
  return {saldo:saldo.saldo,caixas:Object.values(inv?.itens || {}).filter(i=>i.t==='caixa')}
 }
 
-test('cadastro concluído entrega 1 caixa de faca e 1000 NP; concorrência não duplica',async()=>{
+test('cadastro concluído entrega 1 Caixa Spirit e 1000 NP; concorrência não duplica',async()=>{
  const {env,pedir}=ambiente({usuarios:{[A]:{nome:'Convidante'},[B]:{nome:'Convidado'}}})
  await cadastrar(env,A,'Convidante811')
  await entrada(env,B,A)
@@ -33,7 +33,7 @@ test('cadastro concluído entrega 1 caixa de faca e 1000 NP; concorrência não 
  await Promise.all(Array.from({length:8},()=>concluirAfiliacao(env,B)))
  const p=await premio(env);assert.equal(p.saldo,1000);assert.equal(p.caixas.length,1)
  const caixas=(await pedir('GET','/loja/caixas')).dados
- assert.equal(p.caixas[0].d,caixas.find(c=>c.slug==='caixa-extras-facas').id)
+ assert.equal(p.caixas[0].d,caixas.find(c=>c.slug==='caixa-times-spirit').id)
  const lista=await pedir('GET','/afiliado',{quem:A})
  assert.equal(lista.status,200);assert.equal(lista.dados.cadastrados,1);assert.equal(lista.dados.premios,1)
  assert.equal(lista.dados.lista[0].nome,'Convidado')

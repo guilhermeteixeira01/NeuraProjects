@@ -534,8 +534,6 @@ export default function PaginaCaixa({ c, saldo, tem, maxQtd, aberturas = 0, abri
       </header>
 
       <div className="lj-cx-roletas" ref={carrossel}>
-            <img className="np-carrossel-borda np-carrossel-borda-esquerda" src="/assets/caixas/carrocel/jason-esquerda.webp" alt="" aria-hidden="true" width="900" height="900" />
-            <img className="np-carrossel-borda np-carrossel-borda-direita" src="/assets/caixas/carrocel/ghostface-direita.webp" alt="" aria-hidden="true" width="900" height="900" />
         {abrindo ? (
           <Abertura
             key={abrindo.chave}

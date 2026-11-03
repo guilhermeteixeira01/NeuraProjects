@@ -33,6 +33,7 @@ import { exigirSenha } from './contas.js'
  */
 import { avisarTodos, mandarPara } from './amigos.js'
 import CAIXAS_INICIAIS from './caixas-iniciais.json'
+import COLECAO_ANTERIOR from './caixas-colecao-anterior.json'
 import CAIXAS_REMOVIDAS from './caixas-removidas.json'
 import CAIXAS_RETIRADAS_IDS from './caixas-retiradas-ids.json'
 import { gravarDoc, lerColecao, lerDoc, lerItem, mudar, mudarDoc } from './dados.js'
@@ -67,7 +68,8 @@ const num = (v, min, max, padrao) => {
 // Revisão das caixas de fábrica: quando sobe, as caixas salvas recebem o conteúdo novo de caixas-iniciais.json (o que o dono mudou fica):
 //   2: Kawaii e Terror só com adesivos; Lendas e Espacial só com amuletos · 6: itens e facas novos em todas e taxas de volta ao padrão
 //   8: antigas arquivadas · 10: tier especial com luvas · 11: primeiras 31 retiradas · 12: coleção nova e retirada definitiva sem reembolso
-const REVISAO_CAIXAS = 12
+const REVISAO_CAIXAS = 13
+const CAIXAS_COLECAO_ANTERIOR = new Set(COLECAO_ANTERIOR)
 const ATUALIZAR_CAIXAS = ['caixa-kawaii', 'caixa-terror', 'caixa-lendas', 'caixa-espacial']
 const DOCS_CAIXAS = ['caixas', 'caixas-revisao', 'caixas-vistas', 'caixas-removidas', 'loja-config', 'loja-bonus']
 
@@ -98,12 +100,19 @@ async function atualizarCaixas(env) {
         if (revisao < 8 && nova.arquivada) salvas[i].arquivada = true
       }
       if (revisao < 6 && d['loja-config']) d['loja-config'] = { ...d['loja-config'], taxas: CONFIG_PADRAO.taxas }
-      if (revisao < 12) {
-        const fora = salvas.filter((c) => c.arquivada || CAIXAS_REMOVIDAS.includes(c.slug))
+      if (revisao < 13) {
+        const fora = salvas.filter((c) => CAIXAS_COLECAO_ANTERIOR.has(c.slug) || (revisao < 12 && (c.arquivada || CAIXAS_REMOVIDAS.includes(c.slug))))
         d['caixas-removidas'] = [...new Set([...(d['caixas-removidas'] || []), ...fora.map((c) => c.id), ...(!salvas.length ? CAIXAS_RETIRADAS_IDS : [])])]
         d.caixas = salvas.filter((c) => !fora.includes(c))
         const removidas = new Set(d['caixas-removidas'].map(Number))
         if (Array.isArray(d['loja-bonus'])) d['loja-bonus'] = d['loja-bonus'].map((b) => b.caixa && removidas.has(Number(b.caixa)) ? { ...b, apagado: true, qtd: 0 } : b)
+      }
+      if (revisao < 13) {
+        d.caixas = d.caixas.map((c) => {
+          const nova = deFabrica(c.slug)
+          if (nova) return { ...c, img: nova.img }
+          return c
+        })
       }
       d['caixas-revisao'] = REVISAO_CAIXAS
     }
@@ -707,7 +716,7 @@ export class Loja {
     if (!ID_STEAM.test(convidado || '') || id === convidado) throw new ErroPedido('id')
     const chave = `afiliado-premio:${convidado}`
     if (await this.ctx.storage.get(chave)) return { ok: true, repetido: true }
-    const caixa = (await lerCaixas(this.env)).find(c => c.slug === 'caixa-extras-facas' && c.ativa && !c.arquivada)
+    const caixa = (await lerCaixas(this.env)).find(c => c.slug === 'caixa-times-spirit' && c.ativa && !c.arquivada)
     if (!caixa) throw new ErroNaoEncontrado('caixa')
     const inv = await this.invOuVazio(id)
     if (Object.keys(inv.itens).length >= ITENS_MAX) throw new ErroConflito('cheio')
@@ -718,7 +727,7 @@ export class Loja {
     const pontos = ((await this.ctx.storage.get('afiliado-np')) || 0) + 1000
     // Uma única gravação atômica: caixa, NP e recibo de entrega. A fila serializa os convites.
     await this.ctx.storage.put({ inv, invv: ver, 'afiliado-np': pontos, [chave]: { item, ts } })
-    await this.notificar(novaNotif(`afiliado:${convidado}`, 'Indicação concluída: caixa de faca + 1.000 NP', 'Seu amigo concluiu o cadastro. A caixa está no inventário e os NP já estão disponíveis.', '/perfil/#afiliado', { imagem: caixa.img }))
+    await this.notificar(novaNotif(`afiliado:${convidado}`, 'Indicação concluída: Caixa Spirit + 1.000 NP', 'Seu amigo concluiu o cadastro. A caixa está no inventário e os NP já estão disponíveis.', '/perfil/#afiliado', { imagem: caixa.img }))
     return { ok: true }
   }
 

@@ -1,3 +1,4 @@
+import FIXTURES from './caixas-fixture.json' with { type: 'json' }
 // Testes da loja de caixas (regras puras de src/loja-core.js). Rodar (na pasta worker/steam-login):  node --test test/
 // Inclui a simulação de 100.000 aberturas: mostra a distribuição real de raridades e de desgastes e confere com as taxas.
 import test from 'node:test'
@@ -11,7 +12,7 @@ const cfg = CONFIG_PADRAO
 // ── sorteio ──
 test('simulação de 100.000 aberturas: raridades e desgastes batem com as taxas', () => {
   const N = 100000
-  const caixa = CAIXAS.find((c) => c.slug === 'caixa-armas-ak-47')
+  const caixa = FIXTURES.find((c) => c.slug === 'caixa-armas-ak-47')
   const raridades = [0, 0, 0, 0, 0, 0]
   const desgastes = {}
   const porTipo = { faca: 0, luva: 0, arma: 0 }
@@ -88,7 +89,7 @@ test('chances publicadas somam 100% por raridade e batem com as taxas', () => {
 })
 
 test('faixa da roleta: o vencedor está no alvo, "quase" só quando o vizinho é o card dourado', () => {
-  const caixa = CAIXAS.find((c) => c.slug === 'caixa-armas-ak-47')
+  const caixa = FIXTURES.find((c) => c.slug === 'caixa-armas-ak-47')
   let quase = 0
   for (let i = 0; i < 5000; i++) {
     const g = sortearAbertura(caixa, cfg, rndSeguro)
@@ -201,6 +202,7 @@ test('desbloqueio idempotente: a mesma insígnia (ou nível) nunca sai duas veze
 })
 
 test('toda insígnia do catálogo tem arte tratada e todas as secretas têm a versão borrada', () => {
+
   const dir = new URL('../../../public/assets/insignia/', import.meta.url)
   for (const i of INSIGNIAS_LOJA) {
     for (const pasta of ['web', 'mini', 'bloqueada', 'secreta']) assert.ok(fs.existsSync(new URL(`${pasta}/${i.id}.webp`, dir)), `${pasta}/${i.id}.webp`)
@@ -209,8 +211,7 @@ test('toda insígnia do catálogo tem arte tratada e todas as secretas têm a ve
 })
 
 test('as caixas iniciais são válidas (imagem existe, tem de tudo, pesos > 0)', () => {
-  const dir = new URL('../../../public/assets/caixas/web/', import.meta.url)
-  assert.equal(CAIXAS.length, 130)
+  assert.equal(CAIXAS.length, 23)
   assert.equal(CAIXAS.filter((c) => c.arquivada && !c.diaria).length, 0) // as 31 antigas foram apagadas (revisão 11)
   const removidas = JSON.parse(fs.readFileSync(new URL('../src/caixas-removidas.json', import.meta.url), 'utf8'))
   assert.equal(removidas.length, 101)
@@ -218,7 +219,7 @@ test('as caixas iniciais são válidas (imagem existe, tem de tudo, pesos > 0)',
   assert.equal(new Set(CAIXAS.map((c) => c.id)).size, CAIXAS.length)
   assert.equal(new Set(CAIXAS.map((c) => c.slug)).size, CAIXAS.length)
   for (const c of CAIXAS) {
-    assert.ok(fs.existsSync(c.diaria ? new URL(`../../../public${c.img}`, import.meta.url) : new URL(`${c.slug}.webp`, dir)), c.slug)
+    assert.ok(fs.existsSync(new URL(`../../../public${c.img}`, import.meta.url)), c.slug)
     assert.ok(c.diaria ? c.preco === 0 && c.arquivada : c.preco > 0)
     if (c.itens.every((x) => !x.t)) assert.ok(c.facas.length >= 5, c.slug + ' sem facas do tier especial') // caixas de arma
     else assert.equal(c.facas.length, 0) // facas e amuletos: sem tier de facas
@@ -262,7 +263,7 @@ test('vender não paga a caixa de volta (valor esperado de uma abertura fica bem
 test('caixas de adesivos e de chaveiros: cada uma só com o tipo certo (sem arma e sem faca) e sem desgaste', () => {
   const grupos = [['caixa-stickers-', 'adesivo'], ['caixa-charms-', 'chaveiro']]
   for (const [prefixo, tipo] of grupos) {
-    const lista = CAIXAS.filter((x) => x.slug.startsWith(prefixo))
+    const lista = FIXTURES.filter((x) => x.slug.startsWith(prefixo))
     assert.ok(lista.length > 0, prefixo)
     for (const c of lista) {
       assert.ok(c.itens.every((x) => x.t === tipo), c.slug)
@@ -276,7 +277,7 @@ test('caixas de adesivos e de chaveiros: cada uma só com o tipo certo (sem arma
 })
 test('caixas de arma: só skins daquela arma', () => {
   const por = { 'caixa-armas-ak-47': [7], 'caixa-armas-awp': [9], 'caixa-armas-usp-s': [61], 'caixa-armas-m4': [60, 16], 'caixa-armas-glock-18': [4] }
-  for (const [slug, defs] of Object.entries(por)) assert.ok(CAIXAS.find((x) => x.slug === slug).itens.every((x) => defs.includes(x.d)), slug)
+  for (const [slug, defs] of Object.entries(por)) assert.ok(FIXTURES.find((x) => x.slug === slug).itens.every((x) => defs.includes(x.d)), slug)
 })
 test('Mestre da Caixa de facas e de amuletos conta os itens certos (adesivo e chaveiro com o mesmo id não se confundem)', () => {
   const caixa = { slug: 'caixa-z', nome: 'Caixa Z', itens: [{ t: 'adesivo', d: 5, p: 0 }, { t: 'chaveiro', d: 5, p: 0 }, { t: 'faca', d: 507, p: 38 }], facas: [] }
@@ -287,14 +288,8 @@ test('Mestre da Caixa de facas e de amuletos conta os itens certos (adesivo e ch
 })
 
 
-test('categorias da loja por franquia: Kakashi/Sasuke em Naruto, Ichigo/Hollow em Bleach, toda caixa inicial com tema', async () => {
+test('categorias da loja reconhecem as caixas da coleção atual', async () => {
   const { categoriaDaCaixa } = await import('../../../src/comum/temasCaixa.js')
-  const cat = (slug) => categoriaDaCaixa(CAIXAS.find((c) => c.slug === slug))
-  for (const s of ['caixa-naruto-naruto', 'caixa-naruto-kakashi', 'caixa-naruto-sasuke']) assert.equal(cat(s), 'naruto-novas', s)
-  for (const s of ['caixa-bleach-ichigo', 'caixa-bleach-rukia']) assert.equal(cat(s), 'bleach-novas', s)
-  assert.equal(cat('caixa-mapas-dust2'), 'mapas')
-  assert.equal(cat('caixa-armas-awp'), 'armas-novas')
-  assert.equal(cat('caixa-charms-charms-personagens'), 'charms')
   for (const c of CAIXAS) assert.notEqual(categoriaDaCaixa(c), 'tematicas', `${c.slug} sem tema`)
   assert.equal(categoriaDaCaixa({ slug: 'caixa-nova', itens: [{ t: 'faca', d: 1 }] }), 'facas') // criada no painel: pelo conteúdo
 })

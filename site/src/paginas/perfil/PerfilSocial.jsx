@@ -44,7 +44,7 @@ export function AfiliadoDoPerfil({ id }) {
   }
   return <div className="pf-affiliate">
     <section className="pf-social-panel pf-affiliate-intro">
-      <div className="pf-affiliate-copy"><span className="pf-affiliate-eyebrow">{t('Programa de afiliados')}</span><h2>{t('Convide amigos. Ganhe')} <em>{t('1 caixa de faca + 1.000 NP')}</em> {t('por cadastro.')}</h2><p>{t('Compartilhe seu link com quem ainda não tem conta na Neura. Quando seu amigo concluir o cadastro, a recompensa será entregue automaticamente para você.')}</p></div>
+      <div className="pf-affiliate-copy"><span className="pf-affiliate-eyebrow">{t('Programa de afiliados')}</span><h2>{t('Convide amigos. Ganhe')} <em>{t('1 Caixa Spirit + 1.000 NP')}</em> {t('por cadastro.')}</h2><p>{t('Compartilhe seu link com quem ainda não tem conta na Neura. Quando seu amigo concluir o cadastro, a recompensa será entregue automaticamente para você.')}</p></div>
       <div className="pf-affiliate-ticket"><label htmlFor="pf-link-convite">{t('Seu link de convite')}</label><div><input id="pf-link-convite" value={link} readOnly onFocus={e => e.target.select()} /><button type="button" onClick={copiar}>{copiado ? t('Copiado') : t('Copiar')}</button></div><span className="pf-affiliate-barcode" aria-hidden="true" /></div>
       <ol className="pf-affiliate-steps">{[
         ['01', 'Compartilhe seu link', 'Envie no Discord, no grupo ou diretamente para um amigo.'],

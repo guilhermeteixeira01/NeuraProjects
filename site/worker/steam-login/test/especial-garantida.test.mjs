@@ -1,4 +1,6 @@
 import test from 'node:test'
+import FIXTURES from './caixas-fixture.json' with { type: 'json' }
+import { gravarDoc } from '../src/dados.js'
 import assert from 'node:assert/strict'
 import { ambiente, armazenamento, ranking } from './ambiente.mjs'
 const { Loja, lerCaixas } = await import('../src/loja.js')
@@ -24,7 +26,7 @@ test('toda caixa elegível tem garantia válida e animação aponta para o item 
 })
 
 test('aberturas individuais atravessando 100/200 garantem o item no lugar exato e gravam o contador junto com o inventário', async () => {
-  const caixa = caixas.find((c) => c.slug === 'caixa-armas-ak-47')
+  const caixa = caixas.find((c) => c.slug === 'caixa-times-spirit')
   for (const [antes, qtd, indice, modo] of [[98, 3, 1, null], [99, 2, 0, 'jester'], [199, 1, 0, 'boost']]) {
     const storage = armazenamento()
     const loja = new Loja({ storage }, env)
@@ -51,8 +53,9 @@ test('aberturas individuais atravessando 100/200 garantem o item no lugar exato 
 test('adesivos/chaveiros não gastam o marco reservado à próxima caixa de arma', async () => {
   const storage = armazenamento()
   const loja = new Loja({ storage }, env)
-  const arma = caixas.find((c) => c.slug === 'caixa-armas-ak-47')
-  const adesivos = caixas.find((c) => c.slug === 'caixa-stickers-stickers-classicos')
+  const arma = caixas.find((c) => c.slug === 'caixa-times-spirit')
+  const adesivos = { ...FIXTURES.find(c => c.slug === 'caixa-stickers-stickers-classicos'), id: 9000, slug: 'caixa-adesivos-teste' }
+  await gravarDoc(env, 'caixas', [...caixas, adesivos])
   for (let i = 0; i < 99; i++) loja.registrarAbertura([i, arma.slug, 'arma', 7, 44, 0, .1, 0])
   const enfeites = await loja.acao({ acao: 'abrir', id: ID, caixa: adesivos.id, qtd: 3, origem: 'direto' })
   assert.equal(enfeites.aberturasEspecial, 99)
