@@ -69,7 +69,8 @@ const num = (v, min, max, padrao) => {
 //   2: Kawaii e Terror só com adesivos; Lendas e Espacial só com amuletos · 6: itens e facas novos em todas e taxas de volta ao padrão
 //   8: antigas arquivadas · 10: tier especial com luvas · 11: primeiras 31 retiradas · 12: coleção nova e retirada definitiva sem reembolso
 //   14: armas, facas, luvas e outros temas; atualiza a arte diária e preserva a coleção de times
-const REVISAO_CAIXAS = 14
+//   15: renova o cache das artes após a troca da imagem Coca-Cola
+const REVISAO_CAIXAS = 15
 const CAIXAS_COLECAO_ANTERIOR = new Set(COLECAO_ANTERIOR)
 const ATUALIZAR_CAIXAS = ['caixa-kawaii', 'caixa-terror', 'caixa-lendas', 'caixa-espacial']
 const DOCS_CAIXAS = ['caixas', 'caixas-revisao', 'caixas-vistas', 'caixas-removidas', 'loja-config', 'loja-bonus']
