@@ -10,7 +10,6 @@ import MercadoJogadores from './Mercado.jsx'
 import MercadoOficial from './MercadoOficial.jsx'
 import Deposito from './Deposito.jsx'
 import { CarregandoNP } from '../../comum/Carregando.jsx'
-import Drops from './Drops.jsx'
 import PaginaCaixa, { useFavoritas } from './PaginaCaixa.jsx'
 import { prepararSons } from './somLoja.js'
 import { PERSONAGENS, fundoCss } from '../../comum/assetsV2.js'
@@ -158,11 +157,10 @@ function Conteudo() {
   if (erroCarga) return <p className="lj-dica">{t('Não consegui carregar a loja. Tente de novo mais tarde.')}</p>
   if (!dados) return <CarregandoNP />
 
-  // Página de uma caixa: o carrossel de drops continua em cima
+  // Página de uma caixa.
   if (sel)
     return (
       <>
-        <Drops achar={achar} />
         {aviso && (
           <p className="lj-aviso" role="status">
             {aviso} <a href="/inventario/">{t('Ver no inventário')}</a>
