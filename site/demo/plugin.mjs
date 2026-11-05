@@ -49,7 +49,7 @@ export function dadosDeDemo(aqui) {
         const doc = /^\/partidas\/(demo\/md1\/[^/]+)\/partida\.json$/.exec(url)
         if (doc && fixtures.docs[doc[1]]) return json(res, fixtures.docs[doc[1]])
         if (/^\/partidas\/demo\/md1\/[^/]+\/?$/.test(url) && fixtures.docs[url.replace(/^\/partidas\//, '').replace(/\/$/, '')]) req.url = '/partidas/partida.html'
-        else if (url === '/assets/data/times.json') return json(res, { atualizado: new Date().toISOString(), times: PESSOAS.length ? [...new Set(PESSOAS.map((p) => p.time))].map((nome) => ({ nome, logo: '/assets/logos/logo-np-64.png' })) : [] })
+        else if (url === '/assets/data/times.json') return json(res, { atualizado: new Date().toISOString(), times: PESSOAS.length ? [...new Set(PESSOAS.map((p) => p.time))].map((nome) => ({ nome, logo: '/icones/logo-np-64.png' })) : [] })
         else if (url === '/assets/data/twitch.json') return json(res, { canais: [], chat: false })
         next()
       })

@@ -319,7 +319,7 @@ export default function PerfilInventario({ steamId, nome, resumoStatus, children
                         <small>{t('Caixa fechada')}</small>
                         {cx?.preco != null && (
                           <span className="inv-cartao-valor">
-                            <img src="/assets/logos/logo-np-64.png" alt="" width="14" height="14" />
+                            <img src="/icones/logo-np-64.png" alt="" width="14" height="14" />
                             {numero(cx.preco)} NP
                           </span>
                         )}

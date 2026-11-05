@@ -19,7 +19,7 @@ export default function ResumoMenuConta({ conta, nome, avatar, conectado, seg, a
   const link = linkPerfil(conta.id), jogou = j?.mapas > 0
   const jaAssina = Boolean(useNivelSub(conta.id)) // quem já tem Premium ativo não vê o botão de assinar
   return <>
-    <header className="nc-topo"><ComMoldura steamId={conta.id} emblema><img src={avatar || '/assets/logos/logo-np-64.png'} alt="" width="52" height="52"/></ComMoldura><div className="nc-nome"><b>{nome}</b><span className={conectado?'online':''}>{conectado?t('Online'):t('Offline')}</span></div><SeloNivel nivel={nivel.nivel} tamanho={32}/><button type="button" className="nc-fechar" onClick={aoFechar} aria-label={t('Fechar')}>×</button></header>
+    <header className="nc-topo"><ComMoldura steamId={conta.id} emblema><img src={avatar || '/icones/logo-np-64.png'} alt="" width="52" height="52"/></ComMoldura><div className="nc-nome"><b>{nome}</b><span className={conectado?'online':''}>{conectado?t('Online'):t('Offline')}</span></div><SeloNivel nivel={nivel.nivel} tamanho={32}/><button type="button" className="nc-fechar" onClick={aoFechar} aria-label={t('Fechar')}>×</button></header>
     <div className="nc-conquistas"><a href={link+'#insignias'}>{ins.length ? <InsigniasMini steamId={conta.id} max={3}/> : t('Sem medalhas')}</a><a href={link}>{jogou?t('{n} partidas',{n:j.mapas}):t('Sem partidas')}</a></div>
     <dl className="nc-stats"><div><dt>K/D</dt><dd>{jogou?Number(j.kd||0).toFixed(2):'—'}</dd></div><div><dt>{t('Vitórias')}</dt><dd>{jogou?j.vitorias:'—'}</dd></div><div><dt>HS</dt><dd>{jogou?`${Math.round(j.hsPct||0)}%`:'—'}</dd></div></dl>
     <div className="nc-principais"><a href={link}>{t('Ver perfil')}</a><a href={link+'&conta=1'}><IconeConta tipo="configuracoes"/>{t('Configurações')}</a></div>

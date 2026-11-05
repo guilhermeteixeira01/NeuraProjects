@@ -132,7 +132,7 @@ export function ConteudoCartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
         )}
         {valor != null && !c4 && (
           <span className="inv-cartao-valor">
-            <img src="/assets/logos/logo-np-64.png" alt="" width="14" height="14" />
+            <img src="/icones/logo-np-64.png" alt="" width="14" height="14" />
             {Number(valor).toLocaleString('pt-BR')} NP
           </span>
         )}

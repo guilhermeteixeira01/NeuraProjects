@@ -18,7 +18,7 @@ export function CarregandoNP({ tela = false, pequeno = false }) {
         {Array.from({ length: 12 }, (_, i) => (
           <i key={i} style={{ '--i': i }} />
         ))}
-        <img src="/assets/logos/logo-np-64.png" alt="" width="48" height="48" draggable="false" />
+        <img src="/icones/logo-np-64.png" alt="" width="48" height="48" draggable="false" />
       </div>
     </div>
   )

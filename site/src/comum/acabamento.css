@@ -107,7 +107,7 @@ html:not([data-tema='claro'], [data-tema='branco']) {
     width: 56%;
     aspect-ratio: 1;
     transform: translate(-50%, -50%);
-    background: url('/assets/logos/android-chrome-192x192.png') center / contain no-repeat;
+    background: url('/icones/android-chrome-192x192.png') center / contain no-repeat;
     opacity: .17;
     filter: grayscale(.4) brightness(1.4);
     pointer-events: none;

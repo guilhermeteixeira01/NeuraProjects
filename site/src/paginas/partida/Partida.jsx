@@ -588,7 +588,7 @@ function PontosPremiumMapa({ d, vencedor }) {
   const ajuste = base - resultado - desempenho - bonusMvp
   return <section className="resultado-pontos">
     <h2>{t('Seus pontos')}</h2>
-    <div className="resultado-pontos-grade"><div><img src="/assets/logos/logo-np-64.png" alt=""/><span><b>+{g.np + bonus} NP</b><small>{t('Pontos da partida')}</small></span></div><div><IconeUI tipo="boost" tamanho={36}/><span><b>{comSinal(xp)} XP</b><small>{t('Experiência da partida')}</small></span></div></div>
+    <div className="resultado-pontos-grade"><div><img src="/icones/logo-np-64.png" alt=""/><span><b>+{g.np + bonus} NP</b><small>{t('Pontos da partida')}</small></span></div><div><IconeUI tipo="boost" tamanho={36}/><span><b>{comSinal(xp)} XP</b><small>{t('Experiência da partida')}</small></span></div></div>
     <div className="resultado-calculos"><h3>{t('Cálculo de NP')}</h3><dl><div><dt>{t('Resultado da partida')}</dt><dd>+{g.np} NP</dd></div><div><dt>Premium</dt><dd>{recibos ? '+' + bonus + ' NP' : t('Consultando recibo…')}</dd></div><div className="calculo-total"><dt>{t('Total')}</dt><dd>+{g.np + bonus} NP{!recibos && ' *'}</dd></div></dl>
     <h3>{t('Cálculo de XP')}</h3><dl><div><dt>{t('Resultado da partida')}</dt><dd>{comSinal(resultado)} XP</dd></div><div><dt>Rating {f(jogador.rating)}</dt><dd>{comSinal(desempenho)} XP</dd></div><div><dt>MVP</dt><dd>{comSinal(bonusMvp)} XP</dd></div>{ajuste !== 0 && <div><dt>{t('Ajuste do XP registrado / limite')}</dt><dd>{comSinal(ajuste)} XP</dd></div>}<div><dt>{t('Subtotal')}</dt><dd>{comSinal(base)} XP</dd></div>{tipo && <div><dt>{tipo === 'boost' ? 'Boost' : 'Freeze'}</dt><dd>{comSinal(delta)} XP</dd></div>}<div className="calculo-total"><dt>{t('Total')}</dt><dd>{comSinal(xp)} XP</dd></div></dl>
     {tipo && <div className="resultado-efeito"><StatusConsumivel tipo={tipo} base={base} delta={delta}/><small>{tipo === 'boost' ? t('Boost dobra o ganho positivo de XP. Na derrota, não concede bônus.') : t('Freeze protege a perda de XP. Na vitória, mantém o ganho normal.')}</small></div>}
@@ -670,7 +670,7 @@ function Conteudo({ d }) {
     <div className="resultado-pagina" style={arteDoBanner(d.mapa)}>
       <div id="carregando" className={comecou ? 'fim' : ''} aria-hidden="true">
         <div className="ld">
-          <img src="/assets/logos/logo-np-64.png" alt="" />
+          <img src="/icones/logo-np-64.png" alt="" />
           <span className="mono-label">{tr('CARREGANDO ESTATÍSTICAS')}</span>
           <div className="barra" />
         </div>

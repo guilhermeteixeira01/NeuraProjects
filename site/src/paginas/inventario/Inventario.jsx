@@ -842,7 +842,7 @@ function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEqui
           <div>
             <dt>{t('Valor')}</dt>
             <dd className="inv-painel-valor">
-              <img src="/assets/logos/logo-np-64.png" alt="" width="14" height="14" />
+              <img src="/icones/logo-np-64.png" alt="" width="14" height="14" />
               {Number(valor).toLocaleString('pt-BR')} NP
             </dd>
           </div>
@@ -1336,7 +1336,7 @@ function Conteudo() {
           <small>{g.tipo === 'adesivo' ? t('Adesivo') : g.tipo === 'chaveiro' ? t('Chaveiro') : t('Caixa fechada')}</small>
           {v != null && (
             <span className="inv-cartao-valor">
-              <img src="/assets/logos/logo-np-64.png" alt="" width="14" height="14" />
+              <img src="/icones/logo-np-64.png" alt="" width="14" height="14" />
               {v.toLocaleString('pt-BR')} NP
             </span>
           )}

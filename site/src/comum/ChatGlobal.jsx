@@ -79,7 +79,7 @@ function Autor({ id, nome, avatar, ts, nivelDe, children }) {
     <header className="cg-autor">
       <a className="cg-ava" href={linkPerfil(id)} tabIndex={-1} aria-hidden="true">
         <ComMoldura steamId={id} emblema>
-          <img src={foto || '/assets/logos/logo-np-64.png'} alt="" width="34" height="34" loading="lazy" />
+          <img src={foto || '/icones/logo-np-64.png'} alt="" width="34" height="34" loading="lazy" />
         </ComMoldura>
         {nivel > 0 && <SeloNivel nivel={nivel} tamanho={18} classe="cg-nivel" />}
       </a>

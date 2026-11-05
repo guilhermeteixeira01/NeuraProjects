@@ -400,7 +400,7 @@ export default function Nav({ pagina, trilha }) {
       <header data-site-nav="" className={`nx-nav${aberta ? ' nx-aberta' : ''}${rolou ? ' is-scrolled' : ''}`}>
         <div className="nx-nav-inner">
           <a className="nx-brand" href="/" aria-label="Neura Project">
-            <img src="/assets/logos/android-chrome-192x192.png" alt="" width="64" height="64" />
+            <img src="/icones/android-chrome-192x192.png" alt="" width="64" height="64" />
             <span>
               NEURA <span className="nx-outline">PROJECT</span>
               <span className="nx-sub">COUNTER-STRIKE 2</span>

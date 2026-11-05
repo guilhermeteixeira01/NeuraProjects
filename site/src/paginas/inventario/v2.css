@@ -83,7 +83,7 @@
 .inv-painel-cab small { color: #c9d3e1; font-size: 13.5px; }
 .inv-painel-arte { position: relative; display: grid; place-items: center; height: 250px; margin: 10px -20px 6px; background: radial-gradient(60% 60% at 50% 55%, color-mix(in srgb, var(--cor) 22%, transparent), transparent 72%), var(--inv-painel-fundo) 70% 40% / cover no-repeat; isolation: isolate; }
 .inv-painel-arte::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, #06121f 0%, rgb(14 23 39 / .55) 30%, rgb(11 19 32 / .7) 70%, #030e1a 100%); }
-.inv-painel-arte::after { content: ''; position: absolute; inset: 0; width: 100%; height: 100%; transform: none; z-index: -1; background: url('/assets/logos/android-chrome-192x192.png') center / 52% auto no-repeat; opacity: .12; pointer-events: none; }
+.inv-painel-arte::after { content: ''; position: absolute; inset: 0; width: 100%; height: 100%; transform: none; z-index: -1; background: url('/icones/android-chrome-192x192.png') center / 52% auto no-repeat; opacity: .12; pointer-events: none; }
 .inv-painel-arte img { width: 92%; height: 92%; object-fit: contain; filter: drop-shadow(0 16px 22px rgb(0 0 0 / .65)); }
 .inv-painel-float { display: grid; gap: 10px; padding: 12px 0 4px; }
 .inv-painel-float-cab { display: flex; justify-content: space-between; color: #f4f7fc; font-size: 14.5px; }
@@ -170,7 +170,7 @@ html body:has(.inv-pagina) { background: #010b16 !important; }
 #root .inv-pagina .inv-cartao:not(#_) .inv-cartao-arte::after {
   content: ''; display: block; position: absolute; inset: 0; width: 100%; height: 100%;
   aspect-ratio: auto; transform: none; filter: none; z-index: 0; pointer-events: none;
-  background: url('/assets/logos/android-chrome-192x192.png') center / 52% auto no-repeat; opacity: .12;
+  background: url('/icones/android-chrome-192x192.png') center / 52% auto no-repeat; opacity: .12;
 }
 #root .inv-pagina .inv-cartao:not(#_) .inv-cartao-nome { position: relative; z-index: 1; }
 #root .inv-pagina .inv-cartao .inv-arma-box { z-index: 1; inset: 8px; width: auto; height: auto; }

@@ -103,7 +103,7 @@ export default function Layout({ pagina, trilha, children }) {
         if (tela) return
         tela = document.createElement('div')
         tela.className = 'cnp-nav'
-        tela.innerHTML = '<div class="cnp cnp-tela"><div class="cnp-anel" aria-hidden="true">' + Array.from({ length: 12 }, (_, i) => '<i style="--i:' + i + '"></i>').join('') + '<img src="/assets/logos/logo-np-64.png" alt="" width="48" height="48"></div></div>'
+        tela.innerHTML = '<div class="cnp cnp-tela"><div class="cnp-anel" aria-hidden="true">' + Array.from({ length: 12 }, (_, i) => '<i style="--i:' + i + '"></i>').join('') + '<img src="/icones/logo-np-64.png" alt="" width="48" height="48"></div></div>'
         document.body.appendChild(tela)
       }, 180)
     }

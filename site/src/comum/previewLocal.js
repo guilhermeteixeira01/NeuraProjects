@@ -17,7 +17,7 @@ export function ativarPreviewLocal(opcoes = {}) {
   // np-preview-id (localStorage): ver a prévia como outro jogador do ranking, para conferir telas com dados reais
   const id = (() => { try { return localStorage.getItem('np-preview-id') || '' } catch { return '' } })() || opcoes.id || '76561198000000011'
   const nome = opcoes.nome || 'Jogador de teste'
-  const avatar = opcoes.avatar || '/assets/logos/logo-np-64.png'
+  const avatar = opcoes.avatar || '/icones/logo-np-64.png'
   const CHAVE_ESTADO = opcoes.chaveEstado || 'np-preview-dados-v3-molduras'
   // Conquistas de demonstração: existem somente no navegador da prévia local.
   const exemplos = [

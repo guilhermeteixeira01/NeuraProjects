@@ -39,7 +39,7 @@ function Moedas({ nivel }) {
   const tam = 28 + nivel * 5
   return (
     <span className="dep-moedas" aria-hidden="true">
-      <img src="/assets/logos/logo-np-64.png" alt="" width={tam} height={tam} />
+      <img src="/icones/logo-np-64.png" alt="" width={tam} height={tam} />
     </span>
   )
 }

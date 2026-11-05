@@ -579,7 +579,7 @@ html.lj-travado .nx-rolagem { display: none !important; }
 .lj-drops-lista > li { width: 172px; }
 @keyframes lj-drop-entra { from { width: 0; opacity: 0; transform: translateX(-40px); } 60% { opacity: 1; } to { width: 172px; opacity: 1; transform: none; } }
 .lj-tile { background: linear-gradient(150deg, color-mix(in srgb, var(--cor) 50%, #0b0c12) 0%, color-mix(in srgb, var(--cor) 20%, #0b0c12) 100%); }
-.lj-tile::before { content: ''; position: absolute; left: 50%; top: 8px; width: 82px; height: 82px; transform: translateX(-50%); background: url('/assets/logos/android-chrome-192x192.png') center / contain no-repeat; opacity: .17; filter: grayscale(.4) brightness(1.4); pointer-events: none; }
+.lj-tile::before { content: ''; position: absolute; left: 50%; top: 8px; width: 82px; height: 82px; transform: translateX(-50%); background: url('/icones/android-chrome-192x192.png') center / contain no-repeat; opacity: .17; filter: grayscale(.4) brightness(1.4); pointer-events: none; }
 .lj-tile-arma { z-index: 1; top: 6px; width: 164px; height: 78px; }
 .lj-tile-nome { z-index: 1; }
 @media (max-width: 700px) {

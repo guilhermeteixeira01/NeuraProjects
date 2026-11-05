@@ -75,7 +75,7 @@ function SeloElite({ tamanho, classe }) {
           </g>
         </g>
         {/* logo do site no meio da gema Elite */}
-        <image href="/assets/logos/logo-np-64.png" x="31" y="33" width="38" height="38" preserveAspectRatio="xMidYMid meet" />
+        <image href="/icones/logo-np-64.png" x="31" y="33" width="38" height="38" preserveAspectRatio="xMidYMid meet" />
         <path className="selo-brilho" d={BRILHO} />
         {FAISCAS.map(([d, atraso], i) => (
           <path key={i} className="elite-faisca" d={d} style={{ animationDelay: `${atraso}s` }} />

@@ -24,7 +24,7 @@ function Saldo({ saldo }) {
   const t = useT()
   return (
     <div className="lj-saldo" title={t('Neura Pontos: 100 por mapa vencido e 40 por mapa perdido')}>
-      <img src="/assets/logos/logo-np-64.png" alt="" width="26" height="26" />
+      <img src="/icones/logo-np-64.png" alt="" width="26" height="26" />
       <b>{saldo == null ? '…' : numero(saldo)}</b>
       <small>NP</small>
     </div>
@@ -49,7 +49,7 @@ function CartaoCaixa({ c, tem, aoAbrir }) {
         </span>
         <b>{c.nome}</b>
         <span className="lj-caixa-preco">
-          <img src="/assets/logos/logo-np-64.png" alt="" width="16" height="16" /> {numero(c.preco)}
+          <img src="/icones/logo-np-64.png" alt="" width="16" height="16" /> {numero(c.preco)}
         </span>
         {tem > 0 && <em className="lj-tem">{t('Você tem {n}', { n: tem })}</em>}
       </button>

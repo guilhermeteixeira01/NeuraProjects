@@ -15,7 +15,7 @@ export default function RodapeComunidade() {
     <div className="np-rodape-skins" aria-hidden="true">{skins.map((skin,i)=><img className={`np-rodape-skin np-rodape-skin-${i}`} key={skin.nome} src={skin.imagem} alt="" loading="lazy" decoding="async" width="512" height="384" />)}</div>
     <div className="wrap">
       <div className="np-rodape-grade">
-        <div className="np-rodape-marca"><img src="/assets/logos/logo-np-64.png" alt="" width="46" height="46" /><b>NEURA PROJECT</b><p>{t('Uma comunidade para evoluir, criar amizades e construir o futuro no competitivo.')}</p><button type="button" onClick={copiar}>{copiado ? t('Link copiado') : t('Compartilhar a comunidade')}</button>{erro && <small role="status">neuraproject.com.br</small>}</div>
+        <div className="np-rodape-marca"><img src="/icones/logo-np-64.png" alt="" width="46" height="46" /><b>NEURA PROJECT</b><p>{t('Uma comunidade para evoluir, criar amizades e construir o futuro no competitivo.')}</p><button type="button" onClick={copiar}>{copiado ? t('Link copiado') : t('Compartilhar a comunidade')}</button>{erro && <small role="status">neuraproject.com.br</small>}</div>
         {[
           ['Competir', [['Jogar','/lobby/'],['Partidas','/partidas/'],['Ranking','/ranking/']]],
           ['Coleção', [['Inventário','/inventario/'],['Loja','/loja/'],['Loja de skins','/loja/?aba=skins'],['Loja geral','/loja/?aba=geral']]],
