@@ -507,6 +507,7 @@ export default function Nav({ pagina, trilha }) {
             // logado: o perfil abre pelo cartão da conta (barra de cima); a barra de baixo só tem o botão de entrar
             <button type="button" className="nx-aba nx-steam" aria-label={t('Entrar com Steam')} onClick={entrar}>
               <i><IconeSteam /></i>
+              <span>{t('Entrar')}</span>
             </button>
           )}
         <button type="button" className={`nx-aba nx-baixo-mais${mais || maisAtivo ? ' is-active' : ''}`} aria-expanded={mais} aria-haspopup="menu" onClick={() => setMais((m) => !m)}>
