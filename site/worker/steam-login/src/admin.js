@@ -21,7 +21,6 @@ import { rotaAdminPagamento, rotaAdminPlanosSub } from './pagamentos.js'
 import { ABAS_ADMIN, abasDe, cargosDoJogador, configDoPainel, ehAdmin, faltaSub, lerPerfis, mudarPerfil, NIVEIS_SUB, precisaDoRanking, selosDe, SUB_IDS, tirarExclusivasSemCargo } from './perfis.js'
 import { lerRanking } from './ranking.js'
 import { registrar, rotaAdminLogs } from './registro.js'
-import { rotaAdminServidorCs2 } from './servidor-cs2.js'
 import { rotaAdminSkin, rotaAdminSkins } from './skins.js'
 import { lerUsuarios } from './usuarios.js'
 import { zerarTudo } from './zerar.js'
@@ -59,14 +58,7 @@ const ROTULO_ADMIN = {
   '/admin/nick': 'trocou o apelido do jogador',
   '/admin/nick-reset': 'limpou o apelido e liberou nova escolha',
 }
-const ROTULO_SERVIDOR = { iniciar: 'iniciou o servidor de CS2', parar: 'parou o servidor de CS2', reiniciar: 'reiniciou o servidor de CS2', comando: 'mandou comando ao servidor de CS2', gameinfo: 'conferiu o gameinfo.gi (Metamod) do servidor de CS2', plugins: 'atualizou o Metamod e o CounterStrikeSharp do servidor de CS2' }
 function descreverAcao(rota, quem, c) {
-  if (rota.startsWith('/admin/servidor/')) {
-    const acao = rota.replace('/admin/servidor/', '')
-    // o comando de console pode ter senha (sv_password, rcon): só a primeira palavra vai para o log
-    const extra = acao === 'comando' ? ` (${String(c.cmd || '').trim().split(/\s+/)[0].slice(0, 40)})` : [c.validar ? 'validando arquivos' : '', c.plugins ? 'atualizando plugins' : ''].filter(Boolean).map((x) => ` (${x})`).join('')
-    return { tipo: 'admin', quem, alvo: '', texto: (ROTULO_SERVIDOR[acao] || 'ação no servidor de CS2') + extra, dados: { rota } }
-  }
   const chaves = Object.keys(c).filter((k) => !['id', 'alvo'].includes(k))
   let texto = ROTULO_ADMIN[rota] || `ação em ${rota.replace('/admin/', '')}`
   if (rota === '/admin/perfil') texto = c.limpar ? 'apagou os dados do jogador' : c.sub === null ? 'removeu a assinatura' : `editou o perfil (${chaves.join(', ') || 'sem mudanças'})`
@@ -336,11 +328,9 @@ const LEEM_O_CORPO = new Set(['/admin/consumiveis', '/admin/loja-oficial', '/adm
 export async function rotaAdmin(req, env, quem, config, cors, rota, url) {
   const abas = await abasDe(quem.id, env, config)
   if (!abas.length) throw new ErroPermissao('admin')
-  // Painel do servidor de CS2: só o dono (derruba jogadores e roda comando de console na VPS)
-  const doServidor = rota.startsWith('/admin/servidor/')
-  const def = doServidor ? { metodos: ['GET', 'POST'], precisa: 'dono', atender: (c) => rotaAdminServidorCs2(c.req, c.env, c.rota, c.url, c.cors) } : ROTAS_ADMIN[rota]
+  const def = ROTAS_ADMIN[rota]
   if (!def || !def.metodos.includes(req.method)) throw new ErroNaoEncontrado('rota')
-  const corpo = req.method === 'POST' ? await lerCorpo(LEEM_O_CORPO.has(rota) || doServidor ? req.clone() : req) : {}
+  const corpo = req.method === 'POST' ? await lerCorpo(LEEM_O_CORPO.has(rota) ? req.clone() : req) : {}
   const precisa = typeof def.precisa === 'function' ? def.precisa(corpo) : def.precisa
   if (precisa === 'dono' ? quem.id !== env.DONO : precisa && ![precisa].flat().every((a) => abas.includes(a))) throw new ErroPermissao(precisa === 'dono' ? 'dono' : 'aba')
   const resposta = await def.atender({ req, env, quem, config, cors, rota, url, corpo })

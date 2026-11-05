@@ -23,7 +23,6 @@
 .adm-campo input, .adm-campo select, .adm-busca { min-height: 44px; background: var(--ui-raised); border-color: transparent; }
 .adm-ed-corpo { gap: 24px; }
 .adm-servidor, .sv-painel { background: var(--ui-surface); border: 0; }
-.adm-console, .sv-console { border-radius: 8px; font-family: Consolas, monospace; }
 @media(max-width:700px) { .adm-resumo { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; } .adm-resumo .caixa { padding: 16px; } .adm-bloco, .adm-dobra { padding: 16px; } .adm-abas button { flex: 1 1 100px; padding-inline: 10px; } .adm-ferramentas { align-items: stretch; } .adm-chips { gap: 5px; } .adm-tabela-box { max-width: 100%; } }
 
 /* Loja de personalização (aba Loja do painel): sem cartão de fundo, escolha clicando nas miniaturas */

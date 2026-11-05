@@ -11,7 +11,7 @@ DONO = "76561199151150360"
 # Depósito de NP (Asaas). Sandbox (testes) até a conta de produção estar pronta; produção: "https://api.asaas.com/v3".
 # Segredos: npx wrangler secret put ASAAS_API_KEY  e  npx wrangler secret put ASAAS_WEBHOOK_TOKEN
 ASAAS_URL = "https://api.asaas.com/v3"
-SERVIDOR_CONECTAR = "179.197.67.29:27015"
+SERVIDOR_CONECTAR = "185.219.189.45:27015"
 # Confirmação de e-mail / recuperação de senha por e-mail (Resend). Domínio neuraproject.com.br verificado em 25/10.
 # Segredo: npx wrangler secret put RESEND_API_KEY
 EMAIL_PRONTO = "1"

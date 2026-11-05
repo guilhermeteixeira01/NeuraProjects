@@ -24,7 +24,7 @@ import { corrigirFreezeVitorias } from './freeze-reparo.js'
  *   SERVIDOR_TOKEN     senha que o plugin do servidor de CS2 usa em /servidor/*
  *   SERVIDOR_SENHA     senha do servidor de CS2 (opcional): só os 10 jogadores da partida a recebem
  *   STEAM_API_KEY      chave da Web API da Steam (opcional; sem ela o token vai sem nome/avatar)
- *   ASAAS_API_KEY, ASAAS_WEBHOOK_TOKEN, CS2_AGENTE_URL, CS2_AGENTE_TOKEN, ZERAR_TOKEN (ver pagamentos.js, servidor-cs2.js, zerar.js)
+ *   ASAAS_API_KEY, ASAAS_WEBHOOK_TOKEN, ZERAR_TOKEN (ver pagamentos.js, zerar.js)
  */
 import { rotaAdmin } from './admin.js'
 import { rotaAfiliado } from './afiliado.js'

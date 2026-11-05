@@ -22,7 +22,6 @@ import AdminCaixas from './AdminCaixas.jsx'
 import AdminPontos, { ConfigDepositos } from './AdminPontos.jsx'
 import MercadoOficialAdmin from './AdminMercado.jsx'
 import AdminLogs from './AdminLogs.jsx'
-import AdminServidor from './AdminServidor.jsx'
 import AdminPlanos from './AdminPlanos.jsx'
 import { lerCaixasPublicas } from '../../comum/loja.js'
 import { useAvatar } from '../../comum/avatares.js'
@@ -1921,7 +1920,6 @@ export default function Admin() {
       ['equipe', 'Equipe', ['cargos', 'admins']],
       ['loja', 'Loja', ['caixas', 'assinaturas', 'pontos']],
       ['logs', 'Logs', ['logs']],
-      ['servidor', 'Servidor', ['servidor']],
     ].filter(([, , precisa]) => precisa.some(tem))
     const abaAtual = ABAS.some(([id]) => id === aba) ? aba : ABAS[0]?.[0]
     conteudo = (
@@ -2022,7 +2020,6 @@ export default function Admin() {
               </SubAbas>
             )}
             {abaAtual === 'logs' && <AdminLogs usuarios={usuarios} />}
-            {abaAtual === 'servidor' && eu.dono && <AdminServidor />}
           </div>
         </section>
         {editando && <EditarUsuario abas={eu.abas} usuarios={usuarios} u={editando} cargos={painel.config.cargos || []} ehAdmin={editando.id === painel.dono || (painel.config.admins || []).includes(editando.id)} souDono={eu.dono} fechar={fecharEdicao} aoSalvar={(perfis) => setPainel((p) => ({ ...p, perfis }))} />}

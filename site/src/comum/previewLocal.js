@@ -80,7 +80,7 @@ export function ativarPreviewLocal(opcoes = {}) {
     '/loja': { saldo: 5000, pontos: 5000, cfg: { maxQtd: 1 }, caixas, fechadas: {}, insignias: progressoInsignias({ abertas: 37, facas: 1 }, caixas).map((i) => ({ id: i.id, nome: i.nome, descricao: i.descricao, cor: i.cor, secreta: !!i.secreta, grupo: i.grupo || null, nivel: i.nivel || null, meta: i.meta, atual: i.atual, ganhou: i.ok ? Date.now() : 0 })), ganhas: {} },
     '/loja/saldo': { saldo: 5000 }, '/loja/caixas': caixas, '/loja/drops': { recentes: [], bons: [], top: [], agora: Date.now() },
     '/admin/dados': { usuarios: { [id]: { nome, avatar } }, perfis: {}, config, dono: id },
-    '/admin/logs': { logs: [], total: 0 }, '/admin/servidor/status': { estado: 'rodando', total: 0, logs: [] },
+    '/admin/logs': { logs: [], total: 0 },
   }
   // Modo demo: ajusta perfis, configuração, respostas e estado antes de a prévia começar a responder
   const ctx = { id, nome, avatar, pessoas, perfisDemo, config, respostas, estado: () => estado, caixas, catalogo, time, itens, guardar, novoId }
