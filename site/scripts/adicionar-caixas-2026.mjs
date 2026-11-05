@@ -42,17 +42,17 @@ const fontes = [
   ['outros/Rush A.png', 'caixa-rush-rush-a', 'Caixa Rush A', 'caixa-cs-tematicas-rush-b'],
   ['outros/Rush B.png', 'caixa-rush-rush-b', 'Caixa Rush B', 'caixa-cs-tematicas-rush-b'],
   ['outros/lego.png', 'caixa-extras-lego', 'Caixa Lego', 'caixa-desenhos-robo-de-sucata'],
-  ['outros/coca cola.jfif', 'caixa-extras-coca-cola', 'Caixa Coca-Cola', 'caixa-cs-tematicas-clutch'],
+  ['outros/Coca Cola.png', 'caixa-extras-coca-cola', 'Caixa Coca-Cola', 'caixa-cs-tematicas-clutch'],
 ]
 let id = Math.max(...caixas.map((c) => c.id), ...ler('worker/steam-login/src/caixas-retiradas-ids.json'))
 fs.mkdirSync(new URL('public/assets/caixas/web/', base), { recursive: true })
 const novas = []
 for (const [arquivo, slug, nome, origem] of fontes) {
   const existente = caixas.find((c) => c.slug === slug)
+  const img = existente?.img || `/assets/caixas/web/${slug}.webp`
+  await sharp(fileURLToPath(new URL(`public/assets/caixas/${arquivo}`, base))).resize({ width: 720, height: 720, fit: 'inside', withoutEnlargement: true }).webp({ quality: 86 }).toFile(fileURLToPath(new URL(`public${img}`, base)))
   if (existente) continue
   const c = ['faca', 'luva'].includes(origem) ? luxo(origem) : modelo(origem)
-  const img = `/assets/caixas/web/${slug}.webp`
-  await sharp(fileURLToPath(new URL(`public/assets/caixas/${arquivo}`, base))).resize({ width: 720, height: 720, fit: 'inside', withoutEnlargement: true }).webp({ quality: 86 }).toFile(fileURLToPath(new URL(`public${img}`, base)))
   novas.push({ ...c, id: ++id, slug, nome, img, ativa: true, arquivada: false })
 }
 const calculados = precoDasCaixas(novas, precos.skins, precos.a, precos.c, 60000)
