@@ -68,7 +68,8 @@ const num = (v, min, max, padrao) => {
 // Revisão das caixas de fábrica: quando sobe, as caixas salvas recebem o conteúdo novo de caixas-iniciais.json (o que o dono mudou fica):
 //   2: Kawaii e Terror só com adesivos; Lendas e Espacial só com amuletos · 6: itens e facas novos em todas e taxas de volta ao padrão
 //   8: antigas arquivadas · 10: tier especial com luvas · 11: primeiras 31 retiradas · 12: coleção nova e retirada definitiva sem reembolso
-const REVISAO_CAIXAS = 13
+//   14: armas, facas, luvas e outros temas; atualiza a arte diária e preserva a coleção de times
+const REVISAO_CAIXAS = 14
 const CAIXAS_COLECAO_ANTERIOR = new Set(COLECAO_ANTERIOR)
 const ATUALIZAR_CAIXAS = ['caixa-kawaii', 'caixa-terror', 'caixa-lendas', 'caixa-espacial']
 const DOCS_CAIXAS = ['caixas', 'caixas-revisao', 'caixas-vistas', 'caixas-removidas', 'loja-config', 'loja-bonus']
@@ -107,7 +108,7 @@ async function atualizarCaixas(env) {
         const removidas = new Set(d['caixas-removidas'].map(Number))
         if (Array.isArray(d['loja-bonus'])) d['loja-bonus'] = d['loja-bonus'].map((b) => b.caixa && removidas.has(Number(b.caixa)) ? { ...b, apagado: true, qtd: 0 } : b)
       }
-      if (revisao < 13) {
+      if (revisao < 14) {
         d.caixas = d.caixas.map((c) => {
           const nova = deFabrica(c.slug)
           if (nova) return { ...c, img: nova.img }

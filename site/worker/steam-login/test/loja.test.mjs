@@ -211,7 +211,7 @@ test('toda insígnia do catálogo tem arte tratada e todas as secretas têm a ve
 })
 
 test('as caixas iniciais são válidas (imagem existe, tem de tudo, pesos > 0)', () => {
-  assert.equal(CAIXAS.length, 23)
+  assert.equal(CAIXAS.length, 35)
   assert.equal(CAIXAS.filter((c) => c.arquivada && !c.diaria).length, 0) // as 31 antigas foram apagadas (revisão 11)
   const removidas = JSON.parse(fs.readFileSync(new URL('../src/caixas-removidas.json', import.meta.url), 'utf8'))
   assert.equal(removidas.length, 101)

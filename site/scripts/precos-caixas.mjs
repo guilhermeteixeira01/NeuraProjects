@@ -35,7 +35,7 @@ export function precoDasCaixas(caixasIniciais, skins, adesivos, chaveiros, simul
   const facas = tabela.find((t) => t.nome === 'Caixa de Facas')
   if (luvas && facas && luvas.depois <= facas.depois) {
     luvas.depois = Math.ceil((facas.depois * 1.15) / 50) * 50
-    precos['caixa-luvas'] = luvas.depois
+    precos[caixasIniciais.find((c) => c.nome === luvas.nome).slug] = luvas.depois
   }
   return { precos, tabela }
 }

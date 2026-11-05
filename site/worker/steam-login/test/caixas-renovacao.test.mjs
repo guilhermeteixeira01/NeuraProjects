@@ -14,7 +14,7 @@ const ID = '76561198000000011'
 
 test('catálogo novo tem imagens válidas, preços positivos e IDs que não reutilizam caixas antigas', () => {
   const antigos = new Set(modelos.map((c) => c.id))
-  assert.equal(novas.length, 23)
+  assert.equal(novas.length, 35)
   assert.equal(new Set(novas.map((c) => c.id)).size, novas.length)
   for (const c of novas) {
     assert.ok(!antigos.has(c.id))
@@ -22,6 +22,43 @@ test('catálogo novo tem imagens válidas, preços positivos e IDs que não reut
     assert.ok(fs.existsSync(new URL(`../../../public${c.img}`, import.meta.url)), c.img)
   }
   assert.equal(novas.filter(c => c.slug.startsWith('caixa-times-')).length, 22)
+})
+
+test('revisão 14 preserva IDs, estoque e preços personalizados dos times e atualiza a arte diária', async () => {
+  const anteriores = structuredClone(novas.filter(c => c.slug.startsWith('caixa-times-') || c.diaria))
+  anteriores.forEach((c, i) => { c.id = 3000 + i })
+  anteriores[0].preco = 987
+  anteriores.find(c => c.diaria).img = '/assets/caixas/neura-projects-caixa-diaria.png'
+  const time = anteriores[0]
+  const { env } = ambiente({ [`skins:${ID}`]: JSON.stringify({ v: 2, itens: { time: { t: 'caixa', d: time.id, p: 0 } }, criado: {}, equip: { ct: {}, tr: {} } }) })
+  await gravarDoc(env, 'caixas', anteriores)
+  await gravarDoc(env, 'caixas-revisao', 13)
+  await gravarDoc(env, 'caixas-vistas', anteriores.map(c => c.slug))
+  const atualizadas = await lerCaixas(env)
+  assert.equal(atualizadas.length, 35)
+  assert.equal(atualizadas.find(c => c.slug === time.slug).id, time.id)
+  assert.equal(atualizadas.find(c => c.slug === time.slug).preco, 987)
+  assert.equal(atualizadas.find(c => c.diaria).img, '/assets/caixas/web/caixa-diaria.webp')
+  assert.ok(atualizadas.filter(c => !anteriores.some(a => a.slug === c.slug)).every(c => c.id > 3022))
+  await limparInventariosCaixasAntigas(env)
+  assert.equal((await pedirAoJogador(env, ID, { acao: 'inv-ler' })).inv.itens.time.d, time.id)
+  assert.deepEqual(await lerCaixas(env), atualizadas)
+})
+
+test('caixas por arma e de luxo contêm os tipos anunciados e preços calculados', () => {
+  const defs = { 'ak-47': 7, awp: 9, 'glock-18': 4, 'm4a1-s': 60, m4a4: 16, 'usp-s': 61 }
+  for (const [slug, def] of Object.entries(defs)) {
+    const c = novas.find(c => c.slug === `caixa-armas-${slug}`)
+    assert.ok(c?.itens.length)
+    assert.ok(c.itens.every(it => it.d === def))
+  }
+  for (const [slug, tipo] of [['facas', 'faca'], ['luvas', 'luva']]) {
+    const c = novas.find(c => c.slug === `caixa-extras-${slug}`)
+    assert.ok(c.itens.length > 0 && c.itens.length <= 300)
+    assert.ok(c.itens.every(it => it.t === tipo))
+    assert.equal(c.facas.length, 0)
+  }
+  assert.ok(novas.find(c => c.slug === 'caixa-extras-luvas').preco > novas.find(c => c.slug === 'caixa-extras-facas').preco)
 })
 
 test('remoção limpa referências e preserva skins, caixas atuais e dados do inventário', () => {

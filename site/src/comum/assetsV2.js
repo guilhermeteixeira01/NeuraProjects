@@ -63,7 +63,7 @@ export const COMUNIDADE_V3 = {
   cenario: { src: W + 'community-circus-background-v3.webp', w: 1280, h: 684 },
   campeao: { src: W + 'community-champion-seated-v3.webp', w: 760, h: 886 },
 }
-export const CAIXA_DIARIA_V3 = { src: W + 'daily-case-blue-v3.webp', w: 360, h: 360 }
+export const CAIXA_DIARIA_V3 = { src: '/assets/caixas/web/caixa-diaria.webp', w: 720, h: 720 }
 
 // Fundo de um bloco como variável CSS (--np-fundo): sem a arte, o CSS fica com o gradiente liso de reserva
 export const fundoCss = (chave) => (FUNDOS[chave] ? { '--np-fundo': `url("${FUNDOS[chave].src}")` } : undefined)
