@@ -9,6 +9,7 @@ import { useAvatar } from '../../comum/avatares.js'
 import { acaoLobby, msAte, useRelogio } from '../../comum/lobby.js'
 import { getMap, mapImage } from '../../comum/mapas.js'
 import { useT } from '../../comum/i18n.js'
+import { montarConexaoCs2 } from '../../comum/conexaoCs2.js'
 import ChatSala from './ChatSala.jsx'
 import { playSound } from '../neurapick/data/sounds.js'
 import { FORMATS, SIDE_LABEL, buildSteps, deriveState } from '../neurapick/data/veto.js'
@@ -16,7 +17,6 @@ import { FORMATS, SIDE_LABEL, buildSteps, deriveState } from '../neurapick/data/
 // Sala de Pick & Ban da partida (aparece no lugar do lobby quando os 10 aceitaram): um time de cada lado (foto, moldura e card de
 // cada jogador) e o veto no centro. O estado do veto mora no worker (src/amigos.js): só o líder do time da vez pode banir/escolher/
 // definir o lado; todos veem ao vivo. Tempo esgotado joga sozinho. Acabou o veto, o centro vira o botão "Entrar na partida".
-// O que o botão faz ainda vai ser definido.
 
 const ERROS = {
   vez: 'Não é a sua vez.',
@@ -114,7 +114,7 @@ function Equipe({ lado, time, nome, naVez, ranking }) {
 }
 
 // O que o botão do fim do veto mostra, conforme a fase do servidor de CS2 (o plugin avisa o worker; ver src/amigos.js):
-// fila/entregue = esperando o servidor, carregada/jogando = pode entrar (steam://connect), encerrada/erro = acabou.
+// fila/entregue = esperando o servidor, carregada/jogando = pode entrar no CS2, encerrada/erro = acabou.
 // fechaEm/desvio: a sala não tem botão de cancelar nem de encerrar; quando a série acaba (ou dá erro) ela fecha sozinha e mostra o tempo que falta
 // Janela: chamar um amigo para o lugar de quem caiu da partida
 function ChamarSubstituto({ vagas, aoFechar, aoChamar, ocupado }) {
@@ -186,6 +186,17 @@ function Conectar({ servidor, fechaEm, desvio, aoChamarSubstituto }) {
   const restante = Math.ceil(msAte(fechaEm, desvio) / 1000)
   const fecha = <small>{t('Voltando ao lobby em {tempo}', { tempo: `${Math.floor(restante / 60)}:${String(restante % 60).padStart(2, '0')}` })}</small>
   const { conectar = '', senha = '' } = servidor || {}
+  const conexao = montarConexaoCs2(conectar, senha)
+  const [copia, setCopia] = useState('')
+  useEffect(() => setCopia(''), [conectar, senha])
+  const copiarComando = async () => {
+    try {
+      await navigator.clipboard.writeText(conexao.comando)
+      setCopia('copiado')
+    } catch {
+      setCopia('manual')
+    }
+  }
 
   if (estado === 'fila' || estado === 'entregue')
     return (
@@ -221,10 +232,17 @@ function Conectar({ servidor, fechaEm, desvio, aoChamarSubstituto }) {
   const vagas = servidor?.vagas || []
   return (
     <div className="sala-servidor">
-      {conectar ? (
-        <a className="sala-entrar" href={`steam://connect/${conectar}${senha ? `/${encodeURIComponent(senha)}` : ''}`}>
-          {t('ENTRAR NA PARTIDA')}
-        </a>
+      {conexao ? (
+        <>
+          <a className="sala-entrar" href={conexao.url}>
+            {t('ENTRAR NA PARTIDA')}
+          </a>
+          <button type="button" className="sala-copiar-conexao" onClick={copiarComando}>
+            {t(copia === 'copiado' ? 'Comando copiado' : 'Copiar comando do console')}
+          </button>
+          <small>{t('Se a Steam não conectar, cole o comando no console do CS2.')}</small>
+          {copia === 'manual' && <textarea className="sala-comando-conexao" readOnly value={conexao.comando} aria-label={t('Comando para conectar ao servidor')} onFocus={e => e.currentTarget.select()} />}
+        </>
       ) : (
         <p className="lb-erro" role="alert">
           {t('O endereço do servidor ainda não foi configurado.')}
