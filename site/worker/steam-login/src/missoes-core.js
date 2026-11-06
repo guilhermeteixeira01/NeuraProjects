@@ -39,13 +39,17 @@ export function resumoMissao(partida,id,chave) {
   if(!p || p.bot || !p.time || p.missoes?.participou!==true)return null
   if(meta.modo==='5v5'&&numeroMissao(p.missoes?.roundsValidos)<1)return null
   const presenteFinal=(meta.elencoFinal||[]).includes(id)
+  const timeFinal = meta.timesFinais?.[id] || p.time
+  const companheiros = [...new Set(partida.jogadores.filter(j => String(j.steamId) !== id && !j.bot && j.missoes?.participou === true && numeroMissao(j.missoes?.roundsValidos) > 0 && meta.elencoFinal.includes(String(j.steamId)) && (meta.timesFinais?.[j.steamId] || j.time) === timeFinal).map(j => String(j.steamId)))].slice(0, 4)
   const s=p.missoes || {},armas={}
   for(const [nome,v] of Object.entries(s.armas||{}))armas[nome]=numeroMissao(v)
-  return {chave,mapa:String(partida.mapa||''),modo:meta.modo,presenteFinal,venceu:presenteFinal&&(partida.placarA>partida.placarB?'A':partida.placarB>partida.placarA?'B':null)===(meta.timesFinais?.[id]||p.time),
+  return {chave,mapa:String(partida.mapa||''),modo:meta.modo,presenteFinal,companheiros,venceu:presenteFinal&&(partida.placarA>partida.placarB?'A':partida.placarB>partida.placarA?'B':null)===(meta.timesFinais?.[id]||p.time),
     kills:numeroMissao(s.kills),headshots:numeroMissao(s.headshots),assistencias:numeroMissao(s.assistencias),clutches:numeroMissao(s.clutches),plantios:numeroMissao(s.plantios),desarmes:numeroMissao(s.desarmes),melhorRound:Math.min(5,numeroMissao(s.melhorRound)),armas}
 }
 
 export function progressoMissoes(partidas,config={},agora=Date.now()) {
+  const amigos = new Set((config.amigos || []).filter(id => /^\d{17}$/.test(id)))
+  const duplas = {}, partidasSquad = []
   const cont={kills:0,headshots:0,assistencias:0,clutches:0,plantios:0,desarmes:0,melhorRound:0,vitorias:0,awp:0,he:0,fogo:0,pistolas:0,submetralhadoras:0,rifles:0,escopetas:0,precisao:0},vitorias=new Set(),mapas={}
   const vistos=new Set()
   for(const p of partidas) {
@@ -53,6 +57,11 @@ export function progressoMissoes(partidas,config={},agora=Date.now()) {
     vistos.add(p.chave)
     if(p.presenteFinal===true)mapas[`${p.modo}:${p.mapa}`]=(mapas[`${p.modo}:${p.mapa}`]||0)+1
     if(p.modo!=='5v5')continue
+    if (p.presenteFinal === true) {
+      const juntos = [...new Set(p.companheiros || [])].filter(id => amigos.has(id))
+      for (const id of juntos) duplas[id] = (duplas[id] || 0) + 1
+      if (juntos.length >= 4) partidasSquad.push(p.chave)
+    }
     for(const k of ['kills','headshots','assistencias','clutches','plantios','desarmes'])cont[k]+=numeroMissao(p[k])
     cont.melhorRound=Math.max(cont.melhorRound,numeroMissao(p.melhorRound))
     if(p.venceu){cont.vitorias++;vitorias.add(p.mapa)}
@@ -73,6 +82,11 @@ export function progressoMissoes(partidas,config={},agora=Date.now()) {
       if(r){atual=cont[r[0]];meta=r[1]}
       if(m.id==='missao-versatil'){detalhes=Object.fromEntries(Object.keys(CATEGORIAS).map(c=>[c,{atual:cont[c],meta:20}]));atual=Object.values(detalhes).filter(d=>d.atual>=20).length;meta=5}
       if(m.id==='missao-explorador'){detalhes=Object.fromEntries(EXPLORADOR.map(c=>[c,{atual:vitorias.has(c)?1:0,meta:1}]));atual=EXPLORADOR.filter(c=>vitorias.has(c)).length;meta=7}
+    } else if(m.categoria==='amizades') {
+      if (m.id === 'amizade-primeira') { atual = amigos.size; meta = 1 }
+      if (m.id === 'amizade-circulo') { atual = amigos.size; meta = 10 }
+      if (m.id === 'amizade-dupla-inseparavel') { atual = Math.max(0, ...Object.values(duplas)); meta = 10 }
+      if (m.id === 'amizade-squad-unido') { atual = partidasSquad.length; meta = 1 }
     } else if(m.categoria==='mapas') {
       const chave=m.id.replace('mapa-',''),cfg={...MAPAS_MISSOES[chave],...config.mapas?.[chave]}
       meta=Math.max(1,Math.min(10000,Math.round(Number(cfg.meta??config.metaMapas)||10)))

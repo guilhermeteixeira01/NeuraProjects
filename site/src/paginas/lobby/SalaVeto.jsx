@@ -181,22 +181,11 @@ function FotoJogador({ p }) {
 
 function Conectar({ servidor, fechaEm, desvio, aoChamarSubstituto }) {
   const t = useT()
-  const [copiado, setCopiado] = useState(false)
   const estado = servidor?.estado || 'fila'
   useRelogio(estado === 'encerrada' || estado === 'erro', 1000)
   const restante = Math.ceil(msAte(fechaEm, desvio) / 1000)
   const fecha = <small>{t('Voltando ao lobby em {tempo}', { tempo: `${Math.floor(restante / 60)}:${String(restante % 60).padStart(2, '0')}` })}</small>
   const { conectar = '', senha = '' } = servidor || {}
-  const comando = `connect ${conectar}${senha ? `; password ${senha}` : ''}`
-  const copiar = async () => {
-    try {
-      await navigator.clipboard.writeText(comando)
-      setCopiado(true)
-      setTimeout(() => setCopiado(false), 2000)
-    } catch {
-      // sem acesso à área de transferência: o comando continua na tela para copiar na mão
-    }
-  }
 
   if (estado === 'fila' || estado === 'entregue')
     return (
@@ -247,14 +236,6 @@ function Conectar({ servidor, fechaEm, desvio, aoChamarSubstituto }) {
           <small>{t('Caiu do seu time: {nome}', { nome: vagas.map((v) => v.nome || v.id).join(', ') })}</small>
           <button type="button" className="lb-btn lb-btn-g" onClick={aoChamarSubstituto}>
             + {t('Chamar substituto')}
-          </button>
-        </span>
-      )}
-      {conectar && (
-        <span className="sala-comando">
-          <code>{comando}</code>
-          <button type="button" onClick={copiar}>
-            {copiado ? t('Copiado') : t('Copiar')}
           </button>
         </span>
       )}

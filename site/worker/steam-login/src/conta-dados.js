@@ -3,6 +3,7 @@ import { conferirToken } from './auth.js'
 import { rotaAmigos } from './amigos.js'
 import { ErroPedido, ErroPermissao } from './erros.js'
 import { json, lerCorpo } from './http.js'
+import { linkFaceitPerfil } from '../../../src/comum/linksPerfil.js'
 
 const AREAS=['perfil','inventario','amigos','conquistas','convites']
 const OPCOES=['todos','amigos','ninguem']
@@ -18,7 +19,7 @@ export function validarDadosConta(c) {
  const texto=(k,max)=>{if(typeof(c[k]??'')!=='string'||String(c[k]||'').length>max)throw new ErroPedido(k);return String(c[k]||'').trim()}
  const d={nome:texto('nome',60),sobrenome:texto('sobrenome',80),discord:texto('discord',80),nascimento:texto('nascimento',10),cpf:validarCpf(c.cpf),descricao:texto('descricao',600),faceit:texto('faceit',240)}
  if(d.nascimento){const data=new Date(d.nascimento+'T12:00:00Z');if(!/^\d{4}-\d{2}-\d{2}$/.test(d.nascimento)||isNaN(data)||data.toISOString().slice(0,10)!==d.nascimento||data>Date.now()||data.getUTCFullYear()<1900)throw new ErroPedido('nascimento')}
- if(d.faceit){let u;try{u=new URL(d.faceit)}catch{throw new ErroPedido('faceit')}if(u.protocol!=='https:'||!['faceit.com','www.faceit.com'].includes(u.hostname)||!/^\/(?:[a-z-]+\/)?players\//i.test(u.pathname))throw new ErroPedido('faceit');d.faceit=u.origin+u.pathname}
+ if(d.faceit){const link=linkFaceitPerfil(d.faceit);if(!link)throw new ErroPedido('faceit');d.faceit=link}
  d.privacidade={...PRIVACIDADE}
  for(const k of AREAS){const valor=c.privacidade?.[k]??'todos';if(!OPCOES.includes(valor))throw new ErroPedido('privacidade');d.privacidade[k]=valor}
  return d
@@ -55,7 +56,7 @@ export async function filtrarConquistasPublicas(resposta,req,env) {
  let amigos=[]
  if(quem&&Object.values(mapa).some(p=>p.conquistas==='amigos')){const r=await rotaAmigos(new Request('https://interno/amigos'),env,quem,{});amigos=(await r.json()).amigos?.map(a=>a.id)||[]}
  const perfis=await resposta.json()
- for(const [id,p] of Object.entries(perfis)){const regra=mapa[id]?.conquistas||'todos';if(id!==quem?.id&&regra!=='todos'&&!(regra==='amigos'&&amigos.includes(id)))delete p.insignias}
+ for(const [id,p] of Object.entries(perfis)){const regra=mapa[id]?.conquistas||'todos';if(id!==quem?.id&&regra!=='todos'&&!(regra==='amigos'&&amigos.includes(id))){delete p.insignias;delete p.insigniasDestacadas}}
  return json(perfis,200,{'Access-Control-Allow-Origin':'*','Cache-Control':'private, no-store','Vary':'Authorization, Origin',...(resposta.headers.has('X-NP-Freeze-Reparo')?{'X-NP-Freeze-Reparo':resposta.headers.get('X-NP-Freeze-Reparo')}:{})})
 }
 export async function rotaPerfilPublico(req,env,quem,cors,url) {

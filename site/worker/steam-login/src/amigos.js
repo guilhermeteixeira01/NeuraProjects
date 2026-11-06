@@ -13,7 +13,7 @@ import { FORMATS, buildSteps, deriveState, other } from '../../../src/paginas/ne
 import { ErroConflito, ErroLimite, ErroNaoEncontrado, ErroPedido, ErroPermissao } from './erros.js'
 import { exigirBearer, lerCorpo, reenviar, respostaDeErro } from './http.js'
 import { lerJsonKv } from './kv.js'
-import { Fila, objetoGlobal, responder, semDerrubar } from './objetos.js'
+import { Fila, objetoGlobal, responder, semDerrubar, pedirAoJogador } from './objetos.js'
 import { lerPerfil, subAtiva } from './perfis.js'
 import { nomesDe } from './usuarios.js'
 
@@ -217,7 +217,18 @@ async function minhaLista(env, eu, todos, semNomes = false) {
 export async function rotaAmigos(req, env, quem, cors) {
   const corpo = req.method === 'POST' ? await lerCorpo(req) : {}
   const r = await presenca(env).fetch('https://presenca/amigos', { method: 'POST', body: JSON.stringify({ metodo: req.method, quem: quem.id, acao: corpo.acao, id: corpo.id }) })
+  // A mutação na Presença terminou antes de sincronizar as conquistas: evita
+  // esperar pela Loja enquanto ela consulta a mesma fila de amizades.
+  if (r.ok && req.method === 'POST' && ['aceitar', 'pedir'].includes(corpo.acao)) {
+    for (const id of [quem.id, corpo.id]) await semDerrubar(pedirAoJogador(env, id, { acao: 'missoes-sinc' }), 'missões de amizade')
+  }
   return reenviar(r, cors)
+}
+
+export async function lerAmigosIds(env, id) {
+  const r = await presenca(env).fetch('https://presenca/amigos-ids', { method: 'POST', body: JSON.stringify({ quem: id }) })
+  if (!r.ok) throw new Error('Lista de amigos indisponível')
+  return (await r.json()).amigos
 }
 
 // Avisos ao vivo para as abas abertas (sem aba aberta, não faz nada). Não derrubam a ação que avisa: a falha vai para o log.
@@ -1103,6 +1114,7 @@ export class Presenca {
     if (url.pathname === '/chat-global') return responder(() => this.filaGlobal.rodar(() => this.chatGlobal(req)))
     if (url.pathname === '/servidor/sinal') return responder(async () => ({ visto: this.ultimoSinalServidor || (await this.state.storage.get('servidorVisto')) || 0 }))
     const rotas = {
+      '/amigos-ids': async () => { const { quem } = await lerCorpo(req); return { amigos: [...((await this.listaAmigos())[quem]?.amigos || [])] } },
       '/amigos': () => this.amigosPedido(req),
       '/chat': () => this.chat(req),
       '/dm': () => this.dm(req),

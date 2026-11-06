@@ -373,6 +373,7 @@ export function progressoInsignias(stats, caixas = []) {
     return { ...i, atual, ok: (stats[i.chave] || 0) >= i.meta }
   })
   for (const c of caixas) {
+    if (c.premium) continue // presente de escolha única, sem coleção por sorteio
     const chaves = new Set(c.itens.map((x) => chaveDoItem(x.t, x.d, x.p))) // só a lista de itens da caixa (as facas do tier especial não entram)
     const total = chaves.size
     const tem = stats.porCaixa?.[c.slug] ? [...stats.porCaixa[c.slug]].filter((k) => chaves.has(k)).length : 0

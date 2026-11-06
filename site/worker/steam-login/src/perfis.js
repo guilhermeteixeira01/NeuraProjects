@@ -7,6 +7,9 @@
  *   config  { molduraPorNivel, nivelMoldura, admins, cargos, molduraCargo, molduraSub, cardPorNivel, nivelCard, cardCargo, cardSub, subMeses, selos }
  */
 import { avisarPerfil } from './amigos.js'
+import { ErroPermissao } from './erros.js'
+import { VISUAIS_PREMIUM, exigePremiumVisual } from './premium-visuais.js'
+import { pedirAoJogador } from './objetos.js'
 import { lerColecao, lerDoc, lerItem, mudar } from './dados.js'
 import { ordemRanking, lerRanking } from './ranking.js'
 
@@ -48,8 +51,8 @@ export const configPublica = (c, env) => ({
   cargos: c.cargos || [], // [{ id, nome, cor, icone?, imagem?, top?, numerar?, oculto?, pick?, acessos? }] (ex.: Premium, VIP). top = automático para o top N do ranking
   molduraCargo: c.molduraCargo || {}, // { idMoldura: idCargo }: moldura exclusiva de quem tem o cargo
   subMeses: { ...SUB_MESES_PADRAO, ...c.subMeses }, // meses de assinatura para cada nível do emblema Premium
-  molduraSub: c.molduraSub || {}, // { idMoldura: nível mínimo de assinatura (subscriber ... legend) }: moldura só para assinantes
-  cardSub: c.cardSub || {}, // { idCard: nível mínimo de assinatura }: card só para assinantes
+  molduraSub: { ...c.molduraSub, ...VISUAIS_PREMIUM.molduraSub },
+  cardSub: { ...c.cardSub, ...VISUAIS_PREMIUM.cardSub },
 })
 export const configDoPainel = (c, env) => ({ ...configPublica(c, env), admins: c.admins || [] })
 
@@ -57,7 +60,9 @@ export const configDoPainel = (c, env) => ({ ...configPublica(c, env), admins: c
 export async function mudarPerfil(env, id, campos) {
   await mudar(env, 'perfis', [id], (perfis) => {
     const p = { ...perfis[id] }
+    if (Array.isArray(campos.insigniasDestacadas) && (campos.insigniasDestacadas.length > 3 || new Set(campos.insigniasDestacadas).size !== campos.insigniasDestacadas.length || campos.insigniasDestacadas.some(k => !p.insignias?.[k]))) throw new ErroPermissao('insignia-nao-conquistada')
     for (const [k, v] of Object.entries(campos)) {
+      if (k === 'insigniasDestacadas' && Array.isArray(v)) { p[k] = [...v]; continue }
       if (v === null || v === false || v === 0 || (Array.isArray(v) && !v.length)) delete p[k]
       else p[k] = v
     }
@@ -93,6 +98,7 @@ export const subAtiva = (sub) => !!sub && (sub.expira == null || Number(sub.expi
 
 // A moldura/card exige assinatura? (config.molduraSub / cardSub: { id: nível mínimo }). Dono e admins não têm trava. Devolve o nível que falta ou null
 export const faltaSub = (config, tabela, id, perfil, admin) => {
+  if (exigePremiumVisual(tabela, id)) return subAtiva(perfil?.sub) ? null : 'subscriber'
   const minimo = SUB_IDS.indexOf(config[tabela]?.[id])
   return minimo >= 0 && !admin && indiceSub(perfil?.sub, config) < minimo ? SUB_IDS[minimo] : null
 }
@@ -132,6 +138,7 @@ export async function concederSub(env, id, meses, pid) {
     return true
   })
   if (resultado) await avisarPerfil(env, id, mapa[id])
+  await pedirAoJogador(env, id, { acao: 'premium-caixa-entregar' })
   return resultado
 }
 
@@ -199,9 +206,10 @@ export function podeUsarCargo(cargo, id, env, config, cargos) {
 // Moldura/card exclusivo de um cargo (ou de um nível de assinatura) que o jogador não tem mais sai do perfil.
 // Roda no cron e depois de o admin mudar cargos, assinaturas ou exclusivas. Devolve a coleção.
 export async function tirarExclusivasSemCargo(env, config) {
+  config = { ...config, molduraSub: { ...config.molduraSub, ...VISUAIS_PREMIUM.molduraSub }, cardSub: { ...config.cardSub, ...VISUAIS_PREMIUM.cardSub } }
   const exclusivas = config.molduraCargo || {}
   const exclusivosCards = config.cardCargo || {}
-  const temExclusiva = (p) => (p.moldura && (exclusivas[p.moldura] || config.molduraSub?.[p.moldura])) || (p.card && (exclusivosCards[p.card] || config.cardSub?.[p.card]))
+  const temExclusiva = (p) => (p.moldura && (exclusivas[p.moldura] || config.molduraSub?.[p.moldura])) || (p.card && (exclusivosCards[p.card] || config.cardSub?.[p.card] || exigePremiumVisual('cardSub', p.card)))
   const perfis = await lerPerfis(env)
   const candidatos = Object.keys(perfis).filter((id) => temExclusiva(perfis[id]))
   if (!candidatos.length) return perfis

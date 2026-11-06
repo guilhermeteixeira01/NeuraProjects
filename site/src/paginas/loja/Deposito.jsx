@@ -325,7 +325,7 @@ export default function Deposito({ nomeInicial = '', modo = 'deposito', aoFechar
           ['dep-ben-np', `+${numero(BONUS_PREMIUM_PARTIDA)} NP`, t('em cada partida jogada'), t('Vitória ou derrota: todo mapa que você joga rende {n} Neura Pontos a mais, além dos pontos normais.', { n: numero(BONUS_PREMIUM_PARTIDA) })],
           ['dep-ben-mold', t('Molduras exclusivas'), t('só para Premium'), t('Molduras animadas do avatar que ninguém mais pode usar.')],
           ['dep-ben-card', t('Cards exclusivos'), t('só para Premium'), t('Fundos de card do perfil liberados só para quem assina.')],
-          ['dep-ben-caixa', t('Caixa exclusiva por semana'), t('em breve'), t('Uma caixa especial grátis toda semana, só para assinantes.')],
+          ['dep-ben-caixa', t('Caixa Premium'), t('na primeira assinatura'), t('Presente único por conta: escolha AWP Printstream, M4A1-S Printstream ou AK-47 Bloodsport para o inventário. Renovações não concedem outra caixa.')],
           ['dep-ben-selo', t('Emblema Premium'), t('no perfil'), t('O emblema evolui com o tempo de assinatura, do Subscriber ao Legend, e aparece somente no seu perfil.')],
         ].map(([cls, titulo, tag, texto]) => (
           <li key={cls} className={`dep-ben-item ${cls}`}>

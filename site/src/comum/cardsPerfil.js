@@ -8,6 +8,7 @@ import arquivos, { animados } from 'virtual:cards-perfil'
 import minis from 'virtual:cards-mini'
 import meds from 'virtual:cards-med'
 import { desempenhoAtivo } from './desempenho.js'
+import { CARD_PREMIUM } from '../../worker/steam-login/src/premium-visuais.js'
 
 export const CARDS = arquivos
 // Animado: nome terminando em "-anim" ou imagem animada de verdade (AVIF/WebP/GIF/APNG em sequência: o vite.config.js confere o arquivo)
@@ -63,6 +64,7 @@ export const urlMiniCard = (nome) => {
 }
 // "neura/neura-ouro.svg" -> "Neura ouro"; "neura/radar-anim.svg" -> "Radar"
 export const nomeCard = (nome) => {
+  if (idCard(nome) === CARD_PREMIUM) return 'Neura Premium'
   const t = String(idCard(nome)).split('/').pop().replace(/\.[^.]+$/, '').replace(/-anim$/i, '').replace(/[-_ ]*signature card$/i, '').replace(/[-_]+/g, ' ').trim()
   return t.charAt(0).toUpperCase() + t.slice(1)
 }

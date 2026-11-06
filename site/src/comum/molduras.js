@@ -1,7 +1,8 @@
 // Catálogo das molduras atuais em assets/molduras. IDs estáveis e caminhos originais preservados.
-// Todas são estáticas e quadradas; a escala alinha a abertura de cada arte ao avatar.
+// A escala alinha a abertura ao avatar. Premium inclui uma versão animada.
 export const COLECOES = ["Times","Eventos","Attack on Titan","Bleach","Chainsaw Man","Death Note","Demon Slayer","Dragon Ball","Evangelion","Fullmetal Alchemist","Gundam","Hunter x Hunter","Jujutsu Kaisen","My Hero Academia","Naruto","One Piece","Pokémon","Sailor Moon","Solo Leveling","Spy x Family","Tokyo Ghoul","Marvel","Harry Potter","Filmes","Terror","Outros"]
 export const MOLDURAS = [
+  { id: 'premium/neura-premium', nome: 'Neura Premium', colecao: 'Premium', fonte: 'neura', forma: 'quadrada', arquivo: 'premium/neura-premium.webp', abertura: { x: 60, y: 89, largura: 392, altura: 356, fundo: 496, recorte: 'inset(0 round 8%)' } },
   {
     "id": "times/furia",
     "nome": "FURIA",
@@ -4042,6 +4043,7 @@ export const MOLDURAS = [
     }
   }
 ]
+COLECOES.unshift('Premium')
 const PORID = new Map(MOLDURAS.map(m => [m.id, m]))
 export const molduraPorId = id => id ? PORID.get(id) || null : null
 export const urlMoldura = id => {
@@ -4049,8 +4051,8 @@ export const urlMoldura = id => {
   return m ? `/assets/molduras/${m.arquivo.split('/').map(encodeURIComponent).join('/')}` : null
 }
 // As artes novas são estáticas: a miniatura e o modo de desempenho usam o mesmo arquivo válido.
-export const urlMiniatura = urlMoldura
-export const urlParada = urlMoldura
+export const urlMiniatura = id => id === 'premium/neura-premium' ? '/assets/molduras/premium/neura-premium-mini.webp' : urlMoldura(id)
+export const urlParada = id => id === 'premium/neura-premium' ? '/assets/molduras/premium/neura-premium-parada.webp' : urlMoldura(id)
 export const classeForma = id => molduraPorId(id)?.forma === 'quadrada' ? ' quadrada moldura-ajustada' : ''
 
 export const estiloFotoMoldura = id => {

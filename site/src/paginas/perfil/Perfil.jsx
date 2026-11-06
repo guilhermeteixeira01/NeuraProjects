@@ -30,7 +30,7 @@ import GaleriaInsignias from '../../comum/GaleriaInsignias.jsx'
 import { InsigniasDe } from '../../comum/Insignias.jsx'
 import HallDaFama from './HallDaFama.jsx'
 import ConfiguracoesConta from './ConfiguracoesConta.jsx'
-import PerfilProtegido, { ApresentacaoPerfil } from './PerfilProtegido.jsx'
+import PerfilProtegido, { ApresentacaoPerfil, LinksExternosPerfil } from './PerfilProtegido.jsx'
 import { AmigosDoPerfil, AfiliadoDoPerfil } from './PerfilSocial.jsx'
 import { FUNDOS, PERSONAGENS } from '../../comum/assetsV2.js'
 
@@ -43,7 +43,6 @@ const NO_GRAFICO = 20 // últimos mapas no gráfico de rating
 const fmt = (v, casas) => Number(v || 0).toFixed(casas)
 const classeRating = (r) => (r >= 1.5 ? 'alto' : r >= 1.2 ? 'bom' : r >= 0.9 ? 'medio' : 'baixo')
 const linkPartida = (caminho) => `/partidas/${String(caminho).split('/').map(encodeURIComponent).join('/')}/`
-const steam = (id) => `https://steamcommunity.com/profiles/${encodeURIComponent(id)}`
 const iniciais = (nome) => String(nome || '?').trim().slice(0, 2).toUpperCase()
 
 // Data/hora no horário de Brasília (a página é gerada num servidor em UTC)
@@ -552,14 +551,16 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
               </a>
               <div className="pf-header-links">
                 {premier > 0 && <Premier j={{ ...j, premier }} />}
-                <a href={steam(j.steamId)} target="_blank" rel="noopener" className="pf-header-icon" aria-label={t('Perfil na Steam')} title={t('Perfil na Steam')}><IconeSteam /></a>
               </div>
               <div className="pf-header-identity">
                 <div className="pf-header-portrait"><ComMoldura steamId={j.steamId} emblema><Avatar id={j.steamId} src={j.avatar} nome={j.nome} classe="pf-header-avatar" /></ComMoldura></div>
                 <div className="pf-header-bio">
                   <h1>{j.nome}<IconeEquipe steamId={j.steamId} /></h1>
                   <CargosDe steamId={j.steamId} max={2} classe="pf-header-cargos" />
-                  <span className="pf-header-comunidade">{timeEscolhido ? <TimeEscolhido steamId={j.steamId} /> : 'Neura Project'}</span>
+                  <div className="pf-header-meta">
+                    <span className="pf-header-comunidade">{timeEscolhido ? <TimeEscolhido steamId={j.steamId} /> : 'Neura Project'}</span>
+                    <LinksExternosPerfil steamId={j.steamId} />
+                  </div>
                   {pos > 0 && <a className="pf-header-ranking" href="/ranking/"><IconeUI tipo="trofeu" tamanho={22} />#{pos} {t('no ranking')}</a>}
                 </div>
               </div>

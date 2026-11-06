@@ -11,7 +11,7 @@ import { mudarPerfil } from '../src/perfis.js'
 test('todos os eventos, fundos e molduras têm correspondência na edição 2027',()=>{
  const eventos=MISSOES.filter(m=>m.categoria==='eventos'),cal=calendarioEventosInsignias(2027),ids=new Set(eventos.map(m=>m.id+'-2027'))
  assert.equal(eventos.length,27)
- assert.equal(MOLDURAS.length,236)
+ assert.equal(MOLDURAS.length,237)
  for(const m of eventos){assert.ok(cal[m.id],m.id);assert.ok(fs.existsSync(new URL('../../../public/assets/insignia/'+m.arte,import.meta.url)))}
  for(const m of MOLDURAS){assert.ok(fs.existsSync(new URL('../../../public'+decodeURI(urlMoldura(m.id)),import.meta.url)));if(m.colecao==='Eventos')assert.ok(ids.has(m.insignia),m.id)}
  assert.equal(FUNDOS_EVENTO.length,27)

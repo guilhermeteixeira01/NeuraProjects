@@ -1,4 +1,7 @@
 import { podeUsarMolduraEvento } from './molduras.js'
+import { linkFaceitPerfil } from './linksPerfil.js'
+import { exigePremiumVisual } from '../../worker/steam-login/src/premium-visuais.js'
+import { nivelDaSub } from './assinatura.js'
 import { podeUsarFundoPerfil } from '../../worker/steam-login/src/fundos-perfil.js'
 import { estadoDiario } from '../../worker/steam-login/src/diario-core.js'
 import { progressoMissoes, ANO_EVENTOS } from '../../worker/steam-login/src/missoes-core.js'
@@ -8,6 +11,7 @@ import { CONFIG } from './config.js'
 import { INSIGNIAS } from './insignias.js'
 import { CARDS } from './cardsPerfil.js'
 import catalogo from '../../worker/steam-login/src/caixas-iniciais.json'
+import { CAIXA_PREMIUM } from '../../worker/steam-login/src/caixa-premium-core.js'
 import { CONFIG_PADRAO as CONFIG_BASE, chancesDaCaixa, aplicarModo, faixasDeDesgaste, sortearAbertura, gerarFaixa, gerarFaixaFacas, valorDoItem, progressoInsignias } from '../../worker/steam-login/src/loja-core.js'
 const CONFIG_PADRAO = { ...CONFIG_BASE, porCaixa: true }
 
@@ -25,10 +29,11 @@ export function ativarPreviewLocal(opcoes = {}) {
     ...INSIGNIAS.filter(i => i.categoria === 'mapas').slice(0, 3),
     ...INSIGNIAS.filter(i => /^evento-(dia-do-trabalho|dia-da-mulher)-2027$/.test(i.id)),
     ...INSIGNIAS.filter(i => i.loja).slice(0, 2),
+    ...INSIGNIAS.filter(i => i.id === 'amizade-primeira' || ['staff','embaixador','designer'].includes(i.id)),
     ...INSIGNIAS.filter(i => i.id === 'top3'),
   ]
   const perfisDemo = { ...opcoes.perfisReais, [id]: { nick: nome, insignias: Object.fromEntries(exemplos.map(i => [i.id, Date.parse('2026-10-26T12:00:00-03:00')])), vistos: { ins: exemplos.map(i => i.id), nivel: 100 } } }
-  const caixas = catalogo.map(c => ({ ...c, chances: chancesDaCaixa(c, CONFIG_PADRAO) }))
+  const caixas = [...catalogo, CAIXA_PREMIUM].map(c => ({ ...c, chances: chancesDaCaixa(c, CONFIG_PADRAO) }))
   const pessoas = [{id,nome,avatar,st:'online',dono:true,cargo:'membro'}, {id:'76561198000000012',nome:'Luna · teste',avatar,st:'online',cargo:'membro'}, {id:'76561198000000013',nome:'Rafa · teste',avatar,st:'ausente',cargo:'membro'}, {id:'76561198000000014',nome:'Nico · teste',avatar,st:'jogando',cargo:'membro'}]
   const comMoldura = (opcoes.rankingReal?.jogadores || []).filter(j => opcoes.perfisReais?.[j.steamId]?.moldura)
   for (let i = 1; i < pessoas.length; i++) {
@@ -85,6 +90,14 @@ export function ativarPreviewLocal(opcoes = {}) {
   // Modo demo: ajusta perfis, configuração, respostas e estado antes de a prévia começar a responder
   const ctx = { id, nome, avatar, pessoas, perfisDemo, config, respostas, estado: () => estado, caixas, catalogo, time, itens, guardar, novoId }
   opcoes.estender?.(ctx)
+  // Recibo local persistente: trocar de página não concede outra caixa.
+  if (!estado.premiumCaixa) {
+    const item = novoId()
+    estado.inv.itens[item] = { t: 'caixa', d: CAIXA_PREMIUM.id, p: 0 }
+    estado.inv.criado[item] = Date.now()
+    estado.premiumCaixa = { item }
+    guardar()
+  }
   const original = window.fetch.bind(window)
   window.fetch = async (input, init) => {
     const url = new URL(input instanceof Request ? input.url : String(input), location.href)
@@ -96,12 +109,35 @@ export function ativarPreviewLocal(opcoes = {}) {
     try{corpo=JSON.parse(init?.body||(input instanceof Request?await input.clone().text():'{}'))}catch{/* leitura */}
     if (opcoes.interceptar) { const r = await opcoes.interceptar(rota, metodo, corpo, url, ctx); if (r) return r }
     if (rota === '/perfil' && metodo === 'POST') {
+      if (!nivelDaSub(perfisDemo[id]?.sub)) {
+        if (exigePremiumVisual('molduraSub', corpo.moldura)) return Response.json({ erro: 'sub', precisa: 'subscriber' }, { status: 403 })
+        if (exigePremiumVisual('cardSub', corpo.card)) return Response.json({ erro: 'cardSub', precisa: 'subscriber' }, { status: 403 })
+      }
+      if ('insigniasDestacadas' in corpo) {
+        const ids = corpo.insigniasDestacadas
+        if (!Array.isArray(ids) || ids.length > 3 || new Set(ids).size !== ids.length || ids.some(k => !perfisDemo[id]?.insignias?.[k])) return Response.json({ erro: 'insigniasDestacadas' }, { status: 400 })
+      }
       if (corpo.moldura && !podeUsarMolduraEvento(corpo.moldura,perfisDemo[id])) return Response.json({erro:'molduraInsignia'},{status:403})
       if ('fundoPerfil' in corpo && !podeUsarFundoPerfil(corpo.fundoPerfil,perfisDemo[id])) return Response.json({erro:'fundoInsignia'},{status:403})
       estado.personalizacao = {...estado.personalizacao, ...corpo}
       Object.assign(perfisDemo[id], corpo)
       guardar()
       return Response.json({perfis:perfisDemo})
+    }
+    if (rota === '/loja/premium/escolher' && metodo === 'POST') {
+      const opcao = CAIXA_PREMIUM.itens.find(i => i.id === corpo.escolha)
+      if (!opcao) return Response.json({ erro: 'escolha-premium' }, { status: 400 })
+      if (estado.premiumCaixa.escolha) return estado.premiumCaixa.escolha === corpo.escolha ? Response.json({ ok: true }) : Response.json({ erro: 'premium-ja-aberta' }, { status: 409 })
+      const caixa = estado.premiumCaixa.item
+      if (!estado.inv.itens[caixa]) return Response.json({ erro: 'sem-caixa' }, { status: 409 })
+      if (estado.inv.itens[caixa].cadeado) return Response.json({ erro: 'item-trancado' }, { status: 409 })
+      delete estado.inv.itens[caixa]; delete estado.inv.criado[caixa]
+      const item = novoId()
+      estado.inv.itens[item] = { t: 'arma', d: opcao.d, p: opcao.p, l: opcao.l, f: 0.01, s: 0, st: 0, a: [null, null, null, null, null] }
+      estado.inv.criado[item] = Date.now()
+      estado.premiumCaixa.escolha = corpo.escolha
+      guardar()
+      return Response.json({ ok: true, item })
     }
     if(rota==='/loja/premium-partidas') return Response.json({partidas:estado.premiumPartidas || {}})
     if(rota==='/chat/global') {
@@ -148,7 +184,11 @@ export function ativarPreviewLocal(opcoes = {}) {
         if(corpo.acao==='aceitar')estado.amigos=[...new Set([...estado.amigos,corpo.id])]
         guardar();return Response.json({amigos:pessoas.filter(p=>estado.amigos.includes(p.id)),recebidos:[],enviados:[]})
       }
-      if(rota==='/conta/dados'){estado.conta=corpo;guardar();return Response.json(estado.conta)}
+      if(rota==='/conta/dados'){
+        const faceit = linkFaceitPerfil(corpo.faceit)
+        if(corpo.faceit?.trim()&&!faceit)return Response.json({erro:'faceit'},{status:400})
+        estado.conta={...corpo,faceit};guardar();return Response.json(estado.conta)
+      }
       if(rota==='/hall'){estado.hall={...estado.hall,pedido:novoId(),original:corpo.foto,camisa:corpo.camisa,estado:'pendente',nome,motivo:'',tentativasGeracao:0};guardar();return Response.json(hallDaPrevia())}
       if(rota==='/hall/revisao'){
         if(corpo.pedido!==estado.hall.pedido)return Response.json({erro:'pedido-alterado'},{status:409})
@@ -169,6 +209,7 @@ export function ativarPreviewLocal(opcoes = {}) {
       if(rota==='/skins/excluir'){delete estado.inv.itens[corpo.id];guardar();return Response.json(estado.inv)}
       if(rota==='/loja/abrir'){
         let cx=caixas.find(c=>c.id===Number(corpo.caixa)||c.slug===corpo.caixa)||caixas[0],cfg=CONFIG_PADRAO
+        if(cx.premium)return Response.json({erro:'escolha-premium'},{status:400})
         if(corpo.modo){const m=aplicarModo(cx,cfg,corpo.modo);cx=m.caixa;cfg=m.cfg}
         const resultados=[]
         for(let k=0;k<Math.max(1,Math.min(1,Number(corpo.qtd)||1));k++){
@@ -193,7 +234,10 @@ export function ativarPreviewLocal(opcoes = {}) {
     if(rota==='/conta/dados')return Response.json(estado.conta)
     if(rota==='/amigos')return Response.json({amigos:pessoas.filter(p=>estado.amigos.includes(p.id)),recebidos:[],enviados:[]})
     if(rota==='/perfil/amigos')return Response.json({permitido:true,amigos:pessoas.filter(p=>p.id!==url.searchParams.get('id'))})
-    if(rota==='/missoes')return Response.json({...progressoMissoes([],{eventos:calendarioEventosInsignias(ANO_EVENTOS)}),partidasValidadas:0,simulacao:true})
+    if(rota==='/missoes'){
+      const progresso = progressoMissoes([], { eventos:calendarioEventosInsignias(ANO_EVENTOS), amigos:estado.amigos || [] })
+      return Response.json({...progresso,lista:progresso.lista.map(m=>({...m,recebida:perfisDemo[id]?.insignias?.[m.id]||null})),partidasValidadas:0,simulacao:true})
+    }
     if(rota==='/admin/missoes')return Response.json({config:{ativa:true,metaMapas:10,eventos:calendarioEventosInsignias(ANO_EVENTOS)},...progressoMissoes([],{eventos:calendarioEventosInsignias(ANO_EVENTOS)})})
     if(rota==='/afiliado')return Response.json({cadastrados:2,premios:1,np:1000,caixa:'Caixa Facas',lista:[{...pessoas[1],criado:Date.now()-86400000,entregue:Date.now()-3600000},{...pessoas[2],criado:Date.now()-1800000,entregue:null}]})
     if(rota==='/perfil/publico')return Response.json({permitido:true,descricao:estado.conta.descricao,faceit:estado.conta.faceit,visibilidade:Object.fromEntries(Object.keys(estado.conta.privacidade).map(k=>[k,true])),amigos:pessoas.slice(1)})
@@ -209,7 +253,7 @@ export function ativarPreviewLocal(opcoes = {}) {
     if(rota==='/skins')return Response.json(estado.inv)
     if(rota==='/skins/inventario')return Response.json({...estado.inv,valores:Object.fromEntries(Object.keys(estado.inv.itens).map(k=>[k,150])),simulacao:true})
     if(rota==='/loja/saldo')return Response.json({saldo:estado.saldo})
-    if(rota==='/loja')return Response.json({...respostas['/loja'],fechadas:Object.fromEntries(caixas.map(c=>[c.id,Object.values(estado.inv.itens).filter(i=>i.t==='caixa'&&i.d===c.id).length])),caixas:caixas.filter(c=>!c.arquivada||c.diaria||Object.values(estado.inv.itens).some(i=>i.t==='caixa'&&i.d===c.id)).map(c=>({...c,foraDeVenda:!!c.arquivada})),saldo:estado.saldo,pontos:estado.saldo,cfg:{...CONFIG_PADRAO,maxQtd:1},aberturasEspecial:estado.abertas})
+    if(rota==='/loja')return Response.json({...respostas['/loja'],fechadas:Object.fromEntries(caixas.map(c=>[c.id,Object.values(estado.inv.itens).filter(i=>i.t==='caixa'&&i.d===c.id).length])),caixas:caixas.filter(c=>!c.arquivada||c.diaria||c.premium||Object.values(estado.inv.itens).some(i=>i.t==='caixa'&&i.d===c.id)).map(c=>({...c,foraDeVenda:!!c.arquivada})),saldo:estado.saldo,pontos:estado.saldo,cfg:{...CONFIG_PADRAO,maxQtd:1},aberturasEspecial:estado.abertas})
     if(rota==='/loja/valores')return Response.json({valores:Object.fromEntries(Object.keys(estado.inv.itens).map(k=>[k,{r:3,v:150}]))})
     if(rota==='/mercado')return Response.json({anuncios:[{id:'demoanuncio',vendedor:pessoas[1].id,vendedorNome:pessoas[1].nome,vendedorAvatar:avatar,item:itens.demoitem0,preco:450,ref:500,criado:Date.now()}]})
     if(rota==='/partidas/recentes')return Response.json([])

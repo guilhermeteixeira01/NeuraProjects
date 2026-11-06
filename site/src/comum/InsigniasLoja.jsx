@@ -3,15 +3,13 @@
 import { useEffect, useState } from 'react'
 import { useT } from './i18n.js'
 import { lerLoja } from './loja.js'
+import { imagemInsignia, imagemInsigniaPendente } from './insignias.js'
 import './insigniasLoja.css'
 
 const numero = (n) => Number(n).toLocaleString('pt-BR')
 // ── insígnias das caixas: progresso (37/50), níveis e secretas ──
 const GRUPOS = { colecionador: 'Colecionador de Caixas', arsenal: 'Arsenal Afiado' }
-const arte = (i, ganha) => {
-  const base = i.id.startsWith('mestre-') ? 'mestre-da-caixa' : i.id
-  return `/assets/insignia/${ganha ? 'web' : i.secreta ? 'secreta' : 'bloqueada'}/${base}.webp`
-}
+const arte = (i, ganha) => ganha ? imagemInsignia(i.id) : imagemInsigniaPendente(i.id, !!i.secreta)
 function Barra({ atual, meta }) {
   return (
     <span className="lj-progresso">

@@ -93,7 +93,7 @@ test('abrir notificações entrega bônus elegíveis por período e suporta data
   const fetchAntes=globalThis.fetch
   globalThis.fetch=async(url,...args)=>String(url).endsWith(`/perfil/historico/${A}.json`)?Response.json(h):fetchAntes(url,...args)
   try {
-    const n=await f.pedir('GET','/notificacoes',{quem:A});assert.equal(n.status,200);assert.equal(n.dados.doc.lista.length,3)
+    const n=await f.pedir('GET','/notificacoes',{quem:A});assert.equal(n.status,200);assert.equal(n.dados.doc.lista.filter(n=>n.id.startsWith('premium:partida:')).length,3)
     assert.equal(credito(ator(f)),1050)
     await f.pedir('GET','/notificacoes',{quem:A});assert.equal(credito(ator(f)),1050)
     await mudar(f.env,'perfis',[A],p=>{p[A]={}})

@@ -11,6 +11,7 @@ import MercadoOficial from './MercadoOficial.jsx'
 import Deposito from './Deposito.jsx'
 import { CarregandoNP } from '../../comum/Carregando.jsx'
 import PaginaCaixa, { useFavoritas } from './PaginaCaixa.jsx'
+import CaixaPremium from './CaixaPremium.jsx'
 import { prepararSons } from './somLoja.js'
 import { PERSONAGENS, fundoCss } from '../../comum/assetsV2.js'
 import IconeUI from '../../comum/IconeUI.jsx'
@@ -166,7 +167,7 @@ function Conteudo() {
             {aviso} <a href="/inventario/">{t('Ver no inventário')}</a>
           </p>
         )}
-        <PaginaCaixa
+        {sel.premium ? <CaixaPremium c={sel} tem={dados.fechadas[sel.id] || 0} achar={achar} aoVoltar={voltarCaixas} aoAbriu={carregar} abrirDoInventario={abrirAuto === sel.id} /> : <PaginaCaixa
           key={sel.id}
           c={sel}
           saldo={dados.saldo}
@@ -180,7 +181,7 @@ function Conteudo() {
           aoFavoritar={() => alternarFav(sel.slug)}
           aoVoltar={voltarCaixas}
           aoAbriu={carregar}
-        />
+        />}
       </>
     )
 
@@ -237,6 +238,11 @@ function Conteudo() {
 
       {aba === 'caixas' ? (
         <>
+          {dados.caixas.filter(c => c.premium).map(c => <section className="premium-convite" key={c.id}>
+            <img src={c.img} alt="Caixa Premium" />
+            <div><span className="premium-tag">PRESENTE ÚNICO</span><h2>Caixa Premium</h2><p>AWP Printstream, M4A1-S Printstream ou AK-47 Bloodsport. Escolha a sua.</p></div>
+            <button className="lj-btn lj-btn-p" onClick={() => verCaixa(c)}>{dados.fechadas[c.id] > 0 ? 'Abrir minha caixa' : 'Ver benefício Premium'}</button>
+          </section>)}
           {favoritas.length > 0 && (
             <section className="lj-categoria" aria-label={t('Favoritas')}>
               <h2>

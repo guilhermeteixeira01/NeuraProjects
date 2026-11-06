@@ -1,4 +1,6 @@
 import { iniciarMissoes, sincronizarMissoes } from './missoes.js'
+import { CAIXA_PREMIUM } from './caixa-premium-core.js'
+import { entregarCaixaPremium, escolherArmaPremium } from './caixa-premium.js'
 import { repararFreezeDoJogador } from './freeze-reparo.js'
 import { exigirSenha } from './contas.js'
 /*
@@ -76,6 +78,10 @@ const ATUALIZAR_CAIXAS = ['caixa-kawaii', 'caixa-terror', 'caixa-lendas', 'caixa
 const DOCS_CAIXAS = ['caixas', 'caixas-revisao', 'caixas-vistas', 'caixas-removidas', 'loja-config', 'loja-bonus']
 
 export async function lerCaixas(env) {
+  return [...(await lerCaixasComuns(env)).filter(c => c.id !== CAIXA_PREMIUM.id && c.slug !== CAIXA_PREMIUM.slug), CAIXA_PREMIUM]
+}
+
+async function lerCaixasComuns(env) {
   const [salvas, revisao, vistas] = await Promise.all([lerDoc(env, 'caixas'), lerDoc(env, 'caixas-revisao', 0), lerDoc(env, 'caixas-vistas', [])])
   if (!Array.isArray(salvas) || !salvas.length) {
     if (Number(revisao) >= REVISAO_CAIXAS) return CAIXAS_INICIAIS
@@ -480,10 +486,13 @@ export class Loja {
 
   async acao(p) {
     const { acao, id } = p
+    if (['premium-caixa-entregar', 'estado', 'saldo', 'notif-sync', 'inv-ler'].includes(acao)) await entregarCaixaPremium(this, id)
     const [caixas, cfg] = COM_CAIXAS.has(acao) ? await Promise.all([lerCaixas(this.env), lerConfigLoja(this.env)]) : []
     const pontos = COM_SALDO.has(acao) ? await this.prepararSaldo(id) : 0
     const saldo = () => pontos - this.gastos()
     switch (acao) {
+      case 'premium-caixa-entregar': return { ok: true }
+      case 'premium-escolher': return escolherArmaPremium(this, id, p.escolha)
       case 'freeze-reparar-vitorias':
         return repararFreezeDoJogador(this, id)
       case 'partida-finalizar': {
@@ -699,7 +708,7 @@ export class Loja {
     // confere agora (cura insígnia que ficou sem gravar por falha antes) e devolve as ganhas; a rota grava no perfil o que faltar
     const { ganhas, progresso } = await this.conferirInsignias(caixas, fechadasPor)
     // à venda: ativas e não arquivadas; as arquivadas aparecem (marcadas foraDeVenda) só para quem tem uma fechada, para poder abrir
-    const ativas = caixas.filter((c) => c.ativa && (!c.arquivada || c.diaria || fechadasPor[c.id] > 0)).map((c) => (c.arquivada ? { ...c, foraDeVenda: true } : c))
+    const ativas = caixas.filter((c) => c.ativa && (!c.arquivada || c.diaria || c.premium || fechadasPor[c.id] > 0)).map((c) => (c.arquivada ? { ...c, foraDeVenda: true } : c))
     return {
       ganhas,
       saldo: pontos - this.gastos(),
@@ -824,6 +833,7 @@ export class Loja {
 
   async abrir(id, caixas, cfg, saldo, p) {
     let caixa = caixas.find((c) => c.id === Number(p.caixa) && c.ativa)
+    if (caixa?.premium) throw new ErroPedido('escolha-premium')
     if (!caixa?.itens.length) throw new ErroNaoEncontrado('caixa')
     let origem = ['inventario', 'auto'].includes(p.origem) ? p.origem : 'direto'
     // caixa arquivada (fora da loja): só abre a que já está no inventário, sem pagar e sem Jester/Boost
@@ -923,6 +933,7 @@ const ROTAS_LOJA = { 'GET /loja': 'estado', 'GET /loja/saldo': 'saldo', 'GET /lo
 Object.assign(ROTAS_LOJA, { 'GET /loja/consumiveis': 'consumiveis', 'POST /loja/consumiveis/ativar': 'consumivel-ativar', 'POST /loja/consumiveis/cancelar': 'consumivel-cancelar' })
 Object.assign(ROTAS_LOJA, { 'GET /loja/diario': 'diario', 'POST /loja/diario/pontos': 'diario-pontos', 'POST /loja/diario/caixa': 'diario-caixa' })
 ROTAS_LOJA['GET /loja/premium-partidas'] = 'premium-partidas'
+ROTAS_LOJA['POST /loja/premium/escolher'] = 'premium-escolher'
 
 export async function rotaLoja(req, env, quem, cors, rota) {
   // Mercado oficial (src/loja-oficial.js): catálogo + o que o jogador já tem; comprar resolve a oferta aqui e cobra no objeto dele
@@ -948,6 +959,7 @@ export async function rotaLoja(req, env, quem, cors, rota) {
   if (!acao) throw new ErroNaoEncontrado('rota')
   const corpo = req.method === 'POST' ? await lerCorpo(req) : {}
   if (acao === 'vender') await exigirSenha(env, quem.id, corpo.senha)
+  if (acao === 'premium-escolher') return json(await pedirAoJogador(env, quem.id, { acao, escolha: corpo.escolha }), 200, cors)
   const dados = await pedirAoJogador(env, quem.id, { acao, caixa: corpo.caixa, qtd: corpo.qtd, ids: corpo.ids, origem: corpo.origem, tipo: typeof corpo.tipo === 'string' ? corpo.tipo : undefined, modo: MODOS.includes(corpo.modo) ? corpo.modo : undefined })
   if (acao === 'vender' && dados.total > 0) await registrar(env, { tipo: 'venda', quem: quem.id, texto: `vendeu ${dados.vendidos} item(ns) para a loja por ${Number(dados.total).toLocaleString('pt-BR')} NP` })
   if (acao === 'abrir') {

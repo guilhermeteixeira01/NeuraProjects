@@ -11,6 +11,10 @@ export function IconeMochila() { return <IconeUI tipo="inventario" tamanho={18} 
 // Loja: fachada com toldo
 export function IconeCaixa() { return <IconeUI tipo="loja" tamanho={18} className="nx-icone"/> }
 
+export function IconeFaceit({ tamanho = 18 }) {
+  return <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 2.154V24L0 9.23h16.615z" /></svg>
+}
+
 export function IconeSteam({ tamanho = 16 }) {
   return (
     <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

@@ -11,7 +11,7 @@ import { seForErroApi } from './api.js'
 import { useConta } from './conta.js'
 import { salvarPerfil, usePerfis, usePerfisFrescos } from './Moldura.jsx'
 import { registrarNotificacao } from './notificacoes.js'
-import { imagemInsignia, insigniasDe, miniaturaInsignia } from './insignias.js'
+import { imagemInsignia, insigniasDe, insigniasDestacadasDe, miniaturaInsignia } from './insignias.js'
 
 // miniatura leve; se ela não existir, usa a imagem grande
 const caiNaGrande = (id) => (e) => {
@@ -59,11 +59,12 @@ function Item({ i }) {
 }
 
 // Fileira do perfil: o atalho abre a página de insígnias do jogador.
-export function InsigniasDe({ steamId, classe = '', max = 4 }) {
+export function InsigniasDe({ steamId, classe = '', max = 3 }) {
   const t = useT()
-  const lista = insigniasDe(usePerfis(), steamId)
+  const perfis = usePerfis()
+  const lista = insigniasDe(perfis, steamId)
   if (!lista.length) return null
-  const mostrar = lista.length > max ? lista.slice(0, max) : lista
+  const mostrar = insigniasDestacadasDe(perfis, steamId).slice(0, Math.min(3, max))
   const resto = lista.length - mostrar.length
   return (
     <>
@@ -87,7 +88,7 @@ export function InsigniasDe({ steamId, classe = '', max = 4 }) {
 // Versão pequena (lista de amigos): só as artes, ao lado do nome; o nome de cada uma aparece ao parar o mouse
 export function InsigniasMini({ steamId, max = 4, classe = '' }) {
   const t = useT()
-  const lista = insigniasDe(usePerfis(), steamId).slice(0, max)
+  const lista = insigniasDestacadasDe(usePerfis(), steamId).slice(0, Math.min(3, max))
   if (!lista.length) return null
   return (
     <span className={`ins-mini ${classe}`}>

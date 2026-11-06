@@ -6,7 +6,7 @@ import { calendarioEventosInsignias } from '../../../src/comum/eventos.js'
 import { lerDoc, gravarDoc, mudar, mudarDoc } from './dados.js'
 import { lerUsuarios } from './usuarios.js'
 import { darInsignias, lerPerfil, lerPerfis } from './perfis.js'
-import { avisarPerfil } from './amigos.js'
+import { avisarPerfil, lerAmigosIds } from './amigos.js'
 import { juntar,docVazio } from './notif-core.js'
 import { pedirAoJogador } from './objetos.js'
 import { ErroPedido } from './erros.js'
@@ -38,14 +38,19 @@ export async function sincronizarMissoes(obj,id,novas=[],buscarHistorico=false,a
   let historico=[]
   if(buscarHistorico)try{historico=await historicoMissoes(obj.env,id)}catch{/* progresso confirmado anterior continua disponível; tenta de novo no próximo acesso */}
   const resumos=[...historico,...novas].filter(p=>p?.validada===true&&typeof p.chave==='string'&&p.chave.length<400)
-  obj.ctx.storage.transactionSync(()=>{for(const p of resumos)obj.sql.exec('INSERT OR IGNORE INTO missoes_partidas (chave,dados) VALUES (?,?)',p.chave,JSON.stringify(p))})
+  obj.ctx.storage.transactionSync(()=>{for(const p of resumos){
+    const anterior = obj.sql.exec('SELECT dados FROM missoes_partidas WHERE chave = ?', p.chave).toArray()[0]
+    if (!anterior) obj.sql.exec('INSERT INTO missoes_partidas (chave,dados) VALUES (?,?)',p.chave,JSON.stringify(p))
+    else if (Array.isArray(p.companheiros) && !Array.isArray(JSON.parse(anterior.dados).companheiros)) obj.sql.exec('UPDATE missoes_partidas SET dados = ? WHERE chave = ?', JSON.stringify({ ...JSON.parse(anterior.dados), companheiros: p.companheiros }), p.chave)
+  }})
   const partidas=obj.sql.exec('SELECT dados FROM missoes_partidas').toArray().map(p=>JSON.parse(p.dados))
   if(acessoAutenticado){
     const ativos=progressoMissoes([],config,agora).lista.filter(m=>m.categoria==='eventos'&&m.eventoAtivo)
     obj.ctx.storage.transactionSync(()=>{for(const m of ativos)obj.sql.exec('INSERT OR IGNORE INTO missoes_eventos_acessos (id,quando) VALUES (?,?)',m.id,agora)})
   }
   const acessosEventos=Object.fromEntries(obj.sql.exec('SELECT id,quando FROM missoes_eventos_acessos').toArray().map(r=>[r.id,r.quando]))
-  const progresso=progressoMissoes(partidas,{...config,acessosEventos},agora)
+  const amigos = await lerAmigosIds(obj.env, id)
+  const progresso=progressoMissoes(partidas,{...config,acessosEventos,amigos},agora)
   let perfil=await lerPerfil(obj.env,id)
   const bloqueadas=new Set(progresso.lista.filter(m=>m.categoria==='eventos'&&(!m.inicio||Date.parse(m.inicio)>agora)).map(m=>m.id))
   bloqueadas.add('top3') // apaga também notificações antigas da conquista descontinuada

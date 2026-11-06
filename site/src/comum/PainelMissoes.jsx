@@ -14,7 +14,8 @@ export default function PainelMissoes() {
   return <section className="ms-painel">
     <h2>Missões e insígnias</h2><p>As conquistas são entregues automaticamente após a confirmação do sistema. O histórico validado também conta.</p>
     {dados?.simulacao&&<p role="status">Prévia local: progresso ilustrativo, sem conceder recompensas reais.</p>}
-    <div className="ms-abas" role="tablist" aria-label="Categorias de missões">{[['combate','Combate 5v5'],['mapas','Mapas'],['eventos','Eventos anuais'],['caixas','Caixas da loja']].map(([id,nome])=><button type="button" key={id} role="tab" aria-selected={categoria===id} onClick={()=>setCategoria(id)}>{nome}</button>)}</div>
+    <div className="ms-abas" role="tablist" aria-label="Categorias de missões">{[['combate','Combate 5v5'],['amizades','Amizades'],['mapas','Mapas'],['eventos','Eventos anuais'],['caixas','Caixas da loja']].map(([id,nome])=><button type="button" key={id} role="tab" aria-selected={categoria===id} onClick={()=>setCategoria(id)}>{nome}</button>)}</div>
+    {categoria==='amizades'&&<p>Pedidos pendentes não contam. As missões de jogar juntos usam partidas 5v5 validadas, concluídas no mesmo time com amigos da sua lista. Histórico sem elenco confirmado não é estimado.</p>}
     {categoria==='eventos'&&<p>Entre na sua conta em pelo menos um dia do período do evento para receber a insígnia. A data da conquista será a do seu primeiro acesso válido, no horário de Brasília.</p>}
     {categoria==='caixas'&&<p>Insígnias de abrir caixas na loja: o progresso conta cada caixa aberta e cada skin conseguida.</p>}
     {dados&&!['eventos','caixas'].includes(categoria)&&<p className="ms-aviso">{dados.partidasValidadas||0} partidas com dados de missões confirmados. Estatísticas que não existem no histórico não são estimadas.</p>}

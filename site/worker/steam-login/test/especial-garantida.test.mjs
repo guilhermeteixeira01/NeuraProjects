@@ -11,7 +11,7 @@ const { env } = ambiente()
 const caixas = await lerCaixas(env)
 
 test('toda caixa elegível tem garantia válida e animação aponta para o item premiado', () => {
-  for (const c of caixas.filter((c) => c.itens.some((it) => !['adesivo', 'chaveiro'].includes(it.t)))) {
+  for (const c of caixas.filter((c) => !c.premium && c.itens.some((it) => !['adesivo', 'chaveiro'].includes(it.t)))) {
     for (let i = 0; i < 10; i++) {
       const ganhou = sortearEspecial(c, CONFIG_PADRAO, rndSeguro)
       assert.ok(['faca', 'luva'].includes(ganhou.item.t), c.slug)

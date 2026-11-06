@@ -1,4 +1,8 @@
 export default [
+  { id: 'amizade-primeira', nome: 'Primeira Amizade', categoria: 'amizades', arte: 'web/amizade-primeira.webp', descricao: 'Tenha sua primeira amizade aceita na Neura Project.' },
+  { id: 'amizade-dupla-inseparavel', nome: 'Dupla Inseparável', categoria: 'amizades', arte: 'web/amizade-dupla-inseparavel.webp', descricao: 'Conclua 10 partidas 5v5 no mesmo time que um mesmo amigo da sua lista.' },
+  { id: 'amizade-circulo', nome: 'Círculo de Amigos', categoria: 'amizades', arte: 'web/amizade-circulo.webp', descricao: 'Tenha 10 amizades aceitas na sua lista da Neura Project.' },
+  { id: 'amizade-squad-unido', nome: 'Squad Unido', categoria: 'amizades', arte: 'web/amizade-squad-unido.webp', descricao: 'Conclua uma partida 5v5 no mesmo time que quatro amigos da sua lista.' },
   {
     "id": "evento-diwali",
     "nome": "Diwali",

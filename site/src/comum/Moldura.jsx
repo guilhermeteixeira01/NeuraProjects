@@ -15,6 +15,7 @@ import { urlSelo } from './selosEquipe.js'
 import { idCard } from './cardsPerfil.js'
 import EmblemaSub from './EmblemaSub.jsx'
 import { NIVEIS_SUB, SUB_MESES_PADRAO, nivelDaSub } from './assinatura.js'
+import { VISUAIS_PREMIUM, exigePremiumVisual } from '../../worker/steam-login/src/premium-visuais.js'
 
 const EVENTO = 'np-perfis'
 const CACHE = 'np_perfis' // última lista lida (aparece já na troca de página, sem esperar a rede)
@@ -197,8 +198,8 @@ export const cargosComEquipe = (config) => [
 ]
 export const cargoDaMoldura = (config, id) => cargosComEquipe(config).find((c) => c.id === config.molduraCargo?.[id]) || null
 // Moldura / card só para assinantes: o nível mínimo de assinatura que exige (um item de NIVEIS_SUB) ou null. O Subscriber é "qualquer assinante".
-export const subDaMoldura = (config, id) => NIVEIS_SUB.find((n) => n.id === config.molduraSub?.[id]) || null
-export const subDoCard = (config, id) => NIVEIS_SUB.find((n) => n.id === config.cardSub?.[id]) || null
+export const subDaMoldura = (config, id) => NIVEIS_SUB.find((n) => n.id === (VISUAIS_PREMIUM.molduraSub[id] || config.molduraSub?.[id])) || null
+export const subDoCard = (config, id) => NIVEIS_SUB.find((n) => n.id === (VISUAIS_PREMIUM.cardSub[id] || config.cardSub?.[id])) || null
 // true se o jogador (nivel = resultado de useNivelSub: null sem assinatura ativa) NÃO tem o nível mínimo exigido
 export const semSubMinima = (minimo, nivel) => !!minimo && (nivel ? NIVEIS_SUB.findIndex((n) => n.id === nivel.id) : -1) < NIVEIS_SUB.findIndex((n) => n.id === minimo.id)
 
@@ -582,7 +583,7 @@ export function ComMoldura({ steamId, children, cheio = false, emblema = false, 
   // Dono e admins usam qualquer moldura (exclusiva de cargo também)
   const daEquipe = steamId === config.equipe?.dono || !!config.equipe?.admins?.includes(steamId)
   const selo = emblema && nivelSub ? <EmblemaSub nivel={nivelSub} parado={semAnimacao} /> : null
-  const faltaSub = !daEquipe && semSubMinima(subDaMoldura(config, id), nivelSub) // moldura só de assinantes e o jogador não tem o nível
+  const faltaSub = (exigePremiumVisual('molduraSub', id) || !daEquipe) && semSubMinima(subDaMoldura(config, id), nivelSub)
   if (soEmblema || !podeUsarMolduraEvento(id, perfil) || !molduraPorId(id) || faltaSub || (exige && !cargos.includes(exige) && !(daEquipe && exige !== '_dono')))
     return selo ? (
       <span className={`emblema-box${cheio ? ' cheio' : ''}`}>
@@ -627,7 +628,7 @@ export function useCardDe(steamId) {
   const id = idCard(salvo)
   const exige = config.cardCargo?.[id]
   const daEquipe = steamId === config.equipe?.dono || !!config.equipe?.admins?.includes(steamId)
-  if (!daEquipe && semSubMinima(subDoCard(config, id), nivelSub)) return null // card só de assinantes e o jogador não tem o nível
+  if ((exigePremiumVisual('cardSub', id) || !daEquipe) && semSubMinima(subDoCard(config, id), nivelSub)) return null
   return !exige || cargos.includes(exige) || (daEquipe && exige !== '_dono') ? id : null
 }
 

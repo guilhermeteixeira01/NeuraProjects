@@ -24,6 +24,8 @@ import { registrar } from './registro.js'
 import { registrarUsuario } from './usuarios.js'
 import { resumosSteam } from './steam.js'
 import { concluirAfiliacao } from './afiliado.js'
+import { exigePremiumVisual } from './premium-visuais.js'
+import { subAtiva } from './perfis.js'
 
 export const ID_MOLDURA = /^[a-z0-9-]{1,40}\/[a-z0-9-]{1,60}$/
 export const NOME_TIME = /^[^\u0000-\u001f<>]{1,40}$/ // nome da lista de times (o site só mostra se ainda existir na lista)
@@ -36,6 +38,11 @@ const OPCOES = { tema: ['padrao', 'branco', 'escuro', 'claro'], idioma: ['pt', '
 // Valida o que veio do site e devolve os campos a mudar (null = tirar); campo inválido: ErroPedido com o nome do campo
 export function validarPerfil(corpo) {
   const mudar = {}
+  if ('insigniasDestacadas' in corpo) {
+    const ids = corpo.insigniasDestacadas
+    if (!Array.isArray(ids) || ids.length > 3 || new Set(ids).size !== ids.length || ids.some(id => typeof id !== 'string' || !/^[a-z0-9-]{1,80}$/.test(id))) throw new ErroPedido('insigniasDestacadas')
+    mudar.insigniasDestacadas = ids
+  }
   const formato = (campo, regex) => {
     if (!(campo in corpo)) return
     const v = typeof corpo[campo] === 'string' ? corpo[campo].trim() : corpo[campo] ?? null
@@ -98,6 +105,9 @@ export async function salvarPerfil(req, env, quem, config, cors) {
   const mudar = validarPerfil(await lerCorpo(req))
   const admin = ehAdmin(quem.id, env, config)
   const perfis = await lerPerfis(env)
+  for (const [campo, tabela, erro] of [['moldura', 'molduraSub', 'sub'], ['card', 'cardSub', 'cardSub']]) {
+    if (exigePremiumVisual(tabela, mudar[campo]) && !subAtiva(perfis[quem.id]?.sub)) throw new ErroPermissao(erro, { precisa: 'subscriber' })
+  }
   // Enfeite à venda no mercado oficial: só quem comprou usa; comprado passa por cima das outras travas (nível, cargo, assinatura, insígnia)
   const comprados = new Set()
   const pedidos = [['moldura', mudar.moldura], ['card', mudar.card], ['fundo', mudar.fundoPerfil]].filter(([, id]) => id)

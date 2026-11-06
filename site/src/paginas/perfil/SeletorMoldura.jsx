@@ -1,4 +1,5 @@
 import { createPortal } from 'react-dom'
+import { exigePremiumVisual } from '../../../worker/steam-login/src/premium-visuais.js'
 import { FUNDOS_PERFIL, MAPAS_FUNDO, FUNDOS_EVENTO, eventoDoFundo, podeUsarFundoPerfil, imagemFundoPerfil, nomeFundoPerfil } from '../../../worker/steam-login/src/fundos-perfil.js'
 import IconeUI from '../../comum/IconeUI.jsx'
 import { useCallback, useEffect, useState } from 'react'
@@ -84,19 +85,19 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
   const nivelEf = Math.max(1, Number(nivel) || 0)
   // Moldura/card só para assinantes: precisa de assinatura ativa do nível mínimo (admin não tem trava)
   const meuNivelSub = useNivelSub(steamId)
-  const semSubM = (id) => !admin && semSubMinima(subDaMoldura(config, id), meuNivelSub)
-  const semSubC = (c) => !admin && semSubMinima(subDoCard(config, c), meuNivelSub)
+  const semSubM = (id) => (exigePremiumVisual('molduraSub', id) || !admin) && semSubMinima(subDaMoldura(config, id), meuNivelSub)
+  const semSubC = (c) => (exigePremiumVisual('cardSub', c) || !admin) && semSubMinima(subDoCard(config, c), meuNivelSub)
   // Mercado oficial: enfeite à venda fica travado até comprar; comprado passa por cima das outras travas (o worker confere igual)
   const oficial = useOficial(!inicial)
   const comprado = (tipo, id) => !!oficial?.possui?.[tipo]?.includes(id)
   const naLoja = (tipo, id) => !inicial && !!oficial?.venda.has(`${tipo}:${id}`) && !comprado(tipo, id)
-  const travada = (id) => naLoja('moldura', id) || (!comprado('moldura', id) && (!podeUsarMolduraEvento(id, perfil) || (!admin && nivelDaMoldura(config, id) > nivelEf) || semCargo(id) || semSubM(id)))
+  const travada = (id) => (exigePremiumVisual('molduraSub', id) && semSubM(id)) || naLoja('moldura', id) || (!comprado('moldura', id) && (!podeUsarMolduraEvento(id, perfil) || (!admin && nivelDaMoldura(config, id) > nivelEf) || semCargo(id) || semSubM(id)))
   // Cards (banners): mesmas travas das molduras, configuradas na aba Cards do painel admin
   const semCargoCard = (c) => {
     const cg = cargoDoCard(config, c)
     return !!cg && !meusCargos.includes(cg.id) && !(admin && !cg.id.startsWith('_'))
   }
-  const travadoCard = (c) => naLoja('card', c) || (!comprado('card', c) && ((!admin && nivelDoCard(config, c) > nivelEf) || semCargoCard(c) || semSubC(c)))
+  const travadoCard = (c) => (exigePremiumVisual('cardSub', c) && semSubC(c)) || naLoja('card', c) || (!comprado('card', c) && ((!admin && nivelDoCard(config, c) > nivelEf) || semCargoCard(c) || semSubC(c)))
   const [falta, setFalta] = useState(0) // nível exigido, quando o worker recusa
   const salvo = { moldura: perfil.moldura || null, card: perfil.card ? idCard(perfil.card) : null, fundoPerfil: perfil.fundoPerfil || null }
   const [escolha, setEscolha] = useState(salvo)
