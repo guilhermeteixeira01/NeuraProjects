@@ -211,7 +211,7 @@ test('toda insígnia do catálogo tem arte tratada e todas as secretas têm a ve
 })
 
 test('as caixas iniciais são válidas (imagem existe, tem de tudo, pesos > 0)', () => {
-  assert.equal(CAIXAS.length, 35)
+  assert.equal(CAIXAS.length, 39)
   assert.equal(CAIXAS.filter((c) => c.arquivada && !c.diaria).length, 0) // as 31 antigas foram apagadas (revisão 11)
   const removidas = JSON.parse(fs.readFileSync(new URL('../src/caixas-removidas.json', import.meta.url), 'utf8'))
   assert.equal(removidas.length, 101)
@@ -223,8 +223,41 @@ test('as caixas iniciais são válidas (imagem existe, tem de tudo, pesos > 0)',
     assert.ok(c.diaria ? c.preco === 0 && c.arquivada : c.preco > 0)
     if (c.itens.every((x) => !x.t)) assert.ok(c.facas.length >= 5, c.slug + ' sem facas do tier especial') // caixas de arma
     else assert.equal(c.facas.length, 0) // facas e amuletos: sem tier de facas
-    for (const r of [0, 1, 2, 3, 4]) assert.ok(c.itens.some((x) => x.r === r), `${c.slug} sem raridade ${r}`)
-    assert.ok([...c.itens, ...c.facas].every((x) => x.w > 0 && x.d > 0 && (x.p > 0 || x.t === 'adesivo' || x.t === 'chaveiro')))
+    if (c.itens.every(x => !x.t)) for (const r of [0, 1, 2, 3, 4]) assert.ok(c.itens.some((x) => x.r === r), `${c.slug} sem raridade ${r}`)
+    assert.ok([...c.itens, ...c.facas].every((x) => x.w > 0 && x.d > 0 && (x.p > 0 || ['adesivo', 'chaveiro', 'emblema', 'trilha', 'grafite'].includes(x.t))))
+  }
+})
+
+test('caixas colecionáveis preservam o tipo e a pintura do item sorteado', () => {
+  for (const tipo of ['adesivo', 'chaveiro', 'emblema', 'trilha', 'grafite']) {
+    const origem = { t: tipo, d: 123, p: tipo === 'grafite' ? 7 : 0, r: 1, w: 100, n: 'Exemplo', i: 'imagem' }
+    const caixa = { preco: 100, itens: [origem], facas: [] }
+    const { item, raridade } = sortearAbertura(caixa, CONFIG_PADRAO, () => 0.5)
+    assert.equal(item.t, tipo)
+    assert.equal(item.d, origem.d)
+    assert.equal(item.p, origem.p)
+    assert.equal(item.n, origem.n)
+    assert.equal(item.i, origem.i)
+    assert.equal(item.faixa, null)
+    assert.equal(raridade, 1)
+  }
+})
+
+test('as quatro caixas novas têm 30 itens distintos do catálogo correto', () => {
+  for (const [slug, tipo, catalogo] of [
+    ['caixa-adesivos-neon', 'adesivo', 'adesivos'],
+    ['caixa-chaveiros-hot-howl-wurst', 'chaveiro', 'chaveiros'],
+    ['caixa-pins-sci-fi', 'emblema', 'emblemas'],
+    ['caixa-grafites-urbanos', 'grafite', 'grafites'],
+  ]) {
+    const caixa = CAIXAS.find(c => c.slug === slug)
+    const linhas = JSON.parse(fs.readFileSync(new URL(`../../../public/assets/skins/${catalogo}.json`, import.meta.url)))
+    assert.equal(caixa.itens.length, 30, slug)
+    assert.equal(new Set(caixa.itens.map(it => `${it.d}:${it.p}`)).size, 30, slug)
+    for (const it of caixa.itens) {
+      assert.equal(it.t, tipo)
+      assert.ok(linhas.some(l => l[0] === it.d && l[1] === it.n && (tipo !== 'grafite' || (l[4] || 0) === it.p)), it.n)
+    }
   }
 })
 

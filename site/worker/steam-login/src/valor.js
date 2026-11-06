@@ -1,12 +1,21 @@
 // Raridade (0..6) e valor (NP) de um item do inventário: preço de mercado (precos.json, 1 NP = R$ 1) ou, sem preço, a conta por raridade
 // e desgaste; padrão raro (Blue Gem, Fade 97%+, Fire & Ice) multiplica; adesivos e chaveiros colados somam. null = não se vende (caixa, agente).
 // A loja (venda), o mercado (preço de referência), o perfil (valor do inventário) e o carrossel de drops usam daqui.
-import { definirValorador, precoDeMercado, valorDaFaca, valorDoItem } from './loja-core.js'
+import { definirValorador, precoDeMercado, valorDaFaca, valorDoItem, raridadeCsDaCor } from './loja-core.js'
 import { padraoRaro } from './padroes.js'
 import ENFEITES_VALOR from './valor-enfeites.json'
 import FACAS_VALOR from './facas-valor.json'
 import PRECOS from './precos.json'
 import RARIDADE_SKIN from './skins-raridade.json'
+import EMBLEMAS from '../../../public/assets/skins/emblemas.json'
+import GRAFITES from '../../../public/assets/skins/grafites.json'
+import TRILHAS from '../../../public/assets/skins/trilhas.json'
+
+const PERFIL_VALOR = new Map([
+  ...EMBLEMAS.map(l => [`emblema:${l[0]}:0`, l]),
+  ...GRAFITES.map(l => [`grafite:${l[0]}:${l[4] || 0}`, l]),
+  ...TRILHAS.map(l => [`trilha:${l[0]}:0`, l]),
+])
 
 // Sem preço de mercado: adesivo por acabamento (papel, glitter, holo, foil, gold, campeão) e chaveiro por raridade (azul, roxo, rosa, vermelho)
 const VALOR_ADESIVO = [4, 8, 15, 40, 100, 250]
@@ -24,6 +33,12 @@ function valorDosEnfeites(it) {
 }
 
 export function valorDe(it) {
+  if (['emblema', 'grafite', 'trilha'].includes(it.t)) {
+    const linha = PERFIL_VALOR.get(`${it.t}:${it.d}:${it.t === 'grafite' ? it.p || 0 : 0}`)
+    if (!linha) return null
+    const r = raridadeCsDaCor(linha[3])
+    return { r, v: valorDoItem({ f: 0.5 }, r) }
+  }
   if (it.t === 'adesivo') return { r: Math.min(5, (ENFEITES_VALOR.a[it.d] ?? 0) + 1), v: valorDoAdesivo(it.d) }
   if (it.t === 'chaveiro') return { r: ENFEITES_VALOR.c[it.d] ?? 2, v: valorDoChaveiro(it.d) }
   if (!['arma', 'faca', 'luva'].includes(it.t)) return null

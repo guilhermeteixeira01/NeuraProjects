@@ -1,11 +1,12 @@
 import './cartaoSkin.css'
+import ImagemItemInventario from './ImagemItemInventario.jsx'
 import IconeUI from './IconeUI.jsx'
 // Cartão de um item do inventário de skins (o mesmo do /inventario/ e da aba Skins do painel admin): arma sobre fundo transparente com a barra
 // da raridade, bolinhas dos times em que está equipada, StatTrak, chaveiro e adesivos no canto de baixo, nome, skin e desgaste.
 // item: { t, d, p, f, st, n, a, k, __id }   equip: { ct: {chave: id}, tr: {...} }   adesivos/chaveiros: Map(id do jogo -> linha do catálogo)
 // aoAbrirMenu: o que fazer ao clicar (menu do botão direito no inventário); sem ele o cartão é só para olhar. extra: algo embaixo (ex.: botão "Tirar").
 import { useEffect, useRef, useState } from 'react'
-import { LADOS_TIME, chaveEquip, corEnfeite, descrever, ehC4, ehPerfil, urlImg } from './skins.js'
+import { LADOS_TIME, chaveEquip, chavePerfil, corEnfeite, descrever, ehC4, ehPerfil, urlImg } from './skins.js'
 import { useT } from './i18n.js'
 import DicaSkin, { nomeRaridade, temDica } from './DicaSkin.jsx'
 import { padraoRaro } from '../../worker/steam-login/src/padroes.js'
@@ -66,6 +67,8 @@ export function ConteudoCartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
   const enfeite = item.t === 'adesivo' || item.t === 'chaveiro'
   const linha = enfeite ? (item.t === 'adesivo' ? adesivos : chaveiros)?.get(item.d) : null
   const d = enfeite ? { titulo: linha?.[1] || `#${item.d}`, subtitulo: t(item.t === 'adesivo' ? 'Adesivo' : 'Chaveiro'), img: urlImg(linha?.[2], 256), cor: corEnfeite(item.t, linha) } : descrever(item, idx)
+  // A Steam acrescenta margens nas trilhas pedidas em 512 px; mede-se e exibe-se a mesma fonte de 256 px.
+  const imagemCartao = ehPerfil(item) ? urlImg(idx.porPerfil?.[item.t]?.get(chavePerfil(item.t, item.d, item.p))?.[2], 256) : d.img
   const chave = chaveEquip(item)
   const lados = LADOS_TIME.filter(([l]) => equip?.[l]?.[chave] === item.__id)
   // Ficha da skin ao parar o mouse em cima (só com mouse; some ao clicar, rolar ou sair)
@@ -99,7 +102,7 @@ export function ConteudoCartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
       <span className="inv-cartao-arte">
         {item.cadeado && !aoCadeado && <span className="inv-item-cadeado" title={t('Skin protegida contra venda')}><IconeUI tipo="cadeado" tamanho={16} /></span>}
         <span className="inv-arma-box">
-          <Imagem src={d.img} classe="inv-arma-img" />
+          <ImagemItemInventario src={imagemCartao} tipo={item.t} def={item.d} pintura={item.p} />
         </span>
 
 

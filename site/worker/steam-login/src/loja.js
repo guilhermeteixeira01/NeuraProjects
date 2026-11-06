@@ -184,12 +184,12 @@ function limparCaixa(c, n) {
   const skin = (x) => ({ d: Math.round(num(x?.d, 1, 100000, 0)), p: Math.round(num(x?.p, 1, 100000, 0)), w: pesoOk(x?.w), min: num(x?.min, 0, 1, 0), max: num(x?.max, 0, 1, 1), l: x?.l ? 1 : 0 })
   // itens: skin de arma (padrão), faca (t: 'faca'), adesivo ou chaveiro (t: 'adesivo'|'chaveiro', sem pintura; n = nome e i = imagem da Steam para mostrar)
   const item = (x) => {
-    const t = ['faca', 'luva', 'adesivo', 'chaveiro'].includes(x?.t) ? x.t : undefined
+    const t = ['faca', 'luva', 'adesivo', 'chaveiro', 'emblema', 'trilha', 'grafite'].includes(x?.t) ? x.t : undefined
     const base = { ...skin(x), r: Math.round(num(x?.r, 0, 4, 0)) }
-    if (t === 'adesivo' || t === 'chaveiro') return { ...base, t, p: 0, n: String(x.n || '').slice(0, 80), i: /^[A-Za-z0-9_-]{1,400}$/.test(x.i || '') ? x.i : '' }
+    if (['adesivo', 'chaveiro', 'emblema', 'trilha', 'grafite'].includes(t)) return { ...base, t, p: t === 'grafite' ? Math.round(num(x.p, 0, 100000, 0)) : 0, n: String(x.n || '').slice(0, 80), i: /^[A-Za-z0-9_-]{1,400}$/.test(x.i || '') || /^https:\/\//.test(x.i || '') ? String(x.i).slice(0, 1000) : '' }
     return t ? { ...base, t } : base
   }
-  const itens = (Array.isArray(c.itens) ? c.itens : []).slice(0, 300).map(item).filter((x) => x.d && (x.p || x.t === 'adesivo' || x.t === 'chaveiro'))
+  const itens = (Array.isArray(c.itens) ? c.itens : []).slice(0, 300).map(item).filter((x) => x.d && (x.p || ['adesivo', 'chaveiro', 'emblema', 'trilha', 'grafite'].includes(x.t)))
   // tier especial (card dourado): faca, ou luva quando vier com t: 'luva'
   const facas = (Array.isArray(c.facas) ? c.facas : []).slice(0, 300).map((x) => (x?.t === 'luva' ? { ...skin(x), t: 'luva' } : skin(x))).filter((x) => x.d && x.p)
   return {
@@ -211,7 +211,7 @@ function limparCaixa(c, n) {
 // O preço do modo = preço da caixa × (valor esperado no modo ÷ valor esperado normal): a margem que o dono escolheu continua a mesma.
 export function detalhesDaCaixa(caixa, cfg) {
   const desgastes = (x, tipo) => {
-    if (x.t === 'adesivo' || x.t === 'chaveiro') return [{ nome: null, p: 1, v: valorDe({ t: x.t, d: x.d })?.v ?? 0 }]
+    if (['adesivo', 'chaveiro', 'emblema', 'trilha', 'grafite'].includes(x.t)) return [{ nome: null, p: 1, v: valorDe({ t: x.t, d: x.d, p: x.p })?.v ?? 0 }]
     return faixasDeDesgaste(cfg, x.min, x.max).map((fx) => ({ nome: fx.nome, p: fx.p, v: valorDe({ t: x.t || tipo, d: x.d, p: x.p, f: fx.f, st: 0 })?.v ?? 0 }))
   }
   const itens = caixa.itens.map((x) => desgastes(x, 'arma'))
@@ -299,7 +299,7 @@ export class Loja {
 
   recalcularResumo() {
     const gasto = this.sql.exec('SELECT COALESCE(SUM(valor), 0) AS s FROM movimentos').one().s
-    const especial = this.sql.exec("SELECT COUNT(*) AS n FROM aberturas WHERE t NOT IN ('adesivo', 'chaveiro')").one().n
+    const especial = this.sql.exec("SELECT COUNT(*) AS n FROM aberturas WHERE t IN ('arma', 'faca', 'luva')").one().n
     this.sql.exec('INSERT OR REPLACE INTO resumo (chave, valor) VALUES (?, ?), (?, ?)', 'gasto', gasto, 'especial', especial)
     this.acumulado = null
     this.melhor = null
@@ -323,7 +323,7 @@ export class Loja {
   }
   registrarAbertura(linha) {
     this.sql.exec('INSERT INTO aberturas (ts, caixa, t, d, p, r, f, q) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', ...linha)
-    if (linha[2] !== 'adesivo' && linha[2] !== 'chaveiro') this.sql.exec("UPDATE resumo SET valor = valor + 1 WHERE chave = 'especial'")
+    if (['arma', 'faca', 'luva'].includes(linha[2])) this.sql.exec("UPDATE resumo SET valor = valor + 1 WHERE chave = 'especial'")
   }
 
   // Estatísticas das aberturas e melhor queda: soma só as linhas novas ao acumulado da memória
@@ -866,7 +866,7 @@ export class Loja {
     const linhas = []
     // A 100ª, 200ª... abertura elegível garante faca/luva, inclusive no meio de lotes de 2 ou 3.
     // Caixas só de adesivos/chaveiros não contam nem dão especial
-    const soEnfeites = caixa.itens.every((it) => it.t === 'adesivo' || it.t === 'chaveiro')
+    const soEnfeites = caixa.itens.every((it) => ['adesivo', 'chaveiro', 'emblema', 'trilha', 'grafite'].includes(it.t))
     const jaAbertas = this.abertasParaEspecial()
     for (let k = 0; k < qtd; k++) {
       const especial = !soEnfeites && ehEspecial(jaAbertas + k + 1)
@@ -877,8 +877,8 @@ export class Loja {
       const faixa = gerarFaixa(caixa, cfg, ganhou, rndSeguro)
       const item = novoIdItem()
       const { faixa: nomeFaixa, n: nomeItem, i: imgItem, ...base } = ganhou.item
-      const enfeite = base.t === 'adesivo' || base.t === 'chaveiro' // amuletos e adesivos vão guardados no inventário (como os que o dono dá)
-      inv.itens[item] = enfeite ? { t: base.t, d: base.d, p: 0 } : { ...base, st: 0, n: '', a: [null, null, null, null, null], k: null }
+      const enfeite = ['adesivo', 'chaveiro', 'emblema', 'trilha', 'grafite'].includes(base.t)
+      inv.itens[item] = enfeite ? { t: base.t, d: base.d, p: base.t === 'grafite' ? base.p || 0 : 0 } : { ...base, st: 0, n: '', a: [null, null, null, null, null], k: null }
       inv.criado[item] = agora + k
       linhas.push([agora + k, caixa.slug, base.t || 'arma', base.d, base.p, ganhou.raridade, base.f, faixa.quase ? 1 : 0])
       resultados.push({

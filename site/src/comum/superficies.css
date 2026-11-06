@@ -58,7 +58,7 @@ body *,body *::before,body *::after {
 .moldura-box.moldura-ajustada { margin-bottom:calc(var(--moldura-sobra,0) * var(--moldura-px,0px))!important; }
 .moldura-box.moldura-ajustada>img,
 .moldura-box.moldura-ajustada>span:not(.moldura):not(.emblema-sub) {
- height:auto!important;aspect-ratio:var(--moldura-proporcao);object-fit:cover;object-position:center;
+ height:auto!important;aspect-ratio:var(--moldura-proporcao);object-fit:var(--moldura-foto-ajuste,cover)!important;object-position:center;
  border-radius:0!important;clip-path:var(--moldura-recorte);
 }
 .moldura-box.moldura-ajustada>.moldura {

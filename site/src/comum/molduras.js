@@ -2,7 +2,7 @@
 // A escala alinha a abertura ao avatar. Premium inclui uma versão animada.
 export const COLECOES = ["Times","Eventos","Attack on Titan","Bleach","Chainsaw Man","Death Note","Demon Slayer","Dragon Ball","Evangelion","Fullmetal Alchemist","Gundam","Hunter x Hunter","Jujutsu Kaisen","My Hero Academia","Naruto","One Piece","Pokémon","Sailor Moon","Solo Leveling","Spy x Family","Tokyo Ghoul","Marvel","Harry Potter","Filmes","Terror","Outros"]
 export const MOLDURAS = [
-  { id: 'premium/neura-premium', nome: 'Neura Premium', colecao: 'Premium', fonte: 'neura', forma: 'quadrada', arquivo: 'premium/neura-premium.webp', abertura: { x: 60, y: 89, largura: 392, altura: 356, fundo: 496, recorte: 'inset(0 round 8%)' } },
+  { id: 'premium/neura-premium', nome: 'Neura Premium', colecao: 'Premium', fonte: 'neura', forma: 'quadrada', arquivo: 'premium/neura-premium.webp', abertura: { x: 60, y: 89, largura: 392, altura: 356, fundo: 496, recorte: 'inset(0 round 8%)', ajusteFoto: 'contain' } },
   {
     "id": "times/furia",
     "nome": "FURIA",
@@ -4060,6 +4060,7 @@ export const estiloFotoMoldura = id => {
  if (!a) return undefined
  return {
   '--moldura-proporcao': `${a.largura} / ${a.altura}`,
+  '--moldura-foto-ajuste': a.ajusteFoto || 'cover',
   '--moldura-largura': `${512 / a.largura * 100}%`,
   '--moldura-altura': `${512 / a.altura * 100}%`,
   '--moldura-esquerda': `${-a.x / a.largura * 100}%`,

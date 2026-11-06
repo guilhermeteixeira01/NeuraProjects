@@ -216,11 +216,11 @@ html:not(#v2) #root .inv-pagina .inv-itens { grid-template-columns: repeat(auto-
   html:not(#v2) #root .inv-pagina .inv-cartao .inv-cartao-valor img { width: 15px; height: 15px; }
   .inv-painel-v2 { box-sizing: border-box; position: relative; top: auto; height: 100%; max-height: 100%; min-height: 0; min-width: 0; overflow-x: hidden; }
   .inv-painel-arte { flex: 0 0 clamp(130px, 23vh, 205px); height: auto; }
-  #root .inv-pagina .inv-barra { display: grid; grid-template-columns: minmax(100px, 1fr) auto auto auto minmax(140px, 180px); gap: 10px; margin-bottom: 12px; }
+  #root .inv-pagina .inv-barra { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
   #root .inv-pagina .inv-pesquisa { min-width: 0; padding-inline: 12px; }
   #root .inv-pagina .inv-pesquisa input { max-width: none; font-size: 13px; }
   #root .inv-pagina .inv-barra :is(.inv-btn, .tr-btn, button) { padding-inline: 12px; font-size: 13px; gap: 8px; }
-  .inv-ordem-caixa { min-width: 0; width: 100%; box-sizing: border-box; }
+  .inv-ordem-caixa { min-width: 0; width: auto; box-sizing: border-box; }
   #root .inv-pagina .inv-topo { min-width: 0; margin-bottom: 10px; }
   #root .inv-pagina .inv-abas { min-width: 0; flex-wrap: nowrap; }
   #root .inv-pagina .inv-abas button { padding-inline: 14px; font-size: 13px; flex: none; }
@@ -323,12 +323,8 @@ html:not(#v2) #root .inv-pagina .inv-painel-compacto .inv-painel-cab {
 }
 html:not(#v2) #root .inv-pagina .inv-painel-compacto .inv-rar-selo { justify-self: center; }
 
-/* 3D da arma inspecionada: ocupa toda a área da arte e deixa o fundo do painel aparecer */
-.inv-painel-3d { position: absolute; inset: 0; display: block; }
-.inv-painel-3d iframe, .inv-painel-3d > div { width: 100%; height: 100%; border: 0; background: transparent; }
-
 /* barra de busca/filtros: quebra em linhas quando falta largura e a caixa de ordenar não encolhe (o texto saía da borda) */
-#root .inv-pagina .inv-barra { flex-wrap: wrap; }
+#root .inv-pagina .inv-barra { display: flex; flex-wrap: wrap; gap: 10px; max-width: 100%; }
 #root .inv-pagina .inv-barra :is(.inv-pesquisa) { flex: 1 1 280px; min-width: 240px; }
 #root .inv-pagina .inv-barra :is(.inv-filtro-raridade, .inv-btn, .tr-btn) { flex: none; }
 #root .inv-pagina .inv-ordem-caixa { flex: none; min-width: 205px; }
@@ -340,3 +336,84 @@ html:not(#v2) #root .inv-pagina .inv-painel-compacto .inv-rar-selo { justify-sel
 }
 html:not(#v2) #root .inv-pagina .inv-card-janela-compacto { height: 176px; }
 html:not(#v2) #root .inv-pagina .inv-card-janela-caixa { height: 218px; }
+
+/* Mesmo quadro para skins, caixas e colecionáveis em todas as seções. */
+html:not(#v2) #root .inv-pagina .inv-cartao[class]:not(#_) {
+  box-sizing: border-box;
+  height: 256px;
+  min-height: 256px;
+  text-align: center;
+}
+html:not(#v2) #root .inv-pagina .inv-cartao[class]:not(#_) .inv-cartao-arte {
+  height: 108px;
+  min-height: 108px;
+  padding: 0;
+  aspect-ratio: auto;
+}
+html:not(#v2) #root .inv-pagina .inv-cartao .inv-arma-box {
+  inset: 8px;
+  width: auto;
+  height: auto;
+}
+html:not(#v2) #root .inv-pagina .inv-cartao .inv-arma-img {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  transform: none;
+}
+html:not(#v2) #root .inv-pagina .inv-cartao[class]:not(#_) .inv-cartao-nome {
+  align-items: center;
+  gap: 3px;
+  padding: 8px 8px 10px;
+  text-align: center;
+}
+html:not(#v2) #root .inv-pagina .inv-cartao .inv-item-identificadores {
+  justify-content: center;
+  min-height: 16px;
+}
+html:not(#v2) #root .inv-pagina .inv-cartao .inv-cartao-nome:not(:has(.inv-item-identificadores))::before {
+  content: '';
+  height: 16px;
+  flex: none;
+}
+html:not(#v2) #root .inv-pagina .inv-cartao .inv-cartao-nome b {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  width: 100%;
+  min-height: 34px;
+  overflow: hidden;
+  white-space: normal;
+  font-size: 13.5px;
+  line-height: 17px;
+}
+html:not(#v2) #root .inv-pagina .inv-cartao .inv-cartao-nome small {
+  width: 100%;
+  font-size: 13.5px;
+  line-height: 17px;
+}
+html:not(#v2) #root .inv-pagina .inv-cartao .inv-cartao-nome .inv-enfeites {
+  justify-content: center;
+}
+html:not(#v2) #root .inv-pagina .inv-cartao .inv-cartao-valor {
+  justify-content: center;
+  padding-top: 3px;
+  font-size: 14px;
+}
+html:not(#v2) #root .inv-pagina .inv-cartao .inv-cartao-valor img { width: 15px; height: 15px; }
+html:not(#v2) #root .inv-pagina .inv-card-janela { height: 256px; }
+html:not(#v2) #root .inv-pagina .inv-card-janela-caixa { height: 298px; }
+
+html:not(#v2) #root .inv-pagina .inv-cartao .inv-arma-img.inv-arte-normalizada {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: min(92px, 100%);
+  height: 92px;
+  max-width: none;
+  max-height: none;
+  transform: none;
+  overflow: hidden;
+}

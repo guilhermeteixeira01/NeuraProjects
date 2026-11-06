@@ -12,6 +12,7 @@ import { INSIGNIAS } from './insignias.js'
 import { CARDS } from './cardsPerfil.js'
 import catalogo from '../../worker/steam-login/src/caixas-iniciais.json'
 import { CAIXA_PREMIUM } from '../../worker/steam-login/src/caixa-premium-core.js'
+import trilhasPreview from '../../public/assets/skins/trilhas.json'
 import { CONFIG_PADRAO as CONFIG_BASE, chancesDaCaixa, aplicarModo, faixasDeDesgaste, sortearAbertura, gerarFaixa, gerarFaixaFacas, valorDoItem, progressoInsignias } from '../../worker/steam-login/src/loja-core.js'
 const CONFIG_PADRAO = { ...CONFIG_BASE, porCaixa: true }
 
@@ -47,6 +48,26 @@ export function ativarPreviewLocal(opcoes = {}) {
   itens.democaixa={t:'caixa',d:caixas[0].id,p:0}
   let estado={saldo:250000,abertas:36,inv:{v:2,itens,equip:{ct:{},tr:{}},criado:Object.fromEntries(Object.keys(itens).map(k=>[k,Date.now()]))},mensagens:[{id:'demomsg1',de:pessoas[1].id,texto:'Bora jogar com o pessoal hoje?',ts:Date.now()-180000},{id:'demomsg2',de:id,texto:'Bora! Vou montar o grupo.',ts:Date.now()-120000},{id:'demomsg3',de:pessoas[1].id,texto:'Esse é o chat de demonstração.',ts:Date.now()-60000}],chat:[{id:'demochat',de:pessoas[1].id,nome:pessoas[1].nome,texto:'Bem-vindos ao time de teste!',ts:Date.now()-60000}]}
   try { estado=JSON.parse(sessionStorage.getItem(CHAVE_ESTADO)||'null')||estado } catch { /* estado inicial */ }
+  // Exemplos locais para revisar todos os tipos de card, inclusive em sessões já abertas.
+  if (!estado.exemplosColecionaveisV1) {
+    for (const slug of ['caixa-adesivos-neon', 'caixa-chaveiros-hot-howl-wurst', 'caixa-pins-sci-fi', 'caixa-grafites-urbanos']) {
+      const caixa = caixas.find(c => c.slug === slug)
+      if (!caixa) continue
+      estado.inv.itens[`preview-${slug}`] = { t: 'caixa', d: caixa.id, p: 0 }
+      estado.inv.criado[`preview-${slug}`] = Date.now()
+      caixa.itens.slice(0, 3).forEach((it, i) => {
+        const chave = `preview-${slug}-${i}`
+        estado.inv.itens[chave] = { t: it.t, d: it.d, p: it.p || 0 }
+        estado.inv.criado[chave] = Date.now()
+      })
+    }
+    trilhasPreview.slice(0, 2).forEach(l => {
+      estado.inv.itens[`preview-trilha-${l[0]}`] = { t: 'trilha', d: l[0], p: 0 }
+      estado.inv.criado[`preview-trilha-${l[0]}`] = Date.now()
+    })
+    estado.exemplosColecionaveisV1 = true
+    try { sessionStorage.setItem(CHAVE_ESTADO, JSON.stringify(estado)) } catch { /* sem armazenamento */ }
+  }
   estado.notificacoes ??= {lista:[{id:'demo-boas-vindas',titulo:'Bem-vindo à prévia local',texto:'Amigos, time, inventário e saldo são dados de demonstração.',link:'/lobby/',imagem:avatar,quando:Date.now()-60000,lida:false},{id:'demo-caixas',titulo:'Caixas prontas para testar',texto:'Abra caixas e veja o resultado no inventário de teste.',link:'/loja/',quando:Date.now()-120000,lida:false}],vistos:[],limpoEm:0}
   if (!estado.notificacoes.lista.some((n) => n.id === 'demo-mercado')) estado.notificacoes.lista.unshift({id:'demo-mercado',titulo:'Sua skin foi vendida no mercado!',texto:'Luna · teste comprou AK-47 | Redline por 450 NP. Os pontos já estão na sua conta.',link:'/loja/?aba=skins',imagem:avatar,raridade:4,quando:Date.now()-30000,lida:false})
   estado.conta ??= {nome:'',sobrenome:'',cpf:'',nascimento:'',discord:'',descricao:'Jogador da comunidade Neura.',faceit:'',privacidade:Object.fromEntries(['perfil','inventario','amigos','conquistas','convites'].map(k=>[k,'todos']))}

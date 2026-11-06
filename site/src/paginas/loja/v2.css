@@ -109,9 +109,14 @@ html:not(#v2) #root .lj-pagina .mo-qtd button.is-ativo{border-color:var(--tom);b
 /* Filtros de skins diretamente sobre o fundo da loja. */
 html:not(#v2) #root .lj-pagina .lj-mercado-filtros{background:none;border:0;box-shadow:none;padding:0;border-radius:0}
 
-/* As caixas distribuem as colunas ocupadas por toda a largura. */
-html:not(#v2) #root .lj-pagina .lj-grade-caixas{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));justify-content:center;gap:30px 18px}
+/* Colunas fixas mantêm as caixas iguais mesmo nas categorias com poucos itens. */
+html:not(#v2) #root .lj-pagina .lj-grade-caixas{grid-template-columns:repeat(auto-fit,220px);justify-content:center;gap:30px 18px}
 html:not(#v2) #root .lj-pagina .lj-caixa-arte{max-width:300px;justify-self:center}
+html:not(#v2) #root .lj-pagina .lj-caixa{box-sizing:border-box;grid-template-rows:auto 42px 34px;align-content:start;justify-items:center;text-align:center}
+html:not(#v2) #root .lj-pagina .lj-caixa-arte{width:100%;aspect-ratio:1;max-width:none}
+html:not(#v2) #root .lj-pagina .lj-caixa-arte img{display:block;object-fit:contain;object-position:center}
+html:not(#v2) #root .lj-pagina .lj-caixa b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;white-space:normal;overflow-wrap:anywhere;align-content:center;width:100%;line-height:21px}
+html:not(#v2) #root .lj-pagina .lj-caixa-preco{align-self:center}
 @media(max-width:760px){html:not(#v2) #root .lj-pagina .lj-grade-caixas{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 10px}html:not(#v2) #root .lj-pagina .lj-hero{margin-top:66px;min-height:180px}html:not(#v2) #root .lj-pagina .lj-hero-camada{clip-path:inset(-65px 0 0 0)}html:not(#v2) #root .lj-pagina .lj-hero-camada img{top:auto;bottom:0;right:-8%;height:132%;width:auto;max-width:72%;object-fit:contain;object-position:right bottom}html:not(#v2) #root .lj-pagina .lj-hero-texto{max-width:58%;padding:18px 14px}html:not(#v2) #root .lj-pagina .lj-hero-texto h2{font-size:24px}html:not(#v2) #root .lj-pagina .lj-hero-texto .v2-btn{padding:0 18px;min-height:42px;height:42px}}
 
 /* Personagem livre nas laterais do banner, com corte só na base. */

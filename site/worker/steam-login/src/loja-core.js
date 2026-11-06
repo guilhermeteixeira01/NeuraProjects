@@ -183,7 +183,7 @@ export function sortearAbertura(caixa, cfg, rnd) {
 
 function montarPremio(origem, raridade, indice, t, cfg, rnd) {
   // adesivo e chaveiro (caixas de amuletos) não têm desgaste nem padrão: vão guardados no inventário
-  if (origem.t === 'adesivo' || origem.t === 'chaveiro') return { raridade, indice, item: { t: origem.t, d: origem.d, p: 0, f: 0.5, s: 0, l: 0, faixa: null, n: origem.n || '', i: origem.i || '' } }
+  if (['adesivo', 'chaveiro', 'emblema', 'trilha', 'grafite'].includes(origem.t)) return { raridade, indice, item: { t: origem.t, d: origem.d, p: origem.t === 'grafite' ? origem.p || 0 : 0, f: 0.5, s: 0, l: 0, faixa: null, n: origem.n || '', i: origem.i || '' } }
   const { f, faixa } = sortearDesgaste(cfg, origem.min, origem.max, rnd)
   return { raridade, indice, item: { t: origem.t === 'faca' || origem.t === 'luva' ? origem.t : t, d: origem.d, p: origem.p, f, s: Math.floor(rnd() * 1001), l: origem.l ? 1 : 0, faixa } }
 }

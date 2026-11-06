@@ -26,6 +26,8 @@ export const TEMAS_CAIXA = [
   ['armas', 'Caixas de arma', 'Só skins de uma arma (e as facas raras).', /^caixa-arma-/],
   ['adesivos', 'Adesivos', 'Só adesivos, para colar nas suas armas.', /^caixa-adesivos-/],
   ['amuletos', 'Amuletos', 'Só chaveiros, para pendurar nas suas armas.', /^caixa-chaveiros-/],
+  ['pins', 'Pins', 'Emblemas e pins colecionáveis.', /^caixa-pins-/],
+  ['grafites', 'Grafites', 'Arte para marcar presença nos mapas.', /^caixa-grafites-/],
 ]
 
 // sem tema pelo slug (caixas criadas no painel): pelo que tem dentro
@@ -47,6 +49,8 @@ export function categoriaDaCaixa(c) {
   if (t.size === 1 && t.has('luva')) return 'luvas'
   if (t.size === 1 && t.has('chaveiro')) return 'amuletos'
   if (t.size === 1 && t.has('adesivo')) return 'adesivos'
+  if (t.size === 1 && t.has('emblema')) return 'pins'
+  if (t.size === 1 && t.has('grafite')) return 'grafites'
   if (t.has('chaveiro') || t.has('adesivo')) return 'misto'
   return new Set(c.itens.map((i) => i.d)).size <= 2 ? 'armas' : 'tematicas' // uma ou duas armas (M4A1-S + M4A4) = caixa de arma
 }

@@ -1,4 +1,5 @@
 import IconeUI from '../../comum/IconeUI.jsx'
+import ImagemItemInventario from '../../comum/ImagemItemInventario.jsx'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { seForErroApi } from '../../comum/api.js'
@@ -742,13 +743,9 @@ function useCelular() {
   return cel
 }
 
-function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEquipar, aoDesequipar, aoDetalhes, aoEditar, mapa }) {
+function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEquipar, aoDesequipar, aoDetalhes, aoEditar }) {
   const t = useT()
   const fechar = useRef(null)
-  const m3d = useMapas3d(mapa)
-  const [sem3d, setSem3d] = useState(false)
-  const idSel = alvo?.item?.__id
-  useEffect(() => setSem3d(false), [idSel])
   useEffect(() => {
     if (!celular || !aberto) return
     fechar.current?.focus()
@@ -776,7 +773,6 @@ function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEqui
   const times = (!guardado && d.times) || []
   const equipados = times.filter((l) => equip?.[l]?.[chave] === item.__id)
   const c4 = !guardado && ehC4(item)
-  const tem3d = !guardado && !!m3d && !sem3d && ['arma', 'faca', 'luva'].includes(item.t) && idNo3d(item, m3d) !== undefined
   const equipavel = !guardado && !c4 && ['arma', 'faca', 'luva', ...PERFIL_TIPOS].includes(item.t) && times.length > 0
   const todos = equipavel && equipados.length === times.length
   const raridade = nomeRaridade(item, d.cor, t.idioma)
@@ -796,10 +792,7 @@ function PainelItem({ alvo, idx, equip, valor, celular, aberto, aoFechar, aoEqui
         <small>{temFloat ? t(nomeDoDesgaste(f)) : guardado ? `${d.tipoNome}${alvo.n > 1 ? ` · ×${alvo.n}` : ''}` : ''}</small>
       </header>
       <div className="inv-painel-arte" style={{ '--inv-painel-fundo': `url("${FUNDOS.inventario.src}")` }}>
-        {tem3d ? (
-          // arma inspecionada em 3D (gira com o mouse), com adesivos e chaveiro; sobre o fundo do painel. Sem o 3D, a imagem da Steam.
-          <div className="inv-painel-3d"><Visualizador3D key={`${item.__id}:${JSON.stringify([item.a, item.k])}`} item={item} m={m3d} aoMudar={() => {}} aoFalhar={() => setSem3d(true)} altura="100%" /></div>
-        ) : d.img ? <img src={d.img} alt="" decoding="async" /> : <span className="inv-sem-img" aria-hidden="true" />}
+        {d.img ? <img src={d.img} alt="" decoding="async" /> : <span className="inv-sem-img" aria-hidden="true" />}
         {item.st ? <span className="inv-st">StatTrak™</span> : null}
       </div>
       {temFloat && (
@@ -1327,7 +1320,7 @@ function Conteudo() {
       <>
         <span className="inv-cartao-arte">
           <span className="inv-arma-box">
-            <Imagem src={caixa ? g.linha?.[2] : urlImg(g.linha?.[2], 256)} classe="inv-arma-img" />
+            <ImagemItemInventario src={caixa ? g.linha?.[2] : urlImg(g.linha?.[2], 256)} tipo={g.tipo} def={g.def} />
           </span>
           <span className="inv-st">×{g.n}</span>
         </span>
@@ -1523,7 +1516,6 @@ function Conteudo() {
       </div>
       </div>
       {!celular && <PainelItem
-        mapa={mapa3d.dados}
         alvo={alvo}
         idx={idx}
         equip={inv.equip}

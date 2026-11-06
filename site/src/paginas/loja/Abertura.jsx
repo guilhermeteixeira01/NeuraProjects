@@ -36,7 +36,8 @@ export function useAcharItem() {
 // ── cartão de um item (roleta e resultado) ──
 // Nome e imagem de um item de caixa: adesivo e chaveiro trazem nome (n) e imagem (i) da própria caixa; skin e faca vêm do catálogo de armas
 export function dadosDoItem(tipo, d, p, n, i, achar) {
-  if (tipo === 'adesivo' || tipo === 'chaveiro') return { nome: n || `#${d}`, skin: tipo === 'adesivo' ? 'Adesivo' : 'Chaveiro', img: urlImg(i, 256), imgGrande: urlImg(i, 512), enfeite: true }
+  const rotulos = { adesivo: 'Adesivo', chaveiro: 'Amuleto', emblema: 'Pin', trilha: 'Trilha sonora', grafite: 'Grafite' }
+  if (rotulos[tipo]) return { nome: n || `#${d}`, skin: rotulos[tipo], img: urlImg(i, 256), imgGrande: urlImg(i, 512), enfeite: true }
   return achar(d, p)
 }
 
