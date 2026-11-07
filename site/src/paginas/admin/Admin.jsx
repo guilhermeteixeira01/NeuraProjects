@@ -7,7 +7,7 @@ import { entrar, linkPerfil, loginAtivo, useConta } from '../../comum/conta.js'
 import { lerJson, urlOk } from '../../comum/dados.js'
 import { FundoHero } from '../../comum/HeroFundo.jsx'
 import { CamadaMoldura, CargosDe, ComMoldura, IconeEquipe, SELOS_PADRAO, SeloCargo, SeloEquipe, cargosComEquipe, chamar, nomeDoCargo, useAdmin } from '../../comum/Moldura.jsx'
-import { COLECOES, MOLDURAS, classeForma, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
+import { COLECOES, MOLDURAS, classeForma, estiloFotoMoldura, molduraPorId, urlMiniatura } from '../../comum/molduras.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { NIVEL_MAX, nivelDe, rotuloNivel, textoNivel } from '../../comum/niveis.js'
 import { ordenarRanking } from '../../comum/ranking.js'
@@ -269,7 +269,7 @@ function EditarUsuario({ u, ehAdmin, cargos = [], fechar, aoSalvar, abas = [], u
         <>
         <div className="adm-ed-corpo">
           <div className="adm-ed-topo">
-            <span className={`moldura-box adm-ed-av${classeForma(moldura)}`}>
+            <span className={`moldura-box adm-ed-av${classeForma(moldura)}`} style={estiloFotoMoldura(moldura)}>
               <Avatar id={u.id} src={u.avatar} nome={u.nome} classe="adm-ed-img" />
               <CamadaMoldura id={moldura} />
             </span>
