@@ -1,5 +1,5 @@
 // Respostas HTTP, leitura do corpo e conferência de tokens: o que todas as rotas e todos os Durable Objects usam.
-import { ErroApi, ErroLogin, ErroPedido } from './erros.js'
+import { ErroApi, ErroLogin, ErroPedido, ErroServico } from './erros.js'
 
 const TIPO_JSON = { 'Content-Type': 'application/json; charset=utf-8' }
 
@@ -10,6 +10,8 @@ export const reenviar = (r, cabecalhos = {}) => new Response(r.body, { status: r
 
 // Erro tipado vira { erro, ...dados } com o status da classe; qualquer outro é bug: 500 e log
 export function respostaDeErro(e, cabecalhos = {}) {
+  // Diagnóstico sem corpo do pedido, cookies, token ou dados da conta.
+  if (e instanceof ErroServico) console.warn('servico_indisponivel', JSON.stringify({ codigo: e.codigo, status: e.status, origemStatus: e.dados?.status, motivo: e.cause?.message }))
   if (e instanceof ErroApi) return json({ erro: e.codigo, ...e.dados }, e.status, cabecalhos)
   console.error(e)
   return json({ erro: 'falhou' }, 500, cabecalhos)

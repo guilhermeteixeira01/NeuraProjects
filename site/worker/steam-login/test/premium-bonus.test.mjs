@@ -40,6 +40,29 @@ test('finalizar mapa entrega Premium e pontos base antes do deploy, sem duplicar
   } finally { globalThis.fetch = anterior }
 })
 
+test('loja e personalização continuam disponíveis após uma partida recente com as regras de cache da Cloudflare', async () => {
+  const f = ambiente(), a = ator(f)
+  await a.ctx.storage.put('partidasRecentes', [{ caminho: 'org/md1/recente', pontos: 100, xpBase: 100 }])
+  const anterior = globalThis.fetch
+  let consultas = 0
+  globalThis.fetch = async (url, opcoes = {}) => {
+    if (String(url).includes(`/perfil/historico/${A}.json`)) {
+      consultas++
+      if (opcoes.cache === 'no-store' && opcoes.cf?.cacheTtl !== undefined) throw new TypeError(`CacheTtl: ${opcoes.cf.cacheTtl}, is not compatible with cache: no-store header.`)
+      return Response.json([])
+    }
+    return anterior(url, opcoes)
+  }
+  try {
+    for (const rota of ['/loja', '/loja/oficial']) {
+      const r = await f.pedir('GET', rota, { quem: A })
+      assert.equal(r.status, 200, `${rota}: ${JSON.stringify(r.dados)}`)
+      assert.equal(r.dados.saldo, 100, rota)
+    }
+    assert.ok(consultas >= 2)
+  } finally { globalThis.fetch = anterior }
+})
+
 test('painel e estatísticas consultam recibos próprios mesmo após vencer o Premium, sem duplicar crédito',async()=>{
   const f=ambiente(),a=ator(f)
   await a.aplicarPremium(mapas,A)

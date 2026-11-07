@@ -458,10 +458,11 @@ export class Loja {
   // O que o saldo precisa: pontos das partidas (ranking), bônus e Premium já aplicados. Devolve os pontos ganhos
   async historicoPublicado(id) {
     let r
-    try { r = await fetch(`${enderecoDoSite(this.env)}/perfil/historico/${id}.json`, { cache: 'no-store', cf: { cacheTtl: 0 } }) }
+    // no-store já evita o cache. A Cloudflare rejeita combiná-lo com cf.cacheTtl.
+    try { r = await fetch(`${enderecoDoSite(this.env)}/perfil/historico/${id}.json`, { cache: 'no-store' }) }
     catch (e) { throw new ErroServico('historico', undefined, { indisponivel: true, causa: e }) }
     if (r.status === 404) return []
-    if (!r.ok) throw new ErroServico('historico', undefined, { indisponivel: true })
+    if (!r.ok) throw new ErroServico('historico', { status: r.status }, { indisponivel: true })
     const historico = await r.json()
     if (!Array.isArray(historico)) throw new ErroServico('historico', undefined, { indisponivel: true })
     return historico
