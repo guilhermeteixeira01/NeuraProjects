@@ -2,7 +2,7 @@
 // A escala alinha a abertura ao avatar. Premium inclui uma versão animada.
 export const COLECOES = ["Times","Eventos","Attack on Titan","Bleach","Chainsaw Man","Death Note","Demon Slayer","Dragon Ball","Evangelion","Fullmetal Alchemist","Gundam","Hunter x Hunter","Jujutsu Kaisen","My Hero Academia","Naruto","One Piece","Pokémon","Sailor Moon","Solo Leveling","Spy x Family","Tokyo Ghoul","Marvel","Harry Potter","Filmes","Terror","Outros"]
 export const MOLDURAS = [
-  { id: 'premium/neura-premium', nome: 'Neura Premium', colecao: 'Premium', fonte: 'neura', forma: 'quadrada', arquivo: 'premium/neura-premium.webp', abertura: { x: 60, y: 89, largura: 392, altura: 356, fundo: 496, recorte: 'inset(0 round 8%)' } },
+  { id: 'premium/neura-premium', nome: 'Neura Premium', colecao: 'Premium', fonte: 'neura', forma: 'quadrada', arquivo: 'premium/neura-premium.webp', abertura: { x: 60, y: 89, largura: 392, altura: 356, fundo: 496, recorte: 'polygon(6.9% 0%, 2.8% 5%, 0.5% 10%, 0% 15%, 0% 80%, 0.3% 85%, 2.8% 90%, 6.6% 95%, 12.8% 100%, 87% 100%, 93.1% 95%, 96.9% 90%, 99.5% 85%, 99.7% 80%, 99.7% 15%, 99.2% 10%, 96.9% 5%, 92.9% 0%)' } },
   {
     "id": "times/furia",
     "nome": "FURIA",
