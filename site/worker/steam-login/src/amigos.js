@@ -932,17 +932,14 @@ export class Presenca {
         idsDe(p).forEach((i) => avisados.add(i))
       }
     }
-    // O plugin só pergunta quando está sem série. Partida DESTE servidor que ainda consta carregada/jogando é série que acabou sem avisar (cancelada,
-    // plugin recarregado). As partidas dos outros servidores não são tocadas: eles podem estar jogando normalmente.
-    for (const x of Object.values(partidas)) {
-      if ((x.servidor?.servidorId || 'principal') !== servidorId) continue
-      if ((x.servidor?.estado === 'carregada' || x.servidor?.estado === 'jogando') && agora - (x.servidor.entregueEm || 0) > 30000) {
-        x.servidor = { ...x.servidor, estado: 'encerrada', detalhe: x.servidor.detalhe || 'cancelada' }
-        prazoServidor(x, agora)
-        idsDe(x).forEach((i) => avisados.add(i))
-      }
-    }
-    const p = Object.values(partidas)
+    // Uma consulta repetida não é confirmação de encerramento: o plugin pode
+    // perguntar durante o carregamento, a troca de mapa ou uma série em andamento.
+    // Só /servidor/estado ou os prazos de segurança liberam uma partida ativa.
+    const ocupado = Object.values(partidas).some(x =>
+      (x.servidor?.servidorId || 'principal') === servidorId &&
+      ['entregue', 'carregada', 'jogando'].includes(x.servidor?.estado),
+    )
+    const p = ocupado ? null : Object.values(partidas)
       .filter((x) => x.fase === 'pronto' && x.servidor?.estado === 'fila')
       .sort((a, b) => a.servidor.desde - b.servidor.desde)[0]
     let resposta = { nenhuma: true }

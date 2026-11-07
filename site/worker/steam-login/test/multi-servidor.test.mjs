@@ -51,9 +51,44 @@ test('servidor livre perguntando não derruba a partida do servidor ocupado', as
   await c.storage.put('partidas', partidas)
   assert.equal((await c.proxima('s2', '1.1.1.1:27016')).dados.nenhuma, true)
   assert.equal((await c.pedir('GET', '/lobby', { quem: ids[0] })).dados.partida.servidor.estado, 'jogando')
-  // o próprio s1 voltando a perguntar significa que a série dele acabou: aí sim encerra
+  // Uma consulta repetida do próprio servidor também não confirma o fim da série.
   await c.proxima('s1', '1.1.1.1:27015')
-  assert.equal((await c.pedir('GET', '/lobby', { quem: ids[0] })).dados.partida.servidor.estado, 'encerrada')
+  assert.equal((await c.pedir('GET', '/lobby', { quem: ids[0] })).dados.partida.servidor.estado, 'jogando')
+})
+
+for (const fase of ['entregue', 'carregada', 'jogando']) test(`consulta repetida durante ${fase} preserva a sala e não entrega outra partida ao mesmo servidor`, async () => {
+  const c = await cenario({ exigir: '0' })
+  await c.storage.put('partidas', { p1: c.partidaPronta(1, ids.slice(0, 10)) })
+  const primeira = await c.proxima('s1', '1.1.1.1:27015')
+  assert.equal(primeira.dados.partidaId, 'p1')
+  if (fase !== 'entregue') await c.estado('s1', '1.1.1.1:27015', 'p1', fase)
+  const partidas = await c.storage.get('partidas')
+  if (fase !== 'entregue') partidas.p1.servidor.entregueEm = Date.now() - 120000
+  partidas.p2 = c.partidaPronta(2, ids.slice(10, 20))
+  await c.storage.put('partidas', partidas)
+  const prazo = partidas.p1.prazo
+  for (let i = 0; i < 3; i++) assert.equal((await c.proxima('s1', '1.1.1.1:27015')).dados.nenhuma, true)
+  const depois = await c.storage.get('partidas')
+  assert.equal(depois.p1.servidor.estado, fase)
+  assert.equal(depois.p1.prazo, prazo)
+  assert.equal(depois.p2.servidor.estado, 'fila')
+  assert.equal((await c.pedir('GET', '/lobby', { quem: ids[0] })).dados.partida.id, 'p1')
+  // Só o aviso explícito de encerramento libera o servidor para a próxima série.
+  assert.equal((await c.estado('s1', '1.1.1.1:27015', 'p1', 'encerrada')).status, 200)
+  assert.equal((await c.proxima('s1', '1.1.1.1:27015')).dados.partidaId, 'p2')
+  assert.equal((await c.storage.get('partidas')).p1.servidor.estado, 'encerrada')
+})
+
+test('entrega sem confirmação ainda pode ser recuperada depois do prazo de segurança', async () => {
+  const c = await cenario({ exigir: '0' })
+  await c.storage.put('partidas', { p1: c.partidaPronta(1, ids.slice(0, 10)) })
+  await c.proxima('s1', '1.1.1.1:27015')
+  const partidas = await c.storage.get('partidas')
+  partidas.p1.servidor.entregueEm = Date.now() - 120000
+  await c.storage.put('partidas', partidas)
+  const retomada = await c.proxima('s2', '1.1.1.1:27016')
+  assert.equal(retomada.dados.partidaId, 'p1')
+  assert.equal((await c.storage.get('partidas')).p1.servidor.servidorId, 's2')
 })
 
 test('o pick & ban só abre com servidor livre', async () => {
