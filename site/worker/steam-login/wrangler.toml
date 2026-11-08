@@ -12,6 +12,7 @@ DONO = "76561199151150360"
 # Segredos: npx wrangler secret put ASAAS_API_KEY  e  npx wrangler secret put ASAAS_WEBHOOK_TOKEN
 ASAAS_URL = "https://api.asaas.com/v3"
 SERVIDOR_CONECTAR = "185.219.189.45:27015"
+EXIGIR_SERVIDOR_LIVRE = "0"
 # Confirmação de e-mail / recuperação de senha por e-mail (Resend). Domínio neuraproject.com.br verificado em 25/10.
 # Segredo: npx wrangler secret put RESEND_API_KEY
 EMAIL_PRONTO = "1"
