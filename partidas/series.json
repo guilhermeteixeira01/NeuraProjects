@@ -1,5 +1,23 @@
 [
   {
+    "id": "2026-11-08_01-58_Time-A-x-Time-B",
+    "organizacao": "neura-project",
+    "categoria": "md1",
+    "formato": "MD1",
+    "timeA": "Time A",
+    "timeB": "Time B",
+    "logoA": null,
+    "logoB": null,
+    "mapas": [
+      "de_nuke"
+    ],
+    "status": "cancelada",
+    "mapaAtual": 0,
+    "criada": "2026-11-08 01:58",
+    "atualizada": "2026-11-08 01:58",
+    "canceladaEm": "2026-11-08T01:58:56-03:00"
+  },
+  {
     "id": "2026-11-08_01-53_Time-A-x-Time-B",
     "organizacao": "neura-project",
     "categoria": "md1",
