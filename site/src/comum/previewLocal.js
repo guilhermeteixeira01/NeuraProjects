@@ -140,6 +140,7 @@ export function ativarPreviewLocal(opcoes = {}) {
       if (!alvos.length || alvos.length > 12 || alvos.some((a) => !a)) return Response.json({ erro: 'alvo' }, { status: 400 })
       const valorAlvo = alvos.reduce((s, a) => s + a.v, 0)
       const totalApostado = ids.reduce((s, k) => s + (valorDe(estado.inv.itens[k] || {})?.v || 0), 0)
+      if (valorAlvo < totalApostado * 1.2) return Response.json({ erro: 'razao' }, { status: 400 })
       const chance = Math.min(0.9, (totalApostado / valorAlvo) * 0.95)
       const ganhou = Math.random() < chance
       for (const k of ids) delete estado.inv.itens[k]

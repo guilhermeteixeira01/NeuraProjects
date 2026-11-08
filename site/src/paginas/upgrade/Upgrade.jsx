@@ -12,6 +12,7 @@ import { chamarApi, lerApi } from '../../comum/api.js'
 const DURACAO_GIRO = 7200
 const VOLTAS_GIRO = 6
 const LIMITE_ITENS = 12
+const RAZAO_MINIMA = 1.2
 const MULTIPLICADORES = [1.2, 1.5, 2, 5, 10]
 const DESGASTES = ['FN', 'MW', 'FT', 'WW', 'BS']
 
@@ -471,7 +472,7 @@ export default function Upgrade() {
   useEffect(() => {
     if (totalApostado > 0 && multiplicador) {
       const ideal = totalApostado * multiplicador
-      setMinValAlvo(String(Math.floor(ideal * 0.8)))
+      setMinValAlvo(String(Math.ceil(Math.max(ideal * 0.8, totalApostado * RAZAO_MINIMA))))
       setMaxValAlvo(String(Math.ceil(ideal * 1.5)))
     }
   }, [multiplicador, totalApostado])
@@ -487,8 +488,9 @@ export default function Upgrade() {
   }, [inv, itensAposta, idx])
 
   const valorAlvo = alvos.reduce((s, a) => s + a.v, 0)
-  const chance = valorAlvo && totalApostado > 0 ? Math.min(0.90, (totalApostado / valorAlvo) * 0.95) : 0
   const razao = valorAlvo && totalApostado > 0 ? valorAlvo / totalApostado : 0
+  const abaixoDoMinimo = valorAlvo > 0 && totalApostado > 0 && valorAlvo < totalApostado * RAZAO_MINIMA
+  const chance = razao && !abaixoDoMinimo ? Math.min(0.90, (totalApostado / valorAlvo) * 0.95) : 0
   const podeFazer = estado === 'idle' && chance > 0
 
   const terminou = estado === 'ganhou' || estado === 'perdeu'
@@ -617,6 +619,9 @@ export default function Upgrade() {
           </div>
           <Divisas dir="dir" />
         </div>
+        {estado === 'idle' && abaixoDoMinimo && (
+          <p className="upg-erro" role="status">{t('Os itens para obter precisam valer pelo menos 1,2x a sua aposta.')}</p>
+        )}
         {erro && <p className="upg-erro" role="alert">{erro}</p>}
 
         <div className="upg-baixo">

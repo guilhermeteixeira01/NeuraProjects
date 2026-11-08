@@ -818,6 +818,7 @@ export class Loja {
     const EDGE = 0.95        // 5% de vantagem da casa
 
     const LIMITE = 12        // máximo de itens em cada lado
+    const RAZAO_MINIMA = 1.2 // os alvos valem pelo menos isso vezes a aposta: upgrade nunca troca por algo mais barato
 
     const ids = [...new Set(Array.isArray(p.itens) ? p.itens.map(String) : [])]
     if (!ids.length || ids.length > LIMITE) throw new ErroPedido('itens')
@@ -842,6 +843,7 @@ export class Loja {
       totalApostado += x.v
     }
     if (totalApostado <= 0) throw new ErroPedido('valor')
+    if (valorAlvo < totalApostado * RAZAO_MINIMA) throw new ErroPedido('razao')
 
     const chance = Math.min(CHANCE_MAX, (totalApostado / valorAlvo) * EDGE)
 
