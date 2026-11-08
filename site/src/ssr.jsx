@@ -14,8 +14,9 @@ import Perfil from './paginas/perfil/Perfil.jsx'
 import Ranking from './paginas/ranking/Ranking.jsx'
 import Times from './paginas/times/Times.jsx'
 import NaoEncontrada from './paginas/naoencontrada/NaoEncontrada.jsx'
+import Upgrade from './paginas/upgrade/Upgrade.jsx'
 
-const PAGINAS = { admin: Admin, inicio: Inicio, inventario: Inventario, loja: Loja, equipes: Equipes, lobby: Lobby, neurapick: NeuraPick, partida: Partida, partidas: Partidas, perfil: Perfil, ranking: Ranking, times: Times, naoencontrada: NaoEncontrada }
+const PAGINAS = { admin: Admin, inicio: Inicio, inventario: Inventario, loja: Loja, equipes: Equipes, lobby: Lobby, neurapick: NeuraPick, partida: Partida, partidas: Partidas, perfil: Perfil, ranking: Ranking, times: Times, naoencontrada: NaoEncontrada, upgrade: Upgrade }
 
 export function renderizar(pagina, dados) {
   const Pagina = PAGINAS[pagina]

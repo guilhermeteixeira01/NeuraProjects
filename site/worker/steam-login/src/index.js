@@ -36,7 +36,7 @@ import { ErroApi, ErroLogin, ErroNaoEncontrado, ErroPedido, ErroPermissao, ErroS
 import { rotaEquipes, rotaImagemEquipe, rotaListaPublicaEquipes } from './equipes.js'
 import { exigirToken, json, lerCorpo, respostaDeErro } from './http.js'
 import { rotaDrops, rotaMercado } from './mercado.js'
-import { limparInventariosCaixasAntigas, rotaLoja, rotaLojaPerfil, rotaLojaPublica } from './loja.js'
+import { limparInventariosCaixasAntigas, rotaLoja, rotaLojaPerfil, rotaLojaPublica, rotaValoresCatalogo } from './loja.js'
 import { rotaNotificacoes } from './notificacoes.js'
 import { semDerrubar } from './objetos.js'
 import { rotaPagamentos, rotaWebhookAsaas } from './pagamentos.js'
@@ -111,6 +111,7 @@ const PUBLICAS = {
   'GET /loja/drops': (c) => rotaDrops(c.req, c.env, qualquerOrigem, c.ctx),
   'GET /loja/perfil': (c) => rotaLojaPerfil(c.url, c.env, { ...qualquerOrigem, 'Cache-Control': 'public, max-age=5' }),
   'GET /loja/caixas': (c) => rotaLojaPublica(c.env, qualquerOrigem, c.ctx),
+  'GET /loja/valores-catalogo': () => rotaValoresCatalogo(qualquerOrigem),
   // Zerar tudo pela manutenção (sem login Steam): só existe enquanto o segredo ZERAR_TOKEN estiver configurado
   'POST /manutencao/zerar-tudo': async (c) => {
     if (!c.env.ZERAR_TOKEN) throw new ErroNaoEncontrado('rota')

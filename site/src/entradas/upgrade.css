@@ -1,0 +1,12 @@
+/* CSS da página upgrade: CSS da página primeiro, depois as camadas globais do site (mesma ordem das outras entradas). */
+@import '../paginas/upgrade/Upgrade.css';
+@import '../comum/estetica.css';
+
+@import '../comum/redesign.css';
+
+@import '../comum/plataforma.css';
+@import '../comum/sazonal.css';
+@import '../comum/acabamento.css';
+
+/* Neura Project v2 */
+@import '../comum/neura-v2.css';
