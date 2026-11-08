@@ -1,5 +1,28 @@
 [
   {
+    "nome": "2026-11-07_23-56_de_dust2_Time-A-x-Time-B",
+    "data": "2026-11-07 23:56",
+    "mapa": "de_dust2",
+    "timeA": "Time A",
+    "timeB": "Time B",
+    "placarA": 13,
+    "placarB": 8,
+    "serie": "MD1 · mapa 1/1",
+    "caminho": "neura-project/md1/2026-11-07_23-56_de_dust2_Time-A-x-Time-B",
+    "categoria": "md1",
+    "serieId": "2026-11-07_23-50_Time-A-x-Time-B",
+    "serieTimeA": "Time A",
+    "serieTimeB": "Time B",
+    "serieVitoriasA": 1,
+    "serieVitoriasB": 0,
+    "serieMapas": [
+      "de_dust2"
+    ],
+    "serieCancelada": false,
+    "logoA": null,
+    "logoB": null
+  },
+  {
     "nome": "2026-11-07_23-16_de_mirage_Time-A-x-Time-B",
     "data": "2026-11-07 23:16",
     "mapa": "de_mirage",
