@@ -22,6 +22,7 @@ import { exigirSenha } from './contas.js'
  *   GET  /loja/perfil?id=        (público)  -> caixa favorita e melhor queda de um jogador
  *   GET  /loja/valores           (login)    -> { valores: { <id do item>: { r: raridade 0..6, v: valor de venda em NP } } }
  *   POST /loja/vender {ids}      (login)    -> vende itens (skin/faca/luva) por NP: { saldo, total, vendidos, inv }
+ *   POST /loja/upgrade {itens, alvos}  (login) -> upgrade estilo CS:GO: aposta até 12 itens para ganhar até 12 alvos ({ ganhou, itens, saldo, chance })
  *   GET  /loja/saldo             (login)    -> { saldo } (menu da conta)
  *   GET  /loja                   (login)    -> saldo, caixas com itens e chances, caixas fechadas, insígnias e últimas aberturas
  *   POST /loja/comprar {caixa, qtd}         -> desconta e põe as caixas fechadas no inventário
@@ -52,7 +53,7 @@ import { darInsignias } from './perfis.js'
 import { enderecoDoSite, pontosGanhos } from './ranking.js'
 import { registrar } from './registro.js'
 import { lerSkinsKv, limparSkins, novoIdItem, tirarItem } from './skins.js'
-import { valorDe, valoresDe } from './valor.js'
+import { alvoDoUpgrade, valorDe, valoresDe, valoresDoCatalogo } from './valor.js'
 import { diarioDoJogador } from './diario.js'
 import { aplicarNaPartida, consumiveisDoJogador } from './consumiveis.js'
 import { gravarCatalogo, lerCatalogo, oferta, oficialDoJogador } from './loja-oficial.js'
@@ -259,7 +260,7 @@ async function partidasPremium(env, id) {
 }
 
 // Ações que mexem no saldo ou mostram o saldo: antes delas entram os bônus para todos e o bônus Premium de partida
-const COM_SALDO = new Set(['troca-np', 'saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir', 'vender', 'mercado-comprar', 'dep-creditar', 'cobrar', 'oficial-ler', 'oficial-comprar', 'oficial-dar'])
+const COM_SALDO = new Set(['troca-np', 'saldo', 'estado', 'comprar', 'abrir', 'creditar', 'definir', 'vender', 'upgrade', 'mercado-comprar', 'dep-creditar', 'cobrar', 'oficial-ler', 'oficial-comprar', 'oficial-dar'])
 const COM_CAIXAS = new Set(['estado', 'comprar', 'abrir', 'diario', 'diario-pontos', 'diario-caixa'])
 const novaNotif = (id, titulo, texto, link, extra = {}) => ({ id, titulo, texto, link, quando: Date.now(), lida: false, ...extra })
 
@@ -560,8 +561,14 @@ export class Loja {
         return this.perfilPublico()
       case 'valores':
         return { valores: valoresDe((await this.invOuVazio(id)).itens) }
+      case 'itens': {
+        const inv = await this.invOuVazio(id)
+        return { itens: inv.itens }
+      }
       case 'vender':
         return this.vender(id, saldo, p)
+      case 'upgrade':
+        return this.upgrade(id, saldo, p)
       case 'mercado-comprar':
         return this.comprarDoMercado(id, saldo, p)
       case 'dep-pode':
@@ -802,6 +809,68 @@ export class Loja {
     return { saldo: saldo(), total, vendidos: ids.length, inv: limpo }
   }
 
+  // Upgrade estilo CS:GO: o jogador aposta itens do inventário para ganhar um item alvo de valor maior.
+  // Chance = (valor dos itens apostados / valor do alvo) * EDGE, limitada a CHANCE_MAX.
+  // Ganhando: os itens apostados somem e o alvo entra no inventário.
+  // Perdendo: os itens apostados somem e o jogador não recebe nada.
+  async upgrade(id, saldo, p) {
+    const CHANCE_MAX = 0.90  // máximo 90% (proteção contra upgrade "garantido")
+    const EDGE = 0.95        // 5% de vantagem da casa
+
+    const LIMITE = 12        // máximo de itens em cada lado
+    const RAZAO_MINIMA = 1.2 // os alvos valem pelo menos isso vezes a aposta: upgrade nunca troca por algo mais barato
+
+    const ids = [...new Set(Array.isArray(p.itens) ? p.itens.map(String) : [])]
+    if (!ids.length || ids.length > LIMITE) throw new ErroPedido('itens')
+
+    // O cliente escolhe só a skin e o desgaste { d, p, w } de cada alvo: tipo, faixa de float e preço vêm do servidor
+    const pedidos = Array.isArray(p.alvos) ? p.alvos : []
+    if (!pedidos.length || pedidos.length > LIMITE) throw new ErroPedido('alvos')
+    const alvos = pedidos.map((a) => alvoDoUpgrade(Number(a?.d), Number(a?.p), Number(a?.w)))
+    if (alvos.some((a) => !a)) throw new ErroPedido('alvo')
+    const valorAlvo = alvos.reduce((s, a) => s + a.v, 0)
+
+    const inv = await this.invOuVazio(id)
+    if (Object.keys(inv.itens).length - ids.length + alvos.length > ITENS_MAX) throw new ErroConflito('cheio')
+    if (ids.some(k => !inv.itens[k])) throw new ErroConflito('item')
+    if (ids.some(k => inv.itens[k]?.cadeado)) throw new ErroConflito('item-trancado')
+    if (ids.some(k => ['caixa', 'agente', 'emblema', 'grafite', 'trilha'].includes(inv.itens[k]?.t))) throw new ErroPedido('item-invalido')
+
+    let totalApostado = 0
+    for (const k of ids) {
+      const x = valorDe(inv.itens[k])
+      if (!x) throw new ErroConflito('item')
+      totalApostado += x.v
+    }
+    if (totalApostado <= 0) throw new ErroPedido('valor')
+    if (valorAlvo < totalApostado * RAZAO_MINIMA) throw new ErroPedido('razao')
+
+    const chance = Math.min(CHANCE_MAX, (totalApostado / valorAlvo) * EDGE)
+
+    // Sorteia com gerador criptográfico — o resultado é gerado antes de qualquer resposta ao cliente
+    const rnd = rndSeguro()
+    const ganhou = rnd < chance
+
+    // Remove os itens apostados do inventário
+    for (const k of ids) tirarItem(inv, k)
+
+    const novos = []
+    if (ganhou) {
+      inv.criado = inv.criado || {}
+      alvos.forEach((alvo, i) => {
+        const novoId = novoIdItem()
+        const f = alvo.lo + rndSeguro() * (alvo.hi - alvo.lo)
+        inv.itens[novoId] = { t: alvo.t, d: alvo.d, p: alvo.p, f: Math.round(f * 1e8) / 1e8, st: 0, n: '', a: [null, null, null, null, null], k: null }
+        inv.criado[novoId] = Date.now() + i
+        novos.push(novoId)
+      })
+    }
+
+    const limpo = limparSkins(inv)
+    await this.invGravar(limpo)
+    return { ganhou, chance, totalApostado, valorAlvo, itens: novos.map((k) => ({ id: k, ...limpo.itens[k] })), saldo: saldo() }
+  }
+
   // src/zerar.js: o jogador volta para o começo (NP, aberturas, insígnias da loja e inventário; o KV antigo não é lido de novo)
   async zerar(bonusMax) {
     this.ctx.storage.transactionSync(() => {
@@ -930,11 +999,17 @@ export async function rotaLojaPublica(env, cors, ctx) {
   return json(caixas.filter((c) => c.ativa).map(publicaDaCaixa), 200, { ...cors, 'Cache-Control': 'public, max-age=60' })
 }
 
+export function rotaValoresCatalogo(cors) {
+  return json(valoresDoCatalogo(), 200, { ...cors, 'Cache-Control': 'public, max-age=3600' })
+}
+
 const ROTAS_LOJA = { 'GET /loja': 'estado', 'GET /loja/saldo': 'saldo', 'GET /loja/valores': 'valores', 'POST /loja/vender': 'vender', 'GET /loja/historico': 'historico', 'POST /loja/comprar': 'comprar', 'POST /loja/abrir': 'abrir' }
 Object.assign(ROTAS_LOJA, { 'GET /loja/consumiveis': 'consumiveis', 'POST /loja/consumiveis/ativar': 'consumivel-ativar', 'POST /loja/consumiveis/cancelar': 'consumivel-cancelar' })
 Object.assign(ROTAS_LOJA, { 'GET /loja/diario': 'diario', 'POST /loja/diario/pontos': 'diario-pontos', 'POST /loja/diario/caixa': 'diario-caixa' })
 ROTAS_LOJA['GET /loja/premium-partidas'] = 'premium-partidas'
 ROTAS_LOJA['POST /loja/premium/escolher'] = 'premium-escolher'
+ROTAS_LOJA['POST /loja/upgrade'] = 'upgrade'
+ROTAS_LOJA['GET /loja/itens'] = 'itens'
 
 export async function rotaLoja(req, env, quem, cors, rota) {
   // Mercado oficial (src/loja-oficial.js): catálogo + o que o jogador já tem; comprar resolve a oferta aqui e cobra no objeto dele
@@ -961,7 +1036,7 @@ export async function rotaLoja(req, env, quem, cors, rota) {
   const corpo = req.method === 'POST' ? await lerCorpo(req) : {}
   if (acao === 'vender') await exigirSenha(env, quem.id, corpo.senha)
   if (acao === 'premium-escolher') return json(await pedirAoJogador(env, quem.id, { acao, escolha: corpo.escolha }), 200, cors)
-  const dados = await pedirAoJogador(env, quem.id, { acao, caixa: corpo.caixa, qtd: corpo.qtd, ids: corpo.ids, origem: corpo.origem, tipo: typeof corpo.tipo === 'string' ? corpo.tipo : undefined, modo: MODOS.includes(corpo.modo) ? corpo.modo : undefined })
+  const dados = await pedirAoJogador(env, quem.id, { acao, caixa: corpo.caixa, qtd: corpo.qtd, ids: corpo.ids, origem: corpo.origem, tipo: typeof corpo.tipo === 'string' ? corpo.tipo : undefined, modo: MODOS.includes(corpo.modo) ? corpo.modo : undefined, itens: corpo.itens, alvos: corpo.alvos })
   if (acao === 'vender' && dados.total > 0) await registrar(env, { tipo: 'venda', quem: quem.id, texto: `vendeu ${dados.vendidos} item(ns) para a loja por ${Number(dados.total).toLocaleString('pt-BR')} NP` })
   if (acao === 'abrir') {
     // o que saiu da caixa entra no carrossel de drops ao vivo (aparece depois que a roleta termina) e quem abriu entra na lista do /admin/loja-retro

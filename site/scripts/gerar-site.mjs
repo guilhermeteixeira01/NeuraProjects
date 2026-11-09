@@ -123,6 +123,7 @@ const PAGINAS = [
   ['lobby/index.html', 'lobby'], // grupo para jogar junto (dados vêm do worker, com login)
   ['admin/index.html', 'admin'], // painel de administrador (dados vêm do worker, com login)
   ['perfil/index.html', 'perfil'], // jogador vem do endereço (?id=), a página busca os dados no navegador
+  ['upgrade/index.html', 'upgrade'], // upgrade de skins (dados vêm do worker, com login)
 ]
 for (const [arq, pagina, dadosPagina] of PAGINAS) {
   const destino = path.join(saida, arq)

@@ -1,0 +1,1376 @@
+{
+  "missoes": {
+    "versao": 1,
+    "validada": true,
+    "concluida": true,
+    "modo": "5v5",
+    "elencoFinal": [
+      "76561198721338233",
+      "76561198638105441",
+      "76561199850349499",
+      "76561199869966304",
+      "76561199185489154",
+      "76561199151150360",
+      "76561199054634150",
+      "76561198780628109",
+      "76561198872207592",
+      "76561198357752259"
+    ],
+    "timesFinais": {
+      "76561198721338233": "A",
+      "76561198638105441": "A",
+      "76561199850349499": "B",
+      "76561199869966304": "B",
+      "76561199185489154": "B",
+      "76561199151150360": "A",
+      "76561199054634150": "A",
+      "76561198780628109": "B",
+      "76561198872207592": "B",
+      "76561198357752259": "A"
+    }
+  },
+  "versao": 1,
+  "nome": "2026-11-08_00-33_de_ancient_Time-A-x-Time-B",
+  "caminho": "neura-project/md1/2026-11-08_00-33_de_ancient_Time-A-x-Time-B",
+  "organizacao": "neura-project",
+  "categoria": "md1",
+  "mapa": "de_ancient",
+  "inicio": "2026-11-08 00:33",
+  "duracaoMin": 33,
+  "maxRounds": 24,
+  "roundsProrrogacao": 4,
+  "placarA": 13,
+  "placarB": 11,
+  "timeA": "Time A",
+  "timeB": "Time B",
+  "logoA": null,
+  "logoB": null,
+  "serie": {
+    "id": "2026-11-08_00-29_Time-A-x-Time-B",
+    "formato": "MD1",
+    "atual": 0,
+    "vitoriasA": 1,
+    "vitoriasB": 0,
+    "mapas": [
+      {
+        "mapa": "de_ancient",
+        "faca": true,
+        "ct": null,
+        "vencedor": "A",
+        "placar": "13-11"
+      }
+    ]
+  },
+  "rounds": [
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 1
+    },
+    {
+      "time": "A",
+      "lado": "TR",
+      "motivo": 1
+    },
+    {
+      "time": "B",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "B",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "B",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "B",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "B",
+      "lado": "TR",
+      "motivo": 9
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 7
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 7
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 8
+    },
+    {
+      "time": "A",
+      "lado": "CT",
+      "motivo": 7
+    }
+  ],
+  "jogadores": [
+    {
+      "missoes": {
+        "participou": true,
+        "roundsValidos": 23,
+        "kills": 21,
+        "headshots": 8,
+        "assistencias": 5,
+        "clutches": 0,
+        "plantios": 1,
+        "desarmes": 0,
+        "melhorRound": 4,
+        "armas": {
+          "ak47": 7,
+          "deagle": 1,
+          "mac10": 2,
+          "usp_silencer": 1,
+          "m4a1": 10
+        }
+      },
+      "steamId": "76561198721338233",
+      "nome": "luking",
+      "avatar": "https://avatars.akamai.steamstatic.com/11e1f2c6ca336ccd9d346089470657210f647ea7_full.jpg",
+      "time": "A",
+      "rounds": 24,
+      "kills": 22,
+      "mortes": 20,
+      "assistencias": 5,
+      "headshots": 9,
+      "dano": 2118,
+      "mvps": 4,
+      "primeirasKills": 4,
+      "primeirasMortes": 3,
+      "kast": 17,
+      "k2": 5,
+      "k3": 0,
+      "k4": 1,
+      "k5": 0,
+      "rating": 1.168,
+      "util": {
+        "flash": 0,
+        "he": 0,
+        "smoke": 3,
+        "molotov": 1,
+        "decoy": 0,
+        "naoUsadosTipo": {
+          "flash": 9,
+          "he": 9,
+          "smoke": 8,
+          "molotov": 8,
+          "decoy": 0
+        },
+        "naoUsados": 34,
+        "dano": 6,
+        "danoAliados": 0,
+        "danoRecebido": 90,
+        "inimigosCegos": 0,
+        "tempoCegoInimigos": 0,
+        "flashAssists": 0,
+        "aliadosCegos": 0,
+        "tempoCegoAliados": 0
+      },
+      "armas": {
+        "m4a1": {
+          "kills": 10,
+          "headshots": 5,
+          "dano": 1121,
+          "acertos": 38
+        },
+        "ak47": {
+          "kills": 7,
+          "headshots": 2,
+          "dano": 569,
+          "acertos": 17
+        },
+        "mac10": {
+          "kills": 2,
+          "headshots": 0,
+          "dano": 104,
+          "acertos": 8
+        },
+        "deagle": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 99,
+          "acertos": 3
+        },
+        "usp_silencer": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 88,
+          "acertos": 3
+        },
+        "glock": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 83,
+          "acertos": 1
+        },
+        "fiveseven": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 48,
+          "acertos": 2
+        },
+        "molotov": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 6,
+          "acertos": 3
+        }
+      }
+    },
+    {
+      "missoes": {
+        "participou": true,
+        "roundsValidos": 23,
+        "kills": 25,
+        "headshots": 11,
+        "assistencias": 7,
+        "clutches": 2,
+        "plantios": 0,
+        "desarmes": 1,
+        "melhorRound": 4,
+        "armas": {
+          "deagle": 1,
+          "ak47": 4,
+          "mac10": 1,
+          "m4a1_silencer": 4,
+          "usp_silencer": 3,
+          "m4a1": 8,
+          "awp": 1,
+          "ssg08": 3
+        }
+      },
+      "steamId": "76561198638105441",
+      "nome": "cleitin_rlk",
+      "avatar": "https://avatars.akamai.steamstatic.com/288f4e02fe468bc51c7b750f60af7a032c068bad_full.jpg",
+      "time": "A",
+      "rounds": 24,
+      "kills": 25,
+      "mortes": 20,
+      "assistencias": 8,
+      "headshots": 11,
+      "dano": 2691,
+      "mvps": 3,
+      "primeirasKills": 4,
+      "primeirasMortes": 1,
+      "kast": 19,
+      "k2": 3,
+      "k3": 2,
+      "k4": 1,
+      "k5": 0,
+      "rating": 1.3692,
+      "util": {
+        "flash": 10,
+        "he": 10,
+        "smoke": 6,
+        "molotov": 7,
+        "decoy": 0,
+        "naoUsadosTipo": {
+          "flash": 6,
+          "he": 6,
+          "smoke": 5,
+          "molotov": 1,
+          "decoy": 0
+        },
+        "naoUsados": 18,
+        "dano": 128,
+        "danoAliados": 0,
+        "danoRecebido": 45,
+        "inimigosCegos": 12,
+        "tempoCegoInimigos": 35.5,
+        "flashAssists": 1,
+        "aliadosCegos": 13,
+        "tempoCegoAliados": 26.4
+      },
+      "armas": {
+        "m4a1": {
+          "kills": 8,
+          "headshots": 1,
+          "dano": 744,
+          "acertos": 31
+        },
+        "ak47": {
+          "kills": 4,
+          "headshots": 1,
+          "dano": 687,
+          "acertos": 21
+        },
+        "m4a1_silencer": {
+          "kills": 4,
+          "headshots": 2,
+          "dano": 289,
+          "acertos": 8
+        },
+        "ssg08": {
+          "kills": 3,
+          "headshots": 3,
+          "dano": 291,
+          "acertos": 4
+        },
+        "usp_silencer": {
+          "kills": 3,
+          "headshots": 3,
+          "dano": 205,
+          "acertos": 3
+        },
+        "mac10": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 130,
+          "acertos": 6
+        },
+        "deagle": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 100,
+          "acertos": 3
+        },
+        "awp": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 100,
+          "acertos": 1
+        },
+        "he": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 116,
+          "acertos": 5
+        },
+        "glock": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 17,
+          "acertos": 2
+        },
+        "molotov": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 12,
+          "acertos": 6
+        }
+      }
+    },
+    {
+      "missoes": {
+        "participou": true,
+        "roundsValidos": 23,
+        "kills": 21,
+        "headshots": 5,
+        "assistencias": 3,
+        "clutches": 1,
+        "plantios": 0,
+        "desarmes": 0,
+        "melhorRound": 3,
+        "armas": {
+          "m4a1_silencer": 2,
+          "usp_silencer": 1,
+          "mp9": 1,
+          "awp": 9,
+          "glock": 1,
+          "deagle": 2,
+          "galilar": 1,
+          "ak47": 3,
+          "hegrenade": 1
+        }
+      },
+      "steamId": "76561199850349499",
+      "nome": "Jzin",
+      "avatar": "https://avatars.akamai.steamstatic.com/43e07f39624ce91a6a479fd17a09167c296c56d2_full.jpg",
+      "time": "B",
+      "rounds": 24,
+      "kills": 21,
+      "mortes": 14,
+      "assistencias": 3,
+      "headshots": 5,
+      "dano": 1674,
+      "mvps": 3,
+      "primeirasKills": 2,
+      "primeirasMortes": 2,
+      "kast": 22,
+      "k2": 2,
+      "k3": 2,
+      "k4": 0,
+      "k5": 0,
+      "rating": 1.2652,
+      "util": {
+        "flash": 3,
+        "he": 3,
+        "smoke": 3,
+        "molotov": 3,
+        "decoy": 1,
+        "naoUsadosTipo": {
+          "flash": 12,
+          "he": 4,
+          "smoke": 3,
+          "molotov": 3,
+          "decoy": 0
+        },
+        "naoUsados": 22,
+        "dano": 13,
+        "danoAliados": 0,
+        "danoRecebido": 41,
+        "inimigosCegos": 0,
+        "tempoCegoInimigos": 0,
+        "flashAssists": 0,
+        "aliadosCegos": 2,
+        "tempoCegoAliados": 5.5
+      },
+      "armas": {
+        "awp": {
+          "kills": 9,
+          "headshots": 1,
+          "dano": 623,
+          "acertos": 9
+        },
+        "ak47": {
+          "kills": 3,
+          "headshots": 1,
+          "dano": 235,
+          "acertos": 9
+        },
+        "m4a1_silencer": {
+          "kills": 2,
+          "headshots": 1,
+          "dano": 144,
+          "acertos": 6
+        },
+        "deagle": {
+          "kills": 2,
+          "headshots": 1,
+          "dano": 101,
+          "acertos": 2
+        },
+        "galilar": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 273,
+          "acertos": 10
+        },
+        "usp_silencer": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 100,
+          "acertos": 2
+        },
+        "mp9": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 86,
+          "acertos": 3
+        },
+        "glock": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 72,
+          "acertos": 6
+        },
+        "he": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 13,
+          "acertos": 3
+        },
+        "nova": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 27,
+          "acertos": 3
+        }
+      }
+    },
+    {
+      "missoes": {
+        "participou": true,
+        "roundsValidos": 23,
+        "kills": 15,
+        "headshots": 8,
+        "assistencias": 5,
+        "clutches": 0,
+        "plantios": 2,
+        "desarmes": 0,
+        "melhorRound": 3,
+        "armas": {
+          "m4a1": 3,
+          "ak47": 6,
+          "m4a1_silencer": 3,
+          "galilar": 2,
+          "mac10": 1
+        }
+      },
+      "steamId": "76561199869966304",
+      "nome": "Kz7",
+      "avatar": "https://avatars.akamai.steamstatic.com/7530ad1cd6e238e9458365447c38964538f19f1c_full.jpg",
+      "time": "B",
+      "rounds": 24,
+      "kills": 18,
+      "mortes": 19,
+      "assistencias": 7,
+      "headshots": 11,
+      "dano": 1992,
+      "mvps": 3,
+      "primeirasKills": 4,
+      "primeirasMortes": 5,
+      "kast": 18,
+      "k2": 3,
+      "k3": 2,
+      "k4": 0,
+      "k5": 0,
+      "rating": 1.0145,
+      "util": {
+        "flash": 16,
+        "he": 5,
+        "smoke": 10,
+        "molotov": 9,
+        "decoy": 0,
+        "naoUsadosTipo": {
+          "flash": 3,
+          "he": 6,
+          "smoke": 6,
+          "molotov": 4,
+          "decoy": 0
+        },
+        "naoUsados": 19,
+        "dano": 26,
+        "danoAliados": 31,
+        "danoRecebido": 4,
+        "inimigosCegos": 9,
+        "tempoCegoInimigos": 21.4,
+        "flashAssists": 0,
+        "aliadosCegos": 6,
+        "tempoCegoAliados": 7.9
+      },
+      "armas": {
+        "ak47": {
+          "kills": 6,
+          "headshots": 3,
+          "dano": 522,
+          "acertos": 15
+        },
+        "m4a1": {
+          "kills": 3,
+          "headshots": 2,
+          "dano": 415,
+          "acertos": 11
+        },
+        "usp_silencer": {
+          "kills": 3,
+          "headshots": 3,
+          "dano": 329,
+          "acertos": 8
+        },
+        "m4a1_silencer": {
+          "kills": 3,
+          "headshots": 2,
+          "dano": 328,
+          "acertos": 10
+        },
+        "galilar": {
+          "kills": 2,
+          "headshots": 1,
+          "dano": 174,
+          "acertos": 7
+        },
+        "mac10": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 100,
+          "acertos": 5
+        },
+        "glock": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 98,
+          "acertos": 2
+        },
+        "molotov": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 18,
+          "acertos": 7
+        },
+        "he": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 8,
+          "acertos": 2
+        }
+      }
+    },
+    {
+      "missoes": {
+        "participou": true,
+        "roundsValidos": 23,
+        "kills": 13,
+        "headshots": 6,
+        "assistencias": 5,
+        "clutches": 0,
+        "plantios": 1,
+        "desarmes": 0,
+        "melhorRound": 2,
+        "armas": {
+          "awp": 5,
+          "m4a1_silencer": 4,
+          "glock": 2,
+          "ak47": 2
+        }
+      },
+      "steamId": "76561199185489154",
+      "nome": "Emptysoulz",
+      "avatar": "https://avatars.akamai.steamstatic.com/fdd0be5f31f4bd64023e0dce6c7bc75570de17b9_full.jpg",
+      "time": "B",
+      "rounds": 24,
+      "kills": 13,
+      "mortes": 17,
+      "assistencias": 5,
+      "headshots": 6,
+      "dano": 1655,
+      "mvps": 0,
+      "primeirasKills": 0,
+      "primeirasMortes": 3,
+      "kast": 15,
+      "k2": 3,
+      "k3": 0,
+      "k4": 0,
+      "k5": 0,
+      "rating": 0.7636,
+      "util": {
+        "flash": 4,
+        "he": 11,
+        "smoke": 3,
+        "molotov": 3,
+        "decoy": 0,
+        "naoUsadosTipo": {
+          "flash": 4,
+          "he": 3,
+          "smoke": 5,
+          "molotov": 3,
+          "decoy": 0
+        },
+        "naoUsados": 15,
+        "dano": 124,
+        "danoAliados": 1,
+        "danoRecebido": 128,
+        "inimigosCegos": 4,
+        "tempoCegoInimigos": 10.7,
+        "flashAssists": 0,
+        "aliadosCegos": 3,
+        "tempoCegoAliados": 10.6
+      },
+      "armas": {
+        "awp": {
+          "kills": 5,
+          "headshots": 2,
+          "dano": 538,
+          "acertos": 6
+        },
+        "m4a1_silencer": {
+          "kills": 4,
+          "headshots": 2,
+          "dano": 459,
+          "acertos": 15
+        },
+        "ak47": {
+          "kills": 2,
+          "headshots": 1,
+          "dano": 284,
+          "acertos": 10
+        },
+        "glock": {
+          "kills": 2,
+          "headshots": 1,
+          "dano": 212,
+          "acertos": 8
+        },
+        "he": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 124,
+          "acertos": 5
+        },
+        "usp_silencer": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 38,
+          "acertos": 3
+        }
+      }
+    },
+    {
+      "missoes": {
+        "participou": true,
+        "roundsValidos": 23,
+        "kills": 16,
+        "headshots": 5,
+        "assistencias": 5,
+        "clutches": 1,
+        "plantios": 1,
+        "desarmes": 2,
+        "melhorRound": 2,
+        "armas": {
+          "ak47": 6,
+          "tec9": 1,
+          "m4a1_silencer": 4,
+          "awp": 5
+        }
+      },
+      "steamId": "76561199151150360",
+      "nome": "Te1xe1ra",
+      "avatar": "https://avatars.akamai.steamstatic.com/96813affc338d9fa36ca7c54045eb08fd32aedee_full.jpg",
+      "time": "A",
+      "rounds": 24,
+      "kills": 16,
+      "mortes": 17,
+      "assistencias": 5,
+      "headshots": 5,
+      "dano": 1751,
+      "mvps": 5,
+      "primeirasKills": 3,
+      "primeirasMortes": 2,
+      "kast": 15,
+      "k2": 4,
+      "k3": 0,
+      "k4": 0,
+      "k5": 0,
+      "rating": 0.8922,
+      "util": {
+        "flash": 11,
+        "he": 10,
+        "smoke": 10,
+        "molotov": 8,
+        "decoy": 0,
+        "naoUsadosTipo": {
+          "flash": 4,
+          "he": 1,
+          "smoke": 3,
+          "molotov": 0,
+          "decoy": 0
+        },
+        "naoUsados": 8,
+        "dano": 65,
+        "danoAliados": 0,
+        "danoRecebido": 59,
+        "inimigosCegos": 10,
+        "tempoCegoInimigos": 37.9,
+        "flashAssists": 2,
+        "aliadosCegos": 12,
+        "tempoCegoAliados": 25.9
+      },
+      "armas": {
+        "ak47": {
+          "kills": 6,
+          "headshots": 3,
+          "dano": 603,
+          "acertos": 17
+        },
+        "awp": {
+          "kills": 5,
+          "headshots": 0,
+          "dano": 374,
+          "acertos": 6
+        },
+        "m4a1_silencer": {
+          "kills": 4,
+          "headshots": 2,
+          "dano": 429,
+          "acertos": 15
+        },
+        "tec9": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 154,
+          "acertos": 4
+        },
+        "hkp2000": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 111,
+          "acertos": 4
+        },
+        "he": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 54,
+          "acertos": 5
+        },
+        "glock": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 13,
+          "acertos": 1
+        },
+        "molotov": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 11,
+          "acertos": 5
+        },
+        "smokegrenade": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 2,
+          "acertos": 2
+        }
+      }
+    },
+    {
+      "missoes": {
+        "participou": true,
+        "roundsValidos": 23,
+        "kills": 12,
+        "headshots": 4,
+        "assistencias": 5,
+        "clutches": 0,
+        "plantios": 1,
+        "desarmes": 0,
+        "melhorRound": 2,
+        "armas": {
+          "glock": 1,
+          "ak47": 4,
+          "usp_silencer": 2,
+          "m4a1_silencer": 4,
+          "mp9": 1
+        }
+      },
+      "steamId": "76561199054634150",
+      "nome": "rkzada",
+      "avatar": "https://avatars.akamai.steamstatic.com/78a2ffa777c55ba2ae143703296dfc95945616ed_full.jpg",
+      "time": "A",
+      "rounds": 24,
+      "kills": 12,
+      "mortes": 19,
+      "assistencias": 5,
+      "headshots": 4,
+      "dano": 1255,
+      "mvps": 1,
+      "primeirasKills": 2,
+      "primeirasMortes": 4,
+      "kast": 18,
+      "k2": 1,
+      "k3": 0,
+      "k4": 0,
+      "k5": 0,
+      "rating": 0.6123,
+      "util": {
+        "flash": 13,
+        "he": 0,
+        "smoke": 8,
+        "molotov": 10,
+        "decoy": 0,
+        "naoUsadosTipo": {
+          "flash": 15,
+          "he": 3,
+          "smoke": 5,
+          "molotov": 1,
+          "decoy": 0
+        },
+        "naoUsados": 24,
+        "dano": 15,
+        "danoAliados": 0,
+        "danoRecebido": 71,
+        "inimigosCegos": 4,
+        "tempoCegoInimigos": 12.3,
+        "flashAssists": 0,
+        "aliadosCegos": 8,
+        "tempoCegoAliados": 21.7
+      },
+      "armas": {
+        "ak47": {
+          "kills": 4,
+          "headshots": 1,
+          "dano": 522,
+          "acertos": 18
+        },
+        "m4a1_silencer": {
+          "kills": 4,
+          "headshots": 0,
+          "dano": 289,
+          "acertos": 8
+        },
+        "usp_silencer": {
+          "kills": 2,
+          "headshots": 1,
+          "dano": 226,
+          "acertos": 6
+        },
+        "mp9": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 97,
+          "acertos": 5
+        },
+        "glock": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 75,
+          "acertos": 2
+        },
+        "mac10": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 31,
+          "acertos": 2
+        },
+        "molotov": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 15,
+          "acertos": 6
+        }
+      }
+    },
+    {
+      "missoes": {
+        "participou": true,
+        "roundsValidos": 23,
+        "kills": 19,
+        "headshots": 9,
+        "assistencias": 8,
+        "clutches": 0,
+        "plantios": 1,
+        "desarmes": 0,
+        "melhorRound": 3,
+        "armas": {
+          "m4a1": 9,
+          "glock": 1,
+          "galilar": 2,
+          "ak47": 5,
+          "tec9": 1,
+          "mp7": 1
+        }
+      },
+      "steamId": "76561198780628109",
+      "nome": "777",
+      "avatar": "https://avatars.akamai.steamstatic.com/b815ff2d7230f5cf9157e0237a5ff9ab7e9566d0_full.jpg",
+      "time": "B",
+      "rounds": 24,
+      "kills": 20,
+      "mortes": 18,
+      "assistencias": 10,
+      "headshots": 10,
+      "dano": 2323,
+      "mvps": 3,
+      "primeirasKills": 3,
+      "primeirasMortes": 2,
+      "kast": 20,
+      "k2": 3,
+      "k3": 2,
+      "k4": 0,
+      "k5": 0,
+      "rating": 1.1182,
+      "util": {
+        "flash": 27,
+        "he": 5,
+        "smoke": 24,
+        "molotov": 14,
+        "decoy": 0,
+        "naoUsadosTipo": {
+          "flash": 1,
+          "he": 3,
+          "smoke": 0,
+          "molotov": 1,
+          "decoy": 0
+        },
+        "naoUsados": 5,
+        "dano": 140,
+        "danoAliados": 0,
+        "danoRecebido": 38,
+        "inimigosCegos": 33,
+        "tempoCegoInimigos": 90.8,
+        "flashAssists": 0,
+        "aliadosCegos": 11,
+        "tempoCegoAliados": 23.9
+      },
+      "armas": {
+        "m4a1": {
+          "kills": 9,
+          "headshots": 6,
+          "dano": 768,
+          "acertos": 28
+        },
+        "ak47": {
+          "kills": 5,
+          "headshots": 2,
+          "dano": 497,
+          "acertos": 15
+        },
+        "galilar": {
+          "kills": 2,
+          "headshots": 0,
+          "dano": 183,
+          "acertos": 6
+        },
+        "usp_silencer": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 233,
+          "acertos": 7
+        },
+        "glock": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 126,
+          "acertos": 5
+        },
+        "tec9": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 99,
+          "acertos": 4
+        },
+        "mp7": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 98,
+          "acertos": 6
+        },
+        "famas": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 91,
+          "acertos": 2
+        },
+        "m4a1_silencer": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 88,
+          "acertos": 1
+        },
+        "molotov": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 81,
+          "acertos": 27
+        },
+        "he": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 59,
+          "acertos": 3
+        }
+      }
+    },
+    {
+      "missoes": {
+        "participou": true,
+        "roundsValidos": 23,
+        "kills": 17,
+        "headshots": 9,
+        "assistencias": 6,
+        "clutches": 0,
+        "plantios": 1,
+        "desarmes": 0,
+        "melhorRound": 3,
+        "armas": {
+          "mp9": 1,
+          "m4a1_silencer": 3,
+          "ak47": 6,
+          "glock": 1,
+          "galilar": 5,
+          "mac10": 1
+        }
+      },
+      "steamId": "76561198872207592",
+      "nome": "icezada",
+      "avatar": "https://avatars.akamai.steamstatic.com/163a0566a14a58c3c59f64735c56b82a0a9d30e0_full.jpg",
+      "time": "B",
+      "rounds": 24,
+      "kills": 18,
+      "mortes": 16,
+      "assistencias": 6,
+      "headshots": 10,
+      "dano": 2382,
+      "mvps": 2,
+      "primeirasKills": 1,
+      "primeirasMortes": 2,
+      "kast": 19,
+      "k2": 3,
+      "k3": 1,
+      "k4": 0,
+      "k5": 0,
+      "rating": 1.0443,
+      "util": {
+        "flash": 9,
+        "he": 8,
+        "smoke": 11,
+        "molotov": 10,
+        "decoy": 0,
+        "naoUsadosTipo": {
+          "flash": 7,
+          "he": 3,
+          "smoke": 3,
+          "molotov": 1,
+          "decoy": 0
+        },
+        "naoUsados": 14,
+        "dano": 54,
+        "danoAliados": 0,
+        "danoRecebido": 22,
+        "inimigosCegos": 4,
+        "tempoCegoInimigos": 4.8,
+        "flashAssists": 0,
+        "aliadosCegos": 6,
+        "tempoCegoAliados": 11.4
+      },
+      "armas": {
+        "ak47": {
+          "kills": 6,
+          "headshots": 4,
+          "dano": 692,
+          "acertos": 19
+        },
+        "galilar": {
+          "kills": 5,
+          "headshots": 1,
+          "dano": 645,
+          "acertos": 24
+        },
+        "m4a1_silencer": {
+          "kills": 3,
+          "headshots": 2,
+          "dano": 306,
+          "acertos": 14
+        },
+        "mp9": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 214,
+          "acertos": 8
+        },
+        "mac10": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 181,
+          "acertos": 12
+        },
+        "glock": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 174,
+          "acertos": 5
+        },
+        "usp_silencer": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 116,
+          "acertos": 2
+        },
+        "molotov": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 38,
+          "acertos": 11
+        },
+        "he": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 16,
+          "acertos": 4
+        }
+      }
+    },
+    {
+      "missoes": {
+        "participou": true,
+        "roundsValidos": 23,
+        "kills": 8,
+        "headshots": 3,
+        "assistencias": 5,
+        "clutches": 0,
+        "plantios": 1,
+        "desarmes": 0,
+        "melhorRound": 2,
+        "armas": {
+          "ak47": 3,
+          "m4a1_silencer": 1,
+          "mp9": 1,
+          "m4a1": 3
+        }
+      },
+      "steamId": "76561198357752259",
+      "nome": "Carlin",
+      "avatar": "https://avatars.akamai.steamstatic.com/4284c4ee7d9dbb07fe5d23ffe39c8f2d0e44b470_full.jpg",
+      "time": "A",
+      "rounds": 24,
+      "kills": 8,
+      "mortes": 18,
+      "assistencias": 5,
+      "headshots": 3,
+      "dano": 1080,
+      "mvps": 0,
+      "primeirasKills": 1,
+      "primeirasMortes": 0,
+      "kast": 16,
+      "k2": 1,
+      "k3": 0,
+      "k4": 0,
+      "k5": 0,
+      "rating": 0.5071,
+      "util": {
+        "flash": 5,
+        "he": 2,
+        "smoke": 3,
+        "molotov": 7,
+        "decoy": 0,
+        "naoUsadosTipo": {
+          "flash": 9,
+          "he": 8,
+          "smoke": 4,
+          "molotov": 4,
+          "decoy": 1
+        },
+        "naoUsados": 26,
+        "dano": 19,
+        "danoAliados": 0,
+        "danoRecebido": 92,
+        "inimigosCegos": 3,
+        "tempoCegoInimigos": 7.7,
+        "flashAssists": 0,
+        "aliadosCegos": 2,
+        "tempoCegoAliados": 8
+      },
+      "armas": {
+        "ak47": {
+          "kills": 3,
+          "headshots": 2,
+          "dano": 388,
+          "acertos": 12
+        },
+        "m4a1": {
+          "kills": 3,
+          "headshots": 0,
+          "dano": 262,
+          "acertos": 10
+        },
+        "mp9": {
+          "kills": 1,
+          "headshots": 1,
+          "dano": 172,
+          "acertos": 8
+        },
+        "m4a1_silencer": {
+          "kills": 1,
+          "headshots": 0,
+          "dano": 70,
+          "acertos": 3
+        },
+        "fiveseven": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 50,
+          "acertos": 2
+        },
+        "mac10": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 36,
+          "acertos": 2
+        },
+        "usp_silencer": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 32,
+          "acertos": 2
+        },
+        "glock": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 27,
+          "acertos": 2
+        },
+        "cz75a": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 24,
+          "acertos": 1
+        },
+        "he": {
+          "kills": 0,
+          "headshots": 0,
+          "dano": 19,
+          "acertos": 1
+        }
+      }
+    }
+  ],
+  "demo": "https://github.com/guilhermeteixeira01/NeuraProjects/releases/download/demo-2026-11-08_00-33_de_ancient_Time-A-x-Time-B/2026-11-08_00-33_de_ancient_Time-A-x-Time-B.zip",
+  "gerado": "2026-11-08 01:06"
+}

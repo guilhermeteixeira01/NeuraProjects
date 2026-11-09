@@ -22,3 +22,12 @@ const valores = {}
 for (const a of catalogo.armas) if (a.c === 'facas') for (const s of a.s) valores[`${a.d}:${s[0]}`] = valorBaseDaFaca(a.d, s[1])
 fs.writeFileSync(path.join(aqui, '../worker/steam-login/src/facas-valor.json'), JSON.stringify(valores))
 console.log(`${Object.keys(valores).length} facas → facas-valor.json`)
+
+// Tipo e faixa de desgaste de cada skin ("<defIndex>:<paint>" -> [tipo, min, max]): o upgrade valida o item alvo por aqui
+const faixas = {}
+for (const a of catalogo.armas) {
+  const tipo = a.c === 'facas' ? 'faca' : a.c === 'luvas' ? 'luva' : 'arma'
+  for (const s of a.s) faixas[`${a.d}:${s[0]}`] = [tipo, s[3] ?? 0, s[4] ?? 1]
+}
+fs.writeFileSync(path.join(aqui, '../worker/steam-login/src/skins-faixas.json'), JSON.stringify(faixas))
+console.log(`${Object.keys(faixas).length} skins → skins-faixas.json`)

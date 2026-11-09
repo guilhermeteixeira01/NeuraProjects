@@ -7,6 +7,7 @@ import ENFEITES_VALOR from './valor-enfeites.json'
 import FACAS_VALOR from './facas-valor.json'
 import PRECOS from './precos.json'
 import RARIDADE_SKIN from './skins-raridade.json'
+import FAIXAS_SKIN from './skins-faixas.json'
 import EMBLEMAS from '../../../public/assets/skins/emblemas.json'
 import GRAFITES from '../../../public/assets/skins/grafites.json'
 import TRILHAS from '../../../public/assets/skins/trilhas.json'
@@ -57,6 +58,33 @@ export function valoresDe(itens) {
     if (x) m[k] = x
   }
   return m
+}
+
+const DESGASTES = [[0, 0.07], [0.07, 0.15], [0.15, 0.38], [0.38, 0.45], [0.45, 1]]
+
+// Item que o upgrade pode entregar: skin do catálogo num desgaste (0 = FN .. 4 = BS) que ela tem. null = não existe
+export function alvoDoUpgrade(d, p, w) {
+  const linha = FAIXAS_SKIN[`${d}:${p}`]
+  const faixa = Number.isInteger(w) ? DESGASTES[w] : null
+  if (!linha || !faixa) return null
+  const [t, min, max] = linha
+  const lo = Math.max(min, faixa[0])
+  const hi = Math.min(max, faixa[1])
+  if (hi <= lo) return null
+  const v = valorDe({ t, d, p, f: (lo + hi) / 2, st: 0 })?.v
+  return v > 0 ? { t, d, p, lo, hi, v } : null
+}
+
+// Preço de cada skin do catálogo por desgaste: { "<d>:<p>": [FN, MW, FT, WW, BS] }, 0 = a skin não tem esse desgaste
+let catalogoComValores
+export function valoresDoCatalogo() {
+  if (catalogoComValores) return catalogoComValores
+  catalogoComValores = {}
+  for (const chave of Object.keys(FAIXAS_SKIN)) {
+    const [d, p] = chave.split(':').map(Number)
+    catalogoComValores[chave] = DESGASTES.map((_, w) => alvoDoUpgrade(d, p, w)?.v ?? 0)
+  }
+  return catalogoComValores
 }
 
 // Dificuldade pelo valor (loja-core.js: DIFICULDADE): as caixas sorteiam com o valor de mercado do item (no desgaste do meio da faixa dele;

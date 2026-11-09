@@ -129,6 +129,43 @@ export function ativarPreviewLocal(opcoes = {}) {
     let corpo={}
     try{corpo=JSON.parse(init?.body||(input instanceof Request?await input.clone().text():'{}'))}catch{/* leitura */}
     if (opcoes.interceptar) { const r = await opcoes.interceptar(rota, metodo, corpo, url, ctx); if (r) return r }
+    if (rota === '/loja/itens') return Response.json({ itens: estado.inv.itens })
+    if (rota === '/loja/valores' || rota === '/loja/valores-catalogo' || rota === '/loja/upgrade') {
+      const { alvoDoUpgrade, valorDe, valoresDe, valoresDoCatalogo } = await import('../../worker/steam-login/src/valor.js')
+      if (rota === '/loja/valores') return Response.json({ valores: valoresDe(estado.inv.itens) })
+      if (rota === '/loja/valores-catalogo') return Response.json(valoresDoCatalogo())
+      const alvos = (corpo.alvos || []).map((a) => alvoDoUpgrade(Number(a?.d), Number(a?.p), Number(a?.w)))
+      const ids = corpo.itens || []
+      if (!ids.length || ids.length > 12) return Response.json({ erro: 'itens' }, { status: 400 })
+      if (!alvos.length || alvos.length > 12 || alvos.some((a) => !a)) return Response.json({ erro: 'alvo' }, { status: 400 })
+      const valorAlvo = alvos.reduce((s, a) => s + a.v, 0)
+      const totalApostado = ids.reduce((s, k) => s + (valorDe(estado.inv.itens[k] || {})?.v || 0), 0)
+      if (valorAlvo < totalApostado * 1.2) return Response.json({ erro: 'razao' }, { status: 400 })
+      const chance = Math.min(0.9, (totalApostado / valorAlvo) * 0.95)
+      const ganhou = Math.random() < chance
+      for (const k of ids) delete estado.inv.itens[k]
+      if (ganhou) {
+        alvos.forEach((alvo, i) => {
+          const novo = `demoupg${Date.now()}${i}`
+          estado.inv.itens[novo] = { t: alvo.t, d: alvo.d, p: alvo.p, f: alvo.lo + Math.random() * (alvo.hi - alvo.lo), st: 0, n: '', a: [null, null, null, null, null], k: null }
+          estado.inv.criado[novo] = Date.now() + i
+        })
+      }
+      guardar()
+      return Response.json({ ganhou, chance, totalApostado, valorAlvo, saldo: estado.saldo })
+    }
+    if (rota === '/loja/debug-dar-itens') {
+      const { armas } = await (await original('/assets/skins/armas.json')).json()
+      const skins = armas.flatMap((a) => (a.s || []).filter((s) => s[6]).map((s) => ({ d: a.d, p: s[0] })))
+      for (let i = 0; i < 8; i++) {
+        const s = skins[Math.floor(Math.random() * skins.length)]
+        const novo = `demoteste${Date.now()}${i}`
+        estado.inv.itens[novo] = { t: 'arma', d: s.d, p: s.p, f: Math.random(), st: 0, n: '', a: [null, null, null, null, null], k: null }
+        estado.inv.criado[novo] = Date.now() + i
+      }
+      guardar()
+      return Response.json({ ok: true, adicionados: 8 })
+    }
     if (rota === '/perfil' && metodo === 'POST') {
       if (!nivelDaSub(perfisDemo[id]?.sub)) {
         if (exigePremiumVisual('molduraSub', corpo.moldura)) return Response.json({ erro: 'sub', precisa: 'subscriber' }, { status: 403 })
