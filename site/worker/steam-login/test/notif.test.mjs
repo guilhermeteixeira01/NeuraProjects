@@ -25,3 +25,20 @@ test('limite de 30 e lixo é descartado', () => {
   assert.equal(juntar(docVazio(), { lista, vistos: [], limpoEm: 0 }).lista.length, 30)
   assert.equal(juntar(docVazio(), { lista: [null, { titulo: 'sem id' }, 5], vistos: [3], limpoEm: 'x' }).lista.length, 0)
 })
+test('aviso já limpo em um aparelho não volta quando outro aparelho o recria depois', () => {
+  const servidor = juntar(docVazio(), { lista: [n('pontos:x', 100)], vistos: ['pontos:x'], limpoEm: 0 })
+  const limpo = juntar(servidor, { ...docVazio(), limpoEm: 150 })
+  // o celular ainda não tinha sincronizado e recriou o mesmo aviso com a hora de agora
+  const celular = { lista: [n('pontos:x', 900)], vistos: ['pontos:x'], limpoEm: 0 }
+  assert.equal(juntar(limpo, celular).lista.length, 0)
+  assert.equal(juntar(celular, limpo).lista.length, 0) // a cópia do celular também some ao receber a da conta
+  // aviso realmente novo continua entrando
+  assert.equal(juntar(limpo, { lista: [n('pontos:y', 900)], vistos: ['pontos:y'], limpoEm: 0 }).lista.length, 1)
+})
+test('lida em um aparelho vale no outro mesmo com a cópia recriada', () => {
+  const servidor = { lista: [n('pontos:x', 100, { lida: true })], vistos: ['pontos:x'], limpoEm: 0 }
+  const celular = { lista: [n('pontos:x', 900)], vistos: ['pontos:x'], limpoEm: 0 }
+  const m = juntar(servidor, celular)
+  assert.equal(m.lista.length, 1)
+  assert.equal(m.lista[0].lida, true)
+})

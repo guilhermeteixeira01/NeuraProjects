@@ -48,6 +48,7 @@ import { json, lerCorpo } from './http.js'
 import { BONUS_PREMIUM_PARTIDA, CONFIG_PADRAO, MODOS, acumular, aplicarModo, chancesDaCaixa, ehEspecial, faixasDeDesgaste, gerarFaixa, gerarFaixaFacas, insigniasNovas, novoAcumulado, progressoInsignias, rndSeguro, sortearAbertura, sortearAberturaInventario, sortearEspecial, statsDoAcumulado } from './loja-core.js'
 import { registrarDrops } from './mercado.js'
 import { docVazio, juntar } from './notif-core.js'
+import { nomeMapa } from '../../../src/comum/mapas.js'
 import { Fila, pedirAoJogador, responder } from './objetos.js'
 import { darInsignias } from './perfis.js'
 import { enderecoDoSite, pontosGanhos } from './ranking.js'
@@ -501,6 +502,19 @@ export class Loja {
         const recentes = (await this.ctx.storage.get('partidasRecentes')) || []
         const atualizadas = [p.resumo, ...recentes.filter(m => m.caminho !== p.resumo.caminho)].slice(0, 60)
         await this.ctx.storage.put('partidasRecentes', atualizadas)
+        // Aviso no sino assim que o mapa termina (antes vinha do histórico gerado no deploy do site, minutos depois).
+        // Mesmo id do AvisoPontos.jsx: o aviso do navegador não duplica este.
+        {
+          const r = p.resumo
+          const [meu, deles] = Array.isArray(r.placar) ? r.placar : [0, 0]
+          const pontos = Number(r.pontos) || 0
+          await this.notificar(novaNotif(
+            `pontos:${r.caminho}`,
+            r.venceu ? `Vitória! +${pontos} NP` : `Partida encerrada: +${pontos} NP`,
+            `${r.venceu ? 'Vitória' : 'Derrota'} em ${nomeMapa(r.mapa)} (${meu} x ${deles}). Os pontos já estão na sua conta.`,
+            `/partidas/${String(r.caminho).split('/').map(encodeURIComponent).join('/')}/`,
+          ))
+        }
         const sub = (await lerItem(this.env, 'perfis', id))?.sub
         const ts = p.inicio
         if (sub && Number.isFinite(ts) && ts >= (Number(sub.periodo || sub.inicio) || 0) && ts <= (sub.expira == null ? Infinity : Number(sub.expira)) && ts <= Date.now()) {
@@ -555,6 +569,8 @@ export class Loja {
         if (!p.doc) return { doc: atual }
         const novo = juntar(atual, p.doc)
         await this.ctx.storage.put('notifs', novo)
+        // Mudou (lida, limpar, nova): os outros aparelhos abertos sincronizam na hora em vez de esperar o próximo minuto
+        if (JSON.stringify(novo) !== JSON.stringify(juntar(atual, docVazio()))) await mandarPara(this.env, [id], { tipo: 'notif' })
         return { doc: novo }
       }
       case 'perfil-publico':
