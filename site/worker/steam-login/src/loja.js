@@ -958,7 +958,9 @@ export class Loja {
       const especial = !soEnfeites && ehEspecial(jaAbertas + k + 1)
       let ganhou
       if (especial) ganhou = sortearEspecial(caixa, cfg, rndSeguro)
-      else if (p.origem === 'inventario' && origem === 'inventario') ganhou = sortearAberturaInventario(caixa, cfg, rndSeguro, valorDe)
+      // A Caixa Diária (grátis, todo dia) sorteia normal: o prêmio de 2k+ do inventário não vale para ela
+      // A Caixa Diária (grátis, todo dia) sorteia normal: o prêmio de 2k+ do inventário não vale para ela
+      else if (p.origem === 'inventario' && origem === 'inventario' && caixa.slug !== 'caixa-diaria') ganhou = sortearAberturaInventario(caixa, cfg, rndSeguro, valorDe)
       else ganhou = sortearAbertura(caixa, cfg, rndSeguro)
       const faixa = gerarFaixa(caixa, cfg, ganhou, rndSeguro)
       const item = novoIdItem()

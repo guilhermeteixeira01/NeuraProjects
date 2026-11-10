@@ -56,13 +56,36 @@ function NP({ v, classe = '' }) {
   return <span className={`upg-np ${classe}`}><img src="/icones/logo-np-64.png" alt="" width="14" height="14" /> {numero(v)}</span>
 }
 
-const RIFLE = 'M4 20 10 18 40 22 52 20H118L120 16H140L142 19H168V15H172V19H198V24H150L148 28H122L118 26 100 28 96 31 104 50 92 54 80 34 72 30H62L56 46 46 44 50 30H40L8 40 3 38Z'
+// Fuzil de assalto de perfil, cano para a direita (caixa 200 × 60, linha do cano em y ≈ 22):
+// coronha com soleira, punho, ferrolho com mira traseira, carregador curvo, guarda-mão, tubo de gás, massa de mira e quebra-chamas.
+const RIFLE =
+  'M2 17L8 16 40 21 46 18H92L94 15H104L106 18H124L126 16H152L154 19H178L180 15H183L184 19H192V17H198V25H192V24H154L152 27H126L118 30' + // topo e cano
+  'Q120 42 128 52L114 58Q104 46 100 31H86L84 34Q82 40 76 40H70' + // carregador curvo e guarda-mato
+  'L66 48Q65 52 61 52H55Q52 52 53 48L57 31H48L40 33 8 44 2 43Z' // punho e coronha
+const RIFLE_DETALHES = 'M10 19.5V41M46 18V31M126 19H152M128 23H150M132 19V27M138 19V27M144 19V27M100 31L118 30M70 34H82'
 
 function RiflesCruzados() {
+  const rifle = (transform) => (
+    <g transform={transform}>
+      <path className="upg-rifle-corpo" d={RIFLE} />
+      <path className="upg-rifle-detalhe" d={RIFLE_DETALHES} />
+    </g>
+  )
   return (
-    <svg className="upg-rifles" viewBox="0 0 200 130" fill="currentColor" aria-hidden="true">
-      <path d={RIFLE} transform="translate(100 65) rotate(-28) translate(-100 -28)" />
-      <path d={RIFLE} transform="translate(100 65) scale(-1 1) rotate(-28) translate(-100 -28)" />
+    <svg className="upg-rifles" viewBox="0 0 200 130" aria-hidden="true">
+      <defs>
+        <linearGradient id="upg-rifle-grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#2f5f9e" />
+          <stop offset="1" stopColor="#12305c" />
+        </linearGradient>
+      </defs>
+      {rifle('translate(100 66) rotate(-30) scale(.9) translate(-100 -24)')}
+      {rifle('translate(100 66) scale(-1 1) rotate(-30) scale(.9) translate(-100 -24)')}
+      {/* emblema de upgrade no cruzamento */}
+      <g className="upg-rifles-emblema" transform="translate(100 66)">
+        <polygon points="0,-17 15,-8.5 15,8.5 0,17 -15,8.5 -15,-8.5" />
+        <path d="M-7 1 0-6 7 1M-7 8 0 1 7 8" />
+      </g>
     </svg>
   )
 }

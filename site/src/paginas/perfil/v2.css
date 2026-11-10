@@ -173,8 +173,9 @@ html:not(#v2) #root .pf-linha-card { margin: 0; }
   html:not(#v2) #root .pf-v2-metrica { padding: 10px; gap: 8px; }
   html:not(#v2) #root .pf-v2-metrica span:not(.pf-v2-metrica-icone) { font-size: 10px; overflow-wrap: anywhere; }
 }
-html:not(#v2) #root .pf-v2-insignias .ins-lista { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; padding: 12px 0 0; margin: 0; }
-html:not(#v2) #root .pf-v2-insignias .ins-item { min-width: 0; }
+/* até 3 destacadas, sempre centralizadas (o "+N" fica escondido: o link "Ver todas" do cabeçalho faz esse papel) */
+html:not(#v2) #root .pf-v2-insignias .ins-lista { display: flex; justify-content: center; gap: 8px; padding: 12px 0 0; margin: 0; }
+html:not(#v2) #root .pf-v2-insignias .ins-item { min-width: 0; flex: 0 1 calc((100% - 16px) / 3); display: flex; justify-content: center; }
 html:not(#v2) #root .pf-v2-insignias .ins-item-mais { display: none; }
 html:not(#v2) #root .pf-chart-svg { max-height: 170px; }
 html:not(#v2) #root .pf-linha-card .pf-ref-cab { margin-bottom: 8px; padding-bottom: 8px; }

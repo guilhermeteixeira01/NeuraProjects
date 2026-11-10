@@ -32,6 +32,7 @@ function LinkMenu({ item, atual }) {
   const { pendente } = useAvisoEquipe()
   const ativo = item.id === atual
   const IconeItem = item.icone ? ICONES_MENU[item.icone] : null
+  const logoTime = useLogoDoTime(item.id === 'equipes')
   return (
     <a
       className={`nx-link${ativo ? ' is-active' : ''}`}
@@ -40,8 +41,8 @@ function LinkMenu({ item, atual }) {
       {...(item.externo ? { target: '_blank', rel: 'noopener' } : {})}
       {...(ativo ? { 'aria-current': 'page' } : {})}
     >
-      {item.id === 'equipes' && <LogoDoTime />}
-      {IconeItem && <IconeItem />}
+      {/* Times: com logo, o logo do time é o ícone na frente do nome (no lugar do ícone de pessoas) */}
+      {logoTime ? <img className="nx-icone nx-time-icone" src={logoTime.src} alt="" aria-hidden="true" loading="lazy" onError={logoTime.aoErro} /> : IconeItem && <IconeItem />}
       <span className="nx-dica">{t(item.rotulo)}</span>
       {item.selo && <span className="nx-selo">{item.selo}</span>}
       {item.id === 'equipes' && pendente && <span className="nx-alerta" role="status" aria-label={t('Mensagem nova no chat do time')}>!</span>}
@@ -140,13 +141,20 @@ function Conta() {
   )
 }
 
-// Logo do time do jogador, por trás do ícone "Times" do menu (nada se ele não tem time ou o time não tem logo)
-function LogoDoTime() {
+// Logo do time do jogador (null se ele não tem time, o time não tem logo ou a imagem falhou)
+function useLogoDoTime(ativo = true) {
   const conta = useConta()
-  const time = useTimeDe(conta?.id)
-  const [erro, setErro] = useState(false)
-  if (!time || !/^https?:\/\//.test(time.logo || '') || erro) return null
-  return <img className="nx-time-logo" src={time.logo} alt="" aria-hidden="true" loading="lazy" onError={() => setErro(true)} />
+  const time = useTimeDe(ativo ? conta?.id : null)
+  const [erro, setErro] = useState('')
+  const src = time?.logo
+  if (!ativo || !/^https?:\/\//.test(src || '') || erro === src) return null
+  return { src, aoErro: () => setErro(src) }
+}
+
+// Celular (barra de baixo): o logo fica por trás do ícone "Times", ocupando a aba
+function LogoDoTime() {
+  const logo = useLogoDoTime()
+  return logo && <img className="nx-time-logo" src={logo.src} alt="" aria-hidden="true" loading="lazy" onError={logo.aoErro} />
 }
 
 // Páginas que aparecem no menu sem login

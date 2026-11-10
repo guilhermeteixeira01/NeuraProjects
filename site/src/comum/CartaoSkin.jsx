@@ -106,10 +106,6 @@ export function ConteudoCartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
         </span>
 
 
-        {item.st ? <span className="inv-st">StatTrak™</span> : null}
-        {selecionado !== undefined && <i className={`inv-check${selecionado ? ' on' : ''}`} aria-hidden="true" />}
-      </span>
-      <span className="inv-cartao-nome">
         {item.t === 'arma' && (item.k?.i > 0 || item.a?.some(Boolean)) && (
           <span className="inv-enfeites">
             {item.k?.i > 0 && <Imagem src={urlImg(chaveiros?.get(item.k.i)?.[2], 64)} classe="inv-enfeite-chaveiro" />}
@@ -118,6 +114,10 @@ export function ConteudoCartaoSkin({ item, idx, adesivos, chaveiros, equip, aoAb
             </span>
           </span>
         )}
+        {item.st ? <span className="inv-st">StatTrak™</span> : null}
+        {selecionado !== undefined && <i className={`inv-check${selecionado ? ' on' : ''}`} aria-hidden="true" />}
+      </span>
+      <span className="inv-cartao-nome">
         <span className="inv-item-identificadores"><SeloRaridade item={item} cor={d.cor} />        <span className="inv-marcas">
           {lados.map(([l]) => (
             <Marca key={l} lado={l} />
