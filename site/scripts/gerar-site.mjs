@@ -124,6 +124,7 @@ const PAGINAS = [
   ['admin/index.html', 'admin'], // painel de administrador (dados vêm do worker, com login)
   ['perfil/index.html', 'perfil'], // jogador vem do endereço (?id=), a página busca os dados no navegador
   ['upgrade/index.html', 'upgrade'], // upgrade de skins (dados vêm do worker, com login)
+  ['eventos/natal-2026/index.html', 'natal2026'], // Natal na Neura 2026 (datas e progresso vêm do worker)
 ]
 for (const [arq, pagina, dadosPagina] of PAGINAS) {
   const destino = path.join(saida, arq)
@@ -134,7 +135,7 @@ for (const [arq, pagina, dadosPagina] of PAGINAS) {
 const modeloPartida = path.join(saidaPartidas, 'partida.html')
 const modelo = ler(modeloPartida)
 const nomeMapa = (m) => String(m || '').replace(/^de_/, '').replace(/^./, (c) => c.toUpperCase())
-const urls = ['/', '/neurapick/', '/partidas/', '/ranking/']
+const urls = ['/', '/neurapick/', '/partidas/', '/ranking/', '/eventos/natal-2026/']
 for (const p of lista) {
   const caminho = p.caminho || p.nome
   const d = lerJson(path.join(saidaPartidas, caminho, 'partida.json'))

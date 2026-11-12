@@ -1639,4 +1639,9 @@ export default {
   "Terrorista": "Terrorist",
   "Contraterrorista": "Counter-Terrorist",
   "Ambas as equipes": "Both teams",
+  "Ver mais": "See more",
+  "Carregando mais jogadores…": "Loading more players…",
+  "Faltam {n} partidas para o ranking": "{n} more matches to enter the ranking",
+  "Você jogou {n} de {min} partidas. Faltam {f} para entrar no ranking.": "You played {n} of {min} matches. {f} more to enter the ranking.",
+  "Ainda não há jogadores no ranking. Para entrar, são necessárias pelo menos {min} partidas no servidor.": "No players in the ranking yet. You need at least {min} matches on the server to enter.",
 }

@@ -1,0 +1,185 @@
+/* Natal na Neura 2026 — Operação Presente. Mobile primeiro; cores do tema (neura-v2.css) com acentos de Natal. */
+.nt-pagina {
+  --nt-vermelho: #c8323c;
+  --nt-verde: #2f9a62;
+  --nt-ouro: var(--v2-ouro, #e9b94c);
+  --nt-card: var(--v2-sup-2, #061320);
+  --nt-borda: var(--v2-borda, rgb(37 68 98 / .6));
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 16px var(--v2-gutter, 16px) 56px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  color: var(--v2-texto);
+  box-sizing: border-box;
+}
+.nt-pagina > *, .nt-grade > *, .nt-secao > * { min-width: 0; }
+.nt-pagina h2 { font-size: 1.15rem; margin: 0 0 8px; letter-spacing: .01em; }
+.nt-pagina h3 { font-size: 1rem; margin: 0 0 4px; }
+.nt-pagina p { margin: 0; }
+.nt-nota { color: var(--v2-texto-2); font-size: .88rem; line-height: 1.45; }
+
+.nt-card {
+  background: var(--nt-card);
+  border: 1px solid var(--nt-borda);
+  border-radius: var(--v2-raio, 12px);
+  padding: 16px;
+  box-shadow: var(--v2-sombra);
+}
+
+/* Estrela junto de valores */
+.nt-estrelas { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; font-weight: 700; color: var(--nt-ouro); vertical-align: middle; }
+.nt-estrelas img { display: block; flex: none; }
+.nt-estrelas-botao { color: inherit; margin-left: 6px; }
+.nt-mais b::before { content: '+'; }
+
+/* Topo */
+.nt-hero { border-radius: var(--v2-raio, 12px); overflow: hidden; border: 1px solid var(--nt-borda); background: linear-gradient(160deg, rgb(200 50 60 / .16), transparent 45%), linear-gradient(20deg, rgb(47 154 98 / .16), transparent 50%), var(--nt-card); }
+.nt-hero picture, .nt-hero-arte { display: block; width: 100%; height: auto; }
+.nt-hero-arte { aspect-ratio: 2290 / 260; object-fit: cover; }
+@media (max-width: 860px) { .nt-hero-arte { aspect-ratio: 860 / 98; } }
+.nt-hero-texto { padding: 18px 16px 20px; display: grid; gap: 18px; align-items: center; }
+.nt-hero-principal { display: grid; gap: 10px; justify-items: start; min-width: 0; }
+/* Painel do lado: o presente e a contagem */
+.nt-hero-lado { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: var(--v2-raio, 12px); border: 1px solid rgb(233 185 76 / .3); background: radial-gradient(circle at 30% 30%, rgb(233 185 76 / .16), transparent 60%), rgb(255 255 255 / .03); }
+.nt-hero-presente { width: 72px; height: 72px; flex: none; object-fit: contain; filter: drop-shadow(0 10px 22px rgb(0 0 0 / .45)); }
+.nt-hero-lado .nt-contagem { display: grid; gap: 2px; }
+.nt-hero-lado .nt-contagem span { font-size: .78rem; text-transform: uppercase; letter-spacing: .1em; color: var(--v2-texto-3); }
+.nt-hero-lado .nt-contagem b { font-size: 1.6rem; line-height: 1.1; }
+.nt-kicker { text-transform: uppercase; letter-spacing: .14em; font-size: .72rem; font-weight: 700; color: var(--nt-ouro); }
+.nt-hero h1 { margin: 0; font-size: clamp(1.7rem, 6vw, 2.6rem); line-height: 1.05; display: grid; gap: 2px; }
+.nt-hero h1 span { font-size: .55em; color: var(--v2-texto-2); font-weight: 600; letter-spacing: .02em; }
+.nt-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; font-size: .8rem; font-weight: 700; border: 1px solid var(--nt-borda); background: var(--v2-sup-3); }
+.nt-chip-ativo { background: rgb(47 154 98 / .18); border-color: rgb(47 154 98 / .6); color: var(--v2-sucesso); }
+.nt-chip-futuro { background: rgb(233 185 76 / .14); border-color: rgb(233 185 76 / .5); color: var(--nt-ouro); }
+.nt-chip-resgate { background: rgb(200 50 60 / .14); border-color: rgb(200 50 60 / .5); color: var(--v2-erro); }
+.nt-chip-encerrado, .nt-chip-desativado { color: var(--v2-texto-2); }
+.nt-periodo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-weight: 600; font-size: .92rem; }
+.nt-periodo small { flex-basis: 100%; color: var(--v2-texto-3); font-weight: 500; }
+.nt-hero-lead { color: var(--v2-texto-2); max-width: 60ch; line-height: 1.5; }
+.nt-hero-acoes { display: flex; flex-wrap: wrap; gap: 10px; }
+.nt-hero-acoes .v2-btn { min-height: 44px; }
+.nt-ativado { display: inline-flex; align-items: center; gap: 6px; color: var(--v2-sucesso); font-weight: 700; }
+.nt-contagem { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; color: var(--v2-texto-2); }
+.nt-contagem b { font-size: 1.35rem; color: var(--v2-texto); }
+.nt-contagem small { flex-basis: 100%; color: var(--v2-texto-3); }
+
+.nt-aviso { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 14px; border-radius: var(--v2-raio-p, 8px); font-weight: 600; border: 1px solid; }
+.nt-aviso.ok { color: var(--v2-sucesso); border-color: rgb(41 216 156 / .45); background: rgb(41 216 156 / .08); }
+.nt-aviso.erro { color: var(--v2-erro); border-color: rgb(239 102 117 / .45); background: rgb(239 102 117 / .08); }
+.nt-aviso a, .nt-aviso button { color: inherit; font: inherit; text-decoration: underline; background: none; border: 0; padding: 0; cursor: pointer; }
+
+/* Saldo e mapa do dia */
+.nt-grade { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.nt-missoes, .nt-recompensas { grid-template-columns: minmax(0, 1fr); }
+.nt-saldo-valor { display: flex; align-items: center; gap: 14px; margin: 6px 0 10px; }
+.nt-saldo-valor img { width: 64px; height: 64px; filter: drop-shadow(0 6px 16px rgb(233 185 76 / .35)); }
+.nt-saldo-valor b { display: block; font-size: 2.2rem; line-height: 1; color: var(--nt-ouro); }
+.nt-saldo-valor span { color: var(--v2-texto-2); font-size: .9rem; }
+.nt-saldo .nt-nota + .nt-nota { margin-top: 4px; }
+/* Rumo às recompensas: o saldo comparado ao custo de cada uma */
+.nt-rumo-titulo { margin: 16px 0 8px !important; font-size: .78rem !important; text-transform: uppercase; letter-spacing: .1em; color: var(--v2-texto-3); }
+.nt-rumo { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.nt-rumo li { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 10px; align-items: center; padding: 8px 10px; border-radius: var(--v2-raio-p, 8px); background: var(--v2-sup-3); border: 1px solid transparent; }
+.nt-rumo li > img { width: 40px; height: 40px; object-fit: contain; }
+.nt-rumo li > div { display: grid; gap: 4px; min-width: 0; }
+.nt-rumo-linha { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: .85rem; }
+.nt-rumo-linha b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nt-rumo .nt-barra { height: 6px; }
+.nt-rumo small { font-size: .76rem; color: var(--v2-texto-3); }
+.nt-rumo li.pronto { border-color: rgb(233 185 76 / .5); }
+.nt-rumo li.pronto small { color: var(--nt-ouro); font-weight: 700; }
+.nt-rumo li.feito small { color: var(--v2-sucesso); font-weight: 700; }
+.nt-rumo li.feito .nt-barra span { background: var(--nt-verde); }
+
+.nt-mapa-hoje { margin: 0 0 12px; display: grid; gap: 8px; }
+.nt-mapa-hoje > img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--v2-raio-p, 8px); }
+.nt-mapa-hoje figcaption { display: grid; gap: 2px; }
+.nt-mapa-hoje figcaption b { font-size: 1.2rem; }
+.nt-mapa-hoje figcaption small { color: var(--v2-texto-2); display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.nt-calendario { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; }
+.nt-calendario li { display: grid; gap: 1px; padding: 6px 8px; border-radius: var(--v2-raio-p, 8px); border: 1px solid var(--nt-borda); background: var(--v2-sup-3); font-size: .8rem; }
+.nt-calendario li small { color: var(--v2-texto-3); }
+.nt-calendario li.hoje { border-color: var(--nt-verde); background: rgb(47 154 98 / .16); font-weight: 700; }
+.nt-calendario li.passado { opacity: .55; }
+
+/* Missões */
+.nt-secao { display: grid; gap: 10px; }
+.nt-missoes, .nt-recompensas { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.nt-missao { display: grid; gap: 10px; }
+.nt-missao-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.nt-missao-topo p { color: var(--v2-texto-2); font-size: .88rem; }
+.nt-premio { padding: 4px 8px; border-radius: 999px; background: rgb(233 185 76 / .12); }
+.nt-missao-rodape { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; font-size: .85rem; }
+.nt-missao-rodape span { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
+.nt-missao-rodape small { color: var(--v2-texto-3); }
+.nt-missao.feita { border-color: rgb(47 154 98 / .55); }
+.nt-missao.feita .nt-missao-rodape span { color: var(--v2-sucesso); }
+.nt-barra { height: 8px; border-radius: 999px; background: var(--v2-sup-3); overflow: hidden; }
+.nt-barra span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--nt-vermelho), var(--nt-ouro)); transition: width .4s ease; }
+.nt-missao.feita .nt-barra span { background: var(--nt-verde); }
+
+/* Meta coletiva */
+.nt-meta { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start; background: linear-gradient(135deg, rgb(233 185 76 / .12), transparent 60%), var(--nt-card); }
+.nt-meta-arte { width: 72px; height: 72px; filter: drop-shadow(0 6px 18px rgb(233 185 76 / .35)); }
+.nt-meta > div { display: grid; gap: 10px; }
+.nt-meta > div > p:first-of-type { color: var(--v2-texto-2); font-size: .9rem; line-height: 1.45; }
+.nt-meta-numeros b { font-size: 1.2rem; }
+.nt-meta-ok { color: var(--v2-sucesso); font-weight: 700; }
+.nt-meta .nt-barra { height: 12px; }
+
+/* Recompensas */
+.nt-recompensa { display: grid; gap: 8px; align-content: start; }
+.nt-recompensa > p { color: var(--v2-texto-2); font-size: .88rem; }
+.nt-recompensa-arte { display: grid; place-items: center; min-height: 150px; border-radius: var(--v2-raio-p, 8px); background: radial-gradient(circle at 50% 45%, rgb(233 185 76 / .16), transparent 65%), var(--v2-sup-3); }
+.nt-recompensa-arte > img { width: 140px; height: 140px; object-fit: contain; filter: drop-shadow(0 8px 18px rgb(0 0 0 / .35)); }
+.nt-recompensa-rodape { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 6px; }
+.nt-custo b { font-size: 1.15rem; }
+.nt-recompensa .v2-btn { min-height: 40px; }
+.nt-pagina .v2-btn:disabled { opacity: 1; cursor: not-allowed; color: var(--v2-texto-2); background: var(--v2-sup-3); border-color: var(--nt-borda); }
+.nt-recompensa.feita .v2-btn:disabled { color: var(--v2-sucesso); }
+.nt-recompensa.feita { border-color: rgb(47 154 98 / .55); }
+.nt-recompensa.indisponivel .nt-recompensa-arte { opacity: .75; }
+.nt-confirmar { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+
+/* Moldura sobre o avatar (a camada .moldura do perfil fica por cima da foto, com transparência) */
+.nt-moldura-previa { display: grid; place-items: center; gap: 8px; padding: 18px; }
+.nt-avatar, .nt-avatar-moldura { width: 96px; height: 96px; }
+.nt-avatar { display: grid; place-items: center; border-radius: 50%; overflow: hidden; background: var(--v2-sup-2); }
+.nt-avatar img, .nt-avatar-moldura > img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.nt-avatar-ini { font-weight: 800; color: var(--v2-texto-2); }
+/* a foto (ou as iniciais, sem foto) preenche o vão da moldura */
+.nt-avatar-moldura > .nt-avatar-ini { width: 100%; height: 100%; display: grid; place-items: center; font-size: 1.4rem; }
+.nt-moldura-previa:not(.pendente) { padding: 34px 18px; }
+.nt-moldura-previa.pendente .nt-avatar { outline: 3px dashed rgb(233 185 76 / .55); outline-offset: 6px; }
+.nt-moldura-previa small { color: var(--v2-texto-3); font-size: .78rem; }
+
+/* Extrato e regras */
+.nt-extrato ul, .nt-regras ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.nt-extrato li { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--nt-borda); font-size: .9rem; }
+.nt-extrato li:last-child { border-bottom: 0; }
+.nt-regras { color: var(--v2-texto-2); font-size: .88rem; }
+.nt-regras ul { list-style: disc; padding-left: 20px; }
+
+@media (min-width: 720px) {
+  .nt-pagina { gap: 22px; padding-top: 24px; }
+  .nt-hero-texto { padding: 24px 28px 28px; }
+  .nt-mapa-hoje > img { aspect-ratio: 21 / 9; }
+  .nt-calendario { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+  .nt-calendario li { padding: 6px 4px; text-align: center; }
+  .nt-calendario li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nt-grade { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); }
+  .nt-missoes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nt-recompensas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .nt-meta { grid-template-columns: 112px 1fr; padding: 20px 24px; }
+  .nt-meta-arte { width: 112px; height: 112px; }
+}
+@media (min-width: 900px) {
+  .nt-hero-texto { grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); gap: 28px; }
+  .nt-hero-lado { flex-direction: column; justify-content: center; text-align: center; padding: 22px 20px; align-self: stretch; }
+  .nt-hero-presente { width: 168px; height: 168px; }
+  .nt-hero-lado .nt-contagem { justify-items: center; }
+  .nt-hero-lado .nt-contagem b { font-size: 2.1rem; }
+}
+@media (prefers-reduced-motion: reduce) { .nt-barra span { transition: none; } }

@@ -15,8 +15,9 @@ import Ranking from './paginas/ranking/Ranking.jsx'
 import Times from './paginas/times/Times.jsx'
 import NaoEncontrada from './paginas/naoencontrada/NaoEncontrada.jsx'
 import Upgrade from './paginas/upgrade/Upgrade.jsx'
+import Natal2026 from './paginas/natal2026/Natal2026.jsx'
 
-const PAGINAS = { admin: Admin, inicio: Inicio, inventario: Inventario, loja: Loja, equipes: Equipes, lobby: Lobby, neurapick: NeuraPick, partida: Partida, partidas: Partidas, perfil: Perfil, ranking: Ranking, times: Times, naoencontrada: NaoEncontrada, upgrade: Upgrade }
+const PAGINAS = { admin: Admin, inicio: Inicio, inventario: Inventario, loja: Loja, equipes: Equipes, lobby: Lobby, neurapick: NeuraPick, partida: Partida, partidas: Partidas, perfil: Perfil, ranking: Ranking, times: Times, naoencontrada: NaoEncontrada, upgrade: Upgrade, natal2026: Natal2026 }
 
 export function renderizar(pagina, dados) {
   const Pagina = PAGINAS[pagina]

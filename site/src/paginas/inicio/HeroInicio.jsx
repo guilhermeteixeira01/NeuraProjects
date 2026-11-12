@@ -6,6 +6,7 @@ import { mapImage, nomeMapa } from '../../comum/mapas.js'
 import { usePerfis } from '../../comum/Moldura.jsx'
 import { useSeguranca } from '../../comum/seguranca.js'
 import { posicaoNoRanking, useMapaMaisJogado } from '../../comum/temporada.js'
+import { faltamParaRanking } from '../../comum/ranking.js'
 import { useT } from '../../comum/i18n.js'
 
 // Topo do Início: saudação, chamada para jogar e o resumo da temporada de quem está logado (dados do ranking.json e do
@@ -86,7 +87,7 @@ function SuaTemporada({ ranking, perfis, conta }) {
             <div className="v2-temporada-pos">
               <Louro />
               <b className="v2-num">{oculto ? '—' : posicao > 0 ? `#${posicao}` : '—'}</b>
-              <span>{oculto ? t('Oculto do ranking') : t('no ranking')}</span>
+              <span>{oculto ? t('Oculto do ranking') : posicao > 0 ? t('no ranking') : faltamParaRanking(jogador) > 0 ? t('Faltam {n} partidas para o ranking', { n: faltamParaRanking(jogador) }) : t('no ranking')}</span>
             </div>
             <dl className="v2-temporada-numeros">
               <div className="v2-temporada-rating">

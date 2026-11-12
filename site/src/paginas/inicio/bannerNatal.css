@@ -1,0 +1,28 @@
+/* Banner de Natal do Início (link para /eventos/natal-2026/) */
+.bn-natal {
+  display: block;
+  width: min(1180px, calc(100% - 2 * var(--v2-gutter, 16px)));
+  margin: 16px auto;
+  border-radius: var(--v2-raio, 12px);
+  overflow: hidden;
+  border: 1px solid rgb(233 185 76 / .45);
+  background: var(--v2-sup-2, #061320);
+  color: var(--v2-texto, #f4f7fc);
+  text-decoration: none;
+  box-shadow: var(--v2-sombra);
+  transition: transform .2s ease, border-color .2s ease;
+}
+.bn-natal:hover, .bn-natal:focus-visible { transform: translateY(-2px); border-color: rgb(233 185 76 / .85); }
+.bn-natal:focus-visible { outline: 2px solid var(--v2-ouro, #e9b94c); outline-offset: 3px; }
+.bn-natal picture, .bn-natal picture img { display: block; width: 100%; height: auto; }
+.bn-natal-texto { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: linear-gradient(90deg, rgb(200 50 60 / .2), rgb(47 154 98 / .16)); }
+.bn-natal-texto > img { flex: none; }
+.bn-natal-texto > span:not(.bn-natal-cta) { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.bn-natal-texto b { font-size: .98rem; }
+.bn-natal-texto small { color: var(--v2-texto-2, #a8b5c7); font-size: .84rem; }
+.bn-natal-cta { flex: none; font-weight: 700; color: var(--v2-ouro, #e9b94c); white-space: nowrap; }
+@media (max-width: 520px) {
+  .bn-natal-texto { flex-wrap: wrap; }
+  .bn-natal-cta { flex-basis: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .bn-natal { transition: none; } .bn-natal:hover { transform: none; } }

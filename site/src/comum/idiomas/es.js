@@ -1639,4 +1639,9 @@ export default {
   "Terrorista": "Terrorista",
   "Contraterrorista": "Antiterrorista",
   "Ambas as equipes": "Ambos equipos",
+  "Ver mais": "Ver más",
+  "Carregando mais jogadores…": "Cargando más jugadores…",
+  "Faltam {n} partidas para o ranking": "Faltan {n} partidas para el ranking",
+  "Você jogou {n} de {min} partidas. Faltam {f} para entrar no ranking.": "Jugaste {n} de {min} partidas. Faltan {f} para entrar en el ranking.",
+  "Ainda não há jogadores no ranking. Para entrar, são necessárias pelo menos {min} partidas no servidor.": "Aún no hay jugadores en el ranking. Para entrar se necesitan al menos {min} partidas en el servidor.",
 }

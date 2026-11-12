@@ -1,5 +1,7 @@
 import { iniciarMissoes, sincronizarMissoes } from './missoes.js'
+import { natalDoJogador } from './natal-2026.js'
 import { CAIXA_PREMIUM } from './caixa-premium-core.js'
+import { CAIXA_NATAL } from './caixa-natal.js'
 import { entregarCaixaPremium, escolherArmaPremium } from './caixa-premium.js'
 import { repararFreezeDoJogador } from './freeze-reparo.js'
 import { exigirSenha } from './contas.js'
@@ -80,7 +82,9 @@ const ATUALIZAR_CAIXAS = ['caixa-kawaii', 'caixa-terror', 'caixa-lendas', 'caixa
 const DOCS_CAIXAS = ['caixas', 'caixas-revisao', 'caixas-vistas', 'caixas-removidas', 'loja-config', 'loja-bonus']
 
 export async function lerCaixas(env) {
-  return [...(await lerCaixasComuns(env)).filter(c => c.id !== CAIXA_PREMIUM.id && c.slug !== CAIXA_PREMIUM.slug), CAIXA_PREMIUM]
+  // Caixas fixas no código (fora do catálogo editável): Premium e a do evento de Natal (só facas e luvas)
+  const fixas = [CAIXA_PREMIUM, CAIXA_NATAL]
+  return [...(await lerCaixasComuns(env)).filter(c => !fixas.some(f => c.id === f.id || c.slug === f.slug)), ...fixas]
 }
 
 async function lerCaixasComuns(env) {
@@ -550,6 +554,10 @@ export class Loja {
         return oficialDoJogador(this, acao, saldo, p)
       case 'consumivel-partida':
         return aplicarNaPartida(this, p)
+      case 'natal-sinc':
+      case 'natal-ativar':
+      case 'natal-resgatar':
+        return natalDoJogador(this, id, acao, p)
       case 'missoes-sinc':
         return sincronizarMissoes(this,id,p.partidas||[],!!p.historico,Date.now(),p.acesso===true)
       case 'afiliado-recompensar':
