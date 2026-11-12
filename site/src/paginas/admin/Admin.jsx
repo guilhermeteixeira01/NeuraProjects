@@ -1,5 +1,6 @@
 import AdminMissoes from './AdminMissoes.jsx'
 import AdminNatal from './AdminNatal.jsx'
+import AdminAvisoFaixa from './AdminAvisoFaixa.jsx'
 import { fundoCss } from '../../comum/assetsV2.js'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -1964,6 +1965,7 @@ export default function Admin() {
               <>
                 {tem('usuarios') && <AdminMissoes />}
                 {tem('usuarios') && <AdminNatal />}
+                {tem('usuarios') && <AdminAvisoFaixa />}
                 <Usuarios usuarios={usuarios} painel={painel} dono={painel.dono} editar={setEditando} />
                 {tem('pontos') && (
                   <details className="adm-dobra">

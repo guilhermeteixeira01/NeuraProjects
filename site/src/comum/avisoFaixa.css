@@ -1,0 +1,50 @@
+/* Aviso em faixa (AvisoFaixa.jsx): letreiro amarelo no topo do conteúdo de todas as páginas */
+.af-faixa {
+  position: relative;
+  z-index: 3;
+  overflow: hidden;
+  background: repeating-linear-gradient(-45deg, #f5c542 0 22px, #f2bd2c 22px 44px);
+  color: #15110a;
+  border-bottom: 2px solid #15110a;
+  box-shadow: 0 2px 0 rgb(245 197 66 / .35), inset 0 -1px 0 rgb(0 0 0 / .12);
+  font: 800 14px/1 var(--font-body, system-ui, sans-serif);
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+.np-conteudo > .af-faixa { border-radius: inherit; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+
+/* Texto para leitor de tela (o trilho animado é decorativo) */
+.af-leitor {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+.af-trilho {
+  display: flex;
+  width: max-content;
+  animation: af-passar var(--af-duracao, 30s) linear infinite;
+  will-change: transform;
+}
+.af-faixa:hover .af-trilho { animation-play-state: paused; }
+.af-grupo { display: flex; flex: none; }
+.af-item { display: inline-flex; align-items: center; gap: 14px; padding: 10px 28px 10px 0; white-space: nowrap; }
+.af-item:first-child { padding-left: 28px; }
+/* Marcador entre as repetições: losango escuro */
+.af-marca { flex: none; width: 9px; height: 9px; background: #15110a; transform: rotate(45deg); }
+
+@keyframes af-passar {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (max-width: 650px) {
+  .af-faixa { font-size: 12.5px; }
+  .af-item { padding-block: 8px; }
+}
+
+/* Parado: "Melhorar desempenho" ou movimento reduzido. Mostra o texto uma vez, quebrando linha */
+@media (prefers-reduced-motion: reduce) {
+  .af-trilho { display: none; }
+  .af-leitor { position: static; width: auto; height: auto; margin: 0; padding: 10px 16px; clip: auto; overflow: visible; white-space: normal; text-align: center; line-height: 1.35; }
+}
+html[data-desempenho='1'] .af-trilho { display: none; }
+html[data-desempenho='1'] .af-leitor { position: static; width: auto; height: auto; margin: 0; padding: 10px 16px; clip: auto; overflow: visible; white-space: normal; text-align: center; line-height: 1.35; }

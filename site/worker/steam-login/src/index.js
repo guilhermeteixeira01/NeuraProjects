@@ -1,5 +1,6 @@
 import { rotaMissoes, corrigirEventosAntecipados } from './missoes.js'
 import { conferirNatal, rotaNatal, rotaNatalPublica } from './natal-2026.js'
+import { rotaAvisoPublico } from './aviso-faixa.js'
 import { corrigirFreezeVitorias } from './freeze-reparo.js'
 /*
  * Worker do neuraproject.com.br (Cloudflare): login pela Steam e tudo que o site estático (GitHub Pages) não faz sozinho.
@@ -115,6 +116,8 @@ const PUBLICAS = {
   'GET /loja/valores-catalogo': () => rotaValoresCatalogo(qualquerOrigem),
   // Natal na Neura 2026: datas, estado, meta coletiva e recompensas (página do evento e banner da home)
   'GET /eventos/natal-2026': (c) => rotaNatalPublica(c.env, qualquerOrigem),
+  // Aviso em faixa (letreiro amarelo no topo do site), escrito no painel admin
+  'GET /aviso-faixa': (c) => rotaAvisoPublico(c.env, qualquerOrigem),
   // Zerar tudo pela manutenção (sem login Steam): só existe enquanto o segredo ZERAR_TOKEN estiver configurado
   'POST /manutencao/zerar-tudo': async (c) => {
     if (!c.env.ZERAR_TOKEN) throw new ErroNaoEncontrado('rota')

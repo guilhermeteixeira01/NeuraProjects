@@ -2,6 +2,7 @@ import { lerPainelMissoes, salvarConfigMissoes, configMissoes } from './missoes.
 import { insigniaMissao, progressoMissoes } from './missoes-core.js'
 import { INSIGNIAS_NATAL } from './natal-2026-core.js'
 import { rotaAdminNatal } from './natal-2026.js'
+import { rotaAdminAviso } from './aviso-faixa.js'
 /*
  * Painel de administrador (/admin/*). Cada rota declara do que precisa: uma aba do painel ou ser o dono (ROTAS_ADMIN, no fim).
  *
@@ -60,6 +61,7 @@ const ROTULO_ADMIN = {
   '/admin/nick': 'trocou o apelido do jogador',
   '/admin/nick-reset': 'limpou o apelido e liberou nova escolha',
   '/admin/natal-2026': 'mudou a configuração do Natal na Neura 2026',
+  '/admin/aviso-faixa': 'mudou o aviso em faixa do site',
 }
 function descreverAcao(rota, quem, c) {
   const chaves = Object.keys(c).filter((k) => !['id', 'alvo'].includes(k))
@@ -293,6 +295,8 @@ const ROTAS_ADMIN = {
   '/admin/missoes': {metodos:['GET','POST'],precisa:'usuarios',atender:async c=>json(c.req.method==='POST'?await salvarConfigMissoes(c.env,c.corpo):await lerPainelMissoes(c.env),200,c.cors)},
   // Natal na Neura 2026: início, fim, prazo de resgate, divulgação, mapas do dia e caixa (mesma aba das missões)
   '/admin/natal-2026': { metodos: ['GET', 'POST'], precisa: 'usuarios', atender: async (c) => json({ ok: true, ...(await rotaAdminNatal(c.env, c.req.method, c.corpo)) }, 200, c.cors) },
+  // Aviso em faixa no topo do site (texto e liga/desliga)
+  '/admin/aviso-faixa': { metodos: ['GET', 'POST'], precisa: 'usuarios', atender: async (c) => json({ ok: true, ...(await rotaAdminAviso(c.env, c.req.method, c.corpo)) }, 200, c.cors) },
   '/admin/dados': { metodos: ['GET'], precisa: null, atender: (c) => adminDados(c.env, c.config, c.cors) },
   // editar assinatura pede a aba de assinaturas; o resto do perfil, a de usuários
   '/admin/perfil': { metodos: ['POST'], precisa: (corpo) => ('sub' in corpo ? 'assinaturas' : 'usuarios'), atender: (c) => adminPerfil(c.corpo, c.env, c.config, c.cors) },
