@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import IconeUI from '../../comum/IconeUI.jsx'
-import { FUNDOS, PERSONAGENS } from '../../comum/assetsV2.js'
+import { FUNDOS } from '../../comum/assetsV2.js'
 import { entrar, linkPerfil, loginAtivo, useConta } from '../../comum/conta.js'
 import { mapImage, nomeMapa } from '../../comum/mapas.js'
 import { usePerfis } from '../../comum/Moldura.jsx'
@@ -24,7 +24,6 @@ export default function HeroInicio({ ranking }) {
 
   return (
     <section className="v2-hero-inicio v2-cena" aria-labelledby="v2-hero-titulo">
-      <img className="v2-hero-dupla" src={PERSONAGENS.grupoCT.src} width={PERSONAGENS.grupoCT.w} height={PERSONAGENS.grupoCT.h} alt="" decoding="async" />
       <img className="v2-cena-fundo" src={FUNDOS.inicio.src} width={FUNDOS.inicio.w} height={FUNDOS.inicio.h} alt="" fetchPriority="high" decoding="async" />
       <div className="v2-hero-texto">
         <p className="v2-hero-ola" title={conta && nome ? nome : undefined}>
