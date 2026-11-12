@@ -10,3 +10,7 @@
 
 /* Neura Project v2 */
 @import '../comum/neura-v2.css';
+
+/* Neura Project v3 · central competitiva: por último */
+@import '../comum/neura-v3.css';
+@import '../paginas/natal2026/v3.css';

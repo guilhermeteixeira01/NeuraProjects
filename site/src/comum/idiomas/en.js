@@ -1,6 +1,7 @@
 // Inglês: texto em português (chave, igual ao do código) → tradução. Sem a chave, o site mostra o português.
 // Variáveis entre chaves ({n}, {nome}...) ficam iguais na tradução.
 export default {
+  "Jogar": "Play",
   "Configurações": "Settings",
   "Idioma": "Language",
   "Tema": "Theme",

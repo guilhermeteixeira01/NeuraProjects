@@ -1,0 +1,34 @@
+/* Times (seu time) · v3 (central competitiva). Vem depois de comum/neura-v3.css.
+   Capa do time como cartão de equipe (nome em display, TAG ao lado, ações à direita); abas sublinhadas em âmbar; contadores e blocos
+   em grafite. */
+
+html:not(#v3) #root .eq-pagina .wrap { padding-inline: var(--content-gutter); }
+html:not(#v3) .eq-capa-v2::before { background: var(--np-fundo, none) center right / cover no-repeat, var(--x-bg); }
+html:not(#v3) .eq-capa-v2::after { background: linear-gradient(90deg, rgb(8 9 12 / .9) 0%, rgb(8 9 12 / .4) 45%, rgb(8 9 12 / .2) 75%), linear-gradient(0deg, var(--x-bg), transparent 60%); }
+html:not(#v3) .eq-capa-titulo h1 { font: 800 clamp(40px, 4.2vw, 60px)/.92 var(--x-display); letter-spacing: 0; text-transform: uppercase; }
+html:not(#v3) .eq-capa-titulo p { color: var(--x-text-2); font-size: 15px; }
+html:not(#v3) .eq-capa-cenario { border-color: var(--x-line-2); border-radius: var(--x-r); background: var(--x-s1); }
+html:not(#v3) .eq-capa-cenario::after { background: linear-gradient(90deg, rgb(8 9 12 / .94) 0%, rgb(8 9 12 / .7) 40%, rgb(8 9 12 / .25) 70%, rgb(8 9 12 / .5) 100%); }
+html:not(#v3) .eq-capa-cartao .eq-cabeca-txt h2 { font: 800 44px/1 var(--x-display); letter-spacing: .02em; text-transform: uppercase; }
+html:not(#v3) .eq-capa-cartao .eq-cabeca-txt h2 em { color: var(--x-accent); font-weight: 700; letter-spacing: .08em; }
+html:not(#v3) .eq-capa-cartao .eq-cabeca-txt p { color: var(--x-text-2); }
+html:not(#v3) .eq-cabeca-acoes .v2-btn { font: 800 15px/1 var(--x-display); letter-spacing: .1em; text-transform: uppercase; border-radius: var(--x-r-s); }
+html:not(#v3) .eq-cabeca-acoes .v2-btn-secundario { border-color: var(--x-line-3); background: rgb(8 9 12 / .6); }
+
+/* abas */
+html:not(#v3) .eq-abas { border-bottom-color: var(--x-line); }
+html:not(#v3) .eq-abas button { font: 700 15px/1 var(--x-display); letter-spacing: .1em; text-transform: uppercase; color: var(--x-text-2); }
+html:not(#v3) .eq-abas button:hover { color: var(--x-text); }
+html:not(#v3) .eq-abas button.is-ativo { color: #fff; border-bottom-color: var(--x-accent); }
+
+/* contadores e blocos */
+html:not(#v3) .eq-v2-contador { border: 1px solid var(--x-line); border-radius: var(--x-r); background: var(--x-s1); }
+html:not(#v3) .eq-v2-contador svg { color: var(--x-accent); }
+html:not(#v3) .eq-v2-contador b { font: 800 30px/1 var(--x-display); letter-spacing: .01em; }
+html:not(#v3) .eq-v2-contador small { color: var(--x-text-3); font: 700 12px/1.2 var(--x-display); letter-spacing: .14em; text-transform: uppercase; }
+html:not(#v3) :is(.eq-bloco, .eq-chat, .eq-convites, .eq-config, .eq-membros) { border-color: var(--x-line); border-radius: var(--x-r); background: var(--x-s1); }
+html:not(#v3) .eq-bloco-cab :is(h2, h3) { font: 800 18px/1 var(--x-display); letter-spacing: .1em; text-transform: uppercase; }
+html:not(#v3) .eq-bloco-cab svg { color: var(--x-accent); }
+html:not(#v3) .eq-linha:hover { background: rgb(255 255 255 / .03); }
+html:not(#v3) .eq-membro-nome { font-weight: 700; }
+html:not(#v3) .eq-janela { border-color: var(--x-line-2); border-radius: 12px; background: var(--x-s1); }

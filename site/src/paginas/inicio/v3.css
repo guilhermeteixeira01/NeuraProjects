@@ -1,0 +1,201 @@
+/* Início · v3 (central competitiva). Vem depois de comum/neura-v3.css.
+   Primeira dobra: o que é a tela (central da Neura, CS2) e a próxima ação (JOGAR). A arte do hero ocupa a faixa toda; o texto fica
+   sobre o véu grafite; "Sua temporada" vira um placar de HUD à direita. Abaixo: faixa diária, últimas partidas e comunidade. */
+
+html:not(#v3) .np-inicio { background: var(--x-bg); }
+
+/* ── hero ── */
+html:not(#v3) .v2-hero-inicio {
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 400px); gap: 32px; align-items: end;
+  height: auto; min-height: 480px; padding: 56px var(--content-gutter) 36px;
+  border-bottom: 1px solid var(--x-line);
+}
+html:not(#v3) .v2-hero-inicio .v2-cena-fundo { object-position: 60% 35%; filter: saturate(.85) contrast(1.05); }
+html:not(#v3) .v2-hero-inicio::after {
+  background:
+    linear-gradient(90deg, rgb(8 9 12 / .95) 0%, rgb(8 9 12 / .72) 32%, rgb(8 9 12 / .1) 58%, rgb(8 9 12 / .25) 76%, rgb(8 9 12 / .8) 100%),
+    linear-gradient(0deg, var(--x-bg) 0%, rgb(8 9 12 / .4) 22%, transparent 45%);
+}
+/* faixa âmbar fina no pé do hero: assinatura da central */
+html:not(#v3) .v2-hero-inicio::before {
+  content: ''; position: absolute; left: var(--content-gutter); bottom: -1px; z-index: 1; width: 120px; height: 2px; background: var(--x-accent);
+}
+html:not(#v3) .v2-hero-dupla { left: 38%; height: 104%; filter: drop-shadow(0 30px 40px rgb(0 0 0 / .65)) saturate(.95); }
+
+html:not(#v3) .v2-hero-texto { display: flex; flex-direction: column; align-items: flex-start; max-width: 560px; padding-bottom: 6px; }
+html:not(#v3) .v2-hero-kicker { order: 1; display: inline-flex; align-items: center; gap: 10px; margin: 0 0 16px; color: var(--x-accent); font: 700 13px/1 var(--x-display); letter-spacing: .32em; text-transform: uppercase; }
+html:not(#v3) .v2-hero-kicker::before { content: ''; width: 26px; height: 2px; background: currentColor; }
+html:not(#v3) .v2-hero-inicio h1 {
+  order: 2; margin: 0; font: 800 clamp(48px, 5.4vw, 80px)/.9 var(--x-display); letter-spacing: -.005em; text-transform: uppercase; color: #fff;
+  text-shadow: 0 4px 30px rgb(0 0 0 / .5);
+}
+html:not(#v3) .v2-hero-inicio h1 em { color: var(--x-accent); background: none; -webkit-text-fill-color: currentColor; }
+html:not(#v3) .v2-hero-lead { order: 3; margin: 18px 0 0; max-width: 460px; white-space: normal; color: var(--x-text-2); font-size: 15.5px; line-height: 1.55; }
+html:not(#v3) .v2-hero-acoes { order: 4; display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+html:not(#v3) .v2-hero-acoes .v2-btn { height: 54px; min-height: 54px; padding: 0 28px; border-radius: var(--x-r-s); font: 800 18px/1 var(--x-display); letter-spacing: .1em; }
+html:not(#v3) .v2-hero-acoes .v2-btn-primario { min-width: 220px; border: 0; }
+html:not(#v3) .v2-hero-acoes .v2-btn-secundario { min-width: 0; border: 1px solid var(--x-line-3); background: rgb(8 9 12 / .45); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+/* saudação: linha de status discreta acima do kicker */
+html:not(#v3) .v2-hero-ola {
+  order: 0; display: inline-flex; align-items: center; gap: 8px; margin: 0 0 22px; padding: 7px 12px 7px 10px;
+  border: 1px solid var(--x-line-2); border-radius: 999px; background: rgb(8 9 12 / .55); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  font: 600 13px/1.2 var(--x-body); color: var(--x-text-2); letter-spacing: 0;
+}
+html:not(#v3) .v2-hero-ola::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--x-win); box-shadow: 0 0 0 3px rgb(61 220 151 / .18); flex: none; }
+html:not(#v3) .v2-hero-ola b { color: var(--x-text); background: none; -webkit-text-fill-color: currentColor; font-weight: 700; }
+html:not(#v3) .v2-hero-sub { display: none; }
+
+/* ── Sua temporada: placar de HUD ── */
+html:not(#v3) .v2-hero-inicio .v2-temporada {
+  align-self: end; margin: 0; overflow: hidden; border: 1px solid var(--x-line-2); border-radius: var(--x-r);
+  background: linear-gradient(180deg, rgb(20 24 31 / .92), rgb(11 13 17 / .94)); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  box-shadow: 0 30px 60px -30px rgb(0 0 0 / .9);
+}
+html:not(#v3) .v2-temporada .v2-painel-cab { padding: 14px 16px 12px 18px; border-bottom: 1px solid var(--x-line); }
+html:not(#v3) .v2-temporada .v2-painel-cab h2 { font: 800 15px/1 var(--x-display); letter-spacing: .14em; }
+html:not(#v3) .v2-temporada-chip { padding: 5px 9px; border: 1px solid var(--x-line-2); border-radius: 4px; color: var(--x-text-3); font: 700 11px/1 var(--x-display); letter-spacing: .12em; text-transform: uppercase; }
+html:not(#v3) .v2-temporada-grade { grid-template-columns: 128px minmax(0, 1fr); gap: 16px; padding: 16px 18px 14px; }
+html:not(#v3) .v2-temporada-pos { min-height: 116px; }
+html:not(#v3) .v2-temporada-pos b { font: 800 46px/1 var(--x-display); color: var(--x-gold); text-shadow: 0 0 24px rgb(255 207 90 / .35); }
+html:not(#v3) .v2-temporada-pos span { color: var(--x-text-2); font: 700 12px/1.2 var(--x-display); letter-spacing: .14em; text-transform: uppercase; }
+html:not(#v3) .v2-temporada-numeros dt { color: var(--x-text-3); font: 700 11.5px/1 var(--x-display); letter-spacing: .14em; text-transform: uppercase; }
+html:not(#v3) .v2-temporada-numeros dd { font: 700 28px/1.05 var(--x-display); color: var(--x-text); }
+html:not(#v3) .v2-temporada-rating dd { font-size: 38px; color: #fff; }
+html:not(#v3) .v2-temporada-numeros .v2-temporada-rating { border-bottom: 1px solid var(--x-line); }
+html:not(#v3) .v2-temporada-numeros div:nth-child(3) { border-left-color: var(--x-line); }
+html:not(#v3) .v2-temporada-mapa { margin: 0; padding: 12px 16px 12px 18px; border-top: 1px solid var(--x-line); background: rgb(255 255 255 / .02); color: var(--x-text); grid-template-columns: 96px minmax(0, 1fr) auto; }
+html:not(#v3) .v2-temporada-mapa:hover { background: var(--x-accent-soft); }
+html:not(#v3) .v2-temporada-mapa img { width: 96px; height: 54px; border-radius: 4px; }
+html:not(#v3) .v2-temporada-mapa small { color: var(--x-text-3); font: 700 11px/1 var(--x-display); letter-spacing: .14em; text-transform: uppercase; }
+html:not(#v3) .v2-temporada-mapa b { font: 700 18px/1.1 var(--x-display); letter-spacing: .02em; }
+html:not(#v3) .v2-temporada .v2-vazio { padding: 26px 20px 24px; }
+html:not(#v3) .v2-temporada .v2-vazio svg { color: var(--x-accent); }
+html:not(#v3) .v2-temporada .v2-vazio b { font: 700 19px var(--x-display); letter-spacing: .04em; text-transform: uppercase; }
+
+/* ── faixa do login diário ── */
+html:not(#v3) .np-inicio .np-central { padding: 24px var(--content-gutter) 8px; }
+html:not(#v3) .pd-faixa {
+  grid-template-columns: 200px minmax(0, 1fr) 340px; gap: 16px; min-height: 0; padding: 16px;
+  border: 1px solid var(--x-line); border-radius: var(--x-r); background: var(--x-s1);
+}
+html:not(#v3) .pd-faixa-icone { color: var(--x-accent); }
+html:not(#v3) .pd-faixa h2 { font: 800 19px/1 var(--x-display); letter-spacing: .08em; text-transform: uppercase; color: var(--x-text); }
+html:not(#v3) .pd-faixa-titulo p { color: var(--x-text-3); font-size: 13px; }
+html:not(#v3) .pd-dias { gap: 8px; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+html:not(#v3) .pd-dias li { height: 92px; border: 1px solid var(--x-line); border-radius: var(--x-r-s); background: var(--x-s2); }
+html:not(#v3) .pd-dias small { color: var(--x-text-3); font: 700 11.5px/1 var(--x-display); letter-spacing: .12em; text-transform: uppercase; }
+html:not(#v3) .pd-dias b { color: var(--x-text-2); font: 700 15px/1 var(--x-display); letter-spacing: .03em; }
+html:not(#v3) .pd-dias li.feito { background: linear-gradient(180deg, rgb(61 220 151 / .07), var(--x-s2)); }
+html:not(#v3) .pd-dias li.feito .pd-dia-icone { background: var(--x-win); color: #04140d; }
+html:not(#v3) .pd-dias li.feito b { color: var(--x-text); }
+html:not(#v3) .pd-dias li.atual { border: 1px solid var(--x-accent); background: linear-gradient(180deg, rgb(255 178 46 / .16), rgb(255 178 46 / .04)); box-shadow: 0 0 0 3px rgb(255 178 46 / .1); }
+html:not(#v3) .pd-dias li.atual.feito .pd-dia-icone { background: var(--x-accent); color: var(--x-accent-ink); }
+html:not(#v3) .pd-dias li.atual b { color: var(--x-accent); }
+html:not(#v3) .pd-dias .pd-item { color: var(--x-info); }
+html:not(#v3) .pd-hoje { height: 92px; border: 1px solid var(--x-line-2); border-radius: var(--x-r-s); background: linear-gradient(90deg, var(--x-s2) 45%, #1d1a14); }
+html:not(#v3) .pd-hoje-icone { border-color: var(--x-accent); color: var(--x-accent); }
+html:not(#v3) .pd-hoje.feito .pd-hoje-icone { border-color: var(--x-win); color: var(--x-win); }
+html:not(#v3) .pd-hoje-txt > b { font: 800 16px/1.1 var(--x-display); letter-spacing: .06em; text-transform: uppercase; }
+html:not(#v3) .pd-hoje.feito .pd-hoje-txt > b { color: var(--x-win); }
+html:not(#v3) .pd-hoje-txt > small { color: var(--x-text-2); }
+html:not(#v3) .pd-btn { border-color: var(--x-line-3); background: rgb(8 9 12 / .6); color: var(--x-text); border-radius: 4px; font: 700 12.5px/1 var(--x-display); letter-spacing: .08em; text-transform: uppercase; }
+html:not(#v3) .pd-btn:hover:not(:disabled) { border-color: var(--x-text-2); }
+
+/* ── últimas partidas + comunidade ── */
+html:not(#v3) .v2-central-baixo { gap: 16px; margin-top: 16px; }
+html:not(#v3) .np-inicio .np-painel-partidas { border: 1px solid var(--x-line); border-radius: var(--x-r); background: var(--x-s1); }
+html:not(#v3) .np-inicio .np-bloco-cab { padding: 16px 18px 14px; border-bottom: 1px solid var(--x-line); }
+html:not(#v3) .np-inicio .np-bloco-cab h2:not(#_) { gap: 12px; font: 800 18px/1 var(--x-display); letter-spacing: .1em; text-transform: uppercase; }
+html:not(#v3) .np-inicio .np-bloco-cab h2 svg { color: var(--x-accent); width: 20px; height: 20px; }
+html:not(#v3) .np-inicio .np-bloco-cab > a { color: var(--x-text-2); font: 700 12.5px/1 var(--x-display); letter-spacing: .12em; text-transform: uppercase; }
+html:not(#v3) .np-inicio .np-bloco-cab > a:hover { color: var(--x-accent); }
+html:not(#v3) .np-inicio .np-recentes { gap: 8px; padding: 12px; }
+html:not(#v3) .np-partida-linha {
+  position: relative; min-height: 70px; gap: 16px; border: 1px solid var(--x-line); border-radius: var(--x-r-s); background: var(--x-s2);
+  transition: border-color .15s, background-color .15s;
+}
+html:not(#v3) .np-partida-linha::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--x-text-3); z-index: 1; }
+html:not(#v3) .np-partida-linha.np-resultado-vitoria::before { background: var(--x-win); }
+html:not(#v3) .np-partida-linha.np-resultado-derrota::before { background: var(--x-loss); }
+html:not(#v3) .np-partida-linha:hover { border-color: var(--x-line-3); background: var(--x-s3); }
+html:not(#v3) .np-partida-thumb { border-radius: 0; }
+html:not(#v3) .np-partida-thumb img { filter: saturate(.8); }
+html:not(#v3) .np-partida-mapa-nome b { font: 800 19px/1 var(--x-display); letter-spacing: .04em; text-transform: uppercase; }
+html:not(#v3) .np-partida-mapa-nome small { color: var(--x-text-3); font-size: 12.5px; }
+html:not(#v3) .np-partida-placar2 strong { font: 800 28px/1 var(--x-display); letter-spacing: .02em; }
+html:not(#v3) .np-partida-placar2 strong .venceu { color: var(--x-win); }
+html:not(#v3) .np-resultado-vitoria .np-placar-pessoal { color: var(--x-win); }
+html:not(#v3) .np-resultado-derrota .np-placar-pessoal { color: var(--x-loss); }
+html:not(#v3) .np-partida-placar2 .v2-selo { padding: 3px 8px; border-radius: 3px; font: 700 11.5px/1.1 var(--x-display); letter-spacing: .1em; }
+html:not(#v3) .np-resultado-vitoria .v2-selo { color: var(--x-win); background: rgb(61 220 151 / .12); }
+html:not(#v3) .np-resultado-derrota .v2-selo { color: var(--x-loss); background: rgb(255 92 108 / .12); }
+html:not(#v3) .np-resultado-empate .v2-selo { color: var(--x-text-2); background: rgb(255 255 255 / .06); }
+html:not(#v3) .np-partida-num b { font: 700 19px/1 var(--x-display); }
+html:not(#v3) .np-partida-num small { color: var(--x-text-3); font: 700 11px/1 var(--x-display); letter-spacing: .12em; }
+html:not(#v3) .np-partida-quando { color: var(--x-text-3); }
+html:not(#v3) .np-central-vazio { color: var(--x-text-2); }
+
+/* comunidade */
+html:not(#v3) .np-inicio .np-destaques-painel.v2-dest { min-height: 330px; }
+html:not(#v3) .np-inicio .v2-dest-cenario { border-color: var(--x-line); border-radius: var(--x-r); background: var(--x-s1); }
+html:not(#v3) .np-inicio .v2-dest-cenario::after {
+  background: linear-gradient(180deg, rgb(15 18 23 / .66), transparent 38%), linear-gradient(90deg, rgb(15 18 23 / .96) 0%, rgb(15 18 23 / .78) 30%, transparent 80%);
+}
+html:not(#v3) .np-inicio .v2-dest .np-bloco-cab { border-bottom: 0; }
+html:not(#v3) .v2-dest-titulo { font: 800 44px/.95 var(--x-display); letter-spacing: 0; text-transform: uppercase; }
+html:not(#v3) .v2-dest-titulo em { color: var(--x-gold); }
+html:not(#v3) .v2-dest-rotulo { color: var(--x-accent); font: 700 12px/1 var(--x-display); letter-spacing: .2em; }
+html:not(#v3) .v2-dest-corpo p { color: var(--x-text-2); }
+html:not(#v3) .v2-dest .v2-btn-ouro { font: 800 15px/1 var(--x-display); letter-spacing: .1em; border-radius: var(--x-r-s); }
+html:not(#v3) .v2-dest-pontos button { width: 18px; height: 4px; border-radius: 2px; }
+html:not(#v3) .v2-dest-pontos button[aria-pressed='true'] { background: var(--x-accent); width: 28px; }
+
+/* ── seções de baixo: letreiro, times, projetos, sobre ── */
+html:not(#v3) .np-inicio .secao-head h2 { font: 800 clamp(30px, 3vw, 42px)/1 var(--x-display); text-transform: uppercase; letter-spacing: .01em; }
+html:not(#v3) .np-inicio :is(.projeto, .projeto.grande) { border: 1px solid var(--x-line); border-radius: var(--x-r); background: var(--x-s1); box-shadow: none; }
+html:not(#v3) .np-inicio .projeto:hover { border-color: var(--x-accent-line); background: var(--x-s2); }
+html:not(#v3) .np-inicio .projeto h3 { font: 800 22px/1.05 var(--x-display); letter-spacing: .02em; text-transform: uppercase; }
+html:not(#v3) .np-inicio .projeto-link { color: var(--x-accent); font: 700 13px/1 var(--x-display); letter-spacing: .12em; text-transform: uppercase; }
+html:not(#v3) .np-inicio .ix-banda-texto h2 { font: 800 clamp(32px, 3.4vw, 48px)/.98 var(--x-display); text-transform: uppercase; }
+html:not(#v3) .np-inicio .ix-ficha dt { color: var(--x-accent); font-family: var(--x-display); letter-spacing: .18em; }
+
+/* ── responsivo ── */
+@media (max-width: 1280px) {
+  html:not(#v3) .v2-hero-inicio { grid-template-columns: minmax(0, 1fr) 360px; }
+  html:not(#v3) .v2-hero-dupla { left: 34%; opacity: .9; }
+  html:not(#v3) .pd-faixa { grid-template-columns: minmax(0, 1fr) 320px; }
+  html:not(#v3) .pd-faixa-titulo { grid-column: 1 / -1; padding-top: 0; }
+}
+@media (max-width: 1024px) {
+  html:not(#v3) .v2-hero-inicio { grid-template-columns: minmax(0, 1fr); height: auto; min-height: 0; padding: 40px 20px 24px; gap: 24px; align-items: start; }
+  html:not(#v3) .v2-hero-dupla { left: auto; right: -6%; height: 70%; top: 0; bottom: auto; opacity: .5; }
+  html:not(#v3) .v2-hero-inicio::before { left: 20px; }
+  html:not(#v3) .v2-temporada { max-width: 560px; width: 100%; }
+  html:not(#v3) .pd-faixa { grid-template-columns: minmax(0, 1fr); }
+  html:not(#v3) .np-inicio .np-central { padding: 20px 20px 8px; }
+}
+@media (max-width: 560px) {
+  html:not(#v3) .v2-hero-inicio { padding: 28px 16px 20px; }
+  html:not(#v3) .np-inicio .v2-hero-inicio::after {
+    background: linear-gradient(90deg, rgb(8 9 12 / .82), rgb(8 9 12 / .46)), linear-gradient(0deg, var(--x-bg), transparent 58%);
+  }
+  html:not(#v3) .v2-hero-dupla { right: -30%; height: 56%; opacity: .32; }
+  html:not(#v3) .v2-hero-inicio h1 { font-size: clamp(40px, 13vw, 54px); }
+  html:not(#v3) .v2-hero-kicker { letter-spacing: .22em; font-size: 11.5px; }
+  html:not(#v3) .v2-hero-acoes { width: 100%; }
+  html:not(#v3) .v2-hero-acoes .v2-btn { flex: 1 1 100%; min-width: 0; }
+  html:not(#v3) .v2-hero-inicio::before { left: 16px; }
+  html:not(#v3) .np-inicio .np-central { padding: 16px 12px 8px; }
+  html:not(#v3) .pd-faixa { padding: 12px; }
+  html:not(#v3) .pd-dias { grid-template-columns: repeat(7, minmax(40px, 1fr)); gap: 4px; }
+  html:not(#v3) .pd-dias li { height: 76px; padding: 8px 2px; }
+  html:not(#v3) .v2-temporada-grade { grid-template-columns: 104px minmax(0, 1fr); gap: 12px; }
+  html:not(#v3) .v2-temporada-pos b { font-size: 38px; }
+  html:not(#v3) .v2-dest-titulo { font-size: 36px; }
+}
+@media (max-width: 360px) {
+  html:not(#v3) .pd-dias small { font-size: 10px; letter-spacing: .04em; }
+  html:not(#v3) .pd-dias b { font-size: 12.5px; }
+  html:not(#v3) .v2-temporada-numeros dd { font-size: 23px; }
+  html:not(#v3) .v2-temporada-rating dd { font-size: 30px; }
+}

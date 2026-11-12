@@ -24,8 +24,8 @@ export default function HeroInicio({ ranking }) {
 
   return (
     <section className="v2-hero-inicio v2-cena" aria-labelledby="v2-hero-titulo">
+      <img className="v2-hero-dupla" src={PERSONAGENS.grupoCT.src} width={PERSONAGENS.grupoCT.w} height={PERSONAGENS.grupoCT.h} alt="" decoding="async" />
       <img className="v2-cena-fundo" src={FUNDOS.inicio.src} width={FUNDOS.inicio.w} height={FUNDOS.inicio.h} alt="" fetchPriority="high" decoding="async" />
-      <img className="v2-hero-dupla" src={PERSONAGENS.heroDupla.src} width={PERSONAGENS.heroDupla.w} height={PERSONAGENS.heroDupla.h} alt="" decoding="async" />
       <div className="v2-hero-texto">
         <p className="v2-hero-ola" title={conta && nome ? nome : undefined}>
           {conta && nome && saudacao ? (
@@ -43,7 +43,7 @@ export default function HeroInicio({ ranking }) {
           <br />
           <em>{t('Evolua')}</em> {t('com a Neura.')}
         </h1>
-        <p className="v2-hero-lead">{t('Partidas competitivas, ranking, inventário, caixas')}<br />{t('e uma comunidade feita por jogadores, para jogadores.')}</p>
+        <p className="v2-hero-lead">{t('Partidas competitivas, ranking, inventário, caixas')}{' '}<br />{t('e uma comunidade feita por jogadores, para jogadores.')}</p>
         <div className="v2-hero-acoes">
           <a className="v2-btn v2-btn-primario" href="/lobby/">
             <IconeUI tipo="play" tamanho={18} fill="currentColor" />

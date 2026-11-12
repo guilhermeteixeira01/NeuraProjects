@@ -1,7 +1,7 @@
 import { ITENS_PARTIDA, IconeItemPartida } from '../../comum/itensPartida.jsx'
 import IconeUI from '../../comum/IconeUI.jsx'
 import { createPortal } from 'react-dom'
-import { fundoCss } from '../../comum/assetsV2.js'
+import { PERSONAGENS, fundoCss } from '../../comum/assetsV2.js'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import Layout from '../../comum/Layout.jsx'
 import { CarregandoNP } from '../../comum/Carregando.jsx'
@@ -116,18 +116,6 @@ const IC_CADEADO = (
     <path d="M8 11V7a4 4 0 0 1 8 0v4" />
   </>
 )
-
-const PERSONAGENS_LOBBY = ['02_deserto', '04_comando', '03_mascara_dourada', '01_mascara_hockey', '05_balaclava']
-
-function PersonagemSlot({ indice, ocupado }) {
-  const [pronto, setPronto] = useState(false)
-  const base = `/assets/Lobby/${PERSONAGENS_LOBBY[indice]}`
-  const colorido = ocupado && pronto
-  return <>
-    <img className={`lb-personagem lb-personagem-oculto${!colorido ? ' lb-personagem-visivel' : ''}`} src={`${base}_oculto_pb.png`} alt="" aria-hidden="true" draggable="false" decoding="async" />
-    <img className={`lb-personagem lb-personagem-colorido${colorido ? ' lb-personagem-visivel' : ''}`} src={`${base}_colorido.png`} onLoad={() => setPronto(true)} alt="" aria-hidden="true" draggable="false" decoding="async" />
-  </>
-}
 
 // Um lugar do grupo com alguém (ou convite pendente): o fundo é o card que a pessoa escolheu no perfil
 function Pessoa({ pessoa: bruta, lider, pendente, centro, souLider, eu, aoRemover, ocupado, nivelDe: nivelDoJogador }) {
@@ -732,16 +720,19 @@ function Conteudo({ status }) {
       )}
 
       <div className="lb-palco lb-palco-cenario">
-        {lugares.map((l, i) => (
-          <div className={`lb-cena-slot${l.centro ? ' lb-cena-centro' : ''}${l.pessoa && !l.pendente ? ' lb-cena-ocupado' : ''}`} key={`lugar-${i}`}>
-            <PersonagemSlot indice={i} ocupado={!!l.pessoa && !l.pendente} />
-            {l.pessoa ? (
-              <Pessoa {...l} eu={eu} souLider={dados.souLider} ocupado={ocupado || !!dados.busca} nivelDe={nivelDoJogador} aoRemover={(id) => fazer('remover', id)} />
-            ) : (
-              <Vazio podeConvidar={!dados.busca} aoConvidar={() => setConvidando(true)} />
-            )}
-          </div>
-        ))}
+        {lugares.map((l, i) => {
+          const arte = PERSONAGENS.lobby[i]
+          return (
+            <div className={`lb-cena-slot${l.centro ? ' lb-cena-centro' : ''}${l.pessoa && !l.pendente ? ' lb-cena-ocupado' : ''}`} key={`lugar-${i}`}>
+              <img className="lb-personagem lb-personagem-visivel" src={arte.src} width={arte.w} height={arte.h} alt="" aria-hidden="true" draggable="false" decoding="async" />
+              {l.pessoa ? (
+                <Pessoa {...l} eu={eu} souLider={dados.souLider} ocupado={ocupado || !!dados.busca} nivelDe={nivelDoJogador} aoRemover={(id) => fazer('remover', id)} />
+              ) : (
+                <Vazio podeConvidar={!dados.busca} aoConvidar={() => setConvidando(true)} />
+              )}
+            </div>
+          )
+        })}
       </div>
 
       <Painel dados={dados} fazer={fazer} ocupado={ocupado} status={status} />

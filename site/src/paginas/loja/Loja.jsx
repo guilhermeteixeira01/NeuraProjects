@@ -212,12 +212,10 @@ function Conteudo() {
         ))}
       </nav>
 
-      {/* Hero: três camadas independentes (cenário recortado; arlequim em PNG transparente por cima, saindo pela borda de cima;
-          texto e botão à frente). O personagem não captura clique. */}
-      <section className="lj-hero" style={fundoCss('loja')} aria-label={t('Destaque da loja')}>
+      <section className="lj-hero" style={fundoCss('vitrineLoja')} aria-label={t('Destaque da loja')}>
         <div className="lj-hero-cenario" aria-hidden="true" />
         <div className="lj-hero-camada" aria-hidden="true">
-          <img src={PERSONAGENS.lojaArlequim.src} width={PERSONAGENS.lojaArlequim.w} height={PERSONAGENS.lojaArlequim.h} alt="" decoding="async" draggable="false" />
+          <img src={PERSONAGENS.lojaArlequim.src} width={PERSONAGENS.lojaArlequim.w} height={PERSONAGENS.lojaArlequim.h} alt="" decoding="async" />
         </div>
         <div className="lj-hero-texto">
           <h2>{t('Itens que mudam o seu jogo.')}</h2>

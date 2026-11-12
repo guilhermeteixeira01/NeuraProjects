@@ -14,3 +14,7 @@
 
 /* Neura Project v2: por último, ganha de tudo acima */
 @import '../comum/neura-v2.css';
+
+/* Neura Project v3 · central competitiva: por último */
+@import '../comum/neura-v3.css';
+@import '../paginas/times/v3.css';

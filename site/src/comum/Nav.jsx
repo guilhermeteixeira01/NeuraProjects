@@ -165,6 +165,7 @@ const OUTRAS = {
   perfil: { rotulo: 'Perfil', icone: 'perfil', trilha: 'Perfil do jogador' },
   times: { rotulo: 'Times', icone: 'mapa', trilha: 'Times registrados' },
   naoencontrada: { rotulo: 'Página não encontrada', icone: 'casa' },
+  eventos: { rotulo: 'Natal na Neura 2026', icone: 'trofeu' },
 }
 
 // Menu da esquerda recolhido (só os ícones) ou aberto (ícone + nome): escolha guardada no navegador. Sem escolha, só o
@@ -473,6 +474,13 @@ export default function Nav({ pagina, trilha }) {
           (a conta vem primeiro no HTML e vai para a ponta direita pelo CSS) */}
       <aside className="nx-direita" aria-label={t('Conta e configurações')}>
         <Trilha pagina={pagina} atual={atual} trilha={trilha} />
+        {/* Próxima ação sempre à mão: atalho para o lobby em todas as rotas (no próprio lobby o JOGAR já está no palco) */}
+        {pagina !== 'lobby' && (
+          <a className="np-topo-jogar" href="/lobby/">
+            <IconeUI tipo="play" tamanho={15} fill="currentColor" />
+            {t('Jogar')}
+          </a>
+        )}
         <div className="np-topo-pesquisa" ref={caixaBusca}>
           <button type="button" className="nx-btn nx-btn-ghost np-topo-busca" aria-label={t('Pesquisar no menu')} aria-expanded={menuAberto} aria-controls="np-busca-resultados" onClick={menuAberto ? recolherMenu : abrirBusca}>
             <IconeUI tipo="busca" tamanho={19} />

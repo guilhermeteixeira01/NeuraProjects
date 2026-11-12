@@ -1,0 +1,15 @@
+/* Admin · v3 (central competitiva). Vem depois de comum/neura-v3.css.
+   Ferramenta de trabalho: densidade alta, superfícies estáveis, títulos de seção em display e ação principal em âmbar. Sem permissão,
+   a página continua mostrando o aviso da própria rota. */
+
+html:not(#v3) .adm-hero h1 { font: 800 clamp(40px, 4vw, 56px)/.92 var(--x-display); letter-spacing: 0; text-transform: uppercase; }
+html:not(#v3) .adm-hero .kicker { color: var(--x-accent); font: 700 13px/1 var(--x-display); letter-spacing: .3em; text-transform: uppercase; }
+html:not(#v3) :is(.adm-bloco, .ad-secao, .ad-resumo) { border-color: var(--x-line); border-radius: var(--x-r); background: var(--x-s1); }
+html:not(#v3) :is(.adm-bloco, .ad-secao) > summary { font: 800 17px/1.1 var(--x-display); letter-spacing: .08em; text-transform: uppercase; }
+html:not(#v3) :is(.adm-bloco, .ad-secao) > summary:hover { color: var(--x-accent); }
+html:not(#v3) .adm-hero :is(.stat, .ad-num, dd, b) { font-family: var(--x-display); }
+html:not(#v3) .adm-config-topo :is(h2, h3) { font-family: var(--x-display); letter-spacing: .08em; text-transform: uppercase; }
+html:not(#v3) .adm-nota { color: var(--x-text-3); }
+html:not(#v3) .adm-campo :is(input, select, textarea) { border-color: var(--x-line-2); background: var(--x-s0); }
+html:not(#v3) .adm-perigo { color: var(--x-loss); border-color: rgb(255 92 108 / .4); }
+html:not(#v3) .adm-perigo:hover { background: rgb(255 92 108 / .1); border-color: var(--x-loss); }

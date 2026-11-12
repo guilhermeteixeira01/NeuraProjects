@@ -1,68 +1,58 @@
-// Artes do visual novo (Neura Project v2). Uma lista só: as páginas pegam daqui, nunca escrevem o caminho na mão.
-// Originais em public/assets/neura-v2/{backgrounds,characters}/*.png; o site usa os derivados leves em neura-v2/web/v2/
-// (gerados por  node scripts/gerar-miniaturas.mjs ; PNG de ~2 MB vira WebP de 20–280 KB, mesma proporção).
-// Cada arte tem largura e altura (o navegador reserva o espaço, sem pulo). Cenário e personagem são camadas separadas e decorativas
-// (alt vazio): textos, números e logo ficam sempre em HTML, nunca dentro da imagem.
-// Só a arte da rota atual é pedida pelo navegador (cada página importa o que usa; nada é pré-carregado).
-//
-// Observações dos arquivos (medidas feitas na entrega):
-//  - Os *-popout são recortes de meio corpo, cortados reto embaixo: ficam atrás da faixa de informações e saem pela borda de cima.
-//  - O sidebar-agent veio com a extensão duplicada (sidebar-agent-v2.png.png): o derivado já sai como sidebar-agent.webp.
-//  - Não havia manifest.json no pacote: nomes e dimensões abaixo foram lidos dos próprios arquivos.
+// As páginas usam as mesmas imagens de mapas do Pick & Ban. Os resultados usam o mapa da partida.
 
 const W = '/assets/neura-v2/web/v2/'
-const bg = (nome, w = 1600, h = 900) => ({ src: `${W}bg-${nome}.webp`, w, h })
+const mapa = (nome) => ({ src: `/neurapick/maps/${nome}.jpg`, w: 1280, h: 720 })
+
+export const RESULTADOS = {
+  de_cache: mapa('cache'),
+  de_dust2: mapa('dust2'),
+  de_nuke: mapa('nuke'),
+  de_mirage: mapa('mirage'),
+  de_overpass: mapa('overpass'),
+  de_vertigo: mapa('vertigo'),
+  de_ancient: mapa('ancient'),
+  de_anubis: mapa('anubis'),
+  de_inferno: mapa('inferno'),
+  de_train: mapa('train'),
+}
 
 export const FUNDOS = {
-  inicio: bg('inicio'),
-  lobby: bg('lobby'),
-  ranking: bg('ranking'),
-  inventario: { src: '/assets/neura-v2/inventario/inventory-night-v3.webp', w: 2172, h: 724 },
-  loja: bg('loja'),
-  perfil: bg('perfil'),
-  time: bg('time'),
-  partidas: bg('partidas'),
-  admin: bg('admin'),
-  diretorioTimes: bg('diretorio-times'),
-  pickBan: bg('pick-ban'),
-  global: bg('global'), // login, configurações, amigos, notificações, missões, insígnias e telas auxiliares
+  inicio: RESULTADOS.de_dust2,
+  lobby: RESULTADOS.de_mirage,
+  ranking: RESULTADOS.de_inferno,
+  inventario: RESULTADOS.de_nuke,
+  loja: RESULTADOS.de_nuke,
+  vitrineLoja: { src: '/assets/neura-agentes/vitrine-neura-cenario.webp', w: 1800, h: 600 },
+  perfil: RESULTADOS.de_mirage,
+  time: RESULTADOS.de_inferno,
+  partidas: RESULTADOS.de_dust2,
+  admin: RESULTADOS.de_nuke,
+  diretorioTimes: RESULTADOS.de_inferno,
+  pickBan: RESULTADOS.de_mirage,
+  global: RESULTADOS.de_dust2,
 }
 
-// Fundo do resultado de uma partida, pelo identificador real do mapa (de_cache, de_dust2...). Mapa sem arte aqui: null, e a página
-// usa a arte do mapa que já existia (ou o fundo global neutro). Nunca um mapa errado.
-export const RESULTADOS = {
-  de_cache: bg('resultado-cache', 1920, 720),
-  de_dust2: bg('resultado-dust2', 1920, 720),
-  de_nuke: bg('resultado-nuke', 1920, 720),
-  de_mirage: bg('resultado-mirage', 1774, 887),
-  de_overpass: bg('resultado-overpass', 2048, 768),
-  de_vertigo: bg('resultado-vertigo', 2048, 768),
-  de_ancient: bg('resultado-ancient', 2048, 768),
-  de_anubis: bg('resultado-anubis', 2048, 768),
-  de_inferno: bg('resultado-inferno', 2048, 768),
-  de_train: bg('resultado-train', 2048, 768),
-}
 export const fundoDoResultado = (mapa) => RESULTADOS[String(mapa || '').toLowerCase().replace(/^(?!de_)/, 'de_')] || null
 
+const agente = (nome, w, h) => ({ src: `/assets/neura-agentes/${nome}.webp`, w, h })
+const ct = agente('retrato-ct', 640, 640)
+const tr = agente('retrato-tr', 640, 640)
+
 export const PERSONAGENS = {
-  heroDupla: { src: W + 'home-duo.webp', w: 1100, h: 917 }, // home e cabeçalho do inventário
-  inventarioDupla: { src: '/assets/neura-v2/inventario/inventory-duo-v3.webp', w: 1536, h: 1024 },
-  podio: [
-      { src: W + 'podium-gold.webp', video: '/assets/neura-v2/ranking/1-lugar.webm', w: 900, h: 900 }, // 1º
-      { src: W + 'podium-silver.webp', video: '/assets/neura-v2/ranking/2-lugar.webm', w: 900, h: 900 }, // 2º
-      { src: W + 'podium-bronze.webp', video: '/assets/neura-v2/ranking/3-lugar.webm', w: 900, h: 900 }, // 3º
-  ],
-  lojaArlequim: { src: W + 'shop-jester.webp', w: 900, h: 900 },
-  equipe: { src: W + 'team-squad.webp', w: 1400, h: 700 }, // capa do time
-  menu: { src: W + 'sidebar-agent.webp', w: 480, h: 720 }, // decoração do menu da esquerda
+  ct,
+  tr,
+  lojaArlequim: agente('vitrine-neura-arlequim', 850, 850),
+  grupoCT: agente('grupo-ct', 1100, 760),
+  grupoTR: agente('grupo-tr', 1100, 760),
+  podio: ['gold', 'silver', 'bronze'].map((metal, i) => ({
+    src: W + `podium-${metal}.webp`,
+    video: `/assets/neura-v2/ranking/${i + 1}-lugar.webm`,
+    w: 900,
+    h: 900,
+  })),
+  lobby: ['street', 'safecracker', 'gorro', 'lenco', 'mascara'].map((nome) => agente(`lobby-${nome}`, 560, 780)),
 }
 
-// Home V3 (originais em neura-v2/backgrounds, characters e Inicio): card Comunidade (cenário de circo + palhaço sentado com troféu, camadas
-// independentes) e a pilha de caixas azuis do login diário. Substituem o busto dourado (podium-gold) e a caixa dourada antiga.
-export const COMUNIDADE_V3 = {
-  cenario: { src: W + 'community-circus-background-v3.webp', w: 1280, h: 684 },
-  campeao: { src: W + 'community-champion-seated-v3.webp', w: 760, h: 886 },
-}
 export const CAIXA_DIARIA_V3 = { src: '/assets/caixas/web/caixa-diaria.webp', w: 720, h: 720 }
 
 // Fundo de um bloco como variável CSS (--np-fundo): sem a arte, o CSS fica com o gradiente liso de reserva

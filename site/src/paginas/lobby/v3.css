@@ -1,0 +1,151 @@
+/* Lobby · v3 (central competitiva). Vem depois de comum/neura-v3.css.
+   O impacto fica no elenco: cinco personagens sobre o cenário, cartões de jogador alinhados na mesma base e a faixa de partida
+   como um HUD único embaixo, com o JOGAR em âmbar. Topo compacto (nível + temporada) e nome do grupo em display. */
+
+/* ── cenário: o bombsite A de Mirage aparece atrás do elenco ── */
+html:not(#v3) #root .lb-cena-slot > .lb-personagem { z-index: 0; }
+html:not(#v3) #root .lb-cena-slot:not(.lb-cena-ocupado) > .lb-personagem { filter: grayscale(1) brightness(.67); }
+@media (min-width: 1025px) {
+  html:not(#v3) .lb-pagina:not(#_) {
+    background:
+      radial-gradient(70% 55% at 50% 58%, transparent 0, rgb(8 9 12 / .35) 70%),
+      linear-gradient(180deg, rgb(8 9 12 / .82) 0, rgb(8 9 12 / .2) 30%, rgb(8 9 12 / .25) 62%, rgb(8 9 12 / .92) 100%),
+      var(--np-fundo, none) center bottom / cover no-repeat, var(--x-bg);
+  }
+}
+@media (max-width: 1024px) {
+  html:not(#v3) .lb-pagina:not(#_) { background: linear-gradient(180deg, rgb(8 9 12 / .7), rgb(8 9 12 / .55) 50%, rgb(8 9 12 / .9)), var(--np-fundo, none) 60% bottom / cover no-repeat, var(--x-bg); }
+}
+
+/* fila: rótulo de contexto da tela */
+html:not(#v3) .lb-fila > span { display: inline-flex; align-items: center; gap: 10px; color: var(--x-accent); font: 700 13px/1 var(--x-display); letter-spacing: .26em; text-transform: uppercase; }
+html:not(#v3) .lb-fila > span::before { content: ''; width: 22px; height: 2px; background: currentColor; }
+
+/* ── topo: nível e temporada como placas de HUD ── */
+html:not(#v3) :is(.lb-nivel, .lb-temporada) {
+  border: 1px solid var(--x-line-2); border-radius: var(--x-r);
+  background-color: rgb(11 13 17 / .82); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+html:not(#v3) .lb-nivel-info h1 { font: 800 28px/1 var(--x-display); letter-spacing: .04em; text-transform: uppercase; }
+html:not(#v3) .lb-nivel .lb-segmentos i { border-radius: 1px; background: rgb(255 255 255 / .1); }
+html:not(#v3) .lb-nivel .lb-segmentos i.cheio { background: var(--x-accent); box-shadow: 0 0 10px rgb(255 178 46 / .45); }
+html:not(#v3) .lb-nivel-texto { color: var(--x-text-2); }
+html:not(#v3) .lb-temporada b { font: 800 16px/1 var(--x-display); letter-spacing: .1em; text-transform: uppercase; }
+html:not(#v3) .lb-temporada em { color: var(--x-gold); }
+
+/* ── nome do grupo e ferramentas ── */
+html:not(#v3) #root .lb-nome-grupo b:not(#_) { font: 800 34px/1 var(--x-display); letter-spacing: .02em; text-transform: uppercase; color: #fff; text-shadow: 0 2px 18px rgb(0 0 0 / .8); }
+html:not(#v3) .lb-chip { border-radius: 4px; font: 700 12px/1 var(--x-display); letter-spacing: .12em; text-transform: uppercase; }
+html:not(#v3) .lb-chip-claro { background: var(--x-accent-soft); color: var(--x-accent); border: 1px solid var(--x-accent-line); }
+html:not(#v3) .lb-ferramentas :is(.lb-btn, .lb-encontrar-btn) {
+  border: 1px solid var(--x-line-2); border-radius: var(--x-r-s); background: rgb(11 13 17 / .78); color: var(--x-text);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); font: 700 14px/1 var(--x-display); letter-spacing: .08em; text-transform: uppercase;
+}
+html:not(#v3) .lb-ferramentas :is(.lb-btn, .lb-encontrar-btn):hover { border-color: var(--x-text-3); background: rgb(27 32 41 / .9); }
+html:not(#v3) .lb-toggle { border: 1px solid var(--x-line-2); border-radius: var(--x-r-s); background: rgb(11 13 17 / .78); color: var(--x-text); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+html:not(#v3) .lb-toggle.ligado i { background: var(--x-accent); }
+
+/* ── elenco: cartões de jogador ── */
+html:not(#v3) #root .lb-lugar { border-radius: 8px; }
+html:not(#v3) #root .lb-lugar.lb-pessoa {
+  border: 1px solid rgb(255 255 255 / .14);
+  background-color: rgb(11 13 17 / .78);
+  box-shadow: 0 1px 0 rgb(255 255 255 / .06) inset, 0 24px 40px -22px rgb(0 0 0 / .95);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  transition: border-color .15s, transform .2s;
+}
+/* faixa de topo do cartão: neutra; você em âmbar; líder (centro) em ouro */
+html:not(#v3) #root .lb-lugar.lb-pessoa::before {
+  content: ''; position: absolute; left: 10px; right: 10px; top: -1px; height: 2px; border-radius: 0 0 2px 2px; background: rgb(255 255 255 / .25); z-index: 4;
+}
+html:not(#v3) #root .lb-cena-centro .lb-lugar.lb-pessoa { border-color: rgb(255 207 90 / .55); box-shadow: 0 0 0 1px rgb(255 207 90 / .18), 0 26px 50px -22px rgb(255 178 46 / .45); }
+html:not(#v3) #root .lb-cena-centro .lb-lugar.lb-pessoa::before { background: var(--x-gold); box-shadow: 0 0 12px rgb(255 207 90 / .7); }
+html:not(#v3) #root .lb-lugar.lb-pessoa.lb-eu { border-color: var(--x-accent); }
+html:not(#v3) #root .lb-lugar.lb-pessoa.lb-eu::before { background: var(--x-accent); left: 0; right: 0; height: 3px; border-radius: 8px 8px 0 0; top: 0; }
+html:not(#v3) #root .lb-pessoa .lb-nome { font: 800 19px/1.05 var(--x-display); letter-spacing: .04em; text-transform: uppercase; color: #fff; text-shadow: 0 2px 10px rgb(0 0 0 / .8); }
+html:not(#v3) #root .lb-pessoa > .lb-pilula { border-radius: 5px; font: 800 14.5px/1 var(--x-display); letter-spacing: .08em; text-transform: uppercase; background-color: rgb(8 9 12 / .7); }
+html:not(#v3) #root .lb-pessoa.lb-pendente { opacity: .8; border-style: dashed; }
+/* vaga aberta */
+html:not(#v3) #root .lb-lugar.lb-vazio { border: 1px dashed rgb(255 255 255 / .22); background: rgb(8 9 12 / .55); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: var(--x-text-2); }
+html:not(#v3) #root .lb-lugar.lb-vazio:not(.lb-inerte):hover { border-color: var(--x-accent); background: rgb(255 178 46 / .08); color: var(--x-text); }
+html:not(#v3) #root .lb-lugar.lb-vazio :is(b, strong) { font-family: var(--x-display); letter-spacing: .1em; text-transform: uppercase; }
+html:not(#v3) #root .lb-lugar.lb-vazio svg { color: var(--x-accent); }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(#v3) #root .lb-lugar.lb-pessoa:hover { transform: translateY(-3px); border-color: rgb(255 255 255 / .3); }
+  html:not(#v3) #root .lb-cena-centro .lb-lugar.lb-pessoa:hover, html:not(#v3) #root .lb-lugar.lb-pessoa.lb-eu:hover { border-color: var(--x-accent-2); }
+}
+
+/* ── faixa de partida (HUD) ── */
+html:not(#v3) #root .lb-conteudo > .lb-painel {
+  padding: 12px 14px; border: 1px solid var(--x-line-2); border-radius: var(--x-r);
+  background: rgb(11 13 17 / .9); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  box-shadow: 0 -1px 0 rgb(255 255 255 / .04) inset, 0 30px 60px -26px rgb(0 0 0 / .95);
+}
+html:not(#v3) .lb-controles > :not(:last-child) { border-right-color: var(--x-line); }
+html:not(#v3) .lb-controles h3 { color: var(--x-text-3); font: 700 11.5px/1.1 var(--x-display); letter-spacing: .16em; }
+html:not(#v3) .lb-controles h3 span { color: var(--x-text-3); }
+html:not(#v3) .lb-controle-modos > button { border: 1px solid var(--x-line-2); border-radius: var(--x-r-s); background: var(--x-s2); color: var(--x-text); }
+html:not(#v3) .lb-controle-modos > button:nth-child(2) { border-color: rgb(255 207 90 / .3); background: linear-gradient(135deg, #221d12, var(--x-s2)); }
+html:not(#v3) .lb-controle-modos > button.sel { border-color: var(--x-accent); background: linear-gradient(180deg, rgb(255 178 46 / .16), rgb(255 178 46 / .05)); box-shadow: 0 0 0 1px rgb(255 178 46 / .2); }
+html:not(#v3) .lb-controle-modos > button.is-travado { border-color: var(--x-line); background: var(--x-s1); color: var(--x-text-3); }
+html:not(#v3) .lb-controle-modos svg { color: var(--x-accent); }
+html:not(#v3) .lb-controle-modos b { font: 800 15px/1 var(--x-display); letter-spacing: .08em; }
+html:not(#v3) .lb-controle-modos small { color: var(--x-text-3); }
+html:not(#v3) .lb-controle-miniaturas button > span { border-radius: 4px; box-shadow: inset 0 0 0 1px rgb(255 255 255 / .1); }
+html:not(#v3) .lb-controle-miniaturas small { color: var(--x-text-2); font: 600 11px/1 var(--x-body); }
+html:not(#v3) .lb-controle-miniaturas i { background: var(--x-accent); color: var(--x-accent-ink); }
+html:not(#v3) .lb-controle-servidor b { font: 800 15px/1 var(--x-display); letter-spacing: .06em; }
+html:not(#v3) .lb-controle-servidor.estado-online :is(b, small) { color: var(--x-win); }
+html:not(#v3) .lb-controle-servidor.estado-offline :is(b, small) { color: var(--x-loss); }
+
+/* JOGAR */
+html:not(#v3) #root .lb-controle-jogar .lb-buscar {
+  min-height: 58px; border: 0; border-radius: var(--x-r-s);
+  font: 800 21px/1 var(--x-display); letter-spacing: .07em; text-transform: uppercase; white-space: nowrap;
+}
+html:not(#v3) #root .lb-controle-jogar .lb-buscar.pronto,
+html:not(#v3) #root .lb-controle-jogar .lb-buscar:not(:disabled) {
+  background: linear-gradient(180deg, var(--x-accent-2), var(--x-accent) 55%, var(--x-accent-3)); color: var(--x-accent-ink);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / .2) inset, 0 16px 34px -14px rgb(255 178 46 / .95);
+}
+html:not(#v3) #root .lb-controle-jogar .lb-buscar:not(:disabled):hover { filter: brightness(1.06); }
+html:not(#v3) #root .lb-controle-jogar .lb-buscar:disabled { background: var(--x-s3); color: var(--x-text-3); box-shadow: none; }
+html:not(#v3) #root .lb-controle-jogar .lb-buscar svg { color: currentColor; }
+html:not(#v3) .lb-controle-jogar > small { color: var(--x-text-2); font: 600 12px/1.2 var(--x-body); }
+html:not(#v3) .lb-buscar.buscando { background: var(--x-s3); color: var(--x-accent); box-shadow: inset 0 0 0 1px var(--x-accent-line); }
+
+/* Boost / Freeze */
+html:not(#v3) .lb-item-compacto { border: 1px solid var(--x-line-2); border-radius: var(--x-r-s); background: var(--x-s2); }
+html:not(#v3) .lb-item-compacto.is-ativo { border-color: var(--item); background: color-mix(in srgb, var(--item) 10%, var(--x-s2)); }
+html:not(#v3) .lb-item-compacto header b { font: 800 11px/1 var(--x-display); letter-spacing: .12em; }
+html:not(#v3) .lb-item-compacto strong { font: 800 28px/1 var(--x-display); }
+html:not(#v3) .lb-item-compacto button { border-color: var(--x-line-2); background: var(--x-s3); color: var(--x-text); }
+html:not(#v3) .lb-item-compacto button:hover:not(:disabled) { border-color: var(--x-text-3); }
+
+/* ── janelas (pool, servidor, comparação de modos, encontrar lobbies) ── */
+html:not(#v3) .lb-controle-janela, html:not(#v3) .lb-janela { border: 1px solid var(--x-line-2); border-radius: 12px; background: var(--x-s1); color: var(--x-text); }
+html:not(#v3) :is(.lb-controle-janela, .lb-janela) h2 { font: 800 24px/1 var(--x-display); letter-spacing: .06em; text-transform: uppercase; }
+html:not(#v3) .lb-controle-janela > header button { background: var(--x-s3); color: var(--x-text); }
+html:not(#v3) .lb-comparacao-modos article { border-color: var(--x-line-2); background: var(--x-s2); }
+html:not(#v3) .lb-comparacao-modos article.premium { border-color: rgb(255 207 90 / .4); background: linear-gradient(180deg, rgb(255 207 90 / .06), var(--x-s2)); }
+html:not(#v3) .lb-comparacao-modos h3 { font: 800 22px/1 var(--x-display); letter-spacing: .06em; text-transform: uppercase; }
+html:not(#v3) .lb-comparacao-modos li svg { color: var(--x-accent); }
+html body .lb-controle-fundo { background: rgb(4 5 7 / .7); }
+
+/* ── sem login ── */
+html:not(#v3) .lb-aviso-login { border: 1px solid var(--x-line-2); border-radius: var(--x-r); background: rgb(11 13 17 / .88); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+html:not(#v3) .lb-aviso-login :is(h1, h2) { font-family: var(--x-display); text-transform: uppercase; letter-spacing: .04em; }
+
+/* ── Pick & Ban dentro do lobby ── */
+html:not(#v3) .sala-copiar-conexao, html:not(#v3) .sala-comando-conexao { border-color: var(--x-line-2); background: var(--x-s2); color: var(--x-text); }
+html:not(#v3) .sala-copiar-conexao:hover { border-color: var(--x-accent); }
+
+@media (max-width: 760px) {
+  html:not(#v3) .lb-nome-grupo b { font-size: 26px; }
+  html:not(#v3) #root .lb-controle-jogar .lb-buscar { min-height: 54px; font-size: 20px; }
+}
+
+/* aviso do celular/tablet (o lobby é só no computador) */
+html:not(#v3) .lb-bloqueio { border: 1px solid var(--x-line-2); border-radius: var(--x-r); background: rgb(11 13 17 / .9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+html:not(#v3) .lb-bloqueio h1 { font: 800 30px/1 var(--x-display); letter-spacing: .03em; text-transform: uppercase; text-shadow: none; -webkit-text-stroke: 0; color: #fff; }
+html:not(#v3) .lb-bloqueio .lb-btn-p { font: 800 16px/1 var(--x-display); letter-spacing: .1em; text-transform: uppercase; }
