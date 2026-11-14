@@ -1,5 +1,28 @@
 [
   {
+    "nome": "2026-11-14_13-04_de_ancient_time_Cafefps-x-time_rkzada",
+    "data": "2026-11-14 13:04",
+    "mapa": "de_ancient",
+    "timeA": "time_Caféfps",
+    "timeB": "time_rkzada",
+    "placarA": 17,
+    "placarB": 14,
+    "serie": "MD1 · mapa 1/1",
+    "caminho": "neura-project/md1/2026-11-14_13-04_de_ancient_time_Cafefps-x-time_rkzada",
+    "categoria": "md1",
+    "serieId": "2026-11-14_13-00_time_Cafefps-x-time_rkzada",
+    "serieTimeA": "time_Caféfps",
+    "serieTimeB": "time_rkzada",
+    "serieVitoriasA": 1,
+    "serieVitoriasB": 0,
+    "serieMapas": [
+      "de_ancient"
+    ],
+    "serieCancelada": false,
+    "logoA": null,
+    "logoB": null
+  },
+  {
     "nome": "2026-11-11_14-27_de_mirage_time_Kz7-x-time_Jzin",
     "data": "2026-11-11 14:27",
     "mapa": "de_mirage",
