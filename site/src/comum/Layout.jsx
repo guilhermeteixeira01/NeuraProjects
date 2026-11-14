@@ -4,6 +4,7 @@ import './filtrosMobile.css'
 import { Suspense, lazy, useEffect, useRef } from 'react'
 import { useFundoMobile } from './fundoMobile.js'
 import Avisos from './Avisos.jsx'
+import AvisoFaixa from './AvisoFaixa.jsx'
 import AvisoConvite from './AvisoConvite.jsx'
 import AceitarPartida from './AceitarPartida.jsx'
 import AvisoNivel from './AvisoNivel.jsx'
@@ -130,6 +131,7 @@ export default function Layout({ pagina, trilha, children }) {
       </svg>
       <Nav pagina={pagina} trilha={trilha} />
       <div className="np-conteudo" ref={conteudo}>
+        <AvisoFaixa />
         <PortaoBoasVindas />
         {children}
         {pagina !== 'lobby' && <RodapeComunidade />}

@@ -7,12 +7,15 @@ import { MISSOES, ANO_EVENTOS, idEventoMissao, insigniaMissao } from '../../work
 // (gera a versão leve em web/<id>.webp), adicione aqui e na lista INSIGNIAS do worker (src/index.js).
 import { usePerfis } from './Moldura.jsx'
 import { ID_MESTRE, INSIGNIAS_LOJA, insigniaMestreDoId } from '../../worker/steam-login/src/loja-core.js'
+import { INSIGNIAS_NATAL } from '../../worker/steam-login/src/natal-2026-core.js'
 
 export const INSIGNIAS = [
   ...MISSOES.map(m=>({...m,id:m.categoria==='eventos'?idEventoMissao(m.id,ANO_EVENTOS):m.id,auto:true,missao:true})),
   { id: 'staff', nome: 'Staff', descricao: 'Faz parte da equipe da Neura Projects.' },
   { id: 'embaixador', nome: 'Embaixador', descricao: 'Representa e divulga a Neura Projects na comunidade.' },
   { id: 'designer', nome: 'Designer', descricao: 'Cria as artes e o visual da Neura Projects.' },
+  // Natal na Neura 2026 (resgate com Estrelas de Natal e meta coletiva): worker/steam-login/src/natal-2026-core.js
+  ...INSIGNIAS_NATAL.map((i) => ({ ...i, evento: true })),
   // Insígnias da loja de caixas (o worker dá sozinho, pelo histórico de aberturas: worker/steam-login/src/loja-core.js). "Mestre da [Caixa]" vem de mestre-<caixa>.
   ...INSIGNIAS_LOJA.map((i) => ({ id: i.id, nome: i.nome, descricao: i.descricao, loja: true, secreta: !!i.secreta })),
 ]

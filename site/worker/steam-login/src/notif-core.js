@@ -43,8 +43,16 @@ export function juntar(a, b) {
   const removidas={...x.removidas}
   for(const [id,t] of Object.entries(y.removidas||{}))removidas[id]=Math.max(removidas[id]||0,t)
   const por = new Map()
+  // Já passou por um lado e saiu da lista dele (limpou, ou ficou velha): não volta pelo outro. Sem isto, um aparelho que ainda não tinha
+  // sincronizado recriava o aviso com a hora de agora (depois do "limpar") e ele reaparecia em todos os aparelhos.
+  const idsX = new Set(x.lista.map((n) => n.id))
+  const idsY = new Set(y.lista.map((n) => n.id))
+  const vistosX = new Set(x.vistos)
+  const vistosY = new Set(y.vistos)
+  // (aviso apagado com "removidas" segue a regra do horário dela: pode voltar de propósito, ex.: insígnia retirada e entregue de novo)
+  const saiu = (n) => !(n.id in removidas) && ((idsX.has(n.id) && !idsY.has(n.id) && vistosY.has(n.id)) || (idsY.has(n.id) && !idsX.has(n.id) && vistosX.has(n.id)))
   for (const n of [...x.lista, ...y.lista]) {
-    if (n.quando <= limpoEm || n.quando <= (removidas[n.id]||0)) continue
+    if (n.quando <= limpoEm || n.quando <= (removidas[n.id]||0) || saiu(n)) continue
     const antes = por.get(n.id)
     por.set(n.id, antes ? { ...antes, lida: antes.lida || n.lida } : n)
   }

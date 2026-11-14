@@ -1,0 +1,58 @@
+/* Upgrade · v3 (central competitiva). Vem depois de comum/neura-v3.css.
+   O Upgrade é todo desenhado com variáveis --upg-*: aqui elas passam para a paleta grafite + âmbar. A chance continua em âmbar,
+   ganhou em verde e perdeu em vermelho (sempre com o texto do resultado). */
+
+html:not(#v3) .upg-root {
+  --upg-painel: var(--x-s1);
+  --upg-painel2: var(--x-s2);
+  --upg-fundo: var(--x-bg);
+  --upg-borda: #262c37;
+  --upg-borda2: #3a4250;
+  --upg-texto: var(--x-text);
+  --upg-apagado: var(--x-text-3);
+  --upg-acento: var(--x-accent);
+  --upg-ganhou: var(--x-win);
+  --upg-perdeu: var(--x-loss);
+  padding-top: 28px;
+  background: radial-gradient(60% 420px at 50% 0, rgb(255 178 46 / .07), transparent 70%);
+}
+html:not(#v3) .upg-asa-titulo { font: 800 26px/1 var(--x-display); letter-spacing: .04em; text-transform: uppercase; }
+html:not(#v3) .upg-rifle-corpo { fill: #353c49; stroke: #6b7586; }
+html:not(#v3) .upg-rifle-detalhe { stroke: #14171d; }
+html:not(#v3) .upg-rifles-emblema polygon { fill: var(--x-s1); stroke: var(--x-accent); }
+html:not(#v3) .upg-rifles-emblema path { stroke: var(--x-accent-2); }
+
+/* medidor */
+html:not(#v3) .upg-med-trilho { stroke: #1d222b; }
+html:not(#v3) .upg-med-texto strong { font: 800 54px/1 var(--x-display); letter-spacing: .01em; }
+html:not(#v3) .upg-med-texto small { color: var(--x-text-3); font: 700 13px/1 var(--x-display); letter-spacing: .18em; text-transform: uppercase; }
+
+/* multiplicadores e setas */
+html:not(#v3) .upg-mult-btn { font-family: var(--x-display); }
+html:not(#v3) .upg-mult-btn--ativo { color: var(--x-accent-ink); }
+html:not(#v3) .upg-mult-btn--ativo polygon { fill: var(--x-accent); stroke: var(--x-accent-2); }
+html:not(#v3) .upg-divisas path { fill: #1a1e26; animation-name: upg-divisa-v3; }
+@keyframes upg-divisa-v3 {
+  0%, 60%, 100% { fill: #1a1e26; }
+  25% { fill: var(--x-accent); }
+}
+
+/* ação principal */
+html:not(#v3) .upg-btn-principal {
+  min-height: 56px; padding: 0 34px; border-radius: var(--x-r-s); background: var(--x-accent); color: var(--x-accent-ink);
+  font: 800 20px/1 var(--x-display); letter-spacing: .12em; text-transform: uppercase;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / .16) inset, 0 16px 32px -16px rgb(255 178 46 / .95);
+}
+html:not(#v3) .upg-btn-principal:hover:not(:disabled) { background: var(--x-accent-2); }
+html:not(#v3) .upg-btn-principal:disabled { background: var(--x-s3); color: var(--x-text-3); box-shadow: none; }
+html:not(#v3) .upg-btn-debug { border-color: var(--x-line-3); background: transparent; color: var(--x-text-2); }
+
+/* colunas, busca, cartões */
+html:not(#v3) .upg-col { border-radius: var(--x-r); }
+html:not(#v3) .upg-col-cabecalho h2, html:not(#v3) .upg-col-cabecalho h3 { font: 800 24px/1 var(--x-display); letter-spacing: .04em; text-transform: uppercase; }
+html:not(#v3) .upg-col-count { color: var(--x-accent); }
+html:not(#v3) .upg-card { border-radius: 8px; }
+html:not(#v3) .upg-card:hover:not(:disabled) { background-color: var(--x-s3); }
+html:not(#v3) .upg-card--sel { border-color: var(--x-accent) !important; box-shadow: 0 0 0 2px rgb(255 178 46 / .2); }
+html:not(#v3) .upg-card--sel .upg-hex-dentro { fill: var(--x-accent); stroke: var(--x-accent-2); }
+html:not(#v3) .upg-card-preco { color: var(--x-accent); }

@@ -1,7 +1,7 @@
 import { ITENS_PARTIDA, IconeItemPartida } from '../../comum/itensPartida.jsx'
 import IconeUI from '../../comum/IconeUI.jsx'
 import { createPortal } from 'react-dom'
-import { fundoCss } from '../../comum/assetsV2.js'
+import { PERSONAGENS, fundoCss } from '../../comum/assetsV2.js'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import Layout from '../../comum/Layout.jsx'
 import { CarregandoNP } from '../../comum/Carregando.jsx'
@@ -40,7 +40,7 @@ const ERROS = {
   ocupado: 'Você é líder de um lobby com gente: saia dele antes.',
   buscando: 'Cancele a busca de partida antes de mexer no grupo.',
   'em-partida': 'Você está numa partida: o grupo fica travado até ela acabar.',
-  incompleto: 'O grupo precisa de 5 jogadores para buscar partida.',
+  incompleto: 'Não foi possível entrar na fila com este grupo.',
   'sem-sub': 'A busca de MD3 é só para o líder com assinatura Premium.',
   'sem-sub-pool': 'O pool de mapas garantido é só para quem tem assinatura Premium.',
   mapas: 'Escolha de mapas inválida.',
@@ -116,18 +116,6 @@ const IC_CADEADO = (
     <path d="M8 11V7a4 4 0 0 1 8 0v4" />
   </>
 )
-
-const PERSONAGENS_LOBBY = ['02_deserto', '04_comando', '03_mascara_dourada', '01_mascara_hockey', '05_balaclava']
-
-function PersonagemSlot({ indice, ocupado }) {
-  const [pronto, setPronto] = useState(false)
-  const base = `/assets/Lobby/${PERSONAGENS_LOBBY[indice]}`
-  const colorido = ocupado && pronto
-  return <>
-    <img className={`lb-personagem lb-personagem-oculto${!colorido ? ' lb-personagem-visivel' : ''}`} src={`${base}_oculto_pb.png`} alt="" aria-hidden="true" draggable="false" decoding="async" />
-    <img className={`lb-personagem lb-personagem-colorido${colorido ? ' lb-personagem-visivel' : ''}`} src={`${base}_colorido.png`} onLoad={() => setPronto(true)} alt="" aria-hidden="true" draggable="false" decoding="async" />
-  </>
-}
 
 // Um lugar do grupo com alguém (ou convite pendente): o fundo é o card que a pessoa escolheu no perfil
 function Pessoa({ pessoa: bruta, lider, pendente, centro, souLider, eu, aoRemover, ocupado, nivelDe: nivelDoJogador }) {
@@ -324,6 +312,9 @@ function Encontrar({ dados, aoFechar, fazer, ocupado }) {
   )
 }
 
+// Tamanho do grupo que entra na fila (solo até 5): o worker sorteia os grupos da fila em dois times de 5
+const GRUPO = { 1: 'Solo', 2: 'Duo', 3: 'Trio', 4: 'Grupo de 4', 5: 'Grupo de 5' }
+
 // O formato escolhido pelo líder é o que vai para a fila (só enfrenta lobby do mesmo formato) e define o veto da sala
 const MODOS = [
   {
@@ -478,6 +469,7 @@ function Painel({ dados, fazer, ocupado, status }) {
     fazer('cancelar-busca')
   }
   const completo = dados.membros.length >= dados.max
+  const naFila = dados.fila?.[modo] ?? 0 // jogadores buscando partida neste formato (todos os lobbies)
   const itens = useItensPartida(!!dados.eu)
   const ativo = itens.estado?.ativo?.tipo
   // teclas 1 e 2 (fora de campos de texto): ativam/cancelam o Boost e o Freeze
@@ -516,8 +508,8 @@ function Painel({ dados, fazer, ocupado, status }) {
         </section>
         <section className={`lb-controle-servidor ${status?.servidor?.consultaFalhou ? 'estado-incerto' : status?.servidor?.online === true ? 'estado-online' : status?.servidor?.online === false ? 'estado-offline' : 'estado-incerto'}`}><h3><button type="button" aria-expanded={aba === 'servidor'} onClick={() => setAba(aba === 'servidor' ? '' : 'servidor')}>{t('Servidor')} ⓘ</button></h3><button type="button" onClick={() => setAba(aba === 'servidor' ? '' : 'servidor')}><Bandeira pais="br"/><span><b>{t('Brasil')}</b><small>{t(status?.servidor?.consultaFalhou ? 'Ver status' : status?.servidor?.online === true ? 'Online' : status?.servidor?.online === false ? 'Offline' : 'Verificando…')}</small></span></button></section>
         <div className="lb-controle-jogar">
-          {dados.busca ? <button type="button" className="lb-buscar buscando" disabled={!dados.souLider || ocupado} onClick={cancelar}><TempoBusca desde={dados.busca}/><small>{dados.servidores && dados.servidores.livres === 0 ? t('Aguardando servidor livre · Cancelar busca') : t('Cancelar busca')}</small></button> : <button type="button" className={`lb-buscar${completo && dados.souLider ? ' pronto' : ''}`} disabled={!completo || !dados.souLider || ocupado} onClick={buscar}><IconeUI tipo="play" tamanho={18}/>{t('JOGAR')} · {dados.membros.length}/{dados.max}</button>}
-          <small>{dados.busca ? t('Procurando adversários…') : completo ? t('Seu grupo está pronto') : t('Convide mais {n} jogadores', { n: dados.max - dados.membros.length })}</small>
+          {dados.busca ? <button type="button" className="lb-buscar buscando" disabled={!dados.souLider || ocupado} onClick={cancelar}><TempoBusca desde={dados.busca}/><small>{dados.servidores && dados.servidores.livres === 0 ? t('Aguardando servidor livre · Cancelar busca') : t('Cancelar busca')}</small></button> : <button type="button" className={`lb-buscar${dados.souLider ? ' pronto' : ''}`} disabled={!dados.souLider || ocupado} onClick={buscar}><IconeUI tipo="play" tamanho={18}/>{t('JOGAR')} · {t(GRUPO[dados.membros.length] || 'Solo')}</button>}
+          <small>{dados.busca ? t('Na fila: {n} jogadores · os times são sorteados ao fechar 5x5', { n: naFila }) : !dados.souLider ? t('Só o líder busca') : completo ? t('Seu grupo está pronto') : t('{n} jogadores na fila agora', { n: naFila })}</small>
         </div>
         <div className="lb-controle-itens">{slot(ITENS_PARTIDA[0])}{slot(ITENS_PARTIDA[1])}</div>
       </div>
@@ -728,16 +720,19 @@ function Conteudo({ status }) {
       )}
 
       <div className="lb-palco lb-palco-cenario">
-        {lugares.map((l, i) => (
-          <div className={`lb-cena-slot${l.centro ? ' lb-cena-centro' : ''}${l.pessoa && !l.pendente ? ' lb-cena-ocupado' : ''}`} key={`lugar-${i}`}>
-            <PersonagemSlot indice={i} ocupado={!!l.pessoa && !l.pendente} />
-            {l.pessoa ? (
-              <Pessoa {...l} eu={eu} souLider={dados.souLider} ocupado={ocupado || !!dados.busca} nivelDe={nivelDoJogador} aoRemover={(id) => fazer('remover', id)} />
-            ) : (
-              <Vazio podeConvidar={!dados.busca} aoConvidar={() => setConvidando(true)} />
-            )}
-          </div>
-        ))}
+        {lugares.map((l, i) => {
+          const arte = PERSONAGENS.lobby[i]
+          return (
+            <div className={`lb-cena-slot${l.centro ? ' lb-cena-centro' : ''}${l.pessoa && !l.pendente ? ' lb-cena-ocupado' : ''}`} key={`lugar-${i}`}>
+              <img className="lb-personagem lb-personagem-visivel" src={arte.src} width={arte.w} height={arte.h} alt="" aria-hidden="true" draggable="false" decoding="async" />
+              {l.pessoa ? (
+                <Pessoa {...l} eu={eu} souLider={dados.souLider} ocupado={ocupado || !!dados.busca} nivelDe={nivelDoJogador} aoRemover={(id) => fazer('remover', id)} />
+              ) : (
+                <Vazio podeConvidar={!dados.busca} aoConvidar={() => setConvidando(true)} />
+              )}
+            </div>
+          )
+        })}
       </div>
 
       <Painel dados={dados} fazer={fazer} ocupado={ocupado} status={status} />

@@ -57,4 +57,12 @@ export const IconeGrupo = () => <IconeUI tipo="amigos" tamanho={18} className="n
 export const IconePerfil = () => <IconeUI tipo="perfil" tamanho={18} className="nx-icone"/>
 export const IconeMais = () => <IconeUI tipo="mais" tamanho={18} className="nx-icone"/>
 
-export const ICONES_MENU = { casa: IconeCasa, mapa: IconeMapa, partidas: IconePartidas, trofeu: IconeTrofeu, grupo: IconeGrupo, play: IconePlay, perfil: IconePerfil, mais: IconeMais, mochila: IconeMochila, caixa: IconeCaixa, escudo: IconeEscudo }
+// Upgrade: hexágono com a seta dupla para cima (o mesmo emblema dos slots vazios da página de Upgrade)
+export const IconeUpgrade = () => (
+  <Icone tamanho={18} className="nx-icone">
+    <path d="M12 2.6 20.2 7.3v9.4L12 21.4 3.8 16.7V7.3Z" />
+    <path d="M8.6 12.4 12 9l3.4 3.4M8.6 16.2 12 12.8l3.4 3.4" />
+  </Icone>
+)
+
+export const ICONES_MENU = { casa: IconeCasa, mapa: IconeMapa, partidas: IconePartidas, trofeu: IconeTrofeu, grupo: IconeGrupo, play: IconePlay, perfil: IconePerfil, mais: IconeMais, mochila: IconeMochila, caixa: IconeCaixa, escudo: IconeEscudo, upgrade: IconeUpgrade }

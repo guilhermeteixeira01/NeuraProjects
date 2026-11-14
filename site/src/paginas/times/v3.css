@@ -1,0 +1,5 @@
+/* Times registrados · v3 (central competitiva). Vem depois de comum/neura-v3.css.
+   O diretório já seguia o âmbar; aqui só alinha superfícies e tipografia ao sistema. */
+
+html:not(#v3) .times-page.tm h1 { font-family: var(--x-display); letter-spacing: .005em; }
+html:not(#v3) .times-page.tm :is(h2, h3) { font-family: var(--x-display); letter-spacing: .04em; }

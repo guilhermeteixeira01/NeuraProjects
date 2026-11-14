@@ -1,6 +1,7 @@
 // Espanhol: texto em português (chave, igual ao do código) → tradução. Sem a chave, o site mostra o português.
 // Variáveis entre chaves ({n}, {nome}...) ficam iguais na tradução.
 export default {
+  "Jogar": "Jugar",
   "Configurações": "Configuración",
   "Idioma": "Idioma",
   "Tema": "Tema",
@@ -1089,6 +1090,14 @@ export default {
   "Sua vez: escolha o lado inicial em {mapa}": "Tu turno: elige el lado inicial en {mapa}",
   "Sua vez: {acao} um mapa": "Tu turno: {acao} un mapa",
   "Série em andamento · {p}": "Serie en curso · {p}",
+  "Solo": "Solo",
+  "Duo": "Dúo",
+  "Trio": "Trío",
+  "Grupo de 4": "Grupo de 4",
+  "Grupo de 5": "Grupo de 5",
+  "Na fila: {n} jogadores · os times são sorteados ao fechar 5x5": "En cola: {n} jugadores · los equipos se sortean al completar 5v5",
+  "{n} jogadores na fila agora": "{n} jugadores en cola ahora",
+  "Não foi possível entrar na fila com este grupo.": "No se pudo entrar en la cola con este grupo.",
   "Só o líder busca": "Solo el líder busca",
   "Só para um jogador": "Solo para un jugador",
   "Só por convite": "Solo por invitación",
@@ -1631,4 +1640,9 @@ export default {
   "Terrorista": "Terrorista",
   "Contraterrorista": "Antiterrorista",
   "Ambas as equipes": "Ambos equipos",
+  "Ver mais": "Ver más",
+  "Carregando mais jogadores…": "Cargando más jugadores…",
+  "Faltam {n} partidas para o ranking": "Faltan {n} partidas para el ranking",
+  "Você jogou {n} de {min} partidas. Faltam {f} para entrar no ranking.": "Jugaste {n} de {min} partidas. Faltan {f} para entrar en el ranking.",
+  "Ainda não há jogadores no ranking. Para entrar, são necessárias pelo menos {min} partidas no servidor.": "Aún no hay jugadores en el ranking. Para entrar se necesitan al menos {min} partidas en el servidor.",
 }

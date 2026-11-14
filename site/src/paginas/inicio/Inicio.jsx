@@ -12,6 +12,7 @@ import LiveTwitch from './LiveTwitch.jsx'
 import TimesCarrossel from './TimesCarrossel.jsx'
 import CentralComunidade from './CentralComunidade.jsx'
 import HeroInicio from './HeroInicio.jsx'
+import BannerNatal from './BannerNatal.jsx'
 
 const SETA = (
   <Icone tamanho={14} traco={2.4}>
@@ -120,6 +121,8 @@ export default function Inicio() {
     <Layout pagina="inicio">
       <main className="inicio np-inicio">
         <HeroInicio ranking={numeros.ranking} />
+        {/* NATAL NA NEURA 2026: só durante a divulgação configurada no painel (worker: GET /eventos/natal-2026) */}
+        <BannerNatal />
         <CentralComunidade partidas={numeros.partidas} ranking={numeros.ranking} />
 
         {/* LETREIRO */}

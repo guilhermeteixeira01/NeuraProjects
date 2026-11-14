@@ -80,7 +80,7 @@ test('migração remove caixas inclusive offline, não reembolsa e não reaplica
   await gravarDoc(env, 'caixas-vistas', modelos.map((c) => c.slug))
   await gravarDoc(env, 'loja-bonus', [{ id: 1, caixa: velha.id, qtd: 2, ts: Date.now() }])
   const caixas = await lerCaixas(env)
-  assert.equal(caixas.filter(c => !c.premium).length, novas.length)
+  assert.equal(caixas.filter(c => !c.premium && !c.evento).length, novas.length) // fixas no código (Premium, Natal) não são do catálogo
   assert.ok(caixas.every((c) => !modelos.some((m) => m.id === c.id)))
   await limparInventariosCaixasAntigas(env)
   const r = await pedirAoJogador(env, ID, { acao: 'inv-ler' })

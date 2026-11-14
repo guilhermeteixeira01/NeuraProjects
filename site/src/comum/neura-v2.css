@@ -478,13 +478,6 @@ html:is([data-tema='claro'], [data-tema='branco']) :is(.v2-cena, .ranking-page.v
   :root { --v2-topo: var(--topbar-height); }
   html:not(#v2) .nx-nav, html:not(#v2) .nx-nav.is-scrolled, html[data-tema]:not(#v2) .nx-nav { background: linear-gradient(180deg, #020d18 0%, #010c16 55%, #020d18 100%); }
   html:is([data-tema='claro'], [data-tema='branco']):not(#v2) .nx-nav { background: var(--v2-sup-1); }
-  /* agente do pacote (sidebar-agent-v2) apagado no pé do menu: decorativo, fixo (não anda com a rolagem da página), atrás dos links, ancorado embaixo
-     com a proporção preservada e um gradiente escuro por cima para manter a leitura. Some com o menu recolhido e no celular. */
-  html:not(#v2) .nx-nav::before {
-    content: ''; position: fixed; left: 0; bottom: 0; width: var(--nx-lateral); height: min(46dvh, 420px); z-index: 0; pointer-events: none;
-    background: url('/assets/neura-v2/web/v2/sidebar-agent.webp') 50% 100% / contain no-repeat; opacity: .38;
-    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 38%, #000 100%); mask-image: linear-gradient(180deg, transparent 0, #000 38%, #000 100%);
-  }
   html:not(#v2) .nx-nav::after { content: ''; position: fixed; left: 0; bottom: 0; width: var(--nx-lateral); height: min(46dvh, 420px); z-index: 0; pointer-events: none; background: linear-gradient(180deg, #010c16 0%, rgb(2 13 24 / .55) 45%, rgb(2 13 24 / .15) 100%); }
   html:not(#v2) .nx-nav:not(.nx-aberta)::after { display: none; }
   html:not(#v2) .nx-nav:not(.nx-aberta)::before { display: none; }

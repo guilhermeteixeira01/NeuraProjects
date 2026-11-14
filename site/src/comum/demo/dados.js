@@ -33,7 +33,9 @@ function montarInventario(caixas, agora) {
   let n = 0
   const add = (it, extra = {}) => {
     const k = 'demo' + (n++).toString(36) + 'i'
-    itens[k] = { t: it.t || 'arma', d: it.d, p: it.p, f: extra.f ?? 0.03 + ((n * 37) % 90) / 100, s: (n * 131) % 1000, st: extra.st ?? (n % 5 === 0 ? 1 : 0), a: [null, null, null, null, null], ...(extra.k ? { k: extra.k } : {}) }
+    // as primeiras armas vêm com adesivos e chaveiro (para ver o card com enfeites na prévia)
+    const enfeitada = (it.t || 'arma') === 'arma' && n < 3
+    itens[k] = { t: it.t || 'arma', d: it.d, p: it.p, f: extra.f ?? 0.03 + ((n * 37) % 90) / 100, s: (n * 131) % 1000, st: extra.st ?? (n % 5 === 0 ? 1 : 0), a: enfeitada ? [{ i: 6026 }, { i: 6028 }, n ? null : { i: 6026 }, null, null] : [null, null, null, null, null], ...(extra.k ? { k: extra.k } : enfeitada ? { k: { i: 78, s: 0 } } : {}) }
     criado[k] = agora - n * 2 * HORA
     return k
   }

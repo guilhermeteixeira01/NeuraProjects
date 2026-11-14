@@ -1,6 +1,7 @@
 // Inglês: texto em português (chave, igual ao do código) → tradução. Sem a chave, o site mostra o português.
 // Variáveis entre chaves ({n}, {nome}...) ficam iguais na tradução.
 export default {
+  "Jogar": "Play",
   "Configurações": "Settings",
   "Idioma": "Language",
   "Tema": "Theme",
@@ -1089,6 +1090,14 @@ export default {
   "Sua vez: escolha o lado inicial em {mapa}": "Your turn: pick the starting side on {mapa}",
   "Sua vez: {acao} um mapa": "Your turn: {acao} a map",
   "Série em andamento · {p}": "Series in progress · {p}",
+  "Solo": "Solo",
+  "Duo": "Duo",
+  "Trio": "Trio",
+  "Grupo de 4": "Party of 4",
+  "Grupo de 5": "Party of 5",
+  "Na fila: {n} jogadores · os times são sorteados ao fechar 5x5": "In queue: {n} players · teams are drawn once 5v5 is full",
+  "{n} jogadores na fila agora": "{n} players in queue now",
+  "Não foi possível entrar na fila com este grupo.": "Could not join the queue with this party.",
   "Só o líder busca": "Only the leader searches",
   "Só para um jogador": "Only for one player",
   "Só por convite": "Invite only",
@@ -1631,4 +1640,9 @@ export default {
   "Terrorista": "Terrorist",
   "Contraterrorista": "Counter-Terrorist",
   "Ambas as equipes": "Both teams",
+  "Ver mais": "See more",
+  "Carregando mais jogadores…": "Loading more players…",
+  "Faltam {n} partidas para o ranking": "{n} more matches to enter the ranking",
+  "Você jogou {n} de {min} partidas. Faltam {f} para entrar no ranking.": "You played {n} of {min} matches. {f} more to enter the ranking.",
+  "Ainda não há jogadores no ranking. Para entrar, são necessárias pelo menos {min} partidas no servidor.": "No players in the ranking yet. You need at least {min} matches on the server to enter.",
 }

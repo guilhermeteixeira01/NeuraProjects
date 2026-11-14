@@ -174,6 +174,8 @@ function conectar(id) {
       window.dispatchEvent(new Event('np-oficial'))
     }
     else if (m.tipo === 'hall') window.dispatchEvent(new Event('np-hall'))
+    // O sino mudou em outro aparelho (lida, limpar, aviso novo): sincroniza já (comum/notificacoes.js)
+    else if (m.tipo === 'notif') window.dispatchEvent(new Event('np-notif-servidor'))
     // Mensagem nova no chat da sala da partida (comum/ChatSala.jsx)
     else if (m.tipo === 'chat') window.dispatchEvent(new CustomEvent('np-chat', { detail: m }))
     // Chat global (painel da direita): mensagem nova, apagada, alguém silenciado ou aviso fixado (comum/ChatGlobal.jsx)

@@ -149,9 +149,9 @@ export default function SeletorMoldura({ steamId, avatar, nome, nivel = 1, admin
     const cargo = cargoDaMoldura(config, m.id)
     const nv = nivelDaMoldura(config, m.id)
     if (naLoja('moldura', m.id)) return <ItemNaLoja key={m.id} classe="sm-item" img={urlMiniatura(m.id)} nome={m.nome} preco={oficial.preco('moldura', m.id)} tr={tr} />
-    if (!comprado('moldura', m.id) && !podeUsarMolduraEvento(m.id, perfil)) return <button key={m.id} type="button" className="sm-item presa" disabled title={`Requer a insígnia ${m.nome} 2027`} aria-label={`${m.nome} · requer insígnia do evento 2027`}>
+    if (!comprado('moldura', m.id) && !podeUsarMolduraEvento(m.id, perfil)) return <button key={m.id} type="button" className="sm-item presa" disabled title={m.recompensa ? `${m.nome} · recompensa do evento Natal na Neura 2026` : `Requer a insígnia ${m.nome} 2027`} aria-label={m.recompensa ? `${m.nome} · recompensa do evento` : `${m.nome} · requer insígnia do evento 2027`}>
       <span className="sm-arte"><img src={urlMiniatura(m.id)} alt="" loading="lazy" width="72" height="72" /><span className="sm-vidro" aria-hidden="true"><CadeadoMini tamanho={16} /></span></span>
-      <span className="sm-nome">{m.nome}</span><span className="sm-req"><CadeadoMini />{tr('Insígnia do evento')}</span>
+      <span className="sm-nome">{m.nome}</span><span className="sm-req"><CadeadoMini />{tr(m.recompensa ? 'Recompensa do evento' : 'Insígnia do evento')}</span>
     </button>
     const titulo = !presa
       ? `${m.nome} · ${m.colecao}`

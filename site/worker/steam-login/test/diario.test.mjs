@@ -44,3 +44,21 @@ test('caixa diária entrega uma unidade, só abre com estoque e não aceita comp
  assert.ok(pagina?.foraDeVenda, 'mantém a página da caixa após consumir a unidade para não desmontar a roleta')
  assert.equal((await pedir('GET','/loja/saldo',{quem:id})).dados.saldo,0)
 })
+
+test('caixa diária aberta pelo inventário sorteia normal (sem o prêmio de 2k+ das outras caixas do inventário)',async()=>{
+ const {pedir,env}=ambiente()
+ const caixa=(await pedir('POST','/loja/diario/caixa',{quem:id,corpo:{}})).dados.caixa
+ const {valorDe}=await import('../src/valor.js')
+ const loja=env.LOJA.instancia(id)
+ let altos=0,total=0
+ for(let k=0;k<40;k++){
+  await loja.fila.rodar(async()=>{const inv=await loja.invOuVazio(id);inv.itens['diaria-'+k]={t:'caixa',d:caixa.id,p:0};inv.criado['diaria-'+k]=Date.now();await loja.invGravar(inv)})
+  const r=await pedir('POST','/loja/abrir',{quem:id,corpo:{caixa:caixa.id,qtd:1,origem:'inventario'}})
+  assert.equal(r.status,200,JSON.stringify(r.dados))
+  const inv=(await pedirAoJogador(env,id,{acao:'inv-ler'})).inv
+  for(const it of Object.values(inv.itens))if(it.t!=='caixa'){total++}
+  altos=Object.values(inv.itens).filter(it=>it.t!=='caixa'&&valorDe(it)?.v>=2000).length
+ }
+ assert.ok(total>0)
+ assert.ok(altos<=20,`${altos} de 40 itens com 2k+ (o prêmio do inventário daria ~28)`)
+})

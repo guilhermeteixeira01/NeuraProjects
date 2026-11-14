@@ -1,0 +1,126 @@
+/* Loja · v3 (central competitiva). Vem depois de comum/neura-v3.css.
+   Produto em primeiro plano: título + saldo no topo, abas segmentadas, banner com o arlequim e o catálogo. O acento âmbar marca só a
+   próxima ação (depositar, explorar, comprar, abrir); a seleção de filtros usa superfície clara com traço âmbar. */
+
+html:not(#v3) #root main.lj-pagina { background-color: var(--x-bg); }
+html:not(#v3) #root main.lj-pagina::before {
+  background: linear-gradient(90deg, rgb(8 9 12 / .94), rgb(8 9 12 / .5) 55%, rgb(8 9 12 / .2)), var(--np-fundo) center top / cover no-repeat;
+}
+html:not(#v3) #root .lj-pagina .lj-wrap { padding: 32px var(--content-gutter) 48px; }
+
+/* título e saldo */
+html:not(#v3) .lj-topo .v2-titulo h1 { font: 800 clamp(40px, 4.2vw, 60px)/.92 var(--x-display); letter-spacing: 0; text-transform: uppercase; }
+html:not(#v3) .lj-topo .v2-titulo p { color: var(--x-text-2); font-size: 15px; }
+html:not(#v3) #root .lj-pagina .lj-topo-saldo > :not(.lj-depositar) { border-color: var(--x-line-2); background: rgb(11 13 17 / .82); border-radius: var(--x-r-s); }
+html:not(#v3) #root .lj-pagina .lj-topo-saldo :is(b, strong) { font-family: var(--x-display); letter-spacing: .02em; }
+
+/* CTA da loja: âmbar */
+html:not(#v3) #root .lj-pagina :is(.lj-depositar, .lj-btn-p, .lj-hero-texto .v2-btn-primario) {
+  border: 0; border-radius: var(--x-r-s); background: var(--x-accent); color: var(--x-accent-ink);
+  font: 800 15px/1 var(--x-display); letter-spacing: .1em; text-transform: uppercase;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / .14) inset, 0 12px 26px -14px rgb(255 178 46 / .9);
+}
+html:not(#v3) #root .lj-pagina :is(.lj-depositar, .lj-btn-p, .lj-hero-texto .v2-btn-primario):hover:not(:disabled) { background: var(--x-accent-2); color: var(--x-accent-ink); }
+html:not(#v3) #root .lj-pagina :is(.lj-depositar, .lj-btn-p, .lj-hero-texto .v2-btn-primario) svg { color: currentColor; }
+html:not(#v3) #root .lj-pagina .lj-btn-p:disabled { background: var(--x-s3); color: var(--x-text-3); box-shadow: none; }
+html:not(#v3) #root .lj-pagina .lj-btn:not(.lj-btn-p) { border-color: var(--x-line-2); background: var(--x-s2); color: var(--x-text); }
+html:not(#v3) #root .lj-pagina .lj-btn:not(.lj-btn-p):hover:not(:disabled) { border-color: var(--x-text-3); background: var(--x-s3); }
+
+/* abas: controle segmentado */
+html:not(#v3) #root .lj-pagina .lj-abas:not(#_) { gap: 2px; padding: 4px; border: 1px solid var(--x-line-2); border-radius: var(--x-r); background: rgb(11 13 17 / .86); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+html:not(#v3) #root .lj-pagina .lj-abas button:not(#_) {
+  min-height: 44px; min-width: 150px; border: 0; border-radius: var(--x-r-s); background: transparent; color: var(--x-text-2);
+  font: 700 16px/1 var(--x-display); letter-spacing: .1em; text-transform: uppercase; box-shadow: none;
+}
+html:not(#v3) #root .lj-pagina .lj-abas button:not(#_)::first-letter { text-transform: uppercase; }
+html:not(#v3) #root .lj-pagina .lj-abas button:not(#_):hover { background: var(--x-s3); color: var(--x-text); }
+html:not(#v3) #root .lj-pagina .lj-abas button.is-ativo:not(#_) { background: var(--x-s4); color: #fff; box-shadow: inset 0 -2px 0 var(--x-accent); }
+html:not(#v3) #root .lj-pagina .lj-abas button.is-ativo:not(#_) svg { color: var(--x-accent); }
+
+/* banner com o arlequim */
+html:not(#v3) .lj-hero-cenario { border: 1px solid var(--x-line-2); border-radius: var(--x-r); background: var(--x-s1); box-shadow: 0 30px 60px -30px rgb(0 0 0 / .9); }
+html:not(#v3) .lj-hero-cenario::after { background: linear-gradient(90deg, rgb(8 9 12 / .94) 0%, rgb(8 9 12 / .6) 40%, transparent 70%), radial-gradient(60% 100% at 78% 40%, rgb(255 178 46 / .12), transparent 70%); }
+html:not(#v3) .lj-hero-texto h2 { font: 800 clamp(36px, 3.8vw, 60px)/.92 var(--x-display); letter-spacing: 0; text-transform: uppercase; color: #fff; }
+html:not(#v3) .lj-hero-texto p { color: var(--x-text-2); font-size: 15.5px; }
+
+/* filtros (seções da loja geral, filtros de skins) */
+html:not(#v3) #root .lj-pagina :is(.mo-secoes, .lj-filtros) button {
+  border: 1px solid var(--x-line-2); border-radius: var(--x-r-s); background: var(--x-s1); color: var(--x-text-2);
+  font: 700 14px/1 var(--x-display); letter-spacing: .08em; text-transform: uppercase; box-shadow: none;
+}
+html:not(#v3) #root .lj-pagina :is(.mo-secoes, .lj-filtros) button:hover { border-color: var(--x-line-3); color: var(--x-text); }
+html:not(#v3) #root .lj-pagina :is(.mo-secoes, .lj-filtros) button.is-ativo { border-color: var(--x-accent-line); background: var(--x-accent-soft); color: var(--x-text); box-shadow: inset 0 -2px 0 var(--x-accent); }
+html:not(#v3) #root .lj-pagina :is(.mo-secoes, .lj-filtros) button.is-ativo svg { color: var(--x-accent); }
+
+/* catálogo de caixas */
+html:not(#v3) #root .lj-pagina .lj-caixa { border: 1px solid transparent; border-radius: var(--x-r); background: transparent; transition: border-color .15s, background-color .15s; }
+html:not(#v3) #root .lj-pagina .lj-caixa:hover { border-color: var(--x-line-2); background: var(--x-s1); }
+html:not(#v3) #root .lj-pagina .lj-caixa b { font: 800 18px/21px var(--x-display); letter-spacing: .04em; text-transform: uppercase; }
+html:not(#v3) #root .lj-pagina .lj-caixa-preco { border-radius: 4px; font: 800 15px/1 var(--x-display); letter-spacing: .04em; }
+html:not(#v3) #root .lj-pagina :is(.lj-secao-titulo, .lj-grupo-titulo, .lj-catalogo h2) { font-family: var(--x-display); text-transform: uppercase; letter-spacing: .04em; }
+
+/* drops */
+html:not(#v3) #root .lj-drops { border-color: var(--x-line); background: var(--x-s0); }
+
+/* consumíveis (Boost/Freeze) */
+html:not(#v3) #root .lj-pagina .mo-consumivel { border-color: var(--x-line-2); border-radius: var(--x-r); background: var(--x-s1); }
+html:not(#v3) #root .lj-pagina .mo-consumivel-info b { font: 800 20px/1 var(--x-display); letter-spacing: .08em; text-transform: uppercase; }
+html:not(#v3) #root .lj-pagina .mo-consumivel-compra { border-top-color: var(--x-line); }
+html:not(#v3) #root .lj-pagina .mo-qtd button { border-color: var(--x-line-2); background: var(--x-s3); color: var(--x-text); }
+html:not(#v3) #root .lj-pagina .mo-qtd button.is-ativo { background: color-mix(in srgb, var(--tom) 14%, var(--x-s2)); }
+
+/* mercado de skins: cartões */
+html:not(#v3) #root .lj-pagina :is(.mk-card, .lj-skin, .mercado-card) { border-color: var(--x-line); background: var(--x-s1); border-radius: var(--x-r); }
+html:not(#v3) #root .lj-pagina :is(.mk-card, .lj-skin, .mercado-card):hover { border-color: var(--x-line-3); }
+
+/* Caixa Premium: assinatura em ouro (era azul) */
+html:not(#v3) .premium-convite { border-color: rgb(255 207 90 / .35); border-radius: var(--x-r); background: linear-gradient(110deg, #231d10, var(--x-s1) 60%); }
+html:not(#v3) .premium-tag { color: var(--x-gold); font-family: var(--x-display); letter-spacing: .24em; }
+html:not(#v3) .premium-caixa { color: var(--x-text); }
+html:not(#v3) .premium-caixa h1 { font: 800 clamp(36px, 5vw, 60px)/.95 var(--x-display); text-transform: uppercase; }
+html:not(#v3) .premium-caixa p, html:not(#v3) .premium-dialogo p { color: var(--x-text-2); }
+html:not(#v3) .premium-armas :is(article, label) { border-color: var(--x-line-2); background: var(--x-s1); }
+html:not(#v3) .premium-dialogo { border-color: rgb(255 207 90 / .35); background: var(--x-s1); color: var(--x-text); }
+html:not(#v3) .premium-dialogo h2 { font: 800 32px/1 var(--x-display); text-transform: uppercase; }
+html:not(#v3) .premium-dialogo label:hover { border-color: var(--x-line-3); }
+html:not(#v3) .premium-dialogo label.selecionada { border-color: var(--x-gold); background: linear-gradient(145deg, #2a2312, var(--x-s2)); box-shadow: 0 0 0 2px rgb(255 207 90 / .35), 0 12px 32px rgb(255 178 46 / .18); }
+html:not(#v3) .premium-dialogo .premium-selecao-selo { color: var(--x-gold); }
+html:not(#v3) .premium-dialogo::backdrop { background: rgb(4 5 7 / .82); }
+
+@media (max-width: 900px) {
+  html:not(#v3) #root .lj-pagina .lj-wrap { padding: 20px 16px 90px; }
+}
+@media (max-width: 760px) {
+  html:not(#v3) #root .lj-pagina .lj-abas button:not(#_) { min-width: 0; font-size: 14px; letter-spacing: .06em; }
+}
+@media (max-width: 420px) {
+  html:not(#v3) #root .lj-pagina .lj-abas button:not(#_) { gap: 6px; padding: 0 6px; font-size: 13px; letter-spacing: .03em; white-space: nowrap; }
+  html:not(#v3) #root .lj-pagina .lj-abas button:not(#_) svg { width: 16px; height: 16px; }
+}
+
+/* página da caixa: modo normal em âmbar (texto escuro no botão); jester e boost mantêm as cores próprias */
+html:not(#v3) .lj-cx:is([data-modo='normal'], :not([data-modo])) { --modo: var(--x-accent); --modo-2: var(--x-accent-2); --modo-fundo: #3a2a0c; --modo-rgb: 255 178 46; }
+html:not(#v3) .lj-cx:is([data-modo='normal'], :not([data-modo])) .lj-cx-btn-abrir { color: var(--x-accent-ink); }
+html:not(#v3) .lj-cx-btn-abrir { border-radius: var(--x-r-s); font: 800 22px/1 var(--x-display); letter-spacing: .1em; text-transform: uppercase; }
+html:not(#v3) .lj-hex > span { background: var(--x-s2); font-family: var(--x-display); }
+html:not(#v3) .lj-hex:hover > span { background: var(--x-s3); }
+html:not(#v3) .lj-hex-dica { background: var(--x-s3); border: 1px solid var(--x-line-2); }
+html:not(#v3) .lj-hex-dica::after { border-top-color: var(--x-s3); }
+html:not(#v3) .lj-cx-nome { font: 800 19px/1.15 var(--x-display); letter-spacing: .03em; text-transform: uppercase; }
+html:not(#v3) .lj-cx :is(h1, h2) { font-family: var(--x-display); letter-spacing: .03em; text-transform: uppercase; }
+.lj-hero-cenario::before { background-position: right top; }
+html:not(#v3) #root .lj-pagina .lj-hero-camada {
+  clip-path: inset(-64px 0 0);
+}
+html:not(#v3) #root .lj-pagina .lj-hero-camada img {
+  top: auto; right: 1%; bottom: -3px;
+  width: auto; height: 116%; max-width: 46%;
+  object-fit: contain; object-position: right bottom;
+}
+@media (min-width: 761px) {
+  .lj-hero { min-height: clamp(260px, 23vw, 360px); }
+}
+@media (max-width: 760px) {
+  html:not(#v3) #root .lj-pagina .lj-hero { margin-top: 32px; }
+  html:not(#v3) #root .lj-pagina .lj-hero-camada img { right: -2%; max-width: 62%; height: 115%; }
+}

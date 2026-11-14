@@ -1,0 +1,57 @@
+/* Perfil · v3 (central competitiva). Vem depois de comum/neura-v3.css.
+   Cabeçalho do jogador como cartão de atleta (nome em display, ações à direita), abas sublinhadas em âmbar, painéis grafite estáveis
+   (sem o vidro azulado) e o gráfico de rating em âmbar. */
+
+/* cabeçalho */
+html:not(#v3) #root .pf-header-bio h1 { font: 800 clamp(34px, 3.6vw, 52px)/.95 var(--x-display); letter-spacing: .01em; text-transform: uppercase; color: #fff; }
+html:not(#v3) .pf-header-customize {
+  border-radius: var(--x-r-s); background: var(--x-accent); color: var(--x-accent-ink);
+  font: 800 15px/1 var(--x-display); letter-spacing: .1em; text-transform: uppercase; box-shadow: 0 12px 26px -14px rgb(255 178 46 / .9);
+}
+html:not(#v3) .pf-header-customize:hover { background: var(--x-accent-2); color: var(--x-accent-ink); }
+html:not(#v3) .pf-header-actions :is(button, a):not(.pf-header-customize) { border-color: var(--x-line-2); background: rgb(11 13 17 / .78); color: var(--x-text); border-radius: var(--x-r-s); }
+html:not(#v3) .pf-header-ranking { font-weight: 650; }
+html:not(#v3) .pf-header-ranking svg { color: var(--x-gold); }
+html:not(#v3) .pf-header-progress i { background: var(--x-accent); }
+html:not(#v3) .pf-cover-personagem { filter: drop-shadow(0 24px 30px rgb(0 0 0 / .6)); }
+
+/* abas */
+html:not(#v3) .pf-profile-nav > :is(button, a) { font: 700 15px/1 var(--x-display); letter-spacing: .1em; text-transform: uppercase; color: var(--x-text-2); }
+html:not(#v3) .pf-profile-nav > :is(button, a):is([aria-current], .is-ativo, .ativa, [aria-selected='true']) { color: #fff; border-bottom-color: var(--x-accent); }
+html:not(#v3) .pf-profile-nav > :is(button, a):is([aria-current], .is-ativo, .ativa, [aria-selected='true']) svg { color: var(--x-accent); }
+
+/* painéis: superfícies estáveis */
+html:not(#v3) #root .pf-layout :is(.pf-status-card, .pf-profile-about, .pf-grafico-card, .pf-armas-card, .pf-bloco, .pf-card, .pf-estat, .pf-v2-bloco, .pf-sem) {
+  background: var(--x-s1) !important; border: 1px solid var(--x-line) !important; border-radius: var(--x-r);
+  box-shadow: 0 1px 0 rgb(255 255 255 / .03) inset !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
+html:not(#v3) #root .pf-layout :is(.hf-jogador-card, .pf-cartao.com-card) { border-color: var(--x-line-2) !important; border-radius: var(--x-r); }
+html:not(#v3) #root .pf-ref-cab h2 { font: 800 19px/1 var(--x-display); letter-spacing: .1em; text-transform: uppercase; color: var(--x-text); }
+html:not(#v3) .pf-ref-cab h2 svg { color: var(--x-accent); }
+html:not(#v3) .pf-ref-cab :is(select, button) { border-color: var(--x-line-2); background: var(--x-s2); color: var(--x-text); border-radius: var(--x-r-s); }
+html:not(#v3) #root .pf-v2-metrica { border: 1px solid var(--x-line); border-radius: var(--x-r); background: var(--x-s1); }
+html:not(#v3) #root .pf-v2-metrica b { font: 800 30px/1 var(--x-display); letter-spacing: .01em; }
+html:not(#v3) #root .pf-v2-metrica-icone { color: var(--x-accent); }
+html:not(#v3) #root .pf-v2-metrica span:not(.pf-v2-metrica-icone) { color: var(--x-text-3); font: 700 11.5px/1.2 var(--x-display); letter-spacing: .14em; text-transform: uppercase; }
+
+/* histórico de partidas */
+html:not(#v3) #root .pf-ref-partida { border-color: var(--x-line); background: var(--x-s2); border-radius: var(--x-r-s); }
+html:not(#v3) #root .pf-ref-partida:hover { border-color: var(--x-line-3); }
+html:not(#v3) .pf-ref-placar { font-family: var(--x-display); font-weight: 800; letter-spacing: .02em; }
+
+/* gráfico de rating */
+html:not(#v3) .pf-chart-label { color: var(--x-text-3); font: 700 11.5px/1 var(--x-display); letter-spacing: .14em; text-transform: uppercase; }
+html:not(#v3) .pf-chart-svg text { fill: var(--x-text-3); }
+html:not(#v3) .pf-chart-svg line { stroke: #2a303b; }
+html:not(#v3) .pf-chart-svg polyline { stroke: var(--x-accent); }
+html:not(#v3) .pf-chart-svg circle { fill: var(--x-accent); stroke: #ffe1a3; }
+html:not(#v3) .pf-chart-svg #pf-rating-area stop { stop-color: var(--x-accent); }
+html:not(#v3) .pf-chart-svg .pf-chart-last { fill: var(--x-accent-2); font-family: var(--x-display); font-size: 15px; }
+
+/* inventário dentro do perfil */
+html:not(#v3) #root .pf-inventario-pagina .inv-cartao-valor { color: var(--x-accent); font-family: var(--x-display); }
+html:not(#v3) #root .pf-inventario-pagina .pf-inv-barra-simples :is(.pf-inv-busca, select) { border-color: var(--x-line-2); background: var(--x-s1); }
+
+/* desempenho recente (XP, V/D e progressão de nível) */
+html:not(#v3) #root .pf-desemp-cab :is(h2, h3) { font: 800 19px/1 var(--x-display); letter-spacing: .1em; text-transform: uppercase; }
+html:not(#v3) #root .pf-desemp { background: var(--x-s1); border-color: var(--x-line); }

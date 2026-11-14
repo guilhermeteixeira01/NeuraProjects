@@ -1,5 +1,8 @@
 import { lerPainelMissoes, salvarConfigMissoes, configMissoes } from './missoes.js'
 import { insigniaMissao, progressoMissoes } from './missoes-core.js'
+import { INSIGNIAS_NATAL } from './natal-2026-core.js'
+import { rotaAdminNatal } from './natal-2026.js'
+import { rotaAdminAviso } from './aviso-faixa.js'
 /*
  * Painel de administrador (/admin/*). Cada rota declara do que precisa: uma aba do painel ou ser o dono (ROTAS_ADMIN, no fim).
  *
@@ -35,7 +38,7 @@ const IMAGEM_SELO = /^[A-Za-z0-9._-]{1,80}\.(png|webp|avif|svg|jpe?g|gif)$/i // 
 // Ícones do selo do cargo (o desenho de cada um fica no site: src/comum/cargos.jsx)
 const ICONES_CARGO = ['coroa', 'cifrao', 'estrela', 'diamante', 'raio', 'escudo', 'fogo', 'caveira', 'trofeu', 'coracao', 'verificado', 'mira', 'microfone', 'controle']
 // A antiga insígnia top3 foi descontinuada; troféus continuam ligados ao ranking.
-const INSIGNIAS = ['staff', 'embaixador', 'designer']
+const INSIGNIAS = ['staff', 'embaixador', 'designer', ...INSIGNIAS_NATAL.map((i) => i.id)]
 
 // ── Linha do log para cada ação do painel ──
 const ROTULO_ADMIN = {
@@ -57,6 +60,8 @@ const ROTULO_ADMIN = {
   '/admin/senha-reset': 'apagou a senha de segurança do jogador',
   '/admin/nick': 'trocou o apelido do jogador',
   '/admin/nick-reset': 'limpou o apelido e liberou nova escolha',
+  '/admin/natal-2026': 'mudou a configuração do Natal na Neura 2026',
+  '/admin/aviso-faixa': 'mudou o aviso em faixa do site',
 }
 function descreverAcao(rota, quem, c) {
   const chaves = Object.keys(c).filter((k) => !['id', 'alvo'].includes(k))
@@ -288,6 +293,10 @@ async function adminZerar(corpo, env, quem, cors) {
 // Rota -> { metodos, precisa: aba | 'dono' | 'aba-do-corpo', atender }. "c" = { req, env, quem, config, cors, rota, url, corpo }
 const ROTAS_ADMIN = {
   '/admin/missoes': {metodos:['GET','POST'],precisa:'usuarios',atender:async c=>json(c.req.method==='POST'?await salvarConfigMissoes(c.env,c.corpo):await lerPainelMissoes(c.env),200,c.cors)},
+  // Natal na Neura 2026: início, fim, prazo de resgate, divulgação, mapas do dia e caixa (mesma aba das missões)
+  '/admin/natal-2026': { metodos: ['GET', 'POST'], precisa: 'usuarios', atender: async (c) => json({ ok: true, ...(await rotaAdminNatal(c.env, c.req.method, c.corpo)) }, 200, c.cors) },
+  // Aviso em faixa no topo do site (texto e liga/desliga)
+  '/admin/aviso-faixa': { metodos: ['GET', 'POST'], precisa: 'usuarios', atender: async (c) => json({ ok: true, ...(await rotaAdminAviso(c.env, c.req.method, c.corpo)) }, 200, c.cors) },
   '/admin/dados': { metodos: ['GET'], precisa: null, atender: (c) => adminDados(c.env, c.config, c.cors) },
   // editar assinatura pede a aba de assinaturas; o resto do perfil, a de usuários
   '/admin/perfil': { metodos: ['POST'], precisa: (corpo) => ('sub' in corpo ? 'assinaturas' : 'usuarios'), atender: (c) => adminPerfil(c.corpo, c.env, c.config, c.cors) },

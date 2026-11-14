@@ -1,5 +1,28 @@
 [
   {
+    "nome": "2026-11-11_14-27_de_mirage_time_Kz7-x-time_Jzin",
+    "data": "2026-11-11 14:27",
+    "mapa": "de_mirage",
+    "timeA": "time_Kz7",
+    "timeB": "time_Jzin",
+    "placarA": 13,
+    "placarB": 10,
+    "serie": "MD1 · mapa 1/1",
+    "caminho": "neura-project/md1/2026-11-11_14-27_de_mirage_time_Kz7-x-time_Jzin",
+    "categoria": "md1",
+    "serieId": "2026-11-11_14-24_time_Kz7-x-time_Jzin",
+    "serieTimeA": "time_Kz7",
+    "serieTimeB": "time_Jzin",
+    "serieVitoriasA": 1,
+    "serieVitoriasB": 0,
+    "serieMapas": [
+      "de_mirage"
+    ],
+    "serieCancelada": false,
+    "logoA": null,
+    "logoB": null
+  },
+  {
     "nome": "2026-11-08_02-02_de_nuke_Time-A-x-Time-B",
     "data": "2026-11-08 02:02",
     "mapa": "de_nuke",

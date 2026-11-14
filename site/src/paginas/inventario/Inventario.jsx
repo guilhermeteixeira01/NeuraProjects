@@ -1748,7 +1748,7 @@ function TopoInventario({ total }) {
   return (
     <section className="v2-topo-pagina v2-cena inv-v2-topo">
       <img className="v2-cena-fundo" src={FUNDOS.inventario.src} width={FUNDOS.inventario.w} height={FUNDOS.inventario.h} alt="" decoding="async" fetchPriority="high" />
-      <img className="v2-topo-arte" src={PERSONAGENS.inventarioDupla.src} width={PERSONAGENS.inventarioDupla.w} height={PERSONAGENS.inventarioDupla.h} alt="" decoding="async" />
+      <img className="v2-topo-arte" src={PERSONAGENS.grupoTR.src} width={PERSONAGENS.grupoTR.w} height={PERSONAGENS.grupoTR.h} alt="" decoding="async" />
       <header className="wrap v2-titulo">
         <div>
           <h1>{t('Seu inventário')}</h1>

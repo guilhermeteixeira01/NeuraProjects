@@ -32,7 +32,7 @@ const LOBBY_MAX = 5
 const SEM_SINAL_MS = 150 * 1000 // o site manda "ping" a cada 20 s; sem nenhum sinal por isso, a conexão é tratada como morta
 const LOBBY_OFFLINE_MS = 10 * 60 * 1000 // membro offline há mais que isso sai sozinho
 const novoLobby = () => ({ membros: [], convites: [], publico: false, busca: null })
-const lobbyVazio = (lb) => !lb.membros.length && !lb.convites.length && !lb.publico
+const lobbyVazio = (lb) => !lb.membros.length && !lb.convites.length && !lb.publico && !lb.busca // solo buscando partida também é um lobby
 const ACOES_LOBBY = ['convidar', 'remover', 'entrar', 'recusar', 'sair', 'publico', 'pool', 'buscar', 'cancelar-busca', 'aceitar', 'recusar-partida', 'veto', 'substituir']
 // Ações que continuam valendo com a partida montada (as outras mexem no grupo, que fica travado)
 const ACOES_PARTIDA = ['aceitar', 'recusar-partida', 'veto', 'substituir'] // depois do veto não há como cancelar nem encerrar a sala: ela se resolve sozinha (prazos T)
@@ -96,35 +96,96 @@ export function montarPool(garantidosA = [], garantidosB = []) {
   return ALL_MAPS.map((m) => m.id).filter((m) => pool.has(m)) // na ordem de sempre dos mapas
 }
 
-function criarPartida(todos, partidas, a, b) {
-  const id = crypto.randomUUID()
-  const time = (lider) => ({ lider, membros: [lider, ...todos[lider].membros] })
-  const garantidos = { A: todos[a].pool || [], B: todos[b].pool || [] }
-  partidas[id] = {
-    id, fase: 'aceitar', prazo: Date.now() + ACEITE_SEG * 1000, times: { A: time(a), B: time(b) }, aceitos: [],
-    formato: todos[a].formato, pool: montarPool(garantidos.A, garantidos.B), garantidos, primeiro: Math.random() < 0.5 ? 'A' : 'B', historico: [],
+// Fila mista: cada lobby (solo, duo, trio, 4 ou 5) entra na fila do formato. Quando há gente para fechar 5x5, os grupos são sorteados
+// entre os dois times (grupo nunca é separado). O capitão (quem faz o pick & ban) é o líder do maior grupo do time (empate: sorteio).
+const TIME_TAM = 5
+const tamanhoDe = (todos, l) => 1 + todos[l].membros.length
+const jogadoresNaFila = (todos, formato) => Object.keys(todos).filter((l) => todos[l].busca && todos[l].formato === formato).reduce((s, l) => s + tamanhoDe(todos, l), 0)
+
+// Todas as divisões dos grupos escolhidos em dois times de 5 (máscara = grupos do time A)
+function divisoes(tamanhos) {
+  const total = tamanhos.reduce((s, n) => s + n, 0)
+  if (total !== 2 * TIME_TAM) return []
+  const lista = []
+  for (let mascara = 0; mascara < 1 << tamanhos.length; mascara++) {
+    if (tamanhos.reduce((s, n, i) => s + (mascara & (1 << i) ? n : 0), 0) === TIME_TAM) lista.push(mascara)
   }
-  todos[a].busca = null
-  todos[b].busca = null
+  return lista
+}
+
+// Escolhe os grupos da próxima partida: os mais antigos da fila têm prioridade (o primeiro sempre entra); devolve os líderes ou null.
+// Busca em profundidade com limite de passos (a fila pode ter muitos solos).
+export function escolherGrupos(fila, tamanho) {
+  if (!fila.length) return null
+  let passos = 0
+  const escolhidos = [fila[0]]
+  const ir = (i, soma) => {
+    if (soma === 2 * TIME_TAM) return divisoes(escolhidos.map(tamanho)).length > 0
+    if (i >= fila.length || ++passos > 20000) return false
+    const n = tamanho(fila[i])
+    if (soma + n <= 2 * TIME_TAM) {
+      escolhidos.push(fila[i])
+      if (ir(i + 1, soma + n)) return true
+      escolhidos.pop()
+    }
+    return ir(i + 1, soma)
+  }
+  return ir(1, tamanho(fila[0])) ? escolhidos : null
+}
+
+function criarPartida(todos, partidas, grupos) {
+  const id = crypto.randomUUID()
+  const tamanhos = grupos.map((l) => tamanhoDe(todos, l))
+  const mascara = sorteio(divisoes(tamanhos)) // sorteio dos times entre as divisões possíveis
+  const dosTimes = { A: grupos.filter((_, i) => mascara & (1 << i)), B: grupos.filter((_, i) => !(mascara & (1 << i))) }
+  const capitao = (ls) => {
+    const maior = Math.max(...ls.map((l) => tamanhoDe(todos, l)))
+    return sorteio(ls.filter((l) => tamanhoDe(todos, l) === maior))
+  }
+  const time = (ls) => {
+    const lider = capitao(ls)
+    // capitão primeiro; depois os outros grupos, cada um com o líder na frente
+    return { lider, membros: [lider, ...todos[lider].membros, ...ls.filter((l) => l !== lider).flatMap((l) => [l, ...todos[l].membros])] }
+  }
+  const times = { A: time(dosTimes.A), B: time(dosTimes.B) }
+  const garantidos = { A: todos[times.A.lider].pool || [], B: todos[times.B.lider].pool || [] }
+  partidas[id] = {
+    id, fase: 'aceitar', prazo: Date.now() + ACEITE_SEG * 1000, times, aceitos: [],
+    formato: todos[grupos[0]].formato, pool: montarPool(garantidos.A, garantidos.B), garantidos, primeiro: Math.random() < 0.5 ? 'A' : 'B', historico: [],
+    // os grupos da fila, para quem aceitou voltar para a fila com o mesmo lugar se alguém recusar
+    grupos: grupos.map((l) => ({ lider: l, membros: [l, ...todos[l].membros], busca: todos[l].busca, pool: todos[l].pool || [] })),
+  }
+  for (const l of grupos) todos[l].busca = null
   return partidas[id]
 }
 
-// Aceite falhou: a partida some; o time que aceitou inteiro volta para a fila
+// Aceite falhou: a partida some; cada grupo que aceitou inteiro volta para a fila (com o lugar que tinha)
 function cancelarPartida(todos, partidas, p) {
   delete partidas[p.id]
-  for (const t of [p.times.A, p.times.B]) {
-    if (todos[t.lider] && t.membros.every((m) => p.aceitos.includes(m))) todos[t.lider].busca = Date.now()
+  const grupos = p.grupos || [p.times.A, p.times.B].map((t) => ({ lider: t.lider, membros: t.membros, busca: Date.now(), pool: p.garantidos?.[t === p.times.A ? 'A' : 'B'] || [] }))
+  for (const g of grupos) {
+    if (!g.membros.every((m) => p.aceitos.includes(m))) continue
+    const lb = (todos[g.lider] ??= { ...novoLobby(), membros: g.membros.filter((m) => m !== g.lider) })
+    lb.busca = g.busca || Date.now()
+    lb.formato = p.formato
+    lb.pool = g.pool
   }
 }
 
-// Junta os lobbies que estão buscando, dois a dois (o mais antigo primeiro)
+// Monta as partidas com quem está buscando (o mais antigo primeiro), dez jogadores por vez, sem separar grupos.
 // vagas = quantas partidas ainda cabem nos servidores livres (Infinity = sem limite). Sem servidor livre, os lobbies continuam buscando e o pick & ban só
 // abre quando um servidor ficar livre.
 function procurar(todos, partidas, vagas = Infinity) {
   const novas = []
   for (const formato of FORMATOS_FILA) {
     const fila = Object.keys(todos).filter((l) => todos[l].busca && todos[l].formato === formato).sort((x, y) => todos[x].busca - todos[y].busca)
-    for (let i = 0; i + 1 < fila.length && novas.length < vagas; i += 2) novas.push(criarPartida(todos, partidas, fila[i], fila[i + 1]))
+    // tenta a partir de cada grupo da fila (se o mais antigo não fecha com ninguém agora, os de trás não ficam presos atrás dele)
+    for (let i = 0; i < fila.length && novas.length < vagas; i++) {
+      if (!todos[fila[i]].busca) continue
+      const resto = fila.slice(i).filter((l) => todos[l].busca)
+      const grupos = escolherGrupos(resto, (l) => tamanhoDe(todos, l))
+      if (grupos) novas.push(criarPartida(todos, partidas, grupos))
+    }
   }
   return novas
 }
@@ -592,6 +653,8 @@ export class Presenca {
     let mudou = req.method === 'POST' // só grava e avisa se algo mudou (a limpeza de membros offline também conta)
     const avisar = (...ids) => ids.flat().forEach((i) => i && avisados.add(i))
     // Em lobby = dentro de um grupo com mais gente (líder com membros, ou membro de outro líder). Sozinho (ou só com convites) ainda dá para convidar.
+    // Todos que estão na fila (a contagem de jogadores buscando muda para eles)
+    const quemBusca = () => Object.keys(todos).filter((l) => todos[l].busca).flatMap((l) => [l, ...todos[l].membros])
     const emLobbyComGente = (id) => {
       const l = achar(id)
       return !!l && todos[l].membros.length > 0
@@ -614,7 +677,7 @@ export class Presenca {
         delete todos[id]
       } else {
         lb.membros = tira(lb.membros, id)
-        lb.busca = null // sem os 5, a busca para
+        lb.busca = null // o grupo mudou: a busca para
       }
     }
 
@@ -721,8 +784,9 @@ export class Presenca {
         await this.state.storage.put('pools', pools)
         avisar(todos[eu]?.membros || [])
       } else if (acao === 'buscar') {
-        const lb = todos[eu]
-        if (!eLider || !lb || 1 + lb.membros.length < LOBBY_MAX) throw new ErroPedido('incompleto')
+        // Busca solo, duo, trio, 4 ou 5: o grupo entra inteiro na fila e é sorteado num dos times (ver procurar)
+        if (!eLider) throw new ErroPermissao('lider')
+        const lb = (todos[eu] ??= novoLobby())
         if (!FORMATOS_FILA.includes(valor?.formato) || !FORMATS[valor.formato]) throw new ErroPedido('formato')
         if (valor.formato === 'bo3' && !(await temSubAtiva(this.env, eu))) throw new ErroPermissao('sem-sub')
         if (!lb.busca) {
@@ -732,11 +796,11 @@ export class Presenca {
           lb.formato = valor.formato
           lb.busca = Date.now()
         }
-        avisar(lb.membros)
+        avisar(lb.membros, quemBusca())
       } else if (acao === 'cancelar-busca') {
         if (!eLider || !todos[eu]) throw new ErroPermissao('lider')
         todos[eu].busca = null
-        avisar(todos[eu].membros)
+        avisar(todos[eu].membros, quemBusca())
       } else if (acao === 'aceitar') {
         if (minha.fase !== 'aceitar') throw new ErroConflito('fase')
         minha.aceitos = poe(minha.aceitos, eu)
@@ -769,7 +833,9 @@ export class Presenca {
         if (erro) throw new ErroConflito(erro)
         avisar(idsDe(minha))
       }
-      for (const p of procurar(todos, partidas, await this.vagasDeServidor(partidas))) avisar(idsDe(p))
+      const novas = procurar(todos, partidas, await this.vagasDeServidor(partidas))
+      for (const p of novas) avisar(idsDe(p))
+      if (novas.length) avisar(quemBusca()) // quem ficou na fila vê a contagem cair
     }
     await limpar()
 
@@ -804,6 +870,7 @@ export class Presenca {
       max: LOBBY_MAX,
       busca: lb.busca || null,
       formato: lb.formato || null,
+      fila: Object.fromEntries(FORMATOS_FILA.map((f) => [f, jogadoresNaFila(todos, f)])), // jogadores buscando partida em cada formato
       servidores: await this.resumoServidores(partidas), // { livres, total }: o site mostra "aguardando servidor livre" enquanto livres = 0
       pool: pools[lider] || [], // pool garantido do líder (Premium)
       poolMax: POOL_GARANTIDO_MAX,

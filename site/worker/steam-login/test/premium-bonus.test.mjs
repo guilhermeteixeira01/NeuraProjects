@@ -124,3 +124,15 @@ test('abrir notificações entrega bônus elegíveis por período e suporta data
     await f.pedir('GET','/notificacoes',{quem:A});assert.equal(credito(ator(f)),1050)
   } finally {globalThis.fetch=fetchAntes}
 })
+
+test('fim do mapa já cria a notificação de vitória no sino (sem esperar o deploy)', async () => {
+  const f = ambiente(), caminho = 'org/md1/aviso-vitoria'
+  const inicio = new Date(Date.now() - 3600000).toISOString().slice(0, 16).replace('T', ' ')
+  const corpo = { caminho, item: { data: inicio, mapa: 'de_nuke' }, partida: { inicio, mapa: 'de_nuke', placarA: 17, placarB: 15, jogadores: [{ steamId: A, time: 'A', rounds: 32, kills: 20, mortes: 15, rating: 1.2 }] } }
+  assert.equal((await f.pedir('POST', '/servidor/partida', { corpo, cabecalhos: { Authorization: 'Bearer token-servidor' } })).status, 200)
+  const aviso = (await ator(f).ctx.storage.get('notifs')).lista.find((x) => x.id === `pontos:${caminho}`)
+  assert.ok(aviso)
+  assert.match(aviso.titulo, /^Vitória! \+\d+ NP$/)
+  assert.equal(aviso.texto, 'Vitória em Nuke (17 x 15). Os pontos já estão na sua conta.')
+  assert.equal(aviso.lida, false)
+})

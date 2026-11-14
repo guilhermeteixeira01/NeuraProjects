@@ -1,5 +1,7 @@
 import { iniciarMissoes, sincronizarMissoes } from './missoes.js'
+import { natalDoJogador } from './natal-2026.js'
 import { CAIXA_PREMIUM } from './caixa-premium-core.js'
+import { CAIXA_NATAL } from './caixa-natal.js'
 import { entregarCaixaPremium, escolherArmaPremium } from './caixa-premium.js'
 import { repararFreezeDoJogador } from './freeze-reparo.js'
 import { exigirSenha } from './contas.js'
@@ -48,6 +50,7 @@ import { json, lerCorpo } from './http.js'
 import { BONUS_PREMIUM_PARTIDA, CONFIG_PADRAO, MODOS, acumular, aplicarModo, chancesDaCaixa, ehEspecial, faixasDeDesgaste, gerarFaixa, gerarFaixaFacas, insigniasNovas, novoAcumulado, progressoInsignias, rndSeguro, sortearAbertura, sortearAberturaInventario, sortearEspecial, statsDoAcumulado } from './loja-core.js'
 import { registrarDrops } from './mercado.js'
 import { docVazio, juntar } from './notif-core.js'
+import { nomeMapa } from '../../../src/comum/mapas.js'
 import { Fila, pedirAoJogador, responder } from './objetos.js'
 import { darInsignias } from './perfis.js'
 import { enderecoDoSite, pontosGanhos } from './ranking.js'
@@ -79,7 +82,9 @@ const ATUALIZAR_CAIXAS = ['caixa-kawaii', 'caixa-terror', 'caixa-lendas', 'caixa
 const DOCS_CAIXAS = ['caixas', 'caixas-revisao', 'caixas-vistas', 'caixas-removidas', 'loja-config', 'loja-bonus']
 
 export async function lerCaixas(env) {
-  return [...(await lerCaixasComuns(env)).filter(c => c.id !== CAIXA_PREMIUM.id && c.slug !== CAIXA_PREMIUM.slug), CAIXA_PREMIUM]
+  // Caixas fixas no código (fora do catálogo editável): Premium e a do evento de Natal (só facas e luvas)
+  const fixas = [CAIXA_PREMIUM, CAIXA_NATAL]
+  return [...(await lerCaixasComuns(env)).filter(c => !fixas.some(f => c.id === f.id || c.slug === f.slug)), ...fixas]
 }
 
 async function lerCaixasComuns(env) {
@@ -501,6 +506,19 @@ export class Loja {
         const recentes = (await this.ctx.storage.get('partidasRecentes')) || []
         const atualizadas = [p.resumo, ...recentes.filter(m => m.caminho !== p.resumo.caminho)].slice(0, 60)
         await this.ctx.storage.put('partidasRecentes', atualizadas)
+        // Aviso no sino assim que o mapa termina (antes vinha do histórico gerado no deploy do site, minutos depois).
+        // Mesmo id do AvisoPontos.jsx: o aviso do navegador não duplica este.
+        {
+          const r = p.resumo
+          const [meu, deles] = Array.isArray(r.placar) ? r.placar : [0, 0]
+          const pontos = Number(r.pontos) || 0
+          await this.notificar(novaNotif(
+            `pontos:${r.caminho}`,
+            r.venceu ? `Vitória! +${pontos} NP` : `Partida encerrada: +${pontos} NP`,
+            `${r.venceu ? 'Vitória' : 'Derrota'} em ${nomeMapa(r.mapa)} (${meu} x ${deles}). Os pontos já estão na sua conta.`,
+            `/partidas/${String(r.caminho).split('/').map(encodeURIComponent).join('/')}/`,
+          ))
+        }
         const sub = (await lerItem(this.env, 'perfis', id))?.sub
         const ts = p.inicio
         if (sub && Number.isFinite(ts) && ts >= (Number(sub.periodo || sub.inicio) || 0) && ts <= (sub.expira == null ? Infinity : Number(sub.expira)) && ts <= Date.now()) {
@@ -536,6 +554,10 @@ export class Loja {
         return oficialDoJogador(this, acao, saldo, p)
       case 'consumivel-partida':
         return aplicarNaPartida(this, p)
+      case 'natal-sinc':
+      case 'natal-ativar':
+      case 'natal-resgatar':
+        return natalDoJogador(this, id, acao, p)
       case 'missoes-sinc':
         return sincronizarMissoes(this,id,p.partidas||[],!!p.historico,Date.now(),p.acesso===true)
       case 'afiliado-recompensar':
@@ -555,6 +577,8 @@ export class Loja {
         if (!p.doc) return { doc: atual }
         const novo = juntar(atual, p.doc)
         await this.ctx.storage.put('notifs', novo)
+        // Mudou (lida, limpar, nova): os outros aparelhos abertos sincronizam na hora em vez de esperar o próximo minuto
+        if (JSON.stringify(novo) !== JSON.stringify(juntar(atual, docVazio()))) await mandarPara(this.env, [id], { tipo: 'notif' })
         return { doc: novo }
       }
       case 'perfil-publico':
@@ -942,7 +966,9 @@ export class Loja {
       const especial = !soEnfeites && ehEspecial(jaAbertas + k + 1)
       let ganhou
       if (especial) ganhou = sortearEspecial(caixa, cfg, rndSeguro)
-      else if (p.origem === 'inventario' && origem === 'inventario') ganhou = sortearAberturaInventario(caixa, cfg, rndSeguro, valorDe)
+      // A Caixa Diária (grátis, todo dia) sorteia normal: o prêmio de 2k+ do inventário não vale para ela
+      // A Caixa Diária (grátis, todo dia) sorteia normal: o prêmio de 2k+ do inventário não vale para ela
+      else if (p.origem === 'inventario' && origem === 'inventario' && caixa.slug !== 'caixa-diaria') ganhou = sortearAberturaInventario(caixa, cfg, rndSeguro, valorDe)
       else ganhou = sortearAbertura(caixa, cfg, rndSeguro)
       const faixa = gerarFaixa(caixa, cfg, ganhou, rndSeguro)
       const item = novoIdItem()

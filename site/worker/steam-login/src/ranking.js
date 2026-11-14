@@ -30,9 +30,14 @@ export async function jogadorNoRanking(env, id) {
 // Pontos ganhos nas partidas (100 por vitória, 50 por derrota): a parte "ganha" do saldo da loja
 export const pontosGanhos = async (env, id) => Math.max(0, Math.floor(Number((await jogadorNoRanking(env, id))?.pontos) || 0))
 
-// Ordem do top do ranking (a mesma do site, src/comum/ranking.js): quem tem mapa, por rating e depois kills.
+// Partidas mínimas para ter posição no ranking (página, pódio, "#N no ranking" e cargos automáticos de top N).
+// Quem tem menos continua no ranking.json (pontos da loja, XP e histórico não mudam): só não ganha posição.
+// O site usa este mesmo número (src/comum/ranking.js).
+export const MIN_MAPAS_RANKING = 5
+
+// Ordem do top do ranking (a mesma do site, src/comum/ranking.js): quem tem MIN_MAPAS_RANKING partidas, por rating e depois kills.
 // Dono/admin com "Ocultar do ranking" ligado (perfis[id].ocultoRanking) fica de fora: o próximo sobe de posição
-export const ordemRanking = (ranking, perfis = {}) => (ranking?.jogadores || []).filter((j) => j.mapas >= 1 && !perfis[j.steamId]?.ocultoRanking).sort((a, b) => b.rating - a.rating || b.kills - a.kills)
+export const ordemRanking = (ranking, perfis = {}) => (ranking?.jogadores || []).filter((j) => j.mapas >= MIN_MAPAS_RANKING && !perfis[j.steamId]?.ocultoRanking).sort((a, b) => b.rating - a.rating || b.kills - a.kills)
 
 // Nível do jogador: XP das partidas + ajuste do admin (perfil.xp). Menos de 10 partidas: "Sem classificação" no site; para as molduras vale nível 1
 export async function nivelDoJogador(env, id, perfil) {

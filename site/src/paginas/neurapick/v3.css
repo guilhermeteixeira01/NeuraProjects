@@ -1,0 +1,5 @@
+/* Pick & Ban · v3 (central competitiva). Vem depois de comum/neura-v3.css.
+   O NeuraPick já usava âmbar; aqui o título vira display e os painéis seguem as superfícies grafite. */
+
+html:not(#v3) .app .main h1 { font-family: var(--x-display); letter-spacing: .01em; }
+html:not(#v3) .app .main :is(h2, h3) { font-family: var(--x-display); letter-spacing: .04em; }

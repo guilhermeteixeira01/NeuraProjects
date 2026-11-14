@@ -1,0 +1,16 @@
+/* CSS da página natal2026: CSS da página primeiro, depois as camadas globais do site (mesma ordem das outras entradas). */
+@import '../paginas/natal2026/natal2026.css';
+@import '../comum/estetica.css';
+
+@import '../comum/redesign.css';
+
+@import '../comum/plataforma.css';
+@import '../comum/sazonal.css';
+@import '../comum/acabamento.css';
+
+/* Neura Project v2 */
+@import '../comum/neura-v2.css';
+
+/* Neura Project v3 · central competitiva: por último */
+@import '../comum/neura-v3.css';
+@import '../paginas/natal2026/v3.css';

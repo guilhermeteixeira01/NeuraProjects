@@ -24,6 +24,7 @@ const PAGINAS = {
   times: 'times/index.html',
   naoencontrada: '404.html', // GitHub Pages mostra para qualquer endereço que não existe
   upgrade: 'upgrade/index.html',
+  natal2026: 'eventos/natal-2026/index.html', // Natal na Neura 2026 — Operação Presente
 }
 
 // `npm run dev`: dados que ficam fora de site/ (no deploy eles são copiados para o site publicado)

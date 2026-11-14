@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import IconeUI from '../../comum/IconeUI.jsx'
-import { FUNDOS, PERSONAGENS } from '../../comum/assetsV2.js'
+import { FUNDOS } from '../../comum/assetsV2.js'
 import { entrar, linkPerfil, loginAtivo, useConta } from '../../comum/conta.js'
 import { mapImage, nomeMapa } from '../../comum/mapas.js'
 import { usePerfis } from '../../comum/Moldura.jsx'
 import { useSeguranca } from '../../comum/seguranca.js'
 import { posicaoNoRanking, useMapaMaisJogado } from '../../comum/temporada.js'
+import { faltamParaRanking } from '../../comum/ranking.js'
 import { useT } from '../../comum/i18n.js'
 
 // Topo do Início: saudação, chamada para jogar e o resumo da temporada de quem está logado (dados do ranking.json e do
@@ -24,7 +25,6 @@ export default function HeroInicio({ ranking }) {
   return (
     <section className="v2-hero-inicio v2-cena" aria-labelledby="v2-hero-titulo">
       <img className="v2-cena-fundo" src={FUNDOS.inicio.src} width={FUNDOS.inicio.w} height={FUNDOS.inicio.h} alt="" fetchPriority="high" decoding="async" />
-      <img className="v2-hero-dupla" src={PERSONAGENS.heroDupla.src} width={PERSONAGENS.heroDupla.w} height={PERSONAGENS.heroDupla.h} alt="" decoding="async" />
       <div className="v2-hero-texto">
         <p className="v2-hero-ola" title={conta && nome ? nome : undefined}>
           {conta && nome && saudacao ? (
@@ -42,7 +42,7 @@ export default function HeroInicio({ ranking }) {
           <br />
           <em>{t('Evolua')}</em> {t('com a Neura.')}
         </h1>
-        <p className="v2-hero-lead">{t('Partidas competitivas, ranking, inventário, caixas')}<br />{t('e uma comunidade feita por jogadores, para jogadores.')}</p>
+        <p className="v2-hero-lead">{t('Partidas competitivas, ranking, inventário, caixas')}{' '}<br />{t('e uma comunidade feita por jogadores, para jogadores.')}</p>
         <div className="v2-hero-acoes">
           <a className="v2-btn v2-btn-primario" href="/lobby/">
             <IconeUI tipo="play" tamanho={18} fill="currentColor" />
@@ -86,7 +86,7 @@ function SuaTemporada({ ranking, perfis, conta }) {
             <div className="v2-temporada-pos">
               <Louro />
               <b className="v2-num">{oculto ? '—' : posicao > 0 ? `#${posicao}` : '—'}</b>
-              <span>{oculto ? t('Oculto do ranking') : t('no ranking')}</span>
+              <span>{oculto ? t('Oculto do ranking') : posicao > 0 ? t('no ranking') : faltamParaRanking(jogador) > 0 ? t('Faltam {n} partidas para o ranking', { n: faltamParaRanking(jogador) }) : t('no ranking')}</span>
             </div>
             <dl className="v2-temporada-numeros">
               <div className="v2-temporada-rating">

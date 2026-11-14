@@ -1,0 +1,7 @@
+/* Natal na Neura 2026 · v3 (central competitiva). Vem depois de comum/neura-v3.css.
+   O evento mantém a própria identidade (ouro e vermelho); aqui os títulos seguem o display do sistema e os cartões as superfícies. */
+
+html:not(#v3) .nt-pagina .nt-hero-texto h1 { font: 800 clamp(40px, 4.4vw, 64px)/.92 var(--x-display); letter-spacing: 0; text-transform: uppercase; }
+html:not(#v3) .nt-pagina .nt-kicker { font-family: var(--x-display); letter-spacing: .28em; }
+html:not(#v3) .nt-pagina .nt-card { border-color: var(--x-line); border-radius: var(--x-r); background: var(--x-s1); }
+html:not(#v3) .nt-pagina .nt-card :is(h2, h3) { font: 800 20px/1 var(--x-display); letter-spacing: .08em; text-transform: uppercase; }

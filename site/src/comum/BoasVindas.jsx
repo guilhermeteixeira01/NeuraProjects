@@ -458,7 +458,12 @@ function JanelaConta({ aoFechar, children }) {
   const t = useT()
   useTravaRolagem(true)
   useEffect(() => {
-    const tecla = (e) => e.key === 'Escape' && aoFechar()
+    // preventDefault: dentro do <dialog> das Configurações da conta, o Esc fecha só esta janela (não o modal de trás)
+    const tecla = (e) => {
+      if (e.key !== 'Escape') return
+      e.preventDefault()
+      aoFechar()
+    }
     document.addEventListener('keydown', tecla)
     return () => document.removeEventListener('keydown', tecla)
   }, [aoFechar])
@@ -471,8 +476,18 @@ function JanelaConta({ aoFechar, children }) {
         <div className="bv-passo">{children}</div>
       </div>
     </div>,
-    document.body,
+    destinoJanela(),
   )
+}
+
+// Aberta de dentro de um <dialog> modal (Configurações da conta no perfil): o modal fica na camada do topo e deixa o
+// resto da página inerte, então a janela precisa ser montada dentro dele para aparecer e receber os cliques
+function destinoJanela() {
+  try {
+    return document.querySelector('dialog:modal') || document.body
+  } catch {
+    return document.body
+  }
 }
 
 export function TrocarNick({ atual, aoFechar }) {

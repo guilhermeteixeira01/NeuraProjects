@@ -1,4 +1,6 @@
 import { rotaMissoes, corrigirEventosAntecipados } from './missoes.js'
+import { conferirNatal, rotaNatal, rotaNatalPublica } from './natal-2026.js'
+import { rotaAvisoPublico } from './aviso-faixa.js'
 import { corrigirFreezeVitorias } from './freeze-reparo.js'
 /*
  * Worker do neuraproject.com.br (Cloudflare): login pela Steam e tudo que o site estático (GitHub Pages) não faz sozinho.
@@ -112,6 +114,10 @@ const PUBLICAS = {
   'GET /loja/perfil': (c) => rotaLojaPerfil(c.url, c.env, { ...qualquerOrigem, 'Cache-Control': 'public, max-age=5' }),
   'GET /loja/caixas': (c) => rotaLojaPublica(c.env, qualquerOrigem, c.ctx),
   'GET /loja/valores-catalogo': () => rotaValoresCatalogo(qualquerOrigem),
+  // Natal na Neura 2026: datas, estado, meta coletiva e recompensas (página do evento e banner da home)
+  'GET /eventos/natal-2026': (c) => rotaNatalPublica(c.env, qualquerOrigem),
+  // Aviso em faixa (letreiro amarelo no topo do site), escrito no painel admin
+  'GET /aviso-faixa': (c) => rotaAvisoPublico(c.env, qualquerOrigem),
   // Zerar tudo pela manutenção (sem login Steam): só existe enquanto o segredo ZERAR_TOKEN estiver configurado
   'POST /manutencao/zerar-tudo': async (c) => {
     if (!c.env.ZERAR_TOKEN) throw new ErroNaoEncontrado('rota')
@@ -130,6 +136,7 @@ const naoAtende = () => {
 const so = (metodo, atender) => (c) => (c.req.method === metodo ? atender(c) : naoAtende())
 const COM_LOGIN = [
   ['/missoes', so('GET', (c) => rotaMissoes(c.env,c.quem,c.cors))],
+  ['/eventos/natal-2026/', (c) => rotaNatal(c.req, c.env, c.quem, c.cors, c.rota)],
   ['/afiliado', (c) => rotaAfiliado(c.req, c.env, c.quem, c.cors)],
   ['/perfil/amigos', (c) => rotaAmigosPerfil(c.req, c.env, c.quem, c.cors, c.url)],
   ['/conta/dados', (c) => rotaDadosConta(c.req,c.env,c.quem,c.cors)],
@@ -194,6 +201,7 @@ export default {
     ctx.waitUntil(semDerrubar(corrigirFreezeVitorias(env), 'cron: reparar Freeze nas vitórias antigas'))
     ctx.waitUntil(semDerrubar(corrigirEventosAntecipados(env), 'cron: corrigir eventos antecipados'))
     ctx.waitUntil(semDerrubar(limparInventariosCaixasAntigas(env), 'cron: remover caixas antigas sem reembolso'))
+    ctx.waitUntil(semDerrubar(conferirNatal(env), 'cron: Natal 2026 (partidas pendentes e insígnia dourada)'))
     ctx.waitUntil(semDerrubar(lerConfig(env).then((config) => tirarExclusivasSemCargo(env, config)), 'cron: cargos'))
     if (new Date(evento.scheduledTime).getUTCMinutes() < 10) ctx.waitUntil(semDerrubar(atualizarPremier(env), 'cron: Premier'))
   },

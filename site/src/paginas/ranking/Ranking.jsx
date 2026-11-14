@@ -8,17 +8,17 @@ import { lerJson, urlOk } from '../../comum/dados.js'
 import { Contador } from '../../comum/efeitos.jsx'
 import { useAoVivo } from '../../comum/aoVivo.js'
 import { PERSONAGENS, RAMOS, fundoCss } from '../../comum/assetsV2.js'
+import { useSomRanking } from './somRanking.js'
 import Premier from '../../comum/Premier.jsx'
 import { CargosDe, ComMoldura, IconeEquipe, TimeEscolhido, apelidoDe, useCardDe, usePerfis } from '../../comum/Moldura.jsx'
 import { fundoCard } from '../../comum/cardsPerfil.js'
 import { SeloNivel } from '../../comum/Nivel.jsx'
 import { nivelDe } from '../../comum/niveis.js'
-import { MIN_MAPAS } from '../../comum/ranking.js'
+import { MIN_MAPAS, faltamParaRanking } from '../../comum/ranking.js'
 import { useT } from '../../comum/i18n.js'
 import { useAvatar } from '../../comum/avatares.js'
-import { definirPreferencia, iniciar, lerPreferencia, parar } from './somRanking.js'
 
-const TOP = 15
+const TOP = 15 // linhas na primeira tela; "Ver mais" libera o resto, carregando de TOP em TOP conforme a rolagem
 
 // Métricas que podem ordenar o ranking: [chave, rótulo do botão, rótulo curto, casas decimais, sufixo]
 const METRICAS = [
@@ -81,14 +81,6 @@ function Forma({ j }) {
   )
 }
 
-// Pódio (top 3). Quatro camadas independentes dentro de um wrapper que NÃO recorta (isolation + overflow visível):
-//   1. cenário (.v2-pod-cenario): arredondado e com o recorte próprio, só o fundo;
-//   2. personagem (.v2-pod-camada > img): PNG transparente, irmão do cenário e por cima dele; pode passar da borda de cima
-//      (o recorte é só embaixo, na altura do card, porque o PNG vem cortado reto na cintura);
-//   3. faixa de informações (.v2-pod-info): à frente da parte de baixo do personagem, com foto, nome, time, métrica e medalha;
-//   4. número da colocação.
-// Escala, largura e deslocamento de cada personagem ficam em ranking/v2.css (.p1, .p2, .p3), um por um. O card que o jogador
-// escolheu no perfil continua aparecendo, atrás da faixa dele.
 function PersonagemPodio({ arte }) {
   const video = useRef(null)
   const [erro, setErro] = useState(false)
@@ -126,6 +118,14 @@ function PersonagemPodio({ arte }) {
   </>
 }
 
+// Pódio (top 3). Quatro camadas independentes dentro de um wrapper que NÃO recorta (isolation + overflow visível):
+//   1. cenário (.v2-pod-cenario): arredondado e com o recorte próprio, só o fundo;
+//   2. personagem (.v2-pod-camada): vídeo transparente com imagem de reserva, irmão do cenário e por cima dele; pode passar da borda de cima
+//      (o recorte é só embaixo, na altura do card, porque o PNG vem cortado reto na cintura);
+//   3. faixa de informações (.v2-pod-info): à frente da parte de baixo do personagem, com foto, nome, time, métrica e medalha;
+//   4. número da colocação.
+// Escala, largura e deslocamento de cada personagem ficam em ranking/v2.css (.p1, .p2, .p3), um por um. O card que o jogador
+// escolheu no perfil continua aparecendo, atrás da faixa dele.
 function Podio({ j, pos, m, eu }) {
   const card = useCardDe(j.steamId)
   const t = useT()
@@ -139,7 +139,6 @@ function Podio({ j, pos, m, eu }) {
         <PersonagemPodio arte={arte} />
       </div>
       <img className="v2-pod-ramo" src={RAMOS[pos - 1].src} width="64" height="64" alt="" loading={pos === 1 ? 'eager' : 'lazy'} decoding="async" aria-hidden="true" draggable="false" />
-      <div className="v2-pod-espaco" aria-hidden="true" />
       <div className="v2-pod-info">
         <a className="v2-pod-av" href={perfil(j)} aria-hidden="true" tabIndex={-1}>
           <Avatar j={j} classe="" />
@@ -232,16 +231,44 @@ function Conteudo({ dados, chave, eu, barra, busca = '' }) {
     .filter((j) => j.mapas >= MIN_MAPAS)
     .sort((a, b) => b[m[0]] - a[m[0]] || b.rating - a.rating || b.kills - a.kills)
   const top = todos.slice(0, TOP)
+  // Quantas linhas aparecem: começa em TOP; depois do "Ver mais", o fim da lista (sentinela) carrega mais ao rolar
+  const [visiveis, setVisiveis] = useState(TOP)
+  const [rolagem, setRolagem] = useState(false)
+  const sentinela = useRef(null)
+  useEffect(() => {
+    setVisiveis(TOP)
+    setRolagem(false)
+  }, [chave])
+  const temMais = visiveis < todos.length
+  useEffect(() => {
+    if (!rolagem || !temMais || !sentinela.current || typeof IntersectionObserver === 'undefined') return
+    const obs = new IntersectionObserver((es) => es.some((e) => e.isIntersecting) && setVisiveis((v) => v + TOP), { rootMargin: '300px 0px' })
+    obs.observe(sentinela.current)
+    return () => obs.disconnect()
+  }, [rolagem, temMais, visiveis])
   const minhaPos = eu ? todos.findIndex((j) => j.steamId === eu) : -1
   // Com busca, a tabela mostra quem combina com o nome (em todo o ranking, na posição real); o pódio continua sendo o top 3
   const q = busca.trim().toLowerCase()
-  const lista = q ? todos.map((j, i) => ({ j, pos: i + 1 })).filter(({ j }) => String(j.nome || '').toLowerCase().includes(q)) : top.map((j, i) => ({ j, pos: i + 1 }))
+  const lista = q ? todos.map((j, i) => ({ j, pos: i + 1 })).filter(({ j }) => String(j.nome || '').toLowerCase().includes(q)) : todos.slice(0, visiveis).map((j, i) => ({ j, pos: i + 1 }))
+
+  // Logado com menos partidas que o mínimo: avisa quantas faltam (ele não tem posição ainda)
+  const euFora = eu && minhaPos < 0 ? dados.jogadores.find((j) => j.steamId === eu) : null
+  const avisoMinimo = euFora && faltamParaRanking(euFora) > 0 && (
+    <p className="ranking-minimo" role="status">
+      {t('Você jogou {n} de {min} partidas. Faltam {f} para entrar no ranking.', { n: euFora.mapas, min: MIN_MAPAS, f: faltamParaRanking(euFora) })}
+    </p>
+  )
 
   if (top.length === 0) {
-    return <p className="vazio">{t('Ainda não há jogadores no ranking. Assim que uma partida terminar no servidor, ela entra aqui.')}</p>
+    return (
+      <>
+        <p className="vazio">{t('Ainda não há jogadores no ranking. Para entrar, são necessárias pelo menos {min} partidas no servidor.', { min: MIN_MAPAS })}</p>
+        {avisoMinimo}
+      </>
+    )
   }
 
-  const max = top.length ? Math.max(...top.map((j) => j[m[0]])) : 0
+  const max = Math.max(...todos.map((j) => j[m[0]]))
   return (
     // key: troca de métrica remonta o bloco e as animações tocam de novo
     <div key={chave} className="anim">
@@ -253,7 +280,8 @@ function Conteudo({ dados, chave, eu, barra, busca = '' }) {
         </div>
       </div>
       {barra}
-      {minhaPos >= TOP && !q && (
+      {!q && avisoMinimo}
+      {minhaPos >= visiveis && !q && (
         <div className="minha-pos ranking-self">
           <div className="minha-pos-tit mono">{t('SUA POSIÇÃO')}</div>
           <Linha j={todos[minhaPos]} pos={minhaPos + 1} m={m} max={max || todos[0][m[0]]} i={0} eu />
@@ -263,7 +291,7 @@ function Conteudo({ dados, chave, eu, barra, busca = '' }) {
         <div className="tabela-card" tabIndex={0} role="region" aria-label={t('Estatísticas dos jogadores')}>
           <div className="ranking-list-heading">
             <span>{t('RANKING')}</span>
-            <span>{t('JOGADORES')} {top.length}</span>
+            <span>{t('JOGADORES')} {todos.length}</span>
           </div>
           <div className="linha cab">
             <span className="num-c">#</span>
@@ -283,46 +311,16 @@ function Conteudo({ dados, chave, eu, barra, busca = '' }) {
           {q && !lista.length && <p className="v2-rk-sem-busca">{t('Nenhum jogador encontrado.')}</p>}
         </div>
       )}
+      {!q && temMais && (rolagem ? (
+        <div ref={sentinela} className="ranking-carregando" role="status">{t('Carregando mais jogadores…')}</div>
+      ) : (
+        <button type="button" className="v2-btn v2-btn-secundario ranking-ver-mais" onClick={() => { setRolagem(true); setVisiveis((v) => v + TOP) }}>
+          {t('Ver mais')} <span className="v2-num">({todos.length - visiveis})</span>
+        </button>
+      ))}
       {top.length > 0 && (
         <p className="nota v2-rk-nota">{`${MIN_MAPAS === 1 ? t('Mínimo de {n} mapa', { n: MIN_MAPAS }) : t('Mínimo de {n} mapas', { n: MIN_MAPAS })} · Rating HLTV 1.0 · ${t('Jogadores no ranking')}: ${todos.length}`}</p>
       )}
-    </div>
-  )
-}
-
-// Toca a música de fundo do evento (loop) e mostra o botão de mutar + controle de volume
-function SomRanking() {
-  const t = useT()
-  const [pref, setPref] = useState(() => lerPreferencia())
-
-  useEffect(() => {
-    iniciar(pref)
-    return () => parar()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  const mudar = (p) => setPref((atual) => definirPreferencia(p, atual))
-
-  return (
-    <div className="rk-som">
-      <button
-        type="button"
-        className="rk-som-icone"
-        onClick={() => mudar({ mudo: !pref.mudo })}
-        aria-label={pref.mudo ? t('Ligar o som') : t('Desligar o som')}
-        title={pref.mudo ? t('Ligar o som') : t('Desligar o som')}
-      >
-        {pref.mudo ? '🔇' : '🔊'}
-      </button>
-      <input
-        type="range"
-        min="0"
-        max="1"
-        step="0.05"
-        value={pref.vol}
-        onChange={(e) => mudar({ vol: Number(e.target.value), mudo: false })}
-        aria-label={t('Volume')}
-      />
     </div>
   )
 }
@@ -348,6 +346,7 @@ const normalizar = (d) => (d && Array.isArray(d.jogadores) ? d : { jogadores: []
 
 // dados: ranking.json (vem junto com a página gerada no deploy; no `npm run dev` é buscado aqui)
 export default function Ranking({ dados: inicial }) {
+  useSomRanking()
   const t = useT()
   const [dados, setDados] = useState(inicial ? normalizar(inicial) : null)
   const [chave, setChave] = useState('rating')
@@ -382,7 +381,6 @@ export default function Ranking({ dados: inicial }) {
   return (
     <Layout pagina="ranking">
       <main className="ranking-page v2-rk" style={fundoCss('ranking')}>
-        <SomRanking />
         {/* Topo: título, resumo e (no Conteudo) o pódio sobre o cenário do circo */}
         <section className="v2-rk-topo">
           <div className="wrap v2-rk-cab">

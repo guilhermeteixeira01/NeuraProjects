@@ -1,0 +1,59 @@
+/* Partida · v3 (central competitiva). Vem depois de comum/neura-v3.css.
+   O placar é o centro da primeira dobra: números grandes em display, vencedor em verde, nomes dos times em caixa alta. Abaixo, linha do
+   tempo dos rounds e as tabelas com cabeçalho legível. As medidas do layout voltam a ser as mesmas das outras rotas. */
+
+html:not(#v3):has(.resultado-hero) { --sidebar-width: 232px; --topbar-height: 64px; --content-gutter: 28px; }
+
+/* cabeçalho */
+html:not(#v3) .resultado-voltar { color: var(--x-text-2); font: 700 13px/1 var(--x-display); letter-spacing: .14em; text-transform: uppercase; }
+html:not(#v3) .resultado-voltar:hover { color: var(--x-accent); }
+html:not(#v3) .resultado-titulo h1 { font: 800 clamp(30px, 3vw, 44px)/1 var(--x-display); letter-spacing: .02em; text-transform: uppercase; }
+html:not(#v3) .resultado-titulo p { color: var(--x-text-2); }
+html:not(#v3) .resultado-demo { border-color: var(--x-line-3); border-radius: var(--x-r-s); background: rgb(11 13 17 / .7); font-family: var(--x-display); letter-spacing: .08em; text-transform: uppercase; }
+
+/* placar */
+html:not(#v3) .resultado-placar {
+  gap: 34px; margin-top: 26px; padding: 18px 28px; width: fit-content; max-width: 100%;
+  border: 1px solid var(--x-line-2); border-radius: var(--x-r); background: rgb(11 13 17 / .78); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+}
+html:not(#v3) .resultado-numeros { font: 800 76px/1 var(--x-display); letter-spacing: .02em; color: var(--x-text-2); }
+html:not(#v3) .resultado-numeros .win { color: var(--x-win); text-shadow: 0 0 28px rgb(61 220 151 / .35); }
+html:not(#v3) .resultado-numeros > span { color: var(--x-text-3); }
+html:not(#v3) .resultado-time > b { font: 800 30px/1 var(--x-display); letter-spacing: .03em; text-transform: uppercase; }
+html:not(#v3) .resultado-vitoria { border-radius: 3px; font: 800 12px/1 var(--x-display); letter-spacing: .14em; color: var(--x-win); border-color: rgb(61 220 151 / .5); background: rgb(61 220 151 / .1); }
+html:not(#v3) .resultado-meta { color: var(--x-text-2); font: 700 13px/1 var(--x-display); letter-spacing: .16em; text-transform: uppercase; }
+
+/* seções */
+html:not(#v3) .pt-v2 .section-head h2 { font: 800 21px/1 var(--x-display); letter-spacing: .08em; text-transform: uppercase; }
+html:not(#v3) .pt-v2 .section-head .kicker { color: var(--x-accent); font-family: var(--x-display); letter-spacing: .2em; }
+html:not(#v3) .pt-v2 :is(.rounds-card, .team-card, .section) { border-color: var(--x-line); }
+html:not(#v3) .pt-v2-tabelas .abas-tabela button { font: 700 13px/1 var(--x-display); letter-spacing: .12em; text-transform: uppercase; border-radius: var(--x-r-s); }
+html:not(#v3) .pt-v2-tabelas .abas-tabela button.active { background: var(--x-accent); color: var(--x-accent-ink); }
+
+/* tabelas */
+html:not(#v3) .pt-v2 .resultado-tabela th { color: var(--x-text-3); letter-spacing: .12em !important; }
+html:not(#v3) .pt-v2 .resultado-tabela td { color: var(--x-text); }
+html:not(#v3) .pt-v2 .resultado-tabela tbody tr:hover td { background: rgb(255 255 255 / .03); }
+html:not(#v3) .pt-v2 .resultado-tabela .player b, html:not(#v3) .pt-v2 .resultado-tabela .player a { font-weight: 700; }
+
+/* MVP */
+html:not(#v3) .pt-v2-lado .mvp-selo { background: var(--x-gold); color: var(--x-accent-ink); font-family: var(--x-display); letter-spacing: .12em; }
+html:not(#v3) .pt-v2-lado .mvp-stats b { font-family: var(--x-display); font-size: 22px; }
+
+@media (max-width: 1000px) {
+  html:not(#v3) .resultado-numeros { font-size: 56px; }
+  html:not(#v3) .resultado-time > b { font-size: 22px; }
+  html:not(#v3) .resultado-placar { gap: 18px; padding: 14px 16px; }
+}
+@media (max-width: 650px) {
+  html:not(#v3) .resultado-numeros { font-size: 46px; }
+  html:not(#v3) .resultado-placar { width: 100%; }
+}
+
+/* véu do cenário em grafite; no celular ele cobre a largura toda (as artes novas são claras) */
+html:not(#v3) .resultado-hero::after { background: linear-gradient(90deg, rgb(8 9 12 / .88), rgb(8 9 12 / .2) 75%), linear-gradient(0deg, var(--x-bg), transparent 70%); }
+@media (max-width: 650px) {
+  html:not(#v3) .resultado-hero::after { background: linear-gradient(180deg, rgb(8 9 12 / .72), rgb(8 9 12 / .82) 60%, var(--x-bg)); }
+  html:not(#v3) .resultado-time { flex: 1 1 0; min-width: 0; }
+  html:not(#v3) .resultado-time > b { min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; overflow-wrap: normal; word-break: normal; font-size: 18px; }
+}

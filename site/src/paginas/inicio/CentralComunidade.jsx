@@ -6,7 +6,7 @@ import { useConta, entrar, linkPerfil } from '../../comum/conta.js'
 import { lerDrops, useSaldo } from '../../comum/loja.js'
 import { mapImage, nomeMapa, getMap } from '../../comum/mapas.js'
 import { useT } from '../../comum/i18n.js'
-import { COMUNIDADE_V3 } from '../../comum/assetsV2.js'
+import { FUNDOS, PERSONAGENS } from '../../comum/assetsV2.js'
 
 export default function CentralComunidade({ partidas, ranking }) {
   const t = useT(), conta = useConta(), raiz = useRef(null)
@@ -90,14 +90,12 @@ function DestaquesComunidade({ destaque, drop, numero }) {
       <a className="v2-btn v2-btn-ouro" href="/loja/?aba=skins">{t('Mercado da comunidade')}<IconeUI tipo="seta" tamanho={17} /></a>
     </>,
   ]
-  // Camadas independentes: wrapper (relative, isolation, sem recorte) > cenário de circo V3 (recorte arredondado e véu próprio) > palhaço
-  // sentado V3 (PNG transparente, irmão do cenário, sem ancestral com overflow no alto) > texto, botão e pontos por cima. A arte nunca captura clique.
   return <section className="np-destaques-painel v2-dest" aria-roledescription="carrossel" aria-label={t('Comunidade')}>
     <div className="v2-dest-cenario" aria-hidden="true">
-      <img src={COMUNIDADE_V3.cenario.src} width={COMUNIDADE_V3.cenario.w} height={COMUNIDADE_V3.cenario.h} alt="" loading="lazy" decoding="async" draggable="false" />
+      <img src={FUNDOS.ranking.src} width={FUNDOS.ranking.w} height={FUNDOS.ranking.h} alt="" loading="lazy" decoding="async" draggable="false" />
     </div>
     <div className="v2-dest-camada" aria-hidden="true">
-      <img src={COMUNIDADE_V3.campeao.src} width={COMUNIDADE_V3.campeao.w} height={COMUNIDADE_V3.campeao.h} alt="" loading="lazy" decoding="async" draggable="false" />
+      <img src={PERSONAGENS.tr.src} width={PERSONAGENS.tr.w} height={PERSONAGENS.tr.h} alt="" loading="lazy" decoding="async" />
     </div>
     <header className="np-bloco-cab"><h2><IconeUI tipo="estrela" tamanho={22}/>{t('Comunidade')}</h2><a href="/ranking/">{t('Ver mais')} <IconeUI tipo="seta" tamanho={15}/></a></header>
     <div className="v2-dest-corpo" aria-live="polite">{telas[tela]}</div>

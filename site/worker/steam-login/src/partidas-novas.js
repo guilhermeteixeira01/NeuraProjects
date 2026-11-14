@@ -1,4 +1,6 @@
 import { registrarMissoesPartida } from './missoes.js'
+import { registrarPartidaNatal } from './natal-2026.js'
+import { registrar } from './registro.js'
 import { aplicarConsumiveisPartida, inicioDaPartida, xpPorJogador } from './consumiveis.js'
 import { pedirAoJogador } from './objetos.js'
 import { mandarPara } from './amigos.js'
@@ -65,6 +67,8 @@ export async function rotaPartidaServidor(req, env) {
   const item = { ...c.item, caminho: c.caminho } // o link da página é sempre /partidas/<caminho>/
   await mudarDoc(env, 'partidas-recentes', (lista) => [item, ...lista.filter((p) => p.caminho !== c.caminho)].slice(0, MAX_RECENTES), [])
   await registrarMissoesPartida(env,c.caminho,c.partida)
+  // Natal 2026: registro oficial da partida no evento. Uma falha aqui não derruba o envio do plugin: o cron confere as partidas recentes.
+  await registrarPartidaNatal(env, c.caminho, c.partida).catch((e) => registrar(env, { tipo: 'erro', texto: `natal-2026: partida ${c.caminho} não registrada: ${String(e?.message || e).slice(0, 120)}` }))
   await mandarPara(env, ids, { tipo: 'partida', caminho: c.caminho })
   return json({ ok: true })
 }

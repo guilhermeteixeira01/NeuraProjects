@@ -11,7 +11,7 @@ import { useAvatar } from '../../comum/avatares.js'
 import { definirMudoEquipe, definirVendoChatEquipe, useAvisoEquipe } from '../../comum/avisoEquipe.js'
 import { useT } from '../../comum/i18n.js'
 import { PERMISSOES, acaoEquipe, lerChatDoTime, lerEquipes, lerMeuTime, reduzirImagem, textoErro, urlImagemEquipe } from '../../comum/equipes.js'
-import { PERSONAGENS, fundoCss } from '../../comum/assetsV2.js' // capa do time: cenário e agentes em camadas
+import { PERSONAGENS, fundoCss } from '../../comum/assetsV2.js'
 
 const iniciais = (n) => (n || '?').replace(/[^\p{L}\p{N}\s]/gu, '').split(/\s+/).filter(Boolean).slice(0, 2).map((x) => x[0]).join('').toUpperCase() || '?'
 
@@ -716,7 +716,7 @@ function ComTime({ dados, recarregar, eu }) {
         <div className="eq-capa-cartao" style={fundoCss('time')}>
           <div className="eq-capa-cenario" aria-hidden="true" />
           <div className="eq-capa-camada" aria-hidden="true">
-            <img src={PERSONAGENS.equipe.src} width={PERSONAGENS.equipe.w} height={PERSONAGENS.equipe.h} alt="" decoding="async" draggable="false" />
+            <img src={PERSONAGENS.grupoCT.src} width={PERSONAGENS.grupoCT.w} height={PERSONAGENS.grupoCT.h} alt="" decoding="async" />
           </div>
           <header className="eq-cabeca">
             <Escudo equipe={time} tamanho={96} />

@@ -32,7 +32,7 @@ import HallDaFama from './HallDaFama.jsx'
 import ConfiguracoesConta from './ConfiguracoesConta.jsx'
 import PerfilProtegido, { ApresentacaoPerfil, LinksExternosPerfil } from './PerfilProtegido.jsx'
 import { AmigosDoPerfil, AfiliadoDoPerfil } from './PerfilSocial.jsx'
-import { FUNDOS, PERSONAGENS } from '../../comum/assetsV2.js'
+import { FUNDOS } from '../../comum/assetsV2.js'
 
 // Perfil do jogador: /perfil/?id=<SteamID64>. Sem id, mostra o de quem está logado pela Steam.
 // Dados: ranking/ranking.json (totais) e perfil/historico/<id>.json (todos os mapas), gerados no deploy.
@@ -539,9 +539,7 @@ function Jogador({ j, mapas, pos, total, eu, personalizar, admin = false }) {
   return (
     <>
       <section className="secao pf-pagina pf-hall-pagina">
-        <div className="pf-cover" style={{ '--pf-cover': `url("${fundoPerfil ? imagemFundoPerfil(fundoPerfil) : FUNDOS.inventario.src}")` }} aria-hidden="true">
-          <img className="pf-cover-personagem" src={PERSONAGENS.lojaArlequim.src} alt="" />
-        </div>
+        <div className="pf-cover" style={{ '--pf-cover': `url("${fundoPerfil ? imagemFundoPerfil(fundoPerfil) : FUNDOS.perfil.src}")` }} aria-hidden="true" />
         <div className="wrap pf-header-wrap">
           <header className="pf-profile-header">
             <div className="pf-profile-row">
