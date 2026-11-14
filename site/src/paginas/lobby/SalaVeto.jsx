@@ -234,7 +234,7 @@ function Conectar({ servidor, fechaEm, desvio, aoChamarSubstituto }) {
     <div className="sala-servidor">
       {conexao ? (
         <>
-          <a className="sala-entrar" href={conexao.url}>
+          <a className="sala-entrar" href={conexao.url} onClick={() => navigator.clipboard?.writeText(conexao.comando).then(() => setCopia('copiado'), () => {})}>
             {t('ENTRAR NA PARTIDA')}
           </a>
           <button type="button" className="sala-copiar-conexao" onClick={copiarComando}>
